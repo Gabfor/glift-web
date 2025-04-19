@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  @apply bg-[#FBFCFE] text-[#202121] font-sans antialiased;
+}
+
+a {
+  @apply transition-colors duration-200;
+}
+
+.btn-primary {
+  @apply bg-[#2E3271] text-white font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition hover:bg-[#1f224e];
+}
+
+.btn-outline {
+  @apply border-2 border-[#2E3271] text-[#2E3271] font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition hover:bg-[#2E3271] hover:text-white;
+}
+
+.shadow-glift {
+  box-shadow: 0px 3px 6px rgba(93, 100, 148, 0.15);
+}
+
+.shadow-glift-hover:hover {
+  box-shadow: 0px 5px 21px rgba(93, 100, 148, 0.15);
+}
+
+html {
+  scroll-behavior: smooth;
+}
