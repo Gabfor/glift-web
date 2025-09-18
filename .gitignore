@@ -1,0 +1,16 @@
+# Node
+node_modules/
+.next/
+dist/
+*.log
+
+# Environnements
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

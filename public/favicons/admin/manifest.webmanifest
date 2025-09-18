@@ -1,0 +1,21 @@
+{
+  "name": "Glift",
+  "short_name": "Glift",
+  "description": "Plateforme d'entraînement Glift",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#7069FA",
+  "icons": [
+    {
+      "src": "/favicons/admin/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicons/admin/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
