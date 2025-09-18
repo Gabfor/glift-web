@@ -5,10 +5,27 @@ import { ReactNode, useEffect } from 'react';
 import { createClientComponentClient } from '@/lib/supabase/client';
 import { Session } from '@supabase/supabase-js';
 import Header from './Header';
-import UserProvider from '@/context/UserContext';
+import Footer from './Footer';
+import FooterPublic from './FooterPublic';
+import UserProvider, { useUser } from '@/context/UserContext';
+import SupabaseProvider from './SupabaseProvider';
+
+function LayoutContent({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const { isAuthenticated } = useUser();
+
+  console.log('✅ ClientLayout rendu pour', pathname);
+
+  return (
+    <>
+      <Header />
+      <main>{children}</main>
+      {isAuthenticated ? <Footer /> : <FooterPublic />}
+    </>
+  );
+}
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const supabase = createClientComponentClient();
 
   useEffect(() => {
@@ -22,12 +39,11 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     };
   }, [supabase]);
 
-  console.log('✅ ClientLayout rendu pour', pathname);
-
   return (
-    <UserProvider>
-      <Header />
-      <main>{children}</main>
-    </UserProvider>
+    <SupabaseProvider>
+      <UserProvider>
+        <LayoutContent>{children}</LayoutContent>
+      </UserProvider>
+    </SupabaseProvider>
   );
 }
