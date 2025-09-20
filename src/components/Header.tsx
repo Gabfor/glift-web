@@ -3,106 +3,21 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
-import { createClientComponentClient } from "@/lib/supabase/client";
-
-const DEBUG = process.env.NEXT_PUBLIC_DEBUG_AVATAR === "1";
-const dlog = (...a: any[]) => { if (DEBUG) console.log("[Header]", ...a); };
+import { useAvatar } from "@/context/AvatarContext";
 
 const NAME_KEY = "glift:display_name";
-const BUCKET = "avatars";
-
-const getLatestAvatarUrl = async (supabase: any, userId: string): Promise<string | null> => {
-  const { data: files, error } = await supabase.storage.from(BUCKET).list(userId, { limit: 1000 });
-  if (error) return null;
-  if (!files || files.length === 0) return null;
-  const numeric = files
-    .map((f: any) => ({ f, n: Number((f.name.split(".")[0] || "").replace(/\D+/g, "")) }))
-    .filter((x: any) => Number.isFinite(x.n))
-    .sort((a: any, b: any) => b.n - a.n);
-  const chosen = numeric.length ? numeric[0].f : files[0];
-  const objectPath = `${userId}/${chosen.name}`;
-  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(objectPath);
-  return pub.publicUrl || null;
-};
-
-type AvatarStatus = "idle" | "loading" | "found" | "absent";
 
 export default function Header() {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
   const { user, isAuthenticated, isAuthResolved } = useUser();
+  const { avatarUrl } = useAvatar();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [avatarStatus, setAvatarStatus] = useState<AvatarStatus>("idle");
-
   const [nameOverride, setNameOverride] = useState<string | null>(null);
-
-  const preloadImage = useCallback(async (url: string) => {
-    try {
-      await new Promise<void>((resolve) => {
-        const img = new window.Image();
-        img.onload = () => resolve();
-        img.onerror = () => resolve();
-        img.src = url;
-      });
-    } catch {}
-  }, []);
-
-  const refreshAvatarFromStorage = useCallback(async () => {
-    if (!isAuthenticated || !user?.id) {
-      setAvatarUrl(null);
-      setAvatarStatus("absent");
-      return;
-    }
-    setAvatarStatus("loading");
-    const url = await getLatestAvatarUrl(supabase, user.id);
-    dlog("refreshAvatarFromStorage →", url);
-    if (url) {
-      await preloadImage(url);
-      setAvatarUrl(url);
-      setAvatarStatus("found");
-    } else {
-      setAvatarUrl(null);
-      setAvatarStatus("absent");
-    }
-  }, [isAuthenticated, user?.id, supabase, preloadImage]);
-
-  useEffect(() => { refreshAvatarFromStorage(); }, [refreshAvatarFromStorage]);
-
-  useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      dlog("onAuthStateChange uid →", session?.user?.id);
-      refreshAvatarFromStorage();
-      const nm = (session?.user?.user_metadata?.name as string) ?? null;
-      setNameOverride((cur) => cur ?? (nm?.trim() || null));
-    });
-    return () => { try { data?.subscription?.unsubscribe?.(); } catch {} };
-  }, [supabase, refreshAvatarFromStorage]);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      const url = e?.detail?.url ?? null;
-      if (url === null) {
-        setAvatarUrl(null);
-        setAvatarStatus("absent");
-        return;
-      }
-      setAvatarStatus("loading");
-      (async () => {
-        await preloadImage(url);
-        setAvatarUrl(url);
-        setAvatarStatus("found");
-      })();
-    };
-    window.addEventListener("glift:avatar-updated", handler);
-    return () => window.removeEventListener("glift:avatar-updated", handler);
-  }, [preloadImage]);
 
   useEffect(() => {
     try {
@@ -124,7 +39,6 @@ export default function Header() {
 
   const displayName = (nameOverride ?? user?.user_metadata?.name ?? "").toString().trim() || "Inconnu";
   const displayInitial = displayName.charAt(0)?.toUpperCase() || "?";
-
   const authReady = isAuthResolved;
 
   return (
@@ -166,12 +80,10 @@ export default function Header() {
             isAuthenticated ? (
               <>
                 <button onClick={() => setDropdownOpen(!dropdownOpen)} className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold">
-                  {avatarStatus === "found" ? (
-                    <span key={avatarUrl ?? "no-avatar"} className="w-[44px] h-[44px] rounded-full overflow-hidden flex items-center justify-center">
-                      <Image src={avatarUrl as string} alt="Avatar" width={44} height={44} className="rounded-full object-cover" unoptimized />
+                  {avatarUrl ? (
+                    <span key={avatarUrl} className="w-[44px] h-[44px] rounded-full overflow-hidden flex items-center justify-center">
+                      <Image src={avatarUrl} alt="Avatar" width={44} height={44} className="rounded-full object-cover" unoptimized />
                     </span>
-                  ) : avatarStatus === "loading" ? (
-                    <div className="w-[44px] h-[44px] rounded-full bg-[#ECE9F1] animate-pulse" />
                   ) : (
                     <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#7069FA] text-white flex items-center justify-center font-semibold">
                       {displayInitial}
@@ -197,7 +109,7 @@ export default function Header() {
             ) : (
               <div className="flex items-center gap-4 text-sm font-medium">
                 <Link href="/connexion" className="text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold">Connexion</Link>
-                <Link href="/tarifs" className="bg-[#7069FA] hover:bg-[#6660E4] text-white w-[111px] h-[44px] text-[16px] font-semibold flex items-center justify-center rounded-full transition-colors duration-200">Inscription</Link>
+                <Link href="/tarifs" className="bg-[#7069FA] hover:bg-[#6660E4] text-white w-[111px] h-[44px] text-[16px] font-semibold flex items-center justify-center rounded-full transition-colors durée-200">Inscription</Link>
               </div>
             )
           ) : (

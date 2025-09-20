@@ -9,6 +9,7 @@ import Footer from './Footer';
 import FooterPublic from './FooterPublic';
 import UserProvider, { useUser } from '@/context/UserContext';
 import SupabaseProvider from './SupabaseProvider';
+import { AvatarProvider } from '@/context/AvatarContext';
 
 function LayoutContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -32,7 +33,7 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(
-      async (event: string, session: Session | null) => {}
+      async (_event: string, _session: Session | null) => {}
     );
     return () => {
       subscription?.unsubscribe();
@@ -42,7 +43,9 @@ export default function ClientLayout({ children }: { children: ReactNode }) {
   return (
     <SupabaseProvider>
       <UserProvider>
-        <LayoutContent>{children}</LayoutContent>
+        <AvatarProvider>
+          <LayoutContent>{children}</LayoutContent>
+        </AvatarProvider>
       </UserProvider>
     </SupabaseProvider>
   );
