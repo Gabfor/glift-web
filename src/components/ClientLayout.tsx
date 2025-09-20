@@ -27,19 +27,6 @@ function LayoutContent({ children }: { children: ReactNode }) {
 }
 
 export default function ClientLayout({ children }: { children: ReactNode }) {
-  const supabase = createClientComponentClient();
-
-  useEffect(() => {
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      async (_event: string, _session: Session | null) => {}
-    );
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [supabase]);
-
   return (
     <SupabaseProvider>
       <UserProvider>

@@ -6,6 +6,7 @@ import { useUser } from '@/context/UserContext';
 
 export default function VerifyEmailBanner() {
   const { user } = useUser();
+  if (!user?.id) return null;
   const supabase = createClient();
 
   const [show, setShow] = useState(false);

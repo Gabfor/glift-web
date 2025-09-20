@@ -12,6 +12,7 @@ const NAME_KEY = "glift:display_name";
 export default function Header() {
   const pathname = usePathname();
   const { user, isAuthenticated, isAuthResolved } = useUser();
+  console.log("👤 user in Header.tsx:", user);
   const { avatarUrl } = useAvatar();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
