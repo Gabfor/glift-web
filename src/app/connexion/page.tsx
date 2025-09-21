@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient, endLogoutBarrier, resetSupabaseClient, clearSupabaseStorage } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import ForgotPasswordButtonWithModal from "@/components/auth/ForgotPasswordButtonWithModal";
 import Tooltip from "@/components/Tooltip";
 import Spinner from "@/components/ui/Spinner";
@@ -38,12 +38,7 @@ export default function ConnexionPage() {
     return `${nextQ}${loginPageHash}`;
   }, [search, loginPageHash]);
 
-  useEffect(() => {
-    try {
-      clearSupabaseStorage();
-    } catch {}
-  }, []);
-
+  // Nettoyage legacy localStorage Supabase
   const purgeLegacySupabaseLocalStorage = () => {
     try {
       if (typeof window === "undefined") return;
@@ -62,6 +57,7 @@ export default function ConnexionPage() {
     !!(navigator as any).credentials &&
     (window.isSecureContext ?? window.location.hostname === "localhost");
 
+  // Tentative d’auto-remplissage via Credential Management API
   useEffect(() => {
     (async () => {
       try {
@@ -113,11 +109,12 @@ export default function ConnexionPage() {
         purgeLegacySupabaseLocalStorage();
       }
 
-      endLogoutBarrier();
-      resetSupabaseClient();
       const supabase = createClient();
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
       if (error) {
         if (error.message === "Invalid login credentials") {
           setError("Email ou mot de passe incorrect.");
@@ -207,9 +204,17 @@ export default function ConnexionPage() {
           </div>
         )}
 
-        <form className="flex flex-col items-center w-full" onSubmit={handleLogin} autoComplete="on" name="login">
+        <form
+          className="flex flex-col items-center w-full"
+          onSubmit={handleLogin}
+          autoComplete="on"
+          name="login"
+        >
           <div className="w-full max-w-[368px]">
-            <label htmlFor="email" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
+            <label
+              htmlFor="email"
+              className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
+            >
               Email
             </label>
             <input
@@ -234,13 +239,18 @@ export default function ConnexionPage() {
               }`}
             />
             <div className="h-[20px] mt-[5px] text-[13px] font-medium">
-              {shouldShowEmailError && <p className="text-[#EF4444]">Format d’adresse invalide</p>}
+              {shouldShowEmailError && (
+                <p className="text-[#EF4444]">Format d’adresse invalide</p>
+              )}
             </div>
           </div>
 
           <div className="w-full max-w-[368px] mb-[20px] relative">
             <div className="flex items-end justify-between mb-[5px]">
-              <label htmlFor="password" className="text-[16px] text-[#3A416F] font-bold">
+              <label
+                htmlFor="password"
+                className="text-[16px] text-[#3A416F] font-bold"
+              >
                 Mot de passe
               </label>
               <ForgotPasswordButtonWithModal
@@ -261,21 +271,50 @@ export default function ConnexionPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
             />
-            <Tooltip content={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"} offset={12} offsetX={1} delay={250}>
+            <Tooltip
+              content={
+                showPassword
+                  ? "Masquer le mot de passe"
+                  : "Afficher le mot de passe"
+              }
+              offset={12}
+              offsetX={1}
+              delay={250}
+            >
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-[41px] cursor-pointer"
-                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                aria-label={
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
               >
-                <Image src={showPassword ? "/icons/masque_defaut.svg" : "/icons/visible_defaut.svg"} alt="" width={25} height={25} />
-                <span className="sr-only">{showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}</span>
+                <Image
+                  src={
+                    showPassword
+                      ? "/icons/masque_defaut.svg"
+                      : "/icons/visible_defaut.svg"
+                  }
+                  alt=""
+                  width={25}
+                  height={25}
+                />
+                <span className="sr-only">
+                  {showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"}
+                </span>
               </button>
             </Tooltip>
           </div>
 
           <div className="max-w-[368px] mb-[20px] w-full">
-            <label htmlFor="remember" className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
+            <label
+              htmlFor="remember"
+              className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]"
+            >
               <div className="relative w-[15px] h-[15px] shrink-0 mt-[1px]">
                 <input
                   id="remember"
@@ -285,8 +324,18 @@ export default function ConnexionPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="peer sr-only"
                 />
-                <img src="/icons/checkbox_unchecked.svg" alt="" aria-hidden="true" className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden" />
-                <img src="/icons/checkbox_checked.svg" alt="" aria-hidden="true" className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block" />
+                <img
+                  src="/icons/checkbox_unchecked.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
+                />
+                <img
+                  src="/icons/checkbox_checked.svg"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
+                />
               </div>
               Je veux rester connecté.
             </label>
@@ -318,7 +367,10 @@ export default function ConnexionPage() {
 
           <p className="mt-[20px] text-sm font-semibold text-[#5D6494] text-center">
             Pas encore inscrit ?{" "}
-            <Link href="/inscription" className="text-[#7069FA] hover:text-[#6660E4]">
+            <Link
+              href="/inscription"
+              className="text-[#7069FA] hover:text-[#6660E4]"
+            >
               Créer un compte
             </Link>
           </p>

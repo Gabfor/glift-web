@@ -1,92 +1,152 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/pagination";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/client";
+import { useRef, useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client"; // ← attention, ici on garde ton client actuel
 
-type Banner = {
-  id: number;
-  title?: string | null;
-  subtitle?: string | null;
-  image_url: string;
-  link_url?: string | null;
-  order?: number | null;
-  status?: "ON" | "OFF" | null;
+type Slide = {
+  image: string;
+  alt?: string;
+  link?: string;
 };
 
 export default function ShopBannerSliderClient() {
   const supabase = createClient();
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [loading, setLoading] = useState(true);
+  const paginationRef = useRef<HTMLDivElement | null>(null);
+  const swiperRef = useRef<any>(null);
 
-  const fetchBanners = useCallback(async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("shop_slider")
-      .select("*")
-      .eq("status", "ON")
-      .order("order", { ascending: true });
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [type, setType] = useState<"none" | "single" | "double">("none");
+  const [slides, setSlides] = useState<Slide[]>([]);
 
-    if (error) {
-      console.error("[ShopBannerSlider] fetch error:", error);
-      setBanners([]);
-    } else {
-      setBanners((data || []) as Banner[]);
-    }
-    setLoading(false);
+  /** ------- Fetch data depuis sliders_admin ------- */
+  useEffect(() => {
+    const fetchSliderConfig = async () => {
+      const { data, error } = await supabase.from("sliders_admin").select("*").single();
+
+      if (error) {
+        console.error("[ShopBannerSlider] error fetching sliders_admin:", error);
+        return;
+      }
+
+      if (data && data.type !== "none") {
+        setType(data.type as "single" | "double");
+        setSlides(data.slides || []);
+      }
+    };
+
+    fetchSliderConfig();
   }, [supabase]);
 
-  // 1) initial
-  useEffect(() => {
-    fetchBanners();
-  }, [fetchBanners]);
+  if (type === "none" || slides.length === 0) return null;
 
-  // 2) si la session est restaurée / changée, on relance (utile si RLS côté table)
-  useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "INITIAL_SESSION" || event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
-        fetchBanners();
-      }
-    });
-    return () => sub.subscription.unsubscribe();
-  }, [supabase, fetchBanners]);
+  const isDouble = type === "double";
+  const width = isDouble ? 564 : 1152;
+  const height = 250;
 
-  if (loading) {
-    return (
-      <div className="w-full h-[160px] rounded-[8px] bg-[#ECE9F1] animate-pulse" aria-label="Chargement du slider" />
-    );
-  }
+  const hideControls =
+    (type === "single" && slides.length <= 1) ||
+    (type === "double" && slides.length <= 2);
 
-  if (banners.length === 0) return null;
+  const toggleAutoplay = () => {
+    if (!swiperRef.current) return;
+    if (isPlaying) swiperRef.current.autoplay.stop();
+    else swiperRef.current.autoplay.start();
+    setIsPlaying(!isPlaying);
+  };
 
   return (
-    <div className="relative w-full overflow-hidden rounded-[8px]">
-      {/* Slider minimal (une seule slide visible si tu n’as pas de carousel) */}
-      {banners.map((b) => (
-        <a
-          key={b.id}
-          href={b.link_url || "#"}
-          className="block w-full relative"
-          style={{ minHeight: 160 }}
-        >
-          <Image
-            src={b.image_url}
-            alt={b.title || ""}
-            fill
-            className="object-cover"
-            sizes="(max-width: 1152px) 100vw, 1152px"
-            unoptimized
-          />
-          {(b.title || b.subtitle) && (
-            <div className="absolute inset-0 flex items-end p-4 bg-gradient-to-t from-black/40 to-transparent">
-              <div className="text-white">
-                {b.title && <div className="text-lg font-bold">{b.title}</div>}
-                {b.subtitle && <div className="text-sm font-medium opacity-90">{b.subtitle}</div>}
-              </div>
+    <div className={`mx-auto mb-12 ${isDouble ? "max-w-[1152px]" : "w-[1152px]"}`}>
+      <Swiper
+        modules={[Pagination, Autoplay]}
+        autoplay={
+          hideControls
+            ? false
+            : {
+                delay: 4000,
+                disableOnInteraction: false,
+              }
+        }
+        pagination={
+          hideControls
+            ? false
+            : {
+                el: paginationRef.current,
+                clickable: true,
+              }
+        }
+        onBeforeInit={(swiper) => {
+          swiperRef.current = swiper;
+          if (swiper.params.pagination && typeof swiper.params.pagination !== "boolean") {
+            swiper.params.pagination.el = paginationRef.current;
+          }
+        }}
+        loop={!hideControls}
+        spaceBetween={24}
+        slidesPerView={isDouble ? 2 : 1}
+        slidesPerGroup={isDouble ? 2 : 1}
+        speed={600}
+      >
+        {slides.map((slide, idx) => (
+          <SwiperSlide key={idx}>
+            <a
+              href={slide.link || "#"}
+              target={slide.link ? "_blank" : undefined}
+              rel={slide.link ? "noopener noreferrer" : undefined}
+            >
+              <Image
+                src={slide.image}
+                alt={slide.alt || `Slider ${idx + 1}`}
+                width={width}
+                height={height}
+                className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
+              />
+            </a>
+          </SwiperSlide>
+        ))}
+      </Swiper>
+
+      {/* Bullets + pause/play uniquement si plusieurs slides */}
+      {!hideControls && (
+        <>
+          <div className="mt-5 flex justify-center">
+            <div className="flex items-center justify-center gap-[3px] mr-[6px]">
+              <div ref={paginationRef} className="flex items-center justify-center" />
+              <button
+                onClick={toggleAutoplay}
+                className="w-[9px] h-[9px] min-w-[9px] min-h-[9px] flex items-center justify-center transition-opacity"
+                aria-label="Toggle autoplay"
+              >
+                <Image
+                  src={isPlaying ? "/icons/pause.svg" : "/icons/play.svg"}
+                  alt={isPlaying ? "Pause" : "Play"}
+                  width={9}
+                  height={9}
+                  className="w-[9px] h-[9px] object-none"
+                  unoptimized
+                />
+              </button>
             </div>
-          )}
-        </a>
-      ))}
+          </div>
+
+          <style jsx global>{`
+            .swiper-pagination-bullet {
+              width: 9px;
+              height: 9px;
+              background-color: #ece9f1;
+              opacity: 1;
+              margin: 0 6px;
+            }
+            .swiper-pagination-bullet-active {
+              background-color: #a1a5fd;
+            }
+          `}</style>
+        </>
+      )}
     </div>
   );
 }

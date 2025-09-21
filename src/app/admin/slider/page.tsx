@@ -12,37 +12,23 @@ const sliderTypeOptions = [
   { value: "double", label: "Slider double" },
 ];
 
-const sliderSimpleOptions = [
-  { value: "1", label: "1 slider" },
-  { value: "2", label: "2 sliders" },
-  { value: "3", label: "3 sliders" },
-];
-
-const sliderDoubleOptions = [
-  { value: "2", label: "2 sliders" },
-  { value: "4", label: "4 sliders" },
-  { value: "6", label: "6 sliders" },
-];
-
 export default function AdminSliderPage() {
   const supabase = createClient();
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
-  const [type, setType] = useState("none");
-  const [count, setCount] = useState("1");
+  const [type, setType] = useState<"none" | "single" | "double">("none");
   const [slides, setSlides] = useState(
     Array.from({ length: 6 }, () => ({ image: "", alt: "", link: "" }))
   );
 
   const requireSession = async () => {
     const { data } = await supabase.auth.getSession();
-    const session = data.session;
-    if (!session) {
+    if (!data.session) {
       router.replace(`/connexion?next=${encodeURIComponent(window.location.pathname)}`);
       return null;
     }
-    return session;
+    return data.session;
   };
 
   const fetchSliderConfig = async () => {
@@ -54,8 +40,7 @@ export default function AdminSliderPage() {
       console.error("Erreur select sliders_admin :", error);
     }
     if (data) {
-      setType(data.type || "none");
-      setCount(String(data.slide_count || data.slides?.length || "1"));
+      setType((data.type as "none" | "single" | "double") || "none");
       setSlides(
         [...(data.slides || []), {}, {}, {}, {}, {}, {}]
           .slice(0, 6)
@@ -74,34 +59,16 @@ export default function AdminSliderPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (!loading) {
-      const simpleValues = sliderSimpleOptions.map((o) => o.value);
-      const doubleValues = sliderDoubleOptions.map((o) => o.value);
-      const isValid =
-        (type === "single" && simpleValues.includes(count)) ||
-        (type === "double" && doubleValues.includes(count));
-      if (!isValid) {
-        setCount(type === "double" ? "2" : "1");
-      }
-    }
-  }, [type, loading, count]);
-
   const handleSave = async () => {
     setLoading(true);
 
     const session = await requireSession();
     if (!session) return;
 
-    const trimmedSlides = slides.slice(0, Number(count)).map((s) => ({
-      image: s.image || "",
-      alt: s.alt || "",
-      link: s.link || "",
-    }));
+    const trimmedSlides = slides.filter((s) => s.image); // on garde seulement ceux qui ont une image
 
     const payload = {
       type,
-      slide_count: Number(count),
       slides: trimmedSlides,
     };
 
@@ -137,12 +104,6 @@ export default function AdminSliderPage() {
     setSlides(updated);
   };
 
-  const getSliderCountOptions = () => {
-    if (type === "single") return sliderSimpleOptions;
-    if (type === "double") return sliderDoubleOptions;
-    return [];
-    };
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
       <div className="w-full max-w-3xl">
@@ -152,34 +113,23 @@ export default function AdminSliderPage() {
           <p className="text-center text-[#5D6494]">Chargement...</p>
         ) : (
           <>
-            {/* Choix du type & nombre */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Type de slider</label>
-                <AdminDropdown
-                  label=""
-                  selected={type}
-                  onSelect={setType}
-                  placeholder="Sélectionnez un type"
-                  options={sliderTypeOptions}
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de slider</label>
-                <AdminDropdown
-                  label=""
-                  selected={count}
-                  onSelect={setCount}
-                  placeholder="Sélectionnez un nombre"
-                  options={getSliderCountOptions()}
-                />
-              </div>
+            {/* Choix du type */}
+            <div className="mb-8">
+              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
+                Type de slider
+              </label>
+              <AdminDropdown
+                label=""
+                selected={type}
+                onSelect={(v) => setType(v as "none" | "single" | "double")}
+                placeholder="Sélectionnez un type"
+                options={sliderTypeOptions}
+              />
             </div>
 
             {/* Slides */}
             <div className="flex flex-col gap-6">
-              {slides.slice(0, Number(count)).map((slide, index) => (
+              {slides.map((slide, index) => (
                 <div key={index} className="flex flex-col gap-6">
                   <div className="flex justify-between">
                     <span className="text-[16px] text-[#3A416F] font-bold">Slider {index + 1}</span>
@@ -194,7 +144,9 @@ export default function AdminSliderPage() {
                   />
 
                   <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt slider {index + 1}</label>
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                      Alt slider {index + 1}
+                    </label>
                     <input
                       type="text"
                       placeholder={`Alt slider ${index + 1}`}
@@ -205,7 +157,9 @@ export default function AdminSliderPage() {
                   </div>
 
                   <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien slider {index + 1}</label>
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                      Lien slider {index + 1}
+                    </label>
                     <input
                       type="text"
                       placeholder={`Lien slider ${index + 1}`}
