@@ -3,12 +3,12 @@
 import Spinner from "@/components/ui/Spinner";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 const COOLDOWN_MS = 30_000; // 30s anti-spam
 
 export default function VerifyEmailTopBar() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const pathname = usePathname();
 
   const [loading, setLoading] = useState(true);

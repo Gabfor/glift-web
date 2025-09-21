@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";

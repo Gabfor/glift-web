@@ -7,7 +7,7 @@ import TrainingCardMenu from '@/components/TrainingCardMenu'
 import type * as React from 'react'
 import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
-import { createClient } from '@/lib/supabaseClient'
+import { createClient } from "@/lib/supabase/client"
 
 interface Training {
   id: string
@@ -22,7 +22,7 @@ type Props = {
   onClick: (id: string) => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
-  onToggleVisibility: () => void
+  onToggleVisibility: (id: string) => void   // ✅ accepte l’id
   showVisibility: boolean
   dragDisabled: boolean
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
@@ -125,7 +125,7 @@ export default function SortableItem({
             <TrainingCardMenu
               onOpen={() => onClick(training.id)}
               onDuplicate={() => onDuplicate(training.id)}
-              onToggleVisibility={onToggleVisibility}
+              onToggleVisibility={() => onToggleVisibility(training.id)}   // ✅ passe bien l’id
               onDelete={() => onDelete(training.id)}
               onOpenChange={setMenuOpen}
             />
@@ -136,7 +136,7 @@ export default function SortableItem({
       {showVisibility && (
         <VisibilityPanel
           training={training}
-          onClose={onToggleVisibility}
+          onClose={() => onToggleVisibility(training.id)}  // ✅ idem ici
           onUpdateVisibility={handleVisibilityUpdate}
         />
       )}

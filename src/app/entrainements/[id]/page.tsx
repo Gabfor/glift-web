@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import { useUser } from "@/context/UserContext";
 import { Row } from "@/types/training";

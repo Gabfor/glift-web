@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import TriIcon from "/public/icons/tri.svg";
 import ChevronIcon from "/public/icons/chevron.svg";
 import FiltresRedIcon from "/public/icons/filtres_red.svg";

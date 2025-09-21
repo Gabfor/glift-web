@@ -4,13 +4,13 @@
 import { useState } from 'react'
 import AccountAccordionSection from 'src/components/account/AccountAccordionSection'
 import ForgotPasswordButtonWithModal from '@/components/auth/ForgotPasswordButtonWithModal'
-import { createClientComponentClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import Spinner from '@/components/ui/Spinner'
 
 export const SECTION_ID = 'mot-de-passe' // ✅ aligne avec ?section=mot-de-passe et #mot-de-passe
 
 export default function MotDePasseSection() {
-  const supabase = createClientComponentClient()
+  const supabase = createClient()
 
   const [currentPassword, setCurrentPassword] = useState('')
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)

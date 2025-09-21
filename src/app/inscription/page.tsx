@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner";
 import Tooltip from "@/components/Tooltip";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { nextStepPath } from "@/lib/onboarding";
 import StepDots from "@/components/onboarding/StepDots";
 import { postAuthCallback } from "@/lib/auth/postAuthCallback";

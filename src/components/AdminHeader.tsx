@@ -5,11 +5,11 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AdminHeader() {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { user } = useUser();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);

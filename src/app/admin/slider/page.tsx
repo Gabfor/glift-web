@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { useRouter } from "next/navigation";

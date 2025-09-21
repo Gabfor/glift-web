@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 type Banner = {
   id: number;
@@ -15,7 +15,7 @@ type Banner = {
 };
 
 export default function ShopBannerSliderClient() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
 

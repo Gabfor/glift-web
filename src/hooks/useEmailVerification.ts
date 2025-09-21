@@ -1,12 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 
 type Maybe<T> = T | null | undefined;
 
 export function useEmailVerification() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [loading, setLoading] = useState(true);
   const [isSignedIn, setIsSignedIn] = useState(false);

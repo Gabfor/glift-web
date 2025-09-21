@@ -5,7 +5,7 @@ type Props = {
   profileImageUrl: string
   profileCompletion: number
   setAvatarUi: (url: string) => void
-  uploadAvatar: (file: File, onDone: (info: { url: string }) => void) => void
+  uploadAvatar: (file: File, onDone: (info: { url: string }) => void) => Promise<void> | void
   setInitials: (patch: any) => void
   setTouched: (updater: any) => void
   removeAvatar: (onDone: () => void) => Promise<void> | void
@@ -24,14 +24,20 @@ export default function AvatarBlock({
     <ProfilePictureBlock
       imageUrl={profileImageUrl}
       profileCompletion={profileCompletion}
-      onImageChange={(file) => {
+      onImageChange={async (file) => {
+        // 1. Preview immédiat
         const preview = URL.createObjectURL(file)
         setAvatarUi(preview)
-        uploadAvatar(file, ({ url }) => {
-          try { URL.revokeObjectURL(preview) } catch {}
-          setAvatarUi(url)
-          setInitials({ avatar_url: url })
-          setTouched((t: any) => ({ ...t, name: t.name }))
+
+        // 2. Lancement de l’upload et retour d’une promesse
+        return new Promise<string>((resolve) => {
+          uploadAvatar(file, ({ url }) => {
+            try { URL.revokeObjectURL(preview) } catch {}
+            setAvatarUi(url)
+            setInitials({ avatar_url: url })
+            setTouched((t: any) => ({ ...t, name: t.name }))
+            resolve(url) // ✅ Retourne bien une string
+          })
         })
       }}
       onImageRemove={async () => {

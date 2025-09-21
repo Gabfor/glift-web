@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabaseClient'
+import { createClient } from "@/lib/supabase/client"
 
 const DEBUG = process.env.NEXT_PUBLIC_DEBUG_AVATAR === '1' || true
 const dlog  = (...a: any[]) => DEBUG && console.log('[useAvatar]', ...a)

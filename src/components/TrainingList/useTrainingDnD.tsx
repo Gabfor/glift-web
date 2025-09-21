@@ -1,26 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { DndContext, DragOverlay, closestCenter, useSensor, useSensors, PointerSensor } from '@dnd-kit/core'
+import {
+  DndContext,
+  DragOverlay,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  type DragStartEvent,
+  type DragEndEvent,
+} from '@dnd-kit/core'
 import { SortableContext, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
-import SortableItem from './SortableItem'
+import SortableItemWrapper from "./SortableItemWrapper"
 import DragPreviewItem from './DragPreviewItem'
 
 export type Row = {
-  id?: string;
-  series: number;
-  repetitions: string[];
-  poids: string[];
-  repos: string;
-  effort: string[];
-  checked: boolean;
-  iconHovered: boolean;
-  exercice: string;
-  materiel: string;
-  superset_id?: string | null;
-  link?: string;
-  note?: string;
+  id?: string
+  series: number
+  repetitions: string[]
+  poids: string[]
+  repos: string
+  effort: string[]
+  checked: boolean
+  iconHovered: boolean
+  exercice: string
+  materiel: string
+  superset_id?: string | null
+  link?: string
+  note?: string
 }
 
 interface UseTrainingDnDProps {
@@ -33,29 +42,31 @@ export function useTrainingDnD({ items, onMove, renderItem }: UseTrainingDnDProp
   const [activeId, setActiveId] = useState<string | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor))
-  const activeItem = items.find(item => item.id === activeId) || null
+  const activeItem = items.find((item) => item.id === activeId) || null
 
-  const handleDragStart = (event: { active: { id: string } }) => {
-    setActiveId(event.active.id)
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id)) // cast car id peut être number | string
   }
 
-  const handleDragEnd = (event: { active: { id: string }, over: { id: string } | null }) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    if (active.id !== over?.id) {
-      const oldIndex = items.findIndex(item => item.id === active.id)
-      const newIndex = items.findIndex(item => item.id === over?.id)
-      const newItems = arrayMove(items, oldIndex, newIndex)
-      onMove(newItems)
+    if (over && active.id !== over.id) {
+      const oldIndex = items.findIndex((item) => item.id === String(active.id))
+      const newIndex = items.findIndex((item) => item.id === String(over.id))
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newItems = arrayMove(items, oldIndex, newIndex)
+        onMove(newItems)
+      }
     }
     setActiveId(null)
   }
 
   const renderSortableList = () => (
-    <SortableContext items={items.map(i => i.id!)} strategy={verticalListSortingStrategy}>
+    <SortableContext items={items.map((i) => i.id!)} strategy={verticalListSortingStrategy}>
       {items.map((training) => (
-        <SortableItem key={training.id} id={training.id!}>
+        <SortableItemWrapper key={training.id} id={training.id!}>
           {renderItem(training)}
-        </SortableItem>
+        </SortableItemWrapper>
       ))}
     </SortableContext>
   )

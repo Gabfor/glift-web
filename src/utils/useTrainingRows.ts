@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import { Row } from "@/types/training";
 import { usePathname } from "next/navigation";

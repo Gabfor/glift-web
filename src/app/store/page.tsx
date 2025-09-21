@@ -5,7 +5,7 @@ import StoreHeader from "@/components/store/StoreHeader";
 import StoreFilters from "@/components/store/StoreFilters";
 import StoreGrid from "@/components/store/StoreGrid";
 import StorePagination from "@/components/store/StorePagination";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 export default function StorePage() {
   const supabase = createClient();

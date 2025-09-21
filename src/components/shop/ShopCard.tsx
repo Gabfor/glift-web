@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import PremiumOnlyModal from "@/components/PremiumOnlyModal";
 import OfferCodeModal from "@/components/OfferCodeModal";
@@ -292,9 +292,7 @@ export default function ShopCard({ offer }: Props) {
               onClick={() => setShowModal(true)}
               onMouseEnter={() => setLockedHover(true)}
               onMouseLeave={() => setLockedHover(false)}
-              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#F2F1F6] hover:bg-[#ECE9F1] text-[#D7D4DC] hover:text-[#C2BFC6] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-async (params:type) => {
-                
-              }"
+              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#F2F1F6] hover:bg-[#ECE9F1] text-[#D7D4DC] hover:text-[#C2BFC6] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto"
             >
               <Image
                 src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}

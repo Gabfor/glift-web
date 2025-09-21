@@ -6,7 +6,7 @@ import ShopHeader from "@/components/shop/ShopHeader";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
 import ShopPagination from "@/components/shop/ShopPagination";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 const ShopBannerSlider = dynamic(() => import("@/components/ShopBannerSliderClient"), {
   ssr: false,

@@ -30,7 +30,10 @@ interface TrainingListProps {
   trainings: Training[];
   programId: string;
   onClickTraining: (id: string) => void;
-  onReorderTrainings: (programId: string | null, ids: string[]) => Promise<void>;
+  onReorderTrainings: (
+    programId: string | null,
+    ids: string[]
+  ) => Promise<void>;
   onAddTraining: () => void;
   onDeleteTraining: (id: string) => void;
   onDuplicateTraining: (id: string) => void;
@@ -47,7 +50,9 @@ export default function TrainingList({
 }: TrainingListProps) {
   const [items, setItems] = useState(trainings);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [showVisibilityTrainingId, setShowVisibilityTrainingId] = useState<string | null>(null);
+  const [showVisibilityTrainingId, setShowVisibilityTrainingId] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
     setItems(trainings);
@@ -72,7 +77,10 @@ export default function TrainingList({
     }
   };
 
-  const handleUpdateTrainingVisibility = (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => {
+  const handleUpdateTrainingVisibility = (
+    id: string,
+    updates: Partial<{ app: boolean; dashboard: boolean }>
+  ) => {
     setItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id ? { ...item, ...updates } : item
@@ -90,19 +98,26 @@ export default function TrainingList({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <SortableContext items={items.map((item) => item.id)} strategy={rectSortingStrategy}>
+        <SortableContext
+          items={items.map((item) => item.id)}
+          strategy={rectSortingStrategy}
+        >
           <div className="flex flex-wrap gap-5">
             {items.map((training) => (
               <div key={training.id} className="relative z-0">
                 <SortableItem
                   training={training}
+                  programId={programId}
                   onClick={onClickTraining}
                   onDelete={onDeleteTraining}
                   onDuplicate={onDuplicateTraining}
-                  onToggleVisibility={(id) => {
-                    setShowVisibilityTrainingId((prev) => (prev === id ? null : id));
-                  }}
-                  showVisibilityTrainingId={showVisibilityTrainingId}
+                  onToggleVisibility={(id: string) =>
+                    setShowVisibilityTrainingId((prev) =>
+                      prev === id ? null : id
+                    )
+                  }
+                  showVisibility={showVisibilityTrainingId === training.id} // ✅ fix
+                  dragDisabled={false}
                   onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
                 />
               </div>
@@ -115,7 +130,10 @@ export default function TrainingList({
             </button>
           </div>
         </SortableContext>
-        <DragOverlay wrapperElement="div" className="cursor-grabbing select-none z-50">
+        <DragOverlay
+          wrapperElement="div"
+          className="cursor-grabbing select-none z-50"
+        >
           {activeItem ? <DragPreviewItem training={activeItem} /> : null}
         </DragOverlay>
       </DndContext>

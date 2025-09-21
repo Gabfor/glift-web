@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import StoreCard from "@/components/store/StoreCard";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 type Program = {
   id: number;

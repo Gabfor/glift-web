@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";

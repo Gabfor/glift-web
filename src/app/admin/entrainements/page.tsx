@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import type { Program, Training } from "@/types/training";
 import ProgramEditor from "@/components/ProgramEditor";

@@ -118,6 +118,8 @@ export default function EntrainementsPage() {
           {programs.map((program, index) => (
             <div key={program.id || index} className="relative w-full max-w-[1152px] mb-[20px]">
           <ProgramEditor
+            tableName="trainings"
+            programsTableName="programs"
             name={program.name ?? ""}
             index={index}
             editingIndex={editingIndex}

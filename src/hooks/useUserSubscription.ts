@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 type Plan = "premium" | "starter" | "basic" | string | null;
 

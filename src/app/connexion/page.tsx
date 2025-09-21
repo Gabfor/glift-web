@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { createClient, endLogoutBarrier, resetSupabaseClient, clearSupabaseStorage } from "@/lib/supabaseClient";
+import { createClient, endLogoutBarrier, resetSupabaseClient, clearSupabaseStorage } from "@/lib/supabase/client";
 import ForgotPasswordButtonWithModal from "@/components/auth/ForgotPasswordButtonWithModal";
 import Tooltip from "@/components/Tooltip";
 import Spinner from "@/components/ui/Spinner";

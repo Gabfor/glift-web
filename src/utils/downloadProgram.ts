@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 
 /**
  * Télécharge un programme depuis `program_store` en copiant les données sources

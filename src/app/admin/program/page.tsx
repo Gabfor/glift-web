@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import ProgramAdminActionsBar from "@/app/admin/components/ProgramAdminActionsBar";
 
 import ChevronIcon from "/public/icons/chevron.svg";
@@ -29,7 +29,7 @@ export default function AdminProgramPage() {
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 

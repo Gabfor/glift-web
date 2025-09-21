@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/client";
 import type { InitialValues } from "../utils/types";
 
 export type SubmitValues = {
@@ -65,7 +65,7 @@ function toProfilesRow(userId: string, v: SubmitValues) {
 }
 
 export function useProfileSubmit() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const runRef = useRef<number>(0);

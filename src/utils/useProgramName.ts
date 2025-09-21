@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabaseClient";
+import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import { useSearchParams, usePathname } from "next/navigation";
 

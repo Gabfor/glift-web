@@ -2,7 +2,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClientComponentClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 import { createPortal } from 'react-dom'
 import Spinner from '@/components/ui/Spinner';
 
@@ -56,7 +56,7 @@ export default function ForgotPasswordButtonWithModal({
   useEffect(() => {
     if (!open || prefillEmail) return
     let cancelled = false
-    const supabase = createClientComponentClient()
+    const supabase = createClient()
     ;(async () => {
       try {
         const { data } = await supabase.auth.getUser()

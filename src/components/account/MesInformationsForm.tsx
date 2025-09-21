@@ -31,7 +31,7 @@ import TrainingPlaceRow from './MesInformationsForm/parts/TrainingPlaceRow'
 import WeeklySessionsRow from './MesInformationsForm/parts/WeeklySessionsRow'
 import SupplementsRow from './MesInformationsForm/parts/SupplementsRow'
 import SubmitBar from './MesInformationsForm/parts/SubmitBar'
-import { createClientComponentClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/client'
 
 const CACHE_KEY = 'glift:avatar_url'
 const cacheGet = () => { try { return localStorage.getItem(CACHE_KEY) } catch { return null } }

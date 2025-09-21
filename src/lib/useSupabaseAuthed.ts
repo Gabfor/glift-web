@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabaseClient';
+import { createClient } from "@/lib/supabase/client"
 import { ensureClientSession } from '@/lib/ensureClientSession';
 
 export function useSupabaseAuthed() {
