@@ -44,6 +44,8 @@ export function UserProvider({
   );
   const initialUserIdRef = useRef(initialSession?.user?.id ?? null);
   const initialPremiumRef = useRef(initialIsPremiumUser === true);
+  const initialSessionRef = useRef(initialSession ?? null);
+  const hasSyncedInitialSessionRef = useRef(false);
 
   const [session, setSession] = useState<Session | null>(initialSession ?? null);
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
@@ -100,6 +102,11 @@ export function UserProvider({
   }, []);
 
   useEffect(() => {
+    initialSessionRef.current = initialSession ?? null;
+    hasSyncedInitialSessionRef.current = false;
+  }, [initialSession, initialSession?.access_token, initialSession?.refresh_token]);
+
+  useEffect(() => {
     let active = true;
 
     const { data: listener } = supabase.auth.onAuthStateChange(
@@ -128,13 +135,37 @@ export function UserProvider({
         setIsAuthResolved(true);
       });
     } else {
-      // Keep the singleton client in sync without clobbering the server state.
-      supabase.auth.getSession().then(({ data }) => {
+      (async () => {
+        const { data } = await supabase.auth.getSession();
         if (!active) return;
-        if (!data.session) return;
-        if (data.session.access_token === sessionAccessTokenRef.current) return;
-        applySession(data.session);
-      });
+
+        if (data.session) {
+          if (data.session.access_token !== sessionAccessTokenRef.current) {
+            applySession(data.session);
+          }
+          return;
+        }
+
+        const serverSession = initialSessionRef.current;
+        if (
+          !serverSession?.access_token ||
+          !serverSession?.refresh_token ||
+          hasSyncedInitialSessionRef.current
+        ) {
+          return;
+        }
+
+        hasSyncedInitialSessionRef.current = true;
+
+        try {
+          await supabase.auth.setSession({
+            access_token: serverSession.access_token,
+            refresh_token: serverSession.refresh_token,
+          });
+        } catch {
+          hasSyncedInitialSessionRef.current = false;
+        }
+      })();
     }
 
     return () => {
@@ -144,6 +175,9 @@ export function UserProvider({
   }, [
     supabase,
     applySession,
+    initialSession,
+    initialSession?.access_token,
+    initialSession?.refresh_token,
   ]);
 
   return (
