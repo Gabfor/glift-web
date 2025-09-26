@@ -4,34 +4,35 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";
+import { useUser } from "@/context/UserContext";
 
 export default function usePrograms() {
   const [programs, setPrograms] = useState<any[]>([]);
   const supabase = useMemo(() => createClient(), []);
+  const { user, isAuthenticated, isAuthResolved } = useUser();
+  const userId = user?.id ?? null;
 
   const fetchProgramsWithTrainings = useCallback(async () => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user?.id) return;
+    if (!isAuthResolved || !isAuthenticated || !userId) {
+      return;
+    }
 
     let { data: programsData } = await supabase
       .from("programs")
       .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("position", { ascending: true });
 
     const { data: orphanTrainings } = await supabase
       .from("trainings")
       .select("id, name, position, app, dashboard")
       .is("program_id", null)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (!programsData || programsData.length === 0) {
       const { data: newProgram } = await supabase
         .from("programs")
-        .insert({ name: "Nom du programme", user_id: user.id })
+        .insert({ name: "Nom du programme", user_id: userId })
         .select()
         .single();
       if (newProgram) {
@@ -51,13 +52,10 @@ export default function usePrograms() {
 
     // Si aucun programme vide → on en ajoute un
     if (!hasEmpty) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user?.id) {
+      if (userId) {
         const { data: newProgram } = await supabase
           .from("programs")
-          .insert({ name: "Nom du programme", user_id: user.id })
+          .insert({ name: "Nom du programme", user_id: userId })
           .select()
           .single();
 
@@ -73,11 +71,16 @@ export default function usePrograms() {
     }
 
     setPrograms(result);
-  }, [supabase]);
+  }, [supabase, isAuthResolved, isAuthenticated, userId]);
 
   useEffect(() => {
+    if (!isAuthResolved) return;
+    if (!isAuthenticated) {
+      setPrograms([]);
+      return;
+    }
     fetchProgramsWithTrainings();
-  }, [fetchProgramsWithTrainings]);
+  }, [fetchProgramsWithTrainings, isAuthResolved, isAuthenticated]);
 
   const cleanEmptyPrograms = async () => {
     const emptyPrograms = programs.filter((p) => p.trainings.length === 0);
@@ -225,10 +228,7 @@ export default function usePrograms() {
     const name = programs[index]?.name?.trim();
     if (!name) return null;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user?.id) return;
+    if (!userId) return;
 
     const existingProgram = programs[index];
     const orphanTrainings = existingProgram.trainings || [];
@@ -240,14 +240,14 @@ export default function usePrograms() {
         .from("programs")
         .update({ name })
         .eq("id", existingProgram.id)
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .select()
         .single();
       result = data;
     } else {
       const { data } = await supabase
         .from("programs")
-        .insert({ name: safeName, user_id: user.id })
+        .insert({ name: safeName, user_id: userId })
         .select()
         .single();
       result = data;
@@ -286,15 +286,12 @@ export default function usePrograms() {
       return;
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user?.id) return;
+    if (!userId) return;
 
     const { data } = await supabase
       .from("trainings")
       .insert({
-        user_id: user.id,
+        user_id: userId,
         name: "Nom de l’entraînement",
         program_id: targetId,
         position: programs.find((p) => p.id === targetId)?.trainings.length ?? 0,
@@ -328,7 +325,7 @@ export default function usePrograms() {
           .from("programs")
           .insert({
             name: "Nom du programme",
-            user_id: user.id,
+            user_id: userId,
             position: updatedPrograms.length,
           })
           .select()

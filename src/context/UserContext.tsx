@@ -95,9 +95,11 @@ export function UserProvider({
     if (nextUser) {
       initialUserIdRef.current = nextUser.id;
       initialPremiumRef.current = !!premium;
+      hasSyncedInitialSessionRef.current = true;
     } else {
       initialUserIdRef.current = null;
       initialPremiumRef.current = false;
+      hasSyncedInitialSessionRef.current = false;
     }
   }, []);
 
@@ -112,6 +114,18 @@ export function UserProvider({
     const { data: listener } = supabase.auth.onAuthStateChange(
       (event, nextSession) => {
         if (!active) return;
+
+        const shouldSkipInitialNull =
+          event === "INITIAL_SESSION" &&
+          initialSessionProvidedRef.current &&
+          !hasSyncedInitialSessionRef.current &&
+          (!nextSession || !nextSession.access_token) &&
+          !!initialSessionRef.current?.access_token &&
+          !!initialSessionRef.current?.refresh_token;
+
+        if (shouldSkipInitialNull) {
+          return;
+        }
 
         switch (event) {
           case "INITIAL_SESSION":
@@ -142,7 +156,10 @@ export function UserProvider({
         if (data.session) {
           if (data.session.access_token !== sessionAccessTokenRef.current) {
             applySession(data.session);
+          } else if (!sessionAccessTokenRef.current) {
+            applySession(data.session);
           }
+          setIsAuthResolved(true);
           return;
         }
 
@@ -152,10 +169,15 @@ export function UserProvider({
           !serverSession?.refresh_token ||
           hasSyncedInitialSessionRef.current
         ) {
+          if (!serverSession?.access_token) {
+            setIsAuthResolved(true);
+          }
           return;
         }
 
         hasSyncedInitialSessionRef.current = true;
+        applySession(serverSession);
+        setIsAuthResolved(true);
 
         try {
           await supabase.auth.setSession({
