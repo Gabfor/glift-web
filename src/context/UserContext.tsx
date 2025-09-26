@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/SupabaseProvider";
 
@@ -20,42 +27,124 @@ const UserContext = createContext<UserContextType>({
   isPremiumUser: false,
 });
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+type UserProviderProps = {
+  children: React.ReactNode;
+  initialSession?: Session | null;
+  initialIsPremiumUser?: boolean;
+};
+
+export function UserProvider({
+  children,
+  initialSession,
+  initialIsPremiumUser,
+}: UserProviderProps) {
   const supabase = useSupabase();
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAuthResolved, setIsAuthResolved] = useState(false);
-  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const initialSessionProvidedRef = useRef(
+    typeof initialSession !== "undefined"
+  );
+  const initialUserIdRef = useRef(initialSession?.user?.id ?? null);
+  const initialPremiumRef = useRef(initialIsPremiumUser === true);
+
+  const [session, setSession] = useState<Session | null>(initialSession ?? null);
+  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
+  const [isAuthResolved, setIsAuthResolved] = useState(
+    initialSessionProvidedRef.current
+  );
+  const [isPremiumUser, setIsPremiumUser] = useState(() => {
+    const initialUser = initialSession?.user ?? null;
+    if (!initialUser) return false;
+
+    if (
+      initialUser.app_metadata?.plan === "premium" ||
+      initialUser.user_metadata?.is_premium === true
+    ) {
+      return true;
+    }
+
+    return initialPremiumRef.current;
+  });
+
+  const sessionAccessTokenRef = useRef<string | null>(
+    initialSession?.access_token ?? null
+  );
+
+  const applySession = useCallback((nextSession: Session | null) => {
+    sessionAccessTokenRef.current = nextSession?.access_token ?? null;
+    setSession(nextSession);
+
+    const nextUser = nextSession?.user ?? null;
+    setUser(nextUser);
+
+    let premium =
+      nextUser?.app_metadata?.plan === "premium" ||
+      nextUser?.user_metadata?.is_premium === true;
+
+    if (
+      !premium &&
+      nextUser &&
+      nextUser.id === initialUserIdRef.current &&
+      initialPremiumRef.current
+    ) {
+      premium = true;
+    }
+
+    setIsPremiumUser(!!premium);
+
+    if (nextUser) {
+      initialUserIdRef.current = nextUser.id;
+      initialPremiumRef.current = !!premium;
+    } else {
+      initialUserIdRef.current = null;
+      initialPremiumRef.current = false;
+    }
+  }, []);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+    let active = true;
 
-      const premium =
-        data.session?.user?.app_metadata?.plan === "premium" ||
-        data.session?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (event, nextSession) => {
+        if (!active) return;
 
-      setIsAuthResolved(true);
-    });
+        switch (event) {
+          case "INITIAL_SESSION":
+          case "SIGNED_IN":
+          case "TOKEN_REFRESHED":
+            applySession(nextSession);
+            setIsAuthResolved(true);
+            break;
+          case "SIGNED_OUT":
+            applySession(null);
+            setIsAuthResolved(true);
+            break;
+        }
+      }
+    );
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      const premium =
-        session?.user?.app_metadata?.plan === "premium" ||
-        session?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
-
-      setIsAuthResolved(true);
-    });
+    if (!initialSessionProvidedRef.current) {
+      supabase.auth.getSession().then(({ data }) => {
+        if (!active) return;
+        applySession(data.session ?? null);
+        setIsAuthResolved(true);
+      });
+    } else {
+      // Keep the singleton client in sync without clobbering the server state.
+      supabase.auth.getSession().then(({ data }) => {
+        if (!active) return;
+        if (!data.session) return;
+        if (data.session.access_token === sessionAccessTokenRef.current) return;
+        applySession(data.session);
+      });
+    }
 
     return () => {
+      active = false;
       listener.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [
+    supabase,
+    applySession,
+  ]);
 
   return (
     <UserContext.Provider

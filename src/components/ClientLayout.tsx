@@ -1,22 +1,16 @@
-'use client';
+"use client";
 
-import { usePathname } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Session } from '@supabase/supabase-js';
-import Header from './Header';
-import Footer from './Footer';
-import FooterPublic from './FooterPublic';
-import { UserProvider } from "@/context/UserContext"
-import SupabaseProvider from './SupabaseProvider';
-import { AvatarProvider } from '@/context/AvatarContext';
-import { useUser } from "@/context/UserContext";
+import type { ReactNode } from "react";
+import Header from "./Header";
+import Footer from "./Footer";
+import FooterPublic from "./FooterPublic";
+import { UserProvider, useUser } from "@/context/UserContext";
+import SupabaseProvider from "./SupabaseProvider";
+import { AvatarProvider } from "@/context/AvatarContext";
+import type { Session } from "@supabase/supabase-js";
 
 function LayoutContent({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const { isAuthenticated } = useUser();
-
-  console.log('✅ ClientLayout rendu pour', pathname);
 
   return (
     <>
@@ -27,10 +21,23 @@ function LayoutContent({ children }: { children: ReactNode }) {
   );
 }
 
-export default function ClientLayout({ children }: { children: ReactNode }) {
+type ClientLayoutProps = {
+  children: ReactNode;
+  initialSession?: Session | null;
+  initialIsPremiumUser?: boolean;
+};
+
+export default function ClientLayout({
+  children,
+  initialSession,
+  initialIsPremiumUser,
+}: ClientLayoutProps) {
   return (
     <SupabaseProvider>
-      <UserProvider>
+      <UserProvider
+        initialSession={initialSession}
+        initialIsPremiumUser={initialIsPremiumUser}
+      >
         <AvatarProvider>
           <LayoutContent>{children}</LayoutContent>
         </AvatarProvider>
