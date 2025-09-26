@@ -13,11 +13,28 @@ export async function ensureClientSession(supabase: SupabaseClient) {
       const res = await fetch("/api/auth/session", { credentials: "include" });
       if (!res.ok) { inFlight = null; return null; }
       const tokens = await res.json().catch(() => null);
-      if (!tokens) { inFlight = null; return null; }
+      if (!tokens || typeof tokens !== "object") {
+        console.error("ensureClientSession: invalid token payload");
+        inFlight = null;
+        return null;
+      }
+
+      const sessionTokens = (tokens as {
+        session?: { access_token?: unknown; refresh_token?: unknown };
+      }).session;
+
+      const accessToken = sessionTokens?.access_token;
+      const refreshToken = sessionTokens?.refresh_token;
+
+      if (typeof accessToken !== "string" || typeof refreshToken !== "string") {
+        console.error("ensureClientSession: missing session tokens");
+        inFlight = null;
+        return null;
+      }
 
       const { data } = await supabase.auth.setSession({
-        access_token: tokens.access_token,
-        refresh_token: tokens.refresh_token,
+        access_token: accessToken,
+        refresh_token: refreshToken,
       });
       inFlight = null;
       return data.session ?? null;
