@@ -102,12 +102,14 @@ export default function EmailInfoAdornment({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
       if (open) {
-        setOverAnchor(false); setOverTip(false)
+        setOverAnchor(false)
+        setOverTip(false)
       } else {
         setOverAnchor(true)
       }
     } else if (e.key === 'Escape') {
-      setOverAnchor(false); setOverTip(false)
+      setOverAnchor(false)
+      setOverTip(false)
     }
   }
 
@@ -123,7 +125,14 @@ export default function EmailInfoAdornment({
         onFocus={() => setOverAnchor(true)}
         onBlur={() => setOverAnchor(false)}
         onKeyDown={onKeyDown}
-        onClick={() => { open ? (setOverAnchor(false), setOverTip(false)) : setOverAnchor(true) }}
+        onClick={() => {
+          if (open) {
+            setOverAnchor(false)
+            setOverTip(false)
+          } else {
+            setOverAnchor(true)
+          }
+        }}
         tabIndex={0}
         aria-haspopup="dialog"
         aria-expanded={open}

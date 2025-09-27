@@ -9,33 +9,33 @@ type Props = {
   onPageChange: (page: number) => void;
 };
 
+function buildVisiblePages(totalPages: number): (number | string)[] {
+  const pages: (number | string)[] = [];
+
+  if (totalPages <= 6) {
+    for (let i = 1; i <= totalPages; i += 1) {
+      pages.push(i);
+    }
+  } else {
+    pages.push(1, 2, 3);
+    pages.push("...");
+    pages.push(totalPages - 2, totalPages - 1, totalPages);
+  }
+
+  return pages;
+}
+
 export default function StorePagination({ currentPage, totalPrograms, onPageChange }: Props) {
   const ITEMS_PER_PAGE = 8;
   const validTotal = Math.max(0, totalPrograms || 0);
   const totalPages = Math.ceil(validTotal / ITEMS_PER_PAGE);
 
-  if (!Number.isFinite(totalPages) || totalPages <= 1) return null;
-
-  const getVisiblePages = () => {
-    const pages: (number | string)[] = [];
-
-    if (totalPages <= 6) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      pages.push(1, 2, 3);
-      pages.push("...");
-      pages.push(totalPages - 2, totalPages - 1, totalPages);
-    }
-
-    return pages;
-  };
-
-  const visiblePages = getVisiblePages();
-
   const [prevHover, setPrevHover] = useState(false);
   const [nextHover, setNextHover] = useState(false);
+
+  if (!Number.isFinite(totalPages) || totalPages <= 1) return null;
+
+  const visiblePages = buildVisiblePages(totalPages);
 
   const prevDisabled = currentPage === 1;
   const nextDisabled = currentPage === totalPages;
