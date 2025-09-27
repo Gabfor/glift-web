@@ -1,34 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type AdminGuardOk = {
   user: any;
-  supabase: ReturnType<typeof createServerClient>;
+  supabase: Awaited<ReturnType<typeof createServerSupabaseClient>>["supabase"];
 };
 
-export async function requireAdmin(req: NextRequest): Promise<AdminGuardOk | NextResponse> {
-  const jar = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
+export async function requireAdmin(_req: NextRequest): Promise<AdminGuardOk | NextResponse> {
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   const isAdmin =
     (user as any)?.app_metadata?.is_admin === true ||
     (user as any)?.user_metadata?.is_admin === true;
 
-  if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
-  if (!isAdmin) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  if (!user)
+    return applyServerCookies(NextResponse.json({ error: "unauthenticated" }, { status: 401 }));
+  if (!isAdmin)
+    return applyServerCookies(NextResponse.json({ error: "forbidden" }, { status: 403 }));
 
+  applyServerCookies();
   return { user, supabase };
 }

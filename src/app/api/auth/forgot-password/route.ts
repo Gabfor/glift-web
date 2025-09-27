@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,19 +19,14 @@ export async function POST(req: Request) {
   const origin = req.headers.get("origin") || process.env.NEXT_PUBLIC_SITE_URL || "";
   const redirectTo = `${origin.replace(/\/$/, "")}/reinitialiser-mot-de-passe`;
 
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
+
   try {
-    const supabase = createServerClient(url, anon, {
-      cookies: {
-        get: () => undefined,
-        set: () => {},
-        remove: () => {},
-      },
-    });
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo } as any);
     if (error) throw error;
   } catch {
-    return NextResponse.json({ error: "send-failed" }, { status: 200 });
+    return applyServerCookies(NextResponse.json({ error: "send-failed" }, { status: 200 }));
   }
 
-  return NextResponse.json({ ok: true }, { status: 200 });
+  return applyServerCookies(NextResponse.json({ ok: true }, { status: 200 }));
 }

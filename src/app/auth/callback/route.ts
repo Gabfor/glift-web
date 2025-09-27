@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,32 +10,13 @@ export async function GET(req: Request) {
   const next = url.searchParams.get("next") || "/compte#mes-informations";
   const origin = url.origin;
 
-  const response = new NextResponse();
-
-  const jar = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove: (name: string, options: any) => {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 });
-        },
-      },
-    }
-  );
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
 
   if (code) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL(next, origin), {
-    headers: response.headers,
-  });
+  return applyServerCookies(NextResponse.redirect(new URL(next, origin)));
 }
 
 export async function POST(req: Request) {
@@ -46,35 +26,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad-request" }, { status: 400 });
   }
 
-  const response = new NextResponse();
   const rememberOn = remember === "1";
 
-  const jar = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          const opts: any = { ...options };
-          if (!rememberOn) {
-            delete opts.maxAge;
-            delete opts.expires;
-          }
-          response.cookies.set({ name, value, ...opts });
-        },
-        remove: (name: string, options: any) => {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 });
-        },
-      },
-    }
-  );
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
 
   await supabase.auth.setSession({
     access_token: session.access_token,
     refresh_token: session.refresh_token,
   });
+
+  const origin = new URL(req.url).origin;
+  const response = next
+    ? NextResponse.redirect(new URL(next, origin))
+    : new NextResponse(null, { status: 204 });
 
   response.cookies.set({
     name: "sb-remember",
@@ -83,11 +47,5 @@ export async function POST(req: Request) {
     ...(rememberOn ? { maxAge: 60 * 60 * 24 * 365 } : {}),
   });
 
-  if (next && typeof next === "string") {
-    return NextResponse.redirect(new URL(next, new URL(req.url).origin), {
-      headers: response.headers,
-    });
-  }
-
-  return new NextResponse(null, { status: 204, headers: response.headers });
+  return applyServerCookies(response);
 }

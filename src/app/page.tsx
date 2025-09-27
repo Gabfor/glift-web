@@ -1,32 +1,21 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createServerClient } from "@supabase/ssr";
 import HeroConcept from "@/components/HeroConcept";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const jar = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (user) {
+    applyServerCookies();
     redirect("/entrainements");
   }
 
+  applyServerCookies();
   return <HeroConcept />;
 }

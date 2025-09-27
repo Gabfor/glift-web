@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,21 +34,7 @@ export async function POST() {
     );
   }
 
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(url, anon, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set(name, value, options as any);
-      },
-      remove(name: string) {
-        cookieStore.delete(name);
-      },
-    },
-  });
+  const { supabase, applyServerCookies } = await createServerSupabaseClient();
 
   const {
     data: { user },
@@ -58,7 +43,7 @@ export async function POST() {
 
   if (userErr || !user) {
     if (userErr) console.error("[delete-account] getUser error:", userErr);
-    return NextResponse.json({ error: "not-authenticated" }, { status: 401 });
+    return applyServerCookies(NextResponse.json({ error: "not-authenticated" }, { status: 401 }));
   }
 
   const admin = createAdminClient(url, service, {
@@ -91,9 +76,11 @@ export async function POST() {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) {
       console.error("[delete-account] deleteUser error:", delErr);
-      return NextResponse.json(
-        { error: "delete-failed", details: (delErr as any)?.message ?? delErr },
-        { status: 500 }
+      return applyServerCookies(
+        NextResponse.json(
+          { error: "delete-failed", details: (delErr as any)?.message ?? delErr },
+          { status: 500 }
+        )
       );
     }
 
@@ -103,12 +90,14 @@ export async function POST() {
       console.warn("[delete-account] signOut warning:", signOutErr);
     }
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return applyServerCookies(NextResponse.json({ ok: true }, { status: 200 }));
   } catch (e: any) {
     console.error("[delete-account] unexpected error:", e);
-    return NextResponse.json(
-      { error: "delete-failed", details: e?.message ?? String(e) },
-      { status: 500 }
+    return applyServerCookies(
+      NextResponse.json(
+        { error: "delete-failed", details: e?.message ?? String(e) },
+        { status: 500 }
+      )
     );
   }
 }

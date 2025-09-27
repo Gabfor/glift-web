@@ -6,9 +6,8 @@ import ClientLayout from "@/components/ClientLayout";
 import { UnlockScroll } from "@/components/UnlockScroll";
 import VerifyEmailTopBar from "@/components/auth/VerifyEmailTopBar";
 
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/types/supabase";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -31,26 +30,7 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const cookieStore = cookies();
-
-  const supabase = createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: (...args) => {
-          void args;
-          // Supabase server helpers expect these callbacks for mutating cookies
-          // but we rely on Next.js middleware to handle it on the client.
-        },
-        remove: (...args) => {
-          void args;
-          // Same as above – no server-side mutations are required here.
-        },
-      },
-    }
-  );
+  const { supabase, applyServerCookies } = await createServerSupabaseClient<Database>();
 
   const {
     data: { session },
@@ -73,6 +53,8 @@ export default async function RootLayout({
     user?.app_metadata?.plan === "premium" ||
     user?.user_metadata?.is_premium === true;
   const initialIsPremiumUser = isPremiumFromMetadata || plan === "premium";
+
+  applyServerCookies();
 
   return (
     <html lang="fr">
