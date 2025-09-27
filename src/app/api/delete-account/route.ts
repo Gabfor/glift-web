@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,17 +18,17 @@ export async function GET() {
 }
 
 export async function POST() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const hasUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const hasAnon = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const hasService = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!url || !anon || !service) {
+  if (!hasUrl || !hasAnon || !hasService) {
     return NextResponse.json(
       {
         error: "server-misconfigured",
-        hasUrl: !!url,
-        hasAnon: !!anon,
-        hasService: !!service,
+        hasUrl,
+        hasAnon,
+        hasService,
       },
       { status: 500 }
     );
@@ -46,9 +46,14 @@ export async function POST() {
     return context.applyCookies(NextResponse.json({ error: "not-authenticated" }, { status: 401 }));
   }
 
-  const admin = createAdminClient(url, service, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  let admin;
+  try {
+    admin = getServiceRoleClient();
+  } catch (_error) {
+    return context.applyCookies(
+      NextResponse.json({ error: "server-misconfigured", hasUrl, hasAnon, hasService }, { status: 500 })
+    );
+  }
 
   const safeDelete = async (table: string, col: string, val: string) => {
     const { error } = await admin.from(table).delete().eq(col, val);
