@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import { createClient } from "@/lib/supabase/client";
+import { useUser } from "@/context/UserContext";
 
 type Program = {
   id: number;
@@ -41,11 +42,11 @@ export default function StoreGrid({
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChangeToken, setAuthChangeToken] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const supabase = createClient();
+  const { user, isAuthResolved } = useUser();
+  const isAuthenticated = !!user;
 
   // Sécurise filters (au cas où) + clé stable pour l’effet
   const safeFilters = useMemo<string[]>(
@@ -66,32 +67,8 @@ export default function StoreGrid({
     }
   };
 
-  // 1) Réhydratation session + écoute des changements d’auth
+  // 1) Écoute des changements d’auth
   useEffect(() => {
-    let mounted = true;
-
-    console.log(LOG_PREFIX, "auth:init:useEffect");
-
-    (async () => {
-      try {
-        console.log(LOG_PREFIX, "auth:init:getSession:start");
-        const { data } = await supabase.auth.getSession();
-        if (!mounted) return;
-        setSessionUserId(data.session?.user?.id ?? null);
-        setIsAuthenticated(!!data.session?.user);
-        setAuthChangeToken(Date.now());
-        console.log(LOG_PREFIX, "auth:init:getSession:resolved", {
-          userId: data.session?.user?.id ?? null,
-        });
-      } catch (_error) {
-        if (!mounted) return;
-        setSessionUserId(null);
-        setIsAuthenticated(false);
-        setAuthChangeToken(Date.now());
-        console.error(LOG_PREFIX, "auth:init:getSession:error", _error);
-      }
-    })();
-
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       console.log(LOG_PREFIX, "auth:event", event, {
         userId: session?.user?.id ?? null,
@@ -101,8 +78,6 @@ export default function StoreGrid({
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
-        setSessionUserId(session?.user?.id ?? null);
-        setIsAuthenticated(!!session?.user);
         setAuthChangeToken(Date.now());
         console.log(LOG_PREFIX, "auth:event:session-valid", {
           event,
@@ -111,8 +86,6 @@ export default function StoreGrid({
       }
 
       if (event === "SIGNED_OUT") {
-        setSessionUserId(null);
-        setIsAuthenticated(false);
         setAuthChangeToken(Date.now());
         console.log(LOG_PREFIX, "auth:event:signed-out");
       }
@@ -123,12 +96,33 @@ export default function StoreGrid({
     return () => sub.subscription.unsubscribe();
   }, [supabase]);
 
+  useEffect(() => {
+    if (!isAuthResolved) {
+      console.log(LOG_PREFIX, "auth:waiting-user-context");
+      setLoading(true);
+      return;
+    }
+
+    console.log(LOG_PREFIX, "auth:context-resolved", {
+      userId: user?.id ?? null,
+    });
+    setAuthChangeToken(Date.now());
+  }, [isAuthResolved, user?.id]);
+
   // 2) Fetch programs (uniquement quand réhydraté)
   const runFetch = useCallback(async () => {
     const start = (currentPage - 1) * 8;
     const end = start + 7;
     const order = getOrderForSortBy(sortBy);
     let nextProgramsCount = 0;
+
+    if (!isAuthResolved || !user?.id) {
+      console.log(LOG_PREFIX, "runFetch:skipped", {
+        isAuthResolved,
+        userId: user?.id ?? null,
+      });
+      return;
+    }
 
     console.log(LOG_PREFIX, "runFetch:start", {
       currentPage,
@@ -137,8 +131,7 @@ export default function StoreGrid({
       start,
       end,
       order,
-      sessionUserId,
-      isAuthenticated,
+      userId: user.id,
     });
     setLoading(true);
     console.time(`${LOG_PREFIX} fetch`);
@@ -214,18 +207,31 @@ export default function StoreGrid({
         hasFetchedOnce: true,
       });
     }
-  }, [currentPage, sortBy, safeFilters, supabase, isAuthenticated, sessionUserId]);
+  }, [
+    currentPage,
+    sortBy,
+    safeFilters,
+    supabase,
+    isAuthResolved,
+    user?.id,
+  ]);
 
   useEffect(() => {
     console.log(LOG_PREFIX, "effect:maybeFetch", {
       authChangeToken,
-      sessionUserId,
+      userId: user?.id ?? null,
       filtersKey,
       hasFetchedOnce,
+      isAuthResolved,
     });
-    if (!authChangeToken) return;
+    if (!isAuthResolved) {
+      setLoading(true);
+      return;
+    }
 
-    if (!sessionUserId) {
+    if (!authChangeToken && hasFetchedOnce) return;
+
+    if (!user?.id) {
       setPrograms([]);
       setLoading(false);
       setHasFetchedOnce(false);
@@ -236,17 +242,24 @@ export default function StoreGrid({
     }
 
     runFetch();
-  }, [authChangeToken, runFetch, filtersKey, sessionUserId, hasFetchedOnce]);
+  }, [
+    authChangeToken,
+    runFetch,
+    filtersKey,
+    user?.id,
+    hasFetchedOnce,
+    isAuthResolved,
+  ]);
 
   useEffect(() => {
     console.log(LOG_PREFIX, "state:update", {
       loading,
       programs: programs.length,
       isAuthenticated,
-      sessionUserId,
+      userId: user?.id ?? null,
       authChangeToken,
     });
-  }, [loading, programs, isAuthenticated, sessionUserId, authChangeToken]);
+  }, [loading, programs, isAuthenticated, user?.id, authChangeToken]);
 
   return (
     <div className="relative mt-8">
