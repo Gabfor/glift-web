@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/SupabaseProvider";
+import { ensureClientSession } from "@/lib/ensureClientSession";
 
 export type UserContextType = {
   user: User | null;
@@ -28,31 +29,50 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [isPremiumUser, setIsPremiumUser] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+    let isMounted = true;
+
+    const updateFromSession = (currentSession: Session | null) => {
+      if (!isMounted) return;
+
+      setSession(currentSession);
+      setUser(currentSession?.user ?? null);
 
       const premium =
-        data.session?.user?.app_metadata?.plan === "premium" ||
-        data.session?.user?.user_metadata?.is_premium === true;
+        currentSession?.user?.app_metadata?.plan === "premium" ||
+        currentSession?.user?.user_metadata?.is_premium === true;
       setIsPremiumUser(premium);
+    };
 
+    const resolveSession = async () => {
+      const ensuredSession = await ensureClientSession(supabase);
+      if (!isMounted) return;
+
+      if (ensuredSession) {
+        updateFromSession(ensuredSession);
+        if (isMounted) {
+          setIsAuthResolved(true);
+        }
+        return;
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!isMounted) return;
+
+      updateFromSession(data.session ?? null);
       setIsAuthResolved(true);
-    });
+    };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    void resolveSession();
 
-      const premium =
-        session?.user?.app_metadata?.plan === "premium" ||
-        session?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
-
-      setIsAuthResolved(true);
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      updateFromSession(nextSession);
+      if (isMounted) {
+        setIsAuthResolved(true);
+      }
     });
 
     return () => {
+      isMounted = false;
       listener.subscription.unsubscribe();
     };
   }, [supabase]);
