@@ -4,34 +4,54 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";
+import { useUser } from "@/context/UserContext";
 
 export default function usePrograms() {
   const [programs, setPrograms] = useState<any[]>([]);
   const supabase = useMemo(() => createClient(), []);
+  const { user: contextUser, isAuthResolved } = useUser();
+
+  const resolveUserId = useCallback(async () => {
+    if (contextUser?.id) {
+      return contextUser.id;
+    }
+
+    const {
+      data: { user: fetchedUser },
+      error,
+    } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("Erreur récupération utilisateur:", error);
+      return null;
+    }
+
+    return fetchedUser?.id ?? null;
+  }, [contextUser?.id, supabase]);
 
   const fetchProgramsWithTrainings = useCallback(async () => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user?.id) return;
+    const userId = await resolveUserId();
+    if (!userId) {
+      if (!isAuthResolved) return;
+      return;
+    }
 
     let { data: programsData } = await supabase
       .from("programs")
       .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
-      .eq("user_id", user.id)
+      .eq("user_id", userId)
       .order("position", { ascending: true });
 
     const { data: orphanTrainings } = await supabase
       .from("trainings")
       .select("id, name, position, app, dashboard")
       .is("program_id", null)
-      .eq("user_id", user.id);
+      .eq("user_id", userId);
 
     if (!programsData || programsData.length === 0) {
       const { data: newProgram } = await supabase
         .from("programs")
-        .insert({ name: "Nom du programme", user_id: user.id })
+        .insert({ name: "Nom du programme", user_id: userId })
         .select()
         .single();
       if (newProgram) {
@@ -73,7 +93,7 @@ export default function usePrograms() {
     }
 
     setPrograms(result);
-  }, [supabase]);
+  }, [isAuthResolved, resolveUserId, supabase]);
 
   useEffect(() => {
     fetchProgramsWithTrainings();
@@ -464,8 +484,15 @@ export default function usePrograms() {
     newPosition: number
   ) => {
     const targetProgram = programs.find((p) => p.id === targetProgramId);
-    const wasEmpty =
-      (targetProgram?.trainings.filter((t: Training) => t.id !== trainingId).length ?? 0) === 0;
+    if (!targetProgram) {
+      console.warn("Programme cible introuvable pour le déplacement de l'entraînement.");
+      return;
+    }
+
+    const targetTrainingsWithoutCurrent = targetProgram.trainings.filter(
+      (t: Training) => t.id !== trainingId
+    );
+    const wasEmpty = targetTrainingsWithoutCurrent.length === 0;
     const isLastProgram = programs[programs.length - 1]?.id === targetProgramId;
 
     const { data: training, error: fetchError } = await supabase.from("trainings").select("*").eq("id", trainingId).single();
