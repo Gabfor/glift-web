@@ -39,8 +39,10 @@ export default function StoreGrid({
 }) {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rehydrated, setRehydrated] = useState(false);
+  const [authChangeToken, setAuthChangeToken] = useState(0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const supabase = createClient();
 
@@ -71,27 +73,32 @@ export default function StoreGrid({
       try {
         const { data } = await supabase.auth.getSession();
         if (!mounted) return;
-        // Dès qu’on a une réponse, on considère la session réhydratée (même si null)
-        setRehydrated(true);
+        setSessionUserId(data.session?.user?.id ?? null);
         setIsAuthenticated(!!data.session?.user);
-      } catch (e) {
+        setAuthChangeToken(Date.now());
+      } catch (_error) {
         if (!mounted) return;
-        setRehydrated(true);
+        setSessionUserId(null);
+        setIsAuthenticated(false);
+        setAuthChangeToken(Date.now());
       }
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      // Ces événements signifient que la session est connue/à jour
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
-        setRehydrated(true);
+        setSessionUserId(session?.user?.id ?? null);
         setIsAuthenticated(!!session?.user);
+        setAuthChangeToken(Date.now());
       }
+
       if (event === "SIGNED_OUT") {
+        setSessionUserId(null);
         setIsAuthenticated(false);
+        setAuthChangeToken(Date.now());
       }
     });
 
@@ -162,18 +169,27 @@ export default function StoreGrid({
     } finally {
       clearTimeout(tid);
       setLoading(false);
+      setHasFetchedOnce(true);
       console.timeEnd("[StoreGrid] fetch");
     }
   }, [currentPage, sortBy, safeFilters, supabase]);
 
   useEffect(() => {
-    if (!rehydrated) return;
+    if (!authChangeToken) return;
+
+    if (!sessionUserId) {
+      setPrograms([]);
+      setLoading(false);
+      setHasFetchedOnce(false);
+      return;
+    }
+
     runFetch();
-  }, [rehydrated, runFetch, filtersKey]);
+  }, [authChangeToken, runFetch, filtersKey, sessionUserId]);
 
   return (
     <div className="relative mt-8">
-      {programs.length === 0 && !loading && (
+      {programs.length === 0 && !loading && hasFetchedOnce && isAuthenticated && (
         <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
       )}
 

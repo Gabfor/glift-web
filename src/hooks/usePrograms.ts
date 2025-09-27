@@ -3,18 +3,21 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
+import { useUser } from "@/context/UserContext";
 import type { Program, Training } from "@/types/training";
 
 export default function usePrograms() {
   const [programs, setPrograms] = useState<any[]>([]);
   const supabase = useMemo(() => createClient(), []);
+  const { user, isAuthResolved } = useUser();
 
   const fetchProgramsWithTrainings = useCallback(async () => {
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser();
-    if (userError || !user?.id) return;
+    if (!isAuthResolved) return;
+
+    if (!user?.id) {
+      setPrograms([]);
+      return;
+    }
 
     let { data: programsData } = await supabase
       .from("programs")
@@ -51,9 +54,6 @@ export default function usePrograms() {
 
     // Si aucun programme vide → on en ajoute un
     if (!hasEmpty) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
       if (user?.id) {
         const { data: newProgram } = await supabase
           .from("programs")
@@ -73,7 +73,7 @@ export default function usePrograms() {
     }
 
     setPrograms(result);
-  }, [supabase]);
+  }, [isAuthResolved, supabase, user?.id]);
 
   useEffect(() => {
     fetchProgramsWithTrainings();

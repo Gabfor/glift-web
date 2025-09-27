@@ -35,7 +35,9 @@ export default function ShopGrid({
 }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [rehydrated, setRehydrated] = useState(false);
+  const [authChangeToken, setAuthChangeToken] = useState(0);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const supabase = createClient();
 
@@ -65,22 +67,30 @@ export default function ShopGrid({
 
     (async () => {
       try {
-        await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
         if (!mounted) return;
-        setRehydrated(true);
+        setSessionUserId(data.session?.user?.id ?? null);
+        setAuthChangeToken(Date.now());
       } catch {
         if (!mounted) return;
-        setRehydrated(true);
+        setSessionUserId(null);
+        setAuthChangeToken(Date.now());
       }
     })();
 
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
-        setRehydrated(true);
+        setSessionUserId(session?.user?.id ?? null);
+        setAuthChangeToken(Date.now());
+      }
+
+      if (event === "SIGNED_OUT") {
+        setSessionUserId(null);
+        setAuthChangeToken(Date.now());
       }
     });
 
@@ -150,12 +160,21 @@ export default function ShopGrid({
     }
 
     setLoading(false);
+    setHasFetchedOnce(true);
   }, [currentPage, sortBy, safeFilters, supabase]);
 
   useEffect(() => {
-    if (!rehydrated) return;
+    if (!authChangeToken) return;
+
+    if (!sessionUserId) {
+      setOffers([]);
+      setLoading(false);
+      setHasFetchedOnce(false);
+      return;
+    }
+
     runFetch();
-  }, [rehydrated, runFetch, filtersKey]);
+  }, [authChangeToken, runFetch, filtersKey, sessionUserId]);
 
   // Filtrage client sur "type" (string JSON → array)
   const filteredOffers = offers
@@ -182,7 +201,7 @@ export default function ShopGrid({
 
   return (
     <div className="relative mt-8">
-      {filteredOffers.length === 0 && !loading && (
+      {filteredOffers.length === 0 && !loading && hasFetchedOnce && (
         <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
       )}
 
