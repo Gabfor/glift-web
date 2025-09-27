@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,32 +10,14 @@ export async function GET(req: Request) {
   const next = url.searchParams.get("next") || "/compte#mes-informations";
   const origin = url.origin;
 
-  const response = new NextResponse();
-
-  const jar = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          response.cookies.set({ name, value, ...options });
-        },
-        remove: (name: string, options: any) => {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 });
-        },
-      },
-    }
-  );
+  const context = await createRouteHandlerClient();
 
   if (code) {
-    await supabase.auth.exchangeCodeForSession(code);
+    await context.client.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(new URL(next, origin), {
-    headers: response.headers,
-  });
+  const redirectResponse = NextResponse.redirect(new URL(next, origin));
+  return context.applyCookies(redirectResponse);
 }
 
 export async function POST(req: Request) {
@@ -46,35 +27,31 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "bad-request" }, { status: 400 });
   }
 
-  const response = new NextResponse();
   const rememberOn = remember === "1";
+  const context = await createRouteHandlerClient();
 
-  const jar = await cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: (name: string, value: string, options: any) => {
-          const opts: any = { ...options };
-          if (!rememberOn) {
-            delete opts.maxAge;
-            delete opts.expires;
-          }
-          response.cookies.set({ name, value, ...opts });
-        },
-        remove: (name: string, options: any) => {
-          response.cookies.set({ name, value: "", ...options, maxAge: 0 });
-        },
-      },
-    }
-  );
-
-  await supabase.auth.setSession({
+  await context.client.auth.setSession({
     access_token: session.access_token,
     refresh_token: session.refresh_token,
   });
+
+  const response =
+    next && typeof next === "string"
+      ? NextResponse.redirect(new URL(next, new URL(req.url).origin))
+      : new NextResponse(null, { status: 204 });
+
+  context.applyCookies(response);
+
+  if (!rememberOn) {
+    const base = {
+      httpOnly: true,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+    };
+    response.cookies.set({ name: "sb-access-token", value: session.access_token, ...base });
+    response.cookies.set({ name: "sb-refresh-token", value: session.refresh_token, ...base });
+  }
 
   response.cookies.set({
     name: "sb-remember",
@@ -83,11 +60,5 @@ export async function POST(req: Request) {
     ...(rememberOn ? { maxAge: 60 * 60 * 24 * 365 } : {}),
   });
 
-  if (next && typeof next === "string") {
-    return NextResponse.redirect(new URL(next, new URL(req.url).origin), {
-      headers: response.headers,
-    });
-  }
-
-  return new NextResponse(null, { status: 204, headers: response.headers });
+  return response;
 }

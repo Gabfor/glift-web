@@ -1,42 +1,29 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-  const storeMaybe: any = (cookies as any)();
-  const jar = typeof storeMaybe?.then === "function" ? await storeMaybe : storeMaybe;
-
-  const supabase = createServerClient(URL, ANON, {
-    cookies: {
-      getAll() {
-        return jar.getAll();
-      },
-      setAll(_list) {},
-    },
-  });
-
+  const { client, applyCookies } = await createRouteHandlerClient();
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = await client.auth.getSession();
 
   if (!session) {
-    return NextResponse.json({ session: null }, { status: 200 });
+    return applyCookies(NextResponse.json({ session: null }, { status: 200 }));
   }
 
-  return NextResponse.json(
-    {
-      session: {
-        access_token: session.access_token,
-        refresh_token: session.refresh_token,
-        user: session.user,
+  return applyCookies(
+    NextResponse.json(
+      {
+        session: {
+          access_token: session.access_token,
+          refresh_token: session.refresh_token,
+          user: session.user,
+        },
       },
-    },
-    { status: 200 }
+      { status: 200 }
+    )
   );
 }

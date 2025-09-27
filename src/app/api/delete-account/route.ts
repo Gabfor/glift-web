@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export const runtime = "nodejs";
@@ -35,30 +34,16 @@ export async function POST() {
     );
   }
 
-  const cookieStore = await cookies();
-
-  const supabase = createServerClient(url, anon, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      },
-      set(name: string, value: string, options: CookieOptions) {
-        cookieStore.set(name, value, options as any);
-      },
-      remove(name: string) {
-        cookieStore.delete(name);
-      },
-    },
-  });
+  const context = await createRouteHandlerClient();
 
   const {
     data: { user },
     error: userErr,
-  } = await supabase.auth.getUser();
+  } = await context.client.auth.getUser();
 
   if (userErr || !user) {
     if (userErr) console.error("[delete-account] getUser error:", userErr);
-    return NextResponse.json({ error: "not-authenticated" }, { status: 401 });
+    return context.applyCookies(NextResponse.json({ error: "not-authenticated" }, { status: 401 }));
   }
 
   const admin = createAdminClient(url, service, {
@@ -91,24 +76,25 @@ export async function POST() {
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) {
       console.error("[delete-account] deleteUser error:", delErr);
-      return NextResponse.json(
-        { error: "delete-failed", details: (delErr as any)?.message ?? delErr },
-        { status: 500 }
+      return context.applyCookies(
+        NextResponse.json(
+          { error: "delete-failed", details: (delErr as any)?.message ?? delErr },
+          { status: 500 }
+        )
       );
     }
 
     try {
-      await supabase.auth.signOut();
+      await context.client.auth.signOut();
     } catch (signOutErr) {
       console.warn("[delete-account] signOut warning:", signOutErr);
     }
 
-    return NextResponse.json({ ok: true }, { status: 200 });
+    return context.applyCookies(NextResponse.json({ ok: true }, { status: 200 }));
   } catch (e: any) {
     console.error("[delete-account] unexpected error:", e);
-    return NextResponse.json(
-      { error: "delete-failed", details: e?.message ?? String(e) },
-      { status: 500 }
+    return context.applyCookies(
+      NextResponse.json({ error: "delete-failed", details: e?.message ?? String(e) }, { status: 500 })
     );
   }
 }

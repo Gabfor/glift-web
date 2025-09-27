@@ -1,28 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createSSRClient } from "@/lib/supabase/server";
 
 export type AdminGuardOk = {
   user: any;
-  supabase: ReturnType<typeof createServerClient>;
+  supabase: Awaited<ReturnType<typeof createSSRClient>>;
 };
 
-export async function requireAdmin(req: NextRequest): Promise<AdminGuardOk | NextResponse> {
-  const jar = await cookies();
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => jar.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
+export async function requireAdmin(_req: NextRequest): Promise<AdminGuardOk | NextResponse> {
+  const supabase = await createSSRClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   const isAdmin =
     (user as any)?.app_metadata?.is_admin === true ||
     (user as any)?.user_metadata?.is_admin === true;

@@ -1,25 +1,27 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 
 export async function POST(req: Request) {
+  const clientContext = await createRouteHandlerClient();
+
   try {
     const { remember } = await req.json().catch(() => ({ remember: false as boolean }));
 
-    // ✅ cookies() peut être typé async selon ta version de Next → on attend sa résolution
-    const cookieStore = await cookies();
-    const access = cookieStore.get("sb-access-token");
-    const refresh = cookieStore.get("sb-refresh-token");
+    const access = clientContext.cookies.get("sb-access-token");
+    const refresh = clientContext.cookies.get("sb-refresh-token");
 
     if (!access || !refresh) {
-      return NextResponse.json(
-        { error: "No Supabase session cookies present." },
-        { status: 400 }
+      return clientContext.applyCookies(
+        NextResponse.json(
+          { error: "No Supabase session cookies present." },
+          { status: 400 }
+        )
       );
     }
 
     const resp = NextResponse.json({ success: true });
 
-    const maxAge = remember ? 60 * 60 * 24 * 180 : undefined; // 180 jours si "rester connecté"
+    const maxAge = remember ? 60 * 60 * 24 * 180 : undefined;
     const base = {
       httpOnly: true,
       sameSite: "lax" as const,
@@ -27,7 +29,6 @@ export async function POST(req: Request) {
       path: "/",
     };
 
-    // 🔁 Re-dépose les cookies Supabase avec (ou sans) expiration
     resp.cookies.set({
       name: "sb-access-token",
       value: access.value,
@@ -41,7 +42,6 @@ export async function POST(req: Request) {
       ...(maxAge ? { maxAge } : {}),
     });
 
-    // Indicateur lisible côté client pour configurer la persistance du SDK
     resp.cookies.set({
       name: "sb-remember",
       value: remember ? "1" : "0",
@@ -49,8 +49,8 @@ export async function POST(req: Request) {
       ...(maxAge ? { maxAge } : {}),
     });
 
-    return resp;
+    return clientContext.applyCookies(resp);
   } catch {
-    return NextResponse.json({ error: "Bad request" }, { status: 400 });
+    return clientContext.applyCookies(NextResponse.json({ error: "Bad request" }, { status: 400 }));
   }
 }
