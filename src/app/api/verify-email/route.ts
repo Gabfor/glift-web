@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,10 +12,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Token manquant." }, { status: 400 });
   }
 
-  const admin = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const admin = getServiceRoleClient();
 
   const { data: row, error } = await admin
     .from("email_verification_tokens")

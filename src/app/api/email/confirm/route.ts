@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 function siteUrl() {
   return (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/+$/, "");
@@ -21,14 +21,10 @@ function renderHtml(link: string) {
 
 /** Envoie l’email de vérification avec login automatique via Magic Link */
 export async function sendVerificationEmail({ email, token }: { email: string; token: string }) {
-  const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
   const RESEND_KEY = process.env.RESEND_API_KEY;
   const RESEND_FROM = process.env.RESEND_FROM || "Glift <no-reply@glift.io>";
 
-  const admin = createAdminClient(URL, SERVICE, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
+  const admin = getServiceRoleClient();
 
   // Après login, on veut marquer vérifié puis envoyer vers /compte#mes-informations
   const confirmApi = `/api/email/confirm?token=${encodeURIComponent(token)}&dest=${encodeURIComponent("/compte#mes-informations")}`;

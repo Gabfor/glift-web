@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { sendVerificationEmail } from "@/lib/email/verifyEmail";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +14,6 @@ export async function POST() {
   try {
     const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-    const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     const storeMaybe: any = (cookies as any)();
     const cookieStore = typeof storeMaybe?.then === "function" ? await storeMaybe : storeMaybe;
@@ -38,7 +37,7 @@ export async function POST() {
       return NextResponse.json({ ok: false, error: "not_authenticated" }, { status: 401, headers: response.headers });
     }
 
-    const admin = createAdminClient(URL, SERVICE, { auth: { persistSession: false, autoRefreshToken: false } });
+    const admin = getServiceRoleClient();
 
     const token = randomUUID().replace(/-/g, "");
     const grace = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString();

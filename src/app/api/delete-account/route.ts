@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,9 +61,7 @@ export async function POST() {
     return NextResponse.json({ error: "not-authenticated" }, { status: 401 });
   }
 
-  const admin = createAdminClient(url, service, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
+  const admin = getServiceRoleClient();
 
   const safeDelete = async (table: string, col: string, val: string) => {
     const { error } = await admin.from(table).delete().eq(col, val);

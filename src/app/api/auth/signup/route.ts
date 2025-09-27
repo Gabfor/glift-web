@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { sendVerificationEmail } from "@/lib/email/verifyEmail";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,13 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Email et mot de passe requis." }, { status: 400 });
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const service = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const service = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !service) {
       return NextResponse.json({ success: false, error: "Supabase env manquantes." }, { status: 500 });
     }
 
-    const admin = createAdminClient(url, service, { auth: { persistSession: false, autoRefreshToken: false } });
+    const admin = getServiceRoleClient();
 
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
       email,
