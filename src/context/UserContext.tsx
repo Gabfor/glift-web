@@ -10,7 +10,9 @@ export type UserContextType = {
   session: Session | null;
   isAuthenticated: boolean;
   isAuthResolved: boolean;
+  plan: string | null;
   isPremiumUser: boolean;
+  isSubscriptionResolved: boolean;
 };
 
 const UserContext = createContext<UserContextType>({
@@ -18,7 +20,9 @@ const UserContext = createContext<UserContextType>({
   session: null,
   isAuthenticated: false,
   isAuthResolved: false,
+  plan: null,
   isPremiumUser: false,
+  isSubscriptionResolved: false,
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -26,10 +30,53 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAuthResolved, setIsAuthResolved] = useState(false);
+  const [plan, setPlan] = useState<string | null>(null);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [isSubscriptionResolved, setIsSubscriptionResolved] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
+    let fetchToken = 0;
+
+    const applyPlan = (nextPlan: string | null, nextPremium?: boolean) => {
+      if (!isMounted) return;
+      setPlan(nextPlan);
+      if (typeof nextPremium === "boolean") {
+        setIsPremiumUser(nextPremium);
+      } else {
+        setIsPremiumUser(String(nextPlan).toLowerCase() === "premium");
+      }
+    };
+
+    const fetchPlanForUser = async (userId: string | null) => {
+      const currentToken = ++fetchToken;
+
+      if (!userId) {
+        applyPlan(null, false);
+        setIsSubscriptionResolved(true);
+        return;
+      }
+
+      const { data: rows, error } = await supabase
+        .from("user_subscriptions")
+        .select("plan")
+        .eq("user_id", userId)
+        .limit(1);
+
+      if (!isMounted || currentToken !== fetchToken) {
+        return;
+      }
+
+      if (error) {
+        applyPlan(null, false);
+        setIsSubscriptionResolved(true);
+        return;
+      }
+
+      const nextPlan = (rows?.[0]?.plan ?? null) as string | null;
+      applyPlan(nextPlan, String(nextPlan).toLowerCase() === "premium");
+      setIsSubscriptionResolved(true);
+    };
 
     const updateFromSession = (currentSession: Session | null) => {
       if (!isMounted) return;
@@ -37,10 +84,37 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
 
-      const premium =
-        currentSession?.user?.app_metadata?.plan === "premium" ||
-        currentSession?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
+      const currentUser = currentSession?.user ?? null;
+
+      if (!currentUser) {
+        fetchToken++;
+        applyPlan(null, false);
+        setIsSubscriptionResolved(true);
+        return;
+      }
+
+      const appPlan =
+        typeof currentUser.app_metadata?.plan === "string"
+          ? (currentUser.app_metadata.plan as string)
+          : null;
+
+      const userMetadata = (currentUser.user_metadata ?? {}) as Record<
+        string,
+        unknown
+      >;
+      const metadataPlanValue = userMetadata?.["plan"];
+      const metadataPlan =
+        appPlan ??
+        (typeof metadataPlanValue === "string" ? metadataPlanValue : null);
+
+      const metadataPremium =
+        String(metadataPlan).toLowerCase() === "premium" ||
+        userMetadata?.["is_premium"] === true;
+
+      applyPlan(metadataPlan ?? null, metadataPremium);
+      setIsSubscriptionResolved(false);
+
+      void fetchPlanForUser(currentUser.id);
     };
 
     const resolveSession = async () => {
@@ -84,7 +158,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         session,
         isAuthenticated: !!user,
         isAuthResolved,
+        plan,
         isPremiumUser,
+        isSubscriptionResolved,
       }}
     >
       {children}

@@ -3,8 +3,8 @@
 import { useUser } from "@/context/UserContext";
 
 export default function AuthDebug() {
-  const { user, isAuthenticated } = useUser();
-  const isPremiumUser = user?.user_metadata?.is_premium === true;
+  const { user, isAuthenticated, isPremiumUser, plan, isSubscriptionResolved } =
+    useUser();
 
   if (!user) return null;
 
@@ -19,7 +19,13 @@ export default function AuthDebug() {
           <strong>Authentifié :</strong> {isAuthenticated ? "Oui" : "Non"}
         </li>
         <li>
+          <strong>Plan :</strong> {plan ?? "—"}
+        </li>
+        <li>
           <strong>Premium :</strong> {isPremiumUser ? "Oui" : "Non"}
+        </li>
+        <li>
+          <strong>Plan chargé :</strong> {isSubscriptionResolved ? "Oui" : "Non"}
         </li>
       </ul>
     </div>

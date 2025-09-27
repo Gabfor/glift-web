@@ -36,8 +36,9 @@ export default function ShopCard({ offer }: Props) {
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
   const [countdown, setCountdown] = useState("");
-  const { user, isPremiumUser } = useUser() || {};
+  const { user, isPremiumUser, isSubscriptionResolved } = useUser();
   const isAuthenticated = !!user;
+  const subscriptionPending = isAuthenticated && !isSubscriptionResolved;
 
   const supabase = createClient();
 
@@ -301,6 +302,21 @@ export default function ShopCard({ offer }: Props) {
                 height={15}
               />
               Profiter de cette offre
+            </button>
+          ) : subscriptionPending ? (
+            <button
+              onMouseEnter={() => setLockedHover(true)}
+              onMouseLeave={() => setLockedHover(false)}
+              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#F2F1F6] text-[#D7D4DC] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto cursor-wait"
+              disabled
+            >
+              <Image
+                src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
+                alt=""
+                width={15}
+                height={15}
+              />
+              Chargement...
             </button>
           ) : !isPremiumUser ? (
             <button
