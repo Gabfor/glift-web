@@ -4,9 +4,7 @@ import { Quicksand } from "next/font/google";
 import ClientLayout from "@/components/ClientLayout";
 import { UnlockScroll } from "@/components/UnlockScroll";
 import VerifyEmailTopBar from "@/components/auth/VerifyEmailTopBar";
-
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createSSRClient } from "@/lib/supabase/server";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -29,32 +27,18 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-if (process.env.NEXT_PUBLIC_DEBUG === '1') {
-  console.log('[RootLayout] render');
-}
+  if (process.env.NEXT_PUBLIC_DEBUG === "1") {
+    console.log("[RootLayout] render");
+  }
 
-  // Supabase SSR
-  const cookieStoreMaybe: any = (cookies as any)();
-  const cookieStore =
-    typeof cookieStoreMaybe?.then === "function" ? await cookieStoreMaybe : cookieStoreMaybe;
+  const supabase = await createSSRClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
   let plan: string | null = null;
 
   if (user) {
-    // 🔧 IMPORTANT: pas de .single()/.maybeSingle() → on fait LIMIT 1
     const { data: subRows } = await supabase
       .from("user_subscriptions")
       .select("plan")
@@ -70,7 +54,6 @@ if (process.env.NEXT_PUBLIC_DEBUG === '1') {
       <body className={quicksand.className}>
         <UnlockScroll />
         <VerifyEmailTopBar />
-        {/* on ne passe pas encore `plan` si tes composants ne l’acceptent pas */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { requireAdmin } from "@/lib/auth/requireAdmin";
+import { createRouteHandlerClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -9,11 +9,13 @@ export async function GET(req: NextRequest) {
   const guard = await requireAdmin(req);
   if (guard instanceof NextResponse) return guard;
 
-  const jar = await cookies();
-  const cookieKeys = jar.getAll().map((c) => c.name);
+  const { cookies } = await createRouteHandlerClient();
+  const cookieKeys = cookies.getAll().map((c) => c.name);
 
-  const { supabase } = guard;
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await guard.supabase.auth.getUser();
 
   return NextResponse.json({
     cookieNames: cookieKeys,
