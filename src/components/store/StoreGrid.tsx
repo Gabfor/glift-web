@@ -37,6 +37,7 @@ export default function StoreGrid({
   currentPage: number;
   filters: string[];
 }) {
+  const LOG_PREFIX = "[StoreGrid]";
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChangeToken, setAuthChangeToken] = useState(0);
@@ -69,22 +70,32 @@ export default function StoreGrid({
   useEffect(() => {
     let mounted = true;
 
+    console.log(LOG_PREFIX, "auth:init:useEffect");
+
     (async () => {
       try {
+        console.log(LOG_PREFIX, "auth:init:getSession:start");
         const { data } = await supabase.auth.getSession();
         if (!mounted) return;
         setSessionUserId(data.session?.user?.id ?? null);
         setIsAuthenticated(!!data.session?.user);
         setAuthChangeToken(Date.now());
+        console.log(LOG_PREFIX, "auth:init:getSession:resolved", {
+          userId: data.session?.user?.id ?? null,
+        });
       } catch (_error) {
         if (!mounted) return;
         setSessionUserId(null);
         setIsAuthenticated(false);
         setAuthChangeToken(Date.now());
+        console.error(LOG_PREFIX, "auth:init:getSession:error", _error);
       }
     })();
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log(LOG_PREFIX, "auth:event", event, {
+        userId: session?.user?.id ?? null,
+      });
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
@@ -93,14 +104,21 @@ export default function StoreGrid({
         setSessionUserId(session?.user?.id ?? null);
         setIsAuthenticated(!!session?.user);
         setAuthChangeToken(Date.now());
+        console.log(LOG_PREFIX, "auth:event:session-valid", {
+          event,
+          userId: session?.user?.id ?? null,
+        });
       }
 
       if (event === "SIGNED_OUT") {
         setSessionUserId(null);
         setIsAuthenticated(false);
         setAuthChangeToken(Date.now());
+        console.log(LOG_PREFIX, "auth:event:signed-out");
       }
     });
+
+    console.log(LOG_PREFIX, "auth:init:subscription", sub);
 
     return () => sub.subscription.unsubscribe();
   }, [supabase]);
@@ -110,12 +128,28 @@ export default function StoreGrid({
     const start = (currentPage - 1) * 8;
     const end = start + 7;
     const order = getOrderForSortBy(sortBy);
+    let nextProgramsCount = 0;
 
+    console.log(LOG_PREFIX, "runFetch:start", {
+      currentPage,
+      filters: safeFilters,
+      sortBy,
+      start,
+      end,
+      order,
+      sessionUserId,
+      isAuthenticated,
+    });
     setLoading(true);
-    console.time("[StoreGrid] fetch");
+    console.time(`${LOG_PREFIX} fetch`);
 
     const tid = window.setTimeout(() => {
-      console.warn("[StoreGrid] fetch timeout after", FETCH_TIMEOUT_MS, "ms");
+      console.warn(
+        LOG_PREFIX,
+        "fetch timeout after",
+        FETCH_TIMEOUT_MS,
+        "ms"
+      );
       setLoading(false);
     }, FETCH_TIMEOUT_MS);
 
@@ -158,34 +192,61 @@ export default function StoreGrid({
         .range(start, end);
 
       if (error) {
-        console.error("[StoreGrid] Supabase error:", error);
+        console.error(LOG_PREFIX, "runFetch:error", error);
         setPrograms([]);
       } else {
+        console.log(LOG_PREFIX, "runFetch:success", {
+          count: data?.length ?? 0,
+        });
+        nextProgramsCount = data?.length ?? 0;
         setPrograms(data || []);
       }
     } catch (e) {
-      console.error("[StoreGrid] fetch threw:", e);
+      console.error(LOG_PREFIX, "runFetch:exception", e);
       setPrograms([]);
     } finally {
       clearTimeout(tid);
       setLoading(false);
       setHasFetchedOnce(true);
-      console.timeEnd("[StoreGrid] fetch");
+      console.timeEnd(`${LOG_PREFIX} fetch`);
+      console.log(LOG_PREFIX, "runFetch:end", {
+        programs: nextProgramsCount,
+        hasFetchedOnce: true,
+      });
     }
-  }, [currentPage, sortBy, safeFilters, supabase]);
+  }, [currentPage, sortBy, safeFilters, supabase, isAuthenticated, sessionUserId]);
 
   useEffect(() => {
+    console.log(LOG_PREFIX, "effect:maybeFetch", {
+      authChangeToken,
+      sessionUserId,
+      filtersKey,
+      hasFetchedOnce,
+    });
     if (!authChangeToken) return;
 
     if (!sessionUserId) {
       setPrograms([]);
       setLoading(false);
       setHasFetchedOnce(false);
+      console.warn(LOG_PREFIX, "effect:maybeFetch:no-session", {
+        authChangeToken,
+      });
       return;
     }
 
     runFetch();
-  }, [authChangeToken, runFetch, filtersKey, sessionUserId]);
+  }, [authChangeToken, runFetch, filtersKey, sessionUserId, hasFetchedOnce]);
+
+  useEffect(() => {
+    console.log(LOG_PREFIX, "state:update", {
+      loading,
+      programs: programs.length,
+      isAuthenticated,
+      sessionUserId,
+      authChangeToken,
+    });
+  }, [loading, programs, isAuthenticated, sessionUserId, authChangeToken]);
 
   return (
     <div className="relative mt-8">
