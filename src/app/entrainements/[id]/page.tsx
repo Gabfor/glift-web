@@ -25,7 +25,7 @@ import { useIconHover } from "@/utils/useIconHover";
 export default function AdminEntrainementDetailPage() {
   const params = useParams();
   const trainingId = params?.id as string;
-  const user = useUser();
+  const { user } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useMemo(() => createClient(), []);

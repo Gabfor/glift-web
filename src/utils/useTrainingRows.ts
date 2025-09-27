@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { useMemo } from "react";
 import { Row } from "@/types/training";
 import { usePathname } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
 
-export function useTrainingRows(trainingId: string, user: any) {
+export function useTrainingRows(trainingId: string, user: User | null) {
   const supabase = useMemo(() => createClient(), []);
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -45,7 +46,9 @@ export function useTrainingRows(trainingId: string, user: any) {
   }, [trainingId]);
 
   useEffect(() => {
-    if (!user || !trainingId) {
+    const userId = user?.id;
+
+    if (!userId || !trainingId) {
       setFullyLoaded(true);
       return;
     }
@@ -97,7 +100,7 @@ export function useTrainingRows(trainingId: string, user: any) {
           .from(tableName)
           .insert({
             training_id: trainingId,
-            user_id: user.id,
+            user_id: userId,
             order: 0,
             series: optimisticRow.series,
             repetitions: optimisticRow.repetitions,
@@ -226,7 +229,9 @@ export function useTrainingRows(trainingId: string, user: any) {
   }, [user, trainingId, supabase, hasClearedCheckedOnce, tableName]);
 
   useEffect(() => {
-    if (!user || !user.id || !trainingId || rows.length === 0) return;
+    const userId = user?.id;
+
+    if (!userId || !trainingId || rows.length === 0) return;
     if (isSyncingRef.current) return;
 
     const cleanRows = rows.map(({ iconHovered, ...row }) => row);
@@ -262,7 +267,7 @@ export function useTrainingRows(trainingId: string, user: any) {
         .filter((row) => !row.id)
         .map((row) => ({
           training_id: trainingId,
-          user_id: user.id,
+          user_id: userId,
           order: row._finalOrder,
           series: row.series,
           repetitions: row.repetitions,
@@ -282,7 +287,7 @@ export function useTrainingRows(trainingId: string, user: any) {
         .map((row) => ({
           id: row.id!,
           training_id: trainingId,
-          user_id: user.id,
+          user_id: userId,
           order: row._finalOrder,
           series: row.series,
           repetitions: row.repetitions,
