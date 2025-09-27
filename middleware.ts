@@ -23,6 +23,15 @@ export async function middleware(req: NextRequest) {
 
   const remember = req.cookies.get("sb-remember")?.value === "1";
   const sessionTab = req.cookies.get("sb-session-tab")?.value === "1";
+  if (user && !remember && !sessionTab) {
+    res.cookies.set({
+      name: "sb-session-tab",
+      value: "1",
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
   const hasClientConsent = remember || sessionTab;
 
   const isCompte = pathname.startsWith("/compte");
