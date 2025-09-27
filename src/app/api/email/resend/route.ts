@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { createRouteHandlerClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { randomUUID } from "crypto";
 import { sendVerificationEmail } from "@/lib/email/verifyEmail";
+import { getServiceRoleClient } from "@/lib/supabase/serviceRole";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -11,9 +11,6 @@ export async function POST() {
   const context = await createRouteHandlerClient();
 
   try {
-    const URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-
     const {
       data: { user },
       error,
@@ -22,9 +19,14 @@ export async function POST() {
       return context.applyCookies(NextResponse.json({ ok: false, error: "not_authenticated" }, { status: 401 }));
     }
 
-    const admin = createAdminClient(URL, SERVICE, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+    let admin;
+    try {
+      admin = getServiceRoleClient();
+    } catch (_error) {
+      return context.applyCookies(
+        NextResponse.json({ ok: false, error: "Supabase env manquantes." }, { status: 500 })
+      );
+    }
 
     const token = randomUUID().replace(/-/g, "");
     const grace = new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString();
