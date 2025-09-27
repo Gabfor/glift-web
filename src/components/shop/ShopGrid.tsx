@@ -37,6 +37,7 @@ export default function ShopGrid({
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [authChangeToken, setAuthChangeToken] = useState(0);
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const supabase = createClient();
@@ -64,16 +65,33 @@ export default function ShopGrid({
 
   // 1) Écoute des changements d’auth
   useEffect(() => {
+    let mounted = true;
+
+    (async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSessionUserId(data.session?.user?.id ?? null);
+        setAuthChangeToken(Date.now());
+      } catch {
+        if (!mounted) return;
+        setSessionUserId(null);
+        setAuthChangeToken(Date.now());
+      }
+    })();
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
+        setSessionUserId(session?.user?.id ?? null);
         setAuthChangeToken(Date.now());
       }
 
       if (event === "SIGNED_OUT") {
+        setSessionUserId(null);
         setAuthChangeToken(Date.now());
       }
     });
@@ -183,6 +201,12 @@ export default function ShopGrid({
     if (!authChangeToken && hasFetchedOnce) return;
 
     if (!user?.id) {
+  }, [currentPage, sortBy, safeFilters, supabase]);
+
+  useEffect(() => {
+    if (!authChangeToken) return;
+
+    if (!sessionUserId) {
       setOffers([]);
       setLoading(false);
       setHasFetchedOnce(false);
@@ -198,6 +222,7 @@ export default function ShopGrid({
     hasFetchedOnce,
     isAuthResolved,
   ]);
+  }, [authChangeToken, runFetch, filtersKey, sessionUserId]);
 
   // Filtrage client sur "type" (string JSON → array)
   const filteredOffers = offers
