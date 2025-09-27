@@ -76,7 +76,10 @@ export default function MissingField({
     const ro = new ResizeObserver(() => compute())
     ro.observe(wrapRef.current)
     // observe aussi le 1er enfant (utile quand les champs changent de taille)
-    wrapRef.current.firstElementChild && ro.observe(wrapRef.current.firstElementChild as Element)
+    const firstChild = wrapRef.current.firstElementChild
+    if (firstChild) {
+      ro.observe(firstChild as Element)
+    }
 
     const onResize = () => compute()
     const onScroll = () => compute()

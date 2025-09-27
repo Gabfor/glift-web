@@ -6,8 +6,8 @@ import { useUser } from '@/context/UserContext';
 
 export default function VerifyEmailBanner() {
   const { user } = useUser();
-  if (!user?.id) return null;
   const supabase = createClient();
+  const userId = user?.id ?? null;
 
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,19 +15,22 @@ export default function VerifyEmailBanner() {
 
   useEffect(() => {
     let cancelled = false;
+    let activeChannel: ReturnType<typeof supabase.channel> | null = null;
+
+    if (!userId) {
+      setShow(false);
+      setLoading(false);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const load = async () => {
-      if (!user) {
-        if (!cancelled) {
-          setShow(false);
-          setLoading(false);
-        }
-        return;
-      }
+      setLoading(true);
       const { data, error } = await supabase
         .from('profiles')
         .select('email_verified')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (!cancelled) {
@@ -36,31 +39,30 @@ export default function VerifyEmailBanner() {
       }
 
       // Realtime : cache automatiquement le bandeau dès que le profil passe à verified
-      const channel = supabase
+      activeChannel = supabase
         .channel('profiles-email-verified')
         .on(
           'postgres_changes',
-          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
+          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
           (payload) => {
             const next = (payload.new as any)?.email_verified;
             if (typeof next === 'boolean') setShow(!next);
           }
         )
         .subscribe();
-
-      return () => {
-        supabase.removeChannel(channel);
-      };
     };
 
     load();
 
     return () => {
       cancelled = true;
+      if (activeChannel) {
+        supabase.removeChannel(activeChannel);
+      }
     };
-  }, [user, supabase]);
+  }, [supabase, userId]);
 
-  if (loading || !show) return null;
+  if (!userId || loading || !show) return null;
 
   const handleResend = async () => {
     try {
