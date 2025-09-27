@@ -14,7 +14,14 @@ export async function GET(req: Request) {
   const res = NextResponse.redirect(new URL("/connexion", req.url), 302);
   res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
   res.headers.set("Pragma", "no-cache");
-  res.headers.set("Clear-Site-Data", `"storage"`);
+  res.cookies.set({
+    name: "glift-logout",
+    value: "1",
+    path: "/",
+    maxAge: 60,
+    httpOnly: false,
+    sameSite: "lax",
+  });
 
   const supabase = createServerClient(url, anon, {
     cookies: {
