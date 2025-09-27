@@ -109,6 +109,33 @@ export function UserProvider({
   }, [initialSession, initialSession?.access_token, initialSession?.refresh_token]);
 
   useEffect(() => {
+    if (!user) return;
+    if (typeof initialIsPremiumUser === "undefined") return;
+
+    const activeUserId = user.id;
+    if (
+      initialUserIdRef.current &&
+      initialUserIdRef.current !== activeUserId
+    ) {
+      return;
+    }
+
+    const metadataPremium =
+      user.app_metadata?.plan === "premium" ||
+      user.user_metadata?.is_premium === true;
+    const serverPremium = initialIsPremiumUser === true;
+
+    const nextPremium =
+      metadataPremium === serverPremium ? metadataPremium : serverPremium;
+
+    if (initialPremiumRef.current !== nextPremium) {
+      initialPremiumRef.current = nextPremium;
+    }
+
+    setIsPremiumUser((prev) => (prev === nextPremium ? prev : nextPremium));
+  }, [initialIsPremiumUser, user]);
+
+  useEffect(() => {
     let active = true;
 
     const { data: listener } = supabase.auth.onAuthStateChange(
