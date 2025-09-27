@@ -9,6 +9,46 @@ import ForgotPasswordButtonWithModal from "@/components/auth/ForgotPasswordButto
 import Tooltip from "@/components/Tooltip";
 import Spinner from "@/components/ui/Spinner";
 
+const parseSupabaseProjectRef = (url: string | undefined) => {
+  if (!url) return null;
+  try {
+    const { hostname } = new URL(url);
+    const match = hostname.match(/^([^.]+)\.supabase\.(co|in)$/);
+    if (match && match[1]) return match[1];
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const CURRENT_SUPABASE_PROJECT_REF = parseSupabaseProjectRef(
+  process.env.NEXT_PUBLIC_SUPABASE_URL
+);
+
+const LEGACY_SUPABASE_PROJECT_REFS = (process.env
+  .NEXT_PUBLIC_SUPABASE_LEGACY_PROJECT_REFS
+  ? process.env.NEXT_PUBLIC_SUPABASE_LEGACY_PROJECT_REFS.split(",")
+      .map((ref) => ref.trim())
+      .filter(Boolean)
+  : []) as string[];
+
+const shouldRemoveLegacySupabaseKey = (key: string) => {
+  if (!key.startsWith("sb-")) return false;
+  const match = key.match(/^sb-([^\-]+)-/);
+  if (!match || !match[1]) return false;
+  const projectRef = match[1];
+
+  if (CURRENT_SUPABASE_PROJECT_REF && projectRef === CURRENT_SUPABASE_PROJECT_REF) {
+    return false;
+  }
+
+  if (LEGACY_SUPABASE_PROJECT_REFS.length > 0) {
+    return LEGACY_SUPABASE_PROJECT_REFS.includes(projectRef);
+  }
+
+  return !!CURRENT_SUPABASE_PROJECT_REF;
+};
+
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
   const [emailTouched, setEmailTouched] = useState(false);
@@ -46,7 +86,7 @@ export default function ConnexionPage() {
       for (let i = 0; i < window.localStorage.length; i++) {
         const k = window.localStorage.key(i);
         if (!k) continue;
-        if (k.startsWith("sb-") && k.includes("-auth-token")) keys.push(k);
+        if (shouldRemoveLegacySupabaseKey(k)) keys.push(k);
       }
       keys.forEach((k) => window.localStorage.removeItem(k));
     } catch {}
@@ -102,11 +142,11 @@ export default function ConnexionPage() {
       document.cookie = `sb-remember=${remember}; Path=/; SameSite=Lax${
         process.env.NODE_ENV === "production" ? "; Secure" : ""
       }`;
-      if (remember === "0") {
+      const shouldPurgeLegacyStorage = remember === "0";
+      if (shouldPurgeLegacyStorage) {
         document.cookie = `sb-session-tab=1; Path=/; SameSite=Lax${
           process.env.NODE_ENV === "production" ? "; Secure" : ""
         }`;
-        purgeLegacySupabaseLocalStorage();
       }
 
       const supabase = createClient();
@@ -129,6 +169,10 @@ export default function ConnexionPage() {
 
       if (data?.session) {
         if (rememberMe) await maybeStoreCredentials(email, password);
+
+        if (shouldPurgeLegacyStorage) {
+          purgeLegacySupabaseLocalStorage();
+        }
 
         try {
           const ac = new AbortController();
