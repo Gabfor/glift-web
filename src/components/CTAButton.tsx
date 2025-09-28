@@ -25,6 +25,7 @@ type BaseProps = {
   loading?: boolean;
   loadingText?: string;
   keepWidthWhileLoading?: boolean;
+  disableAutoLoading?: boolean;
   onClick?: (event: MouseEvent<CTAElement>) => void | Promise<void>;
 };
 
@@ -42,6 +43,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       loading,
       loadingText = "En cours...",
       keepWidthWhileLoading = true,
+      disableAutoLoading = false,
       onClick,
       type = "button",
       variant = "active",
@@ -82,26 +84,30 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
           (!target || target === "_self");
 
         if (result instanceof Promise) {
-          if (!isControlled) {
+          if (!isControlled && !disableAutoLoading) {
             setInternalLoading(true);
           }
           try {
             await result;
           } finally {
-            if ((!shouldNavigate || event.defaultPrevented) && !isControlled) {
+            if (
+              (!shouldNavigate || event.defaultPrevented) &&
+              !isControlled &&
+              !disableAutoLoading
+            ) {
               setInternalLoading(false);
             }
           }
         }
 
         if (shouldNavigate) {
-          if (!isControlled) {
+          if (!isControlled && !disableAutoLoading) {
             setInternalLoading(true);
           }
           router.push(href!);
         }
       },
-      [href, isControlled, router, target]
+      [disableAutoLoading, href, isControlled, router, target]
     );
 
     const handleClick = useCallback(
@@ -111,7 +117,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
           return;
         }
 
-        if (keepWidthWhileLoading && elementRef.current) {
+        if (!disableAutoLoading && keepWidthWhileLoading && elementRef.current) {
           const currentWidth = elementRef.current.getBoundingClientRect().width;
           setStoredWidth(currentWidth);
         }
@@ -119,7 +125,14 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         const result = onClick?.(event);
         void handleAsyncResult(result, event);
       },
-      [disabled, effectiveLoading, handleAsyncResult, keepWidthWhileLoading, onClick]
+      [
+        disableAutoLoading,
+        disabled,
+        effectiveLoading,
+        handleAsyncResult,
+        keepWidthWhileLoading,
+        onClick,
+      ]
     );
 
     const baseClasses = clsx(

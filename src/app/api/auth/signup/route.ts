@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
@@ -46,12 +46,16 @@ export async function POST(req: NextRequest) {
   const userId = signupData?.user?.id;
 
   if (userId) {
-    const { error: subscriptionError } = await supabase
+    const supabaseAdmin = createAdminClient();
+    const { error: subscriptionError } = await supabaseAdmin
       .from("user_subscriptions")
-      .upsert({
-        user_id: userId,
-        plan,
-      }, { onConflict: "user_id" });
+      .upsert(
+        {
+          user_id: userId,
+          plan,
+        },
+        { onConflict: "user_id" }
+      );
 
     if (subscriptionError) {
       console.error("Erreur enregistrement abonnement", subscriptionError);
