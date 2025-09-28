@@ -3,6 +3,11 @@
 import React, { useState } from "react";
 import Image from "next/image";
 
+import {
+  NextDisabledIcon,
+  PreviousDisabledIcon,
+} from "../icons/PaginationIcons";
+
 type Props = {
   currentPage: number;
   totalPrograms: number;
@@ -50,18 +55,20 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
         onMouseLeave={() => setPrevHover(false)}
         className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent p-0 m-0"
       >
-        <Image
-          src={
-            prevDisabled
-              ? "/icons/previous.svg"
-              : prevHover
-              ? "/icons/previous_active_hover.svg"
-              : "/icons/previous_active.svg"
-          }
-          alt="Previous"
-          width={32}
-          height={32}
-        />
+        {prevDisabled ? (
+          <PreviousDisabledIcon className="h-8 w-8" />
+        ) : (
+          <Image
+            src={
+              prevHover
+                ? "/icons/previous_active_hover.svg"
+                : "/icons/previous_active.svg"
+            }
+            alt="Previous"
+            width={32}
+            height={32}
+          />
+        )}
       </button>
 
       {/* Page Numbers */}
@@ -92,18 +99,20 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
         onMouseLeave={() => setNextHover(false)}
         className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent p-0 m-0"
       >
-        <Image
-          src={
-            nextDisabled
-              ? "/icons/next.svg"
-              : nextHover
-              ? "/icons/next_active_hover.svg"
-              : "/icons/next_active.svg"
-          }
-          alt="Next"
-          width={32}
-          height={32}
-        />
+        {nextDisabled ? (
+          <NextDisabledIcon className="h-8 w-8" />
+        ) : (
+          <Image
+            src={
+              nextHover
+                ? "/icons/next_active_hover.svg"
+                : "/icons/next_active.svg"
+            }
+            alt="Next"
+            width={32}
+            height={32}
+          />
+        )}
       </button>
     </div>
   );
