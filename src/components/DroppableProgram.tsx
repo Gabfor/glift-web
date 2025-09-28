@@ -5,7 +5,7 @@ import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import SortableItem from './TrainingList/SortableItem'
+import SortableItem from './training/SortableItem'
 
 interface Training {
   id: string

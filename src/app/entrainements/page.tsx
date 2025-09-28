@@ -7,7 +7,7 @@ import ProgramEditor from "@/components/ProgramEditor";
 import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
 import DroppableProgram from "@/components/DroppableProgram";
-import DragPreviewItem from "@/components/TrainingList/DragPreviewItem";
+import DragPreviewItem from "@/components/training/DragPreviewItem";
 
 import {
   DndContext,
@@ -20,7 +20,7 @@ import {
   DragOverEvent,
 } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
-import SortableItem from "@/components/TrainingList/SortableItem";
+import SortableItem from "@/components/training/SortableItem";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 
 export default function EntrainementsPage() {
