@@ -1,8 +1,16 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/SupabaseProvider";
+import { createScopedLogger } from "@/utils/logger";
+import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
 
 export type UserContextType = {
   user: User | null;
@@ -10,6 +18,7 @@ export type UserContextType = {
   isAuthenticated: boolean;
   isAuthResolved: boolean;
   isPremiumUser: boolean;
+  refreshSession: (origin?: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
@@ -18,6 +27,7 @@ const UserContext = createContext<UserContextType>({
   isAuthenticated: false,
   isAuthResolved: false,
   isPremiumUser: false,
+  refreshSession: async () => {},
 });
 
 function computeIsPremium(user: User | null) {
@@ -41,52 +51,69 @@ export function UserProvider({ children, initialSession = null }: UserProviderPr
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(
     computeIsPremium(initialSession?.user ?? null)
   );
+  const logger = createScopedLogger("UserProvider");
 
-  useEffect(() => {
-    let isMounted = true;
-
-    console.log("[UserProvider] Initializing UserContext", {
-      initialSession,
-    });
-
-    const applySession = (nextSession: Session | null, origin: string) => {
-      if (!isMounted) return;
-
+  const applySession = useCallback(
+    (nextSession: Session | null, origin: string) => {
       const nextUser = nextSession?.user ?? null;
-      console.log("[UserProvider] Applying session", {
+
+      logger.info("Applying session", {
         origin,
         hasSession: !!nextSession,
         userId: nextUser?.id ?? null,
       });
+
       setSession(nextSession);
       setUser(nextUser);
       setIsPremiumUser(computeIsPremium(nextUser));
       setIsAuthResolved(true);
-    };
+    },
+    [logger]
+  );
 
-    const resolveSession = async (origin: string) => {
+  const resolveSession = useCallback(
+    async (origin: string) => {
+      logger.debug("Resolving session", { origin });
+
       const { data, error } = await supabase.auth.getSession();
 
-      if (!isMounted) return;
-
       if (error) {
-        console.error(`[UserProvider] Unable to resolve session from ${origin}`, error);
+        logger.error(`Unable to resolve session from ${origin}`, error);
         setIsAuthResolved(true);
         return;
       }
 
       applySession(data.session ?? null, origin);
-    };
+    },
+    [applySession, logger, supabase]
+  );
+
+  const refreshSession = useCallback(
+    async (origin = "manual-refresh") => {
+      logger.debug("Manual session refresh requested", { origin });
+      await resolveSession(origin);
+    },
+    [logger, resolveSession]
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    logger.info("Initializing UserContext", {
+      hasInitialSession: !!initialSession,
+      initialUserId: initialSession?.user?.id ?? null,
+    });
 
     resolveSession("initial-getSession");
 
     const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      console.log("[UserProvider] onAuthStateChange", {
+      if (!isMounted) return;
+      logger.info("onAuthStateChange", {
         event,
         hasSession: !!nextSession,
         userId: nextSession?.user?.id ?? null,
       });
-      applySession(nextSession, "onAuthStateChange");
+      applySession(nextSession, `onAuthStateChange:${event}`);
     });
 
     const handleStorageEvent = (event: StorageEvent) => {
@@ -95,10 +122,10 @@ export function UserProvider({ children, initialSession = null }: UserProviderPr
         return;
       }
 
-      console.log("[UserProvider] Storage event detected", {
+      logger.debug("Storage event detected", {
         key: event.key,
-        oldValue: event.oldValue,
-        newValue: event.newValue,
+        hasOldValue: !!event.oldValue,
+        hasNewValue: !!event.newValue,
       });
 
       resolveSession("storage-event");
@@ -111,7 +138,14 @@ export function UserProvider({ children, initialSession = null }: UserProviderPr
       window.removeEventListener("storage", handleStorageEvent);
       listener.subscription.unsubscribe();
     };
-  }, [initialSession, supabase]);
+  }, [applySession, initialSession, logger, resolveSession, supabase]);
+
+  useVisibilityRefetch(
+    () => {
+      void resolveSession("visibility-change");
+    },
+    { scope: "UserProvider", triggerOnMount: false }
+  );
 
   return (
     <UserContext.Provider
@@ -121,6 +155,7 @@ export function UserProvider({ children, initialSession = null }: UserProviderPr
         isAuthenticated: !!user,
         isAuthResolved,
         isPremiumUser,
+        refreshSession,
       }}
     >
       {children}

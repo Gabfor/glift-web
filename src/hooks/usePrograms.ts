@@ -1,35 +1,53 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState, useCallback } from "react";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import { useUser } from "@/context/UserContext";
 import type { Program, Training } from "@/types/training";
+import { useSupabase } from "@/components/SupabaseProvider";
+import { createScopedLogger } from "@/utils/logger";
+import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
 
 export default function usePrograms() {
   const [programs, setPrograms] = useState<any[]>([]);
-  const supabase = useMemo(() => createClient(), []);
-  const { user, isAuthResolved } = useUser();
+  const supabase = useSupabase();
+  const { user, isAuthResolved, refreshSession } = useUser();
+  const logger = createScopedLogger("usePrograms");
 
   const fetchProgramsWithTrainings = useCallback(async () => {
-    if (!isAuthResolved) return;
+    if (!isAuthResolved) {
+      logger.debug("fetchProgramsWithTrainings: auth not resolved");
+      return;
+    }
 
     if (!user?.id) {
+      logger.info("fetchProgramsWithTrainings: no user → resetting state");
       setPrograms([]);
       return;
     }
 
-    let { data: programsData } = await supabase
+    logger.info("Fetching programs with trainings", { userId: user.id });
+
+    let { data: programsData, error: programsError } = await supabase
       .from("programs")
       .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
       .eq("user_id", user.id)
       .order("position", { ascending: true });
 
-    const { data: orphanTrainings } = await supabase
+    if (programsError) {
+      logger.error("Unable to fetch programs", programsError);
+      return;
+    }
+
+    const { data: orphanTrainings, error: orphanError } = await supabase
       .from("trainings")
       .select("id, name, position, app, dashboard")
       .is("program_id", null)
       .eq("user_id", user.id);
+
+    if (orphanError) {
+      logger.error("Unable to fetch orphan trainings", orphanError);
+    }
 
     if (!programsData || programsData.length === 0) {
       const { data: newProgram } = await supabase
@@ -73,11 +91,20 @@ export default function usePrograms() {
     }
 
     setPrograms(result);
-  }, [isAuthResolved, supabase, user?.id]);
+  }, [isAuthResolved, supabase, user?.id, logger]);
 
   useEffect(() => {
     fetchProgramsWithTrainings();
   }, [fetchProgramsWithTrainings]);
+
+  useVisibilityRefetch(
+    () => {
+      logger.debug("Visibility change detected → refreshing session and programs");
+      void refreshSession("programs-visibility");
+      fetchProgramsWithTrainings();
+    },
+    { scope: "usePrograms" }
+  );
 
   const cleanEmptyPrograms = async () => {
     const emptyPrograms = programs.filter((p) => p.trainings.length === 0);

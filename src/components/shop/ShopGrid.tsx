@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import ShopCard from "@/components/shop/ShopCard";
 import { useSupabase } from "@/components/SupabaseProvider";
 import { useUser } from "@/context/UserContext";
+import { createScopedLogger } from "@/utils/logger";
+import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
 
 type Offer = {
   id: number;
@@ -39,12 +41,13 @@ export default function ShopGrid({
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
   const supabase = useSupabase();
-  const { user, isAuthResolved } = useUser();
+  const { user, isAuthResolved, refreshSession } = useUser();
   const userId = user?.id ?? null;
   const isReady = useMemo(
     () => isAuthResolved && !!userId,
     [isAuthResolved, userId]
   );
+  const logger = useMemo(() => createScopedLogger("ShopGrid"), []);
 
   const safeFilters = useMemo<string[]>(
     () => (Array.isArray(filters) ? filters : []),
@@ -69,7 +72,7 @@ export default function ShopGrid({
   // Fetch offers uniquement quand l'utilisateur est prêt
   const runFetch = useCallback(async () => {
     if (!isReady) {
-      console.log("[ShopGrid] runFetch: user/session not ready", {
+      logger.debug("runFetch: user/session not ready", {
         isAuthResolved,
         userId,
       });
@@ -78,7 +81,7 @@ export default function ShopGrid({
 
     setLoading(true);
 
-    console.log("[ShopGrid] Fetching offers", {
+    logger.info("Fetching offers", {
       userId,
       sortBy,
       currentPage,
@@ -127,7 +130,7 @@ export default function ShopGrid({
     const { data, error } = await query.range(start, end);
 
     if (error) {
-      console.error("Erreur Supabase :", error.message);
+      logger.error("Erreur Supabase", error.message);
       setOffers([]);
     } else {
       const list = data || [];
@@ -145,11 +148,20 @@ export default function ShopGrid({
 
     setLoading(false);
     setHasFetchedOnce(true);
-  }, [currentPage, isReady, safeFilters, sortBy, supabase, userId, isAuthResolved]);
+  }, [
+    currentPage,
+    isReady,
+    logger,
+    safeFilters,
+    sortBy,
+    supabase,
+    userId,
+    isAuthResolved,
+  ]);
 
   useEffect(() => {
     if (!isReady) {
-      console.log("[ShopGrid] Waiting for auth before fetching offers", {
+      logger.debug("Waiting for auth before fetching offers", {
         isAuthResolved,
         userId,
       });
@@ -160,7 +172,34 @@ export default function ShopGrid({
     }
 
     runFetch();
-  }, [filtersKey, isReady, runFetch, isAuthResolved, userId]);
+  }, [filtersKey, isReady, runFetch, isAuthResolved, userId, logger]);
+
+  const fetchVisibilitySync = useCallback(() => {
+    if (!isReady) {
+      logger.debug("Visibility sync skipped: auth not ready", {
+        isAuthResolved,
+        userId,
+      });
+      return;
+    }
+
+    logger.debug("Visibility sync triggered → refreshing session and offers", {
+      userId,
+    });
+    void refreshSession("shop-grid-visibility");
+    runFetch();
+  }, [
+    isAuthResolved,
+    isReady,
+    logger,
+    refreshSession,
+    runFetch,
+    userId,
+  ]);
+
+  useVisibilityRefetch(fetchVisibilitySync, {
+    scope: "ShopGrid",
+  });
 
   // Filtrage client sur "type" (string JSON → array)
   const filteredOffers = offers
