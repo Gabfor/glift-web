@@ -102,7 +102,7 @@ export default function TrainingRow({
       }}
       className={`bg-white border-[#ECE9F1] ${isHidden ? "opacity-0" : ""}`}
     >
-      {/* ✅ Colonne icônes drag + checkbox – on garde uniquement la checkbox en adminMode */}
+      {/* ✅ Colonne icônes drag + checkbox */}
       <td
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
@@ -203,26 +203,14 @@ export default function TrainingRow({
               className="w-5 h-3 flex items-center justify-center mb-1"
               disabled={row.series >= 6}
             >
-              <Image
-                src="/icons/chevron_training_up.svg"
-                alt="+"
-                width={20}
-                height={12}
-                className="w-5 h-3"
-              />
+              <img src="/icons/chevron_training_up.svg" alt="+" />
             </button>
             <button
               onClick={() => handleDecrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center"
               disabled={row.series <= 1}
             >
-              <Image
-                src="/icons/chevron_training_down.svg"
-                alt="-"
-                width={20}
-                height={12}
-                className="w-5 h-3"
-              />
+              <img src="/icons/chevron_training_down.svg" alt="-" />
             </button>
           </div>
         </div>
@@ -317,7 +305,7 @@ export default function TrainingRow({
             {row.effort.map((eff, subIndex) => (
               <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l h-10">
                 <div className="flex justify-center items-center w-full">
-                  <Image
+                  <img
                     src={
                       eff === "trop facile"
                         ? "/icons/smiley_easy.svg"
@@ -326,8 +314,6 @@ export default function TrainingRow({
                         : "/icons/smiley_perfect.svg"
                     }
                     alt="Effort"
-                    width={24}
-                    height={24}
                     className="w-6 h-6"
                   />
                 </div>
@@ -337,26 +323,14 @@ export default function TrainingRow({
                     onClick={() => handleEffortChange(index, subIndex, "up")}
                     disabled={eff === "trop facile"}
                   >
-                    <Image
-                      src="/icons/chevron_training_up.svg"
-                      alt="+"
-                      width={20}
-                      height={12}
-                      className="w-5 h-3"
-                    />
+                    <img src="/icons/chevron_training_up.svg" alt="+" />
                   </button>
                   <button
                     className="w-5 h-3 flex items-center justify-center"
                     onClick={() => handleEffortChange(index, subIndex, "down")}
                     disabled={eff === "trop dur"}
                   >
-                    <Image
-                      src="/icons/chevron_training_down.svg"
-                      alt="-"
-                      width={20}
-                      height={12}
-                      className="w-5 h-3"
-                    />
+                    <img src="/icons/chevron_training_down.svg" alt="-" />
                   </button>
                 </div>
               </div>
