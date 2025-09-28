@@ -11,3 +11,6 @@ dist/
 
 # OS files
 Thumbs.db
+
+# Ensure removed components stay untracked
+src/components/AddProgramButton.tsx
