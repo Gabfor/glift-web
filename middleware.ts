@@ -7,13 +7,19 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const supabase = createMiddlewareClient({ req, res });
 
-  console.log("[mw] hit", pathname, search);
+  const shouldLog = process.env.NODE_ENV !== "production";
+  if (shouldLog) {
+    console.log("[mw] hit", pathname, search);
+  }
 
   const {
     data: { user },
     error,
   } = await supabase.auth.getUser();
-  console.log("[mw] isAuth=", !!user, error ? `error=${error.message}` : "");
+
+  if (shouldLog) {
+    console.log("[mw] isAuth=", !!user, error ? `error=${error.message}` : "");
+  }
 
   const redirectByMw = (to: URL) => {
     const r = NextResponse.redirect(to, { headers: res.headers });
@@ -29,22 +35,25 @@ export async function middleware(req: NextRequest) {
   const isAdmin = pathname.startsWith("/admin");
   const isEntrainements = pathname.startsWith("/entrainements");
 
-  if ((isCompte || isEntrainements) && (!user || !hasClientConsent)) {
+  const isProtectedRoute = isCompte || isEntrainements || isAdmin;
+
+  if (isProtectedRoute && !user) {
     const to = new URL("/connexion", req.url);
     to.searchParams.set("next", pathname + search);
     return redirectByMw(to);
   }
 
   if (isAdmin) {
-    if (!user || !hasClientConsent) {
-      const to = new URL("/connexion", req.url);
-      to.searchParams.set("next", pathname + search);
-      return redirectByMw(to);
-    }
-    const isAdminFlag = (user as any)?.user_metadata?.is_admin === true || (user as any)?.app_metadata?.is_admin === true;
+    const isAdminFlag =
+      (user as any)?.user_metadata?.is_admin === true ||
+      (user as any)?.app_metadata?.is_admin === true;
     if (!isAdminFlag) {
       return redirectByMw(new URL("/compte", req.url));
     }
+  }
+
+  if (user && !hasClientConsent) {
+    res.headers.set("x-requires-consent", "1");
   }
 
   res.headers.set("x-mw-pass", "1");

@@ -5,8 +5,7 @@ import ClientLayout from "@/components/ClientLayout";
 import { UnlockScroll } from "@/components/UnlockScroll";
 import VerifyEmailTopBar from "@/components/auth/VerifyEmailTopBar";
 
-import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { headers } from "next/headers";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -24,45 +23,45 @@ export const metadata: Metadata = {
   },
 };
 
+async function fetchUserContext() {
+  const requestHeaders = headers();
+  const forwardedHost = requestHeaders.get("x-forwarded-host");
+  const host = forwardedHost ?? requestHeaders.get("host");
+  const forwardedProto = requestHeaders.get("x-forwarded-proto");
+  const protocol = forwardedProto ?? (process.env.NODE_ENV === "development" ? "http" : "https");
+  const baseUrl = host ? `${protocol}://${host}` : "";
+
+  try {
+    const response = await fetch(`${baseUrl}/api/auth/user`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      if (process.env.NEXT_PUBLIC_DEBUG === "1") {
+        console.warn("[RootLayout] unable to load user context", response.status);
+      }
+      return { user: null, plan: null };
+    }
+
+    return response.json();
+  } catch (error) {
+    if (process.env.NEXT_PUBLIC_DEBUG === "1") {
+      console.warn("[RootLayout] error loading user context", error);
+    }
+    return { user: null, plan: null };
+  }
+}
+
 export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-if (process.env.NEXT_PUBLIC_DEBUG === '1') {
-  console.log('[RootLayout] render');
-}
-
-  // Supabase SSR
-  const cookieStoreMaybe: any = (cookies as any)();
-  const cookieStore =
-    typeof cookieStoreMaybe?.then === "function" ? await cookieStoreMaybe : cookieStoreMaybe;
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
-      },
-    }
-  );
-
-  const { data: { user } } = await supabase.auth.getUser();
-  let plan: string | null = null;
-
-  if (user) {
-    // 🔧 IMPORTANT: pas de .single()/.maybeSingle() → on fait LIMIT 1
-    const { data: subRows } = await supabase
-      .from("user_subscriptions")
-      .select("plan")
-      .eq("user_id", user.id)
-      .limit(1);
-
-    plan = subRows?.[0]?.plan ?? null;
+  if (process.env.NEXT_PUBLIC_DEBUG === "1") {
+    console.log("[RootLayout] render");
   }
+
+  await fetchUserContext();
 
   return (
     <html lang="fr">
@@ -70,7 +69,6 @@ if (process.env.NEXT_PUBLIC_DEBUG === '1') {
       <body className={quicksand.className}>
         <UnlockScroll />
         <VerifyEmailTopBar />
-        {/* on ne passe pas encore `plan` si tes composants ne l’acceptent pas */}
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

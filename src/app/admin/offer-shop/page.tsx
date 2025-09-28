@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import ProgramStoreActionsBar from "@/app/admin/components/ProgramStoreActionsBar";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import Tooltip from "@/components/Tooltip";
 import SearchBar from "@/components/SearchBar";
+import { useSupabase } from "@/components/SupabaseProvider";
 
 type Offer = {
   id: number;
@@ -32,7 +32,7 @@ export default function OfferShopPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useSupabase();
 
   useEffect(() => {
     setShowActionsBar(selectedIds.length > 0);
@@ -199,97 +199,135 @@ export default function OfferShopPage() {
             onEdit={handleEdit}
             onToggleStatus={handleToggleStatus}
             onAdd={handleAdd}
+            entityName="offre"
           />
         ) : (
-          <div className="flex justify-end mb-4 relative group">
-            <Tooltip content="Ajouter une offre">
-              <button
-                onClick={handleAdd}
-                className="rounded-full transition-colors duration-200 flex items-center justify-center group"
-              >
-                <Image src="/icons/plus.svg" alt="Ajouter" width={20} height={20} className="block group-hover:hidden" />
-                <Image src="/icons/plus_hover.svg" alt="Ajouter" width={20} height={20} className="hidden group-hover:block" />
-              </button>
-            </Tooltip>
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={handleAdd}
+              className="bg-[#2E3271] text-white font-semibold px-6 py-3 rounded-[10px] shadow-lg hover:bg-[#41468f] transition"
+            >
+              Ajouter une offre
+            </button>
           </div>
         )}
 
-        {loading ? (
-          <div className="p-4 bg-white shadow rounded animate-pulse space-y-3">
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-          </div>
-        ) : offers.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12">Aucune offre pour le moment.</div>
-        ) : (
-          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-[#ECE9F1] h-[60px]">
+        <div className="bg-white rounded-[20px] shadow-[0px_20px_65px_rgba(94,105,140,0.08)] overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[900px] text-left">
+              <thead className="bg-[#F3F4FA] text-[#3A416F] text-[14px] uppercase">
                 <tr>
-                  <th className="px-4 w-[48px]">
-                    <button onClick={toggleAll} className="flex items-center justify-center h-[60px]">
-                      <Image
-                        src={allSelected ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
-                        alt="Checkbox"
-                        width={15}
-                        height={15}
-                      />
-                    </button>
+                  <th className="px-6 py-4">
+                    <input type="checkbox" checked={allSelected} onChange={toggleAll} />
                   </th>
-                  {renderHeaderCell("Statut", "status", "w-[60px] px-3")}
-                  {renderHeaderCell("Début", "start_date", "w-[94px] px-3")}
-                  {renderHeaderCell("Fin", "end_date", "w-[94px] px-3")}
-                  {renderHeaderCell("Nom de l'offre", "name", "px-3")}
-                  {renderHeaderCell("Code", "code", "w-[100px] px-3")}
-                  {renderHeaderCell("Boutique", "shop", "w-[78px] px-3")}
-                  {renderHeaderCell("Utilisation", "click_count", "w-[85px] px-3")}
+                  {renderHeaderCell("Nom", "name", "px-6 py-4")}
+                  {renderHeaderCell("Magasin", "shop", "px-6 py-4")}
+                  {renderHeaderCell("Date de début", "start_date", "px-6 py-4")}
+                  {renderHeaderCell("Date de fin", "end_date", "px-6 py-4")}
+                  {renderHeaderCell("Code", "code", "px-6 py-4")}
+                  {renderHeaderCell("Statut", "status", "px-6 py-4")}
+                  {renderHeaderCell("Clics", "click_count", "px-6 py-4")}
+                  <th className="px-6 py-4">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredOffers.map((offer) => {
-                  const isSelected = selectedIds.includes(offer.id);
-                  return (
-                    <tr key={offer.id} className="border-b border-[#ECE9F1] h-[60px]">
-                      <td className="px-4">
-                        <button onClick={() => toggleCheckbox(offer.id)} className="flex items-center justify-center h-[60px]">
-                          <Image
-                            src={isSelected ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
-                            alt="Checkbox"
-                            width={15}
-                            height={15}
+              <tbody className="text-[#3A416F] text-[15px]">
+                {loading ? (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-8 text-center text-[#A1A7C7]">
+                      Chargement des offres...
+                    </td>
+                  </tr>
+                ) : filteredOffers.length === 0 ? (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-8 text-center text-[#A1A7C7]">
+                      Aucune offre trouvée.
+                    </td>
+                  </tr>
+                ) : (
+                  filteredOffers.map((offer) => {
+                    const isSelected = selectedIds.includes(offer.id);
+                    const isStatusOn = offer.status === "ON";
+
+                    return (
+                      <tr
+                        key={offer.id}
+                        className={`border-b border-[#E6E8F1] transition hover:bg-[#F9FAFE] ${
+                          isSelected ? "bg-[#EEF1FF]" : ""
+                        }`}
+                      >
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleCheckbox(offer.id)}
                           />
-                        </button>
-                      </td>
-                      <td className="px-4">
-                        <span
-                          className={`inline-flex items-center justify-center rounded-full ${
-                            offer.status === "ON" ? "bg-[#DCFAF1] text-[#00D591]" : "bg-[#FEF7D0] text-[#DCBC04]"
-                          }`}
-                          style={{ width: "40px", height: "20px", fontSize: "10px", fontWeight: 600 }}
-                        >
-                          {offer.status}
-                        </span>
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494]">
-                        {new Date(offer.start_date).toLocaleDateString("fr-FR")}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494]">
-                        {offer.end_date && !isNaN(new Date(offer.end_date).getTime())
-                          ? new Date(offer.end_date).toLocaleDateString("fr-FR")
-                          : "Aucune"}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">{offer.name}</td>
-                      <td className="px-4 font-semibold text-[#5D6494]">{offer.code}</td>
-                      <td className="px-4 font-semibold text-[#5D6494]">{offer.shop}</td>
-                      <td className="px-4 font-semibold text-[#5D6494] text-center">{offer.click_count ?? 0}</td>
-                    </tr>
-                  );
-                })}
+                        </td>
+                        <td className="px-6 py-4 font-semibold">{offer.name}</td>
+                        <td className="px-6 py-4">{offer.shop || "-"}</td>
+                        <td className="px-6 py-4">{new Date(offer.start_date).toLocaleDateString()}</td>
+                        <td className="px-6 py-4">{new Date(offer.end_date).toLocaleDateString()}</td>
+                        <td className="px-6 py-4 font-mono text-sm">{offer.code}</td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              isStatusOn
+                                ? "bg-[#E5F5EE] text-[#1BAF6B]"
+                                : "bg-[#FFEDEC] text-[#F16A5B]"
+                            }`}
+                          >
+                            {isStatusOn ? "Active" : "Inactive"}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">{offer.click_count ?? 0}</td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <Tooltip content="Modifier">
+                              <button
+                                onClick={() => {
+                                  setSelectedIds([offer.id]);
+                                  handleEdit();
+                                }}
+                                className="px-3 py-2 rounded-md border border-[#E6E8F1] text-xs font-semibold text-[#3A416F] hover:bg-[#EEF1FF]"
+                              >
+                                Modifier
+                              </button>
+                            </Tooltip>
+                            <Tooltip content={isStatusOn ? "Désactiver" : "Activer"}>
+                              <button
+                                onClick={() => {
+                                  setSelectedIds([offer.id]);
+                                  handleToggleStatus();
+                                }}
+                                className={`px-3 py-2 rounded-md text-xs font-semibold transition ${
+                                  isStatusOn
+                                    ? "bg-[#FFEDEC] text-[#F16A5B] hover:bg-[#FFD9D7]"
+                                    : "bg-[#E5F5EE] text-[#1BAF6B] hover:bg-[#D2F0E3]"
+                                }`}
+                              >
+                                {isStatusOn ? "Désactiver" : "Activer"}
+                              </button>
+                            </Tooltip>
+                            <Tooltip content="Supprimer">
+                              <button
+                                onClick={() => {
+                                  setSelectedIds([offer.id]);
+                                  handleDelete();
+                                }}
+                                className="px-3 py-2 rounded-md border border-[#E6E8F1] text-xs font-semibold text-[#F16A5B] hover:bg-[#FFEDEC]"
+                              >
+                                Supprimer
+                              </button>
+                            </Tooltip>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
-        )}
+        </div>
       </div>
     </main>
   );
