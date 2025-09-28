@@ -32,8 +32,8 @@ export default function TextField({
         value={value}
         disabled={disabled}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        onFocus={(e) => onFocus?.()}
-        onBlur={(e) => onBlur?.()}
+        onFocus={() => onFocus?.()}
+        onBlur={() => onBlur?.()}
         className={`
           h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px]
           ${disabled ? 'bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]'}

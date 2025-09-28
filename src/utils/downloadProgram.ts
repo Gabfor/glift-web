@@ -55,6 +55,11 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
     .select("position")
     .eq("user_id", user.id);
 
+    if (userProgramsError) {
+      console.error("Erreur récupération programmes utilisateur :", userProgramsError);
+      return null;
+    }
+
     const nextPosition =
     userPrograms && userPrograms.length > 0
         ? Math.max(...userPrograms.map((p) => p.position ?? 0)) + 1

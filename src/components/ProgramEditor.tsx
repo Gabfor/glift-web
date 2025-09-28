@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react"; // Utilise ce hook pour accéder à supabase
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Tooltip from "@/components/Tooltip";
 import { TrashHoverIcon, TrashIcon } from "./icons/TrashIcons";
 
@@ -17,7 +18,6 @@ interface ProgramEditorProps {
   programId: string;
   isVisible: boolean;
   onToggleVisibility: () => void;
-  onTrainingChange?: () => void;
   isFirst: boolean;
   isLastActive: boolean;
   onMoveUp: () => void;
@@ -27,8 +27,17 @@ interface ProgramEditorProps {
   tableName: string;
   programsTableName: string;
   adminMode?: boolean;
-  isNew?: boolean
+  isNew?: boolean;
 }
+
+type TrainingSummary = {
+  id: string;
+  name: string | null;
+  program_id: string;
+  position: number | null;
+  app: boolean | null;
+  dashboard: boolean | null;
+};
 
 export default function ProgramEditor({
   name,
@@ -42,7 +51,6 @@ export default function ProgramEditor({
   programId,
   isVisible,
   onToggleVisibility,
-  onTrainingChange,
   isFirst,
   isLastActive,
   onMoveUp,
@@ -55,61 +63,62 @@ export default function ProgramEditor({
   isNew = false,
 }: ProgramEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  // Accéder à supabase via le hook useSupabaseClient
   const supabase = useSupabaseClient();
-  const { moveTrainingToAnotherProgram } = require("@/hooks/usePrograms").default();
 
   const [isEyeVisible, setIsEyeVisible] = useState(isVisible);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [trainingsData, setTrainingsData] = useState<TrainingSummary[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (error) {
-        console.error("Erreur lors de la récupération de l'utilisateur :", error);
-        return;
-      }
-      setUserId(data?.user?.id ?? null);
-    });
-  }, [supabase]);
-
-  useEffect(() => {
-  fetchTrainingsData();
-  }, [refreshTrigger]);
-
-  const handleDrop = async (trainingId: string, fromProgramId: string, toProgramId: string, position: number) => {
-    console.log("📦 DROP", { trainingId, fromProgramId, toProgramId, position });
-    if (fromProgramId === toProgramId) return;
-
-    await moveTrainingToAnotherProgram(trainingId, fromProgramId, toProgramId, position);
-    await fetchTrainingsData();
-
-    if (onTrainingChange) {
-      onTrainingChange();
+  const fetchTrainingsData = useCallback(async () => {
+    if (!programId || programId === "xxx") {
+      setTrainingsData([]);
+      return;
     }
-  };
 
-  const [hovered, setHovered] = useState<string | null>(null);
-  const [trainingsData, setTrainingsData] = useState<any[]>([]);  // Stocker les données des entraînements
+    const tableKey = (tableName === "training_rows_admin"
+      ? "training_rows_admin"
+      : "training_rows") as "training_rows" | "training_rows_admin";
+
+    const { data, error } = await supabase
+      .from<TrainingSummary>(tableKey)
+      .select("id, name, program_id, position, app, dashboard")
+      .eq("program_id", programId);
+
+    if (error) {
+      console.error("Erreur lors de la récupération des entraînements :", error);
+      return;
+    }
+
+    const sanitized = (data ?? []).map((row) => ({
+      id: String(row.id),
+      name: row.name ?? null,
+      program_id: row.program_id ?? programId,
+      position: row.position ?? null,
+      app: row.app ?? null,
+      dashboard: row.dashboard ?? null,
+    }));
+
+    setTrainingsData(sanitized);
+  }, [programId, supabase, tableName]);
 
   useEffect(() => {
-    console.log("🔥 useEffect triggered (ligne 51)");
-      if (editingIndex === index && inputRef.current) {
-        inputRef.current.focus();
-      }
-      fetchTrainingsData();  // Récupérer les entraînements associés au programme au démarrage
-    }, [editingIndex, index]);
+    void fetchTrainingsData();
+  }, [fetchTrainingsData]);
 
-    useEffect(() => {
+  useEffect(() => {
+    if (editingIndex === index && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingIndex, index]);
+
+  useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
-      if (event.data === `refresh-${programId}`) {
-        fetchTrainingsData();
+      if (event.data === `refresh-${programId}` || event.data === "refresh-all-programs") {
+        void fetchTrainingsData();
       }
     };
     return () => channel.close();
-  }, [programId]);
+  }, [fetchTrainingsData, programId]);
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -126,30 +135,6 @@ export default function ProgramEditor({
   };
 
   // Fonction pour vérifier les entraînements associés
-const fetchTrainingsData = async () => {
-  if (!programId || programId === "xxx") {
-    setTrainingsData([]);
-    return;
-  }
-
-  const { data, error } = await supabase
-    .from(tableName)
-    .select("id, name, program_id, position, app, dashboard")
-    .eq("program_id", programId);
-
-  if (error) {
-    console.error("Erreur lors de la récupération des entraînements :", error);
-    return;
-  }
-
-  if (!data) {
-    console.error("❌ Aucune donnée retournée pour programId =", programId);
-    return;
-  }
-
-  setTrainingsData(data);
-};
-
   // Fonction pour supprimer un programme depuis Supabase
   const handleDelete = async (programId: string) => {
     try {
@@ -194,59 +179,6 @@ const fetchTrainingsData = async () => {
     await handleDelete(programId);
   };
 
-const handleDuplicateClick = async () => {
-  try {
-    if (!userId) {
-      alert("Impossible de dupliquer : utilisateur non connecté.");
-      return;
-    }
-
-    // 1️⃣ Créer un nouveau programme
-    const { data: newProgram, error: programError } = await supabase
-      .from(programsTableName)
-      .insert([
-        {
-          name: name + " (copie)",
-        }
-      ])
-      .select()
-      .single();
-
-    if (programError) throw programError;
-
-    console.log("✅ Nouveau programme créé", newProgram);
-
-    // 2️⃣ Copier les trainings associés
-    if (trainingsData.length > 0 && newProgram?.id) {
-      const duplicatedTrainings = trainingsData.map(t => {
-        const { id, program_id, ...rest } = t;
-        return {
-          ...rest,
-          program_id: newProgram.id,
-          user_id: userId,
-        };
-      });
-
-      const { error: trainingsError } = await supabase
-        .from(tableName)
-        .insert(duplicatedTrainings);
-
-      if (trainingsError) throw trainingsError;
-
-      console.log("✅ Trainings copiés", duplicatedTrainings);
-    }
-
-    // 3️⃣ Notifier / rafraîchir
-    setRefreshTrigger(prev => prev + 1);
-    notifyTrainingChange('all-programs');
-    notifyTrainingChange(newProgram.id);
-
-  } catch (error) {
-    console.error("❌ Erreur lors de la duplication du programme :", error);
-    alert("Erreur lors de la duplication : " + (error as Error).message);
-  }
-};
-
   return (
     <div
     className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-2"
@@ -275,14 +207,18 @@ const handleDuplicateClick = async () => {
             >
               <Tooltip content="Effacer">
                 <div className="relative w-[25px] h-[25px] flex items-center justify-center">
-                  <img
+                  <Image
                     src="/icons/cross_reset.svg"
                     alt="Effacer"
+                    fill
+                    sizes="100%"
                     className="absolute top-[3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
-                  <img
+                  <Image
                     src="/icons/cross_reset_hover.svg"
                     alt="Effacer"
+                    fill
+                    sizes="100%"
                     className="absolute top-[3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
@@ -298,14 +234,18 @@ const handleDuplicateClick = async () => {
           <span>{name || `Nom du programme`}</span>
           <Tooltip content="Editer">
           <div className="relative ml-1 w-[15px] h-[15px]">
-            <img
+            <Image
               src="/icons/edit_program.svg"
               alt="Modifier"
+              fill
+              sizes="100%"
               className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
             />
-            <img
+            <Image
               src="/icons/edit_program_hover.svg"
               alt="Modifier"
+              fill
+              sizes="100%"
               className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
             />
           </div>
@@ -328,14 +268,18 @@ const handleDuplicateClick = async () => {
                 aria-label="Descendre"
               >
                 <div className="relative w-full h-full">
-                  <img
+                  <Image
                     src="/icons/move_down.svg"
                     alt="Descendre"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
-                  <img
+                  <Image
                     src="/icons/move_down_hover.svg"
                     alt="Descendre"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
@@ -351,14 +295,18 @@ const handleDuplicateClick = async () => {
                 aria-label="Monter"
               >
                 <div className="relative w-full h-full">
-                  <img
+                  <Image
                     src="/icons/move_up.svg"
                     alt="Monter"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
-                  <img
+                  <Image
                     src="/icons/move_up_hover.svg"
                     alt="Monter"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
@@ -373,14 +321,18 @@ const handleDuplicateClick = async () => {
                 aria-label="Dupliquer"
               >
                 <div className="relative w-full h-full">
-                  <img
+                  <Image
                     src="/icons/duplicate.svg"
                     alt="Dupliquer"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
-                  <img
+                  <Image
                     src="/icons/duplicate_hover.svg"
                     alt="Dupliquer"
+                    fill
+                    sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
@@ -402,9 +354,11 @@ const handleDuplicateClick = async () => {
               aria-label="Descendre désactivée"
             >
               <div className="relative w-full h-full">
-                <img
+                <Image
                   src="/icons/move_down.svg"
                   alt="Descendre désactivée"
+                  fill
+                  sizes="100%"
                   className="absolute top-0 left-0 w-full h-full opacity-100"
                 />
               </div>
@@ -417,9 +371,11 @@ const handleDuplicateClick = async () => {
               aria-label="Monter désactivée"
             >
               <div className="relative w-full h-full">
-                <img
+                <Image
                   src="/icons/move_up.svg"
                   alt="Monter désactivée"
+                  fill
+                  sizes="100%"
                   className="absolute top-0 left-0 w-full h-full opacity-100"
                 />
               </div>
@@ -432,9 +388,11 @@ const handleDuplicateClick = async () => {
               aria-label="Dupliquer désactivée"
             >
               <div className="relative w-full h-full">
-                <img
+                <Image
                   src="/icons/duplicate.svg"
                   alt="Dupliquer désactivée"
+                  fill
+                  sizes="100%"
                   className="absolute top-0 left-0 w-full h-full opacity-100"
                 />
               </div>
@@ -456,14 +414,18 @@ const handleDuplicateClick = async () => {
             aria-label={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
           >
             <div className="relative w-full h-full">
-              <img
+              <Image
                 src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
                 alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+                fill
+                sizes="100%"
                 className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
               />
-              <img
+              <Image
                 src={isEyeVisible ? "/icons/eye_hover.svg" : "/icons/eye_closed_hover.svg"}
                 alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+                fill
+                sizes="100%"
                 className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
               />
             </div>
@@ -477,9 +439,11 @@ const handleDuplicateClick = async () => {
           aria-label={isEyeVisible ? "Masquer" : "Afficher"}
         >
           <div className="relative w-full h-full">
-            <img
+            <Image
               src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
               alt={isEyeVisible ? "Masquer" : "Afficher"}
+              fill
+              sizes="100%"
               className="absolute top-0 left-0 w-full h-full opacity-100"
             />
           </div>

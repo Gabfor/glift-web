@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import Tooltip from "@/components/Tooltip";
 import ColumnMenu from "@/components/ColumnMenu";
@@ -58,14 +59,6 @@ export default function TableActionsBar({
   const [hoveredDelete, setHoveredDelete] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
-
-  const handleToggleColumn = (name: string) => {
-    setColumns((prev) =>
-      prev.map((col) =>
-        col.name === name ? { ...col, visible: !col.visible } : col
-      )
-    );
-  };
 
   const selectedIndexes = selectedRowIds
     .map(id => rows.findIndex(r => r.id === id))
@@ -148,7 +141,7 @@ export default function TableActionsBar({
             onMouseEnter={() => setHoveredSuperset(true)}
             onMouseLeave={() => setHoveredSuperset(false)}
           >
-            <img
+            <Image
               src={
                 isFullSupersetSelected
                   ? hoveredSuperset
@@ -159,6 +152,8 @@ export default function TableActionsBar({
                     : "/icons/superset.svg"
               }
               alt={isFullSupersetSelected ? "Dissocier le superset" : "Créer un superset"}
+              width={20}
+              height={20}
               className="w-5 h-5"
             />
           </button>
@@ -173,7 +168,7 @@ export default function TableActionsBar({
               onMouseEnter={() => setHoveredLink(true)}
               onMouseLeave={() => setHoveredLink(false)}
             >
-              <img
+              <Image
                 src={
                   selectedRow?.link
                     ? hoveredLink
@@ -184,6 +179,8 @@ export default function TableActionsBar({
                       : "/icons/lien.svg"
                 }
                 alt={selectedRow?.link ? "Modifier le lien" : "Ajouter un lien"}
+                width={20}
+                height={20}
                 className="w-5 h-5"
               />
             </button>
@@ -195,7 +192,7 @@ export default function TableActionsBar({
               onMouseEnter={() => setHoveredNote(true)}
               onMouseLeave={() => setHoveredNote(false)}
             >
-              <img
+              <Image
                 src={
                   hasNote
                     ? hoveredNote
@@ -206,6 +203,8 @@ export default function TableActionsBar({
                       : "/icons/note.svg"
                 }
                 alt={selectedRow?.note ? "Modifier la note" : "Ajouter une note"}
+                width={20}
+                height={20}
                 className="w-5 h-5"
               />
             </button>
@@ -223,9 +222,11 @@ export default function TableActionsBar({
             onMouseEnter={() => setHoveredDelete(true)}
             onMouseLeave={() => setHoveredDelete(false)}
           >
-            <img
+            <Image
               src={hoveredDelete ? "/icons/delete_hover.svg" : "/icons/delete.svg"}
               alt="Supprimer"
+              width={20}
+              height={20}
               className="w-5 h-5"
             />
           </button>
@@ -239,7 +240,7 @@ export default function TableActionsBar({
             onMouseEnter={() => setIconSrc("/icons/colonne_hover.svg")}
             onMouseLeave={() => setIconSrc("/icons/colonne.svg")}
           >
-            <img src={iconSrc} alt="Colonnes" className="w-5 h-5" />
+            <Image src={iconSrc} alt="Colonnes" width={20} height={20} className="w-5 h-5" />
           </button>
         </Tooltip>
 

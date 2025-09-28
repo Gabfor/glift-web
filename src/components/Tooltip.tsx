@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ReactNode, useState, useRef, useEffect } from "react";
+import React, { ReactNode, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -36,14 +36,14 @@ export default function Tooltip({
     return () => setMounted(false);
   }, []);
 
-  const calculatePosition = () => {
+  const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
 
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
 
     let top = 0;
-    let left = triggerRect.left + window.scrollX + triggerRect.width / 2;
+    const left = triggerRect.left + window.scrollX + triggerRect.width / 2;
 
     if (placement === "top") {
       top = triggerRect.top + window.scrollY - tooltipRect.height - offset;
@@ -53,7 +53,7 @@ export default function Tooltip({
 
     setCoords({ top, left });
     setReady(true);
-  };
+  }, [offset, placement]);
 
   const handleMouseEnter = () => {
     if (disableHover) return;
@@ -77,7 +77,7 @@ export default function Tooltip({
         calculatePosition();
       });
     }
-  }, [visible, forceVisible, mounted]);
+  }, [calculatePosition, forceVisible, mounted, visible]);
 
   return (
     <>

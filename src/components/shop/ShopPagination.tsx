@@ -19,6 +19,9 @@ export default function ShopPagination({ currentPage, totalPrograms, onPageChang
   const validTotal = Math.max(0, totalPrograms || 0);
   const totalPages = Math.ceil(validTotal / ITEMS_PER_PAGE);
 
+  const [prevHover, setPrevHover] = useState(false);
+  const [nextHover, setNextHover] = useState(false);
+
   if (!Number.isFinite(totalPages) || totalPages <= 1) return null;
 
   const getVisiblePages = () => {
@@ -38,9 +41,6 @@ export default function ShopPagination({ currentPage, totalPrograms, onPageChang
   };
 
   const visiblePages = getVisiblePages();
-
-  const [prevHover, setPrevHover] = useState(false);
-  const [nextHover, setNextHover] = useState(false);
 
   const prevDisabled = currentPage === 1;
   const nextDisabled = currentPage === totalPages;

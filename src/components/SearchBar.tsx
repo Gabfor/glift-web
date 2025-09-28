@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import Image from "next/image";
+import { useRef, useState } from "react";
+
 import Tooltip from "@/components/Tooltip";
 
 type Props = {
@@ -24,7 +26,7 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
     <div className="relative w-[368px] mx-auto">
       {/* Icône search.svg à gauche */}
       <div className="absolute left-3 top-1/2 -translate-y-1/2">
-        <img src="/icons/search.svg" alt="Rechercher" className="w-[18px] h-[18px]" />
+        <Image src="/icons/search.svg" alt="Rechercher" width={18} height={18} className="w-[18px] h-[18px]" />
       </div>
 
       <input
@@ -50,14 +52,18 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
         >
           <Tooltip content="Effacer">
             <div className="relative w-[25px] h-[25px] flex items-center justify-center">
-              <img
+              <Image
                 src="/icons/cross_reset.svg"
                 alt="Effacer"
+                fill
+                sizes="100%"
                 className={`absolute top-0 left-0 w-full h-full transition-opacity duration-200 ${hovered ? "opacity-0" : "opacity-100"}`}
               />
-              <img
+              <Image
                 src="/icons/cross_reset_hover.svg"
                 alt="Effacer"
+                fill
+                sizes="100%"
                 className={`absolute top-0 left-0 w-full h-full transition-opacity duration-200 ${hovered ? "opacity-100" : "opacity-0"}`}
               />
             </div>

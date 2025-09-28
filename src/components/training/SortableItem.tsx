@@ -5,6 +5,7 @@ import { CSS } from '@dnd-kit/utilities'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import VisibilityPanel from '@/components/training/VisibilityPanel'
 import TrainingCardMenu from '@/components/TrainingCardMenu'
+import Image from 'next/image'
 import type * as React from 'react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
@@ -26,7 +27,6 @@ type Props = {
   showVisibility: boolean
   dragDisabled: boolean
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
-  activeId?: string | null;
   simulateDrag?: boolean;
 }
 
@@ -40,7 +40,6 @@ export default function SortableItem({
   showVisibility,
   dragDisabled,
   onUpdateTrainingVisibility,
-  activeId,
   simulateDrag = false,
 }: Props) {
   const supabase = useSupabaseClient()
@@ -104,20 +103,24 @@ export default function SortableItem({
       >
         <div className="relative w-full flex items-center justify-center">
           <div
-            className={`absolute left-[-6px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group ${
+            className={`absolute left-[-6px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group relative ${
               dragDisabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
             } bg-[rgba(0,0,0,0.001)]`}
             {...(!dragDisabled ? listeners : {})}
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <Image
               src="/icons/drag.svg"
               alt="Déplacer"
+              fill
+              sizes="100%"
               className="absolute top-0 left-0 w-full h-full group-hover:hidden"
             />
-            <img
+            <Image
               src="/icons/drag_hover.svg"
               alt="Déplacer (hover)"
+              fill
+              sizes="100%"
               className="absolute top-0 left-0 w-full h-full hidden group-hover:inline"
             />
           </div>

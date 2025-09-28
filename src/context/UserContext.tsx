@@ -10,7 +10,7 @@ interface CustomUser extends User {
     name?: string;
     is_admin?: boolean;
     is_premium?: boolean;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 
@@ -61,9 +61,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   return (
     <UserContext.Provider

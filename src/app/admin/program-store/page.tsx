@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
@@ -41,7 +41,7 @@ export default function ProgramStorePage() {
     setShowActionsBar(selectedIds.length > 0);
   }, [selectedIds]);
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("program_store")
@@ -65,11 +65,11 @@ export default function ProgramStorePage() {
     setSelectedIds([]);
     setShowActionsBar(false);
     setLoading(false);
-  };
+  }, [sortBy, sortDirection, supabase]);
 
   useEffect(() => {
     fetchPrograms();
-  }, [sortBy, sortDirection]);
+  }, [fetchPrograms]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {

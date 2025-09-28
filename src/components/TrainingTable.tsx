@@ -8,7 +8,6 @@ import {
   useSensors,
   DragOverlay,
   type DragStartEvent,
-  type DragEndEvent,
   type DragOverEvent,
   type CollisionDetection,
   type Collision,
@@ -58,7 +57,6 @@ const centerVerticalCollision: CollisionDetection = ({ active, droppableContaine
 type Props = {
   rows: Row[];
   setRows: React.Dispatch<React.SetStateAction<Row[]>>;
-  selectedRowIds: string[];
   handleEffortChange: (rowIndex: number, subIndex: number, direction: "up" | "down") => void;
   handleCheckboxChange: (id: string) => void;
   handleIncrementSeries: (index: number) => void;
@@ -77,7 +75,6 @@ type Props = {
 export default function TrainingTable({
   rows,
   setRows,
-  selectedRowIds,
   handleEffortChange,
   handleCheckboxChange,
   handleIncrementSeries,
@@ -98,9 +95,7 @@ export default function TrainingTable({
 
   const [dragActive, setDragActive] = useState(false);
   const isVisible = (name: string) => columns.find(c => c.name === name)?.visible;
-  const [activeRow, setActiveRow] = useState<Row | null>(null);
   const [dragGroup, setDragGroup] = useState<Row[]>([]);
-  const [offsetY, setOffsetY] = useState(0);
 
   const handleDragStart = (event: DragStartEvent) => {
     const draggedRow = rows.find((r) => r.id === event.active.id);
@@ -113,7 +108,6 @@ export default function TrainingTable({
       setDragGroup([draggedRow]);
     }
 
-    setActiveRow(draggedRow);
     setDragActive(true);
     onDragActiveChange?.(true);
   };
@@ -154,8 +148,7 @@ export default function TrainingTable({
     setRows(updatedRows);
   };
 
-  const handleDragEnd = (_event: DragEndEvent) => {
-    setActiveRow(null);
+  const handleDragEnd = () => {
     setDragActive(false);
     onDragActiveChange?.(false);
     setDragGroup([]);
@@ -284,7 +277,7 @@ export default function TrainingTable({
         </SortableContext>
         <DragOverlay dropAnimation={null}>
           {dragGroup.length > 0 && (
-            <div className="relative" style={{ transform: `translateY(${offsetY}px)` }}>
+            <div className="relative">
               {dragGroup.length > 1 && (
                 <div
                   className="absolute left-0 right-0 z-[100] pointer-events-none"
@@ -309,7 +302,6 @@ export default function TrainingTable({
                     <TrainingRowOverlay
                       key={row.id ?? `temp-${index}`}
                       row={row}
-                      index={index}
                       columns={columns}
                     />
                   ))}

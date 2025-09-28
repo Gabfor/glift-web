@@ -222,7 +222,19 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     const fetchFilterOptions = async () => {
       const supabase = createClient();
 
-      const fields = ['gender', 'goal', 'level', 'partner_name'];
+      type ProgramStoreField = {
+        gender?: string | null;
+        goal?: string | null;
+        level?: string | null;
+        partner_name?: string | null;
+      };
+
+      const fields: Array<keyof ProgramStoreField> = [
+        "gender",
+        "goal",
+        "level",
+        "partner_name",
+      ];
       const setters = [setGenderOptions, setGoalOptions, setLevelOptions, setPartnerOptions];
 
       for (let i = 0; i < fields.length; i++) {
@@ -240,9 +252,13 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
           setter([]);
         } else {
         const uniqueValues = Array.from(
-          new Set((data || []).map((item: any) => item[field]))
+          new Set(
+            (data ?? [])
+              .map((item: ProgramStoreField) => item[field])
+              .filter((value): value is string => typeof value === "string")
+          )
         )
-          .filter((v) => !!v && v !== "Tous") // enlève "Tous"
+          .filter((value) => value !== "Tous")
           .sort((a, b) => a.localeCompare(b));
 
           const options = uniqueValues.map((val) => ({ value: val, label: val }));

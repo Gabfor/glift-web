@@ -334,7 +334,7 @@ export default function HeroConcept() {
           En bonus
         </p>
         <h2 id="methode-glift" className="text-[28px] font-bold leading-snug text-[#3A416F]">
-          Glift, c'est aussi...
+          Glift, c&apos;est aussi...
         </h2>
       </section>
       <section className="bg-[#FBFCFE] max-w-[1152px] mx-auto px-4 pt-[60px] pb-[90px] grid grid-cols-1 md:grid-cols-2 gap-6">

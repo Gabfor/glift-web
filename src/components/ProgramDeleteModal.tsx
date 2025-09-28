@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useState } from "react";
 import ReactDOM from "react-dom";
 
@@ -22,9 +23,11 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
           onMouseLeave={() => setHoveredClose(false)}
           className="absolute top-4 right-4 w-6 h-6"
         >
-          <img
+          <Image
             src={hoveredClose ? "/icons/close_hover.svg" : "/icons/close.svg"}
             alt="Fermer"
+            width={24}
+            height={24}
             className="w-full h-full"
           />
         </button>

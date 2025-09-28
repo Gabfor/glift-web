@@ -24,7 +24,7 @@ export default function ToggleField({
   success,
   className = '',
 }: Props) {
-  const showSuccess = !!success
+  const showSuccess = !!success && touched
 
   return (
     <div className="w-[368px] flex flex-col text-left">

@@ -1,11 +1,9 @@
-'use client'
+"use client";
 
-import { useEffect, useState  } from 'react'
-import { useDroppable } from '@dnd-kit/core'
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import SortableItem from './training/SortableItem'
+import { useEffect } from "react";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
+import SortableItem from "./training/SortableItem";
 
 interface Training {
   id: string
@@ -36,34 +34,33 @@ interface Props {
   activeId: string | null
 }
 
-export default function DroppableProgram({
-  programId,
-  trainings,
-  onClickTraining,
-  onReorderTrainings,
-  onAddTraining,
-  onDeleteTraining,
-  onDuplicateTraining,
-  onDropTraining,
-  openVisibilityIds,
-  setOpenVisibilityIds,
-  onUpdateTrainingVisibility,
-  activeId,
-}: Props) {
+export default function DroppableProgram(props: Props) {
+  const {
+    programId,
+    trainings,
+    onClickTraining,
+    onAddTraining,
+    onDeleteTraining,
+    onDuplicateTraining,
+    openVisibilityIds,
+    setOpenVisibilityIds,
+    onUpdateTrainingVisibility,
+    activeId,
+  } = props;
+
   const { setNodeRef } = useDroppable({
     id: programId,
     data: { programId },
-  })
+  });
 
   useEffect(() => {
-    console.log('✅ Droppable mounted for', programId)
-  }, [programId])
+    console.log("✅ Droppable mounted for", programId);
+  }, [programId]);
 
   const filteredTrainings = trainings.filter(
     (t): t is Training => t !== null && t !== undefined
-  )
+  );
 
-  // ✅ Bloque tout si au moins un panneau est ouvert
   const dragDisabled = openVisibilityIds.length > 0;
 
   return (
@@ -86,7 +83,7 @@ export default function DroppableProgram({
                   prev.includes(training.id)
                     ? prev.filter((id) => id !== training.id)
                     : [...prev, training.id]
-                )
+                );
               }}
               showVisibility={openVisibilityIds.includes(training.id)}
               dragDisabled={dragDisabled}
@@ -96,8 +93,7 @@ export default function DroppableProgram({
           ))}
           <div className="ml-0">
             <button
-              className="border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[6px] w-[270px] h-[60px] transition
-                border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
+              className="border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[6px] w-[270px] h-[60px] transition border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               onClick={onAddTraining}
             >
               + Ajouter un entraînement
@@ -106,5 +102,5 @@ export default function DroppableProgram({
         </div>
       </SortableContext>
     </div>
-  )
+  );
 }

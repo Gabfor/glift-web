@@ -1,12 +1,13 @@
-'use client'
+"use client"
 
-import { useState, useMemo, useEffect, useRef } from 'react'
-import { createClient } from '@/lib/supabaseClient'
-import DropdownField from './fields/DropdownField'
-import ToggleField from './fields/ToggleField'
-import TextField from './fields/TextField'
-import BirthDateField from './fields/BirthDateField'
-import SubmitButton from './fields/SubmitButton'
+import { useEffect, useMemo, useRef, useState } from "react"
+import type { User } from "@supabase/supabase-js"
+import { createClient } from "@/lib/supabaseClient"
+import DropdownField from "./fields/DropdownField"
+import ToggleField from "./fields/ToggleField"
+import TextField from "./fields/TextField"
+import BirthDateField from "./fields/BirthDateField"
+import SubmitButton from "./fields/SubmitButton"
 
 const supabase = createClient()
 
@@ -228,7 +229,7 @@ const buildBirthDate = (birthDate: {
   return ''
 }
 
-export default function MesInformationsForm({ user }: { user: any }) {
+export default function MesInformationsForm({ user }: { user: User | null }) {
   const prevLatchedRef = useRef<TouchedState>({
     name: false,
     birthDay: false,

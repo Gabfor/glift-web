@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import Tooltip from "@/components/Tooltip";
@@ -73,9 +74,11 @@ export default function OfferModal({
           onMouseLeave={() => setHoveredClose(false)}
           className="absolute top-4 right-4 w-6 h-6"
         >
-          <img
+          <Image
             src={hoveredClose ? "/icons/close_hover.svg" : "/icons/close.svg"}
             alt="Fermer"
+            width={24}
+            height={24}
             className="w-full h-full"
           />
         </button>
@@ -83,11 +86,14 @@ export default function OfferModal({
         {/* Logo partenaire */}
         {brandImage && (
           <div className="flex justify-center mt-4 mb-4">
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)]">
-              <img
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+              <Image
                 src={brandImage}
                 alt="Partenaire"
-                className="w-full h-full object-cover"
+                fill
+                sizes="100%"
+                className="object-cover"
+                unoptimized
               />
             </div>
           </div>
@@ -110,7 +116,7 @@ export default function OfferModal({
             </p>
           ) : (
             <p className="font-semibold text-[14px] text-[#5D6494]">
-              Aucun code n'est nécessaire pour profiter de cette offre. Cliquez
+              Aucun code n&apos;est nécessaire pour profiter de cette offre. Cliquez
               sur le bouton ci-dessous pour être automatiquement redirigé vers le site
               partenaire.
             </p>
@@ -143,7 +149,7 @@ export default function OfferModal({
                   className="p-1 transition mt-[6px]"
                   title="Copier"
                 >
-                  <img
+                  <Image
                     src={
                       copied
                         ? "/icons/check.svg"
@@ -152,6 +158,8 @@ export default function OfferModal({
                         : "/icons/copy.svg"
                     }
                     alt="Copier"
+                    width={20}
+                    height={20}
                     className="w-5 h-5"
                   />
                 </button>
@@ -163,7 +171,7 @@ export default function OfferModal({
         {/* Bloc "Conditions de l'offre" */}
         {parsedCondition && (
           <div className="text-left text-[#3A416F] mb-6">
-            <h3 className="text-[14px] font-bold mb-1">Conditions de l'offre</h3>
+            <h3 className="text-[14px] font-bold mb-1">Conditions de l&apos;offre</h3>
             <p className="font-semibold text-[14px] text-[#5D6494]">
               {parsedCondition}
             </p>
@@ -186,11 +194,7 @@ export default function OfferModal({
             className="inline-flex items-center justify-center gap-2 w-[180px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300"
           >
             Aller sur le site
-            <img
-              src="/icons/arrow.svg"
-              alt="→"
-              className="w-[25px] h-[25px]"
-            />
+            <Image src="/icons/arrow.svg" alt="→" width={25} height={25} className="w-[25px] h-[25px]" />
           </button>
         </div>
       </div>
