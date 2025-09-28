@@ -1,19 +1,25 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import ShopHeader from "@/components/shop/ShopHeader";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
 import ShopPagination from "@/components/shop/ShopPagination";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabase } from "@/components/SupabaseProvider";
+import { useUser } from "@/context/UserContext";
 
 const ShopBannerSlider = dynamic(() => import("@/components/ShopBannerSliderClient"), {
   ssr: false,
 });
 
 export default function ShopPage() {
-  const supabase = createClient();
+  const supabase = useSupabase();
+  const { user, isAuthResolved } = useUser();
+  const isReady = useMemo(
+    () => isAuthResolved && !!user?.id,
+    [isAuthResolved, user?.id]
+  );
 
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,6 +31,19 @@ export default function ShopPage() {
 
   /** ----- Helpers to fetch filters (types / sports) ----- */
   const fetchOfferTypes = useCallback(async () => {
+    if (!isAuthResolved) {
+      console.log("[ShopPage] fetchOfferTypes: waiting auth resolution", {
+        isAuthResolved,
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      console.log("[ShopPage] fetchOfferTypes: no authenticated user");
+      setTypeOptions([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("offer_shop")
       .select("type")
@@ -69,9 +88,22 @@ export default function ShopPage() {
     });
 
     setTypeOptions([...new Set(allTypes)]);
-  }, [supabase]);
+  }, [isAuthResolved, supabase, user?.id]);
 
   const fetchSports = useCallback(async () => {
+    if (!isAuthResolved) {
+      console.log("[ShopPage] fetchSports: waiting auth resolution", {
+        isAuthResolved,
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      console.log("[ShopPage] fetchSports: no authenticated user");
+      setSportOptions([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("offer_shop")
       .select("sport")
@@ -84,7 +116,7 @@ export default function ShopPage() {
       .filter((v: string | undefined) => v && v.length > 0) as string[];
 
     setSportOptions([...new Set(sports)]);
-  }, [supabase]);
+  }, [isAuthResolved, supabase, user?.id]);
 
   const refreshFilters = useCallback(async () => {
     await Promise.all([fetchOfferTypes(), fetchSports()]);
@@ -92,25 +124,52 @@ export default function ShopPage() {
 
   // Initial load for filters
   useEffect(() => {
+    if (!isReady) {
+      console.log("[ShopPage] Waiting for auth before refreshing filters", {
+        isAuthResolved,
+        userId: user?.id ?? null,
+      });
+      return;
+    }
+
     refreshFilters();
-  }, [refreshFilters]);
+  }, [isReady, isAuthResolved, refreshFilters, user?.id]);
 
   // Re-fetch filters when auth session is restored or refreshed
   useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
+        console.log("[ShopPage] Auth event for filters", { event });
         refreshFilters();
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [supabase, refreshFilters]);
+  }, [isReady, supabase, refreshFilters]);
 
   /** ----- Count total filtered offers ----- */
   const fetchTotalCount = useCallback(async () => {
+    if (!isAuthResolved) {
+      console.log("[ShopPage] fetchTotalCount: waiting auth resolution", {
+        isAuthResolved,
+      });
+      return;
+    }
+
+    if (!user?.id) {
+      console.log("[ShopPage] fetchTotalCount: no authenticated user");
+      setTotalPrograms(0);
+      setLoadingCount(false);
+      return;
+    }
+
     setLoadingCount(true);
 
     let query = supabase
@@ -135,26 +194,39 @@ export default function ShopPage() {
     }
 
     setLoadingCount(false);
-  }, [supabase, filters]);
+  }, [filters, isAuthResolved, supabase, user?.id]);
 
   // Load count on mount and whenever filters/sort change
   useEffect(() => {
+    if (!isReady) {
+      console.log("[ShopPage] Waiting for auth before counting programs", {
+        isAuthResolved,
+        userId: user?.id ?? null,
+      });
+      return;
+    }
+
     fetchTotalCount();
-  }, [fetchTotalCount, sortBy]);
+  }, [fetchTotalCount, isReady, isAuthResolved, sortBy, user?.id]);
 
   // Re-count once session is available (after sleep / hard reload)
   useEffect(() => {
+    if (!isReady) {
+      return;
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (
         event === "INITIAL_SESSION" ||
         event === "SIGNED_IN" ||
         event === "TOKEN_REFRESHED"
       ) {
+        console.log("[ShopPage] Auth event for counts", { event });
         fetchTotalCount();
       }
     });
     return () => sub.subscription.unsubscribe();
-  }, [supabase, fetchTotalCount]);
+  }, [isReady, supabase, fetchTotalCount]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">

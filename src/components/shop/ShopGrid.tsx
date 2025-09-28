@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState, useCallback } from "react";
 import ShopCard from "@/components/shop/ShopCard";
-import { createClient } from "@/lib/supabase/client";
+import { useSupabase } from "@/components/SupabaseProvider";
+import { useUser } from "@/context/UserContext";
 
 type Offer = {
   id: number;
@@ -35,11 +36,15 @@ export default function ShopGrid({
 }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authChangeToken, setAuthChangeToken] = useState(0);
-  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
-  const supabase = createClient();
+  const supabase = useSupabase();
+  const { user, isAuthResolved } = useUser();
+  const userId = user?.id ?? null;
+  const isReady = useMemo(
+    () => isAuthResolved && !!userId,
+    [isAuthResolved, userId]
+  );
 
   const safeFilters = useMemo<string[]>(
     () => (Array.isArray(filters) ? filters : []),
@@ -61,45 +66,24 @@ export default function ShopGrid({
     }
   };
 
-  // 1) Réhydratation session + écoute des changements d’auth
-  useEffect(() => {
-    let mounted = true;
-
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (!mounted) return;
-        setSessionUserId(data.session?.user?.id ?? null);
-        setAuthChangeToken(Date.now());
-      } catch {
-        if (!mounted) return;
-        setSessionUserId(null);
-        setAuthChangeToken(Date.now());
-      }
-    })();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (
-        event === "INITIAL_SESSION" ||
-        event === "SIGNED_IN" ||
-        event === "TOKEN_REFRESHED"
-      ) {
-        setSessionUserId(session?.user?.id ?? null);
-        setAuthChangeToken(Date.now());
-      }
-
-      if (event === "SIGNED_OUT") {
-        setSessionUserId(null);
-        setAuthChangeToken(Date.now());
-      }
-    });
-
-    return () => sub.subscription.unsubscribe();
-  }, [supabase]);
-
-  // 2) Fetch offers (uniquement quand réhydraté)
+  // Fetch offers uniquement quand l'utilisateur est prêt
   const runFetch = useCallback(async () => {
+    if (!isReady) {
+      console.log("[ShopGrid] runFetch: user/session not ready", {
+        isAuthResolved,
+        userId,
+      });
+      return;
+    }
+
     setLoading(true);
+
+    console.log("[ShopGrid] Fetching offers", {
+      userId,
+      sortBy,
+      currentPage,
+      filters: safeFilters,
+    });
 
     const start = (currentPage - 1) * 8;
     const end = start + 7;
@@ -161,12 +145,14 @@ export default function ShopGrid({
 
     setLoading(false);
     setHasFetchedOnce(true);
-  }, [currentPage, sortBy, safeFilters, supabase]);
+  }, [currentPage, isReady, safeFilters, sortBy, supabase, userId, isAuthResolved]);
 
   useEffect(() => {
-    if (!authChangeToken) return;
-
-    if (!sessionUserId) {
+    if (!isReady) {
+      console.log("[ShopGrid] Waiting for auth before fetching offers", {
+        isAuthResolved,
+        userId,
+      });
       setOffers([]);
       setLoading(false);
       setHasFetchedOnce(false);
@@ -174,7 +160,7 @@ export default function ShopGrid({
     }
 
     runFetch();
-  }, [authChangeToken, runFetch, filtersKey, sessionUserId]);
+  }, [filtersKey, isReady, runFetch, isAuthResolved, userId]);
 
   // Filtrage client sur "type" (string JSON → array)
   const filteredOffers = offers
