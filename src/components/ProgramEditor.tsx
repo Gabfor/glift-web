@@ -24,13 +24,13 @@ interface ProgramEditorProps {
   onMoveDown: () => void;
   onDuplicate: () => void;
   zIndex?: number; 
-  tableName: string;
+  tableName: "trainings" | "trainings_admin";
   programsTableName: string;
   adminMode?: boolean;
   isNew?: boolean;
 }
 
-type TrainingSummary = {
+type ProgramTrainingSummary = {
   id: string;
   name: string | null;
   program_id: string;
@@ -66,7 +66,7 @@ export default function ProgramEditor({
   const supabase = useSupabaseClient();
 
   const [isEyeVisible, setIsEyeVisible] = useState(isVisible);
-  const [trainingsData, setTrainingsData] = useState<TrainingSummary[]>([]);
+  const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
 
   const fetchTrainingsData = useCallback(async () => {
     if (!programId || programId === "xxx") {
@@ -74,12 +74,8 @@ export default function ProgramEditor({
       return;
     }
 
-    const tableKey = (tableName === "training_rows_admin"
-      ? "training_rows_admin"
-      : "training_rows") as "training_rows" | "training_rows_admin";
-
     const { data, error } = await supabase
-      .from<TrainingSummary>(tableKey)
+      .from<ProgramTrainingSummary>(tableName)
       .select("id, name, program_id, position, app, dashboard")
       .eq("program_id", programId);
 
