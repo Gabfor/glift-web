@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -37,7 +37,7 @@ export default function AdminProgramPage() {
     setShowActionsBar(selectedIds.length > 0);
   }, [selectedIds]);
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     setLoading(true);
     const { data: rawPrograms, error } = await supabase.rpc("programs_admin_with_count");
     if (error) {
@@ -93,11 +93,11 @@ export default function AdminProgramPage() {
     setSelectedIds([]);
     setShowActionsBar(false);
     setLoading(false);
-  };
+  }, [sortBy, sortDirection, supabase]);
 
   useEffect(() => {
     fetchPrograms();
-  }, [sortBy, sortDirection]);
+  }, [fetchPrograms]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {

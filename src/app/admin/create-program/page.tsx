@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
@@ -54,6 +53,62 @@ export default function CreateProgramPage() {
     goal: "",
   });
 
+  const fetchProgram = useCallback(
+    async (id: string) => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("program_store")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error("Erreur lors de la récupération :", error);
+        setLoading(false);
+      } else if (data) {
+        const {
+          title,
+          level,
+          gender,
+          duration,
+          sessions,
+          description,
+          link,
+          image,
+          image_alt,
+          partner_image,
+          partner_image_alt,
+          partner_link,
+          linked_program_id,
+          partner_name,
+          status,
+          goal,
+        } = data;
+
+        setProgram({
+          title,
+          level,
+          gender,
+          duration,
+          sessions,
+          description,
+          link,
+          image,
+          image_alt,
+          partner_image,
+          partner_image_alt,
+          partner_link,
+          linked_program_id,
+          partner_name,
+          status,
+          goal,
+        });
+        setLoading(false);
+      }
+    },
+    [supabase]
+  );
+
   useEffect(() => {
     const id = searchParams?.get("id");
     if (id) {
@@ -62,60 +117,7 @@ export default function CreateProgramPage() {
     } else {
       setLoading(false);
     }
-  }, [searchParams]);
-
-  const fetchProgram = async (id: string) => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("program_store")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      console.error("Erreur lors de la récupération :", error);
-      setLoading(false);
-    } else if (data) {
-      const {
-        title,
-        level,
-        gender,
-        duration,
-        sessions,
-        description,
-        link,
-        image,
-        image_alt,
-        partner_image,
-        partner_image_alt,
-        partner_link,
-        linked_program_id,
-        partner_name,
-        status,
-        goal,
-      } = data;
-
-      setProgram({
-        title,
-        level,
-        gender,
-        duration,
-        sessions,
-        description,
-        link,
-        image,
-        image_alt,
-        partner_image,
-        partner_image_alt,
-        partner_link,
-        linked_program_id,
-        partner_name,
-        status,
-        goal,
-      });
-      setLoading(false);
-    }
-  };
+  }, [fetchProgram, searchParams]);
 
   const handleSave = async () => {
     if (programId) {
@@ -145,17 +147,6 @@ export default function CreateProgramPage() {
       }
     }
   };
-
-  const isFormValid =
-  program.title.trim() !== "" &&
-  program.level !== "" &&
-  program.gender !== "" &&
-  program.goal !== "" &&
-  program.duration.trim() !== "" &&
-  program.sessions > 0 &&
-  program.description.trim() !== "" &&
-  program.image !== "" &&
-  program.status !== "";
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">

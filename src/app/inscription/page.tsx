@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import Spinner from "@/components/ui/Spinner";
 import Tooltip from "@/components/Tooltip";
@@ -59,23 +60,6 @@ export default function InscriptionPage() {
     passwordTouched && !passwordFocused && password !== "" && !isPasswordValidFormat;
 
   const isFormValid = accepted && isPrenomFieldValid && isEmailValidFormat && isPasswordValidFormat;
-
-  const resetForm = () => {
-    setPrenom("");
-    setPrenomTouched(false);
-    setPrenomFocused(false);
-
-    setEmail("");
-    setEmailTouched(false);
-    setEmailFocused(false);
-
-    setPassword("");
-    setPasswordTouched(false);
-    setPasswordFocused(false);
-
-    setAccepted(false);
-    setShowPassword(false);
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -163,7 +147,7 @@ export default function InscriptionPage() {
     return (
       <div className="flex justify-between items-center">
         <span className={textColor}>{text}</span>
-        <img src={iconSrc} alt="État" className="w-[16px] h-[16px]" />
+        <Image src={iconSrc} alt="État" width={16} height={16} className="w-[16px] h-[16px]" />
       </div>
     );
   };
@@ -322,9 +306,11 @@ export default function InscriptionPage() {
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                   aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 >
-                  <img
+                  <Image
                     src={showPassword ? "/icons/masque_defaut.svg" : "/icons/visible_defaut.svg"}
                     alt=""
+                    width={25}
+                    height={25}
                     className="w-[25px] h-[25px]"
                   />
                   <span className="sr-only">
@@ -366,16 +352,20 @@ export default function InscriptionPage() {
                   onChange={(e) => setAccepted(e.target.checked)}
                   className="peer sr-only"
                 />
-                <img
+                <Image
                   src="/icons/checkbox_unchecked.svg"
                   alt=""
                   aria-hidden="true"
+                  width={15}
+                  height={15}
                   className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
                 />
-                <img
+                <Image
                   src="/icons/checkbox_checked.svg"
                   alt=""
                   aria-hidden="true"
+                  width={15}
+                  height={15}
                   className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
                 />
               </div>
@@ -415,9 +405,11 @@ export default function InscriptionPage() {
                 </span>
               ) : (
                 <>
-                  <img
+                  <Image
                     src="/icons/cadena_defaut.svg"
                     alt="Icône cadenas"
+                    width={20}
+                    height={20}
                     className={`w-[20px] h-[20px] mr-1 transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
                   />
                   Créer mon compte

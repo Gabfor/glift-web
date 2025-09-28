@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 import StepDots from "@/components/onboarding/StepDots";
@@ -97,17 +98,21 @@ export default function PaiementPage() {
               className="peer sr-only"
             />
             {/* non coché → icône 'unchecked' */}
-            <img
+            <Image
               src="/icons/checkbox_unchecked.svg"
               alt=""
               aria-hidden="true"
+              width={15}
+              height={15}
               className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
             />
             {/* coché → icône 'checked' */}
-            <img
+            <Image
               src="/icons/checkbox_checked.svg"
               alt=""
               aria-hidden="true"
+              width={15}
+              height={15}
               className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
             />
           </div>
@@ -138,10 +143,12 @@ export default function PaiementPage() {
             ) : (
               <>
                 Démarrer mon abonnement
-                <img
+                <Image
                   src={arrowIcon}
                   alt=""
                   aria-hidden="true"
+                  width={25}
+                  height={25}
                   className="w-[25px] h-[25px] ml-1"
                 />
               </>
@@ -151,15 +158,19 @@ export default function PaiementPage() {
 
         {/* Liseré “Paiement 100% sécurisé par Stripe” */}
         <div className="mt-5 flex items-center justify-center gap-2 text-[12px] font-semibold text-[#5D6494]">
-          <img
+          <Image
             src="/icons/cadena_stripe.svg"
             alt="Sécurisé"
+            width={16}
+            height={16}
             className="h-[16px] w-auto mt-[-3px]"
           />
           <span>Paiement 100% sécurisé par</span>
-          <img
+          <Image
             src="/icons/logo_stripe.svg"
             alt="Stripe"
+            width={48}
+            height={16}
             className="h-[16px] w-auto ml-[-3px]"
           />
         </div>

@@ -1,7 +1,7 @@
 // src/app/inscription/informations/page.tsx
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import StepDots from "@/components/onboarding/StepDots";
 import Spinner from "@/components/ui/Spinner";
@@ -64,31 +64,6 @@ export default function InformationsPage() {
   const isFormValid = Boolean(
     gender && birthDay && birthMonth && birthYear && experience && mainGoal
   );
-
-  // Listes (si ton BirthDateField les utilise)
-  const days = useMemo(
-    () => ["", ...Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, "0"))],
-    []
-  );
-  const months = [
-    { value: "", label: "Mois" },
-    { value: "01", label: "Janvier" },
-    { value: "02", label: "Février" },
-    { value: "03", label: "Mars" },
-    { value: "04", label: "Avril" },
-    { value: "05", label: "Mai" },
-    { value: "06", label: "Juin" },
-    { value: "07", label: "Juillet" },
-    { value: "08", label: "Août" },
-    { value: "09", label: "Septembre" },
-    { value: "10", label: "Octobre" },
-    { value: "11", label: "Novembre" },
-    { value: "12", label: "Décembre" },
-  ];
-  const yearsList = useMemo(() => {
-    const now = new Date().getFullYear();
-    return ["", ...Array.from({ length: 101 }, (_, i) => String(now - i))];
-  }, []);
 
   // Handlers BirthDateField (et marquage touched)
   const setBDay = (v: string) => {
