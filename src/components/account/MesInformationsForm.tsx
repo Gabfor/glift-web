@@ -169,6 +169,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
           markTouched({ experience: true })
         }}
         success={successMessages.experience}
+        variant="boxed"
       />
 
       <div
@@ -215,7 +216,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
       />
 
       <ToggleField
-        label="Nombre de sessions par semaine"
+        label="Nombre de séances par semaine"
         value={values.weeklySessions}
         options={Array.from(WEEKLY_SESSIONS_OPTIONS)}
         onChange={(option) => {
@@ -229,6 +230,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
           markTouched({ weeklySessions: true })
         }}
         success={successMessages.weeklySessions}
+        variant="boxed"
       />
 
       <ToggleField
