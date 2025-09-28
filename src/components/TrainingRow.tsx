@@ -107,7 +107,7 @@ export default function TrainingRow({
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
-        <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
+        <div className="flex items-center h-10 justify-start border-t border-[#ECE9F1] pl-3">
           <Image
             {...dragListeners}
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
@@ -203,14 +203,26 @@ export default function TrainingRow({
               className="w-5 h-3 flex items-center justify-center mb-1"
               disabled={row.series >= 6}
             >
-              <Image src="/icons/chevron_training_up.svg" alt="+" width={20} height={12} />
+              <Image
+                src="/icons/chevron_training_up.svg"
+                alt="+"
+                width={20}
+                height={12}
+                className="w-5 h-3"
+              />
             </button>
             <button
               onClick={() => handleDecrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center"
               disabled={row.series <= 1}
             >
-              <Image src="/icons/chevron_training_down.svg" alt="-" width={20} height={12} />
+              <Image
+                src="/icons/chevron_training_down.svg"
+                alt="-"
+                width={20}
+                height={12}
+                className="w-5 h-3"
+              />
             </button>
           </div>
         </div>
@@ -325,14 +337,26 @@ export default function TrainingRow({
                     onClick={() => handleEffortChange(index, subIndex, "up")}
                     disabled={eff === "trop facile"}
                   >
-                    <Image src="/icons/chevron_training_up.svg" alt="+" width={20} height={12} />
+                    <Image
+                      src="/icons/chevron_training_up.svg"
+                      alt="+"
+                      width={20}
+                      height={12}
+                      className="w-5 h-3"
+                    />
                   </button>
                   <button
                     className="w-5 h-3 flex items-center justify-center"
                     onClick={() => handleEffortChange(index, subIndex, "down")}
                     disabled={eff === "trop dur"}
                   >
-                    <Image src="/icons/chevron_training_down.svg" alt="-" width={20} height={12} />
+                    <Image
+                      src="/icons/chevron_training_down.svg"
+                      alt="-"
+                      width={20}
+                      height={12}
+                      className="w-5 h-3"
+                    />
                   </button>
                 </div>
               </div>

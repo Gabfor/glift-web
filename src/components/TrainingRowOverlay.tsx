@@ -33,7 +33,7 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
-        <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
+        <div className="flex items-center h-10 justify-start border-t border-[#ECE9F1] pl-3">
           <Image
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
             alt="Icone"
@@ -88,10 +88,22 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
           <span className="w-9 h-8 text-left px-2 py-1 font-semibold text-[#5D6494]" style={{ lineHeight: "1.5", display: "flex", alignItems: "center", justifyContent: "center" }}>{row.series}</span>
           <div className="flex flex-col items-center justify-between">
             <div className="w-5 h-3 flex items-center justify-center mb-1">
-              <Image src="/icons/chevron_training_up.svg" alt="Up" width={20} height={12} />
+              <Image
+                src="/icons/chevron_training_up.svg"
+                alt="Up"
+                width={20}
+                height={12}
+                className="w-5 h-3"
+              />
             </div>
             <div className="w-5 h-3 flex items-center justify-center">
-              <Image src="/icons/chevron_training_down.svg" alt="Down" width={20} height={12} />
+              <Image
+                src="/icons/chevron_training_down.svg"
+                alt="Down"
+                width={20}
+                height={12}
+                className="w-5 h-3"
+              />
             </div>
           </div>
         </div>
@@ -202,10 +214,22 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
                 </div>
                 <div className="flex flex-col items-center ml-auto">
                   <div className="w-5 h-3 flex items-center justify-center mb-1">
-                    <Image src="/icons/chevron_training_up.svg" alt="Up" width={20} height={12} />
+                    <Image
+                      src="/icons/chevron_training_up.svg"
+                      alt="Up"
+                      width={20}
+                      height={12}
+                      className="w-5 h-3"
+                    />
                   </div>
                   <div className="w-5 h-3 flex items-center justify-center">
-                    <Image src="/icons/chevron_training_down.svg" alt="Down" width={20} height={12} />
+                    <Image
+                      src="/icons/chevron_training_down.svg"
+                      alt="Down"
+                      width={20}
+                      height={12}
+                      className="w-5 h-3"
+                    />
                   </div>
                 </div>
               </div>
