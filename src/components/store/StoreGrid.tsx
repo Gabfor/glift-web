@@ -1,9 +1,9 @@
-// /src/components/store/StoreGrid.tsx
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
-import { createClient } from "@/lib/supabase/client";
+import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
+import { useSessionAwareClient } from "@/hooks/useSessionAwareClient";
 
 type Program = {
   id: number;
@@ -26,7 +26,7 @@ type Program = {
   status?: string;
 };
 
-const FETCH_TIMEOUT_MS = 12000; // 12s max pour éviter un spinner infini
+const FETCH_TIMEOUT_MS = 12000;
 
 export default function StoreGrid({
   sortBy,
@@ -37,220 +37,147 @@ export default function StoreGrid({
   currentPage: number;
   filters: string[];
 }) {
-  const LOG_PREFIX = "[StoreGrid]";
+  const logPrefix = "[StoreGrid]";
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
-  const [authChangeToken, setAuthChangeToken] = useState(0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
-  const supabase = createClient();
+  const { supabase, status, sessionVersion, user } = useSessionAwareClient();
+  const userId = user?.id ?? null;
 
-  // Sécurise filters (au cas où) + clé stable pour l’effet
   const safeFilters = useMemo<string[]>(
     () => (Array.isArray(filters) ? filters : []),
     [filters]
   );
   const filtersKey = useMemo(() => safeFilters.join("|"), [safeFilters]);
 
-  const getOrderForSortBy = (s: string) => {
-    switch (s) {
+  const getOrderForSortBy = (value: string) => {
+    switch (value) {
       case "popularity":
         return { column: "downloads", ascending: false };
       case "oldest":
         return { column: "created_at", ascending: true };
-      case "newest":
       default:
         return { column: "created_at", ascending: false };
     }
   };
 
-  // 1) Réhydratation session + écoute des changements d’auth
-  useEffect(() => {
-    let mounted = true;
-
-    console.log(LOG_PREFIX, "auth:init:useEffect");
-
-    (async () => {
-      try {
-        console.log(LOG_PREFIX, "auth:init:getSession:start");
-        const { data } = await supabase.auth.getSession();
-        if (!mounted) return;
-        setSessionUserId(data.session?.user?.id ?? null);
-        setIsAuthenticated(!!data.session?.user);
-        setAuthChangeToken(Date.now());
-        console.log(LOG_PREFIX, "auth:init:getSession:resolved", {
-          userId: data.session?.user?.id ?? null,
-        });
-      } catch (_error) {
-        if (!mounted) return;
-        setSessionUserId(null);
-        setIsAuthenticated(false);
-        setAuthChangeToken(Date.now());
-        console.error(LOG_PREFIX, "auth:init:getSession:error", _error);
-      }
-    })();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log(LOG_PREFIX, "auth:event", event, {
-        userId: session?.user?.id ?? null,
+  const runFetch = useCallback(
+    async (reason: string) => {
+      console.log(`${logPrefix} runFetch decision`, {
+        status,
+        sessionVersion,
+        userId,
+        reason,
+        sortBy,
+        currentPage,
+        filters: safeFilters,
       });
-      if (
-        event === "INITIAL_SESSION" ||
-        event === "SIGNED_IN" ||
-        event === "TOKEN_REFRESHED"
-      ) {
-        setSessionUserId(session?.user?.id ?? null);
-        setIsAuthenticated(!!session?.user);
-        setAuthChangeToken(Date.now());
-        console.log(LOG_PREFIX, "auth:event:session-valid", {
-          event,
-          userId: session?.user?.id ?? null,
+      if (status !== "authenticated" || !userId) {
+        console.log(`${logPrefix} runFetch skipped`, {
+          status,
+          sessionVersion,
+          userId,
+          reason,
         });
-      }
-
-      if (event === "SIGNED_OUT") {
-        setSessionUserId(null);
-        setIsAuthenticated(false);
-        setAuthChangeToken(Date.now());
-        console.log(LOG_PREFIX, "auth:event:signed-out");
-      }
-    });
-
-    console.log(LOG_PREFIX, "auth:init:subscription", sub);
-
-    return () => sub.subscription.unsubscribe();
-  }, [supabase]);
-
-  // 2) Fetch programs (uniquement quand réhydraté)
-  const runFetch = useCallback(async () => {
-    const start = (currentPage - 1) * 8;
-    const end = start + 7;
-    const order = getOrderForSortBy(sortBy);
-    let nextProgramsCount = 0;
-
-    console.log(LOG_PREFIX, "runFetch:start", {
-      currentPage,
-      filters: safeFilters,
-      sortBy,
-      start,
-      end,
-      order,
-      sessionUserId,
-      isAuthenticated,
-    });
-    setLoading(true);
-    console.time(`${LOG_PREFIX} fetch`);
-
-    const tid = window.setTimeout(() => {
-      console.warn(
-        LOG_PREFIX,
-        "fetch timeout after",
-        FETCH_TIMEOUT_MS,
-        "ms"
-      );
-      setLoading(false);
-    }, FETCH_TIMEOUT_MS);
-
-    try {
-      let query = supabase
-        .from("program_store")
-        .select(
-          `
-            id,
-            title,
-            level,
-            goal,
-            gender,
-            sessions,
-            duration,
-            description,
-            image,
-            image_alt,
-            partner_image,
-            partner_image_alt,
-            partner_link,
-            link,
-            downloads,
-            created_at
-          `
-        )
-        .eq("status", "ON");
-
-      // Filtres
-      if (safeFilters[0]) {
-        // gender
-        query = query.or(`gender.eq.${safeFilters[0]},gender.eq.Tous`);
-      }
-      if (safeFilters[1]) query = query.eq("goal", safeFilters[1]);
-      if (safeFilters[2]) query = query.eq("level", safeFilters[2]);
-      if (safeFilters[3]) query = query.eq("partner_name", safeFilters[3]);
-
-      const { data, error } = await query
-        .order(order.column, { ascending: order.ascending })
-        .range(start, end);
-
-      if (error) {
-        console.error(LOG_PREFIX, "runFetch:error", error);
         setPrograms([]);
-      } else {
-        console.log(LOG_PREFIX, "runFetch:success", {
-          count: data?.length ?? 0,
-        });
-        nextProgramsCount = data?.length ?? 0;
-        setPrograms(data || []);
+        setLoading(false);
+        setHasFetchedOnce(false);
+        return;
       }
-    } catch (e) {
-      console.error(LOG_PREFIX, "runFetch:exception", e);
-      setPrograms([]);
-    } finally {
-      clearTimeout(tid);
-      setLoading(false);
-      setHasFetchedOnce(true);
-      console.timeEnd(`${LOG_PREFIX} fetch`);
-      console.log(LOG_PREFIX, "runFetch:end", {
-        programs: nextProgramsCount,
-        hasFetchedOnce: true,
-      });
-    }
-  }, [currentPage, sortBy, safeFilters, supabase, isAuthenticated, sessionUserId]);
+      setLoading(true);
+      const start = (currentPage - 1) * 8;
+      const end = start + 7;
+      const order = getOrderForSortBy(sortBy);
+      const timeoutId = window.setTimeout(() => {
+        console.warn(`${logPrefix} fetch timeout`, FETCH_TIMEOUT_MS);
+        setLoading(false);
+      }, FETCH_TIMEOUT_MS);
+      try {
+        let query = supabase
+          .from("program_store")
+          .select(
+            `
+              id,
+              title,
+              level,
+              goal,
+              gender,
+              sessions,
+              duration,
+              description,
+              image,
+              image_alt,
+              partner_image,
+              partner_image_alt,
+              partner_link,
+              link,
+              downloads,
+              created_at
+            `
+          )
+          .eq("status", "ON");
+        if (safeFilters[0]) {
+          query = query.or(`gender.eq.${safeFilters[0]},gender.eq.Tous`);
+        }
+        if (safeFilters[1]) query = query.eq("goal", safeFilters[1]);
+        if (safeFilters[2]) query = query.eq("level", safeFilters[2]);
+        if (safeFilters[3]) query = query.eq("partner_name", safeFilters[3]);
+        const { data, error } = await query
+          .order(order.column, { ascending: order.ascending })
+          .range(start, end);
+        if (error) {
+          console.error(`${logPrefix} runFetch error`, error);
+          setPrograms([]);
+        } else {
+          setPrograms(data || []);
+        }
+      } catch (error) {
+        console.error(`${logPrefix} runFetch exception`, error);
+        setPrograms([]);
+      } finally {
+        clearTimeout(timeoutId);
+        setLoading(false);
+        setHasFetchedOnce(true);
+      }
+    },
+    [currentPage, safeFilters, sessionVersion, sortBy, status, supabase, userId]
+  );
 
   useEffect(() => {
-    console.log(LOG_PREFIX, "effect:maybeFetch", {
-      authChangeToken,
-      sessionUserId,
-      filtersKey,
-      hasFetchedOnce,
-    });
-    if (!authChangeToken) return;
+    void runFetch("deps-change");
+  }, [filtersKey, runFetch]);
 
-    if (!sessionUserId) {
-      setPrograms([]);
-      setLoading(false);
-      setHasFetchedOnce(false);
-      console.warn(LOG_PREFIX, "effect:maybeFetch:no-session", {
-        authChangeToken,
+  useVisibilityRefetch(() => {
+    if (status !== "authenticated" || !userId) {
+      console.log(`${logPrefix} visibility skipped`, {
+        status,
+        sessionVersion,
+        userId,
       });
       return;
     }
-
-    runFetch();
-  }, [authChangeToken, runFetch, filtersKey, sessionUserId, hasFetchedOnce]);
+    console.log(`${logPrefix} visibility refetch`, {
+      status,
+      sessionVersion,
+      userId,
+    });
+    void runFetch("visibility");
+  });
 
   useEffect(() => {
-    console.log(LOG_PREFIX, "state:update", {
+    console.log(`${logPrefix} state snapshot`, {
       loading,
       programs: programs.length,
-      isAuthenticated,
-      sessionUserId,
-      authChangeToken,
+      status,
+      sessionVersion,
+      userId,
     });
-  }, [loading, programs, isAuthenticated, sessionUserId, authChangeToken]);
+  }, [loading, programs.length, sessionVersion, status, userId]);
 
   return (
     <div className="relative mt-8">
-      {programs.length === 0 && !loading && hasFetchedOnce && isAuthenticated && (
+      {programs.length === 0 && !loading && hasFetchedOnce && status === "authenticated" && (
         <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
       )}
 
@@ -259,7 +186,7 @@ export default function StoreGrid({
           <StoreCard
             key={program.id}
             program={program}
-            isAuthenticated={isAuthenticated}
+            isAuthenticated={status === "authenticated"}
           />
         ))}
       </div>

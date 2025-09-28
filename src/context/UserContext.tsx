@@ -5,28 +5,40 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
+  useRef,
   useState,
 } from "react";
-import type { Session, User } from "@supabase/supabase-js";
+import type { Session, SupabaseClient, User } from "@supabase/supabase-js";
 import { useSupabase } from "@/components/SupabaseProvider";
 import { createScopedLogger } from "@/utils/logger";
 import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
 
+type AuthStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
+
 export type UserContextType = {
+  supabase: SupabaseClient;
   user: User | null;
   session: Session | null;
   isAuthenticated: boolean;
   isAuthResolved: boolean;
   isPremiumUser: boolean;
-  refreshSession: (origin?: string) => Promise<void>;
+  status: AuthStatus;
+  sessionVersion: number;
+  lastRefreshAt: number | null;
+  refreshSession: (reason?: string) => Promise<void>;
 };
 
 const UserContext = createContext<UserContextType>({
+  supabase: undefined as unknown as SupabaseClient,
   user: null,
   session: null,
   isAuthenticated: false,
   isAuthResolved: false,
   isPremiumUser: false,
+  status: "idle",
+  sessionVersion: 0,
+  lastRefreshAt: null,
   refreshSession: async () => {},
 });
 
@@ -45,122 +57,164 @@ type UserProviderProps = {
 
 export function UserProvider({ children, initialSession = null }: UserProviderProps) {
   const supabase = useSupabase();
+  const logger = useMemo(() => createScopedLogger("UserProvider"), []);
   const [session, setSession] = useState<Session | null>(initialSession);
   const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
   const [isAuthResolved, setIsAuthResolved] = useState<boolean>(!!initialSession);
   const [isPremiumUser, setIsPremiumUser] = useState<boolean>(
     computeIsPremium(initialSession?.user ?? null)
   );
-  const logger = createScopedLogger("UserProvider");
+  const [status, setStatus] = useState<AuthStatus>(
+    initialSession ? "authenticated" : "idle"
+  );
+  const [sessionVersion, setSessionVersion] = useState<number>(0);
+  const [lastRefreshAt, setLastRefreshAt] = useState<number | null>(
+    initialSession ? Date.now() : null
+  );
+  const refreshLockRef = useRef<Promise<void> | null>(null);
 
   const applySession = useCallback(
     (nextSession: Session | null, origin: string) => {
       const nextUser = nextSession?.user ?? null;
-
-      logger.info("Applying session", {
+      logger.info("applySession", {
         origin,
         hasSession: !!nextSession,
         userId: nextUser?.id ?? null,
       });
-
       setSession(nextSession);
       setUser(nextUser);
       setIsPremiumUser(computeIsPremium(nextUser));
       setIsAuthResolved(true);
+      setStatus(nextUser ? "authenticated" : "unauthenticated");
+      setSessionVersion((prev) => prev + 1);
+      setLastRefreshAt(Date.now());
     },
     [logger]
   );
 
-  const resolveSession = useCallback(
-    async (origin: string) => {
-      logger.debug("Resolving session", { origin });
-
-      const { data, error } = await supabase.auth.getSession();
-
-      if (error) {
-        logger.error(`Unable to resolve session from ${origin}`, error);
-        setIsAuthResolved(true);
-        return;
+  const refreshSession = useCallback(
+    async (reason = "manual") => {
+      if (refreshLockRef.current) {
+        logger.debug("refreshSession:reuse", { reason });
+        return refreshLockRef.current;
       }
-
-      applySession(data.session ?? null, origin);
+      const promise = (async () => {
+        logger.debug("refreshSession:start", { reason });
+        setStatus((prev) => (prev === "loading" ? prev : "loading"));
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          logger.error("refreshSession:error", error);
+          applySession(null, `refresh-error:${reason}`);
+          return;
+        }
+        applySession(data.session ?? null, `refresh:${reason}`);
+      })()
+        .catch((error) => {
+          logger.error("refreshSession:exception", error);
+          applySession(null, `refresh-exception:${reason}`);
+        })
+        .finally(() => {
+          refreshLockRef.current = null;
+        });
+      refreshLockRef.current = promise;
+      await promise;
     },
     [applySession, logger, supabase]
   );
 
-  const refreshSession = useCallback(
-    async (origin = "manual-refresh") => {
-      logger.debug("Manual session refresh requested", { origin });
-      await resolveSession(origin);
-    },
-    [logger, resolveSession]
-  );
+  useEffect(() => {
+    if (initialSession) {
+      applySession(initialSession, "initial-session");
+      return;
+    }
+    void refreshSession("bootstrap");
+  }, [applySession, initialSession, refreshSession]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    logger.info("Initializing UserContext", {
-      hasInitialSession: !!initialSession,
-      initialUserId: initialSession?.user?.id ?? null,
-    });
-
-    resolveSession("initial-getSession");
-
-    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
-      if (!isMounted) return;
-      logger.info("onAuthStateChange", {
-        event,
-        hasSession: !!nextSession,
-        userId: nextSession?.user?.id ?? null,
-      });
-      applySession(nextSession, `onAuthStateChange:${event}`);
-    });
+    const channel = new BroadcastChannel("glift-auth");
+    channel.onmessage = (event) => {
+      if (event.data === "session:updated") {
+        console.log("[UserProvider] broadcast received", {
+          status,
+          sessionVersion,
+        });
+        void refreshSession("broadcast");
+      }
+    };
 
     const handleStorageEvent = (event: StorageEvent) => {
-      if (!isMounted) return;
-      if (event.key !== supabase.auth.storageKey) {
+      if (!event.key) {
         return;
       }
-
-      logger.debug("Storage event detected", {
-        key: event.key,
-        hasOldValue: !!event.oldValue,
-        hasNewValue: !!event.newValue,
-      });
-
-      resolveSession("storage-event");
+      const key = event.key.toLowerCase();
+      if (key.includes("sb-") || key.includes("auth")) {
+        console.log("[UserProvider] storage event", {
+          key: event.key,
+          status,
+          sessionVersion,
+        });
+        void refreshSession("storage");
+      }
     };
 
     window.addEventListener("storage", handleStorageEvent);
 
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      console.log("[UserProvider] onAuthStateChange", {
+        event,
+        hasSession: !!nextSession,
+        sessionVersion,
+      });
+      applySession(nextSession, `onAuthStateChange:${event}`);
+      channel.postMessage("session:updated");
+    });
+
     return () => {
-      isMounted = false;
       window.removeEventListener("storage", handleStorageEvent);
-      listener.subscription.unsubscribe();
+      subscription.unsubscribe();
+      channel.close();
     };
-  }, [applySession, initialSession, logger, resolveSession, supabase]);
+  }, [applySession, refreshSession, sessionVersion, status, supabase]);
 
-  useVisibilityRefetch(
-    () => {
-      void resolveSession("visibility-change");
-    },
-    { scope: "UserProvider", triggerOnMount: false }
+  const handleVisibilityRefresh = useCallback(() => {
+    console.log("[UserProvider] visibility trigger", {
+      status,
+      sessionVersion,
+    });
+    void refreshSession("visibility");
+  }, [refreshSession, sessionVersion, status]);
+
+  useVisibilityRefetch(handleVisibilityRefresh, 1200);
+
+  const value = useMemo(
+    () => ({
+      supabase,
+      user,
+      session,
+      isAuthenticated: status === "authenticated",
+      isAuthResolved,
+      isPremiumUser,
+      status,
+      sessionVersion,
+      lastRefreshAt,
+      refreshSession,
+    }),
+    [
+      isAuthResolved,
+      isPremiumUser,
+      lastRefreshAt,
+      refreshSession,
+      session,
+      sessionVersion,
+      status,
+      supabase,
+      user,
+    ]
   );
 
-  return (
-    <UserContext.Provider
-      value={{
-        user,
-        session,
-        isAuthenticated: !!user,
-        isAuthResolved,
-        isPremiumUser,
-        refreshSession,
-      }}
-    >
-      {children}
-    </UserContext.Provider>
-  );
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {

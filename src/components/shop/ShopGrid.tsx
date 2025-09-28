@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ShopCard from "@/components/shop/ShopCard";
-import { useSupabase } from "@/components/SupabaseProvider";
-import { useUser } from "@/context/UserContext";
-import { createScopedLogger } from "@/utils/logger";
 import { useVisibilityRefetch } from "@/hooks/useVisibilityRefetch";
+import { useSessionAwareClient } from "@/hooks/useSessionAwareClient";
 
 type Offer = {
   id: number;
@@ -30,7 +28,7 @@ type Offer = {
 export default function ShopGrid({
   sortBy,
   currentPage,
-  filters
+  filters,
 }: {
   sortBy: string;
   currentPage: number;
@@ -40,14 +38,8 @@ export default function ShopGrid({
   const [loading, setLoading] = useState(true);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
 
-  const supabase = useSupabase();
-  const { user, isAuthResolved, refreshSession } = useUser();
+  const { supabase, status, sessionVersion, user } = useSessionAwareClient();
   const userId = user?.id ?? null;
-  const isReady = useMemo(
-    () => isAuthResolved && !!userId,
-    [isAuthResolved, userId]
-  );
-  const logger = useMemo(() => createScopedLogger("ShopGrid"), []);
 
   const safeFilters = useMemo<string[]>(
     () => (Array.isArray(filters) ? filters : []),
@@ -55,172 +47,140 @@ export default function ShopGrid({
   );
   const filtersKey = useMemo(() => safeFilters.join("|"), [safeFilters]);
 
-  const getOrderForSortBy = (s: string) => {
-    switch (s) {
+  const getOrderForSortBy = (value: string) => {
+    switch (value) {
       case "popularity":
         return { column: "downloads", ascending: false };
       case "oldest":
         return { column: "created_at", ascending: true };
       case "expiration":
-        return { column: "", ascending: true }; // tri client
-      case "newest":
+        return { column: "", ascending: true };
       default:
         return { column: "created_at", ascending: false };
     }
   };
 
-  // Fetch offers uniquement quand l'utilisateur est prêt
-  const runFetch = useCallback(async () => {
-    if (!isReady) {
-      logger.debug("runFetch: user/session not ready", {
-        isAuthResolved,
+  const runFetch = useCallback(
+    async (reason: string) => {
+      console.log("[ShopGrid] runFetch decision", {
+        status,
+        sessionVersion,
         userId,
+        reason,
+        sortBy,
+        currentPage,
+        filters: safeFilters,
       });
-      return;
-    }
-
-    setLoading(true);
-
-    logger.info("Fetching offers", {
-      userId,
-      sortBy,
-      currentPage,
-      filters: safeFilters,
-    });
-
-    const start = (currentPage - 1) * 8;
-    const end = start + 7;
-
-    const order = getOrderForSortBy(sortBy);
-
-    let query = supabase
-      .from("offer_shop")
-      .select(`
-        id,
-        name,
-        start_date,
-        end_date,
-        type,
-        code,
-        image,
-        image_alt,
-        brand_image,
-        brand_image_alt,
-        shop,
-        shop_website,
-        shop_link,
-        shipping,
-        premium,
-        modal,
-        condition
-      `)
-      .eq("status", "ON");
-
-    if (safeFilters[0]) {
-      query = query.or(`gender.eq.${safeFilters[0]},gender.eq.Tous`);
-    }
-    if (safeFilters[2]) query = query.ilike("sport", safeFilters[2]);
-    if (safeFilters[3]) query = query.eq("shop", safeFilters[3]);
-
-    // Tri Supabase (sauf “expiration” qui sera tri client)
-    if (order.column) {
-      query = query.order(order.column, { ascending: order.ascending });
-    }
-
-    const { data, error } = await query.range(start, end);
-
-    if (error) {
-      logger.error("Erreur Supabase", error.message);
-      setOffers([]);
-    } else {
-      const list = data || [];
-
-      if (sortBy === "expiration") {
-        list.sort((a: any, b: any) => {
-          if (!a.end_date && !b.end_date) return 0;
-          if (!a.end_date) return 1;
-          if (!b.end_date) return -1;
-          return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+      if (status !== "authenticated" || !userId) {
+        console.log("[ShopGrid] runFetch skipped", {
+          status,
+          sessionVersion,
+          userId,
+          reason,
         });
+        setOffers([]);
+        setLoading(false);
+        setHasFetchedOnce(false);
+        return;
       }
-      setOffers(list as Offer[]);
-    }
-
-    setLoading(false);
-    setHasFetchedOnce(true);
-  }, [
-    currentPage,
-    isReady,
-    logger,
-    safeFilters,
-    sortBy,
-    supabase,
-    userId,
-    isAuthResolved,
-  ]);
+      setLoading(true);
+      const start = (currentPage - 1) * 8;
+      const end = start + 7;
+      const order = getOrderForSortBy(sortBy);
+      let query = supabase
+        .from("offer_shop")
+        .select(
+          `
+            id,
+            name,
+            start_date,
+            end_date,
+            type,
+            code,
+            image,
+            image_alt,
+            brand_image,
+            brand_image_alt,
+            shop,
+            shop_website,
+            shop_link,
+            shipping,
+            premium,
+            modal,
+            condition
+          `
+        )
+        .eq("status", "ON");
+      if (safeFilters[0]) {
+        query = query.or(`gender.eq.${safeFilters[0]},gender.eq.Tous`);
+      }
+      if (safeFilters[2]) query = query.ilike("sport", safeFilters[2]);
+      if (safeFilters[3]) query = query.eq("shop", safeFilters[3]);
+      if (order.column) {
+        query = query.order(order.column, { ascending: order.ascending });
+      }
+      const { data, error } = await query.range(start, end);
+      if (error) {
+        console.error("[ShopGrid] runFetch error", error);
+        setOffers([]);
+      } else {
+        const list = data || [];
+        if (sortBy === "expiration") {
+          list.sort((a: any, b: any) => {
+            if (!a.end_date && !b.end_date) return 0;
+            if (!a.end_date) return 1;
+            if (!b.end_date) return -1;
+            return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+          });
+        }
+        setOffers(list as Offer[]);
+      }
+      setLoading(false);
+      setHasFetchedOnce(true);
+    },
+    [currentPage, safeFilters, sessionVersion, sortBy, status, supabase, userId]
+  );
 
   useEffect(() => {
-    if (!isReady) {
-      logger.debug("Waiting for auth before fetching offers", {
-        isAuthResolved,
-        userId,
-      });
-      setOffers([]);
-      setLoading(false);
-      setHasFetchedOnce(false);
-      return;
-    }
+    void runFetch("deps-change");
+  }, [filtersKey, runFetch]);
 
-    runFetch();
-  }, [filtersKey, isReady, runFetch, isAuthResolved, userId, logger]);
-
-  const fetchVisibilitySync = useCallback(() => {
-    if (!isReady) {
-      logger.debug("Visibility sync skipped: auth not ready", {
-        isAuthResolved,
+  useVisibilityRefetch(() => {
+    if (status !== "authenticated" || !userId) {
+      console.log("[ShopGrid] visibility skipped", {
+        status,
+        sessionVersion,
         userId,
       });
       return;
     }
-
-    logger.debug("Visibility sync triggered → refreshing session and offers", {
+    console.log("[ShopGrid] visibility refetch", {
+      status,
+      sessionVersion,
       userId,
     });
-    void refreshSession("shop-grid-visibility");
-    runFetch();
-  }, [
-    isAuthResolved,
-    isReady,
-    logger,
-    refreshSession,
-    runFetch,
-    userId,
-  ]);
-
-  useVisibilityRefetch(fetchVisibilitySync, {
-    scope: "ShopGrid",
+    void runFetch("visibility");
   });
 
-  // Filtrage client sur "type" (string JSON → array)
   const filteredOffers = offers
     .filter((offer) => !!offer.image)
     .filter((offer) => {
       if (!safeFilters[1]) return true;
-
       let parsed: string[] = [];
       try {
         if (Array.isArray(offer.type)) {
           parsed = offer.type;
         } else if (typeof offer.type === "string") {
-          parsed = JSON.parse(offer.type || "[]");
-          if (!Array.isArray(parsed)) parsed = [parsed].filter(Boolean);
+          const value = JSON.parse(offer.type || "[]");
+          parsed = Array.isArray(value) ? value : [value].filter(Boolean);
         }
       } catch {
         parsed = [];
       }
-
-      return parsed.some((t) =>
-        t.toLowerCase().includes(safeFilters[1].toLowerCase())
+      return parsed.some((entry) =>
+        typeof entry === "string"
+          ? entry.toLowerCase().includes(safeFilters[1].toLowerCase())
+          : false
       );
     });
 

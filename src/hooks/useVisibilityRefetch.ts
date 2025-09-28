@@ -1,47 +1,42 @@
 "use client";
 
-import { useEffect } from "react";
-import { createScopedLogger } from "@/utils/logger";
+import { useEffect, useRef } from "react";
 
-type Options = {
-  scope?: string;
-  triggerOnMount?: boolean;
-};
+export function useVisibilityRefetch(callback: () => void, minIntervalMs = 1000) {
+  const lastCallRef = useRef(0);
 
-export function useVisibilityRefetch(
-  callback: () => void,
-  { scope = "VisibilityRefetch", triggerOnMount = false }: Options = {}
-) {
   useEffect(() => {
     if (!callback) {
       return;
     }
 
-    const logger = createScopedLogger(scope);
+    const invoke = (reason: string) => {
+      const now = Date.now();
+      if (now - lastCallRef.current < minIntervalMs) {
+        console.log("[useVisibilityRefetch] throttled", { reason, minIntervalMs });
+        return;
+      }
+      lastCallRef.current = now;
+      console.log("[useVisibilityRefetch] trigger", { reason, minIntervalMs });
+      callback();
+    };
 
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
-        logger.debug("Tab became visible → invoking callback");
-        callback();
+        invoke("visibility");
       }
     };
 
     const handleFocus = () => {
-      logger.debug("Window focus → invoking callback");
-      callback();
+      invoke("focus");
     };
 
-    document.addEventListener("visibilitychange", handleVisibility);
     window.addEventListener("focus", handleFocus);
-
-    if (triggerOnMount) {
-      logger.debug("Triggering callback on mount");
-      callback();
-    }
+    document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {
-      document.removeEventListener("visibilitychange", handleVisibility);
       window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [callback, scope, triggerOnMount]);
+  }, [callback, minIntervalMs]);
 }
