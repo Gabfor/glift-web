@@ -70,6 +70,17 @@ export async function POST(req: NextRequest) {
           },
           { onConflict: "user_id" }
         );
+  if (userId) {
+    const supabaseAdmin = createAdminClient();
+    const { error: subscriptionError } = await supabaseAdmin
+      .from("user_subscriptions")
+      .upsert(
+        {
+          user_id: userId,
+          plan,
+        },
+        { onConflict: "user_id" }
+      );
 
       if (subscriptionError) {
         console.error("Erreur enregistrement abonnement", subscriptionError);
