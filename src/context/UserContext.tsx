@@ -20,39 +20,65 @@ const UserContext = createContext<UserContextType>({
   isPremiumUser: false,
 });
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
+function computeIsPremium(user: User | null) {
+  return (
+    !!user &&
+    (user.app_metadata?.plan === "premium" ||
+      user.user_metadata?.is_premium === true)
+  );
+}
+
+type UserProviderProps = {
+  children: React.ReactNode;
+  initialSession?: Session | null;
+};
+
+export function UserProvider({ children, initialSession = null }: UserProviderProps) {
   const supabase = useSupabase();
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAuthResolved, setIsAuthResolved] = useState(false);
-  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [session, setSession] = useState<Session | null>(initialSession);
+  const [user, setUser] = useState<User | null>(initialSession?.user ?? null);
+  const [isAuthResolved, setIsAuthResolved] = useState<boolean>(!!initialSession);
+  const [isPremiumUser, setIsPremiumUser] = useState<boolean>(
+    computeIsPremium(initialSession?.user ?? null)
+  );
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+    let isMounted = true;
 
-      const premium =
-        data.session?.user?.app_metadata?.plan === "premium" ||
-        data.session?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
+    const applySession = (nextSession: Session | null) => {
+      if (!isMounted) return;
 
+      const nextUser = nextSession?.user ?? null;
+      setSession(nextSession);
+      setUser(nextUser);
+      setIsPremiumUser(computeIsPremium(nextUser));
       setIsAuthResolved(true);
-    });
+    };
 
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    const resolveInitialSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
 
-      const premium =
-        session?.user?.app_metadata?.plan === "premium" ||
-        session?.user?.user_metadata?.is_premium === true;
-      setIsPremiumUser(premium);
+      if (!isMounted) return;
 
-      setIsAuthResolved(true);
-    });
+      if (error) {
+        console.error("[UserProvider] Unable to resolve initial session", error);
+        setIsAuthResolved(true);
+        return;
+      }
+
+      applySession(data.session ?? null);
+    };
+
+    resolveInitialSession();
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        applySession(nextSession);
+      }
+    );
 
     return () => {
+      isMounted = false;
       listener.subscription.unsubscribe();
     };
   }, [supabase]);

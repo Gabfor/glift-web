@@ -1,9 +1,8 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { ReactNode, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { Session } from '@supabase/supabase-js';
+import { ReactNode } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import Header from './Header';
 import Footer from './Footer';
 import FooterPublic from './FooterPublic';
@@ -12,7 +11,16 @@ import SupabaseProvider from './SupabaseProvider';
 import { AvatarProvider } from '@/context/AvatarContext';
 import { useUser } from "@/context/UserContext";
 
-function LayoutContent({ children }: { children: ReactNode }) {
+type LayoutContentProps = {
+  children: ReactNode;
+};
+
+type ClientLayoutProps = {
+  children: ReactNode;
+  initialSession?: Session | null;
+};
+
+function LayoutContent({ children }: LayoutContentProps) {
   const pathname = usePathname();
   const { isAuthenticated } = useUser();
 
@@ -27,10 +35,10 @@ function LayoutContent({ children }: { children: ReactNode }) {
   );
 }
 
-export default function ClientLayout({ children }: { children: ReactNode }) {
+export default function ClientLayout({ children, initialSession = null }: ClientLayoutProps) {
   return (
     <SupabaseProvider>
-      <UserProvider>
+      <UserProvider initialSession={initialSession}>
         <AvatarProvider>
           <LayoutContent>{children}</LayoutContent>
         </AvatarProvider>

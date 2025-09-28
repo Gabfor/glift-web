@@ -50,7 +50,11 @@ if (process.env.NEXT_PUBLIC_DEBUG === '1') {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const user = session?.user ?? null;
   let plan: string | null = null;
 
   if (user) {
@@ -71,7 +75,7 @@ if (process.env.NEXT_PUBLIC_DEBUG === '1') {
         <UnlockScroll />
         <VerifyEmailTopBar />
         {/* on ne passe pas encore `plan` si tes composants ne l’acceptent pas */}
-        <ClientLayout>{children}</ClientLayout>
+        <ClientLayout initialSession={session}>{children}</ClientLayout>
       </body>
     </html>
   );
