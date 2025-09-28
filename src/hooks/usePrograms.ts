@@ -5,8 +5,12 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";
 
+type ProgramWithTrainings = Program & {
+  position?: number;
+};
+
 export default function usePrograms() {
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<ProgramWithTrainings[]>([]);
   const supabase = useSupabaseClient();
 
   const fetchProgramsWithTrainings = useCallback(async () => {
@@ -17,13 +21,7 @@ export default function usePrograms() {
       .from("programs")
       .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
       .eq("user_id", user.id)
-      .order("position", { ascending: true })
-
-    const { data: orphanTrainings } = await supabase
-      .from("trainings")
-      .select("id, name, position, app, dashboard")
-      .is("program_id", null)
-      .eq("user_id", user.id);
+      .order("position", { ascending: true });
 
     if (!programsData || programsData.length === 0) {
       const { data: newProgram } = await supabase
@@ -42,11 +40,7 @@ export default function usePrograms() {
     }));
 
     let result = [...existingPrograms];
-
-    // ✅ Vérifie s'il existe déjà un programme vide
-    let hasEmpty = result.some(p => p.trainings.length === 0);
-
-    // ✅ Si aucun programme vide → on en ajoute un
+    const hasEmpty = result.some(p => p.trainings.length === 0);
     if (!hasEmpty) {
       const { data: { user } } = await supabase.auth.getUser();
       if (user?.id) {
@@ -61,7 +55,6 @@ export default function usePrograms() {
         }
       }
     } else {
-      // ✅ Déplace le programme vide existant tout en bas
       const nonEmpty = result.filter(p => p.trainings.length > 0);
       const emptyPrograms = result.filter(p => p.trainings.length === 0);
       result = [...nonEmpty, ...emptyPrograms];
@@ -74,62 +67,28 @@ export default function usePrograms() {
     fetchProgramsWithTrainings();
   }, [fetchProgramsWithTrainings]);
 
-  const cleanEmptyPrograms = async () => {
-    const emptyPrograms = programs.filter(p => p.trainings.length === 0);
-    const nonEmptyPrograms = programs.filter(p => p.trainings.length > 0);
-
-    if (emptyPrograms.length === 0) return;
-
-    // 🟣 on garde un seul programme vide, de préférence le dernier
-    const programsToKeep = new Set<string>();
-    const lastProgram = programs[programs.length - 1];
-    if (lastProgram && lastProgram.trainings.length === 0) {
-      programsToKeep.add(lastProgram.id);
-    } else {
-      const lastEmpty = emptyPrograms[emptyPrograms.length - 1];
-      if (lastEmpty) programsToKeep.add(lastEmpty.id);
-    }
-
-    const toDelete = emptyPrograms.filter(p => !programsToKeep.has(p.id));
-    if (toDelete.length === 0) return;
-
-    await supabase
-      .from("programs")
-      .delete()
-      .in("id", toDelete.map(p => p.id));
-
-    // ✅ on met à jour le state en une seule fois
-    setPrograms(prev =>
-      prev.filter(p => !toDelete.some(d => d.id === p.id))
-    );
-  };
-
   const handleReorderTrainings = async (programId: string | null, ids: string[]) => {
-    console.log("📥 handleReorderTrainings appelé", programId, ids);
 
-    const currentTrainings = programs.find((p) => p.id === programId)?.trainings.map((t: any) => t.id) || [];
+    const currentTrainings =
+      programs.find((p) => p.id === programId)?.trainings.map((t: Training) => t.id) || [];
 
-    const isSameOrder = ids.length === currentTrainings.length && ids.every((id, idx) => id === currentTrainings[idx]);
-
-    console.log("🧪 currentTrainings =", currentTrainings);
-    console.log("🧪 ids à sauvegarder =", ids);
-    console.log("🔍 DONNÉES ENVOYÉES À SUPABASE :", ids);
+    const isSameOrder =
+      ids.length === currentTrainings.length && ids.every((id, idx) => id === currentTrainings[idx]);
 
     if (isSameOrder) return;
 
     await Promise.all(
-      ids.map((id, index) => {
-        console.log("🔄 Mise à jour Supabase :", id, "→ position", index);
-        return supabase.from("trainings").update({ position: index }).eq("id", id);
-      })
+      ids.map((id, index) =>
+        supabase.from("trainings").update({ position: index }).eq("id", id)
+      )
     );
 
     const updated = [...programs];
     const target = updated.find((p) => p.id === programId);
     if (target) {
-      target.trainings = ids.map((id) =>
-        target.trainings.find((t: any) => t.id === id)!
-      );
+      target.trainings = ids
+        .map((id) => target.trainings.find((t: Training) => t.id === id))
+        .filter((training): training is Training => Boolean(training));
       setPrograms(updated);
     }
   };
@@ -142,13 +101,10 @@ export default function usePrograms() {
       .single();
 
     if (originalError || !original) {
-      console.error("Erreur récupération training original:", originalError);
       return;
     }
 
     const originalPosition = original.position;
-
-    // ✅ 1️⃣ Décaler en BDD les autres trainings après la position dupliquée
     const { data: trainingsToShift, error: fetchToShiftError } = await supabase
       .from("trainings")
       .select("*")
@@ -156,7 +112,6 @@ export default function usePrograms() {
       .gt("position", originalPosition);
 
     if (fetchToShiftError) {
-      console.error("Erreur récupération des trainings à décaler :", fetchToShiftError);
       return;
     }
 
@@ -168,8 +123,6 @@ export default function usePrograms() {
           .eq("id", training.id);
       }
     }
-
-    // ✅ 2️⃣ Créer la copie en BDD
     const { data: duplicated, error: duplicateError } = await supabase
       .from("trainings")
       .insert({
@@ -182,11 +135,8 @@ export default function usePrograms() {
       .single();
 
     if (duplicateError || !duplicated) {
-      console.error("Erreur duplication training:", duplicateError);
       return;
     }
-
-    // ✅ 3️⃣ Copier aussi les training_rows
     const { data: originalRows, error: rowsError } = await supabase
       .from("training_rows")
       .select("*")
@@ -194,7 +144,6 @@ export default function usePrograms() {
       .order("order", { ascending: true });
 
     if (rowsError) {
-      console.error("Erreur récupération training_rows:", rowsError);
       return;
     }
 
@@ -221,14 +170,12 @@ export default function usePrograms() {
         .insert(rowsToInsert);
 
       if (insertError) {
-        console.error("Erreur insertion training_rows copiées:", insertError);
+        return;
       }
     }
-
-    // ✅ 4️⃣ Mise à jour locale du state avec décalage
     const updatedPrograms = programs.map((p) => {
       if (p.id === programId) {
-        const index = p.trainings.findIndex((t: any) => t.id === trainingId);
+        const index = p.trainings.findIndex((t: Training) => t.id === trainingId);
         const newTrainings = p.trainings.map((t: Training, i: number) => {
           if (i > index) {
             return { ...t, position: t.position + 1 };
@@ -254,6 +201,8 @@ export default function usePrograms() {
     if (!user?.id) return;
 
     const existingProgram = programs[index];
+    if (!existingProgram) return null;
+
     const orphanTrainings = existingProgram.trainings || [];
     const safeName = name || "Nom du programme";
 
@@ -290,8 +239,6 @@ export default function usePrograms() {
 
   const handleAddTraining = async (programId: string | null = null) => {
     let targetId = programId && programId !== '' ? programId : null;
-    const index = programs.findIndex(p => p.id === programId);
-    console.log("📦 handleAddTraining — reçu :", programId);
 
     if (!targetId || targetId === '') {
       const newIndex = programs.findIndex(p => !p.id);
@@ -366,7 +313,6 @@ export default function usePrograms() {
   const handleDeleteTraining = async (programId: string, trainingId: string) => {
     const { error } = await supabase.from("trainings").delete().eq("id", trainingId);
     if (error) {
-      console.error("Erreur lors de la suppression :", error);
       return;
     }
 
@@ -395,47 +341,29 @@ export default function usePrograms() {
   };
 
   const handleDeleteProgram = async (programId: string) => {
-    // 1️⃣ Supprimer tous les trainings du programme
     await supabase.from("trainings").delete().eq("program_id", programId);
-
-    // 2️⃣ Supprimer le programme lui-même
     await supabase.from("programs").delete().eq("id", programId);
-
-    console.log("✅ Programme supprimé :", programId);
-
-    // 3️⃣ Rafraîchir la liste complète
     const { data: refreshed, error } = await supabase
       .from("programs")
       .select("id, name, position, user_id")
       .order("position", { ascending: true });
 
     if (error) {
-      console.error("Erreur fetch après suppression :", error);
       return;
     }
 
     if (!refreshed) return;
-
-    // 4️⃣ Filtrer la liste sans le programme supprimé
     const cleaned = refreshed.filter(p => p.id !== programId);
-
-    // 5️⃣ Ré-assigner les positions de 0 à n-1
     const corrected = cleaned.map((p, index) => ({
       ...p,
       position: index
     }));
-
-    // 6️⃣ Sauvegarder en BDD toutes les nouvelles positions
     await Promise.all(corrected.map(p =>
       supabase
         .from("programs")
         .update({ position: p.position })
         .eq("id", p.id)
     ));
-
-    console.log("✅ Positions corrigées en BDD");
-
-    // 7️⃣ Mettre à jour le state local
     setPrograms(prev =>
       prev
         .filter(p => p.id !== programId)
@@ -445,66 +373,59 @@ export default function usePrograms() {
             : p
         )
     );
-
-    // 8️⃣ Optionnel : re-fetch pour être 100% synchro
     await fetchProgramsWithTrainings();
   };
 
   const handleDuplicateProgram = async (index: number) => {
-  if (index < 0 || index >= programs.length) return;
+    if (index < 0 || index >= programs.length) return;
 
-  const programToDuplicate = programs[index];
-  if (!programToDuplicate) return;
+    const programToDuplicate = programs[index];
+    if (!programToDuplicate) return;
 
-  // 1️⃣ Décaler les positions des programmes suivants
-  const programsToShift = programs.slice(index + 1);
+    const programsToShift = programs.slice(index + 1);
+    for (const program of programsToShift) {
+      const nextPosition = (program.position ?? 0) + 1;
+      await supabase
+        .from("programs")
+        .update({ position: nextPosition })
+        .eq("id", program.id);
+    }
 
-  for (const p of programsToShift) {
-    await supabase
+    const {
+      data: newProgram,
+      error: insertError,
+    } = await supabase
       .from("programs")
-      .update({ position: p.position + 1 })
-      .eq("id", p.id);
-  }
+      .insert({
+        name: `${programToDuplicate.name} (copie)`,
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        position: (programToDuplicate.position ?? index) + 1,
+      })
+      .select()
+      .single();
 
-  // 2️⃣ Créer le programme dupliqué en BDD avec la bonne position
-  const { data: newProgram, error: insertError } = await supabase
-    .from("programs")
-    .insert({
-      name: `${programToDuplicate.name} (copie)`,
-      user_id: (await supabase.auth.getUser()).data.user?.id,
-      position: programToDuplicate.position + 1,
-    })
-    .select()
-    .single();
+    if (insertError || !newProgram) {
+      return;
+    }
 
-  if (insertError || !newProgram) {
-    console.error("Erreur duplication programme :", insertError);
-    return;
-  }
+    if (programToDuplicate.trainings.length > 0) {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData.user?.id;
 
-  // 3️⃣ Copier les trainings associés
-  if (programToDuplicate.trainings.length > 0) {
-    // ✅ Récupère l'userId UNE FOIS avant le map
-    const { data: userData } = await supabase.auth.getUser();
-    const userId = userData.user?.id;
-
-    const duplicatedTrainings = programToDuplicate.trainings.map((t: Training) => {
-      const { id, program_id, ...rest } = t;
-      return {
-        ...rest,
+      const duplicatedTrainings = programToDuplicate.trainings.map((training: Training) => ({
+        ...training,
+        id: undefined,
         program_id: newProgram.id,
         user_id: userId,
-      };
-    });
+      }));
 
-    await supabase
-      .from("trainings")
-      .insert(duplicatedTrainings);
-  }
+      await supabase
+        .from("trainings")
+        .insert(duplicatedTrainings);
+    }
 
-  // 4️⃣ Rafraîchir localement la liste des programmes
-  await fetchProgramsWithTrainings();
-};
+    await fetchProgramsWithTrainings();
+  };
 
   const moveTrainingToAnotherProgram = async (
     trainingId: string,
@@ -515,12 +436,6 @@ export default function usePrograms() {
     const targetProgram = programs.find(p => p.id === targetProgramId);
     const wasEmpty = (targetProgram?.trainings.filter((t: Training) => t.id !== trainingId).length ?? 0) === 0;
     const isLastProgram = programs[programs.length - 1]?.id === targetProgramId;
-
-    console.log("🧪 PROGRAMME CIBLE :", targetProgram);
-    console.log("🔍 Était vide :", wasEmpty);
-    console.log("🔍 Était dernier :", isLastProgram);
-
-    // 👉 Récupération du training déplacé
     const { data: training, error: fetchError } = await supabase
       .from("trainings")
       .select("*")
@@ -528,17 +443,12 @@ export default function usePrograms() {
       .single();
 
     if (fetchError || !training) {
-      console.error("Erreur récupération training", fetchError);
       return;
     }
-
-    // 👉 Mise à jour program_id et position en BDD
     await supabase
       .from("trainings")
       .update({ program_id: targetProgramId, position: newPosition })
       .eq("id", trainingId);
-
-    // 👉 Mise à jour locale immédiate
     const updatedPrograms = programs.map((program) => {
       if (program.id === sourceProgramId) {
         return {
@@ -559,31 +469,19 @@ export default function usePrograms() {
       }
       return program;
     });
-
-    console.log("[DEBUG] ✅ updatedPrograms après insertion locale =", updatedPrograms);
-
-    // 👉 Calcul des nouvelles positions à sauvegarder en BDD
     const newIds = updatedPrograms
       .find(p => p.id === targetProgramId)?.trainings.map((t: Training) => t.id) ?? [];
 
     const updates = newIds.map((id: string, index: number) => ({ id, position: index }));
-
-    console.log("[DEBUG] ✅ updates à envoyer en BDD =", updates);
     for (const update of updates) {
       await supabase.from("trainings").update({ position: update.position }).eq("id", update.id);
     }
-
-    // ✅ Nettoyage des programmes vides (en mémoire)
     const cleaned = updatedPrograms.filter((p, index, arr) => {
       const isEmpty = p.trainings.length === 0;
       const isLast = index === arr.length - 1;
       return !isEmpty || isLast;
     });
-
-    console.log("[DEBUG] ✅ cleaned prêt à afficher =", cleaned);
     setPrograms(cleaned);
-
-    // ✅ Supprime physiquement en BDD les programmes vides intermédiaires
     const toDelete = updatedPrograms.filter((p, index, arr) => {
       const isEmpty = p.trainings.length === 0;
       const isLast = index === arr.length - 1;
@@ -592,12 +490,8 @@ export default function usePrograms() {
 
     if (toDelete.length > 0) {
       await supabase.from("programs").delete().in("id", toDelete.map(p => p.id));
-      console.log("🗑️ Programmes supprimés :", toDelete.map(p => p.id));
     }
-
-    // ✅ Ajoute un programme vide automatique si besoin
     if (wasEmpty && isLastProgram) {
-      console.log("🧪 AJOUT D'UN PROGRAMME vide car wasEmpty && isLastProgram sont vrais");
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       if (!userId) return;
@@ -609,31 +503,21 @@ export default function usePrograms() {
         .single();
 
       if (error) {
-        console.error("❌ Erreur lors de la création du programme vide :", error);
         return;
       }
 
       setPrograms(prev =>
         prev.concat({ ...newProgram, trainings: [] })
       );
-
-      console.log("✅ Nouveau programme vide ajouté automatiquement :", newProgram.id);
     }
-
-    // ✅ Réordonne localement uniquement (pas de refetch)
     reorderTrainingsLocally(targetProgramId, newIds);
-
-    // ✅ Important : plus d'appel inutile à handleReorderTrainings qui causait le va-et-vient visuel
-    // await handleReorderTrainings(targetProgramId, newIds);
-
-    console.log("✅ Sauvegarde terminée pour", targetProgramId, newIds);
   };
 
   const handleUpdateTrainingVisibility = async (
     trainingId: string,
     updates: Partial<{ app: boolean; dashboard: boolean }>
   ) => {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("trainings")
       .update(updates)
       .eq("id", trainingId)
@@ -641,7 +525,6 @@ export default function usePrograms() {
       .single();
 
     if (error) {
-      console.error("Erreur lors de la mise à jour de la visibilité :", error);
       return;
     }
 
@@ -678,12 +561,12 @@ export default function usePrograms() {
     toProgramId: string,
     position: number
   ) => {
-    setPrograms((prev: Program[]) => {
+    setPrograms((prev: ProgramWithTrainings[]) => {
       const alreadyInTarget = prev
-        .find((p: Program) => p.id === toProgramId)
+        .find((p: ProgramWithTrainings) => p.id === toProgramId)
         ?.trainings.some((t: Training) => t.id === training.id);
 
-      return prev.map((program: Program): Program => {
+      return prev.map((program: ProgramWithTrainings): ProgramWithTrainings => {
         if (program.id === fromProgramId) {
           return {
             ...program,
@@ -710,8 +593,7 @@ export default function usePrograms() {
     });
   };
 
-  const updateAllProgramPositionsInSupabase = async (programList: Program[]) => {
-    // Met à jour en BDD toutes les positions d'un coup
+  const updateAllProgramPositionsInSupabase = async (programList: ProgramWithTrainings[]) => {
     await Promise.all(
       programList.map((p, idx) =>
         supabase
@@ -724,31 +606,19 @@ export default function usePrograms() {
 
   const moveProgramUp = async (index: number) => {
     if (index <= 0) return;
-
-    // Échange localement
     const updated = [...programs];
     [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
-
-    // Réattribue les positions cohérentes
     const reindexed = updated.map((p, i) => ({ ...p, position: i }));
     setPrograms(reindexed);
-
-    // Sauvegarde en BDD
     await updateAllProgramPositionsInSupabase(reindexed);
   };
 
   const moveProgramDown = async (index: number) => {
     if (index >= programs.length - 1) return;
-
-    // Échange localement
     const updated = [...programs];
     [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
-
-    // Réattribue les positions cohérentes
     const reindexed = updated.map((p, i) => ({ ...p, position: i }));
     setPrograms(reindexed);
-
-    // Sauvegarde en BDD
     await updateAllProgramPositionsInSupabase(reindexed);
   };
 
