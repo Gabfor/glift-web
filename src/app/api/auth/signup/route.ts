@@ -5,20 +5,26 @@ export async function POST(req: NextRequest) {
   const supabase = createClient();
   const body = await req.json();
 
-  const { email, password, name } = body;
+  const { email, password, name, plan } = body;
 
   // 🔒 Vérifie les champs requis
-  if (!email || !password || !name) {
+  if (!email || !password || !name || !plan) {
     return NextResponse.json({ error: "Champs manquants." }, { status: 400 });
   }
 
+  if (plan !== "starter" && plan !== "premium") {
+    return NextResponse.json({ error: "Formule d'abonnement invalide." }, { status: 400 });
+  }
+
   // 📝 Inscription Supabase
-  const { error: signupError } = await supabase.auth.signUp({
+  const { data: signupData, error: signupError } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: {
         name,
+        subscription_plan: plan,
+        is_premium: plan === "premium",
       },
     },
   });
@@ -35,6 +41,25 @@ export async function POST(req: NextRequest) {
 
   if (signinError) {
     return NextResponse.json({ error: signinError.message }, { status: 400 });
+  }
+
+  const userId = signupData?.user?.id;
+
+  if (userId) {
+    const { error: subscriptionError } = await supabase
+      .from("user_subscriptions")
+      .upsert({
+        user_id: userId,
+        plan,
+      }, { onConflict: "user_id" });
+
+    if (subscriptionError) {
+      console.error("Erreur enregistrement abonnement", subscriptionError);
+      return NextResponse.json(
+        { error: "Création de l'abonnement impossible." },
+        { status: 400 }
+      );
+    }
   }
 
   // ✅ Succès : le frontend peut rediriger vers /entrainements

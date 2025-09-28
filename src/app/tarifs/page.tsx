@@ -38,7 +38,7 @@ export default function TarifsPage() {
           {/* Bouton */}
           <div className="mt-10">
           <Link
-            href="/inscription"
+            href="/inscription?plan=starter"
             className="inline-flex items-center justify-center gap-1 h-[44px] w-[243px] border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
           >
             Choisir cet abonnement
@@ -91,7 +91,7 @@ export default function TarifsPage() {
 
   {/* Bouton */}
   <div className="mt-10 flex flex-col items-center">
-    <CTAButton href="/inscription" className="font-semibold">
+    <CTAButton href="/inscription?plan=premium" className="font-semibold">
       <span className="inline-flex items-center gap-1">
         Tester gratuitement
         <div className="relative w-[25px] h-[25px]">

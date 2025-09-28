@@ -10,6 +10,7 @@ interface CustomUser extends User {
     name?: string;
     is_admin?: boolean;
     is_premium?: boolean;
+    subscription_plan?: string;
     [key: string]: unknown;
   };
 }
@@ -47,7 +48,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           .eq("user_id", customUser.id)
           .single();
 
-        setIsPremiumUser(data?.plan === "premium");
+        const planFromSubscription = data?.plan;
+        const planFromMetadata = customUser.user_metadata?.subscription_plan;
+        const metadataPremiumFlag = Boolean(customUser.user_metadata?.is_premium);
+
+        setIsPremiumUser(
+          planFromSubscription === "premium" ||
+            planFromMetadata === "premium" ||
+            metadataPremiumFlag
+        );
       } else {
         setUser(null);
         setIsPremiumUser(false);
