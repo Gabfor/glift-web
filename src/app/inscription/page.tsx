@@ -42,20 +42,17 @@ const StepIndicator = ({
   currentStep: number;
 }) => {
   return (
-    <div className="mt-6 flex items-center justify-center gap-2">
+    <div className="mt-6 flex items-center justify-center gap-3">
       {Array.from({ length: totalSteps }).map((_, index) => {
         const step = index + 1;
         const isActive = step === currentStep;
-        const isCompleted = step < currentStep;
         return (
           <span
             key={step}
             aria-hidden
             className={clsx(
-              "h-2.5 w-2.5 rounded-full transition-colors duration-200",
-              isActive && "bg-[#7069FA]",
-              !isActive && !isCompleted && "bg-[#D7D4DC]",
-              isCompleted && "bg-[#00D591]"
+              "h-[9px] w-[9px] rounded-full transition-colors duration-200",
+              isActive ? "bg-[#A1A5FD]" : "bg-[#ECE9F1]"
             )}
           />
         );
@@ -63,13 +60,6 @@ const StepIndicator = ({
     </div>
   );
 };
-
-const PlanBadge = ({ plan }: { plan: PlanType }) => (
-  <div className="mb-6 inline-flex items-center gap-2 rounded-full bg-white/70 px-5 py-2 text-[14px] font-semibold text-[#3A416F] shadow-md">
-    <Image src="/icons/check.svg" alt="Icône validation" width={18} height={18} />
-    <span>{plan === "premium" ? "Formule Premium" : "Formule Starter"}</span>
-  </div>
-);
 
 const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
   const supabase = createClientComponentClient();
@@ -177,8 +167,8 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center w-full">
-      <div className="w-full max-w-[368px]">
+    <form onSubmit={handleSubmit} className="flex w-full max-w-[368px] flex-col items-stretch">
+      <div className="w-full">
         <label htmlFor="prenom" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
           Prénom
         </label>
@@ -208,7 +198,7 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
         </div>
       </div>
 
-      <div className="w-full max-w-[368px]">
+      <div className="w-full">
         <label htmlFor="email" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
           Adresse e-mail
         </label>
@@ -240,7 +230,7 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
         </div>
       </div>
 
-      <div className="w-full max-w-[368px] mb-[10px]">
+      <div className="w-full mb-[10px]">
         <label htmlFor="password" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
           Mot de passe
         </label>
@@ -298,7 +288,7 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
         </div>
       </div>
 
-      <div className="max-w-[368px] mb-[20px] w-full">
+      <div className="mb-[20px] w-full">
         <label className="flex items-start gap-3 cursor-pointer select-none text-[14px] font-semibold text-[#5D6494]">
           <div className="relative w-[15px] h-[15px] shrink-0">
             <input
@@ -347,11 +337,11 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
             height={20}
             className={`w-[20px] h-[20px] transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
           />
-          {loading ? "Création..." : "Créer mon compte"}
+          {loading ? "En cours..." : "Créer mon compte"}
         </button>
       </div>
 
-      <p className="mt-[20px] text-sm font-semibold text-[#5D6494] text-center">
+      <p className="mt-[20px] text-sm font-semibold text-[#5D6494] text-center self-center">
         Déjà inscrit ?{" "}
         <Link href="/connexion" className="text-[#7069FA] hover:text-[#6660E4]">
           Connectez-vous
@@ -826,12 +816,11 @@ const InscriptionPage = () => {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[60px]">
-      <div className="w-full max-w-3xl flex flex-col items-center text-center">
-        <PlanBadge plan={plan} />
+      <div className="w-full max-w-3xl flex flex-col items-center">
         {activeStep && (
           <>
-            <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271]">{activeStep.title}</h1>
-            <p className="mt-2 text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
+            <h1 className="text-center text-[26px] sm:text-[30px] font-bold text-[#2E3271]">{activeStep.title}</h1>
+            <p className="mt-2 text-center text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
               {activeStep.subtitle}
             </p>
           </>

@@ -236,7 +236,9 @@ export default function Header() {
               >
                 Connexion
               </Link>
-              <CTAButton href="/tarifs">Inscription</CTAButton>
+              <CTAButton href="/tarifs" disableAutoLoading>
+                Inscription
+              </CTAButton>
             </div>
           )}
 
