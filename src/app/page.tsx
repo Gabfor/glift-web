@@ -27,13 +27,14 @@ export default function HeroConcept() {
         <div className="flex justify-center gap-4 mb-4 flex-wrap">
           <Link
             href="/inscription"
-            className="bg-[#2E3271] hover:bg-[#1f224e] text-white text-[16px] font-semibold px-5 h-[44px] rounded-full flex items-center justify-center gap-2 transition"
+            className="bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-5 h-[44px] rounded-full flex items-center justify-center gap-2 transition"
           >
             Tester gratuitement
             <Image
               src="/icons/arrow.svg"
               className="ml-[-5px]"
               alt="Flèche"
+              priority={false}
               width={25}
               height={25}
             />
@@ -60,6 +61,7 @@ export default function HeroConcept() {
     <Image
       src="/images/mockups-app-site.png"
       alt="Appareils"
+      priority={false}
       width={800}
       height={400}
       className="w-full max-w-[700px]"
@@ -75,6 +77,7 @@ export default function HeroConcept() {
     <Image
     src="/images/arrow-left.png"
     alt="Flèche"
+    priority={false}
     width={114}
     height={114}
     className="ml-[60px] mt-[-35px]"
@@ -91,6 +94,7 @@ export default function HeroConcept() {
     <Image
     src="/images/arrow-right.png"
     alt="Flèche"
+    priority={false}
     width={114}
     height={114}
     className="ml-[-5px] mt-[-37px]"
@@ -127,10 +131,25 @@ export default function HeroConcept() {
 
           <Link
             href="/inscription"
-            className="w-[214px] h-[44px] bg-[#2E3271] hover:bg-[#1f224e] text-white font-semibold rounded-full flex items-center justify-center gap-2 transition"
+            className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
-            <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
+            <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
           </Link>
         </div>
         </AnimatedSection>
@@ -177,12 +196,27 @@ export default function HeroConcept() {
     </p>
 
     <Link
-      href="/inscription"
-      className="w-[214px] h-[44px] bg-[#2E3271] hover:bg-[#1f224e] text-white font-semibold rounded-full flex items-center justify-center gap-2 transition"
-    >
-      Tester gratuitement
-      <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
-    </Link>
+            href="/inscription"
+            className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+          >
+            Tester gratuitement
+            <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
+          </Link>
   </div>
   </AnimatedSection>
       </section>
@@ -205,10 +239,25 @@ export default function HeroConcept() {
 
           <Link
             href="/inscription"
-            className="w-[214px] h-[44px] bg-[#2E3271] hover:bg-[#1f224e] text-white font-semibold rounded-full flex items-center justify-center gap-2 transition"
+            className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
-            <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
+            <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
           </Link>
         </div>
         </AnimatedSection>
@@ -255,12 +304,27 @@ export default function HeroConcept() {
     </p>
 
     <Link
-      href="/inscription"
-      className="w-[214px] h-[44px] bg-[#2E3271] hover:bg-[#1f224e] text-white font-semibold rounded-full flex items-center justify-center gap-2 transition"
-    >
-      Tester gratuitement
-      <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
-    </Link>
+            href="/inscription"
+            className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+          >
+            Tester gratuitement
+            <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
+          </Link>
   </div>
   </AnimatedSection>
       </section>
@@ -275,8 +339,7 @@ export default function HeroConcept() {
       </section>
       <section className="bg-[#FBFCFE] max-w-[1152px] mx-auto px-4 pt-[60px] pb-[90px] grid grid-cols-1 md:grid-cols-2 gap-6">
   {/* Glift Store */}
-  <Link href="/store" className="block">
-  <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300 cursor-pointer">
+  <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300">
     <Image src="/images/icon-store.png" alt="Icône Glift Store" width={60} height={60} />
     <div>
       <h3 className="text-[#2E3271] text-[24px] font-bold mb-1">Le Glift Store</h3>
@@ -284,15 +347,28 @@ export default function HeroConcept() {
       Le Glift Store vous permet de télécharger gratuitement des programmes de musculation. En un seul clic, votre programme est immédiatement utilisable dans Glift. Vous pouvez l’utiliser tel quel ou y apporter vos modifications si besoin.
       </p>
     </div>
-    <div className="bg-[#2E3271] hover:bg-[#1f224e] text-white text-[16px] font-semibold px-5 h-[44px] w-[247px] rounded-full flex items-center justify-center gap-2 transition">
+    <div className="h-[44px] w-[237px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
       Découvrir le Glift Store
-      <Image src="/icons/arrow.svg" alt="→" width={25} height={25} />
+      <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
     </div>
   </div>
-</Link>
   {/* Glift Shop */}
-  <Link href="/shop" className="block">
-  <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300 cursor-pointer">
+  <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300">
     <Image src="/images/icon-shop.png" alt="Icône Glift Shop" width={60} height={60} />
     <div>
       <h3 className="text-[#2E3271] text-[24px] font-bold mb-1">La Glift Shop</h3>
@@ -302,12 +378,26 @@ export default function HeroConcept() {
         voyez en priorité ce qui vous intéresse.
       </p>
     </div>
-    <div className="bg-[#2E3271] hover:bg-[#1f224e] text-white text-[16px] font-semibold px-5 h-[44px] w-[245px] rounded-full flex items-center justify-center gap-2 transition">
+    <div className="h-[44px] w-[235px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
       Découvrir la Glift Shop
-      <Image src="/icons/arrow.svg" alt="→" width={25} height={25} />
+      <div className="relative w-[25px] h-[25px]">
+              <Image
+                src="/icons/arrow_blue.svg"
+                alt="Flèche normale"
+                fill
+                className="object-contain transition-opacity  group-hover:opacity-0"
+                priority={false}
+              />
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                fill
+                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                priority={false}
+              />
+            </div>
     </div>
   </div>
-</Link>
 </section>
     </>
   );

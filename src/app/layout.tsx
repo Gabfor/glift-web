@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import Header from "@/components/Header";
 import { Quicksand } from "next/font/google";
-import Footer from "@/components/Footer";
+import ClientLayout from "@/components/ClientLayout";
+import { UnlockScroll } from "@/components/UnlockScroll";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -13,6 +13,11 @@ const quicksand = Quicksand({
 export const metadata: Metadata = {
   title: "Glift",
   description: "Plateforme Glift",
+  manifest: "/manifest.webmanifest",
+  icons: {
+    icon: "/favicons/front/favicon-32x32.png",
+    apple: "/favicons/front/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -22,10 +27,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
+      <head />
       <body className={quicksand.className}>
-          <Header />
-          {children}
-          <Footer />
+        <UnlockScroll />
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );
