@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { CookieOptions } from "@supabase/ssr";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,7 +18,15 @@ export async function GET() {
       getAll() {
         return jar.getAll();
       },
-      setAll(_list) {},
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          jar.set({
+            name,
+            value,
+            ...(options as CookieOptions | undefined),
+          });
+        });
+      },
     },
   });
 
@@ -31,6 +40,8 @@ export async function GET() {
 
   return NextResponse.json(
     {
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
       session: {
         access_token: session.access_token,
         refresh_token: session.refresh_token,
