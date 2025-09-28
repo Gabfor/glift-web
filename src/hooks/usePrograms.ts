@@ -244,7 +244,7 @@ export default function usePrograms() {
       const newIndex = programs.findIndex(p => !p.id);
       if (newIndex !== -1) {
         const submitted = await handleSubmit(newIndex);
-        targetId = submitted?.id;
+        targetId = submitted?.id ?? null;
       }
     }
 
@@ -341,6 +341,8 @@ export default function usePrograms() {
   };
 
   const handleDeleteProgram = async (programId: string) => {
+    const removedProgramPosition = programs.find(p => p.id === programId)?.position ?? null;
+
     await supabase.from("trainings").delete().eq("program_id", programId);
     await supabase.from("programs").delete().eq("id", programId);
     const { data: refreshed, error } = await supabase
@@ -367,11 +369,15 @@ export default function usePrograms() {
     setPrograms(prev =>
       prev
         .filter(p => p.id !== programId)
-        .map(p =>
-          p.position > cleaned.find(cp => cp.id === programId)?.position
+        .map(p => {
+          if (removedProgramPosition === null || typeof p.position !== "number") {
+            return p;
+          }
+
+          return p.position > removedProgramPosition
             ? { ...p, position: p.position - 1 }
-            : p
-        )
+            : p;
+        })
     );
     await fetchProgramsWithTrainings();
   };
