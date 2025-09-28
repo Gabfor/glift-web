@@ -16,7 +16,6 @@ export default function ConnexionPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
   const [errorCode, setErrorCode] = useState<null | "invalid_credentials" | "generic">(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,7 +92,6 @@ export default function ConnexionPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
-    setError("");
     setErrorCode(null);
     setSubmitting(true);
 
@@ -117,10 +115,8 @@ export default function ConnexionPage() {
       });
       if (error) {
         if (error.message === "Invalid login credentials") {
-          setError("Email ou mot de passe incorrect.");
           setErrorCode("invalid_credentials");
         } else {
-          setError("Une erreur est survenue.");
           setErrorCode("generic");
         }
         setSubmitting(false);
@@ -157,7 +153,6 @@ export default function ConnexionPage() {
 
       window.location.href = nextTarget;
     } catch {
-      setError("Une erreur est survenue.");
       setErrorCode("generic");
       setSubmitting(false);
     }
@@ -324,16 +319,20 @@ export default function ConnexionPage() {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   className="peer sr-only"
                 />
-                <img
+                <Image
                   src="/icons/checkbox_unchecked.svg"
                   alt=""
                   aria-hidden="true"
+                  width={15}
+                  height={15}
                   className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
                 />
-                <img
+                <Image
                   src="/icons/checkbox_checked.svg"
                   alt=""
                   aria-hidden="true"
+                  width={15}
+                  height={15}
                   className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
                 />
               </div>

@@ -20,7 +20,6 @@ import {
   DragOverEvent,
 } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
-import SortableItem from "@/components/TrainingList/SortableItem";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 
 export default function EntrainementsPage() {
@@ -71,12 +70,12 @@ export default function EntrainementsPage() {
   useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
-      if (event.data === 'refresh-all-programs') {
+      if (event.data === "refresh-all-programs") {
         fetchProgramsWithTrainings();
       }
     };
     return () => channel.close();
-  }, []);
+  }, [fetchProgramsWithTrainings]);
 
   const programsToRender = (programsDuringDrag ?? programs).filter((p, i) => {
     const isEmpty = p.trainings.length === 0;
