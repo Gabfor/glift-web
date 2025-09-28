@@ -8,6 +8,7 @@ import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
 import DroppableProgram from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/TrainingList/DragPreviewItem";
+import { createScopedLogger } from "@/utils/logger";
 
 import {
   DndContext,
@@ -23,6 +24,7 @@ import { DragOverlay } from "@dnd-kit/core";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 
 export default function EntrainementsPage() {
+  const logger = createScopedLogger("EntrainementsPage");
   const {
     programs,
     fetchProgramsWithTrainings,
@@ -62,20 +64,22 @@ export default function EntrainementsPage() {
   useEffect(() => {
     const id = localStorage.getItem("newly_downloaded_program_id");
     if (id) {
+      logger.debug("Hydrating newly downloaded program", { id });
       setNewlyDownloadedId(id);
       localStorage.removeItem("newly_downloaded_program_id");
     }
-  }, []);
+  }, [logger]);
 
   useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
       if (event.data === "refresh-all-programs") {
+        logger.info("Broadcast refresh-all-programs received → refetching programs");
         fetchProgramsWithTrainings();
       }
     };
     return () => channel.close();
-  }, [fetchProgramsWithTrainings]);
+  }, [fetchProgramsWithTrainings, logger]);
 
   const programsToRender = (programsDuringDrag ?? programs).filter((p, i) => {
     const isEmpty = p.trainings.length === 0;
