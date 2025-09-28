@@ -29,16 +29,17 @@ export default function ToggleField({
   return (
     <div className="w-[368px] flex flex-col text-left">
       <label className="text-[16px] font-bold text-[#3A416F] mb-[6px]">{label}</label>
-      <div role="radiogroup" className={`flex h-[45px] relative ${className}`}>
-        {options.map((option, index) => {
-          const isFirst = index === 0
-          const isLast = index === options.length - 1
+      <div
+        role="radiogroup"
+        className={`flex flex-wrap gap-[10px] relative ${className}`}
+      >
+        {options.map((option) => {
           const selected = value === option
           const hasSuccess = selected && !!success
 
           const baseBorder = hasSuccess
-            ? 'border-[#00D591]'
-            : 'border-[#D7D4DC] hover:border-[#C2BFC6]'
+            ? 'border-[#00D591] shadow-[0px_4px_12px_rgba(0,213,145,0.25)]'
+            : 'border-[#D7D4DC] hover:border-[#B3AFC0]'
 
           return (
             <button
@@ -51,12 +52,11 @@ export default function ToggleField({
                 setTouched()
               }}
               className={`
-                w-full h-full text-[16px] font-semibold border bg-white transition-all duration-150
-                ${index > 0 ? '-ml-px' : ''}
-                ${isFirst ? 'rounded-l-[5px]' : ''} ${isLast ? 'rounded-r-[5px]' : ''}
-                ${selected ? 'text-[#3A416F]' : 'text-[#D7D4DC]'}
+                min-w-[56px] h-[45px] px-[18px] text-[16px] font-semibold border transition-all duration-150
+                rounded-[8px]
+                ${selected ? 'bg-[#3A416F] text-white shadow-[0px_4px_12px_rgba(58,65,111,0.2)] border-[#3A416F]' : 'bg-white text-[#6F6C8F]'}
                 ${baseBorder}
-                relative
+                relative flex items-center justify-center
                 ${hasSuccess ? 'z-10' : 'hover:z-20 z-0'}
               `}
             >
