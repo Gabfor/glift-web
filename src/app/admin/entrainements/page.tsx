@@ -17,7 +17,7 @@ import {
   DragEndEvent,
 } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
-import DragPreviewItem from "@/components/TrainingList/DragPreviewItem";
+import DragPreviewItem from "@/components/training/DragPreviewItem";
 
 export default function AdminSingleProgramPage() {
   const [program, setProgram] = useState<Program | null>(null);

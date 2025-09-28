@@ -3,7 +3,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
-import VisibilityPanel from '@/components/TrainingList/VisibilityPanel'
+import VisibilityPanel from '@/components/training/VisibilityPanel'
 import TrainingCardMenu from '@/components/TrainingCardMenu'
 import type * as React from 'react'
 import { useState } from 'react'
