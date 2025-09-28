@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
-import { useRouter } from "next/navigation";
 
 const sliderTypeOptions = [
   { value: "none", label: "Aucun slider" },
@@ -26,7 +25,6 @@ const sliderDoubleOptions = [
 
 export default function AdminSliderPage() {
   const supabase = createClient();
-  const router = useRouter();
 
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState("none");
@@ -35,9 +33,27 @@ export default function AdminSliderPage() {
     Array.from({ length: 6 }, () => ({ image: "", alt: "", link: "" }))
   );
 
+  const fetchSliderConfig = useCallback(async () => {
+    const { data } = await supabase.from("sliders_admin").select("*").single();
+    if (data) {
+      setType(data.type || "none");
+      setCount(String(data.slide_count || data.slides?.length || "1"));
+      setSlides(
+        [...(data.slides || []), {}, {}, {}, {}, {}, {}]
+          .slice(0, 6)
+          .map((slide) => ({
+            image: slide.image || "",
+            alt: slide.alt || "",
+            link: slide.link || "",
+          }))
+      );
+    }
+    setLoading(false);
+  }, [supabase]);
+
   useEffect(() => {
-    fetchSliderConfig();
-  }, []);
+    void fetchSliderConfig();
+  }, [fetchSliderConfig]);
 
   useEffect(() => {
     if (!loading) {
@@ -52,42 +68,24 @@ export default function AdminSliderPage() {
         setCount(type === "double" ? "2" : "1");
       }
     }
-  }, [type, loading]);
-
-  const fetchSliderConfig = async () => {
-    const { data } = await supabase.from("sliders_admin").select("*").single();
-    if (data) {
-      setType(data.type || "none");
-      setCount(String(data.slide_count || data.slides?.length || "1"));
-      setSlides(
-        [...(data.slides || []), {}, {}, {}, {}, {}, {}]
-          .slice(0, 6)
-          .map((s) => ({
-            image: s.image || "",
-            alt: s.alt || "",
-            link: s.link || "",
-          }))
-      );
-    }
-    setLoading(false);
-  };
+  }, [type, loading, count]);
 
   const handleSave = async () => {
     setLoading(true);
 
-  const trimmedSlides = slides.slice(0, Number(count)).map((s) => ({
-    image: s.image || "",
-    alt: s.alt || "",
-    link: s.link || "",
-  }));
+    const trimmedSlides = slides.slice(0, Number(count)).map((slide) => ({
+      image: slide.image || "",
+      alt: slide.alt || "",
+      link: slide.link || "",
+    }));
 
-  const payload = {
-    type,
-    slide_count: Number(count),
-    slides: trimmedSlides,
-  };
+    const payload = {
+      type,
+      slide_count: Number(count),
+      slides: trimmedSlides,
+    };
 
-  console.log("Payload envoyé à Supabase :", payload);
+    console.log("Payload envoyé à Supabase :", payload);
 
     const { data: existing, error } = await supabase
       .from("sliders_admin")

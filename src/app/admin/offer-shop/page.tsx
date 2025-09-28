@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
@@ -38,7 +38,7 @@ export default function OfferShopPage() {
     setShowActionsBar(selectedIds.length > 0);
   }, [selectedIds]);
 
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase
       .from("offer_shop")
@@ -51,11 +51,11 @@ export default function OfferShopPage() {
     setSelectedIds([]);
     setShowActionsBar(false);
     setLoading(false);
-  };
+  }, [sortBy, sortDirection, supabase]);
 
   useEffect(() => {
     fetchOffers();
-  }, [sortBy, sortDirection]);
+  }, [fetchOffers]);
 
   const handleSort = (column: string) => {
     setSortBy(prev => (prev === column ? column : column));

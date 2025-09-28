@@ -192,7 +192,12 @@ export default function ShopFilters({ sortBy, onSortChange, onFiltersChange, typ
     const fetchFilterOptions = async () => {
       const supabase = createClient();
 
-      const fields = ["gender", "shop"];
+      type OfferShopField = {
+        gender?: string | string[] | null;
+        shop?: string | string[] | null;
+      };
+
+      const fields: Array<keyof OfferShopField> = ["gender", "shop"];
       const setters = [setGenderOptions, setPartnerOptions];
 
       for (let i = 0; i < fields.length; i++) {
@@ -209,18 +214,20 @@ export default function ShopFilters({ sortBy, onSortChange, onFiltersChange, typ
           console.error(`Erreur fetch ${field}:`, error.message);
           setter([]);
         } else {
-          const rawValues = (data || []).flatMap((item: any) => {
-            const val = item[field];
-            if (!val) return [];
-            if (typeof val === "string") {
+          const rawValues = (data ?? []).flatMap((item: OfferShopField) => {
+            const value = item[field];
+            if (!value) return [];
+
+            if (typeof value === "string") {
               try {
-                const parsed = JSON.parse(val);
-                return Array.isArray(parsed) ? parsed : [val];
+                const parsed = JSON.parse(value);
+                return Array.isArray(parsed) ? parsed : [value];
               } catch {
-                return [val];
+                return [value];
               }
             }
-            return Array.isArray(val) ? val : [val];
+
+            return Array.isArray(value) ? value : [];
           });
 
           const uniqueValues = Array.from(new Set(rawValues))

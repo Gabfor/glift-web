@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 type Props = {
   columns: {
     name: string;
@@ -21,9 +23,11 @@ export default function ColumnMenu({ columns, onToggle }: Props) {
           onClick={() => onToggle(col.name)}
           className="flex items-center gap-2 py-[6px] cursor-pointer w-full text-left"
         >
-          <img
+          <Image
             src={`/icons/${col.visible ? "checkbox_checked.svg" : "checkbox_unchecked.svg"}`}
             alt={col.visible ? "Coché" : "Non coché"}
+            width={16}
+            height={16}
             className="w-4 h-4"
           />
           <span className="font-semibold">Colonne {col.label}</span>

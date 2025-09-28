@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,7 +63,8 @@ export default function InscriptionPage() {
       } else {
         setError(result.error || "Une erreur est survenue.");
       }
-    } catch (err) {
+    } catch (error: unknown) {
+      console.error(error);
       setError("Une erreur réseau est survenue.");
     }
   };
@@ -81,7 +83,7 @@ export default function InscriptionPage() {
     return (
       <div className="flex justify-between items-center">
         <span className={textColor}>{text}</span>
-        <img src={iconSrc} alt="État" className="w-[16px] h-[16px]" />
+        <Image src={iconSrc} alt="État" width={16} height={16} className="w-[16px] h-[16px]" />
       </div>
     );
   };
@@ -188,9 +190,11 @@ export default function InscriptionPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2"
               >
-                <img
+                <Image
                   src={showPassword ? "/icons/masque_defaut.svg" : "/icons/visible_defaut.svg"}
                   alt="Afficher/Masquer"
+                  width={25}
+                  height={25}
                   className="w-[25px] h-[25px]"
                 />
               </button>
@@ -263,9 +267,11 @@ export default function InscriptionPage() {
                   : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
               }`}
             >
-              <img
+              <Image
                 src="/icons/cadena_defaut.svg"
                 alt="Icône cadenas"
+                width={20}
+                height={20}
                 className={`w-[20px] h-[20px] transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
               />
               Créer mon compte

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import React from "react";
 import { Row } from "@/types/training";
 import { getEffortBgColor } from "@/utils/effortColors";
@@ -7,7 +8,6 @@ import { getEffortTextColor } from "@/utils/effortColors";
 
 type Props = {
   row: Row;
-  index: number;
   columns: {
     name: string;
     label: string;
@@ -15,7 +15,7 @@ type Props = {
   }[];
 };
 
-export default function TrainingRowOverlay({ row, index, columns }: Props) {
+export default function TrainingRowOverlay({ row, columns }: Props) {
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
 
   return (
@@ -34,15 +34,19 @@ export default function TrainingRowOverlay({ row, index, columns }: Props) {
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
         <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
-          <img
+          <Image
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
             alt="Icone"
+            width={16}
+            height={16}
             className="w-4 h-4 mr-2 cursor-grabbing select-none"
             style={{ display: "block" }}
           />
-          <img
+          <Image
             src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
             alt={row.checked ? "Coché" : "Non coché"}
+            width={16}
+            height={16}
             className="w-4 h-4 mr-3"
             style={{ display: "block" }}
           />
@@ -84,10 +88,10 @@ export default function TrainingRowOverlay({ row, index, columns }: Props) {
           <span className="w-9 h-8 text-left px-2 py-1 font-semibold text-[#5D6494]" style={{ lineHeight: "1.5", display: "flex", alignItems: "center", justifyContent: "center" }}>{row.series}</span>
           <div className="flex flex-col items-center justify-between">
             <div className="w-5 h-3 flex items-center justify-center mb-1">
-              <img src="/icons/chevron_training_up.svg" alt="Up" />
+              <Image src="/icons/chevron_training_up.svg" alt="Up" width={20} height={12} />
             </div>
             <div className="w-5 h-3 flex items-center justify-center">
-              <img src="/icons/chevron_training_down.svg" alt="Down" />
+              <Image src="/icons/chevron_training_down.svg" alt="Down" width={20} height={12} />
             </div>
           </div>
         </div>
@@ -182,7 +186,7 @@ export default function TrainingRowOverlay({ row, index, columns }: Props) {
             {Array.from({ length: row.series }).map((_, subIndex) => (
               <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l h-10">
                 <div className="flex justify-center items-center w-full">
-                  <img
+                  <Image
                     src={
                       row.effort[subIndex] === "trop facile"
                         ? "/icons/smiley_easy.svg"
@@ -191,15 +195,17 @@ export default function TrainingRowOverlay({ row, index, columns }: Props) {
                         : "/icons/smiley_perfect.svg"
                     }
                     alt="Effort"
+                    width={24}
+                    height={24}
                     className="w-6 h-6"
                   />
                 </div>
                 <div className="flex flex-col items-center ml-auto">
                   <div className="w-5 h-3 flex items-center justify-center mb-1">
-                    <img src="/icons/chevron_training_up.svg" alt="Up" />
+                    <Image src="/icons/chevron_training_up.svg" alt="Up" width={20} height={12} />
                   </div>
                   <div className="w-5 h-3 flex items-center justify-center">
-                    <img src="/icons/chevron_training_down.svg" alt="Down" />
+                    <Image src="/icons/chevron_training_down.svg" alt="Down" width={20} height={12} />
                   </div>
                 </div>
               </div>

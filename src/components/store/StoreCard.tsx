@@ -45,10 +45,13 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-all duration-300 transform hover:-translate-y-1">
       {/* IMAGE PRINCIPALE */}
-      <img
+      <Image
         src={program.image}
         alt={program.image_alt || program.title}
+        width={540}
+        height={360}
         className="w-full h-[180px] object-cover rounded-t-[5px]"
+        unoptimized
       />
 
       {/* IMAGE PARTENAIRE ENTRE IMAGE ET TITRE */}
@@ -60,20 +63,26 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)]">
-                <img
+              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+                <Image
                   src={program.partner_image}
                   alt={program.partner_image_alt || "Partenaire"}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="100%"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             </a>
           ) : (
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)]">
-              <img
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+              <Image
                 src={program.partner_image}
                 alt={program.partner_image_alt || "Partenaire"}
-                className="w-full h-full object-cover"
+                fill
+                sizes="100%"
+                className="object-cover"
+                unoptimized
               />
             </div>
           )}

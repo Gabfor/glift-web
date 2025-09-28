@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
-import { useRef } from "react";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -88,46 +87,49 @@ export default function CreateOfferPage() {
     condition: "",
   });
 
+  const fetchOffer = useCallback(
+    async (id: string) => {
+      const { data, error } = await supabase
+        .from("offer_shop")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+      if (error) {
+        console.error(error);
+      } else if (data) {
+        setOffer({
+          ...data,
+          premium: data.premium ?? false,
+        });
+      }
+      setLoading(false);
+    },
+    [supabase]
+  );
+
   useEffect(() => {
     const id = searchParams?.get("id");
     if (id) {
       setOfferId(id);
-      fetchOffer(id);
-    } else {
-      setLoading(false);
+      void fetchOffer(id);
+      return;
     }
-  }, [searchParams]);
 
-  const fetchOffer = async (id: string) => {
-    const { data, error } = await supabase
-      .from("offer_shop")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error) {
-      console.error(error);
-    } else if (data) {
-      setOffer({
-        ...data,
-        premium: data.premium ?? false,
-      });
-    }
     setLoading(false);
-  };
+  }, [fetchOffer, searchParams]);
 
   const handleSave = async () => {
     setLoading(true);
 
-  const offerToSave = {
-    ...offer,
-    shipping: offer.shipping.replace(",", "."),
-  };
+    const offerToSave = {
+      ...offer,
+      shipping: offer.shipping.replace(",", "."),
+    };
 
-  // Supprimer end_date si vide
-  if (!offer.end_date || !offer.end_date.includes("-")) {
-    delete offerToSave.end_date;
-  }
+    if (!offer.end_date || !offer.end_date.includes("-")) {
+      delete offerToSave.end_date;
+    }
 
     if (offerId) {
       const { error } = await supabase

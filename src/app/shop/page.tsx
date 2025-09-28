@@ -35,7 +35,7 @@ export default function ShopPage() {
       const allTypes: string[] = [];
 
       data.forEach((item) => {
-        let raw = item.type;
+        const raw = item.type;
 
         try {
           let parsed: string[] = [];

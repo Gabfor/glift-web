@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import type { User } from "@supabase/supabase-js";
 import { Row } from "@/types/training";
 import { usePathname } from "next/navigation";
 
-export function useTrainingRows(trainingId: string, user: any) {
+export function useTrainingRows(trainingId: string, user: User | null) {
   const supabase = useSupabaseClient();
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -228,7 +229,10 @@ export function useTrainingRows(trainingId: string, user: any) {
     if (!user || !user.id || !trainingId || rows.length === 0) return;
     if (isSyncingRef.current) return;
 
-    const cleanRows = rows.map(({ iconHovered, ...row }) => row);
+    const cleanRows = rows.map(({ iconHovered, ...row }) => {
+      void iconHovered;
+      return row;
+    });
     const currentSnapshot = JSON.stringify(cleanRows);
 
     if (!hasMountedRef.current) {

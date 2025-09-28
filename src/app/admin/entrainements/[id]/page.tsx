@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
-import { Row } from "@/types/training";
 import EditableTitle from "@/components/EditableTitle";
 import TrainingTable from "@/components/TrainingTable";
 import TableActionsBar from "@/components/TableActionsBar";
@@ -30,8 +30,8 @@ export default function AdminEntrainementDetailPage() {
 
   // ✅ States
   const [editing, setEditing] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [hoveredSuperset, setHoveredSuperset] = useState(false);
+  const [, setIsEditing] = useState(false);
+  const [, setHoveredSuperset] = useState(false);
 
   // ✅ Training data
   const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user);
@@ -51,9 +51,6 @@ export default function AdminEntrainementDetailPage() {
   const [icon, setIcon] = useState("/icons/plus.svg");
   const [iconSrc, setIconSrc] = useState("/icons/colonne.svg");
   const [dragActive, setDragActive] = useState(false);
-  const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
-  const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
-
   useEffect(() => {
     if (searchParams?.get("new") === "1") {
       setEditing(true);
@@ -69,7 +66,7 @@ export default function AdminEntrainementDetailPage() {
   };
 
   const handleAddRow = () => {
-    setRows(prev => [
+    setRows((prev) => [
       ...prev,
       {
         id: undefined,
@@ -85,7 +82,7 @@ export default function AdminEntrainementDetailPage() {
         superset_id: null,
         link: "",
         note: "",
-      }
+      },
     ]);
   };
 
@@ -121,8 +118,14 @@ export default function AdminEntrainementDetailPage() {
               }
             }}
         >
-          <img src="/icons/chevron_left.svg" alt="Retour" className="h-3 w-2 mr-2 group-hover:hidden" />
-          <img src="/icons/chevron_left_hover.svg" alt="Retour (hover)" className="h-3 w-2 mr-2 hidden group-hover:inline" />
+          <Image src="/icons/chevron_left.svg" alt="Retour" width={12} height={12} className="h-3 w-2 mr-2 group-hover:hidden" />
+          <Image
+            src="/icons/chevron_left_hover.svg"
+            alt="Retour (hover)"
+            width={12}
+            height={12}
+            className="h-3 w-2 mr-2 hidden group-hover:inline"
+          />
           Entraînements
         </div>
 
@@ -174,7 +177,6 @@ export default function AdminEntrainementDetailPage() {
             <TrainingTable
               rows={rows}
               setRows={setRows}
-              selectedRowIds={selectedRowIds}
               handleEffortChange={handleEffortChange}
               handleCheckboxChange={handleCheckboxChange}
               handleIncrementSeries={handleIncrementSeries}
@@ -191,7 +193,7 @@ export default function AdminEntrainementDetailPage() {
         <AddRowButton icon={icon} setIcon={setIcon} onClick={handleAddRow} />
 
         {showLinkModal && selectedLinkRowIndex !== null && (
-          <LinkModal
+            <LinkModal
             exercice={rows[selectedLinkRowIndex].exercice}
             initialLink={rows[selectedLinkRowIndex].link || ""}
             onCancel={() => {

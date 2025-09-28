@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
@@ -11,11 +11,14 @@ import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import Tooltip from "@/components/Tooltip";
 import SearchBar from "@/components/SearchBar";
 
-type Program = {
+type ProgramRow = {
   id: string;
   name: string;
   created_at: string;
   vignettes: number;
+};
+
+type Program = ProgramRow & {
   linked: boolean;
 };
 
@@ -23,7 +26,9 @@ export default function AdminProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortBy, setSortBy] = useState<"created_at" | "name" | "linked" | "id">(
+    "created_at"
+  );
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,9 +42,11 @@ export default function AdminProgramPage() {
     setShowActionsBar(selectedIds.length > 0);
   }, [selectedIds]);
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = useCallback(async () => {
     setLoading(true);
-    const { data: rawPrograms, error } = await supabase.rpc("programs_admin_with_count");
+    const { data: rawPrograms, error } = await supabase.rpc<ProgramRow>(
+      "programs_admin_with_count"
+    );
     if (error) {
       console.error("Erreur Supabase (programs):", error);
       setLoading(false);
@@ -57,47 +64,44 @@ export default function AdminProgramPage() {
     }
 
     const linkedIds = new Set(linkedRows?.map((row) => row.linked_program_id));
-    const withLinked = rawPrograms.map((p: any) => ({
-      ...p,
-      linked: linkedIds.has(p.id),
+    const withLinked: Program[] = (rawPrograms ?? []).map((program) => ({
+      ...program,
+      linked: linkedIds.has(program.id),
     }));
 
     const sorted = [...withLinked].sort((a, b) => {
-      const get = (k: string) => a[k] ?? "";
-      const getB = (k: string) => b[k] ?? "";
-
       if (sortBy === "created_at") {
-        return sortDirection === "asc"
-          ? new Date(get("created_at")).getTime() - new Date(getB("created_at")).getTime()
-          : new Date(getB("created_at")).getTime() - new Date(get("created_at")).getTime();
+        const aDate = new Date(a.created_at).getTime();
+        const bDate = new Date(b.created_at).getTime();
+        return sortDirection === "asc" ? aDate - bDate : bDate - aDate;
       }
-      if (sortBy === "name") {
-        return sortDirection === "asc"
-          ? get("name").localeCompare(getB("name"))
-          : getB("name").localeCompare(get("name"));
-      }
+
       if (sortBy === "linked") {
         return sortDirection === "asc"
           ? Number(!a.linked) - Number(!b.linked)
           : Number(!b.linked) - Number(!a.linked);
       }
-      if (sortBy === "id") {
+
+      if (sortBy === "name") {
         return sortDirection === "asc"
-          ? get("id").localeCompare(getB("id"))
-          : getB("id").localeCompare(get("id"));
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
       }
-      return 0;
+
+      return sortDirection === "asc"
+        ? a.id.localeCompare(b.id)
+        : b.id.localeCompare(a.id);
     });
 
     setPrograms(sorted);
     setSelectedIds([]);
     setShowActionsBar(false);
     setLoading(false);
-  };
+  }, [sortBy, sortDirection, supabase]);
 
   useEffect(() => {
-    fetchPrograms();
-  }, [sortBy, sortDirection]);
+    void fetchPrograms();
+  }, [fetchPrograms]);
 
   const handleSort = (column: string) => {
     if (sortBy === column) {

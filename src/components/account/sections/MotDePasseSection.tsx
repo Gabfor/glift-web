@@ -1,7 +1,6 @@
-'use client'
+"use client"
 
-import AccountAccordionSection from '../AccountAccordionSection'
-import MesInformationsForm from '@/components/account/MesInformationsForm'
+import AccountAccordionSection from "../AccountAccordionSection"
 
 export default function MotDePasseSection() {
   return (

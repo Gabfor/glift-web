@@ -2,6 +2,7 @@
 
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Pagination } from "swiper/modules";
+import type { Swiper as SwiperClass } from "swiper";
 import "swiper/css";
 import "swiper/css/pagination";
 import Image from "next/image";
@@ -11,7 +12,7 @@ import { createClient } from "@/lib/supabaseClient";
 export default function ShopBannerSliderClient() {
   const supabase = createClient();
   const paginationRef = useRef<HTMLDivElement | null>(null);
-  const swiperRef = useRef<any>(null);
+  const swiperRef = useRef<SwiperClass | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(true);
   // on gère maintenant "single" comme valeur de type « slider simple »
@@ -32,7 +33,7 @@ export default function ShopBannerSliderClient() {
       }
     };
     fetchSliderConfig();
-  }, []);
+  }, [supabase]);
 
   // si aucun slider ou type "none", on n'affiche rien
   if (type === "none" || slides.length === 0) return null;
@@ -50,8 +51,8 @@ export default function ShopBannerSliderClient() {
 
   const toggleAutoplay = () => {
     if (!swiperRef.current) return;
-    if (isPlaying) swiperRef.current.autoplay.stop();
-    else swiperRef.current.autoplay.start();
+    if (isPlaying) swiperRef.current.autoplay?.stop();
+    else swiperRef.current.autoplay?.start();
     setIsPlaying(!isPlaying);
   };
 

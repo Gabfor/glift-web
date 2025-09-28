@@ -2,6 +2,7 @@
 
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { cn } from '@/lib/utils'
+import Image from 'next/image'
 import { useState } from 'react'
 
 type TrainingCardMenuProps = {
@@ -30,9 +31,9 @@ export default function TrainingCardMenu({
     <DropdownMenu.Root open={open} onOpenChange={handleOpenChange}>
       <DropdownMenu.Trigger asChild>
         <button className="w-full h-full focus:outline-none">
-          <div className="group w-[25px] h-[25px] flex items-center justify-center">
-            <img src="/icons/dots.svg" alt="Menu" className="group-hover:hidden" />
-            <img src="/icons/dots_hover.svg" alt="Menu (hover)" className="hidden group-hover:inline" />
+          <div className="group w-[25px] h-[25px] flex items-center justify-center relative">
+            <Image src="/icons/dots.svg" alt="Menu" fill sizes="100%" className="group-hover:hidden" />
+            <Image src="/icons/dots_hover.svg" alt="Menu (hover)" fill sizes="100%" className="hidden group-hover:inline" />
           </div>
         </button>
       </DropdownMenu.Trigger>

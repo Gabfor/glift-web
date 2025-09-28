@@ -70,6 +70,7 @@ export default function FooterConnected() {
         <p>Copyright © 2025 Glift. Tous droits réservés.</p>
         <div className="flex items-center gap-[15px]">
           <Link href="#"><FontAwesomeIcon icon={faFacebookF} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Facebook"/></Link>
+          <Link href="#"><FontAwesomeIcon icon={faXTwitter} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="X (Twitter)"/></Link>
           <Link href="#"><FontAwesomeIcon icon={faInstagram} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Instagram"/></Link>
           <Link href="#"><FontAwesomeIcon icon={faYoutube} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Youtube"/></Link>
         </div>

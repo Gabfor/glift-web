@@ -1,8 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { Row } from "@/types/training";
 import { getEffortBgColor } from "@/utils/effortColors";
 import { getEffortTextColor } from "@/utils/effortColors";
@@ -41,9 +41,24 @@ export default function TrainingRow({
   handleIconHover,
   columns,
   setIsEditing,
-  adminMode = false, // ← valeur par défaut
+  adminMode = false,
 }: Props) {
-  if (!row.id) return null;
+  const rowId = row.id ?? `temp-${index}`;
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    isDragging,
+  } = useSortable({ id: rowId, disabled: adminMode });
+
+  const [isGrabbing, setIsGrabbing] = useState(false);
+
+  useEffect(() => {
+    const handlePointerUp = () => setIsGrabbing(false);
+    window.addEventListener("pointerup", handlePointerUp);
+    return () => window.removeEventListener("pointerup", handlePointerUp);
+  }, []);
 
   if (isHidden) {
     return (
@@ -53,18 +68,9 @@ export default function TrainingRow({
     );
   }
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: row.id });
-
   const dragListeners =
-    listeners && typeof listeners.onPointerDown === "function"
-      ? { onPointerDown: (e: React.PointerEvent<HTMLImageElement>) => listeners.onPointerDown!(e) }
+    !adminMode && listeners && typeof listeners.onPointerDown === "function"
+      ? { onPointerDown: (event: React.PointerEvent<HTMLImageElement>) => listeners.onPointerDown!(event) }
       : {};
 
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
@@ -84,16 +90,6 @@ export default function TrainingRow({
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
   };
 
-  const [isGrabbing, setIsGrabbing] = useState(false);
-
-  useEffect(() => {
-    const handlePointerUp = () => setIsGrabbing(false);
-    window.addEventListener("pointerup", handlePointerUp);
-    return () => window.removeEventListener("pointerup", handlePointerUp);
-  }, []);
-
-  console.log("adminMode:", adminMode);
-
   return (
     <tr
       ref={setNodeRef}
@@ -112,19 +108,23 @@ export default function TrainingRow({
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
         <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
-          <img
+          <Image
             {...dragListeners}
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
             alt="Icone"
+            width={16}
+            height={16}
             className={`w-4 h-4 mr-2 select-none ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
             onMouseEnter={() => handleIconHover(index, true)}
             onMouseDown={() => setIsGrabbing(true)}
             onMouseLeave={() => handleIconHover(index, false)}
           />
-          <button onClick={() => handleCheckboxChange(row.id ?? "")} className="w-4 h-4 mr-3">
-            <img
+          <button onClick={() => handleCheckboxChange(rowId)} className="w-4 h-4 mr-3">
+            <Image
               src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
               alt={row.checked ? "Coché" : "Non coché"}
+              width={16}
+              height={16}
               className="w-4 h-4"
             />
           </button>
@@ -203,14 +203,14 @@ export default function TrainingRow({
               className="w-5 h-3 flex items-center justify-center mb-1"
               disabled={row.series >= 6}
             >
-              <img src="/icons/chevron_training_up.svg" alt="+" />
+              <Image src="/icons/chevron_training_up.svg" alt="+" width={20} height={12} />
             </button>
             <button
               onClick={() => handleDecrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center"
               disabled={row.series <= 1}
             >
-              <img src="/icons/chevron_training_down.svg" alt="-" />
+              <Image src="/icons/chevron_training_down.svg" alt="-" width={20} height={12} />
             </button>
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function TrainingRow({
             {row.effort.map((eff, subIndex) => (
               <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l h-10">
                 <div className="flex justify-center items-center w-full">
-                  <img
+                  <Image
                     src={
                       eff === "trop facile"
                         ? "/icons/smiley_easy.svg"
@@ -314,6 +314,8 @@ export default function TrainingRow({
                         : "/icons/smiley_perfect.svg"
                     }
                     alt="Effort"
+                    width={24}
+                    height={24}
                     className="w-6 h-6"
                   />
                 </div>
@@ -323,14 +325,14 @@ export default function TrainingRow({
                     onClick={() => handleEffortChange(index, subIndex, "up")}
                     disabled={eff === "trop facile"}
                   >
-                    <img src="/icons/chevron_training_up.svg" alt="+" />
+                    <Image src="/icons/chevron_training_up.svg" alt="+" width={20} height={12} />
                   </button>
                   <button
                     className="w-5 h-3 flex items-center justify-center"
                     onClick={() => handleEffortChange(index, subIndex, "down")}
                     disabled={eff === "trop dur"}
                   >
-                    <img src="/icons/chevron_training_down.svg" alt="-" />
+                    <Image src="/icons/chevron_training_down.svg" alt="-" width={20} height={12} />
                   </button>
                 </div>
               </div>

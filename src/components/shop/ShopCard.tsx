@@ -107,30 +107,39 @@ export default function ShopCard({ offer }: Props) {
           </div>
         </div>
       )}
-      <img
+      <Image
         src={offer.image || "/placeholder.jpg"}
         alt={offer.image_alt || offer.name}
+        width={540}
+        height={360}
         className="w-full h-[180px] object-cover rounded-t-[5px]"
+        unoptimized
       />
 
       {offer.brand_image && (
         <div className="flex justify-center -mt-8">
           {offer.shop_website ? (
             <a href={offer.shop_website} target="_blank" rel="noopener noreferrer">
-              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)]">
-                <img
+              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+                <Image
                   src={offer.brand_image}
                   alt={offer.brand_image_alt || "Partenaire"}
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="100%"
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             </a>
           ) : (
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)]">
-              <img
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+              <Image
                 src={offer.brand_image}
                 alt={offer.brand_image_alt || "Partenaire"}
-                className="w-full h-full object-cover"
+                fill
+                sizes="100%"
+                className="object-cover"
+                unoptimized
               />
             </div>
           )}
@@ -204,7 +213,7 @@ export default function ShopCard({ offer }: Props) {
             return (
               <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
                 <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
-                Aucune date d'expiration
+                Aucune date d&apos;expiration
               </div>
             );
           }
@@ -350,7 +359,7 @@ export default function ShopCard({ offer }: Props) {
           condition={offer.condition}
           endDate={offer.end_date}
           onCancel={() => setShowCodeModal(false)}
-          onConfirm={() => setShowCodeModal(false)}
+          onConfirm={handleModalConfirm}
         />
       )}
     </div>

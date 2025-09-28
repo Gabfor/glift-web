@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 interface Training {
   id: string
   name: string
@@ -19,14 +21,18 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
       <div className="flex justify-between items-center mb-4">
         <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité</div>
         <button onClick={onClose} className="relative w-[24px] h-[24px]">
-          <img
+          <Image
             src="/icons/close.svg"
             alt="Fermer"
+            fill
+            sizes="100%"
             className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
           />
-          <img
+          <Image
             src="/icons/close_hover.svg"
             alt="Fermer (hover)"
+            fill
+            sizes="100%"
             className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
           />
         </button>

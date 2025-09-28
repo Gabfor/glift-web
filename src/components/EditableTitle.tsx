@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import Image from "next/image";
+import { useEffect, useRef } from "react";
 import Tooltip from "@/components/Tooltip";
 
 type Props = {
@@ -23,7 +24,6 @@ function EditableTitle({
   setIsEditing,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     if (!loading && editing && inputRef.current) {
@@ -84,14 +84,18 @@ function EditableTitle({
             >
               <Tooltip content="Effacer">
                 <div className="relative w-[25px] h-[25px] flex items-center justify-center">
-                  <img
+                  <Image
                     src="/icons/cross_reset.svg"
                     alt="Effacer"
+                    fill
+                    sizes="100%"
                     className="absolute [3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
-                  <img
+                  <Image
                     src="/icons/cross_reset_hover.svg"
                     alt="Effacer"
+                    fill
+                    sizes="100%"
                     className="absolute [3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
@@ -110,14 +114,18 @@ function EditableTitle({
 
           <Tooltip content="Editer">
             <div className="relative w-5 h-5">
-              <img
+              <Image
                 src="/icons/edit.svg"
                 alt="modifier"
+                fill
+                sizes="100%"
                 className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 group-hover:opacity-0"
               />
-              <img
+              <Image
                 src="/icons/edit_hover.svg"
                 alt="modifier"
+                fill
+                sizes="100%"
                 className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
               />
             </div>
