@@ -13,7 +13,7 @@ export default function DragPreviewItem({ training }: { training: Training }) {
   return (
     <div className="w-[270px] h-[60px] bg-white border border-[#ECE9F1] rounded-[5px] flex items-center px-4 text-[#3A416F] font-semibold text-[16px] shadow-[0px_1px_15px_rgba(0,0,0,0.08)] cursor-grabbing select-none">
       <div className="relative w-full flex items-center justify-center">
-        <div className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group relative">
+        <div className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group relative">
           <Image
             src="/icons/drag.svg"
             alt="Déplacer"

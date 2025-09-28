@@ -103,7 +103,7 @@ export default function SortableItem({
       >
         <div className="relative w-full flex items-center justify-center">
           <div
-            className={`absolute left-[-6px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group relative ${
+            className={`absolute left-[-16px] top-1/2 -translate-y-1/2 w-[25px] h-[25px] z-10 group relative ${
               dragDisabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
             } bg-[rgba(0,0,0,0.001)]`}
             {...(!dragDisabled ? listeners : {})}
