@@ -45,43 +45,73 @@ export function UserProvider({ children, initialSession = null }: UserProviderPr
   useEffect(() => {
     let isMounted = true;
 
-    const applySession = (nextSession: Session | null) => {
+    console.log("[UserProvider] Initializing UserContext", {
+      initialSession,
+    });
+
+    const applySession = (nextSession: Session | null, origin: string) => {
       if (!isMounted) return;
 
       const nextUser = nextSession?.user ?? null;
+      console.log("[UserProvider] Applying session", {
+        origin,
+        hasSession: !!nextSession,
+        userId: nextUser?.id ?? null,
+      });
       setSession(nextSession);
       setUser(nextUser);
       setIsPremiumUser(computeIsPremium(nextUser));
       setIsAuthResolved(true);
     };
 
-    const resolveInitialSession = async () => {
+    const resolveSession = async (origin: string) => {
       const { data, error } = await supabase.auth.getSession();
 
       if (!isMounted) return;
 
       if (error) {
-        console.error("[UserProvider] Unable to resolve initial session", error);
+        console.error(`[UserProvider] Unable to resolve session from ${origin}`, error);
         setIsAuthResolved(true);
         return;
       }
 
-      applySession(data.session ?? null);
+      applySession(data.session ?? null, origin);
     };
 
-    resolveInitialSession();
+    resolveSession("initial-getSession");
 
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, nextSession) => {
-        applySession(nextSession);
+    const { data: listener } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      console.log("[UserProvider] onAuthStateChange", {
+        event,
+        hasSession: !!nextSession,
+        userId: nextSession?.user?.id ?? null,
+      });
+      applySession(nextSession, "onAuthStateChange");
+    });
+
+    const handleStorageEvent = (event: StorageEvent) => {
+      if (!isMounted) return;
+      if (event.key !== supabase.auth.storageKey) {
+        return;
       }
-    );
+
+      console.log("[UserProvider] Storage event detected", {
+        key: event.key,
+        oldValue: event.oldValue,
+        newValue: event.newValue,
+      });
+
+      resolveSession("storage-event");
+    };
+
+    window.addEventListener("storage", handleStorageEvent);
 
     return () => {
       isMounted = false;
+      window.removeEventListener("storage", handleStorageEvent);
       listener.subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [initialSession, supabase]);
 
   return (
     <UserContext.Provider
