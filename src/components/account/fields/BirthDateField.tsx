@@ -65,9 +65,9 @@ export default function BirthDateField({
     setTouched({ birthDay: true, birthMonth: true, birthYear: true })
   }
 
-  const handleOpenDay = useCallback((open: boolean) => {}, [])
-  const handleOpenMonth = useCallback((open: boolean) => {}, [])
-  const handleOpenYear = useCallback((open: boolean) => {}, [])
+  const handleOpenDay = useCallback(() => {}, [])
+  const handleOpenMonth = useCallback(() => {}, [])
+  const handleOpenYear = useCallback(() => {}, [])
 
   return (
     <div className="w-[368px]">

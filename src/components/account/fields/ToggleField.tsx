@@ -27,7 +27,7 @@ export default function ToggleField({
   variant = 'segmented',
   itemClassName = '',
 }: Props) {
-  const showSuccess = !!success
+  const showSuccess = !!success && touched
 
   return (
     <div className="w-[368px] flex flex-col text-left">
