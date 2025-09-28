@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import PremiumOnlyModal from "@/components/PremiumOnlyModal";
 import OfferCodeModal from "@/components/OfferCodeModal";
+import CTAButton from "@/components/CTAButton";
 import { useUser } from "@/context/UserContext";
 
 type Props = {
@@ -297,52 +298,58 @@ export default function ShopCard({ offer }: Props) {
           
         {offer.premium ? (
           !isAuthenticated ? (
-            <button
+            <CTAButton
               onClick={() => setShowModal(true)}
               onMouseEnter={() => setLockedHover(true)}
               onMouseLeave={() => setLockedHover(false)}
-              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#ECE9F1] hover:bg-[#D7D4DC] text-[#D7D4DC] hover:text-[#C2BFC6] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto transition"
+              variant="inactive"
+              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
             >
-              <Image
-                src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-                alt=""
-                width={15}
-                height={15}
-              />
-              Profiter de cette offre
-            </button>
+              <span className="inline-flex items-center gap-2">
+                <Image
+                  src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
+                  alt=""
+                  width={15}
+                  height={15}
+                />
+                Profiter de cette offre
+              </span>
+            </CTAButton>
           ) : !isPremiumUser ? (
-            <button
+            <CTAButton
               onClick={() => setShowPremiumModal(true)}
               onMouseEnter={() => setLockedHover(true)}
               onMouseLeave={() => setLockedHover(false)}
-              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#ECE9F1] hover:bg-[#D7D4DC] text-[#D7D4DC] hover:text-[#C2BFC6] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto transition"
+              variant="inactive"
+              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
             >
-              <Image
-                src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-                alt=""
-                width={15}
-                height={15}
-              />
-              Profiter de cette offre
-            </button>
+              <span className="inline-flex items-center gap-2">
+                <Image
+                  src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
+                  alt=""
+                  width={15}
+                  height={15}
+                />
+                Profiter de cette offre
+              </span>
+            </CTAButton>
           ) : (
             // Authentifié + premium → bouton actif
-            <button
+            <CTAButton
               onClick={handleClick}
-              className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#7069FA] hover:bg-[#5E57D8] text-white rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto transition"
+              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
             >
               Profiter de cette offre
-            </button>
+            </CTAButton>
           )
         ) : (
           // Offres non premium → toujours accessibles
-          <button
+          <CTAButton
             onClick={handleClick}
-            className="w-auto mt-[20px] mb-[30px] px-6 h-[44px] bg-[#7069FA] hover:bg-[#5E57D8] text-white rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto transition"
+            className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
           >
             Profiter de cette offre
-          </button>
+          </CTAButton>
         )}
       </div>
 

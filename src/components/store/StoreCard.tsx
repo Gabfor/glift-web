@@ -5,6 +5,7 @@ import { downloadProgram } from "@/utils/downloadProgram";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
+import CTAButton from "@/components/CTAButton";
 
 type Props = {
   program: {
@@ -113,42 +114,34 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
 
         {/* BOUTON TÉLÉCHARGER */}
         {isAuthenticated ? (
-          <button
+          <CTAButton
             onClick={handleDownload}
-            disabled={loading}
-            className={`
-              w-auto px-6 h-[44px]
-              ${loading ? "bg-[#7069FA] cursor-wait" : "bg-[#7069FA] hover:bg-[#5E57D8] cursor-pointer"}
-              text-white rounded-full font-bold text-[16px]
-              transition flex items-center justify-center gap-2 mx-auto
-            `}
+            loading={loading}
+            className="mx-auto font-bold text-[16px]"
           >
-            <div className="flex items-center justify-center h-[20px] gap-2">
-              {loading ? (
-                <span className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></span>
-              ) : (
-                <>
-                  Télécharger
-                  <Image src="/icons/download.svg" alt="" width={20} height={20} />
-                </>
-              )}
-            </div>
-          </button>
+            <span className="inline-flex items-center gap-2">
+              Télécharger
+              <Image src="/icons/download.svg" alt="" width={20} height={20} />
+            </span>
+          </CTAButton>
         ) : (
-          <button
+          <CTAButton
             onClick={() => setShowModal(true)}
             onMouseEnter={() => setLockedHover(true)}
             onMouseLeave={() => setLockedHover(false)}
-            className="w-auto px-6 h-[44px] bg-[#ECE9F1] hover:bg-[#D7D4DC] text-[#D7D4DC] hover:text-[#C2BFC6] rounded-full font-bold text-[16px] flex items-center justify-center gap-2 mx-auto transition"
+            variant="inactive"
+            className="mx-auto font-bold text-[16px]"
           >
-            <Image
-              src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-              alt=""
-              width={15}
-              height={15}
-            />
-            Télécharger
-          </button>
+            <span className="inline-flex items-center gap-2">
+              <Image
+                src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
+                alt=""
+                width={15}
+                height={15}
+              />
+              Télécharger
+            </span>
+          </CTAButton>
         )}
 
         {/* LIEN EN SAVOIR PLUS */}

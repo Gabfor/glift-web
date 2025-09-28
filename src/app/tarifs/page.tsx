@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import CTAButton from "@/components/CTAButton";
 
 export default function TarifsPage() {
   return (
@@ -90,20 +91,19 @@ export default function TarifsPage() {
 
   {/* Bouton */}
   <div className="mt-10 flex flex-col items-center">
-    <Link
-      href="/inscription"
-      className="inline-flex items-center justify-center gap-1 w-[214px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300 group"
-    >
-      Tester gratuitement
-      <div className="relative w-[25px] h-[25px]">
-        <Image
-          src="/icons/arrow.svg"
-          alt="Flèche blanche"
-          fill
-          className="object-contain"
-        />
-      </div>
-    </Link>
+    <CTAButton href="/inscription" className="font-semibold">
+      <span className="inline-flex items-center gap-1">
+        Tester gratuitement
+        <div className="relative w-[25px] h-[25px]">
+          <Image
+            src="/icons/arrow.svg"
+            alt="Flèche blanche"
+            fill
+            className="object-contain"
+          />
+        </div>
+      </span>
+    </CTAButton>
     <div className="flex items-center justify-center gap-2 text-[#5D6494] text-[14px] font-semibold mt-2">
       <span className="relative flex items-center justify-center w-2 h-2">
         <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>

@@ -2,6 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import CTAButton from "@/components/CTAButton";
 
 type Program = {
   id?: number;
@@ -102,12 +103,9 @@ export default function ProgramStoreForm({
         />
 
         <div className="flex space-x-2 mt-2">
-          <button
-            type="submit"
-            className="bg-[#7069FA] text-white px-3 py-1 rounded hover:bg-[#5A52D4] transition"
-          >
+          <CTAButton type="submit" className="px-3">
             Enregistrer
-          </button>
+          </CTAButton>
           {program && (
             <button
               type="button"

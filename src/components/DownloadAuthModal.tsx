@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useState } from "react";
 import ReactDOM from "react-dom";
 import { useRouter } from "next/navigation";
+import CTAButton from "@/components/CTAButton";
 
 interface DownloadAuthModalProps {
   show: boolean;
@@ -54,15 +55,14 @@ export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalPr
           >
             Annuler
           </button>
-          <button
+          <CTAButton
             onClick={() => {
               onClose();
               router.push("/tarifs");
             }}
-            className="inline-flex items-center justify-center gap-1 w-[166px] h-[44px] bg-[#7069FA] hover:bg-[#5E57D8] text-white font-semibold rounded-full transition-all duration-300"
           >
             Créer un compte
-          </button>
+          </CTAButton>
         </div>
       </div>
     </div>,

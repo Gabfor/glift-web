@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import CTAButton from "@/components/CTAButton";
 
 interface LinkModalProps {
   exercice: string;
@@ -89,22 +90,19 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
               Annuler
             </button>
           )}
-          <button
+          <CTAButton
             onClick={() => {
               if (link.trim() === "") {
-                // Si vide → supprimer le lien
                 onSave("", exerciceInput);
               } else if (isValidUrl(link)) {
-                // Sinon → enregistrer le lien valide
                 onSave(link, exerciceInput);
               } else {
                 alert("Veuillez entrer un lien valide (http ou https).");
               }
             }}
-            className="inline-flex items-center justify-center gap-1 w-[116px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300 group"
           >
             Enregistrer
-          </button>
+          </CTAButton>
         </div>
       </div>
     </div>,

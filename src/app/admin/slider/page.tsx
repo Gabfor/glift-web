@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
+import CTAButton from "@/components/CTAButton";
 
 const sliderTypeOptions = [
   { value: "none", label: "Aucun slider" },
@@ -250,16 +251,9 @@ export default function AdminSliderPage() {
         )}
 
         <div className="mt-10 flex justify-center">
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="inline-flex items-center justify-center gap-2 px-4 min-w-[120px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300"
-          >
-            {loading && (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            )}
+          <CTAButton onClick={handleSave} disabled={loading} loading={loading}>
             Enregistrer
-          </button>
+          </CTAButton>
         </div>
       </div>
     </main>
