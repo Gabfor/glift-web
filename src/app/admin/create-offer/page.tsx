@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
+import CTAButton from "@/components/CTAButton";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -553,12 +554,9 @@ export default function CreateOfferPage() {
 
             {/* Bouton */}
             <div className="md:col-span-2 mt-6 flex justify-center">
-              <button
-                onClick={handleSave}
-                className="inline-flex items-center justify-center gap-1 px-4 h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300"
-              >
+              <CTAButton onClick={handleSave}>
                 {offerId ? "Mettre à jour" : "Créer l’offre"}
-              </button>
+              </CTAButton>
             </div>
           </div>
         )}

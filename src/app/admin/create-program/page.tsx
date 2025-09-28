@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import CTAButton from "@/components/CTAButton";
 
 type Program = {
   id?: number;
@@ -421,17 +422,14 @@ export default function CreateProgramPage() {
             </div> 
           </div>
           <div className="mt-10 flex flex-col items-center">
-            <button
+            <CTAButton
               onClick={handleSave}
               disabled={!isFormValid}
-              className={`inline-flex items-center justify-center gap-1 px-4 h-[44px] rounded-full transition-all duration-300 group font-semibold text-white ${
-                isFormValid
-                  ? "bg-[#7069FA] hover:bg-[#6660E4]"
-                  : "bg-[#C8C8E5] cursor-not-allowed"
-              }`}
+              variant={isFormValid ? "active" : "inactive"}
+              className="font-semibold"
             >
               {programId ? "Mettre à jour" : "Créer la carte"}
-            </button>
+            </CTAButton>
           </div>
         </>
       )}

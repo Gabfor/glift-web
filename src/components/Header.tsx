@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import CTAButton from "@/components/CTAButton";
 
 export default function Header() {
   const pathname = usePathname();
@@ -235,12 +236,7 @@ export default function Header() {
               >
                 Connexion
               </Link>
-              <Link
-                href="/tarifs"
-                className="bg-[#7069FA] hover:bg-[#6660E4] text-white w-[111px] h-[44px] text-[16px] font-semibold flex items-center justify-center rounded-full transition-colors duration-200"
-              >
-                Inscription
-              </Link>
+              <CTAButton href="/tarifs">Inscription</CTAButton>
             </div>
           )}
 

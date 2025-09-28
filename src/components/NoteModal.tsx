@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
+import CTAButton from "@/components/CTAButton";
 
 interface NoteModalProps {
   initialNote: string;
@@ -68,12 +69,9 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
               Annuler
             </button>
           )}
-          <button
-            onClick={() => onSave(note.trim())}
-            className="inline-flex items-center justify-center gap-1 w-[116px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300 group"
-          >
+          <CTAButton onClick={() => onSave(note.trim())}>
             Enregistrer
-          </button>
+          </CTAButton>
         </div>
       </div>
     </div>,

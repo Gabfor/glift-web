@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import CTAButton from "@/components/CTAButton";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -23,9 +24,12 @@ export default function Footer() {
 
         {/* Right - CTA */}
         <div className="flex flex-col items-start gap-2">
-        <Link href="#" className="w-[214px] h-[44px] bg-[#7069FA] hover:bg-[#5f58e6] text-white text-[16px] font-bold py-3 rounded-full transition flex items-center justify-center gap-2">
-        Tester gratuitement<Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
-          </Link>
+        <CTAButton href="#" className="font-bold text-[16px]">
+          <span className="inline-flex items-center gap-2">
+            Tester gratuitement
+            <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
+          </span>
+        </CTAButton>
           {/* Texte centré sous le CTA */}
           <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center w-[204px] gap-2">
             <span className="relative w-[8px] h-[8px]">

@@ -2,6 +2,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import ReactDOM from "react-dom";
 import Tooltip from "@/components/Tooltip";
+import CTAButton from "@/components/CTAButton";
 
 interface OfferModalProps {
   name: string;
@@ -186,16 +187,23 @@ export default function OfferModal({
           >
             Annuler
           </button>
-          <button
+          <CTAButton
             onClick={() => {
               onConfirm();
               window.open(link, "_blank");
             }}
-            className="inline-flex items-center justify-center gap-2 w-[180px] h-[44px] bg-[#7069FA] hover:bg-[#6660E4] text-white font-semibold rounded-full transition-all duration-300"
           >
-            Aller sur le site
-            <Image src="/icons/arrow.svg" alt="→" width={25} height={25} className="w-[25px] h-[25px]" />
-          </button>
+            <span className="inline-flex items-center gap-2">
+              Aller sur le site
+              <Image
+                src="/icons/arrow.svg"
+                alt="→"
+                width={25}
+                height={25}
+                className="w-[25px] h-[25px]"
+              />
+            </span>
+          </CTAButton>
         </div>
       </div>
     </div>,
