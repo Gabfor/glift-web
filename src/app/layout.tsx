@@ -1,12 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
-import ClientLayout from "@/components/ClientLayout";
-import { UnlockScroll } from "@/components/UnlockScroll";
-import VerifyEmailTopBar from "@/components/auth/VerifyEmailTopBar";
-
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/types/supabase";
+import ClientLayout from "@/components/ClientLayout";
+import SupabaseProvider from "@/components/SupabaseProvider";
+import { UnlockScroll } from "@/components/UnlockScroll";
+import VerifyEmailTopBar from "@/components/auth/VerifyEmailTopBar";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -24,54 +25,61 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
-  children,
-}: {
+type RootLayoutProps = {
   children: React.ReactNode;
-}) {
-if (process.env.NEXT_PUBLIC_DEBUG === '1') {
-  console.log('[RootLayout] render');
-}
+};
 
-  // Supabase SSR
-  const cookieStoreMaybe: any = (cookies as any)();
-  const cookieStore =
-    typeof cookieStoreMaybe?.then === "function" ? await cookieStoreMaybe : cookieStoreMaybe;
+async function loadServerSession() {
+  const cookieStore = await Promise.resolve(cookies());
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get: (name: string) => cookieStore.get(name)?.value,
-        set: () => {},
-        remove: () => {},
+        get(name: string) {
+          return cookieStore.get(name)?.value;
+        },
+        set() {},
+        remove() {},
       },
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
-  let plan: string | null = null;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let subscriptionPlan: string | null = null;
 
   if (user) {
-    // 🔧 IMPORTANT: pas de .single()/.maybeSingle() → on fait LIMIT 1
-    const { data: subRows } = await supabase
+    const { data: rows } = await supabase
       .from("user_subscriptions")
       .select("plan")
       .eq("user_id", user.id)
       .limit(1);
 
-    plan = subRows?.[0]?.plan ?? null;
+    subscriptionPlan = rows?.[0]?.plan ?? null;
   }
+
+  return { subscriptionPlan };
+}
+
+export default async function RootLayout({ children }: RootLayoutProps) {
+  const { subscriptionPlan } = await loadServerSession();
 
   return (
     <html lang="fr">
       <head />
-      <body className={quicksand.className}>
+      <body
+        className={quicksand.className}
+        data-subscription-plan={subscriptionPlan ?? "none"}
+      >
         <UnlockScroll />
         <VerifyEmailTopBar />
-        {/* on ne passe pas encore `plan` si tes composants ne l’acceptent pas */}
-        <ClientLayout>{children}</ClientLayout>
+        <SupabaseProvider>
+          <ClientLayout>{children}</ClientLayout>
+        </SupabaseProvider>
       </body>
     </html>
   );

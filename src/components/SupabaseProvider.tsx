@@ -1,28 +1,28 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabaseClient";
 
-type SupabaseContextType = {
-  supabase: SupabaseClient<Database>;
+const SupabaseContext = createContext<SupabaseClient<Database> | null>(null);
+
+type SupabaseProviderProps = {
+  children: React.ReactNode;
 };
 
-const SupabaseContext = createContext<SupabaseContextType | undefined>(undefined);
-
-export default function SupabaseProvider({ children }: { children: React.ReactNode }) {
-  const [supabase] = useState(() => createClient());
+export default function SupabaseProvider({ children }: SupabaseProviderProps) {
+  const client = useMemo(() => createClient(), []);
 
   return (
-    <SupabaseContext.Provider value={{ supabase }}>
-      {children}
-    </SupabaseContext.Provider>
+    <SupabaseContext.Provider value={client}>{children}</SupabaseContext.Provider>
   );
 }
 
-export function useSupabase() {
-  const ctx = useContext(SupabaseContext);
-  if (!ctx) throw new Error("useSupabase must be used within SupabaseProvider");
-  return ctx.supabase;
+export function useSupabase(): SupabaseClient<Database> {
+  const client = useContext(SupabaseContext);
+  if (!client) {
+    throw new Error("useSupabase must be used within SupabaseProvider");
+  }
+  return client;
 }
