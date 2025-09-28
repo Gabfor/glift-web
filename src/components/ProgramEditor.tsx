@@ -3,6 +3,7 @@
 import { useRef, useEffect, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react"; // Utilise ce hook pour accéder à supabase
 import Tooltip from "@/components/Tooltip";
+import { TrashHoverIcon, TrashIcon } from "./icons/TrashIcons";
 
 interface ProgramEditorProps {
   name: string;
@@ -493,16 +494,8 @@ const handleDuplicateClick = async () => {
             aria-label="Supprimer"
           >
             <div className="relative w-full h-full">
-              <img
-                src="/icons/trash.svg"
-                alt="Supprimer"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-              />
-              <img
-                src="/icons/trash_hover.svg"
-                alt="Supprimer"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
-              />
+              <TrashIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0" />
+              <TrashHoverIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100" />
             </div>
           </button>
         </Tooltip>
@@ -514,11 +507,7 @@ const handleDuplicateClick = async () => {
           aria-label="Supprimer désactivé"
         >
           <div className="relative w-full h-full">
-            <img
-              src="/icons/trash.svg"
-              alt="Supprimer désactivé"
-              className="absolute top-0 left-0 w-full h-full opacity-100"
-            />
+            <TrashIcon className="absolute top-0 left-0 h-full w-full opacity-100" />
           </div>
         </button>
       )}
