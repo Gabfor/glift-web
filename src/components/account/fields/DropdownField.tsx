@@ -29,7 +29,7 @@ export default function DropdownField({
   width = 'w-full',
 }: Props) {
   const hasSelection = selected !== ''
-  const showSuccess = !!success && touched
+  const showSuccess = !!success
 
   const buttonClassName = `
     ${width} h-[45px] rounded-[5px] px-[15px]
