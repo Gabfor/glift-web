@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import clsx from "clsx";
 
+import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import {
   EXPERIENCE_OPTIONS,
@@ -290,20 +291,12 @@ const AccountCreationStep = ({ plan, onSuccess }: AccountCreationStepProps) => {
 
       <div className="mb-[20px] w-full">
         <label className="flex items-start gap-3 cursor-pointer select-none text-[14px] font-semibold text-[#5D6494]">
-          <div className="relative w-[15px] h-[15px] shrink-0">
-            <input
-              type="checkbox"
-              checked={accepted}
-              onChange={(event) => setAccepted(event.target.checked)}
-              className="peer appearance-none w-full h-full border rounded-[3px] transition-colors duration-150 border-[#D7D4DC] hover:border-[#C2BFC6] checked:border-[#7069FA] checked:bg-[#7069FA] cursor-pointer"
-            />
-            <svg
-              viewBox="0 0 24 24"
-              className="pointer-events-none absolute top-1/2 left-1/2 w-[13px] h-[13px] -translate-x-1/2 -translate-y-1/2 fill-white hidden peer-checked:block"
-            >
-              <path d="M20.285 6.709a1 1 0 0 0-1.414-1.418l-9.572 9.58-4.16-4.17a1 1 0 1 0-1.414 1.414l5.586 5.586a1 1 0 0 0 1.414 0l9.56-9.592z" />
-            </svg>
-          </div>
+          <IconCheckbox
+            checked={accepted}
+            onChange={(event) => setAccepted(event.target.checked)}
+            size={15}
+            containerClassName="mt-[3px]"
+          />
           <span className="mt-[-3px]">
             J’accepte la{" "}
             <Link href="#" className="text-[#7069FA] hover:text-[#6660E4]">
@@ -474,12 +467,12 @@ const PaymentStep = ({ onComplete }: PaymentStepProps) => {
         </div>
       </div>
 
-      <label className="mt-6 flex items-start gap-3 text-[13px] font-semibold text-[#5D6494]">
-        <input
-          type="checkbox"
+      <label className="mt-6 flex items-start gap-3 text-[13px] font-semibold text-[#5D6494] cursor-pointer">
+        <IconCheckbox
           checked={termsAccepted}
           onChange={(event) => setTermsAccepted(event.target.checked)}
-          className="mt-[3px] h-[16px] w-[16px] cursor-pointer rounded border border-[#D7D4DC] text-[#7069FA] focus:ring-[#7069FA]"
+          size={16}
+          containerClassName="mt-[3px]"
         />
         <span>
           Je confirme que je m’abonne à un service facturé 2,49 €/mois, renouvelé automatiquement à la fin de la période d’essai

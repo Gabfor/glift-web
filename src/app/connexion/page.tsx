@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { IconCheckbox } from "@/components/ui/IconCheckbox";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -126,26 +127,12 @@ export default function ConnexionPage() {
           {/* Checkbox */}
           <div className="max-w-[368px] mb-[20px] w-full">
             <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
-              <div className="relative w-[15px] h-[15px] shrink-0">
-                <input
-                  type="checkbox"
-                  name="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="peer appearance-none w-full h-full border rounded-[3px] transition-colors duration-150 cursor-pointer
-                    border-[#D7D4DC]
-                    hover:border-[#C2BFC6]
-                    checked:border-[#7069FA]
-                    checked:hover:border-[#7069FA]
-                    checked:bg-[#7069FA]"
-                />
-                <svg
-                  viewBox="0 0 24 24"
-                  className="pointer-events-none absolute top-1/2 left-1/2 w-[13px] h-[13px] -translate-x-1/2 -translate-y-1/2 fill-white hidden peer-checked:block"
-                >
-                  <path d="M20.285 6.709a1 1 0 0 0-1.414-1.418l-9.572 9.58-4.16-4.17a1 1 0 1 0-1.414 1.414l5.586 5.586a1 1 0 0 0 1.414 0l9.56-9.592z" />
-                </svg>
-              </div>
+              <IconCheckbox
+                name="remember"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                size={15}
+              />
               Je veux rester connecté.
             </label>
           </div>
