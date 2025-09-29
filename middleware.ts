@@ -15,8 +15,15 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const pathname = req.nextUrl.pathname;
+
+  // ✅ Redirection automatique de /concept -> /
+  if (pathname.startsWith("/concept")) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
   // ✅ Protection de la zone /admin uniquement
-  if (req.nextUrl.pathname.startsWith("/admin")) {
+  if (pathname.startsWith("/admin")) {
     if (!user) {
       return NextResponse.redirect(new URL("/connexion", req.url));
     }
@@ -25,6 +32,21 @@ export async function middleware(req: NextRequest) {
     const isAdmin = user.user_metadata?.is_admin === true;
     if (!isAdmin) {
       return NextResponse.redirect(new URL("/", req.url));
+    }
+  }
+
+  // ✅ Protection des routes nécessitant une connexion utilisateur
+  if (!user) {
+    const protectedRoutes = ["/dashboard", "/entrainements", "/compte"];
+    const isProtectedRoute = protectedRoutes.some((route) => {
+      return (
+        pathname === route ||
+        (pathname.startsWith(`${route}/`) && pathname !== "/")
+      );
+    });
+
+    if (isProtectedRoute) {
+      return NextResponse.redirect(new URL("/connexion", req.url));
     }
   }
 
