@@ -16,6 +16,7 @@ export default function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const supabase = createClientComponentClient();
@@ -28,27 +29,41 @@ export default function ConnexionPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (data?.session) {
-      // ✅ Redirection pour déclencher le middleware Supabase
-      window.location.href = "/auth/callback";
+    if (loading) {
       return;
     }
+    setError("");
+    setLoading(true);
 
-    if (!error) {
-      router.push("/entrainements");
-      router.refresh();
-    } else {
-      if (error.message === "Invalid login credentials") {
+    let shouldKeepLoading = false;
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (data?.session) {
+        shouldKeepLoading = true;
+        // ✅ Redirection pour déclencher le middleware Supabase
+        window.location.href = "/auth/callback";
+        return;
+      }
+
+      if (!error) {
+        router.push("/entrainements");
+        router.refresh();
+      } else if (error.message === "Invalid login credentials") {
         setError("Email ou mot de passe incorrect.");
       } else {
         setError("Une erreur est survenue.");
+      }
+    } catch (unknownError) {
+      console.error("Erreur lors de la connexion", unknownError);
+      setError("Une erreur est survenue.");
+    } finally {
+      if (!shouldKeepLoading) {
+        setLoading(false);
       }
     }
   };
@@ -146,20 +161,26 @@ export default function ConnexionPage() {
           <div className="w-full flex justify-center">
             <button
               type="submit"
-              disabled={!isFormValid}
+              disabled={!isFormValid || loading}
               className={`w-full max-w-[160px] h-[44px] rounded-[25px] text-[16px] font-bold text-center transition flex items-center justify-center gap-2
-                ${isFormValid
+                ${isFormValid && !loading
                   ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
                   : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"}`}
             >
-              <Image
-                src="/icons/cadena_defaut.svg"
-                alt="Icône cadenas"
-                width={20}
-                height={20}
-                className={`transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
-              />
-              Se connecter
+              {loading ? (
+                <span className="text-[15px]">En cours...</span>
+              ) : (
+                <>
+                  <Image
+                    src="/icons/cadena_defaut.svg"
+                    alt="Icône cadenas"
+                    width={20}
+                    height={20}
+                    className={`transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
+                  />
+                  Se connecter
+                </>
+              )}
             </button>
           </div>
 
