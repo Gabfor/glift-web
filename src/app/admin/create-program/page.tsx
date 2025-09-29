@@ -28,7 +28,7 @@ type Program = {
 };
 
 export default function CreateProgramPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
@@ -34,7 +34,7 @@ export default function ProgramStorePage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
