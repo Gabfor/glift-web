@@ -40,7 +40,7 @@ export default function TextField({
           onBlur={() => onBlur?.()}
           className={`
             h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px]
-            ${disabled ? 'bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]'}
+            ${disabled ? 'bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]'}
             transition-all duration-150
             border
             ${

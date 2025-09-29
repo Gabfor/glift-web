@@ -14,6 +14,7 @@ import {
 import { useAccountForm } from "./hooks/useAccountForm"
 import BirthDateField from "./fields/BirthDateField"
 import DropdownField from "./fields/DropdownField"
+import EmailInfoAdornment from "./fields/EmailInfoAdornment"
 import SubmitButton from "./fields/SubmitButton"
 import TextField from "./fields/TextField"
 import ToggleField from "./fields/ToggleField"
@@ -123,7 +124,12 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         initialBirthYear={initialBirthParts.birthYear}
       />
 
-      <TextField label="Email" value={user?.email || ""} disabled />
+      <TextField
+        label="Email"
+        value={user?.email || ""}
+        disabled
+        endAdornment={<EmailInfoAdornment />}
+      />
 
       <div
         onMouseDown={() => {
