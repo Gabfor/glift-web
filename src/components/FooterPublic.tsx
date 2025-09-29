@@ -24,7 +24,7 @@ export default function Footer() {
 
         {/* Right - CTA */}
         <div className="flex flex-col items-start gap-2">
-        <CTAButton href="#" className="font-bold text-[16px]">
+        <CTAButton href="/inscription?plan=premium" className="font-bold text-[16px]">
           <span className="inline-flex items-center gap-2">
             Tester gratuitement
             <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />

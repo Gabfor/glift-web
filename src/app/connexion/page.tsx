@@ -187,7 +187,7 @@ export default function ConnexionPage() {
           {/* Lien inscription */}
           <p className="mt-[20px] text-sm font-semibold text-[#5D6494] text-center">
             Pas encore inscrit ?{" "}
-            <Link href="/inscription" className="text-[#7069FA] hover:text-[#6660E4]">
+            <Link href="/tarifs" className="text-[#7069FA] hover:text-[#6660E4]">
               Créer un compte
             </Link>
           </p>

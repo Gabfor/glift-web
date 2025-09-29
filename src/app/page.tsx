@@ -26,7 +26,7 @@ export default function HeroConcept() {
 
         <div className="flex justify-center gap-4 mb-4 flex-wrap">
           <Link
-            href="/inscription"
+            href="/inscription?plan=premium"
             className="bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-5 h-[44px] rounded-full flex items-center justify-center gap-2 transition"
           >
             Tester gratuitement
@@ -130,7 +130,7 @@ export default function HeroConcept() {
           </p>
 
           <Link
-            href="/inscription"
+            href="/inscription?plan=premium"
             className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
@@ -196,7 +196,7 @@ export default function HeroConcept() {
     </p>
 
     <Link
-            href="/inscription"
+            href="/inscription?plan=premium"
             className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
@@ -238,7 +238,7 @@ export default function HeroConcept() {
           </p>
 
           <Link
-            href="/inscription"
+            href="/inscription?plan=premium"
             className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
@@ -304,7 +304,7 @@ export default function HeroConcept() {
     </p>
 
     <Link
-            href="/inscription"
+            href="/inscription?plan=premium"
             className="w-[204px] h-[44px] group border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full flex items-center justify-center gap-1 transition"
           >
             Tester gratuitement
