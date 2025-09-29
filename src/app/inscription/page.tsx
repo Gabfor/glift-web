@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import clsx from "clsx";
 
+import CTAButton from "@/components/CTAButton";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import {
@@ -13,6 +14,9 @@ import {
   GENDER_OPTIONS,
   MAIN_GOALS,
 } from "@/components/account/constants";
+import BirthDateField from "@/components/account/fields/BirthDateField";
+import DropdownField from "@/components/account/fields/DropdownField";
+import ToggleField from "@/components/account/fields/ToggleField";
 
 type PlanType = "starter" | "premium";
 
@@ -29,10 +33,20 @@ type ProfileCompletionStepProps = {
   onSuccessDestination: string;
 };
 
-const DAY_OPTIONS = Array.from({ length: 31 }, (_, index) => `${index + 1}`.padStart(2, "0"));
+type BirthDateParts = {
+  birthDay: string;
+  birthMonth: string;
+  birthYear: string;
+};
+
+type BirthTouchedState = {
+  birthDay: boolean;
+  birthMonth: boolean;
+  birthYear: boolean;
+};
+
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, index) => `${index + 1}`.padStart(2, "0"));
 const CURRENT_YEAR = new Date().getFullYear();
-const BIRTH_YEAR_OPTIONS = Array.from({ length: 100 }, (_, index) => `${CURRENT_YEAR - index}`);
 const PAYMENT_YEAR_OPTIONS = Array.from({ length: 12 }, (_, index) => `${CURRENT_YEAR + index}`);
 
 const StepIndicator = ({
@@ -43,7 +57,7 @@ const StepIndicator = ({
   currentStep: number;
 }) => {
   return (
-    <div className="mt-6 flex items-center justify-center gap-3">
+    <div className="mt-6 flex items-center justify-center gap-2">
       {Array.from({ length: totalSteps }).map((_, index) => {
         const step = index + 1;
         const isActive = step === currentStep;
@@ -514,6 +528,20 @@ const ProfileCompletionStep = ({ onSuccessDestination }: ProfileCompletionStepPr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [genderTouched, setGenderTouched] = useState(false);
+  const [experienceTouched, setExperienceTouched] = useState(false);
+  const [mainGoalTouched, setMainGoalTouched] = useState(false);
+  const [birthTouched, setBirthTouched] = useState<BirthTouchedState>({
+    birthDay: false,
+    birthMonth: false,
+    birthYear: false,
+  });
+  const [initialBirthParts, setInitialBirthParts] = useState<BirthDateParts>({
+    birthDay: "",
+    birthMonth: "",
+    birthYear: "",
+  });
+
   useEffect(() => {
     const fetchUserMetadata = async () => {
       const { data } = await supabase.auth.getUser();
@@ -535,21 +563,50 @@ const ProfileCompletionStep = ({ onSuccessDestination }: ProfileCompletionStepPr
 
       if (typeof metadata.birth_date === "string" && metadata.birth_date.includes("-")) {
         const [year, month, day] = metadata.birth_date.split("-");
-        setBirthYear(year || "");
-        setBirthMonth(month || "");
-        setBirthDay(day || "");
+        const nextBirthParts: BirthDateParts = {
+          birthYear: year || "",
+          birthMonth: month || "",
+          birthDay: day || "",
+        };
+        setBirthYear(nextBirthParts.birthYear);
+        setBirthMonth(nextBirthParts.birthMonth);
+        setBirthDay(nextBirthParts.birthDay);
+        setInitialBirthParts(nextBirthParts);
       }
     };
 
     void fetchUserMetadata();
+    setGenderTouched(false);
+    setExperienceTouched(false);
+    setMainGoalTouched(false);
+    setBirthTouched({
+      birthDay: false,
+      birthMonth: false,
+      birthYear: false,
+    });
   }, [supabase]);
 
+  const updateBirthTouched = (partial: Partial<BirthTouchedState>) => {
+    setBirthTouched((previous) => ({
+      ...previous,
+      ...partial,
+    }));
+  };
+
   const isFormComplete =
-    gender !== "" && birthDay !== "" && birthMonth !== "" && birthYear !== "" && experience !== "" && mainGoal !== "" && !loading;
+    gender !== "" &&
+    birthDay !== "" &&
+    birthMonth !== "" &&
+    birthYear !== "" &&
+    experience !== "" &&
+    mainGoal !== "";
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!isFormComplete) return;
+
+    if (!isFormComplete || loading) {
+      return;
+    }
 
     setError(null);
     setLoading(true);
@@ -581,138 +638,83 @@ const ProfileCompletionStep = ({ onSuccessDestination }: ProfileCompletionStepPr
     }
   };
 
+  const isSubmitDisabled = !isFormComplete;
+
   return (
-    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-[480px] flex-col items-center gap-6">
-      <div className="w-full rounded-[16px] bg-white px-6 py-5 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
+    <form onSubmit={handleSubmit} className="mx-auto flex w-full max-w-[420px] flex-col items-center">
+      <div className="w-[368px] rounded-[16px] bg-[#F4F3FF] px-6 py-5 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
         <p className="text-[15px] font-semibold text-[#3A416F]">
           Complétez votre profil et aidez-nous à mieux vous connaître en répondant aux 4 questions ci-dessous.
         </p>
       </div>
 
-      {error && <p className="w-full text-center text-sm font-semibold text-[#EF4444]">{error}</p>}
+      {error && (
+        <p className="mt-4 w-[368px] text-left text-[13px] font-semibold text-[#EF4444]">
+          {error}
+        </p>
+      )}
 
-      <div className="flex w-full flex-col gap-4">
-        <div>
-          <p className="mb-2 text-[14px] font-semibold text-[#3A416F]">Sexe</p>
-          <div className="flex flex-wrap gap-2">
-            {GENDER_OPTIONS.map((option) => {
-              const isSelected = gender === option;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setGender(isSelected ? "" : option)}
-                  className={clsx(
-                    "flex h-10 min-w-[110px] items-center justify-center rounded-full border px-4 text-[14px] font-semibold transition", 
-                    isSelected ? "border-[#7069FA] bg-[#7069FA] text-white" : "border-[#D7D4DC] bg-white text-[#5D6494] hover:border-[#A1A5FD]"
-                  )}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+      <div className="mt-6 flex w-full flex-col items-center gap-5">
+        <ToggleField
+          label="Sexe"
+          value={gender}
+          options={Array.from(GENDER_OPTIONS)}
+          onChange={(option) => setGender(option)}
+          touched={genderTouched}
+          setTouched={() => setGenderTouched(true)}
+        />
 
-        <div>
-          <p className="mb-2 text-[14px] font-semibold text-[#3A416F]">Date de naissance</p>
-          <div className="flex gap-2">
-            <select
-              value={birthDay}
-              onChange={(event) => setBirthDay(event.target.value)}
-              className="h-[45px] w-full rounded-[8px] border border-[#D7D4DC] bg-white px-3 text-[16px] font-semibold text-[#5D6494] focus:border-[#A1A5FD] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
-            >
-              <option value="">Jour</option>
-              {DAY_OPTIONS.map((day) => (
-                <option key={day} value={day}>
-                  {day}
-                </option>
-              ))}
-            </select>
-            <select
-              value={birthMonth}
-              onChange={(event) => setBirthMonth(event.target.value)}
-              className="h-[45px] w-full rounded-[8px] border border-[#D7D4DC] bg-white px-3 text-[16px] font-semibold text-[#5D6494] focus:border-[#A1A5FD] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
-            >
-              <option value="">Mois</option>
-              {MONTH_OPTIONS.map((month) => (
-                <option key={month} value={month}>
-                  {month}
-                </option>
-              ))}
-            </select>
-            <select
-              value={birthYear}
-              onChange={(event) => setBirthYear(event.target.value)}
-              className="h-[45px] w-full rounded-[8px] border border-[#D7D4DC] bg-white px-3 text-[16px] font-semibold text-[#5D6494] focus:border-[#A1A5FD] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
-            >
-              <option value="">Année</option>
-              {BIRTH_YEAR_OPTIONS.map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <BirthDateField
+          birthDay={birthDay}
+          birthMonth={birthMonth}
+          birthYear={birthYear}
+          setBirthDay={setBirthDay}
+          setBirthMonth={setBirthMonth}
+          setBirthYear={setBirthYear}
+          touched={birthTouched}
+          setTouched={updateBirthTouched}
+          successMessage=""
+          initialBirthDay={initialBirthParts.birthDay}
+          initialBirthMonth={initialBirthParts.birthMonth}
+          initialBirthYear={initialBirthParts.birthYear}
+        />
 
-        <div>
-          <p className="mb-2 text-[14px] font-semibold text-[#3A416F]">Années de pratique</p>
-          <div className="flex flex-wrap gap-2">
-            {EXPERIENCE_OPTIONS.map((option) => {
-              const isSelected = experience === option;
-              return (
-                <button
-                  key={option}
-                  type="button"
-                  onClick={() => setExperience(isSelected ? "" : option)}
-                  className={clsx(
-                    "flex h-10 min-w-[70px] items-center justify-center rounded-[10px] border px-3 text-[14px] font-semibold transition",
-                    isSelected
-                      ? "border-[#7069FA] bg-[#7069FA] text-white"
-                      : "border-[#D7D4DC] bg-white text-[#5D6494] hover:border-[#A1A5FD]"
-                  )}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-        </div>
+        <ToggleField
+          label="Années de pratique"
+          value={experience}
+          options={Array.from(EXPERIENCE_OPTIONS)}
+          onChange={(option) => setExperience(option)}
+          touched={experienceTouched}
+          setTouched={() => setExperienceTouched(true)}
+          variant="boxed"
+        />
 
-        <div>
-          <label className="mb-2 block text-[14px] font-semibold text-[#3A416F]" htmlFor="main-goal">
-            Quel est votre objectif principal ?
-          </label>
-          <select
-            id="main-goal"
-            value={mainGoal}
-            onChange={(event) => setMainGoal(event.target.value)}
-            className="h-[45px] w-full rounded-[8px] border border-[#D7D4DC] bg-white px-3 text-[16px] font-semibold text-[#5D6494] focus:border-[#A1A5FD] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
-          >
-            <option value="">Sélectionnez un objectif</option>
-            {MAIN_GOALS.map((goal) => (
-              <option key={goal} value={goal}>
-                {goal}
-              </option>
-            ))}
-          </select>
-        </div>
+        <DropdownField
+          label="Quel est votre objectif principal ?"
+          selected={mainGoal}
+          onSelect={(option) => setMainGoal(option)}
+          options={Array.from(MAIN_GOALS).map((goal) => ({ value: goal, label: goal }))}
+          placeholder="Sélectionnez un objectif"
+          touched={mainGoalTouched}
+          setTouched={(value) => setMainGoalTouched(value)}
+        />
       </div>
 
-      <button
+      <CTAButton
         type="submit"
-        disabled={!isFormComplete}
-        className={`w-full rounded-full px-6 py-3 text-[16px] font-semibold transition ${
-          isFormComplete
-            ? "bg-[#7069FA] text-white hover:bg-[#6660E4]"
-            : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
-        }`}
+        loading={loading}
+        disabled={isSubmitDisabled}
+        variant={isSubmitDisabled ? "inactive" : "active"}
+        className="mt-6 w-[368px] justify-center font-bold"
+        loadingText="Enregistrement..."
       >
-        {loading ? "Enregistrement..." : "Enregistrer mes informations"}
-      </button>
+        Enregistrer mes informations
+      </CTAButton>
 
-      <Link href="/entrainements" className="text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]">
+      <Link
+        href="/entrainements"
+        className="mt-4 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
+      >
         Ignorer pour le moment
       </Link>
     </form>
