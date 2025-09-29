@@ -3,14 +3,20 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import clsx from 'clsx'
 import Spinner from '@/components/ui/Spinner'
 
 type Props = {
   /** Action custom si vous ne voulez pas utiliser /api/delete-account */
   onConfirm?: () => Promise<void>
+  /** Permet de personnaliser le bouton déclencheur */
+  triggerClassName?: string
 }
 
-export default function DeleteAccountButtonWithModal({ onConfirm }: Props) {
+const triggerBaseClasses =
+  'mx-auto block text-[14px] font-semibold text-[#EF4F4E] transition-colors hover:text-[#BA2524]'
+
+export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassName }: Props) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
