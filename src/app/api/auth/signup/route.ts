@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
           `Erreur ${mutation} abonnement`,
           subscriptionError
         );
+
         return NextResponse.json(
           { error: "Création de l'abonnement impossible." },
           { status: 400 }
