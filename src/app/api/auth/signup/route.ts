@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Formule d'abonnement invalide." }, { status: 400 });
     }
 
-    const supabasePlan = plan === "starter" ? "free" : "premium";
+    const supabasePlan = plan === "starter" ? "basic" : "premium";
 
     // 📝 Inscription Supabase
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
