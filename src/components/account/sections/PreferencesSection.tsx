@@ -10,7 +10,6 @@ export default function PreferencesSection() {
         Bientôt, vous pourrez personnaliser vos préférences depuis cette rubrique.
       </p>
         <DeleteAccountButtonWithModal />
-      </div>
     </AccountAccordionSection>
   )
 }
