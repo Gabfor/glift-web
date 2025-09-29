@@ -6,6 +6,7 @@ import MesInformationsSection from '@/components/account/sections/MesInformation
 import MotDePasseSection from '@/components/account/sections/MotDePasseSection'
 import AbonnementSection from '@/components/account/sections/AbonnementSection'
 import PreferencesSection from '@/components/account/sections/PreferencesSection'
+import DeleteAccountButtonWithModal from '@/components/DeleteAccountButtonWithModal'
 import { useEffect, useState } from 'react'
 
 export default function ComptePage() {
@@ -39,6 +40,8 @@ export default function ComptePage() {
             <PreferencesSection />
           </Accordion>
         </div>
+
+        <DeleteAccountButtonWithModal triggerClassName="mt-[60px]" />
       </div>
     </main>
   )
