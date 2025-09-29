@@ -1,18 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-import CTAButton from "@/components/CTAButton";
-import { EXPERIENCE_OPTIONS, GENDER_OPTIONS, MAIN_GOALS } from "@/components/account/constants";
-import BirthDateField from "@/components/account/fields/BirthDateField";
+import StepDots from "@/components/onboarding/StepDots";
+import Spinner from "@/components/ui/Spinner";
 import DropdownField from "@/components/account/fields/DropdownField";
 import ToggleField from "@/components/account/fields/ToggleField";
+import BirthDateField from "@/components/account/fields/BirthDateField";
+import FieldRow from "@/components/account/fields/FieldRow";
+import { useProfileSubmit } from "@/components/account/MesInformationsForm/hooks/useProfileSubmit";
 import { createClientComponentClient } from "@/lib/supabase/client";
 
-import StepIndicator from "../components/StepIndicator";
-import { getNextStepPath, getStepMetadata, parsePlan } from "../constants";
+import { getStepMetadata, parsePlan } from "../constants";
 
 type BirthDateParts = {
   birthDay: string;
@@ -20,19 +21,31 @@ type BirthDateParts = {
   birthYear: string;
 };
 
-type BirthTouchedState = {
-  birthDay: boolean;
-  birthMonth: boolean;
-  birthYear: boolean;
-};
+const GOALS = ["Perte de poids", "Prise de muscle", "Remise en forme", "Performance"];
+
+function buildBirthDate(day: string, month: string, year: string) {
+  return day && month && year ? `${year}-${month}-${day}` : "";
+}
+
+function cleanCamel(values: Record<string, unknown>) {
+  const result: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(values)) {
+    if (value === "" || value === undefined) continue;
+    result[key] = value;
+  }
+
+  return result;
+}
 
 const InformationsPage = () => {
-  const supabase = createClientComponentClient();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = createClientComponentClient();
+  const { submit, loading: hookLoading, error: hookError } = useProfileSubmit();
 
   const plan = parsePlan(searchParams.get("plan"));
-  const stepMetadata = getStepMetadata(plan, "profile");
+  const stepMetadata = plan ? getStepMetadata(plan, "profile") : null;
 
   const [gender, setGender] = useState("");
   const [birthDay, setBirthDay] = useState("");
@@ -40,28 +53,30 @@ const InformationsPage = () => {
   const [birthYear, setBirthYear] = useState("");
   const [experience, setExperience] = useState("");
   const [mainGoal, setMainGoal] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const [genderTouched, setGenderTouched] = useState(false);
-  const [experienceTouched, setExperienceTouched] = useState(false);
-  const [mainGoalTouched, setMainGoalTouched] = useState(false);
-  const [birthTouched, setBirthTouched] = useState<BirthTouchedState>({
-    birthDay: false,
-    birthMonth: false,
-    birthYear: false,
-  });
+  const [submitting, setSubmitting] = useState(false);
   const [initialBirthParts, setInitialBirthParts] = useState<BirthDateParts>({
     birthDay: "",
     birthMonth: "",
     birthYear: "",
   });
 
+  const [touched, setTouched] = useState({
+    gender: false,
+    birthDay: false,
+    birthMonth: false,
+    birthYear: false,
+    experience: false,
+    mainGoal: false,
+  });
+
   useEffect(() => {
+    let mounted = true;
+
     const fetchUserMetadata = async () => {
       const { data } = await supabase.auth.getUser();
-      const metadata = data?.user?.user_metadata as Record<string, unknown> | undefined;
+      if (!mounted) return;
 
+      const metadata = data?.user?.user_metadata as Record<string, unknown> | undefined;
       if (!metadata) return;
 
       if (typeof metadata.gender === "string") {
@@ -88,79 +103,102 @@ const InformationsPage = () => {
         setBirthDay(nextBirthParts.birthDay);
         setInitialBirthParts(nextBirthParts);
       }
+
+      setTouched({
+        gender: false,
+        birthDay: false,
+        birthMonth: false,
+        birthYear: false,
+        experience: false,
+        mainGoal: false,
+      });
     };
 
     void fetchUserMetadata();
-    setGenderTouched(false);
-    setExperienceTouched(false);
-    setMainGoalTouched(false);
-    setBirthTouched({
-      birthDay: false,
-      birthMonth: false,
-      birthYear: false,
-    });
+
+    return () => {
+      mounted = false;
+    };
   }, [supabase]);
 
-  const updateBirthTouched = (partial: Partial<BirthTouchedState>) => {
-    setBirthTouched((previous) => ({
-      ...previous,
-      ...partial,
-    }));
+  const markTouched = (key: keyof typeof touched) => {
+    setTouched((previous) => ({ ...previous, [key]: true }));
   };
 
-  const isFormComplete =
-    gender !== "" &&
-    birthDay !== "" &&
-    birthMonth !== "" &&
-    birthYear !== "" &&
-    experience !== "" &&
-    mainGoal !== "";
+  const isFormValid = Boolean(
+    gender && birthDay && birthMonth && birthYear && experience && mainGoal
+  );
 
-  const searchParamsString = searchParams.toString();
+  const genderSuccess = useMemo(() => {
+    if (!touched.gender || !gender) return "";
+    if (gender === "Homme") return "Men power !";
+    if (gender === "Femme") return "Women power !";
+    return "C'est noté.";
+  }, [gender, touched.gender]);
 
-  const nextStepPath = useMemo(() => {
-    if (!plan) {
-      return null;
+  const birthDateSuccess = useMemo(() => {
+    const anyTouched = touched.birthDay || touched.birthMonth || touched.birthYear;
+    if (anyTouched && birthDay && birthMonth && birthYear) {
+      return "Super, maintenant on connaît la date de ton anniversaire !";
     }
+    return "";
+  }, [birthDay, birthMonth, birthYear, touched.birthDay, touched.birthMonth, touched.birthYear]);
 
-    const params = new URLSearchParams(searchParamsString);
-    return getNextStepPath(plan, "profile", params);
-  }, [plan, searchParamsString]);
+  const experienceSuccess = useMemo(() => {
+    if (!touched.experience || !experience) return "";
+    return "Merci, on va passer les prochaines années ensemble !";
+  }, [experience, touched.experience]);
+
+  const mainGoalSuccess = useMemo(() => {
+    if (!touched.mainGoal || !mainGoal) return "";
+    return "C’est un bel objectif, let’s go !";
+  }, [mainGoal, touched.mainGoal]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (hookLoading || submitting || !isFormValid) return;
 
-    if (!isFormComplete || loading || !nextStepPath) {
-      return;
-    }
+    setSubmitting(true);
+    console.log("[onboarding] handleSubmit: START");
 
-    setError(null);
-    setLoading(true);
+    const birthDate = buildBirthDate(birthDay, birthMonth, birthYear);
+    const camelValues = { birthDate, gender, experience, mainGoal };
+    const valuesForDb = cleanCamel(camelValues);
+    console.log("[onboarding] valuesForDb =", valuesForDb);
 
-    const formattedBirthDate = `${birthYear}-${birthMonth}-${birthDay}`;
+    const startedAt = Date.now();
+    const progress = setInterval(() => {
+      const seconds = Math.floor((Date.now() - startedAt) / 1000);
+      console.log(
+        `[onboarding/submit] en cours... ${seconds}s écoulées | gender=${
+          gender || "(vide)"
+        } | birth=${birthDate || "(vide)"} | exp=${experience || "(vide)"} | goal=${
+          mainGoal || "(vide)"
+        }`
+      );
+    }, 5000);
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          gender,
-          birth_date: formattedBirthDate,
-          experience_years: experience,
-          main_goal: mainGoal,
-        },
+      const ok = await submit({
+        values: valuesForDb,
+        applyInitials: () => console.log("[onboarding] applyInitials called"),
+        onAfterPersist: () => {},
+        debugLabel: "onboarding",
+        returnRow: false,
       });
 
-      if (updateError) {
-        setError(updateError.message || "Impossible d'enregistrer vos informations.");
-        setLoading(false);
-        return;
-      }
+      console.log(`[onboarding] submit() resolved, success = ${ok}`);
 
-      router.refresh();
-      router.push(nextStepPath);
-    } catch (submitError) {
-      console.error(submitError);
-      setError("Une erreur est survenue lors de l'enregistrement.");
-      setLoading(false);
+      if (ok) {
+        console.log("[onboarding] navigation vers /entrainements");
+        router.push("/entrainements");
+      }
+    } catch (err) {
+      console.error("[onboarding] submit() erreur inattendue:", err);
+    } finally {
+      clearInterval(progress);
+      setSubmitting(false);
+      console.log("[onboarding] handleSubmit: END");
     }
   };
 
@@ -184,93 +222,157 @@ const InformationsPage = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[60px]">
-      <div className="w-full max-w-3xl flex flex-col items-center">
-        <h1 className="text-center text-[26px] sm:text-[30px] font-bold text-[#2E3271]">{stepMetadata.title}</h1>
-        <p className="mt-2 text-center text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
-          {stepMetadata.subtitle}
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px] flex flex-col items-center">
+      <div className="w-full max-w-[760px] text-center">
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Bienvenue&nbsp;!</h1>
+        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
+          Nous sommes ravis de vous compter parmi nous.
+          <br />
+          Vous pouvez dès à présent créer votre première entraînement.
         </p>
+        <StepDots
+          className="mt-4 mb-6"
+          totalSteps={stepMetadata.totalSteps}
+          currentStep={stepMetadata.currentStep}
+        />
+      </div>
 
-        <StepIndicator totalSteps={stepMetadata.totalSteps} currentStep={stepMetadata.currentStep} />
+      <div className="w-[564px] max-w-full mb-6">
+        <div className="relative bg-[#F4F5FE] rounded-[5px] px-5 py-3 text-left">
+          <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A1A5FD] rounded-l-[5px]" />
+          <p className="text-[#7069FA] font-bold text-[12px] mb-1">Complétez votre profil</p>
+          <p className="text-[#A1A5FD] font-semibold text-[12px] leading-relaxed">
+            Personnalisez votre expérience avec Glift et aidez-nous à mieux vous connaître en répondant aux 4 questions ci-dessous.
+          </p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="mt-10 mx-auto flex w-full max-w-[420px] flex-col items-center">
-          <div className="w-[368px] rounded-[16px] bg-[#F4F3FF] px-6 py-5 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
-            <p className="text-[15px] font-semibold text-[#3A416F]">
-              Complétez votre profil et aidez-nous à mieux vous connaître en répondant aux 4 questions ci-dessous.
-            </p>
-          </div>
+      {hookError && (
+        <p className="w-[368px] text-[#EF4444] text-[13px] font-medium mb-2 text-left" role="alert">
+          {hookError}
+        </p>
+      )}
 
-          {error && (
-            <p className="mt-4 w-[368px] text-left text-[13px] font-semibold text-[#EF4444]">
-              {error}
-            </p>
-          )}
+      <form className="w-[368px] max-w-full" onSubmit={handleSubmit}>
+        <FieldRow show={false}>
+          <ToggleField
+            label="Sexe"
+            value={gender}
+            options={["Homme", "Femme", "Non binaire"]}
+            onChange={(value) => {
+              setGender(gender === value ? "" : value);
+              markTouched("gender");
+            }}
+            touched={touched.gender}
+            setTouched={() => markTouched("gender")}
+            success={genderSuccess}
+          />
+        </FieldRow>
 
-          <div className="mt-6 flex w-full flex-col items-center gap-5">
-            <ToggleField
-              label="Sexe"
-              value={gender}
-              options={Array.from(GENDER_OPTIONS)}
-              onChange={(option) => setGender(option)}
-              touched={genderTouched}
-              setTouched={() => setGenderTouched(true)}
-            />
+        <FieldRow show={false}>
+          <BirthDateField
+            birthDay={birthDay}
+            birthMonth={birthMonth}
+            birthYear={birthYear}
+            setBirthDay={(value) => {
+              setBirthDay(value);
+              markTouched("birthDay");
+            }}
+            setBirthMonth={(value) => {
+              setBirthMonth(value);
+              markTouched("birthMonth");
+            }}
+            setBirthYear={(value) => {
+              setBirthYear(value);
+              markTouched("birthYear");
+            }}
+            touched={{
+              birthDay: touched.birthDay,
+              birthMonth: touched.birthMonth,
+              birthYear: touched.birthYear,
+            }}
+            setTouched={(partial) => {
+              if (partial.birthDay !== undefined) markTouched("birthDay");
+              if (partial.birthMonth !== undefined) markTouched("birthMonth");
+              if (partial.birthYear !== undefined) markTouched("birthYear");
+            }}
+            successMessage={birthDateSuccess}
+            initialBirthDay={initialBirthParts.birthDay}
+            initialBirthMonth={initialBirthParts.birthMonth}
+            initialBirthYear={initialBirthParts.birthYear}
+          />
+        </FieldRow>
 
-            <BirthDateField
-              birthDay={birthDay}
-              birthMonth={birthMonth}
-              birthYear={birthYear}
-              setBirthDay={setBirthDay}
-              setBirthMonth={setBirthMonth}
-              setBirthYear={setBirthYear}
-              touched={birthTouched}
-              setTouched={updateBirthTouched}
-              successMessage=""
-              initialBirthDay={initialBirthParts.birthDay}
-              initialBirthMonth={initialBirthParts.birthMonth}
-              initialBirthYear={initialBirthParts.birthYear}
-            />
+        <FieldRow show={false}>
+          <ToggleField
+            label="Années de pratique"
+            value={experience}
+            options={["0", "1", "2", "3", "4", "5+"]}
+            onChange={(value) => {
+              setExperience(experience === value ? "" : value);
+              markTouched("experience");
+            }}
+            touched={touched.experience}
+            setTouched={() => markTouched("experience")}
+            success={experienceSuccess}
+            variant="boxed"
+            className="w-[368px]"
+            itemClassName="w-[53px] h-[45px]"
+          />
+        </FieldRow>
 
-            <ToggleField
-              label="Années de pratique"
-              value={experience}
-              options={Array.from(EXPERIENCE_OPTIONS)}
-              onChange={(option) => setExperience(option)}
-              touched={experienceTouched}
-              setTouched={() => setExperienceTouched(true)}
-              variant="boxed"
-            />
+        <FieldRow show={false}>
+          <DropdownField
+            label="Quel est votre objectif principal ?"
+            placeholder="Sélectionnez un objectif"
+            selected={mainGoal}
+            onSelect={(value) => {
+              setMainGoal(value);
+              markTouched("mainGoal");
+            }}
+            options={GOALS.map((value) => ({ value, label: value }))}
+            touched={touched.mainGoal}
+            setTouched={(value) => value && markTouched("mainGoal")}
+            success={mainGoalSuccess}
+          />
+        </FieldRow>
 
-            <DropdownField
-              label="Quel est votre objectif principal ?"
-              selected={mainGoal}
-              onSelect={(option) => setMainGoal(option)}
-              options={Array.from(MAIN_GOALS).map((goal) => ({ value: goal, label: goal }))}
-              placeholder="Sélectionnez un objectif"
-              touched={mainGoalTouched}
-              setTouched={(value) => setMainGoalTouched(value)}
-            />
-          </div>
-
-          <CTAButton
+        <div className="mt-5 flex flex-col items-center">
+          <button
             type="submit"
-            loading={loading}
-            disabled={!isFormComplete}
-            variant={!isFormComplete ? "inactive" : "active"}
-            className="mt-6 w-[368px] justify-center font-bold"
-            loadingText="Enregistrement..."
+            aria-busy={hookLoading || submitting}
+            aria-disabled={hookLoading || submitting}
+            disabled={!isFormValid && !(hookLoading || submitting)}
+            className={`inline-flex h-[44px] items-center justify-center rounded-[25px] px-[15px] text-[16px] font-bold ${
+              hookLoading || submitting
+                ? "bg-[#7069FA] text-white opacity-100 cursor-wait pointer-events-none"
+                : !isFormValid
+                ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
+                : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
+            }`}
           >
-            Enregistrer mes informations
-          </CTAButton>
+            {hookLoading || submitting ? (
+              <span className="inline-flex items-center gap-2">
+                <Spinner size="md" ariaLabel="En cours" />
+                En cours...
+              </span>
+            ) : (
+              "Enregistrer mes informations"
+            )}
+          </button>
 
-          <Link
-            href="/entrainements"
-            className="mt-4 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
+          <button
+            type="button"
+            onClick={() => {
+              console.log("[onboarding] clic 'Ignorer pour le moment' → /entrainements");
+              router.push("/entrainements");
+            }}
+            className="mt-5 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
           >
             Ignorer pour le moment
-          </Link>
-        </form>
-      </div>
+          </button>
+        </div>
+      </form>
     </main>
   );
 };
