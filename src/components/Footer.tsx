@@ -1,11 +1,11 @@
 "use client";
 
-import { useUser } from "@supabase/auth-helpers-react";
+import { useUser } from "@/context/UserContext";
 import FooterPublic from "./FooterPublic";
 import FooterLogged from "./FooterLogged";
 
 export default function Footer() {
-  const user = useUser();
+  const { isAuthenticated } = useUser();
 
-  return user ? <FooterLogged /> : <FooterPublic />;
+  return isAuthenticated ? <FooterLogged /> : <FooterPublic />;
 }
