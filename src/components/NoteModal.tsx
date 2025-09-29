@@ -1,7 +1,6 @@
-import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import ReactDOM from "react-dom";
 import CTAButton from "@/components/CTAButton";
+import Modal from "@/components/ui/Modal";
 
 interface NoteModalProps {
   initialNote: string;
@@ -12,7 +11,6 @@ interface NoteModalProps {
 export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteModalProps) {
   const [note, setNote] = useState(initialNote);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [hoveredClose, setHoveredClose] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -20,39 +18,14 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
     }, 0);
   }, []);
 
-  return ReactDOM.createPortal(
-    <div className="fixed inset-0 bg-[#2E3142] bg-opacity-60 z-50 flex items-center justify-center">
-      <div className="relative bg-white p-8 rounded-[5px] w-[564px] shadow-lg">
-        {/* Bouton de fermeture */}
-        <button
-          onClick={onCancel}
-          onMouseEnter={() => setHoveredClose(true)}
-          onMouseLeave={() => setHoveredClose(false)}
-          className="absolute top-4 right-4 w-6 h-6"
-        >
-          <Image
-            src={hoveredClose ? "/icons/close_hover.svg" : "/icons/close.svg"}
-            alt="Fermer"
-            width={24}
-            height={24}
-            className="w-full h-full"
-          />
-        </button>
+  const title = initialNote.trim() ? "Modifier la note" : "Ajouter une note";
 
-        <h2 className="text-xl text-[#3A416F] text-[22px] font-bold mb-4 text-center">{initialNote.trim() ? "Modifier la note" : "Ajouter une note"}</h2>
-
-        <div className="mb-6">
-          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">Note</label>
-          <textarea
-            ref={textareaRef}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Ajoutez votre note ici"
-            rows={4}
-            className="w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[12px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-none"
-          />
-        </div>
-
+  return (
+    <Modal
+      open
+      title={title}
+      onClose={onCancel}
+      footer={
         <div className="flex justify-center gap-3">
           {initialNote ? (
             <button
@@ -73,8 +46,19 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
             Enregistrer
           </CTAButton>
         </div>
+      }
+    >
+      <div className="mb-6">
+        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">Note</label>
+        <textarea
+          ref={textareaRef}
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Ajoutez votre note ici"
+          rows={4}
+          className="w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[12px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-none"
+        />
       </div>
-    </div>,
-    document.body
+    </Modal>
   );
 }
