@@ -44,7 +44,8 @@ const InformationsPage = () => {
   const supabase = createClientComponentClient();
   const { submit, loading: hookLoading, error: hookError } = useProfileSubmit();
 
-  const plan = parsePlan(searchParams.get("plan"));
+  const planParam = searchParams?.get("plan") ?? null;
+  const plan = parsePlan(planParam);
   const stepMetadata = plan ? getStepMetadata(plan, "profile") : null;
 
   const [gender, setGender] = useState("");
