@@ -20,28 +20,31 @@ const PaymentPage = () => {
   const pathname = usePathname() ?? "/inscription/paiement";
   const searchParams = useSearchParams();
 
-  const plan = parsePlan(searchParams.get("plan"));
+  const planParam = searchParams?.get("plan") ?? null;
+  const plan = parsePlan(planParam);
   const stepMetadata = plan ? getStepMetadata(plan, "payment") : null;
 
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false);
 
+  const trialEndParam = searchParams?.get("trialEnd") ?? null;
+
   const trialEndLabel = useMemo(() => {
-    const explicit = searchParams.get("trialEnd");
+    const explicit = trialEndParam;
     if (explicit) return explicit;
 
     const now = new Date();
     now.setDate(now.getDate() + 14);
     return formatFr(now);
-  }, [searchParams]);
+  }, [trialEndParam]);
 
-  const priceLabel = searchParams.get("price") ?? "2,49 €/mois";
+  const priceLabel = searchParams?.get("price") ?? "2,49 €/mois";
 
   const handleContinue = async () => {
     if (!accepted) return;
     setLoading(true);
     try {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
       const destination = nextStepPath(pathname, params);
       router.push(destination);
     } finally {

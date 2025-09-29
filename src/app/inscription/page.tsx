@@ -16,7 +16,8 @@ const AccountCreationPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const plan = parsePlan(searchParams.get("plan"));
+  const planParam = searchParams?.get("plan") ?? null;
+  const plan = parsePlan(planParam);
   const stepMetadata = getStepMetadata(plan, "account");
 
   const [accepted, setAccepted] = useState(false);
@@ -57,7 +58,7 @@ const AccountCreationPage = () => {
 
   const isFormValid = accepted && isPrenomFieldValid && isEmailValidFormat && isPasswordValidFormat && !loading;
 
-  const searchParamsString = searchParams.toString();
+  const searchParamsString = searchParams?.toString() ?? "";
 
   const nextStepPath = useMemo(() => {
     if (!plan) {
