@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import AdminHeader from "@/components/AdminHeader";
 import { Quicksand } from "next/font/google";
+import { ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { createServerClient } from "@/lib/supabaseServer";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -14,15 +17,28 @@ export const metadata: Metadata = {
   manifest: "/favicons/admin/manifest.webmanifest",
   icons: {
     icon: "/favicons/admin/favicon-32x32.png",
-    apple: "/favicons/admin/apple-touch-icon.png"
-  }
+    apple: "/favicons/admin/apple-touch-icon.png",
+  },
 };
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
+  const supabase = await createServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/connexion");
+  }
+
+  if (!user.user_metadata?.is_admin) {
+    redirect("/");
+  }
+
   return (
     <div className={quicksand.className}>
       <AdminHeader />
