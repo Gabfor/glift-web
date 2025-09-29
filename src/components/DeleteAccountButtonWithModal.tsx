@@ -71,7 +71,7 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={clsx(triggerBaseClasses, triggerClassName ?? 'mt-[50px]')}
+        className="mt-[50px] mx-auto block text-[14px] font-semibold text-[#EF4F4E] transition-colors hover:text-[#BA2524]"
       >
         Supprimer mon compte
       </button>
