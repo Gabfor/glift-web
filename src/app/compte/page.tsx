@@ -20,8 +20,6 @@ export default function ComptePage() {
     }
   }, [])
 
-  if (!user) return null
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
