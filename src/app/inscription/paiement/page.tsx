@@ -1,7 +1,6 @@
 "use client";
 
-/* eslint-disable @next/next/no-img-element */
-
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -114,17 +113,21 @@ const PaymentPage = () => {
               onChange={(event) => setAccepted(event.target.checked)}
               className="peer sr-only"
             />
-            <img
+            <Image
               src="/icons/checkbox_unchecked.svg"
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
+              fill
+              sizes="15px"
+              className="peer-checked:hidden object-contain"
             />
-            <img
+            <Image
               src="/icons/checkbox_checked.svg"
               alt=""
               aria-hidden="true"
-              className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
+              fill
+              sizes="15px"
+              className="hidden peer-checked:block object-contain"
             />
           </div>
           <span className="leading-relaxed">
@@ -150,16 +153,16 @@ const PaymentPage = () => {
             ) : (
               <>
                 Démarrer mon abonnement
-                <img src={arrowIcon} alt="" aria-hidden="true" className="w-[25px] h-[25px] ml-1" />
+                <Image src={arrowIcon} alt="" aria-hidden="true" width={25} height={25} className="ml-1" />
               </>
             )}
           </button>
         </div>
 
         <div className="mt-5 flex items-center justify-center gap-2 text-[12px] font-semibold text-[#5D6494]">
-          <img src="/icons/cadena_stripe.svg" alt="Sécurisé" className="h-[16px] w-auto mt-[-3px]" />
+          <Image src="/icons/cadena_stripe.svg" alt="Sécurisé" width={16} height={16} className="mt-[-3px]" />
           <span>Paiement 100% sécurisé par</span>
-          <img src="/icons/logo_stripe.svg" alt="Stripe" className="h-[16px] w-auto ml-[-3px]" />
+          <Image src="/icons/logo_stripe.svg" alt="Stripe" width={16} height={16} className="ml-[-3px]" />
         </div>
       </div>
     </main>
