@@ -61,29 +61,42 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const { error: subscriptionError } = await supabaseAdmin
+      const {
+        data: existingSubscription,
+        error: subscriptionLookupError,
+      } = await supabaseAdmin
         .from("user_subscriptions")
-        .upsert(
-          {
-            user_id: userId,
-            plan,
-          },
-          { onConflict: "user_id" }
+        .select("user_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      if (subscriptionLookupError) {
+        console.error(
+          "Lecture de l'abonnement impossible",
+          subscriptionLookupError
         );
-  if (userId) {
-    const supabaseAdmin = createAdminClient();
-    const { error: subscriptionError } = await supabaseAdmin
-      .from("user_subscriptions")
-      .upsert(
-        {
-          user_id: userId,
-          plan,
-        },
-        { onConflict: "user_id" }
-      );
+        return NextResponse.json(
+          { error: "Création de l'abonnement impossible." },
+          { status: 400 }
+        );
+      }
+
+      const mutation = existingSubscription ? "update" : "insert";
+      const { error: subscriptionError } = existingSubscription
+        ? await supabaseAdmin
+            .from("user_subscriptions")
+            .update({ plan })
+            .eq("user_id", userId)
+        : await supabaseAdmin
+            .from("user_subscriptions")
+            .insert({ user_id: userId, plan });
 
       if (subscriptionError) {
-        console.error("Erreur enregistrement abonnement", subscriptionError);
+        console.error(
+          `Erreur ${mutation} abonnement`,
+          subscriptionError
+        );
+
         return NextResponse.json(
           { error: "Création de l'abonnement impossible." },
           { status: 400 }
