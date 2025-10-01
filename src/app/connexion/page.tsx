@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
+import Spinner from "@/components/ui/Spinner";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -163,12 +164,18 @@ export default function ConnexionPage() {
               type="submit"
               disabled={!isFormValid || loading}
               className={`w-full max-w-[160px] h-[44px] rounded-[25px] text-[16px] font-bold text-center transition flex items-center justify-center gap-2
-                ${isFormValid && !loading
-                  ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
-                  : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"}`}
+                ${isFormValid ? "bg-[#7069FA] text-white" : "bg-[#ECE9F1] text-[#D7D4DC]"}
+                ${isFormValid && !loading ? "hover:bg-[#6660E4] cursor-pointer" : "cursor-not-allowed"}`}
             >
               {loading ? (
-                <span className="text-[15px]">En cours...</span>
+                <span className="inline-flex items-center gap-2 text-[15px]">
+                  <Spinner
+                    size="sm"
+                    className="text-white"
+                    ariaLabel="Connexion en cours"
+                  />
+                  En cours
+                </span>
               ) : (
                 <>
                   <Image
