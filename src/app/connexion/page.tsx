@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import Spinner from "@/components/ui/Spinner";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -16,7 +17,10 @@ export default function ConnexionPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<
+    | { type: "invalid-email" | "invalid-credentials" | "generic"; title: string; description?: string }
+    | null
+  >(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -25,6 +29,7 @@ export default function ConnexionPage() {
   const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const shouldShowEmailError =
     emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
+  const showEmailFieldError = shouldShowEmailError || error?.type === "invalid-email";
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
@@ -33,10 +38,13 @@ export default function ConnexionPage() {
     if (loading) {
       return;
     }
-    setError("");
+    if (!isEmailValidFormat) {
+      setEmailTouched(true);
+      setError({ type: "invalid-email", title: "Format d’adresse invalide" });
+      return;
+    }
+    setError(null);
     setLoading(true);
-
-    let shouldKeepLoading = false;
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -44,28 +52,31 @@ export default function ConnexionPage() {
         password,
       });
 
-    if (data?.session) {
-      await supabase.auth.setSession(data.session);
-      router.push("/entrainements");
-      router.refresh();
-      return;
-    }
-
       if (!error) {
+        if (data?.session) {
+          await supabase.auth.setSession(data.session);
+        }
         router.push("/entrainements");
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
-        setError("Email ou mot de passe incorrect.");
+        setError({
+          type: "invalid-credentials",
+          title: "Email ou mot de passe incorrect.",
+        });
       } else {
-        setError("Une erreur est survenue.");
+        setError({
+          type: "generic",
+          title: "Une erreur est survenue.",
+        });
       }
     } catch (unknownError) {
       console.error("Erreur lors de la connexion", unknownError);
-      setError("Une erreur est survenue.");
+      setError({
+        type: "generic",
+        title: "Une erreur est survenue.",
+      });
     } finally {
-      if (!shouldKeepLoading) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
@@ -77,12 +88,16 @@ export default function ConnexionPage() {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
-        <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+      <div className="w-full max-w-[564px] flex flex-col items-center px-4 sm:px-0">
+        <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
           Connexion
         </h1>
 
-        <form className="flex flex-col items-center w-full" onSubmit={handleLogin}>
+        <form className="flex flex-col items-start w-full gap-6" onSubmit={handleLogin}>
+          {error ? (
+            <ErrorMessage title={error.title} description={error.description} />
+          ) : null}
+
           {/* Email */}
           <div className="w-full max-w-[368px]">
             <label htmlFor="email" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
@@ -94,22 +109,27 @@ export default function ConnexionPage() {
               type="email"
               placeholder="john.doe@email.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error?.type === "invalid-email") {
+                  setError(null);
+                }
+              }}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => {
                 setEmailFocused(false);
                 setEmailTouched(true);
+                if (!isEmailValidFormat && email.trim() !== "") {
+                  setError({ type: "invalid-email", title: "Format d’adresse invalide" });
+                } else if (error?.type === "invalid-email") {
+                  setError(null);
+                }
               }}
               className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150
-              ${shouldShowEmailError
+              ${showEmailFieldError
                 ? "border border-[#EF4444]"
                 : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"}`}
             />
-            <div className="h-[20px] mt-[5px] text-[13px] font-medium">
-              {shouldShowEmailError && (
-                <p className="text-[#EF4444]">Format d’adresse invalide</p>
-              )}
-            </div>
           </div>
 
           {/* Mot de passe */}
@@ -129,7 +149,12 @@ export default function ConnexionPage() {
               type={showPassword ? "text" : "password"}
               placeholder="Mot de passe"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error && error.type !== "invalid-email") {
+                  setError(null);
+                }
+              }}
               className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
             />
             <button
@@ -158,11 +183,6 @@ export default function ConnexionPage() {
               Je veux rester connecté.
             </label>
           </div>
-
-          {/* Message d'erreur */}
-          {error && (
-            <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">{error}</p>
-          )}
 
           {/* Bouton Se connecter */}
           <div className="w-full flex justify-center">
