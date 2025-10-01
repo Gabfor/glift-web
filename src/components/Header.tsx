@@ -11,10 +11,11 @@ import CTAButton from "@/components/CTAButton";
 export default function Header() {
   const pathname = usePathname();
   const supabase = createClientComponentClient();
-  const { user, isAuthenticated } = useUser();
+  const { user, isAuthenticated, isLoading } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const showAuthenticatedUI = isAuthenticated && !isLoading;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -48,7 +49,7 @@ export default function Header() {
       <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
-          <Link href={isAuthenticated ? "/dashboard" : "/"} className="flex items-center">
+          <Link href={showAuthenticatedUI ? "/dashboard" : "/"} className="flex items-center">
             <Image
               src="/logo_beta.svg"
               alt="Logo Glift"
@@ -61,7 +62,7 @@ export default function Header() {
 
         {/* Menu centré */}
         <nav className="hidden md:flex gap-6 text-[16px] text-[#5D6494] font-semibold h-[44px] items-center absolute left-1/2 transform -translate-x-1/2">
-          {isAuthenticated ? (
+          {showAuthenticatedUI ? (
             <>
               <Link
                 href="/dashboard"
@@ -200,7 +201,7 @@ export default function Header() {
 
         {/* User Zone */}
         <div className="relative ml-[18px]" ref={dropdownRef}>
-          {isAuthenticated ? (
+          {showAuthenticatedUI ? (
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
