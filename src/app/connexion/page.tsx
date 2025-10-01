@@ -44,12 +44,12 @@ export default function ConnexionPage() {
         password,
       });
 
-      if (data?.session) {
-        shouldKeepLoading = true;
-        // ✅ Redirection pour déclencher le middleware Supabase
-        window.location.href = "/auth/callback";
-        return;
-      }
+    if (data?.session) {
+      await supabase.auth.setSession(data.session);
+      router.push("/entrainements");
+      router.refresh();
+      return;
+    }
 
       if (!error) {
         router.push("/entrainements");
