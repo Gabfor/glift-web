@@ -15,19 +15,19 @@ export default function ErrorMessage({
   return (
     <div
       className={clsx(
-        "w-full max-w-[564px] rounded-[5px] border-r-[3px] px-4 py-3 text-left",
+        "w-full max-w-[564px] px-4 py-3 text-left border-l-[3px] rounded-tr-[5px] rounded-br-[5px]",
         className
       )}
       style={{
         backgroundColor: "#FFE3E3",
-        borderRightColor: "#EF4F4E",
+        borderLeftColor: "#EF4F4E",
       }}
     >
       <div className="text-[12px] font-bold" style={{ color: "#BA2524" }}>
         {title}
       </div>
       {description ? (
-        <div className="text-[12px] font-semibold" style={{ color: "#EF4F4E" }}>
+        <div className="text-[12px] font-semibold mt-1" style={{ color: "#EF4F4E" }}>
           {description}
         </div>
       ) : null}

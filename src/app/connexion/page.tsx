@@ -18,7 +18,11 @@ export default function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<
-    | { type: "invalid-credentials" | "generic"; title: string; description?: string }
+    | {
+        type: "invalid-email" | "invalid-credentials" | "generic";
+        title: string;
+        description?: string;
+      }
     | null
   >(null);
   const [loading, setLoading] = useState(false);
@@ -29,20 +33,21 @@ export default function ConnexionPage() {
   const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const shouldShowEmailError =
     emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
-  const showEmailFieldError = shouldShowEmailError;
+  const showEmailFieldError =
+    shouldShowEmailError || error?.type === "invalid-email";
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) {
-      return;
-    }
+    if (loading) return;
+
     if (!isEmailValidFormat) {
       setEmailTouched(true);
-      setEmailFocused(false);
+      setError({ type: "invalid-email", title: "Format d’adresse invalide" });
       return;
     }
+
     setError(null);
     setLoading(true);
 
@@ -61,16 +66,14 @@ export default function ConnexionPage() {
       } else if (error.message === "Invalid login credentials") {
         setError({
           type: "invalid-credentials",
-          title: "Email ou mot de passe incorrect.",
+          title: "Adresse email ou mot de passe incorrect",
           description:
-            "Vérifiez vos identifiants ou lancez une réinitialisation de mot de passe.",
+            "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
       } else {
         setError({
           type: "generic",
           title: "Une erreur est survenue.",
-          description:
-            "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
         });
       }
     } catch (unknownError) {
@@ -78,8 +81,6 @@ export default function ConnexionPage() {
       setError({
         type: "generic",
         title: "Une erreur est survenue.",
-        description:
-          "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
       });
     } finally {
       setLoading(false);
@@ -89,102 +90,130 @@ export default function ConnexionPage() {
   const buttonStateClasses = loading
     ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
     : isFormValid
-      ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
-      : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed";
+    ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
+    : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed";
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full max-w-[564px] flex flex-col items-center px-4 sm:px-0">
+      <div className="w-full max-w-[564px] flex flex-col items-center">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
           Connexion
         </h1>
 
-        <form className="flex flex-col items-start w-full gap-6" onSubmit={handleLogin}>
+        <form className="flex flex-col w-full gap-6" onSubmit={handleLogin}>
           {error ? (
             <ErrorMessage title={error.title} description={error.description} />
           ) : null}
 
           {/* Email */}
-          <div className="w-full max-w-[368px]">
-            <label htmlFor="email" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="john.doe@email.com"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => {
-                setEmailFocused(false);
-                setEmailTouched(true);
-              }}
-              className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150
-              ${showEmailFieldError
-                ? "border border-[#EF4444]"
-                : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"}`}
-            />
-            {showEmailFieldError ? (
-              <p className="text-[12px] text-[#EF4444] font-medium mt-2">
-                Format d’adresse invalide. Assurez-vous de saisir une adresse complète au format nom@domaine.ext.
-              </p>
-            ) : null}
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-[368px]">
+              <label
+                htmlFor="email"
+                className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="john.doe@email.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error?.type === "invalid-email") {
+                    setError(null);
+                  }
+                }}
+                onFocus={() => setEmailFocused(true)}
+                onBlur={() => {
+                  setEmailFocused(false);
+                  setEmailTouched(true);
+                  if (!isEmailValidFormat && email.trim() !== "") {
+                    setError({
+                      type: "invalid-email",
+                      title: "Format d’adresse invalide",
+                    });
+                  } else if (error?.type === "invalid-email") {
+                    setError(null);
+                  }
+                }}
+                className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150
+                ${
+                  showEmailFieldError
+                    ? "border border-[#EF4444]"
+                    : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
+                }`}
+              />
+            </div>
           </div>
 
           {/* Mot de passe */}
-          <div className="w-full max-w-[368px] mb-[20px] relative">
-            <label htmlFor="password" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
-              Mot de passe
-              <Link
-                href="/mot-de-passe-oublie"
-                className="float-right text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-[368px] relative">
+              <label
+                htmlFor="password"
+                className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
               >
-                Mot de passe oublié ?
-              </Link>
-            </label>
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Mot de passe"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) {
-                  setError(null);
-                }
-              }}
-              className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-[39px] cursor-pointer"
-            >
-              <Image
-                src={showPassword ? "/icons/masque_defaut.svg" : "/icons/visible_defaut.svg"}
-                alt={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
-                width={25}
-                height={25}
+                Mot de passe
+                <Link
+                  href="/mot-de-passe-oublie"
+                  className="float-right text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </label>
+              <input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Mot de passe"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error && error.type !== "invalid-email") {
+                    setError(null);
+                  }
+                }}
+                className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
               />
-            </button>
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-[39px] cursor-pointer"
+              >
+                <Image
+                  src={
+                    showPassword
+                      ? "/icons/masque_defaut.svg"
+                      : "/icons/visible_defaut.svg"
+                  }
+                  alt={
+                    showPassword
+                      ? "Masquer le mot de passe"
+                      : "Afficher le mot de passe"
+                  }
+                  width={25}
+                  height={25}
+                />
+              </button>
+            </div>
           </div>
 
           {/* Checkbox */}
-          <div className="max-w-[368px] mb-[20px] w-full">
-            <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
-              <IconCheckbox
-                name="remember"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                size={15}
-              />
-              Je veux rester connecté.
-            </label>
+          <div className="w-full flex justify-center">
+            <div className="w-full max-w-[368px] mb-[10px]">
+              <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
+                <IconCheckbox
+                  name="remember"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  size={15}
+                />
+                Je veux rester connecté.
+              </label>
+            </div>
           </div>
 
           {/* Bouton Se connecter */}
@@ -206,7 +235,9 @@ export default function ConnexionPage() {
                     alt="Icône cadenas"
                     width={20}
                     height={20}
-                    className={`transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
+                    className={`transition-colors ${
+                      isFormValid ? "invert brightness-0" : ""
+                    }`}
                   />
                   Se connecter
                 </>
