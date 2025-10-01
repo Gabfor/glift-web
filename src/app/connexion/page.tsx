@@ -18,18 +18,29 @@ export default function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<
-    | { type: "invalid-credentials" | "generic"; title: string; description?: string }
+    | {
+        type: "invalid-credentials" | "generic";
+        title: string;
+        description?: string;
+      }
     | null
   >(null);
+  const [emailSubmissionError, setEmailSubmissionError] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const supabase = createClientComponentClient();
 
+  const EMAIL_FORMAT_ERROR_MESSAGE =
+    "Format d’adresse invalide. Assurez-vous de saisir une adresse complète au format nom@domaine.ext.";
+  const GENERIC_ERROR_DESCRIPTION =
+    "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.";
+
   const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const shouldShowEmailError =
     emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
-  const showEmailFieldError = shouldShowEmailError;
+  const showEmailFieldError =
+    shouldShowEmailError || (emailSubmissionError && email.trim() !== "");
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
@@ -38,9 +49,11 @@ export default function ConnexionPage() {
     if (loading) {
       return;
     }
+    setEmailSubmissionError(false);
     if (!isEmailValidFormat) {
       setEmailTouched(true);
       setEmailFocused(false);
+      setEmailSubmissionError(true);
       return;
     }
     setError(null);
@@ -58,6 +71,7 @@ export default function ConnexionPage() {
         }
         router.push("/entrainements");
         router.refresh();
+        setEmailSubmissionError(false);
       } else if (error.message === "Invalid login credentials") {
         setError({
           type: "invalid-credentials",
@@ -65,22 +79,31 @@ export default function ConnexionPage() {
           description:
             "Vérifiez vos identifiants ou lancez une réinitialisation de mot de passe.",
         });
+        setEmailSubmissionError(false);
+      } else if (
+        error.message === "Format d’adresse invalide" ||
+        error.message === "Format d'adresse invalide"
+      ) {
+        setEmailTouched(true);
+        setEmailFocused(false);
+        setEmailSubmissionError(true);
+        setError(null);
       } else {
         setError({
           type: "generic",
           title: "Une erreur est survenue.",
-          description:
-            "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
+          description: GENERIC_ERROR_DESCRIPTION,
         });
+        setEmailSubmissionError(false);
       }
     } catch (unknownError) {
       console.error("Erreur lors de la connexion", unknownError);
       setError({
         type: "generic",
         title: "Une erreur est survenue.",
-        description:
-          "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
+        description: GENERIC_ERROR_DESCRIPTION,
       });
+      setEmailSubmissionError(false);
     } finally {
       setLoading(false);
     }
@@ -117,6 +140,7 @@ export default function ConnexionPage() {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
+                setEmailSubmissionError(false);
               }}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => {
@@ -130,7 +154,7 @@ export default function ConnexionPage() {
             />
             {showEmailFieldError ? (
               <p className="text-[12px] text-[#EF4444] font-medium mt-2">
-                Format d’adresse invalide. Assurez-vous de saisir une adresse complète au format nom@domaine.ext.
+                {EMAIL_FORMAT_ERROR_MESSAGE}
               </p>
             ) : null}
           </div>
