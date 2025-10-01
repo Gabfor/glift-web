@@ -8,6 +8,7 @@ import {
   useState,
 } from "react";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { User } from "@supabase/supabase-js";
 
 // On étend ici le type Supabase User pour inclure user_metadata
@@ -50,6 +51,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       } = await supabase.auth.getUser();
 
       if (error) {
+        if (isAuthSessionMissingError(error)) {
+          setUser(null);
+          setIsPremiumUser(false);
+          return;
+        }
+
         throw error;
       }
 
@@ -81,7 +88,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setIsPremiumUser(false);
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération de l'utilisateur", error);
+      if (!isAuthSessionMissingError(error)) {
+        console.error("Erreur lors de la récupération de l'utilisateur", error);
+      }
+
       setUser(null);
       setIsPremiumUser(false);
     } finally {
