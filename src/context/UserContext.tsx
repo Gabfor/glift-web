@@ -115,7 +115,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     <UserContext.Provider
       value={{
         user,
-        isAuthenticated: !!user && !isLoading,
+        isAuthenticated: Boolean(user),
         isPremiumUser,
         isLoading,
       }}
