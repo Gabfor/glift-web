@@ -45,27 +45,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession();
-
-      if (sessionError) {
-        throw sessionError;
-      }
-
-      if (!session) {
-        setUser(null);
-        setIsPremiumUser(false);
-        return;
-      }
-
-      const {
         data: { user },
-        error: userError,
+        error,
       } = await supabase.auth.getUser();
 
-      if (userError) {
-        throw userError;
+      if (error) {
+        throw error;
       }
 
       if (user) {
