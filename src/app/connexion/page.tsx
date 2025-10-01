@@ -18,7 +18,7 @@ export default function ConnexionPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<
-    | { type: "invalid-email" | "invalid-credentials" | "generic"; title: string; description?: string }
+    | { type: "invalid-credentials" | "generic"; title: string; description?: string }
     | null
   >(null);
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export default function ConnexionPage() {
   const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const shouldShowEmailError =
     emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
-  const showEmailFieldError = shouldShowEmailError || error?.type === "invalid-email";
+  const showEmailFieldError = shouldShowEmailError;
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
@@ -40,7 +40,7 @@ export default function ConnexionPage() {
     }
     if (!isEmailValidFormat) {
       setEmailTouched(true);
-      setError({ type: "invalid-email", title: "Format d’adresse invalide" });
+      setEmailFocused(false);
       return;
     }
     setError(null);
@@ -62,11 +62,15 @@ export default function ConnexionPage() {
         setError({
           type: "invalid-credentials",
           title: "Email ou mot de passe incorrect.",
+          description:
+            "Vérifiez vos identifiants ou lancez une réinitialisation de mot de passe.",
         });
       } else {
         setError({
           type: "generic",
           title: "Une erreur est survenue.",
+          description:
+            "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
         });
       }
     } catch (unknownError) {
@@ -74,6 +78,8 @@ export default function ConnexionPage() {
       setError({
         type: "generic",
         title: "Une erreur est survenue.",
+        description:
+          "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
       });
     } finally {
       setLoading(false);
@@ -111,25 +117,22 @@ export default function ConnexionPage() {
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
-                if (error?.type === "invalid-email") {
-                  setError(null);
-                }
               }}
               onFocus={() => setEmailFocused(true)}
               onBlur={() => {
                 setEmailFocused(false);
                 setEmailTouched(true);
-                if (!isEmailValidFormat && email.trim() !== "") {
-                  setError({ type: "invalid-email", title: "Format d’adresse invalide" });
-                } else if (error?.type === "invalid-email") {
-                  setError(null);
-                }
               }}
               className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150
               ${showEmailFieldError
                 ? "border border-[#EF4444]"
                 : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"}`}
             />
+            {showEmailFieldError ? (
+              <p className="text-[12px] text-[#EF4444] font-medium mt-2">
+                Format d’adresse invalide. Assurez-vous de saisir une adresse complète au format nom@domaine.ext.
+              </p>
+            ) : null}
           </div>
 
           {/* Mot de passe */}
@@ -151,7 +154,7 @@ export default function ConnexionPage() {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                if (error && error.type !== "invalid-email") {
+                if (error) {
                   setError(null);
                 }
               }}
