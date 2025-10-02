@@ -14,6 +14,7 @@ export interface EmailFieldProps
   onChange: (value: string) => void;
   label?: string;
   successMessage?: string;
+  hideSuccessMessage?: boolean;
   errorMessage?: string;
   externalError?: string | null;
   containerClassName?: string;
@@ -29,6 +30,7 @@ export function EmailField({
   label = "Adresse e-mail",
   placeholder = "john.doe@email.com",
   successMessage = "Merci, cet email sera ton identifiant de connexion",
+  hideSuccessMessage = false,
   errorMessage = "Format d’adresse invalide",
   externalError,
   containerClassName,
@@ -44,7 +46,8 @@ export function EmailField({
   const trimmedValue = value.trim();
   const hasValue = trimmedValue !== "";
   const isValid = isValidEmail(value);
-  const showSuccess = touched && !focused && isValid && !externalError;
+  const showSuccess =
+    !hideSuccessMessage && touched && !focused && isValid && !externalError;
   const showInternalError = touched && !focused && hasValue && !isValid;
   const showExternalError = Boolean(externalError) && !focused;
   const showError = showInternalError || showExternalError;
