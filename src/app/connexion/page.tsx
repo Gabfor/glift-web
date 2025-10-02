@@ -4,6 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+
+import { EmailField, isValidEmail } from "@/components/forms/EmailField";
+import { PasswordField } from "@/components/forms/PasswordField";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import Spinner from "@/components/ui/Spinner";
@@ -11,11 +14,8 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
 
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<
     | {
@@ -30,20 +30,14 @@ export default function ConnexionPage() {
 
   const supabase = createClientComponentClient();
 
-  const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const shouldShowEmailError =
-    emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
-  const showEmailFieldError =
-    !emailFocused && (shouldShowEmailError || error?.type === "invalid-email");
-
-  const isFormValid = email.trim() !== "" && password.trim() !== "";
+  const isEmailValidFormat = isValidEmail(email);
+  const isFormValid = isEmailValidFormat && password.trim() !== "";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
 
     if (!isEmailValidFormat) {
-      setEmailTouched(true);
       setError({ type: "invalid-email", title: "Format d’adresse invalide" });
       return;
     }
@@ -111,103 +105,47 @@ export default function ConnexionPage() {
 
           {/* Email */}
           <div className="w-full flex justify-center">
-            <div className="w-full max-w-[368px]">
-              <label
-                htmlFor="email"
-                className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="john.doe@email.com"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (error?.type === "invalid-email") {
-                    setError(null);
-                  }
-                }}
-                onFocus={() => setEmailFocused(true)}
-                onBlur={() => {
-                  setEmailFocused(false);
-                  setEmailTouched(true);
-                  if (!isEmailValidFormat && email.trim() !== "") {
-                    setError({
-                      type: "invalid-email",
-                      title: "Format d’adresse invalide",
-                    });
-                  } else if (error?.type === "invalid-email") {
-                    setError(null);
-                  }
-                }}
-                className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150
-                ${
-                  showEmailFieldError
-                    ? "border border-[#EF4444]"
-                    : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-                }`}
-              />
-              {showEmailFieldError ? (
-                <p className="mt-2 text-[13px] font-medium text-[#EF4444]">
-                  Format d’adresse invalide
-                </p>
-              ) : null}
-            </div>
+            <EmailField
+              id="email"
+              label="Email"
+              value={email}
+              onChange={(nextEmail) => {
+                setEmail(nextEmail);
+                if (error?.type === "invalid-email") {
+                  setError(null);
+                }
+              }}
+              externalError={error?.type === "invalid-email" ? error.title : null}
+              containerClassName="w-full max-w-[368px]"
+              messageContainerClassName="mt-2 text-[13px] font-medium"
+              autoComplete="email"
+            />
           </div>
 
           {/* Mot de passe */}
           <div className="w-full flex justify-center">
-            <div className="w-full max-w-[368px] relative">
-              <label
-                htmlFor="password"
-                className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
-              >
-                Mot de passe
+            <PasswordField
+              id="password"
+              value={password}
+              onChange={(nextPassword) => {
+                setPassword(nextPassword);
+                if (error && error.type !== "invalid-email") {
+                  setError(null);
+                }
+              }}
+              label="Mot de passe"
+              labelAction={
                 <Link
                   href="/mot-de-passe-oublie"
-                  className="float-right text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
+                  className="text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
                 >
                   Mot de passe oublié ?
                 </Link>
-              </label>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  if (error && error.type !== "invalid-email") {
-                    setError(null);
-                  }
-                }}
-                className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-[39px] cursor-pointer"
-              >
-                <Image
-                  src={
-                    showPassword
-                      ? "/icons/masque_defaut.svg"
-                      : "/icons/visible_defaut.svg"
-                  }
-                  alt={
-                    showPassword
-                      ? "Masquer le mot de passe"
-                      : "Afficher le mot de passe"
-                  }
-                  width={25}
-                  height={25}
-                />
-              </button>
-            </div>
+              }
+              containerClassName="w-full max-w-[368px]"
+              messageContainerClassName="mt-2 text-[13px] font-medium"
+              autoComplete="current-password"
+            />
           </div>
 
           {/* Checkbox */}
