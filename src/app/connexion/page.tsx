@@ -34,7 +34,7 @@ export default function ConnexionPage() {
   const shouldShowEmailError =
     emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
   const showEmailFieldError =
-    shouldShowEmailError || error?.type === "invalid-email";
+    !emailFocused && (shouldShowEmailError || error?.type === "invalid-email");
 
   const isFormValid = email.trim() !== "" && password.trim() !== "";
 
@@ -151,7 +151,7 @@ export default function ConnexionPage() {
                 }`}
               />
               {showEmailFieldError ? (
-                <p className="mt-2 text-[13px] font-semibold text-[#EF4444]">
+                <p className="mt-2 text-[13px] font-medium text-[#EF4444]">
                   Format d’adresse invalide
                 </p>
               ) : null}
