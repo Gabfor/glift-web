@@ -103,49 +103,52 @@ export default function ConnexionPage() {
             <ErrorMessage title={error.title} description={error.description} />
           ) : null}
 
-          {/* Email */}
-          <div className="w-full flex justify-center">
-            <EmailField
-              id="email"
-              label="Email"
-              value={email}
-              onChange={(nextEmail) => {
-                setEmail(nextEmail);
-                if (error?.type === "invalid-email") {
-                  setError(null);
-                }
-              }}
-              externalError={error?.type === "invalid-email" ? error.title : null}
-              containerClassName="w-full max-w-[368px]"
-              messageContainerClassName="mt-2 text-[13px] font-medium"
-              autoComplete="email"
-            />
-          </div>
+          <div className="flex flex-col gap-0">
+            {/* Email */}
+            <div className="w-full flex justify-center">
+              <EmailField
+                id="email"
+                label="Email"
+                value={email}
+                onChange={(nextEmail) => {
+                  setEmail(nextEmail);
+                  if (error?.type === "invalid-email") {
+                    setError(null);
+                  }
+                }}
+                externalError={error?.type === "invalid-email" ? error.title : null}
+                containerClassName="w-full max-w-[368px]"
+                messageContainerClassName="mt-2 text-[13px] font-medium"
+                hideSuccessMessage
+                autoComplete="email"
+              />
+            </div>
 
-          {/* Mot de passe */}
-          <div className="w-full flex justify-center">
-            <PasswordField
-              id="password"
-              value={password}
-              onChange={(nextPassword) => {
-                setPassword(nextPassword);
-                if (error && error.type !== "invalid-email") {
-                  setError(null);
+            {/* Mot de passe */}
+            <div className="w-full flex justify-center">
+              <PasswordField
+                id="password"
+                value={password}
+                onChange={(nextPassword) => {
+                  setPassword(nextPassword);
+                  if (error && error.type !== "invalid-email") {
+                    setError(null);
+                  }
+                }}
+                label="Mot de passe"
+                labelAction={
+                  <Link
+                    href="/mot-de-passe-oublie"
+                    className="text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
+                  >
+                    Mot de passe oublié ?
+                  </Link>
                 }
-              }}
-              label="Mot de passe"
-              labelAction={
-                <Link
-                  href="/mot-de-passe-oublie"
-                  className="text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
-                >
-                  Mot de passe oublié ?
-                </Link>
-              }
-              containerClassName="w-full max-w-[368px]"
-              messageContainerClassName="mt-2 text-[13px] font-medium"
-              autoComplete="current-password"
-            />
+                containerClassName="w-full max-w-[368px]"
+                messageContainerClassName="mt-2 text-[13px] font-medium"
+                autoComplete="current-password"
+              />
+            </div>
           </div>
 
           {/* Checkbox */}
