@@ -149,20 +149,19 @@ export default function ConnexionPage() {
                 autoComplete="current-password"
               />
             </div>
-          </div>
-
-          {/* Checkbox */}
-          <div className="w-full flex justify-center">
-            <div className="w-full max-w-[368px] mb-[10px]">
-              <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
-                <IconCheckbox
-                  name="remember"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  size={15}
-                />
-                Je veux rester connecté.
-              </label>
+            {/* Checkbox */}
+            <div className="w-full flex justify-center pt-3">
+              <div className="w-full max-w-[368px] mb-[10px]">
+                <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
+                  <IconCheckbox
+                    name="remember"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    size={15}
+                  />
+                  Je veux rester connecté.
+                </label>
+              </div>
             </div>
           </div>
 
