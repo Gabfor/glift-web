@@ -33,6 +33,26 @@ export default function ConnexionPage() {
   const isEmailValidFormat = isValidEmail(email);
   const isFormValid = isEmailValidFormat && password.trim() !== "";
 
+  const persistRememberPreference = (value: boolean) => {
+    const cookieName = "glift-remember";
+
+    // Supprime la valeur précédente pour éviter les attributs périmés (ex: Max-Age)
+    document.cookie = `${cookieName}=; Path=/; Max-Age=0; SameSite=Lax`;
+
+    const segments = [
+      `${cookieName}=${value ? "1" : "0"}`,
+      "Path=/",
+      "SameSite=Lax",
+    ];
+
+    if (value) {
+      // 1 an de persistance
+      segments.push(`Max-Age=${60 * 60 * 24 * 365}`);
+    }
+
+    document.cookie = segments.join("; ");
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (loading) return;
@@ -46,6 +66,7 @@ export default function ConnexionPage() {
     setLoading(true);
 
     try {
+      persistRememberPreference(rememberMe);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

@@ -6,6 +6,23 @@ export async function GET(request: NextRequest) {
 
   type CookieOptions = Parameters<typeof response.cookies.set>[2];
 
+  const rememberPreference = request.cookies.get("glift-remember")?.value;
+  const shouldPersistSession = rememberPreference !== "0";
+
+  const stripTransientCookieOptions = (
+    options?: CookieOptions,
+  ): CookieOptions | undefined => {
+    if (!options || shouldPersistSession) {
+      return options;
+    }
+
+    const sanitizedOptions = { ...options };
+    delete sanitizedOptions.maxAge;
+    delete sanitizedOptions.expires;
+
+    return sanitizedOptions;
+  };
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,7 +32,7 @@ export async function GET(request: NextRequest) {
           return request.cookies.get(name)?.value;
         },
         set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set(name, value, options);
+          response.cookies.set(name, value, stripTransientCookieOptions(options));
         },
         remove(name: string, options: CookieOptions) {
           response.cookies.set(name, "", { ...options, maxAge: -1 });
