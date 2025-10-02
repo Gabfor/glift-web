@@ -98,7 +98,7 @@ export default function ConnexionPage() {
           Connexion
         </h1>
 
-        <form className="flex flex-col w-full gap-6" onSubmit={handleLogin}>
+        <form className="flex flex-col w-full gap-4" onSubmit={handleLogin}>
           {error && error.type !== "invalid-email" ? (
             <ErrorMessage title={error.title} description={error.description} />
           ) : null}
@@ -150,7 +150,7 @@ export default function ConnexionPage() {
               />
             </div>
             {/* Checkbox */}
-            <div className="w-full flex justify-center pt-3">
+            <div className="w-full flex justify-center">
               <div className="w-full max-w-[368px] mb-[10px]">
                 <label className="flex items-center gap-2 cursor-pointer text-[14px] font-semibold text-[#5D6494]">
                   <IconCheckbox

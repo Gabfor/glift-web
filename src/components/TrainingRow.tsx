@@ -119,13 +119,17 @@ export default function TrainingRow({
             onMouseDown={() => setIsGrabbing(true)}
             onMouseLeave={() => handleIconHover(index, false)}
           />
-          <button onClick={() => handleCheckboxChange(rowId)} className="w-4 h-4 mr-3">
+          <button
+            onClick={() => handleCheckboxChange(rowId)}
+            className="mr-2 flex items-center justify-center"
+            style={{ width: "15px", height: "15px" }}
+          >
             <Image
               src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
               alt={row.checked ? "Coché" : "Non coché"}
-              width={16}
-              height={16}
-              className="w-4 h-4"
+              width={15}
+              height={15}
+              style={{ width: "15px", height: "15px" }}
             />
           </button>
         </div>

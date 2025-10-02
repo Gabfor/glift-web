@@ -47,8 +47,7 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
             alt={row.checked ? "Coché" : "Non coché"}
             width={16}
             height={16}
-            className="w-4 h-4 mr-3"
-            style={{ display: "block" }}
+            style={{ width: "15px", height: "15px" }}
           />
         </div>
       </td>
