@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import { EmailField, isValidEmail } from "@/components/forms/EmailField";
+import { PasswordField, getPasswordValidationState } from "@/components/forms/PasswordField";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import { createClientComponentClient } from "@/lib/supabase/client";
 
@@ -21,7 +23,6 @@ const AccountCreationPage = () => {
   const stepMetadata = getStepMetadata(plan, "account");
 
   const [accepted, setAccepted] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,12 +31,8 @@ const AccountCreationPage = () => {
   const [prenomFocused, setPrenomFocused] = useState(false);
 
   const [email, setEmail] = useState("");
-  const [emailTouched, setEmailTouched] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
 
   const [password, setPassword] = useState("");
-  const [passwordTouched, setPasswordTouched] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
 
   const isPrenomFormatValid = /^[a-zA-ZÀ-ÿ\s-]+$/.test(prenom.trim());
   const isPrenomFieldValid = prenom.trim().length > 0 && isPrenomFormatValid;
@@ -43,18 +40,10 @@ const AccountCreationPage = () => {
   const shouldShowPrenomError =
     prenomTouched && !prenomFocused && prenom.trim() !== "" && !isPrenomFormatValid;
 
-  const isEmailValidFormat = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const shouldShowEmailSuccess = emailTouched && !emailFocused && isEmailValidFormat;
-  const shouldShowEmailError = emailTouched && !emailFocused && email.trim() !== "" && !isEmailValidFormat;
+  const isEmailValidFormat = isValidEmail(email);
 
-  const hasMinLength = password.length >= 8;
-  const hasLetter = /[a-zA-Z]/.test(password);
-  const hasNumber = /\d/.test(password);
-  const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-
-  const isPasswordValidFormat = hasMinLength && hasLetter && hasNumber && hasSymbol;
-  const shouldShowPasswordSuccess = passwordTouched && !passwordFocused && isPasswordValidFormat;
-  const shouldShowPasswordError = passwordTouched && !passwordFocused && password !== "" && !isPasswordValidFormat;
+  const passwordValidation = getPasswordValidationState(password);
+  const { hasMinLength, hasLetter, hasNumber, hasSymbol, isValid: isPasswordValidFormat } = passwordValidation;
 
   const isFormValid = accepted && isPrenomFieldValid && isEmailValidFormat && isPasswordValidFormat && !loading;
 
@@ -193,95 +182,43 @@ const AccountCreationPage = () => {
             </div>
           </div>
 
-          <div className="w-full">
-            <label htmlFor="email" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
-              Adresse e-mail
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="john.doe@email.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-              onFocus={() => setEmailFocused(true)}
-              onBlur={() => {
-                setEmailTouched(true);
-                setEmailFocused(false);
-              }}
-              className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 ${
-                shouldShowEmailSuccess
-                  ? "border border-[#00D591]"
-                  : shouldShowEmailError
-                  ? "border border-[#EF4444]"
-                  : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-              }`}
-            />
-            <div className="h-[20px] mt-[5px] text-[13px] font-medium">
-              {shouldShowEmailSuccess && (
-                <p className="text-[#00D591]">Merci, cet email sera ton identifiant de connexion</p>
-              )}
-              {shouldShowEmailError && <p className="text-[#EF4444]">Format d’adresse invalide</p>}
-            </div>
-          </div>
+          <EmailField
+            id="email"
+            label="Adresse e-mail"
+            value={email}
+            onChange={setEmail}
+            containerClassName="w-full"
+            messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
+            successMessage="Merci, cet email sera ton identifiant de connexion"
+            autoComplete="email"
+          />
 
-          <div className="w-full mb-[10px]">
-            <label htmlFor="password" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
-              Mot de passe
-            </label>
-            <div className="relative">
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Mot de passe"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                onFocus={() => setPasswordFocused(true)}
-                onBlur={() => {
-                  setPasswordTouched(true);
-                  setTimeout(() => setPasswordFocused(false), 100);
-                }}
-                className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 ${
-                  shouldShowPasswordSuccess
-                    ? "border border-[#00D591]"
-                    : shouldShowPasswordError
-                    ? "border border-[#EF4444]"
-                    : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-                }`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2"
-              >
-                <Image
-                  src={showPassword ? "/icons/masque_defaut.svg" : "/icons/visible_defaut.svg"}
-                  alt="Afficher/Masquer"
-                  width={25}
-                  height={25}
-                  className="w-[25px] h-[25px]"
-                />
-              </button>
-            </div>
-            {passwordFocused && (
-              <div
-                className="mt-3 px-4 py-3 bg-white rounded-[8px] text-[12px] text-[#5D6494] space-y-2"
-                style={{
-                  boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)",
-                }}
-              >
-                <PasswordCriteriaItem valid={hasMinLength} text="Au moins 8 caractères" />
-                <PasswordCriteriaItem valid={hasLetter} text="Au moins 1 lettre" />
-                <PasswordCriteriaItem valid={hasNumber} text="Au moins 1 chiffre" />
-                <PasswordCriteriaItem valid={hasSymbol} text="Au moins 1 symbole" />
-              </div>
-            )}
-            <div className="h-[20px] mt-[5px] text-[13px] font-medium">
-              {shouldShowPasswordSuccess && <p className="text-[#00D591]">Mot de passe valide</p>}
-              {shouldShowPasswordError && <p className="text-[#EF4444]">Mot de passe invalide</p>}
-            </div>
-          </div>
+          <PasswordField
+            id="password"
+            label="Mot de passe"
+            value={password}
+            onChange={setPassword}
+            validate={(value) => getPasswordValidationState(value).isValid}
+            successMessage="Mot de passe valide"
+            errorMessage="Mot de passe invalide"
+            containerClassName="w-full mb-[10px]"
+            messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
+            criteriaRenderer={({ isFocused }) =>
+              isFocused ? (
+                <div
+                  className="mt-3 px-4 py-3 bg-white rounded-[8px] text-[12px] text-[#5D6494] space-y-2"
+                  style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
+                >
+                  <PasswordCriteriaItem valid={hasMinLength} text="Au moins 8 caractères" />
+                  <PasswordCriteriaItem valid={hasLetter} text="Au moins 1 lettre" />
+                  <PasswordCriteriaItem valid={hasNumber} text="Au moins 1 chiffre" />
+                  <PasswordCriteriaItem valid={hasSymbol} text="Au moins 1 symbole" />
+                </div>
+              ) : null
+            }
+            blurDelay={100}
+            autoComplete="new-password"
+          />
 
           <div className="mb-[20px] w-full">
             <label className="flex items-start gap-3 cursor-pointer select-none text-[14px] font-semibold text-[#5D6494]">
