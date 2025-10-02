@@ -74,6 +74,8 @@ export default function ConnexionPage() {
         setError({
           type: "generic",
           title: "Une erreur est survenue.",
+          description:
+            "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
         });
       }
     } catch (unknownError) {
@@ -81,6 +83,8 @@ export default function ConnexionPage() {
       setError({
         type: "generic",
         title: "Une erreur est survenue.",
+        description:
+          "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
       });
     } finally {
       setLoading(false);
@@ -101,7 +105,7 @@ export default function ConnexionPage() {
         </h1>
 
         <form className="flex flex-col w-full gap-6" onSubmit={handleLogin}>
-          {error ? (
+          {error && error.type !== "invalid-email" ? (
             <ErrorMessage title={error.title} description={error.description} />
           ) : null}
 
@@ -146,6 +150,11 @@ export default function ConnexionPage() {
                     : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
                 }`}
               />
+              {showEmailFieldError ? (
+                <p className="mt-2 text-[13px] font-semibold text-[#EF4444]">
+                  Format d’adresse invalide
+                </p>
+              ) : null}
             </div>
           </div>
 
