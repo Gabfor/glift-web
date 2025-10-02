@@ -3,6 +3,22 @@ import { cookies } from "next/headers";
 
 export async function createServerClient() {
   const cookieStore = await cookies();
+  const rememberPreference = cookieStore.get("glift-remember")?.value;
+  const shouldPersistSession = rememberPreference !== "0";
+
+  const sanitizeCookieOptions = (
+    options?: Parameters<typeof cookieStore.set>[2],
+  ) => {
+    if (!options || shouldPersistSession) {
+      return options;
+    }
+
+    const sanitizedOptions = { ...options };
+    delete sanitizedOptions.maxAge;
+    delete sanitizedOptions.expires;
+
+    return sanitizedOptions;
+  };
 
   return createSupabaseServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,7 +33,7 @@ export async function createServerClient() {
           value: string,
           options?: Parameters<typeof cookieStore.set>[2]
         ) {
-          cookieStore.set(name, value, options);
+          cookieStore.set(name, value, sanitizeCookieOptions(options));
         },
         remove(
           name: string,

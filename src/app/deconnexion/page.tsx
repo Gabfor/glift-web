@@ -10,6 +10,7 @@ export default function LogoutPage() {
 
   useEffect(() => {
     const logout = async () => {
+      document.cookie = "glift-remember=; Path=/; Max-Age=0; SameSite=Lax";
       await supabase.auth.signOut();
       router.push("/");
     };
