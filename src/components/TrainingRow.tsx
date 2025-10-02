@@ -107,21 +107,21 @@ export default function TrainingRow({
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
-        <div className="flex items-center h-10 justify-start border-t border-[#ECE9F1] pl-3">
+        <div className="flex items-center h-10 justify-center gap-3 border-t border-[#ECE9F1]">
           <Image
             {...dragListeners}
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
             alt="Icone"
-            width={16}
-            height={16}
-            className={`w-4 h-4 mr-2 select-none ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
+            width={20}
+            height={20}
+            className={`w-5 h-5 select-none ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
             onMouseEnter={() => handleIconHover(index, true)}
             onMouseDown={() => setIsGrabbing(true)}
             onMouseLeave={() => handleIconHover(index, false)}
           />
           <button
             onClick={() => handleCheckboxChange(rowId)}
-            className="mr-2 flex items-center justify-center"
+            className="flex items-center justify-center"
             style={{ width: "15px", height: "15px" }}
           >
             <Image
