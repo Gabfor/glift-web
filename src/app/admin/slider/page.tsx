@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
+import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import CTAButton from "@/components/CTAButton";
 
 const sliderTypeOptions = [
@@ -195,35 +196,23 @@ export default function AdminSliderPage() {
                           }
                         />
 
-                        <div className="flex flex-col">
-                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                            Alt slider {index + 1}
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={`Alt slider ${index + 1}`}
-                            value={slide.alt}
-                            onChange={(e) =>
-                              handleSlideChange(index, "alt", e.target.value)
-                            }
-                            className="input-admin"
-                          />
-                        </div>
+                        <AdminTextField
+                          label={`Alt slider ${index + 1}`}
+                          value={slide.alt}
+                          onChange={(value) =>
+                            handleSlideChange(index, "alt", value)
+                          }
+                          placeholder={`Alt slider ${index + 1}`}
+                        />
 
-                        <div className="flex flex-col">
-                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                            Lien slider {index + 1}
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={`Lien slider ${index + 1}`}
-                            value={slide.link}
-                            onChange={(e) =>
-                              handleSlideChange(index, "link", e.target.value)
-                            }
-                            className="input-admin"
-                          />
-                        </div>
+                        <AdminTextField
+                          label={`Lien slider ${index + 1}`}
+                          value={slide.link}
+                          onChange={(value) =>
+                            handleSlideChange(index, "link", value)
+                          }
+                          placeholder={`Lien slider ${index + 1}`}
+                        />
                       </div>
                     </div>
                   ))}
