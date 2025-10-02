@@ -22,6 +22,10 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  if (user && pathname === "/") {
+    return NextResponse.redirect(new URL("/entrainements", req.url));
+  }
+
   // ✅ Protection de la zone /admin uniquement
   if (pathname.startsWith("/admin")) {
     if (!user) {
@@ -55,6 +59,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/admin/:path*",
     "/dashboard/:path*",
     "/entrainements/:path*",
