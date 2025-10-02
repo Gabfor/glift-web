@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 
@@ -337,40 +338,31 @@ export default function CreateOfferPage() {
           </div>
 
             {/* Boutique */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Boutique</label>
-              <input
-                type="text"
-                value={offer.shop}
-                onChange={(e) => setOffer({ ...offer, shop: e.target.value })}
-                className="input-admin"
-                placeholder="Nom de la boutique"
-              />
-            </div>
+            <AdminTextField
+              label="Boutique"
+              value={offer.shop}
+              onChange={(value) => setOffer({ ...offer, shop: value })}
+              placeholder="Nom de la boutique"
+              labelClassName="mb-1"
+            />
 
             {/* Alt image principale */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Alt image principale</label>
-              <input
-                type="text"
-                value={offer.image_alt}
-                onChange={(e) => setOffer({ ...offer, image_alt: e.target.value })}
-                className="input-admin"
-                placeholder="Alt de l'image principale"
-              />
-            </div>
+            <AdminTextField
+              label="Alt image principale"
+              value={offer.image_alt}
+              onChange={(value) => setOffer({ ...offer, image_alt: value })}
+              placeholder="Alt de l'image principale"
+              labelClassName="mb-1"
+            />
 
             {/* Site internet boutique */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Site internet</label>
-              <input
-                type="text"
-                value={offer.shop_website}
-                onChange={(e) => setOffer({ ...offer, shop_website: e.target.value })}
-                className="input-admin"
-                placeholder="Lien du site internet"
-              />
-            </div>
+            <AdminTextField
+              label="Site internet"
+              value={offer.shop_website}
+              onChange={(value) => setOffer({ ...offer, shop_website: value })}
+              placeholder="Lien du site internet"
+              labelClassName="mb-1"
+            />
 
           {/* Image partenaire avec taille */}
           <div className="flex flex-col">
@@ -385,28 +377,22 @@ export default function CreateOfferPage() {
           </div>
 
             {/* Lien de redirection */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Lien de redirection</label>
-              <input
-                type="text"
-                value={offer.shop_link}
-                onChange={(e) => setOffer({ ...offer, shop_link: e.target.value })}
-                className="input-admin"
-                placeholder="Lien de redirection"
-              />
-            </div>
+            <AdminTextField
+              label="Lien de redirection"
+              value={offer.shop_link}
+              onChange={(value) => setOffer({ ...offer, shop_link: value })}
+              placeholder="Lien de redirection"
+              labelClassName="mb-1"
+            />
 
             {/* Alt image marque */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Alt image marque</label>
-              <input
-                type="text"
-                value={offer.brand_image_alt}
-                onChange={(e) => setOffer({ ...offer, brand_image_alt: e.target.value })}
-                className="input-admin"
-                placeholder="Alt de l'image marque"
-              />
-            </div>
+            <AdminTextField
+              label="Alt image marque"
+              value={offer.brand_image_alt}
+              onChange={(value) => setOffer({ ...offer, brand_image_alt: value })}
+              placeholder="Alt de l'image marque"
+              labelClassName="mb-1"
+            />
 
             <AdminMultiSelectDropdown
               label="Catégories"
@@ -417,16 +403,13 @@ export default function CreateOfferPage() {
             />
 
             {/* Code de réduction */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Code de réduction</label>
-              <input
-                type="text"
-                value={offer.code}
-                onChange={(e) => setOffer({ ...offer, code: e.target.value })}
-                className="input-admin"
-                placeholder="Insérez le code de réduction"
-              />
-            </div>
+            <AdminTextField
+              label="Code de réduction"
+              value={offer.code}
+              onChange={(value) => setOffer({ ...offer, code: value })}
+              placeholder="Insérez le code de réduction"
+              labelClassName="mb-1"
+            />
 
             {/* Sexe */}
             <div className="flex flex-col">
@@ -445,16 +428,13 @@ export default function CreateOfferPage() {
             </div>
 
             {/* Livraison */}
-            <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Frais de livraison</label>
-              <input
-                type="text"
-                value={offer.shipping}
-                onChange={(e) => setOffer({ ...offer, shipping: e.target.value })}
-                className="input-admin"
-                placeholder="Frais de livraison"
-              />
-            </div>
+            <AdminTextField
+              label="Frais de livraison"
+              value={offer.shipping}
+              onChange={(value) => setOffer({ ...offer, shipping: value })}
+              placeholder="Frais de livraison"
+              labelClassName="mb-1"
+            />
 
             {/* Modal */}
             <div className="flex flex-col">
