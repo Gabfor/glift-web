@@ -1,14 +1,14 @@
 "use server";
 
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { createRememberingMiddlewareClient } from "@/lib/supabase/middleware";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
 
   // Crée le client Supabase middleware-compatible
-  const supabase = createMiddlewareClient({ req, res });
+  const supabase = createRememberingMiddlewareClient({ req, res });
 
   // Charge la session utilisateur côté serveur
   const {
