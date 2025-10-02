@@ -39,7 +39,7 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
             alt="Icone"
             width={16}
             height={16}
-            className="w-4 h-4 mr-2 cursor-grabbing select-none"
+            className="w-4 h-4 mr-1 cursor-grabbing select-none"
             style={{ display: "block" }}
           />
           <Image

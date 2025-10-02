@@ -107,7 +107,7 @@ export default function TrainingRow({
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
-        <div className="flex items-center h-10 justify-center gap-3 border-t border-[#ECE9F1]">
+        <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
           <Image
             {...dragListeners}
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
