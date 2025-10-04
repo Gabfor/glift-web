@@ -21,7 +21,7 @@ const formatCooldownMessage = (remainingMs: number) => {
   const remainingSeconds = Math.ceil(remainingMs / 1000)
   const suffix = remainingSeconds > 1 ? "s" : ""
 
-  return `Veuillez patienter encore ${remainingSeconds} seconde${suffix} avant de demander un nouvel e-mail de réinitialisation.`
+  return `Veuillez patienter encore ${remainingSeconds} seconde${suffix} avant de demander un nouveau lien de réinitialisation.`
 }
 
 export default function ForgotPasswordModal({
