@@ -202,10 +202,15 @@ export default function ResetPasswordPage() {
 
         const existingSession = existingSessionData?.session ?? null;
 
+        const existingSessionType =
+          (
+            existingSession as (typeof existingSession & { type?: string }) | null
+          )?.type ?? type;
+
         if (
           existingSession?.access_token &&
           existingSession?.refresh_token &&
-          (existingSession.type ?? type) === "recovery"
+          existingSessionType === "recovery"
         ) {
           const candidateFromExistingSession: SessionTokenSet = {
             accessToken: existingSession.access_token,
