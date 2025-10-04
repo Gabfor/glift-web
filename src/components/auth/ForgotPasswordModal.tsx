@@ -64,8 +64,10 @@ export default function ForgotPasswordModal({
           ? `${window.location.origin}/connexion`
           : undefined)
 
+      const sanitizedEmail = email.trim()
+
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        email,
+        sanitizedEmail,
         redirectTo ? { redirectTo } : undefined
       )
 
