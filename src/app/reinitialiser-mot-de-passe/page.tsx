@@ -1,9 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PasswordField } from "@/components/forms/PasswordField";
+import {
+  PasswordField,
+  getPasswordValidationState,
+} from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
@@ -22,15 +26,31 @@ export default function ResetPasswordPage() {
   const [stage, setStage] = useState<Stage>("verify");
   const [submitting, setSubmitting] = useState(false);
 
+  const passwordValidation = useMemo(
+    () => getPasswordValidationState(password),
+    [password]
+  );
+
+  const confirmValidation = useMemo(() => {
+    const base = getPasswordValidationState(confirmPassword);
+    const matches =
+      confirmPassword.trim().length > 0 && confirmPassword === password;
+
+    return {
+      ...base,
+      matches,
+      isValid: base.isValid && matches,
+    };
+  }, [confirmPassword, password]);
+
   const next = searchParams?.get("next") || "/compte#mes-informations";
   const accessToken = searchParams?.get("access_token") || "";
   const refreshToken = searchParams?.get("refresh_token") || "";
   const type = searchParams?.get("type") || "";
 
   const isEmailValid = email.trim() !== "";
-  const isPasswordValid = password.trim().length >= 8;
-  const isConfirmValid =
-    confirmPassword.trim().length >= 8 && confirmPassword === password;
+  const isPasswordValid = passwordValidation.isValid;
+  const isConfirmValid = confirmValidation.isValid;
 
   useEffect(() => {
     let cancelled = false;
@@ -109,6 +129,65 @@ export default function ResetPasswordPage() {
   }, [accessToken, refreshToken, type, supabase]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
+
+  const PasswordCriteriaItem = ({
+    valid,
+    text,
+  }: {
+    valid: boolean;
+    text: string;
+  }) => {
+    const iconSrc = valid
+      ? "/icons/check-success.svg"
+      : "/icons/check-neutral.svg";
+    const textColor = valid ? "text-[#00D591]" : "text-[#C2BFC6]";
+
+    return (
+      <div className="flex items-center justify-between">
+        <span className={textColor}>{text}</span>
+        <Image
+          src={iconSrc}
+          alt={valid ? "Critère validé" : "Critère manquant"}
+          width={16}
+          height={16}
+          className="h-[16px] w-[16px]"
+        />
+      </div>
+    );
+  };
+
+  const renderPasswordCriteria = (
+    validation:
+      | ReturnType<typeof getPasswordValidationState>
+      | (ReturnType<typeof getPasswordValidationState> & { matches?: boolean }),
+    options?: {
+      includeMatch?: boolean;
+    }
+  ) => (
+    <div
+      className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] text-[#5D6494]"
+      style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
+    >
+      <PasswordCriteriaItem
+        valid={validation.hasMinLength}
+        text="Au moins 8 caractères"
+      />
+      <PasswordCriteriaItem valid={validation.hasLetter} text="Au moins 1 lettre" />
+      <PasswordCriteriaItem valid={validation.hasNumber} text="Au moins 1 chiffre" />
+      <PasswordCriteriaItem
+        valid={validation.hasSymbol}
+        text="Au moins 1 symbole"
+      />
+      {options?.includeMatch ? (
+        <PasswordCriteriaItem
+          valid={Boolean(
+            "matches" in validation ? validation.matches : false
+          )}
+          text="Correspond au mot de passe"
+        />
+      ) : null}
+    </div>
+  );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -233,10 +312,17 @@ export default function ResetPasswordPage() {
                   autoComplete="new-password"
                   value={password}
                   onChange={setPassword}
-                  validate={(value) => value.trim().length >= 8}
-                  errorMessage="Le mot de passe doit contenir au moins 8 caractères."
-                  successMessage=""
+                  validate={(value) =>
+                    getPasswordValidationState(value).isValid
+                  }
+                  errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
+                  successMessage="Mot de passe conforme."
                   containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={({ isFocused }) =>
+                    isFocused ? renderPasswordCriteria(passwordValidation) : null
+                  }
+                  blurDelay={100}
                 />
               </div>
 
@@ -250,12 +336,22 @@ export default function ResetPasswordPage() {
                   autoComplete="new-password"
                   value={confirmPassword}
                   onChange={setConfirmPassword}
-                  validate={(value) =>
-                    value.trim().length >= 8 && value === password
-                  }
-                  errorMessage="Les mots de passe ne correspondent pas."
-                  successMessage=""
+                  validate={(value) => {
+                    const state = getPasswordValidationState(value);
+                    return state.isValid && value === password;
+                  }}
+                  errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
+                  successMessage="Confirmation valide."
                   containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={({ isFocused }) =>
+                    isFocused
+                      ? renderPasswordCriteria(confirmValidation, {
+                          includeMatch: true,
+                        })
+                      : null
+                  }
+                  blurDelay={100}
                 />
               </div>
 
