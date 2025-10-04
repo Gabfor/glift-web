@@ -3,7 +3,6 @@ import {
   type CookieOptions,
   type CookieOptionsWithName,
   createSupabaseClient,
-  type DefaultCookieOptions,
   parseCookies,
   serializeCookie,
   type SupabaseClientOptionsWithoutAuth,
@@ -11,6 +10,7 @@ import {
 import authHelpersPackage from "@supabase/auth-helpers-nextjs/package.json";
 import { NextResponse } from "next/server";
 import { splitCookiesString } from "set-cookie-parser";
+import type { SerializeOptions as CookieSerializeOptions } from "cookie";
 
 import type { NextRequest } from "next/server";
 import type { GenericSchema } from "@supabase/supabase-js/dist/module/lib/types";
@@ -25,7 +25,7 @@ const shouldPersistSession = (req: NextRequest) => {
 };
 
 const sanitizeCookieOptions = (
-  options: DefaultCookieOptions | undefined,
+  options: CookieSerializeOptions | undefined,
   persist: boolean,
 ) => {
   if (!options || persist) {
@@ -36,7 +36,7 @@ const sanitizeCookieOptions = (
     return options;
   }
 
-  const sanitized = { ...options };
+  const sanitized: CookieSerializeOptions = { ...options };
   delete sanitized.maxAge;
   delete sanitized.expires;
 
@@ -56,8 +56,10 @@ class RememberMiddlewareAuthStorageAdapter extends CookieAuthStorageAdapter {
     const setCookie = splitCookiesString(
       this.context.res.headers.get("set-cookie")?.toString() ?? "",
     )
-      .map((cookie) => parseCookies(cookie)[name])
-      .find((cookie) => !!cookie);
+      .map((cookieString: string) => parseCookies(cookieString)[name])
+      .find(
+        (cookieValue): cookieValue is string | undefined => Boolean(cookieValue),
+      );
 
     if (setCookie) {
       return setCookie;
@@ -83,11 +85,11 @@ class RememberMiddlewareAuthStorageAdapter extends CookieAuthStorageAdapter {
   private setCookieWithOptions(
     name: string,
     value: string,
-    options?: DefaultCookieOptions,
+    options?: CookieSerializeOptions,
   ) {
-    const combinedOptions: DefaultCookieOptions | undefined = {
-      ...this.cookieOptions,
-      ...options,
+    const combinedOptions: CookieSerializeOptions = {
+      ...(this.cookieOptions ?? {}),
+      ...(options ?? {}),
       httpOnly: false,
     };
 
