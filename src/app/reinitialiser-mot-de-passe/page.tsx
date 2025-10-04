@@ -57,6 +57,7 @@ export default function ResetPasswordPage() {
   const accessToken = searchParams?.get("access_token") || "";
   const refreshToken = searchParams?.get("refresh_token") || "";
   const type = searchParams?.get("type") || "";
+  const code = searchParams?.get("code") || "";
 
   const isEmailValid = email.trim() !== "";
   const isPasswordValid = passwordValidation.isValid;
@@ -103,6 +104,18 @@ export default function ResetPasswordPage() {
       };
     };
 
+    const extractCodeFromFragment = (): string | null => {
+      if (typeof window === "undefined" || !window.location.hash) {
+        return null;
+      }
+
+      const params = new URLSearchParams(
+        window.location.hash.replace("#", "")
+      );
+
+      return params.get("code");
+    };
+
     const verifyLink = async () => {
       try {
         let activeTokens: SessionTokenSet | null = null;
@@ -131,31 +144,68 @@ export default function ResetPasswordPage() {
           }
         }
 
-        if (!isValidTokenSet(activeTokens)) {
-          throw new Error("invalid-link");
-        }
+        if (isValidTokenSet(activeTokens)) {
+          if (!sessionTokens && !cancelled) {
+            setSessionTokens(activeTokens);
+          }
 
-        if (!sessionTokens && !cancelled) {
-          setSessionTokens(activeTokens);
-        }
+          const { error: sessionError } = await supabase.auth.setSession({
+            access_token: activeTokens.accessToken,
+            refresh_token: activeTokens.refreshToken,
+          });
+          if (sessionError) throw sessionError;
 
-        const { error: sessionError } = await supabase.auth.setSession({
-          access_token: activeTokens.accessToken,
-          refresh_token: activeTokens.refreshToken,
-        });
-        if (sessionError) throw sessionError;
+          const { data, error } = await supabase.auth.getUser();
+          if (error) throw error;
 
-        const { data, error } = await supabase.auth.getUser();
-        if (error) throw error;
+          const userEmail = data?.user?.email ?? "";
+          if (!userEmail) {
+            throw new Error("no-email");
+          }
 
-        const userEmail = data?.user?.email ?? "";
-        if (!userEmail) {
-          throw new Error("no-email");
-        }
+          if (!cancelled) {
+            setEmail(userEmail);
+            setStage("reset");
+          }
+        } else {
+          let authCode = code;
+          if (!authCode) {
+            authCode = extractCodeFromFragment() || "";
+          }
 
-        if (!cancelled) {
-          setEmail(userEmail);
-          setStage("reset");
+          if (!authCode) {
+            throw new Error("invalid-link");
+          }
+
+          const { data: exchangeData, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(authCode);
+          if (exchangeError) throw exchangeError;
+
+          let userEmail = exchangeData?.user?.email ?? "";
+
+          if (!userEmail) {
+            const { data: userData, error: userError } =
+              await supabase.auth.getUser();
+            if (userError) throw userError;
+            userEmail = userData?.user?.email ?? "";
+          }
+
+          if (!userEmail) {
+            throw new Error("no-email");
+          }
+
+          if (!sessionTokens && !cancelled && exchangeData?.session) {
+            setSessionTokens({
+              accessToken: exchangeData.session.access_token,
+              refreshToken: exchangeData.session.refresh_token,
+              type: "recovery",
+            });
+          }
+
+          if (!cancelled) {
+            setEmail(userEmail);
+            setStage("reset");
+          }
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
@@ -172,11 +222,17 @@ export default function ResetPasswordPage() {
         );
       }
 
-      if (typeof window !== "undefined" && window.location.hash) {
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.hash = "";
+        if (url.searchParams.has("code")) {
+          url.searchParams.delete("code");
+        }
+
         window.history.replaceState(
           null,
           "",
-          `${window.location.pathname}${window.location.search}`
+          `${url.pathname}${url.search}`
         );
       }
     };
@@ -193,6 +249,7 @@ export default function ResetPasswordPage() {
     stage,
     supabase,
     type,
+    code,
   ]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
