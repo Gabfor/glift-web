@@ -3,7 +3,6 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { parse } from "cookie";
 
 import {
   PasswordField,
@@ -233,61 +232,50 @@ export default function ResetPasswordPage() {
       return params.get("code_verifier");
     };
 
-    const ensureCodeVerifierCookie = (codeVerifier: string) => {
-      if (typeof document === "undefined" || !codeVerifier) {
+    const ensureCodeVerifierStored = async (codeVerifier: string) => {
+      if (!codeVerifier) {
         return;
       }
 
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-      if (!supabaseUrl) {
+      const authClient = supabase.auth as unknown as {
+        storageKey?: string;
+        storage?: {
+          getItem?: (key: string) => Promise<string | null> | string | null;
+          setItem?: (key: string, value: string) => Promise<void> | void;
+        };
+      };
+
+      const storageKey = authClient?.storageKey;
+      const storage = authClient?.storage;
+
+      if (
+        !storageKey ||
+        !storage ||
+        typeof storage.getItem !== "function" ||
+        typeof storage.setItem !== "function"
+      ) {
         return;
       }
 
-      let storageKey: string | null = null;
       try {
-        const projectRef = new URL(supabaseUrl).hostname.split(".")[0] || "";
-        if (!projectRef) {
+        const existing = await storage.getItem(
+          `${storageKey}-code-verifier`
+        );
+
+        if (existing) {
           return;
         }
-        storageKey = `sb-${projectRef}-auth-token-code-verifier`;
-      } catch (urlError) {
-        console.error(
-          "Impossible de déterminer la clef de stockage Supabase",
-          urlError,
+
+        await storage.setItem(
+          `${storageKey}-code-verifier`,
+          `${codeVerifier}/PASSWORD_RECOVERY`
         );
-        return;
+      } catch (storageError) {
+        console.error(
+          "Impossible de stocker le code verifier Supabase",
+          storageError,
+        );
       }
-
-      const existingCookies = parse(document.cookie ?? "");
-      if (existingCookies?.[storageKey]) {
-        return;
-      }
-
-      const toBase64Url = (value: string) =>
-        typeof window === "undefined"
-          ? value
-          : window
-              .btoa(value)
-              .replace(/\+/g, "-")
-              .replace(/\//g, "_")
-              .replace(/=+$/, "");
-
-      const value = `${codeVerifier}/PASSWORD_RECOVERY`;
-      const encodedValue = `base64-${toBase64Url(value)}`;
-
-      const segments = [
-        `${storageKey}=${encodedValue}`,
-        "Path=/",
-        "SameSite=Lax",
-        // Le code verifier n'a besoin d'être conservé que brièvement.
-        "Max-Age=600",
-      ];
-
-      if (window.location.protocol === "https:") {
-        segments.push("Secure");
-      }
-
-      document.cookie = segments.join("; ");
     };
 
     const verifyLink = async () => {
@@ -310,7 +298,7 @@ export default function ResetPasswordPage() {
         const codeVerifierFromUrl = codeVerifierParam || fragmentCodeVerifier || "";
 
         if (codeVerifierFromUrl) {
-          ensureCodeVerifierCookie(codeVerifierFromUrl);
+          await ensureCodeVerifierStored(codeVerifierFromUrl);
         }
 
         if (codeFromUrl) {
