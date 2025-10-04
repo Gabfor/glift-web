@@ -294,9 +294,64 @@ export default function ResetPasswordPage() {
       try {
         let activeTokens: SessionTokenSet | null = null;
         let activeSessionEmail: string | null = null;
-        let tokensSource: "existing-session" | "state" | "params" | "fragment" | null = null;
+        let tokensSource:
+          | "code-exchange"
+          | "existing-session"
+          | "state"
+          | "params"
+          | "fragment"
+          | null = null;
 
         const returningFromSupabase = detectSupabaseReturn();
+
+        const fragmentCode = extractCodeFromFragment();
+        const fragmentCodeVerifier = extractCodeVerifierFromFragment();
+        const codeFromUrl = code || fragmentCode || "";
+        const codeVerifierFromUrl = codeVerifierParam || fragmentCodeVerifier || "";
+
+        if (codeVerifierFromUrl) {
+          ensureCodeVerifierCookie(codeVerifierFromUrl);
+        }
+
+        if (codeFromUrl) {
+          const { data: exchangeData, error: exchangeError } =
+            await supabase.auth.exchangeCodeForSession(codeFromUrl);
+
+          if (exchangeError) {
+            throw exchangeError;
+          }
+
+          const exchangeSession = exchangeData?.session ?? null;
+
+          if (
+            exchangeSession?.access_token &&
+            exchangeSession?.refresh_token
+          ) {
+            const { error: setSessionError } = await supabase.auth.setSession({
+              access_token: exchangeSession.access_token,
+              refresh_token: exchangeSession.refresh_token,
+            });
+
+            if (setSessionError) {
+              throw setSessionError;
+            }
+
+            activeTokens = {
+              accessToken: exchangeSession.access_token,
+              refreshToken: exchangeSession.refresh_token,
+              type: "recovery",
+            };
+            tokensSource = "code-exchange";
+
+            if (!sessionTokens && !cancelled) {
+              setSessionTokens(activeTokens);
+            }
+          } else {
+            throw new Error("missing-session");
+          }
+
+          activeSessionEmail = exchangeData?.user?.email ?? null;
+        }
 
         const {
           data: existingSessionData,
@@ -313,6 +368,7 @@ export default function ResetPasswordPage() {
           )?.type ?? type;
 
         if (
+          !activeTokens &&
           existingSession?.access_token &&
           existingSession?.refresh_token &&
           (existingSessionType === "recovery" ||
@@ -329,6 +385,8 @@ export default function ResetPasswordPage() {
             activeSessionEmail = existingSession.user?.email ?? null;
             tokensSource = "existing-session";
           }
+        } else if (!activeSessionEmail) {
+          activeSessionEmail = existingSession?.user?.email ?? null;
         }
 
         if (!activeTokens && isValidTokenSet(sessionTokens)) {
@@ -363,7 +421,10 @@ export default function ResetPasswordPage() {
             setSessionTokens(activeTokens);
           }
 
-          if (tokensSource !== "existing-session") {
+          if (
+            tokensSource !== "existing-session" &&
+            tokensSource !== "code-exchange"
+          ) {
             const { error: sessionError } = await supabase.auth.setSession({
               access_token: activeTokens.accessToken,
               refresh_token: activeTokens.refreshToken,
@@ -371,19 +432,23 @@ export default function ResetPasswordPage() {
             if (sessionError) throw sessionError;
           }
 
-          const userResponse = activeTokens?.accessToken
-            ? await supabase.auth.getUser(activeTokens.accessToken)
-            : await supabase.auth.getUser();
+          let userEmail = activeSessionEmail ?? "";
 
-          if (userResponse.error) {
-            if (isAuthSessionMissingError(userResponse.error)) {
-              throw new Error("missing-session");
+          if (!userEmail) {
+            const userResponse = activeTokens?.accessToken
+              ? await supabase.auth.getUser(activeTokens.accessToken)
+              : await supabase.auth.getUser();
+
+            if (userResponse.error) {
+              if (isAuthSessionMissingError(userResponse.error)) {
+                throw new Error("missing-session");
+              }
+              throw userResponse.error;
             }
-            throw userResponse.error;
+
+            userEmail = userResponse.data?.user?.email ?? "";
           }
 
-          const userEmail =
-            userResponse.data?.user?.email ?? activeSessionEmail ?? "";
           if (!userEmail) {
             throw new Error("no-email");
           }
@@ -393,60 +458,7 @@ export default function ResetPasswordPage() {
             setStage("reset");
           }
         } else {
-          let authCode = code;
-          if (!authCode) {
-            authCode = extractCodeFromFragment() || "";
-          }
-
-          if (!authCode) {
-            throw new Error("invalid-link");
-          }
-
-          const codeVerifierFromUrl =
-            codeVerifierParam || extractCodeVerifierFromFragment() || "";
-
-          if (codeVerifierFromUrl) {
-            ensureCodeVerifierCookie(codeVerifierFromUrl);
-          }
-
-          const { data: exchangeData, error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(authCode);
-          if (exchangeError) throw exchangeError;
-
-          let userEmail = exchangeData?.user?.email ?? "";
-
-          if (!userEmail) {
-            const userResponse = exchangeData?.session?.access_token
-              ? await supabase.auth.getUser(
-                  exchangeData.session.access_token
-                )
-              : await supabase.auth.getUser();
-
-            if (userResponse.error) {
-              if (isAuthSessionMissingError(userResponse.error)) {
-                throw new Error("missing-session");
-              }
-              throw userResponse.error;
-            }
-            userEmail = userResponse.data?.user?.email ?? "";
-          }
-
-          if (!userEmail) {
-            throw new Error("no-email");
-          }
-
-          if (!sessionTokens && !cancelled && exchangeData?.session) {
-            setSessionTokens({
-              accessToken: exchangeData.session.access_token,
-              refreshToken: exchangeData.session.refresh_token,
-              type: "recovery",
-            });
-          }
-
-          if (!cancelled) {
-            setEmail(userEmail);
-            setStage("reset");
-          }
+          throw new Error("invalid-link");
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
