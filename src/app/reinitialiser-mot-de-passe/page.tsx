@@ -52,7 +52,7 @@ export default function ResetPasswordPage() {
           window.location.hash.includes("access_token")
         ) {
           const params = new URLSearchParams(
-            window.location.hash.replace("#", ""),
+            window.location.hash.replace("#", "")
           );
           const hashAccessToken = params.get("access_token");
           const hashRefreshToken = params.get("refresh_token");
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
           window.history.replaceState(
             null,
             "",
-            `${window.location.pathname}${window.location.search}`,
+            `${window.location.pathname}${window.location.search}`
           );
         }
       } catch (unknownError) {
@@ -112,30 +112,22 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (submitting || !isFormValid) {
-      return;
-    }
+    if (submitting || !isFormValid) return;
 
     setSubmitting(true);
 
     try {
       const { data: sessionData, error: sessionError } =
         await supabase.auth.getSession();
-      if (sessionError) {
-        throw sessionError;
-      }
+      if (sessionError) throw sessionError;
 
       const userId = sessionData?.session?.user?.id;
-      if (!userId) {
-        throw new Error("no-user");
-      }
+      if (!userId) throw new Error("no-user");
 
       const { error: updateError } = await supabase.auth.updateUser({
         password,
       });
-      if (updateError) {
-        throw updateError;
-      }
+      if (updateError) throw updateError;
 
       setStage("done");
 
@@ -158,13 +150,13 @@ export default function ResetPasswordPage() {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
+      <div className="w-full flex flex-col items-center px-4 sm:px-0">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
           Modification du mot de passe
         </h1>
 
         {stage === "verify" && (
-          <div className="w-full max-w-[564px] mb-6">
+          <div className="w-[564px] max-w-full mx-auto mb-6">
             <ModalMessage
               variant="info"
               title="Vérification…"
@@ -174,7 +166,7 @@ export default function ResetPasswordPage() {
         )}
 
         {stage === "error" && (
-          <div className="w-full max-w-[564px] mb-6">
+          <div className="w-[564px] max-w-full mx-auto mb-6">
             <ModalMessage
               variant="warning"
               title="Lien invalide ou expiré"
@@ -184,7 +176,7 @@ export default function ResetPasswordPage() {
         )}
 
         {stage === "done" && (
-          <div className="w-full max-w-[564px] mb-6">
+          <div className="w-[564px] max-w-full mx-auto mb-6">
             <ModalMessage
               variant="success"
               title="Mot de passe mis à jour"
@@ -195,24 +187,23 @@ export default function ResetPasswordPage() {
 
         {stage === "reset" && (
           <>
-            <div className="w-full max-w-[564px] mb-6">
+            <div className="w-[564px] max-w-full mx-auto mb-6">
               <ModalMessage
                 variant="info"
-                title={"Modification de votre mot de passe"}
-                description={
-                  "Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
-                }
+                title="Modification de votre mot de passe"
+                description="Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
                 className="px-6 py-5"
               />
             </div>
 
             <form
-              className="flex flex-col items-center w-full gap-[30px]"
+              className="flex flex-col items-center w-full max-w-[368px]"
               onSubmit={handleSubmit}
               autoComplete="on"
               name="reset-password"
             >
-              <div className="w-full max-w-[368px]">
+              {/* Email */}
+              <div className="w-full mb-[30px]">
                 <label
                   htmlFor="email"
                   className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
@@ -232,37 +223,44 @@ export default function ResetPasswordPage() {
                 />
               </div>
 
-              <PasswordField
-                id="password"
-                name="new-password"
-                label="Nouveau mot de passe"
-                placeholder="••••••••"
-                autoComplete="new-password"
-                value={password}
-                onChange={setPassword}
-                validate={(value) => value.trim().length >= 8}
-                errorMessage="Le mot de passe doit contenir au moins 8 caractères."
-                successMessage=""
-                containerClassName="w-full max-w-[368px]"
-              />
+              {/* Nouveau mot de passe */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="password"
+                  name="new-password"
+                  label="Nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={setPassword}
+                  validate={(value) => value.trim().length >= 8}
+                  errorMessage="Le mot de passe doit contenir au moins 8 caractères."
+                  successMessage=""
+                  containerClassName="w-full"
+                />
+              </div>
 
-              <PasswordField
-                id="confirm"
-                name="confirm-password"
-                label="Répéter le nouveau mot de passe"
-                placeholder="••••••••"
-                autoComplete="new-password"
-                value={confirmPassword}
-                onChange={setConfirmPassword}
-                validate={(value) =>
-                  value.trim().length >= 8 && value === password
-                }
-                errorMessage="Les mots de passe ne correspondent pas."
-                successMessage=""
-                containerClassName="w-full max-w-[368px]"
-              />
+              {/* Confirmation */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="confirm"
+                  name="confirm-password"
+                  label="Répéter le nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  validate={(value) =>
+                    value.trim().length >= 8 && value === password
+                  }
+                  errorMessage="Les mots de passe ne correspondent pas."
+                  successMessage=""
+                  containerClassName="w-full"
+                />
+              </div>
 
-              <div className="w-full flex justify-center">
+              {/* CTA */}
+              <div className="w-full flex justify-center mt-[5px]">
                 <button
                   type="submit"
                   disabled={!isFormValid || submitting}
