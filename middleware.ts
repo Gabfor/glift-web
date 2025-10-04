@@ -2,6 +2,7 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { createRememberingMiddlewareClient } from "@/lib/supabase/middleware";
 
 export async function middleware(req: NextRequest) {
@@ -11,9 +12,20 @@ export async function middleware(req: NextRequest) {
   const supabase = createRememberingMiddlewareClient({ req, res });
 
   // Charge la session utilisateur côté serveur
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  type SupabaseUser = Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"];
+  let user: SupabaseUser = null;
+  try {
+    const {
+      data: { user: fetchedUser },
+    } = await supabase.auth.getUser();
+    user = fetchedUser;
+  } catch (error: unknown) {
+    if (isAuthSessionMissingError(error)) {
+      user = null;
+    } else {
+      throw error;
+    }
+  }
 
   const pathname = req.nextUrl.pathname;
 
