@@ -1,4 +1,7 @@
-import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
+import {
+  createServerClient as createSupabaseServerClient,
+  type CookieMethodsServer,
+} from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 export async function createServerClient() {
@@ -6,9 +9,11 @@ export async function createServerClient() {
   const rememberPreference = cookieStore.get("glift-remember")?.value;
   const shouldPersistSession = rememberPreference !== "0";
 
+  type NextCookieOptions = Parameters<typeof cookieStore.set>[2];
+
   const sanitizeCookieOptions = (
-    options?: Parameters<typeof cookieStore.set>[2],
-  ) => {
+    options?: NextCookieOptions,
+  ): NextCookieOptions | undefined => {
     if (!options || shouldPersistSession) {
       return options;
     }
@@ -20,28 +25,26 @@ export async function createServerClient() {
     return sanitizedOptions;
   };
 
+  const cookieMethods: CookieMethodsServer = {
+    getAll() {
+      return cookieStore.getAll().map(({ name, value }) => ({ name, value }));
+    },
+    setAll(cookiesToSet) {
+      cookiesToSet.forEach(({ name, value, options }) => {
+        const sanitizedOptions = sanitizeCookieOptions(
+          options as NextCookieOptions,
+        );
+
+        cookieStore.set(name, value, sanitizedOptions);
+      });
+    },
+  } satisfies CookieMethodsServer;
+
   return createSupabaseServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set(
-          name: string,
-          value: string,
-          options?: Parameters<typeof cookieStore.set>[2]
-        ) {
-          cookieStore.set(name, value, sanitizeCookieOptions(options));
-        },
-        remove(
-          name: string,
-          options?: Parameters<typeof cookieStore.delete>[1]
-        ) {
-          cookieStore.delete(name, options);
-        },
-      },
-    }
+      cookies: cookieMethods,
+    },
   );
 }
