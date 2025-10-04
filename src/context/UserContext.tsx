@@ -151,7 +151,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     const { data: authListener } = authClient.onAuthStateChange(
       (event, session) => {
-        latestAuthEventRef.current = event;
+        const previousEvent = latestAuthEventRef.current;
 
         if (event === "PASSWORD_RECOVERY") {
           setIsRecoverySession(true);
@@ -161,9 +161,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         if (sessionType === "recovery") {
           setIsRecoverySession(true);
-        } else if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
+        } else if (
+          event === "SIGNED_OUT" ||
+          (event === "SIGNED_IN" &&
+            sessionType !== "recovery" &&
+            (sessionType !== undefined || previousEvent !== "PASSWORD_RECOVERY"))
+        ) {
           setIsRecoverySession(false);
         }
+
+        latestAuthEventRef.current = event;
 
         void fetchUser();
       },
