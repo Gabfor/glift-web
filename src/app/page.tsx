@@ -1,10 +1,19 @@
-"use client";
-
 import Link from "next/link";
 import Image from "next/image";
 import AnimatedSection from "@/components/AnimatedSection";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 
-export default function HeroConcept() {
+export default async function HeroConcept() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    redirect("/entrainements");
+  }
+
   return (
     <>
       {/* Section principale */}

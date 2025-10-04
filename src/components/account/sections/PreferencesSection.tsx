@@ -1,6 +1,5 @@
 "use client"
 
-import DeleteAccountButtonWithModal from "@/components/DeleteAccountButtonWithModal"
 import AccountAccordionSection from "../AccountAccordionSection"
 
 export default function PreferencesSection() {
