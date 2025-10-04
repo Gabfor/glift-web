@@ -13,7 +13,11 @@ server-side API routes expect the following variables to be present:
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_RESET_PASSWORD_REDIRECT_URL`
 - `SUPABASE_SERVICE_ROLE_KEY` (or `SUPABASE_SERVICE_ROLE` / `SUPABASE_SERVICE_KEY`)
+
+`NEXT_PUBLIC_SUPABASE_RESET_PASSWORD_REDIRECT_URL` doit pointer vers la page sur laquelle les utilisateurs terminent la mise à
+jour de leur mot de passe (par exemple `http://localhost:3000/connexion` en développement).
 
 Once configured, run the development server:
 
