@@ -132,9 +132,8 @@ export default function ForgotPasswordModal({
               description={
                 <div className="space-y-2">
                   <p>
-                    Si un compte y est associé, un email contenant un lien pour mettre à jour votre mot de passe vous a été envoyé.
+                    Si un compte y est associé, un email contenant un lien pour mettre à jour votre mot de passe vous a été envoyé. Ce lien est valable pendant 30 minutes.
                   </p>
-                  <p>Ce lien est valable pendant 30 minutes.</p>
                 </div>
               }
             />
@@ -142,8 +141,8 @@ export default function ForgotPasswordModal({
             <>
               <ModalMessage
                 variant="info"
-                title="Réinitialiser votre mot de passe"
-                description="Renseignez l'adresse e-mail associée à votre compte pour recevoir un lien sécurisé."
+                title="Vous avez oublié votre mot de passe ?"
+                description="Pas de problème, nous allons vous envoyer un lien pour réinitialiser votre mot de passe en toute sécurité."
               />
               {error && (
                 <ModalMessage

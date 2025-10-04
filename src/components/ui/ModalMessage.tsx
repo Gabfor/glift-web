@@ -22,10 +22,10 @@ const VARIANT_STYLES: Record<ModalMessageVariant, {
     barColor: "#A1A5FD",
   },
   success: {
-    background: "#E9FFF8",
-    titleColor: "#038B64",
-    textColor: "#00B57F",
-    barColor: "#00D591",
+    background: "#E3F9E5",
+    titleColor: "#207227",
+    textColor: "#57AE5B",
+    barColor: "#57AE5B",
   },
 }
 
