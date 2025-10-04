@@ -190,9 +190,39 @@ export default function ResetPasswordPage() {
     const verifyLink = async () => {
       try {
         let activeTokens: SessionTokenSet | null = null;
+        let activeSessionEmail: string | null = null;
+        let tokensSource: "existing-session" | "state" | "params" | "fragment" | null = null;
 
-        if (isValidTokenSet(sessionTokens)) {
+        const {
+          data: existingSessionData,
+          error: existingSessionError,
+        } = await supabase.auth.getSession();
+
+        if (existingSessionError) throw existingSessionError;
+
+        const existingSession = existingSessionData?.session ?? null;
+
+        if (
+          existingSession?.access_token &&
+          existingSession?.refresh_token &&
+          (existingSession.type ?? type) === "recovery"
+        ) {
+          const candidateFromExistingSession: SessionTokenSet = {
+            accessToken: existingSession.access_token,
+            refreshToken: existingSession.refresh_token,
+            type: "recovery",
+          };
+
+          if (isValidTokenSet(candidateFromExistingSession)) {
+            activeTokens = candidateFromExistingSession;
+            activeSessionEmail = existingSession.user?.email ?? null;
+            tokensSource = "existing-session";
+          }
+        }
+
+        if (!activeTokens && isValidTokenSet(sessionTokens)) {
           activeTokens = sessionTokens;
+          tokensSource = "state";
         }
 
         if (!activeTokens) {
@@ -204,6 +234,7 @@ export default function ResetPasswordPage() {
 
           if (isValidTokenSet(candidateFromParams)) {
             activeTokens = candidateFromParams;
+            tokensSource = "params";
           }
         }
 
@@ -212,6 +243,7 @@ export default function ResetPasswordPage() {
 
           if (isValidTokenSet(candidateFromFragment)) {
             activeTokens = candidateFromFragment;
+            tokensSource = "fragment";
           }
         }
 
@@ -220,16 +252,18 @@ export default function ResetPasswordPage() {
             setSessionTokens(activeTokens);
           }
 
-          const { error: sessionError } = await supabase.auth.setSession({
-            access_token: activeTokens.accessToken,
-            refresh_token: activeTokens.refreshToken,
-          });
-          if (sessionError) throw sessionError;
+          if (tokensSource !== "existing-session") {
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: activeTokens.accessToken,
+              refresh_token: activeTokens.refreshToken,
+            });
+            if (sessionError) throw sessionError;
+          }
 
           const { data, error } = await supabase.auth.getUser();
           if (error) throw error;
 
-          const userEmail = data?.user?.email ?? "";
+          const userEmail = data?.user?.email ?? activeSessionEmail ?? "";
           if (!userEmail) {
             throw new Error("no-email");
           }
