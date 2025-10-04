@@ -10,6 +10,7 @@ import {
 } from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { AuthApiError } from "@supabase/supabase-js";
 
@@ -27,6 +28,13 @@ export default function ResetPasswordPage() {
   const [stage, setStage] = useState<Stage>("verify");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [sessionTokens, setSessionTokens] = useState<
+    | {
+        accessToken: string;
+        refreshToken: string;
+      }
+    | null
+  >(null);
 
   const passwordValidation = useMemo(
     () => getPasswordValidationState(password),
@@ -59,41 +67,43 @@ export default function ResetPasswordPage() {
 
     const verifyLink = async () => {
       try {
+        let activeAccessToken = accessToken;
+        let activeRefreshToken = refreshToken;
+        let activeType = type;
+
         if (
-          accessToken &&
-          refreshToken &&
-          ["recovery", "signup", "magiclink"].includes(type)
-        ) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-          if (error) throw error;
-        } else if (
           typeof window !== "undefined" &&
+          (!activeAccessToken || !activeRefreshToken) &&
           window.location.hash.includes("access_token")
         ) {
           const params = new URLSearchParams(
             window.location.hash.replace("#", "")
           );
-          const hashAccessToken = params.get("access_token");
-          const hashRefreshToken = params.get("refresh_token");
-          const hashType = params.get("type");
-
-          if (
-            hashType === "recovery" &&
-            hashAccessToken &&
-            hashRefreshToken
-          ) {
-            const { error } = await supabase.auth.setSession({
-              access_token: hashAccessToken,
-              refresh_token: hashRefreshToken,
-            });
-            if (error) throw error;
-          } else {
-            throw new Error("invalid-link");
-          }
+          activeAccessToken = params.get("access_token") || "";
+          activeRefreshToken = params.get("refresh_token") || "";
+          activeType = params.get("type") || "";
         }
+
+        const isValidType = ["recovery", "signup", "magiclink"].includes(
+          activeType
+        );
+
+        if (!activeAccessToken || !activeRefreshToken || !isValidType) {
+          throw new Error("invalid-link");
+        }
+
+        if (!cancelled) {
+          setSessionTokens({
+            accessToken: activeAccessToken,
+            refreshToken: activeRefreshToken,
+          });
+        }
+
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: activeAccessToken,
+          refresh_token: activeRefreshToken,
+        });
+        if (sessionError) throw sessionError;
 
         const { data, error } = await supabase.auth.getUser();
         if (error) throw error;
@@ -107,19 +117,27 @@ export default function ResetPasswordPage() {
           setEmail(userEmail);
           setStage("reset");
         }
-
-        if (typeof window !== "undefined" && window.location.hash) {
-          window.history.replaceState(
-            null,
-            "",
-            `${window.location.pathname}${window.location.search}`
-          );
-        }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
         if (!cancelled) {
           setStage("error");
         }
+      }
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch (signOutError) {
+        console.error(
+          "Erreur lors de la déconnexion après vérification",
+          signOutError
+        );
+      }
+
+      if (typeof window !== "undefined" && window.location.hash) {
+        window.history.replaceState(
+          null,
+          "",
+          `${window.location.pathname}${window.location.search}`
+        );
       }
     };
 
@@ -199,12 +217,15 @@ export default function ResetPasswordPage() {
     setFormError(null);
 
     try {
-      const { data: sessionData, error: sessionError } =
-        await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
+      if (!sessionTokens) {
+        throw new Error("missing-session");
+      }
 
-      const userId = sessionData?.session?.user?.id;
-      if (!userId) throw new Error("no-user");
+      const { error: setSessionError } = await supabase.auth.setSession({
+        access_token: sessionTokens.accessToken,
+        refresh_token: sessionTokens.refreshToken,
+      });
+      if (setSessionError) throw setSessionError;
 
       const { error: updateError } = await supabase.auth.updateUser({
         password,
@@ -256,6 +277,14 @@ export default function ResetPasswordPage() {
       setStage("error");
     } finally {
       setSubmitting(false);
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch (signOutError) {
+        console.error(
+          "Erreur lors de la déconnexion après soumission",
+          signOutError
+        );
+      }
     }
   };
 
@@ -306,6 +335,11 @@ export default function ResetPasswordPage() {
                 className="px-6 py-5"
               />
             </div>
+            {formError ? (
+              <div className="w-[564px] max-w-full mx-auto mb-6">
+                <ErrorMessage title={formError} />
+              </div>
+            ) : null}
 
             <form
               className="flex flex-col items-center w-full max-w-[368px]"
@@ -409,11 +443,6 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
-              {formError ? (
-                <p className="mt-3 text-center text-[13px] font-medium text-[#E04F5F]">
-                  {formError}
-                </p>
-              ) : null}
             </form>
           </>
         )}
