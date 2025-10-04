@@ -22,13 +22,13 @@ type Program = ProgramRow & {
   linked: boolean;
 };
 
+type SortableColumn = "created_at" | "name" | "linked" | "id";
+
 export default function AdminProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
-  const [sortBy, setSortBy] = useState<"created_at" | "name" | "linked" | "id">(
-    "created_at"
-  );
+  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -44,9 +44,10 @@ export default function AdminProgramPage() {
 
   const fetchPrograms = useCallback(async () => {
     setLoading(true);
-    const { data: rawPrograms, error } = await supabase.rpc<ProgramRow>(
-      "programs_admin_with_count"
-    );
+    const { data: rawPrograms, error } = await supabase.rpc<
+      ProgramRow[],
+      Record<string, never>
+    >("programs_admin_with_count");
     if (error) {
       console.error("Erreur Supabase (programs):", error);
       setLoading(false);
@@ -103,7 +104,7 @@ export default function AdminProgramPage() {
     void fetchPrograms();
   }, [fetchPrograms]);
 
-  const handleSort = (column: string) => {
+  const handleSort = (column: SortableColumn) => {
     if (sortBy === column) {
       setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -238,7 +239,7 @@ export default function AdminProgramPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredPrograms = programs.filter((p) =>
-  p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (

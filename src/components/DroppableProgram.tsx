@@ -31,7 +31,6 @@ interface Props {
   showVisibilityTrainingId?: string | null
   setShowVisibilityTrainingId?: (id: string | null) => void
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
-  activeId: string | null
 }
 
 export default function DroppableProgram(props: Props) {
@@ -45,7 +44,6 @@ export default function DroppableProgram(props: Props) {
     openVisibilityIds,
     setOpenVisibilityIds,
     onUpdateTrainingVisibility,
-    activeId,
   } = props;
 
   const { setNodeRef } = useDroppable({
@@ -88,7 +86,6 @@ export default function DroppableProgram(props: Props) {
               showVisibility={openVisibilityIds.includes(training.id)}
               dragDisabled={dragDisabled}
               onUpdateTrainingVisibility={onUpdateTrainingVisibility}
-              activeId={activeId}
             />
           ))}
           <div className="ml-0">
