@@ -22,7 +22,7 @@ type Program = ProgramRow & {
   linked: boolean;
 };
 
-type SortableColumn = "created_at" | "name" | "linked" | "id";
+type SortableColumn = "created_at" | "name" | "linked" | "id" | "vignettes";
 
 export default function AdminProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -44,10 +44,9 @@ export default function AdminProgramPage() {
 
   const fetchPrograms = useCallback(async () => {
     setLoading(true);
-    const { data: rawPrograms, error } = await supabase.rpc<
-      ProgramRow[],
-      Record<string, never>
-    >("programs_admin_with_count");
+    const { data: rawPrograms, error } = await supabase.rpc(
+      "programs_admin_with_count",
+    );
     if (error) {
       console.error("Erreur Supabase (programs):", error);
       setLoading(false);
@@ -65,7 +64,7 @@ export default function AdminProgramPage() {
     }
 
     const linkedIds = new Set(linkedRows?.map((row) => row.linked_program_id));
-    const withLinked: Program[] = (rawPrograms ?? []).map((program) => ({
+    const withLinked: Program[] = ((rawPrograms ?? []) as ProgramRow[]).map((program) => ({
       ...program,
       linked: linkedIds.has(program.id),
     }));
@@ -87,6 +86,12 @@ export default function AdminProgramPage() {
         return sortDirection === "asc"
           ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
+      }
+
+      if (sortBy === "vignettes") {
+        return sortDirection === "asc"
+          ? a.vignettes - b.vignettes
+          : b.vignettes - a.vignettes;
       }
 
       return sortDirection === "asc"
@@ -207,7 +212,11 @@ export default function AdminProgramPage() {
     }, 1000); // visible 1 seconde
   };
 
-  const renderHeaderCell = (label: string, column: string, extraClass?: string) => {
+  const renderHeaderCell = (
+    label: string,
+    column: SortableColumn,
+    extraClass?: string,
+  ) => {
     const isActive = sortBy === column;
     const isAscending = sortDirection === "asc";
     const icon = isActive ? ChevronIcon : ChevronGreyIcon;
