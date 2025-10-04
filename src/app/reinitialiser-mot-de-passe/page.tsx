@@ -23,6 +23,10 @@ type SessionTokenSet = {
   type: string;
 };
 
+const SUPABASE_RECOVERY_RETURN_FLAG_KEY =
+  "glift.supabase.password-recovery-return";
+const SUPABASE_RECOVERY_RETURN_FLAG_TTL_MS = 5 * 60 * 1000;
+
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -71,6 +75,104 @@ export default function ResetPasswordPage() {
     }
 
     let cancelled = false;
+
+    const readSupabaseReturnFlag = () => {
+      if (typeof window === "undefined") {
+        return null;
+      }
+
+      try {
+        const storedValue = window.localStorage.getItem(
+          SUPABASE_RECOVERY_RETURN_FLAG_KEY
+        );
+
+        if (!storedValue) {
+          return null;
+        }
+
+        const parsedValue = Number.parseInt(storedValue, 10);
+        if (!Number.isFinite(parsedValue)) {
+          window.localStorage.removeItem(SUPABASE_RECOVERY_RETURN_FLAG_KEY);
+          return null;
+        }
+
+        const age = Date.now() - parsedValue;
+        if (age > SUPABASE_RECOVERY_RETURN_FLAG_TTL_MS) {
+          window.localStorage.removeItem(SUPABASE_RECOVERY_RETURN_FLAG_KEY);
+          return null;
+        }
+
+        return parsedValue;
+      } catch {
+        return null;
+      }
+    };
+
+    const writeSupabaseReturnFlag = () => {
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      try {
+        window.localStorage.setItem(
+          SUPABASE_RECOVERY_RETURN_FLAG_KEY,
+          `${Date.now()}`
+        );
+      } catch {
+        // Les navigateurs peuvent refuser l'accès au stockage (mode navigation privée, etc.).
+        // Dans ce cas, on se contente d'ignorer l'erreur : la présence du jeton reste optionnelle.
+      }
+    };
+
+    const hasSupabaseReferrer = () =>
+      typeof document !== "undefined" &&
+      typeof document.referrer === "string" &&
+      document.referrer.includes(".supabase.co");
+
+    const hasSupabaseUrlIndicators = () => {
+      if (typeof window === "undefined") {
+        return false;
+      }
+
+      const { hash, search } = window.location;
+      const queryParams = new URLSearchParams(search || "");
+      const fragmentParams = hash
+        ? new URLSearchParams(hash.replace("#", ""))
+        : null;
+
+      if (
+        queryParams.get("type") === "recovery" ||
+        queryParams.has("code") ||
+        queryParams.has("access_token") ||
+        queryParams.has("refresh_token")
+      ) {
+        return true;
+      }
+
+      if (!fragmentParams) {
+        return false;
+      }
+
+      return (
+        fragmentParams.has("access_token") ||
+        fragmentParams.has("refresh_token") ||
+        fragmentParams.get("type") === "recovery" ||
+        fragmentParams.has("code")
+      );
+    };
+
+    const detectSupabaseReturn = () => {
+      const flagTimestamp = readSupabaseReturnFlag();
+      const hasReferrer = hasSupabaseReferrer();
+      const hasUrlEvidence = hasSupabaseUrlIndicators();
+
+      if (hasReferrer || hasUrlEvidence) {
+        writeSupabaseReturnFlag();
+        return true;
+      }
+
+      return flagTimestamp !== null;
+    };
 
     const isValidTokenSet = (
       tokenSet: Partial<SessionTokenSet> | null
@@ -193,6 +295,8 @@ export default function ResetPasswordPage() {
         let activeSessionEmail: string | null = null;
         let tokensSource: "existing-session" | "state" | "params" | "fragment" | null = null;
 
+        const returningFromSupabase = detectSupabaseReturn();
+
         const {
           data: existingSessionData,
           error: existingSessionError,
@@ -210,7 +314,8 @@ export default function ResetPasswordPage() {
         if (
           existingSession?.access_token &&
           existingSession?.refresh_token &&
-          existingSessionType === "recovery"
+          (existingSessionType === "recovery" ||
+            (!existingSessionType && returningFromSupabase))
         ) {
           const candidateFromExistingSession: SessionTokenSet = {
             accessToken: existingSession.access_token,
