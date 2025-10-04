@@ -15,6 +15,14 @@ interface ForgotPasswordModalProps {
 
 const RESET_PASSWORD_REDIRECT_URL =
   process.env.NEXT_PUBLIC_SUPABASE_RESET_PASSWORD_REDIRECT_URL
+const COOLDOWN_DURATION_MS = 60_000
+
+const formatCooldownMessage = (remainingMs: number) => {
+  const remainingSeconds = Math.ceil(remainingMs / 1000)
+  const suffix = remainingSeconds > 1 ? "s" : ""
+
+  return `Veuillez patienter encore ${remainingSeconds} seconde${suffix} avant de demander un nouvel e-mail de réinitialisation.`
+}
 
 export default function ForgotPasswordModal({
   open,
@@ -24,6 +32,8 @@ export default function ForgotPasswordModal({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [lastRequestAt, setLastRequestAt] = useState<number | null>(null)
+  const [cooldownRemaining, setCooldownRemaining] = useState(0)
 
   const supabase = createClientComponentClient()
 
@@ -38,7 +48,39 @@ export default function ForgotPasswordModal({
     setSuccess(false)
   }, [open])
 
+  useEffect(() => {
+    if (!lastRequestAt) {
+      setCooldownRemaining(0)
+      return
+    }
+
+    const applyRemaining = () => {
+      const elapsed = Date.now() - lastRequestAt
+      const remaining = Math.max(0, COOLDOWN_DURATION_MS - elapsed)
+      setCooldownRemaining(remaining)
+      return remaining
+    }
+
+    if (applyRemaining() <= 0) {
+      return
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (applyRemaining() <= 0) {
+        window.clearInterval(intervalId)
+      }
+    }, 500)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [lastRequestAt])
+
   const isEmailValid = useMemo(() => isValidEmail(email), [email])
+  const isCooldownActive = cooldownRemaining > 0
+  const cooldownMessage = isCooldownActive
+    ? formatCooldownMessage(cooldownRemaining)
+    : null
 
   const handleClose = () => {
     if (loading) {
@@ -51,6 +93,22 @@ export default function ForgotPasswordModal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (loading || !isEmailValid) {
+      return
+    }
+
+    if (success) {
+      setSuccess(false)
+    }
+
+    const now = Date.now()
+
+    if (lastRequestAt && now - lastRequestAt < COOLDOWN_DURATION_MS) {
+      const remaining = Math.max(
+        0,
+        COOLDOWN_DURATION_MS - (now - lastRequestAt)
+      )
+      setCooldownRemaining(remaining)
+      setError(null)
       return
     }
 
@@ -72,6 +130,21 @@ export default function ForgotPasswordModal({
       )
 
       if (resetError) {
+        const status =
+          typeof resetError === "object" &&
+          resetError !== null &&
+          "status" in resetError
+            ? (resetError as { status?: number }).status
+            : undefined
+
+        if (status === 429) {
+          const timestamp = Date.now()
+          setLastRequestAt(timestamp)
+          setCooldownRemaining(COOLDOWN_DURATION_MS)
+          setError(null)
+          return
+        }
+
         setError(
           "Nous n'avons pas pu envoyer l'e-mail de réinitialisation. Veuillez réessayer dans quelques instants."
         )
@@ -81,6 +154,9 @@ export default function ForgotPasswordModal({
       setSuccess(true)
       setEmail("")
       setError(null)
+      const timestamp = Date.now()
+      setLastRequestAt(timestamp)
+      setCooldownRemaining(COOLDOWN_DURATION_MS)
     } catch (unknownError) {
       console.error("Erreur lors de la demande de réinitialisation", unknownError)
       setError(
@@ -111,8 +187,10 @@ export default function ForgotPasswordModal({
           <CTAButton
             type="submit"
             form="forgot-password-form"
-            variant={isEmailValid ? "active" : "inactive"}
-            disabled={!isEmailValid}
+            variant={
+              isEmailValid && !isCooldownActive ? "active" : "inactive"
+            }
+            disabled={!isEmailValid || isCooldownActive}
             loading={loading}
             loadingText="Envoi..."
           >
@@ -146,6 +224,13 @@ export default function ForgotPasswordModal({
                 title="Vous avez oublié votre mot de passe ?"
                 description="Pas de problème, nous allons vous envoyer un lien pour réinitialiser votre mot de passe en toute sécurité."
               />
+              {cooldownMessage && (
+                <ModalMessage
+                  variant="warning"
+                  title="Veuillez patienter avant de réessayer"
+                  description={cooldownMessage}
+                />
+              )}
               {error && (
                 <ModalMessage
                   variant="warning"
@@ -163,7 +248,7 @@ export default function ForgotPasswordModal({
           value={email}
           onChange={(value) => {
             setEmail(value)
-            if (error) {
+            if (error && !isCooldownActive) {
               setError(null)
             }
             if (success) {
