@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { PasswordField } from "@/components/forms/PasswordField";
@@ -12,6 +12,7 @@ import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import Spinner from "@/components/ui/Spinner";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
+import ModalMessage from "@/components/ui/ModalMessage";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -29,11 +30,38 @@ export default function ConnexionPage() {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const supabase = createClientComponentClient();
 
   const isEmailValidFormat = isValidEmail(email);
   const isFormValid = isEmailValidFormat && password.trim() !== "";
+
+  const nextParam = searchParams.get("next");
+  const resetStatus = searchParams.get("reset");
+
+  const isNextSafe = useMemo(() => {
+    if (!nextParam) return null;
+    if (!nextParam.startsWith("/")) return null;
+    if (nextParam.startsWith("//")) return null;
+    return nextParam;
+  }, [nextParam]);
+
+  const [showResetSuccess, setShowResetSuccess] = useState(
+    resetStatus === "success"
+  );
+
+  useEffect(() => {
+    if (resetStatus === "success") {
+      setShowResetSuccess(true);
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("reset");
+
+      const query = params.toString();
+      router.replace(`/connexion${query ? `?${query}` : ""}`);
+    }
+  }, [resetStatus, searchParams, router]);
 
   const persistRememberPreference = (value: boolean) => {
     const cookieName = "glift-remember";
@@ -78,7 +106,8 @@ export default function ConnexionPage() {
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
-        router.push("/entrainements");
+        const destination = isNextSafe ?? "/entrainements";
+        router.push(destination);
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
         setError({
@@ -122,6 +151,14 @@ export default function ConnexionPage() {
         </h1>
 
         <form className="flex flex-col w-full gap-4" onSubmit={handleLogin}>
+          {showResetSuccess ? (
+            <ModalMessage
+              variant="success"
+              title="Mot de passe mis à jour"
+              description="Tu peux maintenant te connecter avec ton nouveau mot de passe."
+            />
+          ) : null}
+
           {error && error.type !== "invalid-email" ? (
             <ErrorMessage title={error.title} description={error.description} />
           ) : null}

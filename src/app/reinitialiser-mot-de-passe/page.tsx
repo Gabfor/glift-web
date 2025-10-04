@@ -211,17 +211,29 @@ export default function ResetPasswordPage() {
       });
       if (updateError) throw updateError;
 
+      const { error: signOutError } = await supabase.auth.signOut({
+        scope: "local",
+      });
+      if (signOutError) {
+        console.error("Erreur lors de la déconnexion après réinitialisation", signOutError);
+      }
+
       setStage("done");
       setFormError(null);
 
+      const params = new URLSearchParams({ reset: "success" });
+      const isNextSafe = next.startsWith("/") && !next.startsWith("//");
+      if (isNextSafe) {
+        params.set("next", next);
+      }
+
+      const loginUrl = `/connexion${
+        params.toString() ? `?${params.toString()}` : ""
+      }`;
+
       window.setTimeout(() => {
-        try {
-          const destination = new URL(next);
-          window.location.href = destination.toString();
-        } catch {
-          router.push(next);
-          router.refresh();
-        }
+        router.push(loginUrl);
+        router.refresh();
       }, 600);
     } catch (unknownError) {
       console.error("Erreur lors de la mise à jour du mot de passe", unknownError);
@@ -279,7 +291,7 @@ export default function ResetPasswordPage() {
             <ModalMessage
               variant="success"
               title="Mot de passe mis à jour"
-              description="Redirection en cours…"
+              description="Tu vas être redirigé vers la page de connexion pour utiliser ton nouveau mot de passe."
             />
           </div>
         )}
