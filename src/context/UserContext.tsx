@@ -5,11 +5,12 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { isAuthSessionMissingError } from "@supabase/auth-js";
-import { User } from "@supabase/supabase-js";
+import { AuthChangeEvent, User } from "@supabase/supabase-js";
 
 // On étend ici le type Supabase User pour inclure user_metadata
 interface CustomUser extends User {
@@ -27,6 +28,7 @@ interface UserContextType {
   isAuthenticated: boolean;
   isPremiumUser: boolean;
   isLoading: boolean;
+  isRecoverySession: boolean;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -34,6 +36,7 @@ const UserContext = createContext<UserContextType>({
   isAuthenticated: false,
   isPremiumUser: false,
   isLoading: true,
+  isRecoverySession: false,
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -41,6 +44,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CustomUser | null>(null);
   const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
@@ -102,12 +107,67 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void fetchUser();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(() => {
-      void fetchUser();
-    });
+    const authClient = supabase.auth;
+
+    const extractSessionType = (value: unknown): string | undefined => {
+      if (!value || typeof value !== "object") {
+        return undefined;
+      }
+
+      const payload = value as Record<string, unknown>;
+
+      const directType = payload.type;
+      if (typeof directType === "string") {
+        return directType;
+      }
+
+      const nestedSession = payload.session;
+      if (nestedSession && typeof nestedSession === "object") {
+        const nestedType = (nestedSession as Record<string, unknown>).type;
+        if (typeof nestedType === "string") {
+          return nestedType;
+        }
+      }
+
+      return undefined;
+    };
+
+    const originalSetSession = authClient.setSession;
+
+    const patchedSetSession = (async (
+      ...args: Parameters<typeof authClient.setSession>
+    ) => {
+      const [sessionLike] = args;
+      const maybeType = extractSessionType(sessionLike);
+
+      if (maybeType === "recovery") {
+        setIsRecoverySession(true);
+      }
+
+      return originalSetSession.apply(authClient, args);
+    }) as typeof authClient.setSession;
+
+    authClient.setSession = patchedSetSession;
+
+    const { data: authListener } = authClient.onAuthStateChange(
+      (event) => {
+        latestAuthEventRef.current = event;
+
+        if (event === "PASSWORD_RECOVERY") {
+          setIsRecoverySession(true);
+        }
+
+        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+          setIsRecoverySession(false);
+        }
+
+        void fetchUser();
+      },
+    );
 
     return () => {
       authListener?.subscription.unsubscribe();
+      authClient.setSession = originalSetSession;
     };
   }, [fetchUser, supabase]);
 
@@ -118,6 +178,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isAuthenticated: Boolean(user),
         isPremiumUser,
         isLoading,
+        isRecoverySession,
       }}
     >
       {children}

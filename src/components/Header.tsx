@@ -11,11 +11,11 @@ import CTAButton from "@/components/CTAButton";
 export default function Header() {
   const pathname = usePathname();
   const supabase = createClientComponentClient();
-  const { user, isAuthenticated } = useUser();
+  const { user, isAuthenticated, isRecoverySession } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const showAuthenticatedUI = isAuthenticated;
+  const showAuthenticatedUI = isAuthenticated && !isRecoverySession;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
