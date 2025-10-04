@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import { ReactNode } from "react"
 
-type ModalMessageVariant = "warning" | "info"
+type ModalMessageVariant = "warning" | "info" | "success"
 
 const VARIANT_STYLES: Record<ModalMessageVariant, {
   background: string
@@ -20,6 +20,12 @@ const VARIANT_STYLES: Record<ModalMessageVariant, {
     titleColor: "#7069FA",
     textColor: "#A1A5FD",
     barColor: "#A1A5FD",
+  },
+  success: {
+    background: "#E9FFF8",
+    titleColor: "#038B64",
+    textColor: "#00B57F",
+    barColor: "#00D591",
   },
 }
 

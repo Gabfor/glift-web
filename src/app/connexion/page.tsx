@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -11,6 +11,7 @@ import { createClientComponentClient } from "@/lib/supabase/client";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import Spinner from "@/components/ui/Spinner";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -26,6 +27,7 @@ export default function ConnexionPage() {
     | null
   >(null);
   const [loading, setLoading] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const router = useRouter();
 
   const supabase = createClientComponentClient();
@@ -158,12 +160,13 @@ export default function ConnexionPage() {
                 }}
                 label="Mot de passe"
                 labelAction={
-                  <Link
-                    href="/mot-de-passe-oublie"
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
                     className="text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
                   >
                     Mot de passe oublié ?
-                  </Link>
+                  </button>
                 }
                 containerClassName="w-full max-w-[368px]"
                 messageContainerClassName="mt-2 text-[13px] font-medium"
@@ -224,6 +227,11 @@ export default function ConnexionPage() {
           </p>
         </form>
       </div>
+
+      <ForgotPasswordModal
+        open={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+      />
     </main>
   );
 }
