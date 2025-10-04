@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 import { PasswordField } from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
+import ModalMessage from "@/components/ui/ModalMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
 
 type Stage = "verify" | "reset" | "done" | "error";
@@ -164,61 +165,49 @@ export default function ResetPasswordPage() {
 
         {stage === "verify" && (
           <div className="w-full max-w-[564px] mb-6">
-            <div className="relative bg-[#E7F0FF] rounded-[5px] px-5 py-2.5 text-left">
-              <span className="absolute left-0 top-0 h-full w-[3px] bg-[#4F78EF]" />
-              <h3 className="text-[#2E3271] font-bold text-[12px]">Vérification…</h3>
-              <p className="text-[#4F78EF] font-semibold text-[12px] leading-relaxed">
-                Un instant, nous vérifions ton lien de réinitialisation.
-              </p>
-            </div>
+            <ModalMessage
+              variant="info"
+              title="Vérification…"
+              description="Un instant, nous vérifions ton lien de réinitialisation."
+            />
           </div>
         )}
 
         {stage === "error" && (
           <div className="w-full max-w-[564px] mb-6">
-            <div className="relative bg-[#FFE3E3] rounded-[5px] px-5 py-2.5 text-left">
-              <span className="absolute left-0 top-0 h-full w-[3px] bg-[#EF4F4E]" />
-              <h3 className="text-[#B42318] font-bold text-[12px]">
-                Lien invalide ou expiré
-              </h3>
-              <p className="text-[#EF4F4E] font-semibold text-[12px] leading-relaxed">
-                Merci de relancer une demande depuis « Mot de passe oublié ? ».
-              </p>
-            </div>
+            <ModalMessage
+              variant="warning"
+              title="Lien invalide ou expiré"
+              description="Merci de relancer une demande depuis « Mot de passe oublié ? »."
+            />
           </div>
         )}
 
         {stage === "done" && (
           <div className="w-full max-w-[564px] mb-6">
-            <div className="relative bg-[#E8F8EE] rounded-[5px] px-5 py-2.5 text-left">
-              <span className="absolute left-0 top-0 h-full w-[3px] bg-[#31C48D]" />
-              <h3 className="text-[#0F7A4A] font-bold text-[12px]">
-                Mot de passe mis à jour
-              </h3>
-              <p className="text-[#0F7A4A] font-semibold text-[12px] leading-relaxed">
-                Redirection en cours…
-              </p>
-            </div>
+            <ModalMessage
+              variant="success"
+              title="Mot de passe mis à jour"
+              description="Redirection en cours…"
+            />
           </div>
         )}
 
         {stage === "reset" && (
           <>
             <div className="w-full max-w-[564px] mb-6">
-              <div className="relative bg-[#E7F0FF] rounded-[12px] px-6 py-5 text-left">
-                <span className="absolute left-0 top-0 h-full w-[4px] bg-[#4F78EF]" />
-                <h2 className="text-[#2E3271] font-bold text-[16px] mb-2">
-                  Modification de votre mot de passe
-                </h2>
-                <p className="text-[#4F78EF] font-semibold text-[13px] leading-relaxed">
-                  Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis
-                  confirmez-le avant de cliquer sur « Enregistrer ».
-                </p>
-              </div>
+              <ModalMessage
+                variant="info"
+                title={"Modification de votre mot de passe"}
+                description={
+                  "Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
+                }
+                className="px-6 py-5"
+              />
             </div>
 
             <form
-              className="flex flex-col items-center w-full gap-[20px]"
+              className="flex flex-col items-center w-full gap-[30px]"
               onSubmit={handleSubmit}
               autoComplete="on"
               name="reset-password"

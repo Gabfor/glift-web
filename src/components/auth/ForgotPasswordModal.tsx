@@ -116,11 +116,48 @@ export default function ForgotPasswordModal({
     setError(null)
 
     try {
-      const redirectTo =
-        RESET_PASSWORD_REDIRECT_URL ||
-        (typeof window !== "undefined"
-          ? `${window.location.origin}/reinitialiser-mot-de-passe`
-          : undefined)
+      const buildRedirectTo = () => {
+        const fallbackOrigin =
+          typeof window !== "undefined" ? window.location.origin : null
+
+        const ensureResetPath = (value: string) => {
+          try {
+            const url = new URL(value)
+            url.pathname = "/reinitialiser-mot-de-passe"
+            url.search = ""
+            url.hash = ""
+            return url.toString()
+          } catch {
+            if (fallbackOrigin) {
+              try {
+                const url = new URL(value, fallbackOrigin)
+                url.pathname = "/reinitialiser-mot-de-passe"
+                url.search = ""
+                url.hash = ""
+                return url.toString()
+              } catch {
+                return `${fallbackOrigin}/reinitialiser-mot-de-passe`
+              }
+            }
+            return null
+          }
+        }
+
+        if (RESET_PASSWORD_REDIRECT_URL) {
+          const sanitized = ensureResetPath(RESET_PASSWORD_REDIRECT_URL)
+          if (sanitized) {
+            return sanitized
+          }
+        }
+
+        if (fallbackOrigin) {
+          return `${fallbackOrigin}/reinitialiser-mot-de-passe`
+        }
+
+        return null
+      }
+
+      const redirectTo = buildRedirectTo() || undefined
 
       const sanitizedEmail = email.trim()
 
