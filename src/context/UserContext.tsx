@@ -157,7 +157,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsRecoverySession(true);
         }
 
-        const sessionType = session?.type;
+        const sessionType = extractSessionType(session);
 
         if (sessionType === "recovery") {
           setIsRecoverySession(true);

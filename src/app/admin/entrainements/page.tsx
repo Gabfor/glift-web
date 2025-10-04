@@ -23,7 +23,6 @@ export default function AdminSingleProgramPage() {
   const [program, setProgram] = useState<Program | null>(null);
   const [originalName, setOriginalName] = useState<string>("Nouveau programme");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [openVisibilityIds, setOpenVisibilityIds] = useState<string[]>([]);
 
@@ -176,13 +175,11 @@ export default function AdminSingleProgramPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { id } = event.active;
-    setActiveId(id as string);
     const training = program?.trainings.find((t) => t.id === id);
     if (training) setActiveTraining(training);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
     setActiveTraining(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -260,7 +257,6 @@ export default function AdminSingleProgramPage() {
               openVisibilityIds={openVisibilityIds}
               setOpenVisibilityIds={setOpenVisibilityIds}
               onUpdateTrainingVisibility={() => {}}
-              activeId={activeId}
             />
           </div>
 

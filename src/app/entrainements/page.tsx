@@ -47,7 +47,6 @@ export default function EntrainementsPage() {
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
   const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
 
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
 
@@ -91,7 +90,6 @@ export default function EntrainementsPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     const { id, data } = event.active;
-    setActiveId(id as string);
     setActiveProgramId(data?.current?.programId ?? null);
 
     const current = programs
@@ -138,7 +136,6 @@ export default function EntrainementsPage() {
   const handleDragEnd = async (event: DragEndEvent) => {
     setProgramsDuringDrag(null);
     const { active, over } = event;
-    setActiveId(null);
     if (!over) return;
 
     const fromProgramId = activeProgramId;
@@ -318,10 +315,11 @@ export default function EntrainementsPage() {
             }
             onAddTraining={async () => {
               if (!program.id) return;
-            const newData = await handleAddTraining(program.id);
-            if (newData?.id) {
-              router.push(`/entrainements/${newData.id}?new=1`);
-            }
+
+              const newData = await handleAddTraining(program.id);
+              if (newData?.id) {
+                router.push(`/entrainements/${newData.id}?new=1`);
+              }
             }}
             onDeleteTraining={(id: string) => handleDeleteTraining(program.id, id)}
             onDuplicateTraining={(id: string) => handleDuplicateTraining(program.id, id)}
@@ -329,7 +327,6 @@ export default function EntrainementsPage() {
             openVisibilityIds={openVisibilityIds}
             setOpenVisibilityIds={setOpenVisibilityIds}
             onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
-            activeId={activeId}
           />
         </div>
       );

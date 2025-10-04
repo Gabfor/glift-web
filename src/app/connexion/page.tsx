@@ -37,8 +37,8 @@ export default function ConnexionPage() {
   const isEmailValidFormat = isValidEmail(email);
   const isFormValid = isEmailValidFormat && password.trim() !== "";
 
-  const nextParam = searchParams.get("next");
-  const resetStatus = searchParams.get("reset");
+  const nextParam = searchParams?.get("next") ?? null;
+  const resetStatus = searchParams?.get("reset") ?? null;
 
   const isNextSafe = useMemo(() => {
     if (!nextParam) return null;
@@ -54,6 +54,10 @@ export default function ConnexionPage() {
   useEffect(() => {
     if (resetStatus === "success") {
       setShowResetSuccess(true);
+
+      if (!searchParams) {
+        return;
+      }
 
       const params = new URLSearchParams(searchParams.toString());
       params.delete("reset");

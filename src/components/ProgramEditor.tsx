@@ -75,7 +75,7 @@ export default function ProgramEditor({
     }
 
     const { data, error } = await supabase
-      .from<ProgramTrainingSummary>(tableName)
+      .from(tableName)
       .select("id, name, program_id, position, app, dashboard")
       .eq("program_id", programId);
 
@@ -84,14 +84,16 @@ export default function ProgramEditor({
       return;
     }
 
-    const sanitized = (data ?? []).map((row) => ({
-      id: String(row.id),
-      name: row.name ?? null,
-      program_id: row.program_id ?? programId,
-      position: row.position ?? null,
-      app: row.app ?? null,
-      dashboard: row.dashboard ?? null,
-    }));
+    const sanitized = ((data as ProgramTrainingSummary[] | null) ?? []).map(
+      (row) => ({
+        id: String(row.id),
+        name: row.name ?? null,
+        program_id: row.program_id ?? programId,
+        position: row.position ?? null,
+        app: row.app ?? null,
+        dashboard: row.dashboard ?? null,
+      })
+    );
 
     setTrainingsData(sanitized);
   }, [programId, supabase, tableName]);
