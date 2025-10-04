@@ -1,6 +1,7 @@
 "use client";
 
 import { createBrowserClient, type CookieMethodsBrowser } from "@supabase/ssr";
+import { isAuthSessionMissingError } from "@supabase/auth-js";
 import type { CookieOptions } from "@supabase/ssr/dist/module/types";
 import { parse, serialize } from "cookie";
 
@@ -64,11 +65,32 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
 });
 
 export const createClientComponentClient = () => {
-  return createBrowserClient(
+  const client = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: createCookieBridge(),
     },
   );
+
+  const originalGetUser = client.auth.getUser.bind(client.auth);
+
+  client.auth.getUser = (async (
+    ...args: Parameters<typeof originalGetUser>
+  ) => {
+    try {
+      return await originalGetUser(...args);
+    } catch (error) {
+      if (isAuthSessionMissingError(error)) {
+        return {
+          data: { user: null },
+          error,
+        } as Awaited<ReturnType<typeof originalGetUser>>;
+      }
+
+      throw error;
+    }
+  }) as typeof originalGetUser;
+
+  return client;
 };
