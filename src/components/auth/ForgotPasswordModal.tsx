@@ -119,7 +119,7 @@ export default function ForgotPasswordModal({
       const redirectTo =
         RESET_PASSWORD_REDIRECT_URL ||
         (typeof window !== "undefined"
-          ? `${window.location.origin}/connexion`
+          ? `${window.location.origin}/reinitialiser-mot-de-passe`
           : undefined)
 
       const sanitizedEmail = email.trim()
