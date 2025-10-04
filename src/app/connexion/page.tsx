@@ -154,8 +154,8 @@ export default function ConnexionPage() {
           {showResetSuccess ? (
             <ModalMessage
               variant="success"
-              title="Mot de passe mis à jour"
-              description="Tu peux maintenant te connecter avec ton nouveau mot de passe."
+              title="Mot de passe modifié avec succès !"
+              description="Bonne nouvelle ! Votre mot de passe a bien été modifié. Vous pouvez dès à présent vous connecter en utilisant votre nouveau mot de passe."
             />
           ) : null}
 

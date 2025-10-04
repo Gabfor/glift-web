@@ -290,8 +290,8 @@ export default function ResetPasswordPage() {
           <div className="w-[564px] max-w-full mx-auto mb-6">
             <ModalMessage
               variant="success"
-              title="Mot de passe mis à jour"
-              description="Tu vas être redirigé vers la page de connexion pour utiliser ton nouveau mot de passe."
+              title="Mot de passe modifié avec succès !"
+              description="Vous allez être redirigé vers la page de connexion pour utiliser votre nouveau mot de passe."
             />
           </div>
         )}
