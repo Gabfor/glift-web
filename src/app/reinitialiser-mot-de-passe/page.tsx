@@ -16,6 +16,12 @@ import { AuthApiError } from "@supabase/supabase-js";
 
 type Stage = "verify" | "reset" | "done" | "error";
 
+type SessionTokenSet = {
+  accessToken: string;
+  refreshToken: string;
+  type: string;
+};
+
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -28,13 +34,7 @@ export default function ResetPasswordPage() {
   const [stage, setStage] = useState<Stage>("verify");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [sessionTokens, setSessionTokens] = useState<
-    | {
-        accessToken: string;
-        refreshToken: string;
-      }
-    | null
-  >(null);
+  const [sessionTokens, setSessionTokens] = useState<SessionTokenSet | null>(null);
 
   const passwordValidation = useMemo(
     () => getPasswordValidationState(password),
@@ -63,45 +63,85 @@ export default function ResetPasswordPage() {
   const isConfirmValid = confirmValidation.isValid;
 
   useEffect(() => {
+    if (stage !== "verify") {
+      return;
+    }
+
     let cancelled = false;
+
+    const isValidTokenSet = (
+      tokenSet: Partial<SessionTokenSet> | null
+    ): tokenSet is SessionTokenSet => {
+      if (!tokenSet) return false;
+
+      const validTypes = ["recovery", "signup", "magiclink"];
+
+      return (
+        Boolean(tokenSet.accessToken) &&
+        Boolean(tokenSet.refreshToken) &&
+        validTypes.includes(tokenSet.type ?? "")
+      );
+    };
+
+    const extractTokensFromFragment = (): Partial<SessionTokenSet> | null => {
+      if (typeof window === "undefined" || !window.location.hash) {
+        return null;
+      }
+
+      if (!window.location.hash.includes("access_token")) {
+        return null;
+      }
+
+      const params = new URLSearchParams(
+        window.location.hash.replace("#", "")
+      );
+
+      return {
+        accessToken: params.get("access_token") || "",
+        refreshToken: params.get("refresh_token") || "",
+        type: params.get("type") || "",
+      };
+    };
 
     const verifyLink = async () => {
       try {
-        let activeAccessToken = accessToken;
-        let activeRefreshToken = refreshToken;
-        let activeType = type;
+        let activeTokens: SessionTokenSet | null = null;
 
-        if (
-          typeof window !== "undefined" &&
-          (!activeAccessToken || !activeRefreshToken) &&
-          window.location.hash.includes("access_token")
-        ) {
-          const params = new URLSearchParams(
-            window.location.hash.replace("#", "")
-          );
-          activeAccessToken = params.get("access_token") || "";
-          activeRefreshToken = params.get("refresh_token") || "";
-          activeType = params.get("type") || "";
+        if (isValidTokenSet(sessionTokens)) {
+          activeTokens = sessionTokens;
         }
 
-        const isValidType = ["recovery", "signup", "magiclink"].includes(
-          activeType
-        );
+        if (!activeTokens) {
+          const candidateFromParams: Partial<SessionTokenSet> = {
+            accessToken,
+            refreshToken,
+            type,
+          };
 
-        if (!activeAccessToken || !activeRefreshToken || !isValidType) {
+          if (isValidTokenSet(candidateFromParams)) {
+            activeTokens = candidateFromParams;
+          }
+        }
+
+        if (!activeTokens) {
+          const candidateFromFragment = extractTokensFromFragment();
+
+          if (isValidTokenSet(candidateFromFragment)) {
+            activeTokens = candidateFromFragment;
+          }
+        }
+
+        if (!isValidTokenSet(activeTokens)) {
           throw new Error("invalid-link");
         }
 
-        if (!cancelled) {
-          setSessionTokens({
-            accessToken: activeAccessToken,
-            refreshToken: activeRefreshToken,
-          });
+        if (!sessionTokens && !cancelled) {
+          setSessionTokens(activeTokens);
         }
 
         const { error: sessionError } = await supabase.auth.setSession({
-          access_token: activeAccessToken,
-          refresh_token: activeRefreshToken,
+          access_token: activeTokens.accessToken,
+          refresh_token: activeTokens.refreshToken,
         });
         if (sessionError) throw sessionError;
 
@@ -146,7 +186,14 @@ export default function ResetPasswordPage() {
     return () => {
       cancelled = true;
     };
-  }, [accessToken, refreshToken, type, supabase]);
+  }, [
+    accessToken,
+    refreshToken,
+    sessionTokens,
+    stage,
+    supabase,
+    type,
+  ]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
 
