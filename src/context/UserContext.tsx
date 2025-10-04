@@ -150,14 +150,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     authClient.setSession = patchedSetSession;
 
     const { data: authListener } = authClient.onAuthStateChange(
-      (event) => {
+      (event, session) => {
         latestAuthEventRef.current = event;
 
         if (event === "PASSWORD_RECOVERY") {
           setIsRecoverySession(true);
         }
 
-        if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        const sessionType = session?.type;
+
+        if (sessionType === "recovery") {
+          setIsRecoverySession(true);
+        } else if (event === "SIGNED_OUT" || event === "SIGNED_IN") {
           setIsRecoverySession(false);
         }
 

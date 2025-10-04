@@ -11,6 +11,7 @@ import {
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { AuthApiError } from "@supabase/supabase-js";
 
 type Stage = "verify" | "reset" | "done" | "error";
 
@@ -25,6 +26,7 @@ export default function ResetPasswordPage() {
 
   const [stage, setStage] = useState<Stage>("verify");
   const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const passwordValidation = useMemo(
     () => getPasswordValidationState(password),
@@ -194,6 +196,7 @@ export default function ResetPasswordPage() {
     if (submitting || !isFormValid) return;
 
     setSubmitting(true);
+    setFormError(null);
 
     try {
       const { data: sessionData, error: sessionError } =
@@ -209,6 +212,7 @@ export default function ResetPasswordPage() {
       if (updateError) throw updateError;
 
       setStage("done");
+      setFormError(null);
 
       window.setTimeout(() => {
         try {
@@ -221,6 +225,22 @@ export default function ResetPasswordPage() {
       }, 600);
     } catch (unknownError) {
       console.error("Erreur lors de la mise à jour du mot de passe", unknownError);
+      if (unknownError instanceof AuthApiError) {
+        if (unknownError.status === 422 || unknownError.message) {
+          const translatedMessage =
+            unknownError.status === 422 &&
+            unknownError.message ===
+              "New password should be different from the old password."
+              ? "Le nouveau mot de passe doit être différent de l'ancien."
+              : unknownError.message ||
+                "Une erreur est survenue lors de la mise à jour du mot de passe.";
+
+          setFormError(translatedMessage);
+          setStage("reset");
+          return;
+        }
+      }
+
       setStage("error");
     } finally {
       setSubmitting(false);
@@ -377,6 +397,11 @@ export default function ResetPasswordPage() {
                   )}
                 </button>
               </div>
+              {formError ? (
+                <p className="mt-3 text-center text-[13px] font-medium text-[#E04F5F]">
+                  {formError}
+                </p>
+              ) : null}
             </form>
           </>
         )}
