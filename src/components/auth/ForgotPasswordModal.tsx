@@ -77,6 +77,7 @@ export default function ForgotPasswordModal({
       }
 
       setSuccess(true)
+      setEmail("")
       setError(null)
     } catch (unknownError) {
       console.error("Erreur lors de la demande de réinitialisation", unknownError)
@@ -91,78 +92,72 @@ export default function ForgotPasswordModal({
   return (
     <Modal
       open={open}
-      title={success ? "E-mail envoyé" : "Mot de passe oublié ?"}
+      title="Mot de passe oublié ?"
       onClose={handleClose}
       closeDisabled={loading}
       footer={
-        success ? (
-          <div className="flex justify-center gap-4">
-            <CTAButton onClick={onClose}>Retour à la connexion</CTAButton>
-          </div>
-        ) : (
-          <div className="flex justify-center gap-4">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F] disabled:cursor-not-allowed disabled:opacity-60"
-              disabled={loading}
-            >
-              Annuler
-            </button>
-            <CTAButton
-              type="submit"
-              form="forgot-password-form"
-              variant={isEmailValid ? "active" : "inactive"}
-              disabled={!isEmailValid}
-              loading={loading}
-              loadingText="Envoi..."
-            >
-              Valider
-            </CTAButton>
-          </div>
-        )
+        <div className="flex justify-center gap-4">
+          <button
+            type="button"
+            onClick={handleClose}
+            className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F] disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={loading}
+          >
+            Annuler
+          </button>
+          <CTAButton
+            type="submit"
+            form="forgot-password-form"
+            variant={isEmailValid ? "active" : "inactive"}
+            disabled={!isEmailValid}
+            loading={loading}
+            loadingText="Envoi..."
+          >
+            Valider
+          </CTAButton>
+        </div>
       }
     >
-      {success ? (
-        <div className="space-y-6 text-left">
-          <ModalMessage
-            variant="success"
-            title="C'est envoyé !"
-            description="Nous vous avons transmis un lien pour réinitialiser votre mot de passe. Pensez à vérifier vos courriers indésirables si vous ne le voyez pas."
-          />
-          <p className="text-[14px] font-semibold leading-normal text-[#5D6494]">
-            Une fois le mot de passe modifié, vous pourrez revenir sur la page de connexion et accéder à votre espace Glift.
-          </p>
-        </div>
-      ) : (
-        <form
-          id="forgot-password-form"
-          onSubmit={handleSubmit}
-          className="space-y-6 text-left"
-        >
-          <ModalMessage
-            variant="info"
-            title="Réinitialiser votre mot de passe"
-            description="Renseignez l'adresse e-mail associée à votre compte pour recevoir un lien sécurisé."
-          />
+      <form
+        id="forgot-password-form"
+        onSubmit={handleSubmit}
+        className="flex flex-col items-center space-y-6"
+      >
+        {success ? (
+          <div className="flex w-full max-w-[368px] gap-4 rounded-[5px] border-l-[6px] border-[#57AE5B] bg-[#E3F9E5] p-4">
+            <div className="space-y-2 text-left">
+              <p className="text-[16px] font-semibold text-[#207227]">Merci pour votre email</p>
+              <p className="text-[14px] leading-relaxed text-[#57AE5B]">
+                Si un compte y est associé, un email contenant un lien pour mettre à jour votre mot de passe vous a été envoyé. Ce lien est valable pendant 30 minutes.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="w-full max-w-[368px]">
+            <ModalMessage
+              variant="info"
+              title="Réinitialiser votre mot de passe"
+              description="Renseignez l'adresse e-mail associée à votre compte pour recevoir un lien sécurisé."
+            />
+          </div>
+        )}
 
-          <EmailField
-            id="forgot-password-email"
-            label="Adresse e-mail"
-            value={email}
-            onChange={(value) => {
-              setEmail(value)
-              if (error) {
-                setError(null)
-              }
-            }}
-            externalError={error}
-            containerClassName="max-w-[368px]"
-            messageContainerClassName="mt-2 text-[13px] font-medium"
-            autoComplete="email"
-          />
-        </form>
-      )}
+        <EmailField
+          id="forgot-password-email"
+          label="Adresse e-mail"
+          value={email}
+          onChange={(value) => {
+            setEmail(value)
+            if (error) {
+              setError(null)
+            }
+          }}
+          externalError={error}
+          containerClassName="w-full max-w-[368px]"
+          messageContainerClassName="mt-2 text-[13px] font-medium"
+          autoComplete="email"
+        />
+      </form>
     </Modal>
   )
 }
