@@ -95,6 +95,7 @@ export default function ForgotPasswordModal({
       title="Mot de passe oublié ?"
       onClose={handleClose}
       closeDisabled={loading}
+      footerWrapperClassName="mt-[30px]"
       footer={
         <div className="flex justify-center gap-4">
           <button
@@ -121,30 +122,43 @@ export default function ForgotPasswordModal({
       <form
         id="forgot-password-form"
         onSubmit={handleSubmit}
-        className="flex flex-col items-center space-y-6"
+        className="flex flex-col items-center gap-6"
       >
-        {success ? (
-          <div className="flex w-full max-w-[368px] gap-4 rounded-[5px] border-l-[6px] border-[#57AE5B] bg-[#E3F9E5] p-4">
-            <div className="space-y-2 text-left">
-              <p className="text-[16px] font-semibold text-[#207227]">Merci pour votre email</p>
-              <p className="text-[14px] leading-relaxed text-[#57AE5B]">
-                Si un compte y est associé, un email contenant un lien pour mettre à jour votre mot de passe vous a été envoyé. Ce lien est valable pendant 30 minutes.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full max-w-[368px]">
+        <div className="w-full max-w-[504px] space-y-4">
+          {success ? (
             <ModalMessage
-              variant="info"
-              title="Réinitialiser votre mot de passe"
-              description="Renseignez l'adresse e-mail associée à votre compte pour recevoir un lien sécurisé."
+              variant="success"
+              title="Merci pour votre email"
+              description={
+                <div className="space-y-2">
+                  <p>
+                    Si un compte y est associé, un email contenant un lien pour mettre à jour votre mot de passe vous a été envoyé.
+                  </p>
+                  <p>Ce lien est valable pendant 30 minutes.</p>
+                </div>
+              }
             />
-          </div>
-        )}
+          ) : (
+            <>
+              <ModalMessage
+                variant="info"
+                title="Réinitialiser votre mot de passe"
+                description="Renseignez l'adresse e-mail associée à votre compte pour recevoir un lien sécurisé."
+              />
+              {error && (
+                <ModalMessage
+                  variant="warning"
+                  title="Une erreur est survenue"
+                  description={error}
+                />
+              )}
+            </>
+          )}
+        </div>
 
         <EmailField
           id="forgot-password-email"
-          label="Adresse e-mail"
+          label="Email"
           value={email}
           onChange={(value) => {
             setEmail(value)
@@ -152,9 +166,10 @@ export default function ForgotPasswordModal({
               setError(null)
             }
           }}
-          externalError={error}
+          hideSuccessMessage
+          errorMessage=""
           containerClassName="w-full max-w-[368px]"
-          messageContainerClassName="mt-2 text-[13px] font-medium"
+          messageContainerClassName="hidden"
           autoComplete="email"
         />
       </form>

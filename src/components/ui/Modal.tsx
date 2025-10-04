@@ -17,6 +17,7 @@ type ModalProps = PropsWithChildren<{
   onClose?: () => void
   closeDisabled?: boolean
   footer?: ReactNode
+  footerWrapperClassName?: string
   closeLabel?: string
   className?: string
   contentClassName?: string
@@ -30,6 +31,7 @@ export default function Modal({
   onClose,
   closeDisabled = false,
   footer,
+  footerWrapperClassName,
   closeLabel = "Fermer",
   className,
   contentClassName,
@@ -130,7 +132,9 @@ export default function Modal({
 
         {children}
 
-        {footer && <div className="mt-6">{footer}</div>}
+        {footer && (
+          <div className={clsx("mt-6", footerWrapperClassName)}>{footer}</div>
+        )}
       </div>
     </div>,
     document.body
