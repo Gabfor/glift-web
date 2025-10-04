@@ -1,3 +1,5 @@
 declare module "set-cookie-parser" {
-  export function splitCookiesString(cookiesString: string): string[];
+  export function splitCookiesString(
+    cookiesString: string | readonly string[],
+  ): string[];
 }

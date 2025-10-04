@@ -55,12 +55,13 @@ class RememberMiddlewareAuthStorageAdapter extends CookieAuthStorageAdapter {
   protected getCookie(name: string): string | null | undefined {
     const responseCookies = splitCookiesString(
       this.context.res.headers.get("set-cookie")?.toString() ?? "",
-    ).map<string | undefined>(
-      (cookieString) => parseCookies(cookieString)[name],
+    ).map<string | undefined>((cookieString: string) =>
+      parseCookies(cookieString)[name],
     );
 
     const setCookie = responseCookies.find(
-      (cookieValue): cookieValue is string | undefined => Boolean(cookieValue),
+      (cookieValue: string | undefined): cookieValue is string | undefined =>
+        Boolean(cookieValue),
     );
 
     if (setCookie) {
