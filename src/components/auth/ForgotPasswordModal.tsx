@@ -164,6 +164,9 @@ export default function ForgotPasswordModal({
             if (error) {
               setError(null)
             }
+            if (success) {
+              setSuccess(false)
+            }
           }}
           hideSuccessMessage
           errorMessage=""
