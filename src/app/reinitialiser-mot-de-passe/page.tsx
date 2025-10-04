@@ -13,6 +13,7 @@ import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthApiError } from "@supabase/supabase-js";
 
 type Stage = "verify" | "reset" | "done" | "error";
@@ -370,10 +371,19 @@ export default function ResetPasswordPage() {
             if (sessionError) throw sessionError;
           }
 
-          const { data, error } = await supabase.auth.getUser();
-          if (error) throw error;
+          const userResponse = activeTokens?.accessToken
+            ? await supabase.auth.getUser(activeTokens.accessToken)
+            : await supabase.auth.getUser();
 
-          const userEmail = data?.user?.email ?? activeSessionEmail ?? "";
+          if (userResponse.error) {
+            if (isAuthSessionMissingError(userResponse.error)) {
+              throw new Error("missing-session");
+            }
+            throw userResponse.error;
+          }
+
+          const userEmail =
+            userResponse.data?.user?.email ?? activeSessionEmail ?? "";
           if (!userEmail) {
             throw new Error("no-email");
           }
@@ -406,10 +416,19 @@ export default function ResetPasswordPage() {
           let userEmail = exchangeData?.user?.email ?? "";
 
           if (!userEmail) {
-            const { data: userData, error: userError } =
-              await supabase.auth.getUser();
-            if (userError) throw userError;
-            userEmail = userData?.user?.email ?? "";
+            const userResponse = exchangeData?.session?.access_token
+              ? await supabase.auth.getUser(
+                  exchangeData.session.access_token
+                )
+              : await supabase.auth.getUser();
+
+            if (userResponse.error) {
+              if (isAuthSessionMissingError(userResponse.error)) {
+                throw new Error("missing-session");
+              }
+              throw userResponse.error;
+            }
+            userEmail = userResponse.data?.user?.email ?? "";
           }
 
           if (!userEmail) {
