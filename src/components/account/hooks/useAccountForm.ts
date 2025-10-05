@@ -448,7 +448,7 @@ export const useAccountForm = (user: User | null) => {
     )
   }, [currentFlat, initialFlat])
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(async (): Promise<boolean> => {
     resetFeedback()
     setLoading(true)
     setError(null)
@@ -474,9 +474,11 @@ export const useAccountForm = (user: User | null) => {
       setInitialBirthParts({ ...values.birthDate })
       successRef.current = {}
       setIsEditingName(false)
+      return true
     } catch (submitError) {
       console.error("Erreur mise à jour", submitError)
       setError(formatErrorMessage(submitError))
+      return false
     } finally {
       setLoading(false)
     }

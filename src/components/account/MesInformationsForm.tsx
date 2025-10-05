@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 
 import {
@@ -19,6 +20,7 @@ import SubmitButton from "./fields/SubmitButton"
 import TextField from "./fields/TextField"
 import ToggleField from "./fields/ToggleField"
 import IncompleteAlert from "./IncompleteAlert"
+import ProfileCompleteAlert from "./ProfileCompleteAlert"
 import MissingField from "./fields/MissingField"
 
 export default function MesInformationsForm({ user }: { user: User | null }) {
@@ -39,6 +41,8 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     endNameEdition,
   } = useAccountForm(user)
 
+  const [showSuccessBanner, setShowSuccessBanner] = useState(false)
+
   const trimmedName = values.name.trim()
   const missing = {
     gender: !values.gender,
@@ -58,11 +62,27 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
 
   const hasIncomplete = Object.values(missing).some(Boolean)
 
+  useEffect(() => {
+    if (hasIncomplete) {
+      setShowSuccessBanner(false)
+    }
+  }, [hasIncomplete])
+
+  useEffect(() => {
+    if (hasChanges) {
+      setShowSuccessBanner(false)
+    }
+  }, [hasChanges])
+
   return (
     <form
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault()
-        handleSubmit()
+        setShowSuccessBanner(false)
+        const submitSucceeded = await handleSubmit()
+        if (submitSucceeded && !hasIncomplete) {
+          setShowSuccessBanner(true)
+        }
       }}
       onKeyDown={(event) => {
         if (event.key === "Enter") {
@@ -77,7 +97,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         </div>
       )}
 
-      {hasIncomplete && <IncompleteAlert />}
+      {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
       <MissingField show={missing.gender}>
         <ToggleField
