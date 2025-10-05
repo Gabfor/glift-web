@@ -31,6 +31,13 @@ export default function Tooltip({
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const clearDelayTimeout = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
@@ -39,14 +46,10 @@ export default function Tooltip({
   useEffect(() => {
     if (!disableHover) return;
 
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-
+    clearDelayTimeout();
     setVisible(false);
     setReady(false);
-  }, [disableHover]);
+  }, [clearDelayTimeout, disableHover]);
 
   const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
@@ -74,13 +77,14 @@ export default function Tooltip({
     }, delay);
   };
 
-  const handleMouseLeave = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
+  const hideTooltip = useCallback(() => {
+    clearDelayTimeout();
     setVisible(false);
     setReady(false);
+  }, [clearDelayTimeout]);
+
+  const handleMouseLeave = () => {
+    hideTooltip();
   };
 
   useEffect(() => {
@@ -97,6 +101,7 @@ export default function Tooltip({
         ref={triggerRef}
         onMouseEnter={disableHover ? undefined : handleMouseEnter}
         onMouseLeave={disableHover ? undefined : handleMouseLeave}
+        onClick={hideTooltip}
         className="inline-flex items-center"
       >
         {children}
