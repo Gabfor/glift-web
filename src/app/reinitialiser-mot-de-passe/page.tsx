@@ -14,6 +14,10 @@ import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthApiError } from "@supabase/supabase-js";
+import {
+  readSupabaseRecoveryCodeVerifier,
+  removeSupabaseRecoveryCodeVerifier,
+} from "@/utils/supabaseRecovery";
 
 type Stage = "verify" | "reset" | "done" | "error";
 
@@ -232,17 +236,15 @@ export default function ResetPasswordPage() {
       return params.get("code_verifier");
     };
 
-    const ensureCodeVerifierStored = async (codeVerifier: string) => {
-      if (!codeVerifier) {
-        return;
-      }
+    type AuthStorage = {
+      getItem?: (key: string) => Promise<string | null> | string | null;
+      setItem?: (key: string, value: string) => Promise<void> | void;
+    };
 
+    const getSupabaseAuthStorage = () => {
       const authClient = supabase.auth as unknown as {
         storageKey?: string;
-        storage?: {
-          getItem?: (key: string) => Promise<string | null> | string | null;
-          setItem?: (key: string, value: string) => Promise<void> | void;
-        };
+        storage?: AuthStorage;
       };
 
       const storageKey = authClient?.storageKey;
@@ -254,8 +256,24 @@ export default function ResetPasswordPage() {
         typeof storage.getItem !== "function" ||
         typeof storage.setItem !== "function"
       ) {
+        return null;
+      }
+
+      return { storageKey, storage };
+    };
+
+    const ensureCodeVerifierStored = async (codeVerifier: string) => {
+      if (!codeVerifier) {
         return;
       }
+
+      const storageDetails = getSupabaseAuthStorage();
+
+      if (!storageDetails) {
+        return;
+      }
+
+      const { storage, storageKey } = storageDetails;
 
       try {
         const existing = await storage.getItem(
@@ -273,7 +291,52 @@ export default function ResetPasswordPage() {
       } catch (storageError) {
         console.error(
           "Impossible de stocker le code verifier Supabase",
-          storageError,
+          storageError
+        );
+      }
+    };
+
+    const restoreCodeVerifierFromBackup = async () => {
+      const storageDetails = getSupabaseAuthStorage();
+
+      if (!storageDetails) {
+        return;
+      }
+
+      const { storage, storageKey } = storageDetails;
+
+      let existingValue: string | null = null;
+
+      try {
+        existingValue = await storage.getItem(`${storageKey}-code-verifier`);
+      } catch (storageError) {
+        console.error(
+          "Impossible de vérifier la présence du code verifier Supabase",
+          storageError
+        );
+        return;
+      }
+
+      if (existingValue) {
+        return;
+      }
+
+      const backup = readSupabaseRecoveryCodeVerifier();
+
+      if (!backup) {
+        return;
+      }
+
+      try {
+        await storage.setItem(
+          `${storageKey}-code-verifier`,
+          `${backup.codeVerifier}/PASSWORD_RECOVERY`
+        );
+        removeSupabaseRecoveryCodeVerifier();
+      } catch (storageError) {
+        console.error(
+          "Impossible de restaurer le code verifier Supabase depuis la sauvegarde",
+          storageError
         );
       }
     };
@@ -302,6 +365,7 @@ export default function ResetPasswordPage() {
         }
 
         if (codeFromUrl) {
+          await restoreCodeVerifierFromBackup();
           const { data: exchangeData, error: exchangeError } =
             await supabase.auth.exchangeCodeForSession(codeFromUrl);
 
@@ -493,6 +557,16 @@ export default function ResetPasswordPage() {
     code,
     codeVerifierParam,
   ]);
+
+  useEffect(() => {
+    if (stage === "done" || stage === "error") {
+      removeSupabaseRecoveryCodeVerifier();
+    }
+  }, [stage]);
+
+  useEffect(() => () => {
+    removeSupabaseRecoveryCodeVerifier();
+  }, []);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
 
