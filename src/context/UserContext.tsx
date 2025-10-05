@@ -161,11 +161,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         if (sessionType === "recovery") {
           setIsRecoverySession(true);
+        } else if (event === "SIGNED_OUT") {
+          setIsRecoverySession(false);
         } else if (
-          event === "SIGNED_OUT" ||
-          (event === "SIGNED_IN" &&
-            sessionType !== "recovery" &&
-            (sessionType !== undefined || previousEvent !== "PASSWORD_RECOVERY"))
+          event === "SIGNED_IN" &&
+          sessionType !== "recovery" &&
+          previousEvent !== "PASSWORD_RECOVERY"
         ) {
           setIsRecoverySession(false);
         }
