@@ -82,6 +82,9 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         const submitSucceeded = await handleSubmit()
         if (submitSucceeded && !hasIncomplete) {
           setShowSuccessBanner(true)
+          if (typeof window !== "undefined") {
+            window.scrollTo({ top: 0, behavior: "smooth" })
+          }
         }
       }}
       onKeyDown={(event) => {
