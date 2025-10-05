@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -8,6 +8,7 @@ import {
   PasswordField,
   getPasswordValidationState,
 } from "@/components/forms/PasswordField";
+import type { PasswordFieldProps } from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import ErrorMessage from "@/components/ui/ErrorMessage";
@@ -15,6 +16,69 @@ import { createClientComponentClient } from "@/lib/supabase/client";
 import { AuthApiError } from "@supabase/supabase-js";
 
 type Stage = "verify" | "reset" | "done" | "error";
+
+type CriteriaRenderer = NonNullable<PasswordFieldProps["criteriaRenderer"]>;
+type PasswordValidationWithMatch = ReturnType<typeof getPasswordValidationState> & {
+  matches?: boolean;
+};
+
+function PasswordCriteriaItem({
+  valid,
+  text,
+}: {
+  valid: boolean;
+  text: string;
+}) {
+  const iconSrc = valid
+    ? "/icons/check-success.svg"
+    : "/icons/check-neutral.svg";
+  const textColor = valid ? "text-[#00D591]" : "text-[#C2BFC6]";
+
+  return (
+    <div className="flex items-center justify-between">
+      <span className={textColor}>{text}</span>
+      <Image
+        src={iconSrc}
+        alt={valid ? "Critère validé" : "Critère manquant"}
+        width={16}
+        height={16}
+        className="h-[16px] w-[16px]"
+      />
+    </div>
+  );
+}
+
+function PasswordCriteriaList({
+  validation,
+  includeMatch = false,
+}: {
+  validation: PasswordValidationWithMatch;
+  includeMatch?: boolean;
+}) {
+  return (
+    <div
+      className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] text-[#5D6494]"
+      style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
+    >
+      <PasswordCriteriaItem
+        valid={validation.hasMinLength}
+        text="Au moins 8 caractères"
+      />
+      <PasswordCriteriaItem valid={validation.hasLetter} text="Au moins 1 lettre" />
+      <PasswordCriteriaItem valid={validation.hasNumber} text="Au moins 1 chiffre" />
+      <PasswordCriteriaItem
+        valid={validation.hasSymbol}
+        text="Au moins 1 symbole"
+      />
+      {includeMatch ? (
+        <PasswordCriteriaItem
+          valid={Boolean(validation.matches)}
+          text="Correspond au mot de passe"
+        />
+      ) : null}
+    </div>
+  );
+}
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -35,7 +99,7 @@ export default function ResetPasswordPage() {
     [password]
   );
 
-  const confirmValidation = useMemo(() => {
+  const confirmValidation = useMemo<PasswordValidationWithMatch>(() => {
     const base = getPasswordValidationState(confirmPassword);
     const matches =
       confirmPassword.trim().length > 0 && confirmPassword === password;
@@ -58,7 +122,7 @@ export default function ResetPasswordPage() {
     }
 
     let cancelled = false;
-    let errorTimeout: number | null = null;
+    let errorTimeout: ReturnType<typeof window.setTimeout> | null = null;
 
     const handleRecoverySession = (session: unknown) => {
       if (cancelled) {
@@ -72,7 +136,7 @@ export default function ResetPasswordPage() {
       const userEmail = typedSession?.user?.email ?? null;
 
       if (userEmail) {
-        if (typeof window !== "undefined" && errorTimeout !== null) {
+        if (errorTimeout !== null) {
           window.clearTimeout(errorTimeout);
         }
 
@@ -99,13 +163,9 @@ export default function ResetPasswordPage() {
         if (data.session?.user?.email) {
           handleRecoverySession(data.session);
         } else if (!cancelled) {
-          if (typeof window !== "undefined") {
-            errorTimeout = window.setTimeout(() => {
-              setStage((current) => (current === "verify" ? "error" : current));
-            }, 2000);
-          } else {
-            setStage("error");
-          }
+          errorTimeout = window.setTimeout(() => {
+            setStage((current) => (current === "verify" ? "error" : current));
+          }, 2000);
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
@@ -123,7 +183,7 @@ export default function ResetPasswordPage() {
 
     return () => {
       cancelled = true;
-      if (typeof window !== "undefined" && errorTimeout !== null) {
+      if (errorTimeout !== null) {
         window.clearTimeout(errorTimeout);
       }
       authListener.subscription.unsubscribe();
@@ -131,64 +191,23 @@ export default function ResetPasswordPage() {
   }, [stage, supabase]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
+  const passwordCriteriaRenderer = useCallback<CriteriaRenderer>(
+    ({ isFocused }) =>
+      isFocused ? (
+        <PasswordCriteriaList validation={passwordValidation} />
+      ) : null,
+    [passwordValidation]
+  );
 
-  const PasswordCriteriaItem = ({
-    valid,
-    text,
-  }: {
-    valid: boolean;
-    text: string;
-  }) => {
-    const iconSrc = valid
-      ? "/icons/check-success.svg"
-      : "/icons/check-neutral.svg";
-    const textColor = valid ? "text-[#00D591]" : "text-[#C2BFC6]";
-
-    return (
-      <div className="flex items-center justify-between">
-        <span className={textColor}>{text}</span>
-        <Image
-          src={iconSrc}
-          alt={valid ? "Critère validé" : "Critère manquant"}
-          width={16}
-          height={16}
-          className="h-[16px] w-[16px]"
+  const confirmCriteriaRenderer = useCallback<CriteriaRenderer>(
+    ({ isFocused }) =>
+      isFocused ? (
+        <PasswordCriteriaList
+          validation={confirmValidation}
+          includeMatch
         />
-      </div>
-    );
-  };
-
-  const renderPasswordCriteria = (
-    validation:
-      | ReturnType<typeof getPasswordValidationState>
-      | (ReturnType<typeof getPasswordValidationState> & { matches?: boolean }),
-    options?: {
-      includeMatch?: boolean;
-    }
-  ) => (
-    <div
-      className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] text-[#5D6494]"
-      style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
-    >
-      <PasswordCriteriaItem
-        valid={validation.hasMinLength}
-        text="Au moins 8 caractères"
-      />
-      <PasswordCriteriaItem valid={validation.hasLetter} text="Au moins 1 lettre" />
-      <PasswordCriteriaItem valid={validation.hasNumber} text="Au moins 1 chiffre" />
-      <PasswordCriteriaItem
-        valid={validation.hasSymbol}
-        text="Au moins 1 symbole"
-      />
-      {options?.includeMatch ? (
-        <PasswordCriteriaItem
-          valid={Boolean(
-            "matches" in validation ? validation.matches : false
-          )}
-          text="Correspond au mot de passe"
-        />
-      ) : null}
-    </div>
+      ) : null,
+    [confirmValidation]
   );
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -361,9 +380,7 @@ export default function ResetPasswordPage() {
                   successMessage="Mot de passe conforme."
                   containerClassName="w-full"
                   messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                  criteriaRenderer={({ isFocused }) =>
-                    isFocused ? renderPasswordCriteria(passwordValidation) : null
-                  }
+                  criteriaRenderer={passwordCriteriaRenderer}
                   blurDelay={100}
                 />
               </div>
@@ -386,13 +403,7 @@ export default function ResetPasswordPage() {
                   successMessage="Confirmation valide."
                   containerClassName="w-full"
                   messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                  criteriaRenderer={({ isFocused }) =>
-                    isFocused
-                      ? renderPasswordCriteria(confirmValidation, {
-                          includeMatch: true,
-                        })
-                      : null
-                  }
+                  criteriaRenderer={confirmCriteriaRenderer}
                   blurDelay={100}
                 />
               </div>
