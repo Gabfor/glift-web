@@ -36,6 +36,18 @@ export default function Tooltip({
     return () => setMounted(false);
   }, []);
 
+  useEffect(() => {
+    if (!disableHover) return;
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    setVisible(false);
+    setReady(false);
+  }, [disableHover]);
+
   const calculatePosition = useCallback(() => {
     if (!triggerRef.current || !tooltipRef.current) return;
 
