@@ -13,6 +13,7 @@ import {
   WEEKLY_SESSIONS_OPTIONS,
 } from "./constants"
 import { useAccountForm } from "./hooks/useAccountForm"
+import { useAvatar } from "./hooks/useAvatar"
 import BirthDateField from "./fields/BirthDateField"
 import DropdownField from "./fields/DropdownField"
 import EmailInfoAdornment from "./fields/EmailInfoAdornment"
@@ -22,6 +23,7 @@ import ToggleField from "./fields/ToggleField"
 import IncompleteAlert from "./IncompleteAlert"
 import ProfileCompleteAlert from "./ProfileCompleteAlert"
 import MissingField from "./fields/MissingField"
+import ProfilePictureBlock from "./fields/ProfilePictureBlock"
 
 export default function MesInformationsForm({ user }: { user: User | null }) {
   const {
@@ -41,10 +43,20 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     endNameEdition,
   } = useAccountForm(user)
 
+  const {
+    avatarUrl,
+    displayUrl: avatarDisplayUrl,
+    isWorking: isAvatarWorking,
+    error: avatarError,
+    uploadAvatar,
+    removeAvatar,
+  } = useAvatar(user)
+
   const [showSuccessBanner, setShowSuccessBanner] = useState(false)
 
   const trimmedName = values.name.trim()
   const missing = {
+    avatar: !avatarUrl,
     gender: !values.gender,
     name: trimmedName.length === 0,
     birthDate:
@@ -59,6 +71,25 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     supplements: values.supplements === "",
     email: !user?.email,
   }
+
+  const completionEntries = [
+    !missing.avatar,
+    !missing.gender,
+    !missing.name,
+    !missing.birthDate,
+    !missing.country,
+    !missing.experience,
+    !missing.mainGoal,
+    !missing.trainingPlace,
+    !missing.weeklySessions,
+    !missing.supplements,
+    !missing.email,
+  ]
+
+  const completionRatio = completionEntries.length
+    ? completionEntries.filter(Boolean).length / completionEntries.length
+    : 0
+  const profileCompletion = Math.round(completionRatio * 100)
 
   const hasIncomplete = Object.values(missing).some(Boolean)
 
@@ -100,7 +131,31 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         </div>
       )}
 
+      {avatarError && (
+        <div className="w-[368px] text-red-500 text-[13px] font-medium mb-2 text-left">
+          {avatarError}
+        </div>
+      )}
+
       {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
+
+      <MissingField show={missing.avatar} widthPx={368}>
+        <div className="w-[368px] flex flex-col items-center">
+          <ProfilePictureBlock
+            imageUrl={avatarDisplayUrl}
+            profileCompletion={profileCompletion}
+            onImageChange={async (file) => {
+              setShowSuccessBanner(false)
+              return uploadAvatar(file)
+            }}
+            onImageRemove={async () => {
+              setShowSuccessBanner(false)
+              await removeAvatar()
+            }}
+            isBusy={isAvatarWorking}
+          />
+        </div>
+      </MissingField>
 
       <MissingField show={missing.gender}>
         <ToggleField
