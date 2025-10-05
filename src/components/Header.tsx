@@ -8,14 +8,20 @@ import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
 
-export default function Header() {
+interface HeaderProps {
+  disconnected?: boolean;
+}
+
+export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const supabase = createClientComponentClient();
   const { user, isAuthenticated, isRecoverySession } = useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const showAuthenticatedUI = isAuthenticated && !isRecoverySession;
+
+  // Forcer le mode déconnecté si `disconnected` est vrai
+  const showAuthenticatedUI = isAuthenticated && !isRecoverySession && !disconnected;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,7 +55,10 @@ export default function Header() {
       <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
-          <Link href={showAuthenticatedUI ? "/dashboard" : "/"} className="flex items-center">
+          <Link
+            href={showAuthenticatedUI ? "/dashboard" : "/"}
+            className="flex items-center"
+          >
             <Image
               src="/logo_beta.svg"
               alt="Logo Glift"
@@ -243,7 +252,7 @@ export default function Header() {
             </div>
           )}
 
-          {dropdownOpen && (
+          {dropdownOpen && showAuthenticatedUI && (
             <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
               <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
               <Link

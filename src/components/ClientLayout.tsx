@@ -8,14 +8,23 @@ import { UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
 import AuthDebug from "@/components/AuthDebug";
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+interface ClientLayoutProps {
+  children: React.ReactNode;
+  disconnected?: boolean;
+}
+
+export default function ClientLayout({ children, disconnected = false }: ClientLayoutProps) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
 
   return (
     <SupabaseProvider>
       <UserProvider>
-        {isAdminPage ? <AdminHeader /> : <Header />}
+        {isAdminPage ? (
+          <AdminHeader />
+        ) : (
+          <Header disconnected={disconnected} />
+        )}
         {children}
         {!isAdminPage && <Footer />}
         {process.env.NODE_ENV === "development" && <AuthDebug />}

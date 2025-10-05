@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
     }
 
     let cancelled = false;
-    let errorTimeout: ReturnType<typeof window.setTimeout> | null = null;
+    let errorTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const handleRecoverySession = (session: unknown) => {
       if (cancelled) {
@@ -163,7 +163,7 @@ export default function ResetPasswordPage() {
         if (data.session?.user?.email) {
           handleRecoverySession(data.session);
         } else if (!cancelled) {
-          errorTimeout = window.setTimeout(() => {
+          errorTimeout = setTimeout(() => {
             setStage((current) => (current === "verify" ? "error" : current));
           }, 2000);
         }
@@ -377,7 +377,7 @@ export default function ResetPasswordPage() {
                     getPasswordValidationState(value).isValid
                   }
                   errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
-                  successMessage="Mot de passe conforme."
+                  successMessage="Mot de passe valide"
                   containerClassName="w-full"
                   messageContainerClassName="mt-[5px] text-[13px] font-medium"
                   criteriaRenderer={passwordCriteriaRenderer}
@@ -400,7 +400,7 @@ export default function ResetPasswordPage() {
                     return state.isValid && value === password;
                   }}
                   errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
-                  successMessage="Confirmation valide."
+                  successMessage="Confirmation du mot de passe valide"
                   containerClassName="w-full"
                   messageContainerClassName="mt-[5px] text-[13px] font-medium"
                   criteriaRenderer={confirmCriteriaRenderer}

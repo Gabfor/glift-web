@@ -1,8 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
-import ClientLayout from "@/components/ClientLayout";
 import { UnlockScroll } from "@/components/UnlockScroll";
+import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -27,10 +27,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <head />
       <body className={quicksand.className}>
         <UnlockScroll />
-        <ClientLayout>{children}</ClientLayout>
+        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
       </body>
     </html>
   );
