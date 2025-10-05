@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ShopCard from "@/components/shop/ShopCard";
+import GliftLoader from "@/components/ui/GliftLoader";
 import { createClient } from "@/lib/supabaseClient";
 
 type Offer = {
@@ -141,37 +142,35 @@ export default function ShopGrid({
     });
 
   return (
-    <div className="relative mt-8">
-      {filteredOffers.length === 0 && !loading && (
-        <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
-      )}
+    <>
+      {loading && <GliftLoader />}
+      <div className="relative mt-8">
+        {filteredOffers.length === 0 && !loading && (
+          <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
+        )}
 
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-        {filteredOffers.map((offer) => (
-        <ShopCard
-          key={offer.id}
-          offer={{
-            ...offer,
-            type: Array.isArray(offer.type)
-              ? offer.type
-              : (() => {
-                  try {
-                    const parsed = JSON.parse(offer.type || "[]");
-                    return Array.isArray(parsed) ? parsed : [parsed];
-                  } catch {
-                    return [];
-                  }
-                })(),
-          }}
-        />
-        ))}
-      </div>
-
-      {loading && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-          <span className="text-[#5D6494] font-semibold">Chargement...</span>
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+          {filteredOffers.map((offer) => (
+            <ShopCard
+              key={offer.id}
+              offer={{
+                ...offer,
+                type: Array.isArray(offer.type)
+                  ? offer.type
+                  : (() => {
+                      try {
+                        const parsed = JSON.parse(offer.type || "[]");
+                        return Array.isArray(parsed) ? parsed : [parsed];
+                      } catch {
+                        return [];
+                      }
+                    })(),
+              }}
+            />
+          ))}
         </div>
-      )}
-    </div>
+
+      </div>
+    </>
   );
 }

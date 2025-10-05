@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 export default function PostInscription() {
   const params = useSearchParams();
@@ -19,14 +20,17 @@ export default function PostInscription() {
   }, []);  
 
   return (
-    <form
-      id="authForm"
-      method="POST"
-      action="/api/auth/login?returnTo=/entrainements"
-      style={{ display: "none" }}
-    >
-      <input type="hidden" name="email" value={email} />
-      <input type="hidden" name="password" value={password} />
-    </form>
+    <>
+      <GliftLoader />
+      <form
+        id="authForm"
+        method="POST"
+        action="/api/auth/login?returnTo=/entrainements"
+        style={{ display: "none" }}
+      >
+        <input type="hidden" name="email" value={email} />
+        <input type="hidden" name="password" value={password} />
+      </form>
+    </>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
+import GliftLoader from "@/components/ui/GliftLoader";
 import { createClient } from "@/lib/supabaseClient";
 
 type Program = {
@@ -115,26 +116,24 @@ export default function StoreGrid({
   }, [sortBy, currentPage, filters]);
 
   return (
-    <div className="relative mt-8">
-      {programs.length === 0 && !loading && (
-        <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
-      )}
+    <>
+      {loading && <GliftLoader />}
+      <div className="relative mt-8">
+        {programs.length === 0 && !loading && (
+          <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
+        )}
 
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-        {programs.map((program) => (
-          <StoreCard
-            key={program.id}
-            program={program}
-            isAuthenticated={isAuthenticated}
-          />
-        ))}
-      </div>
-
-      {loading && (
-        <div className="absolute inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center">
-          <span className="text-[#5D6494] font-semibold">Chargement...</span>
+        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+          {programs.map((program) => (
+            <StoreCard
+              key={program.id}
+              program={program}
+              isAuthenticated={isAuthenticated}
+            />
+          ))}
         </div>
-      )}
-    </div>
+
+      </div>
+    </>
   );
 }
