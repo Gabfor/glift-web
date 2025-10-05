@@ -5,7 +5,6 @@ import { FormEvent, useEffect, useMemo, useState } from "react"
 import CTAButton from "@/components/CTAButton"
 import { EmailField, isValidEmail } from "@/components/forms/EmailField"
 import { createClientComponentClient } from "@/lib/supabase/client"
-import { saveSupabaseRecoveryCodeVerifier } from "@/utils/supabaseRecovery"
 import Modal from "@/components/ui/Modal"
 import ModalMessage from "@/components/ui/ModalMessage"
 
@@ -187,41 +186,6 @@ export default function ForgotPasswordModal({
           "Nous n'avons pas pu envoyer l'e-mail de réinitialisation. Veuillez réessayer dans quelques instants."
         )
         return
-      }
-
-      try {
-        const authClient = supabase.auth as unknown as {
-          storageKey?: string
-          storage?: {
-            getItem?: (key: string) => Promise<string | null> | string | null
-          }
-        }
-
-        const storageKey = authClient?.storageKey
-        const storage = authClient?.storage
-
-        if (
-          storageKey &&
-          storage &&
-          typeof storage.getItem === "function"
-        ) {
-          const storedValue = await storage.getItem(
-            `${storageKey}-code-verifier`
-          )
-
-          if (typeof storedValue === "string") {
-            const [codeVerifier] = storedValue.split("/PASSWORD_RECOVERY")
-
-            if (codeVerifier) {
-              saveSupabaseRecoveryCodeVerifier(codeVerifier)
-            }
-          }
-        }
-      } catch (storageError) {
-        console.error(
-          "Impossible de sauvegarder le code verifier Supabase localement",
-          storageError
-        )
       }
 
       setSuccess(true)
