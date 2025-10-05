@@ -8,6 +8,7 @@ import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -171,18 +172,18 @@ export default function CreateOfferPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full max-w-3xl">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
-          {offerId ? "Modifier l’offre" : "Créer une offre"}
-        </h2>
+    <>
+      {loading && <GliftLoader />}
+      <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+        <div className="w-full max-w-3xl">
+          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+            {offerId ? "Modifier l’offre" : "Créer une offre"}
+          </h2>
 
-        {loading ? (
-          <p className="text-center text-[#5D6494]">Chargement...</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-            {/* Date de début */}
-            <div className="flex flex-col">
+          {!loading && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                {/* Date de début */}
+                <div className="flex flex-col">
               <label className="text-[#3A416F] font-bold mb-1">Date de début</label>
               <div className="flex gap-2">
                 {(() => {
@@ -538,9 +539,10 @@ export default function CreateOfferPage() {
                 {offerId ? "Mettre à jour" : "Créer l’offre"}
               </CTAButton>
             </div>
-          </div>
-        )}
-      </div>
-    </main>
+            </div>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

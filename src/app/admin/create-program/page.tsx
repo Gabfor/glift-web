@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 type Program = {
   id?: number;
@@ -169,15 +170,15 @@ export default function CreateProgramPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full max-w-3xl px-4 sm:px-0">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
-          {programId ? "Modifier la carte" : "Créer une carte"}
-        </h2>
+    <>
+      {loading && <GliftLoader />}
+      <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+        <div className="w-full max-w-3xl px-4 sm:px-0">
+          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+            {programId ? "Modifier la carte" : "Créer une carte"}
+          </h2>
 
-        {loading ? (
-          <p className="text-center text-[#5D6494]">Chargement...</p>
-        ) : (
+        {!loading && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
               {/* Sexe */}
@@ -196,26 +197,26 @@ export default function CreateProgramPage() {
                 />
               </div>
 
-              {/* Image principale */}
-              <div className="flex flex-col">
-              <div className="flex justify-between mb-[5px]">
-                <span className="text-[16px] text-[#3A416F] font-bold">Image principale</span>
-                <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">270px x 180px</span>
-              </div>
-                <ImageUploader
-                  value={program.image}
-                  onChange={(url) => setProgram({ ...program, image: url })}
-                />
-              </div>
+                {/* Image principale */}
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Image principale</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">270px x 180px</span>
+                  </div>
+                  <ImageUploader
+                    value={program.image}
+                    onChange={(url) => setProgram({ ...program, image: url })}
+                  />
+                </div>
 
-              {/* Titre */}
-              <div className="flex flex-col">
-              <div className="flex justify-between mb-[5px]">
-                <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                  {program.title.length}/52
-                </span>
-              </div>
+                {/* Titre */}
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                      {program.title.length}/52
+                    </span>
+                  </div>
                 <input
                   type="text"
                   placeholder="Titre du programme"
@@ -431,9 +432,10 @@ export default function CreateProgramPage() {
               {programId ? "Mettre à jour" : "Créer la carte"}
             </CTAButton>
           </div>
-        </>
-      )}
-    </div>
-  </main>
+          </>
+        )}
+        </div>
+      </main>
+    </>
   );
 }
