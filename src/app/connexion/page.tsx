@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
@@ -37,15 +37,7 @@ export default function ConnexionPage() {
   const isEmailValidFormat = isValidEmail(email);
   const isFormValid = isEmailValidFormat && password.trim() !== "";
 
-  const nextParam = searchParams?.get("next") ?? null;
   const resetStatus = searchParams?.get("reset") ?? null;
-
-  const isNextSafe = useMemo(() => {
-    if (!nextParam) return null;
-    if (!nextParam.startsWith("/")) return null;
-    if (nextParam.startsWith("//")) return null;
-    return nextParam;
-  }, [nextParam]);
 
   const [showResetSuccess, setShowResetSuccess] = useState(
     resetStatus === "success"
@@ -110,8 +102,7 @@ export default function ConnexionPage() {
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
-        const destination = isNextSafe ?? "/entrainements";
-        router.push(destination);
+        router.push("/entrainements");
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
         setError({

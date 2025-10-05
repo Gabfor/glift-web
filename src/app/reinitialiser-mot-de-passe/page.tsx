@@ -50,10 +50,8 @@ function PasswordCriteriaItem({
 
 function PasswordCriteriaList({
   validation,
-  includeMatch = false,
 }: {
   validation: PasswordValidationWithMatch;
-  includeMatch?: boolean;
 }) {
   return (
     <div
@@ -70,12 +68,6 @@ function PasswordCriteriaList({
         valid={validation.hasSymbol}
         text="Au moins 1 symbole"
       />
-      {includeMatch ? (
-        <PasswordCriteriaItem
-          valid={Boolean(validation.matches)}
-          text="Correspond au mot de passe"
-        />
-      ) : null}
     </div>
   );
 }
@@ -202,10 +194,7 @@ export default function ResetPasswordPage() {
   const confirmCriteriaRenderer = useCallback<CriteriaRenderer>(
     ({ isFocused }) =>
       isFocused ? (
-        <PasswordCriteriaList
-          validation={confirmValidation}
-          includeMatch
-        />
+        <PasswordCriteriaList validation={confirmValidation} />
       ) : null,
     [confirmValidation]
   );
