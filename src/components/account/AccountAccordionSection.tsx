@@ -13,8 +13,10 @@ type Props = {
 export default function AccountAccordionSection({ value, title, children }: Props) {
   return (
     <AccordionItem value={value}>
-      <div className="shadow-glift border border-[#ECE9F1] bg-white rounded-[5px] overflow-hidden">
-        <AccordionTrigger>{title}</AccordionTrigger>
+      <div className="shadow-glift border border-[#ECE9F1] bg-white rounded-[5px]">
+        <div className="overflow-hidden rounded-[5px]">
+          <AccordionTrigger>{title}</AccordionTrigger>
+        </div>
         <AccordionContent className="px-4 py-4 bg-white border-t border-[#ECE9F1] rounded-b-[5px]">
           {children}
         </AccordionContent>
