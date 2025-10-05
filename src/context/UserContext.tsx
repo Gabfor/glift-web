@@ -19,6 +19,8 @@ interface CustomUser extends User {
     is_admin?: boolean;
     is_premium?: boolean;
     subscription_plan?: string;
+    avatar_url?: string | null;
+    avatar_path?: string | null;
     [key: string]: unknown;
   };
 }
@@ -29,6 +31,10 @@ interface UserContextType {
   isPremiumUser: boolean;
   isLoading: boolean;
   isRecoverySession: boolean;
+  refreshUser: () => Promise<void>;
+  updateUserMetadata: (
+    patch: Partial<CustomUser["user_metadata"]>,
+  ) => void;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -37,6 +43,8 @@ const UserContext = createContext<UserContextType>({
   isPremiumUser: false,
   isLoading: true,
   isRecoverySession: false,
+  refreshUser: async () => {},
+  updateUserMetadata: () => {},
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -183,6 +191,40 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     };
   }, [fetchUser, supabase]);
 
+  const updateUserMetadata = useCallback(
+    (patch: Partial<CustomUser["user_metadata"]>) => {
+      setUser((current) => {
+        if (!current) {
+          return current;
+        }
+
+        const nextMetadataEntries = Object.entries(patch);
+        if (nextMetadataEntries.length === 0) {
+          return current;
+        }
+
+        const nextMetadata = { ...current.user_metadata } as Record<
+          string,
+          unknown
+        >;
+
+        for (const [key, value] of nextMetadataEntries) {
+          if (typeof value === "undefined") {
+            delete nextMetadata[key];
+          } else {
+            nextMetadata[key] = value;
+          }
+        }
+
+        return {
+          ...current,
+          user_metadata: nextMetadata as CustomUser["user_metadata"],
+        };
+      });
+    },
+    [],
+  );
+
   return (
     <UserContext.Provider
       value={{
@@ -191,6 +233,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isPremiumUser,
         isLoading,
         isRecoverySession,
+        refreshUser: fetchUser,
+        updateUserMetadata,
       }}
     >
       {children}

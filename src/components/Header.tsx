@@ -20,6 +20,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const rawAvatarUrl =
+    typeof user?.user_metadata?.avatar_url === "string"
+      ? user.user_metadata.avatar_url.trim()
+      : "";
+  const hasAvatar = rawAvatarUrl.length > 0;
+  const userInitial =
+    user?.user_metadata?.name?.charAt(0).toUpperCase() || "?";
+  const userDisplayName = user?.user_metadata?.name?.trim() || "Profil";
+
   // Forcer le mode déconnecté si `disconnected` est vrai
   const showAuthenticatedUI = isAuthenticated && !isRecoverySession && !disconnected;
 
@@ -215,10 +224,20 @@ export default function Header({ disconnected = false }: HeaderProps) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
             >
-              <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#7069FA] text-white flex items-center justify-center font-semibold">
-                {user?.user_metadata?.name?.charAt(0).toUpperCase() || "?"}
+              <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#7069FA] text-white flex items-center justify-center font-semibold overflow-hidden">
+                {hasAvatar ? (
+                  <Image
+                    src={rawAvatarUrl}
+                    alt={`Avatar de ${userDisplayName}`}
+                    width={44}
+                    height={44}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  userInitial
+                )}
               </div>
-              {user?.user_metadata?.name?.trim() || "Profil"}
+              {userDisplayName}
               <span
                 className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${
                   dropdownOpen ? "rotate-180" : ""

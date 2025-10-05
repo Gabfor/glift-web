@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 
+import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
 
 const DEFAULT_BUCKET = "avatars"
@@ -55,6 +56,7 @@ const extractInitialState = (
 
 export const useAvatar = (user: User | null): UseAvatarResult => {
   const supabase = useMemo(() => createClient(), [])
+  const { updateUserMetadata } = useUser()
   const initialState = useMemo(
     () => extractInitialState(user?.user_metadata as Record<string, unknown> | undefined),
     [user?.user_metadata],
@@ -151,6 +153,10 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
         setAvatarUrl(publicUrl)
         setAvatarPath(objectPath)
         setError(null)
+        updateUserMetadata({
+          avatar_url: publicUrl,
+          avatar_path: objectPath,
+        })
 
         if (previousPath && previousPath !== objectPath) {
           void supabase.storage
@@ -177,7 +183,16 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
         previewRef.current = null
       }
     },
-    [avatarPath, avatarUrl, bucket, isWorking, releasePreview, supabase, user?.id],
+    [
+      avatarPath,
+      avatarUrl,
+      bucket,
+      isWorking,
+      releasePreview,
+      supabase,
+      updateUserMetadata,
+      user?.id,
+    ],
   )
 
   const removeAvatar = useCallback(async () => {
@@ -210,6 +225,10 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
       setAvatarUrl(null)
       setAvatarPath(null)
       setPreviewUrl(null)
+      updateUserMetadata({
+        avatar_url: null,
+        avatar_path: null,
+      })
 
       if (pathToRemove) {
         await supabase.storage
@@ -232,7 +251,15 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
       releasePreview(previewRef.current)
       previewRef.current = null
     }
-  }, [avatarPath, bucket, isWorking, releasePreview, supabase, user?.id])
+  }, [
+    avatarPath,
+    bucket,
+    isWorking,
+    releasePreview,
+    supabase,
+    updateUserMetadata,
+    user?.id,
+  ])
 
   const displayUrl = previewUrl ?? avatarUrl
 
