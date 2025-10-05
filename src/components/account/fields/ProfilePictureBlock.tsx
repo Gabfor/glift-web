@@ -2,7 +2,6 @@
 
 import { useMemo, useRef, useState } from "react"
 import Image from "next/image"
-import { Camera, Trash2 } from "lucide-react"
 import Tooltip from "@/components/Tooltip"
 
 const ALLOWED_TYPES = new Set([
@@ -40,6 +39,8 @@ export default function ProfilePictureBlock({
   const working = isBusy || localBusy
   const pct = useMemo(() => clampPercentage(profileCompletion), [profileCompletion])
   const hasImage = Boolean(imageUrl && imageUrl.trim().length > 0)
+  const isDeleteEnabled = hasImage && !working
+  const isUploadEnabled = !working
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget
@@ -86,100 +87,140 @@ export default function ProfilePictureBlock({
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="relative w-[368px] flex flex-col items-center mb-4">
-        <div className="relative w-[100px] h-[100px]">
-          <svg className="absolute inset-0" viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
-            <circle
-              cx="50"
-              cy="50"
-              r={RADIUS}
-              stroke="#ECE9F1"
-              strokeWidth={STROKE}
-              fill="none"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r={RADIUS}
-              stroke="#33E1AC"
-              strokeWidth={STROKE}
-              fill="none"
-              pathLength={100}
-              strokeDasharray={100}
-              strokeDashoffset={100 - pct}
-              strokeLinecap="round"
-              transform="rotate(-90 50 50)"
-              style={{ transition: "stroke-dashoffset 300ms ease" }}
-            />
-          </svg>
-
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-[75px] h-[75px] rounded-full overflow-hidden bg-[#ECE9F1]">
-              {hasImage ? (
+      <div className="relative w-[368px] flex flex-col items-center">
+        <div className="flex items-center justify-center gap-[20px] mb-4">
+          <Tooltip
+            content={hasImage ? "Supprimer la photo" : "Aucune photo"}
+            placement="top"
+            offset={16}
+            delay={400}
+            disableHover={!isDeleteEnabled}
+          >
+            <button
+              type="button"
+              onClick={handleRemove}
+              disabled={!isDeleteEnabled}
+              aria-label="Supprimer la photo de profil"
+              className="group relative"
+            >
+              <span
+                className={`relative flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
+                  isDeleteEnabled
+                    ? "border-[#F3F2F7] bg-white group-hover:bg-[#F1EFF9]"
+                    : "border-[#E4E1EB] bg-[#F7F6FB]"
+                } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
+              >
                 <Image
-                  key={imageUrl}
-                  src={imageUrl as string}
-                  alt="Photo de profil"
-                  fill
-                  className="object-cover"
-                  sizes="75px"
+                  src="/icons/delete_photo.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  className={`${
+                    isDeleteEnabled ? "transition-opacity group-hover:opacity-0" : "opacity-40"
+                  }`}
+                  aria-hidden="true"
                 />
-              ) : null}
+                {isDeleteEnabled ? (
+                  <Image
+                    src="/icons/delete_photo_hover.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="absolute inset-0 m-auto transition-opacity opacity-0 group-hover:opacity-100"
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </span>
+            </button>
+          </Tooltip>
+
+          <div className="relative w-[100px] h-[100px]">
+            <svg className="absolute inset-0" viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
+              <circle
+                cx="50"
+                cy="50"
+                r={RADIUS}
+                stroke="#ECE9F1"
+                strokeWidth={STROKE}
+                fill="none"
+              />
+              <circle
+                cx="50"
+                cy="50"
+                r={RADIUS}
+                stroke="#33E1AC"
+                strokeWidth={STROKE}
+                fill="none"
+                pathLength={100}
+                strokeDasharray={100}
+                strokeDashoffset={100 - pct}
+                strokeLinecap="round"
+                transform="rotate(-90 50 50)"
+                style={{ transition: "stroke-dashoffset 300ms ease" }}
+              />
+            </svg>
+
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="relative w-[75px] h-[75px] rounded-full overflow-hidden bg-[#ECE9F1]">
+                {hasImage ? (
+                  <Image
+                    key={imageUrl}
+                    src={imageUrl as string}
+                    alt="Photo de profil"
+                    fill
+                    className="object-cover"
+                    sizes="75px"
+                  />
+                ) : null}
+              </div>
             </div>
           </div>
+
+          <Tooltip
+            content="Charger une photo"
+            placement="top"
+            offset={16}
+            delay={400}
+            disableHover={!isUploadEnabled}
+          >
+            <button
+              type="button"
+              onClick={openFileDialog}
+              disabled={!isUploadEnabled}
+              aria-label="Changer la photo de profil"
+              className="group relative"
+            >
+              <span
+                className={`relative flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
+                  isUploadEnabled
+                    ? "border-[#F3F2F7] bg-white group-hover:bg-[#F1EFF9]"
+                    : "border-[#E4E1EB] bg-[#F7F6FB]"
+                } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
+              >
+                <Image
+                  src="/icons/photo.svg"
+                  alt=""
+                  width={20}
+                  height={20}
+                  className={`${
+                    isUploadEnabled ? "transition-opacity group-hover:opacity-0" : "opacity-40"
+                  }`}
+                  aria-hidden="true"
+                />
+                {isUploadEnabled ? (
+                  <Image
+                    src="/icons/photo_hover.svg"
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="absolute inset-0 m-auto transition-opacity opacity-0 group-hover:opacity-100"
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </span>
+            </button>
+          </Tooltip>
         </div>
-
-        <Tooltip
-          content={hasImage ? "Supprimer la photo" : "Aucune photo"}
-          placement="top"
-          offset={16}
-          delay={400}
-          disableHover={!hasImage || working}
-        >
-          <button
-            type="button"
-            onClick={handleRemove}
-            disabled={!hasImage || working}
-            aria-label="Supprimer la photo de profil"
-            className="absolute left-[-52px] top-1/2 -translate-y-1/2"
-          >
-            <span
-              className={`flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
-                hasImage && !working
-                  ? "border-[#F3F2F7] bg-white hover:bg-[#F1EFF9]"
-                  : "border-[#E4E1EB] bg-[#F7F6FB]"
-              } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
-            >
-              <Trash2
-                className={`h-5 w-5 ${
-                  hasImage && !working ? "text-[#7069FA]" : "text-[#C5C1D6]"
-                }`}
-                aria-hidden="true"
-              />
-            </span>
-          </button>
-        </Tooltip>
-
-        <Tooltip content="Charger une photo" placement="top" offset={16} delay={400} disableHover={working}>
-          <button
-            type="button"
-            onClick={openFileDialog}
-            disabled={working}
-            aria-label="Changer la photo de profil"
-            className="absolute right-[-52px] top-1/2 -translate-y-1/2"
-          >
-            <span
-              className={`flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
-                working ? "border-[#E4E1EB] bg-[#F7F6FB]" : "border-[#F3F2F7] bg-white hover:bg-[#F1EFF9]"
-              } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
-            >
-              <Camera
-                className={`h-5 w-5 ${working ? "text-[#C5C1D6]" : "text-[#7069FA]"}`}
-                aria-hidden="true"
-              />
-            </span>
-          </button>
-        </Tooltip>
 
         <input
           ref={fileInputRef}
