@@ -44,7 +44,6 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   } = useAccountForm(user)
 
   const {
-    avatarUrl,
     displayUrl: avatarDisplayUrl,
     isWorking: isAvatarWorking,
     error: avatarError,
@@ -56,7 +55,6 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
 
   const trimmedName = values.name.trim()
   const missing = {
-    avatar: !avatarUrl,
     gender: !values.gender,
     name: trimmedName.length === 0,
     birthDate:
@@ -73,7 +71,6 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   }
 
   const completionEntries = [
-    !missing.avatar,
     !missing.gender,
     !missing.name,
     !missing.birthDate,
@@ -139,23 +136,21 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
 
       {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
-      <MissingField show={missing.avatar} widthPx={368}>
-        <div className="w-[368px] flex flex-col items-center">
-          <ProfilePictureBlock
-            imageUrl={avatarDisplayUrl}
-            profileCompletion={profileCompletion}
-            onImageChange={async (file) => {
-              setShowSuccessBanner(false)
-              return uploadAvatar(file)
-            }}
-            onImageRemove={async () => {
-              setShowSuccessBanner(false)
-              await removeAvatar()
-            }}
-            isBusy={isAvatarWorking}
-          />
-        </div>
-      </MissingField>
+      <div className="w-[368px] flex flex-col items-center mb-[30px]">
+        <ProfilePictureBlock
+          imageUrl={avatarDisplayUrl}
+          profileCompletion={profileCompletion}
+          onImageChange={async (file) => {
+            setShowSuccessBanner(false)
+            return uploadAvatar(file)
+          }}
+          onImageRemove={async () => {
+            setShowSuccessBanner(false)
+            await removeAvatar()
+          }}
+          isBusy={isAvatarWorking}
+        />
+      </div>
 
       <MissingField show={missing.gender}>
         <ToggleField
