@@ -11,6 +11,7 @@ import {
 import type { PasswordFieldProps } from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
+import GliftLoader from "@/components/ui/GliftLoader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { AuthApiError } from "@supabase/supabase-js";
@@ -272,157 +273,151 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const loader =
+    stage === "verify"
+      ? (
+          <GliftLoader />
+        )
+      : stage === "done"
+        ? (
+            <GliftLoader />
+          )
+        : null;
+
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      <div className="w-full flex flex-col items-center px-4 sm:px-0">
-        <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
-          Modification du mot de passe
-        </h1>
+    <>
+      {loader}
+      <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+        <div className="w-full flex flex-col items-center px-4 sm:px-0">
+          <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
+            Modification du mot de passe
+          </h1>
 
-        {stage === "verify" && (
-          <div className="w-[564px] max-w-full mx-auto mb-6">
-            <ModalMessage
-              variant="info"
-              title="Vérification…"
-              description="Un instant, nous vérifions ton lien de réinitialisation."
-            />
-          </div>
-        )}
-
-        {stage === "error" && (
-          <div className="w-[564px] max-w-full mx-auto mb-6">
-            <ModalMessage
-              variant="warning"
-              title="Lien invalide ou expiré"
-              description="Merci de relancer une demande depuis « Mot de passe oublié ? »."
-            />
-          </div>
-        )}
-
-        {stage === "done" && (
-          <div className="w-[564px] max-w-full mx-auto mb-6">
-            <ModalMessage
-              variant="success"
-              title="Mot de passe modifié avec succès !"
-              description="Vous allez être redirigé vers la page de connexion pour utiliser votre nouveau mot de passe."
-            />
-          </div>
-        )}
-
-        {stage === "reset" && (
-          <>
+          {stage === "error" && (
             <div className="w-[564px] max-w-full mx-auto mb-6">
               <ModalMessage
-                variant="info"
-                title="Modification de votre mot de passe"
-                description="Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
-                className="px-6 py-5"
+                variant="warning"
+                title="Lien invalide ou expiré"
+                description="Merci de relancer une demande depuis « Mot de passe oublié ? »."
               />
             </div>
-            {formError ? (
+          )}
+
+          {stage === "reset" && (
+            <>
               <div className="w-[564px] max-w-full mx-auto mb-6">
-                <ErrorMessage title={formError} />
-              </div>
-            ) : null}
-
-            <form
-              className="flex flex-col items-center w-full max-w-[368px]"
-              onSubmit={handleSubmit}
-              autoComplete="on"
-              name="reset-password"
-            >
-              {/* Email */}
-              <div className="w-full mb-[30px]">
-                <label
-                  htmlFor="email"
-                  className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
-                >
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="username"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="username"
-                  placeholder="john.doe@email.com"
-                  value={email}
-                  disabled
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
+                <ModalMessage
+                  variant="info"
+                  title="Modification de votre mot de passe"
+                  description="Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
+                  className="px-6 py-5"
                 />
               </div>
+              {formError ? (
+                <div className="w-[564px] max-w-full mx-auto mb-6">
+                  <ErrorMessage title={formError} />
+                </div>
+              ) : null}
 
-              {/* Nouveau mot de passe */}
-              <div className="w-full mb-[5px]">
-                <PasswordField
-                  id="password"
-                  name="new-password"
-                  label="Nouveau mot de passe"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={setPassword}
-                  validate={(value) =>
-                    getPasswordValidationState(value).isValid
-                  }
-                  errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
-                  successMessage="Mot de passe valide"
-                  containerClassName="w-full"
-                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                  criteriaRenderer={passwordCriteriaRenderer}
-                  blurDelay={100}
-                />
-              </div>
+              <form
+                className="flex flex-col items-center w-full max-w-[368px]"
+                onSubmit={handleSubmit}
+                autoComplete="on"
+                name="reset-password"
+              >
+                {/* Email */}
+                <div className="w-full mb-[30px]">
+                  <label
+                    htmlFor="email"
+                    className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
+                  >
+                    Email
+                  </label>
+                  <input
+                    id="email"
+                    name="username"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="username"
+                    placeholder="john.doe@email.com"
+                    value={email}
+                    disabled
+                    className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
+                  />
+                </div>
 
-              {/* Confirmation */}
-              <div className="w-full mb-[5px]">
-                <PasswordField
-                  id="confirm"
-                  name="confirm-password"
-                  label="Répéter le nouveau mot de passe"
-                  placeholder="••••••••"
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={setConfirmPassword}
-                  validate={(value) => {
-                    const state = getPasswordValidationState(value);
-                    return state.isValid && value === password;
-                  }}
-                  errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
-                  successMessage="Confirmation du mot de passe valide"
-                  containerClassName="w-full"
-                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                  criteriaRenderer={confirmCriteriaRenderer}
-                  blurDelay={100}
-                />
-              </div>
+                {/* Nouveau mot de passe */}
+                <div className="w-full mb-[5px]">
+                  <PasswordField
+                    id="password"
+                    name="new-password"
+                    label="Nouveau mot de passe"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    value={password}
+                    onChange={setPassword}
+                    validate={(value) =>
+                      getPasswordValidationState(value).isValid
+                    }
+                    errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
+                    successMessage="Mot de passe valide"
+                    containerClassName="w-full"
+                    messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                    criteriaRenderer={passwordCriteriaRenderer}
+                    blurDelay={100}
+                  />
+                </div>
 
-              {/* CTA */}
-              <div className="w-full flex justify-center mt-[5px]">
-                <button
-                  type="submit"
-                  disabled={!isFormValid || submitting}
-                  aria-busy={submitting}
-                  className={`inline-flex h-[44px] items-center justify-center rounded-[25px] px-[15px] text-[16px] font-bold ${
-                    !isFormValid || submitting
-                      ? "bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed"
-                      : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
-                  }`}
-                >
-                  {submitting ? (
-                    <span className="inline-flex items-center gap-2">
-                      <Spinner size="md" ariaLabel="En cours" />
-                      En cours...
-                    </span>
-                  ) : (
-                    "Enregistrer"
-                  )}
-                </button>
-              </div>
-            </form>
-          </>
-        )}
-      </div>
-    </main>
+                {/* Confirmation */}
+                <div className="w-full mb-[5px]">
+                  <PasswordField
+                    id="confirm"
+                    name="confirm-password"
+                    label="Répéter le nouveau mot de passe"
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                    value={confirmPassword}
+                    onChange={setConfirmPassword}
+                    validate={(value) => {
+                      const state = getPasswordValidationState(value);
+                      return state.isValid && value === password;
+                    }}
+                    errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
+                    successMessage="Confirmation du mot de passe valide"
+                    containerClassName="w-full"
+                    messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                    criteriaRenderer={confirmCriteriaRenderer}
+                    blurDelay={100}
+                  />
+                </div>
+
+                {/* CTA */}
+                <div className="w-full flex justify-center mt-[5px]">
+                  <button
+                    type="submit"
+                    disabled={!isFormValid || submitting}
+                    aria-busy={submitting}
+                    className={`inline-flex h-[44px] items-center justify-center rounded-[25px] px-[15px] text-[16px] font-bold ${
+                      !isFormValid || submitting
+                        ? "bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed"
+                        : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
+                    }`}
+                  >
+                    {submitting ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Spinner size="md" ariaLabel="En cours" />
+                        En cours...
+                      </span>
+                    ) : (
+                      "Enregistrer"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </div>
+      </main>
+    </>
   );
 }

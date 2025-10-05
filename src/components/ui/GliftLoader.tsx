@@ -1,9 +1,9 @@
 "use client";
 import Image from "next/image";
 
-export default function GliftBarLoader() {
+export default function GliftLoader() {
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center bg-white z-50">
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4 text-center">
       <Image
         src="/logo-glift.svg"
         alt="Glift"
@@ -12,8 +12,8 @@ export default function GliftBarLoader() {
         priority
         className="mb-6"
       />
-      <div className="relative w-[100px] h-[3px] bg-gray-200 rounded-full overflow-hidden">
-        <div className="absolute inset-0 bg-[#7069FA] animate-bar-loader" />
+      <div className="relative h-[3px] w-[100px] overflow-hidden rounded-full bg-gray-200">
+        <div className="animate-bar-loader absolute inset-0 bg-[#7069FA]" />
       </div>
       <style jsx>{`
         @keyframes bar-loader {
