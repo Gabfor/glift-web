@@ -80,6 +80,7 @@ export default function ProfilePictureBlock({
 
   const openFileDialog = () => {
     if (working) return
+    setIsUploadHovered(false)
     fileInputRef.current?.click()
   }
 
@@ -117,14 +118,14 @@ export default function ProfilePictureBlock({
               aria-label="Supprimer la photo de profil"
               onMouseEnter={isDeleteEnabled ? () => setIsDeleteHovered(true) : undefined}
               onMouseLeave={() => setIsDeleteHovered(false)}
-              className={`group relative inline-flex h-[28px] w-[25px] items-center justify-center ${
+              className={`group relative inline-flex h-[28px] w-[28px] items-center justify-center ${
                 isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
               }`}
             >
               <Image
                 src="/icons/delete_photo.svg"
                 alt=""
-                width={25}
+                width={28}
                 height={28}
                 className={`transition-opacity duration-150 ${
                   isDeleteHovered ? "opacity-0" : "opacity-100"
@@ -135,7 +136,7 @@ export default function ProfilePictureBlock({
                 <Image
                   src="/icons/delete_photo_hover.svg"
                   alt=""
-                  width={25}
+                  width={28}
                   height={28}
                   className={`absolute inset-0 m-auto transition-opacity duration-150 ${
                     isDeleteHovered ? "opacity-100" : "opacity-0"
