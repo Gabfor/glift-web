@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Tooltip from "@/components/Tooltip"
 
@@ -35,12 +35,26 @@ export default function ProfilePictureBlock({
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [localBusy, setLocalBusy] = useState(false)
+  const [isDeleteHovered, setIsDeleteHovered] = useState(false)
+  const [isUploadHovered, setIsUploadHovered] = useState(false)
 
   const working = isBusy || localBusy
   const pct = useMemo(() => clampPercentage(profileCompletion), [profileCompletion])
   const hasImage = Boolean(imageUrl && imageUrl.trim().length > 0)
   const isDeleteEnabled = hasImage && !working
   const isUploadEnabled = !working
+
+  useEffect(() => {
+    if (!isDeleteEnabled) {
+      setIsDeleteHovered(false)
+    }
+  }, [isDeleteEnabled])
+
+  useEffect(() => {
+    if (!isUploadEnabled) {
+      setIsUploadHovered(false)
+    }
+  }, [isUploadEnabled])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget
@@ -101,29 +115,31 @@ export default function ProfilePictureBlock({
               onClick={handleRemove}
               disabled={!isDeleteEnabled}
               aria-label="Supprimer la photo de profil"
-              className={`group relative inline-flex h-[25px] w-[23px] items-center justify-center ${
+              onMouseEnter={isDeleteEnabled ? () => setIsDeleteHovered(true) : undefined}
+              onMouseLeave={() => setIsDeleteHovered(false)}
+              className={`group relative inline-flex h-[28px] w-[25px] items-center justify-center ${
                 isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
               }`}
             >
               <Image
                 src="/icons/delete_photo.svg"
                 alt=""
-                width={23}
-                height={25}
-                className={
-                  isDeleteEnabled
-                    ? "transition-opacity group-hover:opacity-0"
-                    : undefined
-                }
+                width={25}
+                height={28}
+                className={`transition-opacity duration-150 ${
+                  isDeleteHovered ? "opacity-0" : "opacity-100"
+                }`}
                 aria-hidden="true"
               />
               {isDeleteEnabled ? (
                 <Image
                   src="/icons/delete_photo_hover.svg"
                   alt=""
-                  width={23}
-                  height={25}
-                  className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
+                  width={25}
+                  height={28}
+                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${
+                    isDeleteHovered ? "opacity-100" : "opacity-0"
+                  }`}
                   aria-hidden="true"
                 />
               ) : null}
@@ -183,6 +199,8 @@ export default function ProfilePictureBlock({
               onClick={openFileDialog}
               disabled={!isUploadEnabled}
               aria-label="Changer la photo de profil"
+              onMouseEnter={isUploadEnabled ? () => setIsUploadHovered(true) : undefined}
+              onMouseLeave={() => setIsUploadHovered(false)}
               className={`group relative inline-flex h-[25px] w-[28px] items-center justify-center ${
                 isUploadEnabled ? "cursor-pointer" : "cursor-not-allowed"
               }`}
@@ -192,11 +210,9 @@ export default function ProfilePictureBlock({
                 alt=""
                 width={28}
                 height={25}
-                className={
-                  isUploadEnabled
-                    ? "transition-opacity group-hover:opacity-0"
-                    : undefined
-                }
+                className={`transition-opacity duration-150 ${
+                  isUploadHovered ? "opacity-0" : "opacity-100"
+                }`}
                 aria-hidden="true"
               />
               {isUploadEnabled ? (
@@ -205,7 +221,9 @@ export default function ProfilePictureBlock({
                   alt=""
                   width={28}
                   height={25}
-                  className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
+                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${
+                    isUploadHovered ? "opacity-100" : "opacity-0"
+                  }`}
                   aria-hidden="true"
                 />
               ) : null}
