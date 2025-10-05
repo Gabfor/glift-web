@@ -224,14 +224,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
             >
-              <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#7069FA] text-white flex items-center justify-center font-semibold overflow-hidden">
+              <div
+                className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${
+                  hasAvatar ? "bg-transparent" : "bg-[#7069FA]"
+                }`}
+              >
                 {hasAvatar ? (
                   <Image
                     src={rawAvatarUrl}
                     alt={`Avatar de ${userDisplayName}`}
                     width={44}
                     height={44}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover rounded-full border-0 outline-none"
                   />
                 ) : (
                   userInitial
