@@ -89,6 +89,9 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   const profileCompletion = Math.round(completionRatio * 100)
 
   const hasIncomplete = Object.values(missing).some(Boolean)
+  const hasTopMessage = Boolean(
+    error || avatarError || hasIncomplete || showSuccessBanner,
+  )
 
   useEffect(() => {
     if (hasIncomplete) {
@@ -136,7 +139,11 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
 
       {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
-      <div className="w-[368px] flex flex-col items-center mb-[30px]">
+      <div
+        className={`w-[368px] flex flex-col items-center mb-[30px]${
+          hasTopMessage ? "" : " mt-[30px]"
+        }`}
+      >
         <ProfilePictureBlock
           imageUrl={avatarDisplayUrl}
           profileCompletion={profileCompletion}

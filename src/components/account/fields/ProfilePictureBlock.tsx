@@ -101,36 +101,32 @@ export default function ProfilePictureBlock({
               onClick={handleRemove}
               disabled={!isDeleteEnabled}
               aria-label="Supprimer la photo de profil"
-              className="group relative"
+              className={`group relative inline-flex h-5 w-5 items-center justify-center ${
+                isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
             >
-              <span
-                className={`relative flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
+              <Image
+                src="/icons/delete_photo.svg"
+                alt=""
+                width={20}
+                height={20}
+                className={
                   isDeleteEnabled
-                    ? "border-[#F3F2F7] bg-white group-hover:bg-[#F1EFF9]"
-                    : "border-[#E4E1EB] bg-[#F7F6FB]"
-                } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
-              >
+                    ? "transition-opacity group-hover:opacity-0"
+                    : undefined
+                }
+                aria-hidden="true"
+              />
+              {isDeleteEnabled ? (
                 <Image
-                  src="/icons/delete_photo.svg"
+                  src="/icons/delete_photo_hover.svg"
                   alt=""
                   width={20}
                   height={20}
-                  className={`${
-                    isDeleteEnabled ? "transition-opacity group-hover:opacity-0" : "opacity-40"
-                  }`}
+                  className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
-                {isDeleteEnabled ? (
-                  <Image
-                    src="/icons/delete_photo_hover.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="absolute inset-0 m-auto transition-opacity opacity-0 group-hover:opacity-100"
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </span>
+              ) : null}
             </button>
           </Tooltip>
 
@@ -188,36 +184,32 @@ export default function ProfilePictureBlock({
               onClick={openFileDialog}
               disabled={!isUploadEnabled}
               aria-label="Changer la photo de profil"
-              className="group relative"
+              className={`group relative inline-flex h-5 w-5 items-center justify-center ${
+                isUploadEnabled ? "cursor-pointer" : "cursor-not-allowed"
+              }`}
             >
-              <span
-                className={`relative flex h-[46px] w-[46px] items-center justify-center rounded-full border ${
+              <Image
+                src="/icons/photo.svg"
+                alt=""
+                width={20}
+                height={20}
+                className={
                   isUploadEnabled
-                    ? "border-[#F3F2F7] bg-white group-hover:bg-[#F1EFF9]"
-                    : "border-[#E4E1EB] bg-[#F7F6FB]"
-                } shadow-[0px_4px_12px_rgba(112,105,250,0.08)] transition-colors`}
-              >
+                    ? "transition-opacity group-hover:opacity-0"
+                    : undefined
+                }
+                aria-hidden="true"
+              />
+              {isUploadEnabled ? (
                 <Image
-                  src="/icons/photo.svg"
+                  src="/icons/photo_hover.svg"
                   alt=""
                   width={20}
                   height={20}
-                  className={`${
-                    isUploadEnabled ? "transition-opacity group-hover:opacity-0" : "opacity-40"
-                  }`}
+                  className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
-                {isUploadEnabled ? (
-                  <Image
-                    src="/icons/photo_hover.svg"
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="absolute inset-0 m-auto transition-opacity opacity-0 group-hover:opacity-100"
-                    aria-hidden="true"
-                  />
-                ) : null}
-              </span>
+              ) : null}
             </button>
           </Tooltip>
         </div>
