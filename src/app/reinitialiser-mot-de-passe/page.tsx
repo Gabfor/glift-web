@@ -12,24 +12,9 @@ import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
-import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthApiError } from "@supabase/supabase-js";
-import {
-  readSupabaseRecoveryCodeVerifier,
-  removeSupabaseRecoveryCodeVerifier,
-} from "@/utils/supabaseRecovery";
 
 type Stage = "verify" | "reset" | "done" | "error";
-
-type SessionTokenSet = {
-  accessToken: string;
-  refreshToken: string;
-  type: string;
-};
-
-const SUPABASE_RECOVERY_RETURN_FLAG_KEY =
-  "glift.supabase.password-recovery-return";
-const SUPABASE_RECOVERY_RETURN_FLAG_TTL_MS = 5 * 60 * 1000;
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -43,7 +28,7 @@ export default function ResetPasswordPage() {
   const [stage, setStage] = useState<Stage>("verify");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [sessionTokens, setSessionTokens] = useState<SessionTokenSet | null>(null);
+  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   const passwordValidation = useMemo(
     () => getPasswordValidationState(password),
@@ -63,12 +48,6 @@ export default function ResetPasswordPage() {
   }, [confirmPassword, password]);
 
   const next = searchParams?.get("next") || "/compte#mes-informations";
-  const accessToken = searchParams?.get("access_token") || "";
-  const refreshToken = searchParams?.get("refresh_token") || "";
-  const type = searchParams?.get("type") || "";
-  const code = searchParams?.get("code") || "";
-  const codeVerifierParam = searchParams?.get("code_verifier") || "";
-
   const isEmailValid = email.trim() !== "";
   const isPasswordValid = passwordValidation.isValid;
   const isConfirmValid = confirmValidation.isValid;
@@ -79,494 +58,77 @@ export default function ResetPasswordPage() {
     }
 
     let cancelled = false;
+    let errorTimeout: number | null = null;
 
-    const readSupabaseReturnFlag = () => {
-      if (typeof window === "undefined") {
-        return null;
+    const handleRecoverySession = (session: unknown) => {
+      if (cancelled) {
+        return;
       }
 
-      try {
-        const storedValue = window.localStorage.getItem(
-          SUPABASE_RECOVERY_RETURN_FLAG_KEY
-        );
+      const typedSession = session as
+        | ({ user?: { email?: string | null } | null } & Record<string, unknown>)
+        | null
+        | undefined;
+      const userEmail = typedSession?.user?.email ?? null;
 
-        if (!storedValue) {
-          return null;
+      if (userEmail) {
+        if (typeof window !== "undefined" && errorTimeout !== null) {
+          window.clearTimeout(errorTimeout);
         }
 
-        const parsedValue = Number.parseInt(storedValue, 10);
-        if (!Number.isFinite(parsedValue)) {
-          window.localStorage.removeItem(SUPABASE_RECOVERY_RETURN_FLAG_KEY);
-          return null;
+        setEmail(userEmail);
+        setStage("reset");
+      }
+    };
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+          handleRecoverySession(session);
+        }
+      }
+    );
+
+    const verifySession = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          throw error;
         }
 
-        const age = Date.now() - parsedValue;
-        if (age > SUPABASE_RECOVERY_RETURN_FLAG_TTL_MS) {
-          window.localStorage.removeItem(SUPABASE_RECOVERY_RETURN_FLAG_KEY);
-          return null;
-        }
-
-        return parsedValue;
-      } catch {
-        return null;
-      }
-    };
-
-    const writeSupabaseReturnFlag = () => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      try {
-        window.localStorage.setItem(
-          SUPABASE_RECOVERY_RETURN_FLAG_KEY,
-          `${Date.now()}`
-        );
-      } catch {
-        // Les navigateurs peuvent refuser l'accès au stockage (mode navigation privée, etc.).
-        // Dans ce cas, on se contente d'ignorer l'erreur : la présence du jeton reste optionnelle.
-      }
-    };
-
-    const hasSupabaseReferrer = () =>
-      typeof document !== "undefined" &&
-      typeof document.referrer === "string" &&
-      document.referrer.includes(".supabase.co");
-
-    const hasSupabaseUrlIndicators = () => {
-      if (typeof window === "undefined") {
-        return false;
-      }
-
-      const { hash, search } = window.location;
-      const queryParams = new URLSearchParams(search || "");
-      const fragmentParams = hash
-        ? new URLSearchParams(hash.replace("#", ""))
-        : null;
-
-      if (
-        queryParams.get("type") === "recovery" ||
-        queryParams.has("code") ||
-        queryParams.has("access_token") ||
-        queryParams.has("refresh_token")
-      ) {
-        return true;
-      }
-
-      if (!fragmentParams) {
-        return false;
-      }
-
-      return (
-        fragmentParams.has("access_token") ||
-        fragmentParams.has("refresh_token") ||
-        fragmentParams.get("type") === "recovery" ||
-        fragmentParams.has("code")
-      );
-    };
-
-    const detectSupabaseReturn = () => {
-      const flagTimestamp = readSupabaseReturnFlag();
-      const hasReferrer = hasSupabaseReferrer();
-      const hasUrlEvidence = hasSupabaseUrlIndicators();
-
-      if (hasReferrer || hasUrlEvidence) {
-        writeSupabaseReturnFlag();
-        return true;
-      }
-
-      return flagTimestamp !== null;
-    };
-
-    const isValidTokenSet = (
-      tokenSet: Partial<SessionTokenSet> | null
-    ): tokenSet is SessionTokenSet => {
-      if (!tokenSet) return false;
-
-      const validTypes = ["recovery", "signup", "magiclink"];
-
-      return (
-        Boolean(tokenSet.accessToken) &&
-        Boolean(tokenSet.refreshToken) &&
-        validTypes.includes(tokenSet.type ?? "")
-      );
-    };
-
-    const extractTokensFromFragment = (): Partial<SessionTokenSet> | null => {
-      if (typeof window === "undefined" || !window.location.hash) {
-        return null;
-      }
-
-      if (!window.location.hash.includes("access_token")) {
-        return null;
-      }
-
-      const params = new URLSearchParams(
-        window.location.hash.replace("#", "")
-      );
-
-      return {
-        accessToken: params.get("access_token") || "",
-        refreshToken: params.get("refresh_token") || "",
-        type: params.get("type") || "",
-      };
-    };
-
-    const extractCodeFromFragment = (): string | null => {
-      if (typeof window === "undefined" || !window.location.hash) {
-        return null;
-      }
-
-      const params = new URLSearchParams(
-        window.location.hash.replace("#", "")
-      );
-
-      return params.get("code");
-    };
-
-    const extractCodeVerifierFromFragment = (): string | null => {
-      if (typeof window === "undefined" || !window.location.hash) {
-        return null;
-      }
-
-      const params = new URLSearchParams(
-        window.location.hash.replace("#", "")
-      );
-
-      return params.get("code_verifier");
-    };
-
-    type AuthStorage = {
-      getItem?: (key: string) => Promise<string | null> | string | null;
-      setItem?: (key: string, value: string) => Promise<void> | void;
-    };
-
-    const getSupabaseAuthStorage = () => {
-      const authClient = supabase.auth as unknown as {
-        storageKey?: string;
-        storage?: AuthStorage;
-      };
-
-      const storageKey = authClient?.storageKey;
-      const storage = authClient?.storage;
-
-      if (
-        !storageKey ||
-        !storage ||
-        typeof storage.getItem !== "function" ||
-        typeof storage.setItem !== "function"
-      ) {
-        return null;
-      }
-
-      return { storageKey, storage };
-    };
-
-    const ensureCodeVerifierStored = async (codeVerifier: string) => {
-      if (!codeVerifier) {
-        return;
-      }
-
-      const storageDetails = getSupabaseAuthStorage();
-
-      if (!storageDetails) {
-        return;
-      }
-
-      const { storage, storageKey } = storageDetails;
-
-      try {
-        const existing = await storage.getItem(
-          `${storageKey}-code-verifier`
-        );
-
-        if (existing) {
-          return;
-        }
-
-        await storage.setItem(
-          `${storageKey}-code-verifier`,
-          `${codeVerifier}/PASSWORD_RECOVERY`
-        );
-      } catch (storageError) {
-        console.error(
-          "Impossible de stocker le code verifier Supabase",
-          storageError
-        );
-      }
-    };
-
-    const restoreCodeVerifierFromBackup = async () => {
-      const storageDetails = getSupabaseAuthStorage();
-
-      if (!storageDetails) {
-        return;
-      }
-
-      const { storage, storageKey } = storageDetails;
-
-      let existingValue: string | null = null;
-
-      try {
-        existingValue = await storage.getItem(`${storageKey}-code-verifier`);
-      } catch (storageError) {
-        console.error(
-          "Impossible de vérifier la présence du code verifier Supabase",
-          storageError
-        );
-        return;
-      }
-
-      if (existingValue) {
-        return;
-      }
-
-      const backup = readSupabaseRecoveryCodeVerifier();
-
-      if (!backup) {
-        return;
-      }
-
-      try {
-        await storage.setItem(
-          `${storageKey}-code-verifier`,
-          `${backup.codeVerifier}/PASSWORD_RECOVERY`
-        );
-        removeSupabaseRecoveryCodeVerifier();
-      } catch (storageError) {
-        console.error(
-          "Impossible de restaurer le code verifier Supabase depuis la sauvegarde",
-          storageError
-        );
-      }
-    };
-
-    const verifyLink = async () => {
-      try {
-        let activeTokens: SessionTokenSet | null = null;
-        let activeSessionEmail: string | null = null;
-        let tokensSource:
-          | "code-exchange"
-          | "existing-session"
-          | "state"
-          | "params"
-          | "fragment"
-          | null = null;
-
-        const returningFromSupabase = detectSupabaseReturn();
-
-        const fragmentCode = extractCodeFromFragment();
-        const fragmentCodeVerifier = extractCodeVerifierFromFragment();
-        const codeFromUrl = code || fragmentCode || "";
-        const codeVerifierFromUrl = codeVerifierParam || fragmentCodeVerifier || "";
-
-        if (codeVerifierFromUrl) {
-          await ensureCodeVerifierStored(codeVerifierFromUrl);
-        }
-
-        if (codeFromUrl) {
-          await restoreCodeVerifierFromBackup();
-          const { data: exchangeData, error: exchangeError } =
-            await supabase.auth.exchangeCodeForSession(codeFromUrl);
-
-          if (exchangeError) {
-            throw exchangeError;
-          }
-
-          const exchangeSession = exchangeData?.session ?? null;
-
-          if (
-            exchangeSession?.access_token &&
-            exchangeSession?.refresh_token
-          ) {
-            const { error: setSessionError } = await supabase.auth.setSession({
-              access_token: exchangeSession.access_token,
-              refresh_token: exchangeSession.refresh_token,
-            });
-
-            if (setSessionError) {
-              throw setSessionError;
-            }
-
-            activeTokens = {
-              accessToken: exchangeSession.access_token,
-              refreshToken: exchangeSession.refresh_token,
-              type: "recovery",
-            };
-            tokensSource = "code-exchange";
-
-            if (!sessionTokens && !cancelled) {
-              setSessionTokens(activeTokens);
-            }
+        if (data.session?.user?.email) {
+          handleRecoverySession(data.session);
+        } else if (!cancelled) {
+          if (typeof window !== "undefined") {
+            errorTimeout = window.setTimeout(() => {
+              setStage((current) => (current === "verify" ? "error" : current));
+            }, 2000);
           } else {
-            throw new Error("missing-session");
+            setStage("error");
           }
-
-          activeSessionEmail = exchangeData?.user?.email ?? null;
-        }
-
-        const {
-          data: existingSessionData,
-          error: existingSessionError,
-        } = await supabase.auth.getSession();
-
-        if (existingSessionError) throw existingSessionError;
-
-        const existingSession = existingSessionData?.session ?? null;
-
-        const existingSessionType =
-          (
-            existingSession as (typeof existingSession & { type?: string }) | null
-          )?.type ?? type;
-
-        if (
-          !activeTokens &&
-          existingSession?.access_token &&
-          existingSession?.refresh_token &&
-          (existingSessionType === "recovery" ||
-            (!existingSessionType && returningFromSupabase))
-        ) {
-          const candidateFromExistingSession: SessionTokenSet = {
-            accessToken: existingSession.access_token,
-            refreshToken: existingSession.refresh_token,
-            type: "recovery",
-          };
-
-          if (isValidTokenSet(candidateFromExistingSession)) {
-            activeTokens = candidateFromExistingSession;
-            activeSessionEmail = existingSession.user?.email ?? null;
-            tokensSource = "existing-session";
-          }
-        } else if (!activeSessionEmail) {
-          activeSessionEmail = existingSession?.user?.email ?? null;
-        }
-
-        if (!activeTokens && isValidTokenSet(sessionTokens)) {
-          activeTokens = sessionTokens;
-          tokensSource = "state";
-        }
-
-        if (!activeTokens) {
-          const candidateFromParams: Partial<SessionTokenSet> = {
-            accessToken,
-            refreshToken,
-            type,
-          };
-
-          if (isValidTokenSet(candidateFromParams)) {
-            activeTokens = candidateFromParams;
-            tokensSource = "params";
-          }
-        }
-
-        if (!activeTokens) {
-          const candidateFromFragment = extractTokensFromFragment();
-
-          if (isValidTokenSet(candidateFromFragment)) {
-            activeTokens = candidateFromFragment;
-            tokensSource = "fragment";
-          }
-        }
-
-        if (isValidTokenSet(activeTokens)) {
-          if (!sessionTokens && !cancelled) {
-            setSessionTokens(activeTokens);
-          }
-
-          if (
-            tokensSource !== "existing-session" &&
-            tokensSource !== "code-exchange"
-          ) {
-            const { error: sessionError } = await supabase.auth.setSession({
-              access_token: activeTokens.accessToken,
-              refresh_token: activeTokens.refreshToken,
-            });
-            if (sessionError) throw sessionError;
-          }
-
-          let userEmail = activeSessionEmail ?? "";
-
-          if (!userEmail) {
-            const userResponse = activeTokens?.accessToken
-              ? await supabase.auth.getUser(activeTokens.accessToken)
-              : await supabase.auth.getUser();
-
-            if (userResponse.error) {
-              if (isAuthSessionMissingError(userResponse.error)) {
-                throw new Error("missing-session");
-              }
-              throw userResponse.error;
-            }
-
-            userEmail = userResponse.data?.user?.email ?? "";
-          }
-
-          if (!userEmail) {
-            throw new Error("no-email");
-          }
-
-          if (!cancelled) {
-            setEmail(userEmail);
-            setStage("reset");
-          }
-        } else {
-          throw new Error("invalid-link");
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
         if (!cancelled) {
           setStage("error");
         }
-      }
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch (signOutError) {
-        console.error(
-          "Erreur lors de la déconnexion après vérification",
-          signOutError
-        );
-      }
-
-      if (typeof window !== "undefined") {
-        const url = new URL(window.location.href);
-        url.hash = "";
-        if (url.searchParams.has("code")) {
-          url.searchParams.delete("code");
+      } finally {
+        if (!cancelled) {
+          setHasCheckedSession(true);
         }
-
-        window.history.replaceState(
-          null,
-          "",
-          `${url.pathname}${url.search}`
-        );
       }
     };
 
-    verifyLink();
+    verifySession();
 
     return () => {
       cancelled = true;
+      if (typeof window !== "undefined" && errorTimeout !== null) {
+        window.clearTimeout(errorTimeout);
+      }
+      authListener.subscription.unsubscribe();
     };
-  }, [
-    accessToken,
-    refreshToken,
-    sessionTokens,
-    stage,
-    supabase,
-    type,
-    code,
-    codeVerifierParam,
-  ]);
-
-  useEffect(() => {
-    if (stage === "done" || stage === "error") {
-      removeSupabaseRecoveryCodeVerifier();
-    }
-  }, [stage]);
-
-  useEffect(() => () => {
-    removeSupabaseRecoveryCodeVerifier();
-  }, []);
+  }, [stage, supabase]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
 
@@ -637,16 +199,6 @@ export default function ResetPasswordPage() {
     setFormError(null);
 
     try {
-      if (!sessionTokens) {
-        throw new Error("missing-session");
-      }
-
-      const { error: setSessionError } = await supabase.auth.setSession({
-        access_token: sessionTokens.accessToken,
-        refresh_token: sessionTokens.refreshToken,
-      });
-      if (setSessionError) throw setSessionError;
-
       const { error: updateError } = await supabase.auth.updateUser({
         password,
       });
@@ -697,6 +249,10 @@ export default function ResetPasswordPage() {
       setStage("error");
     } finally {
       setSubmitting(false);
+      if (!hasCheckedSession) {
+        return;
+      }
+
       try {
         await supabase.auth.signOut({ scope: "local" });
       } catch (signOutError) {
