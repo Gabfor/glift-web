@@ -90,7 +90,7 @@ export default function ProfilePictureBlock({
       <div className="relative w-[368px] flex flex-col items-center">
         <div className="flex items-center justify-center gap-[20px] mb-4">
           <Tooltip
-            content={hasImage ? "Supprimer la photo" : "Aucune photo"}
+            content="Supprimer la photo"
             placement="top"
             offset={16}
             delay={400}
@@ -101,15 +101,15 @@ export default function ProfilePictureBlock({
               onClick={handleRemove}
               disabled={!isDeleteEnabled}
               aria-label="Supprimer la photo de profil"
-              className={`group relative inline-flex h-5 w-5 items-center justify-center ${
+              className={`group relative inline-flex h-[25px] w-[23px] items-center justify-center ${
                 isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
               }`}
             >
               <Image
                 src="/icons/delete_photo.svg"
                 alt=""
-                width={20}
-                height={20}
+                width={23}
+                height={25}
                 className={
                   isDeleteEnabled
                     ? "transition-opacity group-hover:opacity-0"
@@ -121,8 +121,8 @@ export default function ProfilePictureBlock({
                 <Image
                   src="/icons/delete_photo_hover.svg"
                   alt=""
-                  width={20}
-                  height={20}
+                  width={23}
+                  height={25}
                   className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
@@ -160,7 +160,6 @@ export default function ProfilePictureBlock({
               <div className="relative w-[75px] h-[75px] rounded-full overflow-hidden bg-[#ECE9F1]">
                 {hasImage ? (
                   <Image
-                    key={imageUrl}
                     src={imageUrl as string}
                     alt="Photo de profil"
                     fill
@@ -184,15 +183,15 @@ export default function ProfilePictureBlock({
               onClick={openFileDialog}
               disabled={!isUploadEnabled}
               aria-label="Changer la photo de profil"
-              className={`group relative inline-flex h-5 w-5 items-center justify-center ${
+              className={`group relative inline-flex h-[25px] w-[28px] items-center justify-center ${
                 isUploadEnabled ? "cursor-pointer" : "cursor-not-allowed"
               }`}
             >
               <Image
                 src="/icons/photo.svg"
                 alt=""
-                width={20}
-                height={20}
+                width={28}
+                height={25}
                 className={
                   isUploadEnabled
                     ? "transition-opacity group-hover:opacity-0"
@@ -204,8 +203,8 @@ export default function ProfilePictureBlock({
                 <Image
                   src="/icons/photo_hover.svg"
                   alt=""
-                  width={20}
-                  height={20}
+                  width={28}
+                  height={25}
                   className="absolute inset-0 m-auto opacity-0 transition-opacity group-hover:opacity-100"
                   aria-hidden="true"
                 />
