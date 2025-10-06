@@ -125,15 +125,15 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
           throw uploadError
         }
 
-        const { data: publicUrlData, error: publicUrlError } = supabase.storage
+        const { data: publicUrlData } = supabase.storage
           .from(bucket)
           .getPublicUrl(objectPath)
 
-        if (publicUrlError) {
-          throw publicUrlError
+        if (!publicUrlData) {
+          throw new Error("Impossible de récupérer l'URL de la photo.")
         }
 
-        const publicUrl = publicUrlData?.publicUrl
+        const publicUrl = publicUrlData.publicUrl
         if (!publicUrl) {
           throw new Error("Impossible de récupérer l'URL de la photo.")
         }
