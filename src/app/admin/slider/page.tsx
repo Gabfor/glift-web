@@ -7,6 +7,7 @@ import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 const sliderTypeOptions = [
   { value: "none", label: "Aucun slider" },
@@ -30,6 +31,7 @@ export default function AdminSliderPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [loading, setLoading] = useState(true);
+  const showLoader = useMinimumVisibility(loading);
   const [type, setType] = useState("none");
   const [count, setCount] = useState("1");
   const [slides, setSlides] = useState(
@@ -136,7 +138,7 @@ export default function AdminSliderPage() {
 
   return (
     <>
-      {loading && <GliftLoader />}
+      {showLoader && <GliftLoader />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl">
           <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-10">

@@ -12,6 +12,7 @@ import type { PasswordFieldProps } from "@/components/forms/PasswordField";
 import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import GliftLoader from "@/components/ui/GliftLoader";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { AuthApiError } from "@supabase/supabase-js";
@@ -273,16 +274,8 @@ export default function ResetPasswordPage() {
     }
   };
 
-  const loader =
-    stage === "verify"
-      ? (
-          <GliftLoader />
-        )
-      : stage === "done"
-        ? (
-            <GliftLoader />
-          )
-        : null;
+  const showLoader = useMinimumVisibility(stage === "verify" || stage === "done");
+  const loader = showLoader ? <GliftLoader /> : null;
 
   return (
     <>

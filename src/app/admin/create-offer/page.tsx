@@ -9,6 +9,7 @@ import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -67,6 +68,7 @@ export default function CreateOfferPage() {
 
   const [offerId, setOfferId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const showLoader = useMinimumVisibility(loading);
 
   const [offer, setOffer] = useState<Omit<Offer, "id">>({
     start_date: "",
@@ -173,7 +175,7 @@ export default function CreateOfferPage() {
 
   return (
     <>
-      {loading && <GliftLoader />}
+      {showLoader && <GliftLoader />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">

@@ -7,6 +7,7 @@ import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 type Program = {
   id?: number;
@@ -34,6 +35,7 @@ export default function CreateProgramPage() {
   const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(true);
+  const showLoader = useMinimumVisibility(loading);
   const [programId, setProgramId] = useState<string | null>(null);
 
   const [program, setProgram] = useState<Omit<Program, "id">>({
@@ -171,7 +173,7 @@ export default function CreateProgramPage() {
 
   return (
     <>
-      {loading && <GliftLoader />}
+      {showLoader && <GliftLoader />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl px-4 sm:px-0">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
