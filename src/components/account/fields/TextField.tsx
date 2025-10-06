@@ -11,6 +11,7 @@ type Props = {
   onFocus?: () => void
   disabled?: boolean
   success?: string
+  error?: string
   endAdornment?: ReactNode
 }
 
@@ -22,9 +23,11 @@ export default function TextField({
   onFocus,
   disabled = false,
   success,
+  error,
   endAdornment,
 }: Props) {
-  const showSuccess = !!success
+  const showError = !!error
+  const showSuccess = !!success && !showError
 
   return (
     <div className="w-[368px] flex flex-col text-left">
@@ -43,11 +46,11 @@ export default function TextField({
             ${disabled ? 'bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]'}
             transition-all duration-150
             border
-            ${
-              success
-                ? 'border-[#00D591]'
-                : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'
-            }
+            ${showError
+              ? 'border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
+              : showSuccess
+              ? 'border-[#00D591]'
+              : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'}
           `}
           placeholder={label}
         />
@@ -65,7 +68,11 @@ export default function TextField({
       </div>
 
       <div className="h-[20px] mt-[5px] text-[13px] font-medium">
-        {showSuccess && <SuccessMsg>{success}</SuccessMsg>}
+        {showError ? (
+          <p className="text-[#EF4444]">{error}</p>
+        ) : showSuccess ? (
+          <SuccessMsg>{success}</SuccessMsg>
+        ) : null}
       </div>
     </div>
   )
