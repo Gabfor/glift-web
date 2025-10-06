@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { MouseEvent, useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
@@ -52,6 +52,31 @@ export default function Header({ disconnected = false }: HeaderProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const handleAccountLinkClick = (
+    event: MouseEvent<HTMLAnchorElement>,
+    sectionHash: string,
+  ) => {
+    if (pathname === "/compte") {
+      event.preventDefault();
+      setDropdownOpen(false);
+
+      if (typeof window === "undefined") {
+        return;
+      }
+
+      const targetHash = `#${sectionHash}`;
+      if (window.location.hash === targetHash) {
+        window.dispatchEvent(new HashChangeEvent("hashchange"));
+      } else {
+        window.location.hash = targetHash;
+      }
+
+      return;
+    }
+
+    setDropdownOpen(false);
+  };
 
   return (
     <header
@@ -280,21 +305,27 @@ export default function Header({ disconnected = false }: HeaderProps) {
               <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
               <Link
                 href="/compte#mes-informations"
-                onClick={() => setDropdownOpen(false)}
+                onClick={(event) =>
+                  handleAccountLinkClick(event, "mes-informations")
+                }
                 className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
               >
                 Mes informations
               </Link>
               <Link
                 href="/compte#mon-abonnement"
-                onClick={() => setDropdownOpen(false)}
+                onClick={(event) =>
+                  handleAccountLinkClick(event, "mon-abonnement")
+                }
                 className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
               >
                 Mon abonnement
               </Link>
               <Link
                 href="/compte#mes-preferences"
-                onClick={() => setDropdownOpen(false)}
+                onClick={(event) =>
+                  handleAccountLinkClick(event, "mes-preferences")
+                }
                 className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
               >
                 Mes préférences
