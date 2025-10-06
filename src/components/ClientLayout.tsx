@@ -8,6 +8,7 @@ import { useUser, UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
 import AuthDebug from "@/components/AuthDebug";
 import GliftLoader from "@/components/ui/GliftLoader";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -44,8 +45,9 @@ function ClientLayoutContent({
   isAdminPage,
 }: ClientLayoutContentProps) {
   const { isLoading } = useUser();
+  const showLoader = useMinimumVisibility(isLoading);
 
-  if (isLoading) {
+  if (showLoader) {
     return <GliftLoader />;
   }
 

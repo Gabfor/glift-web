@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import GliftLoader from "@/components/ui/GliftLoader";
 import { createClient } from "@/lib/supabaseClient";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 type Program = {
   id: number;
@@ -37,6 +38,7 @@ export default function StoreGrid({
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const showLoader = useMinimumVisibility(loading);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -117,9 +119,9 @@ export default function StoreGrid({
 
   return (
     <>
-      {loading && <GliftLoader />}
+      {showLoader && <GliftLoader />}
       <div className="relative mt-8">
-        {programs.length === 0 && !loading && (
+        {programs.length === 0 && !showLoader && !loading && (
           <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
         )}
 
