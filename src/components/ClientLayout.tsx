@@ -18,6 +18,7 @@ interface ClientLayoutProps {
 export default function ClientLayout({ children, disconnected = false }: ClientLayoutProps) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
+  const isComptePage = pathname?.startsWith("/compte");
 
   return (
     <SupabaseProvider>
@@ -25,6 +26,7 @@ export default function ClientLayout({ children, disconnected = false }: ClientL
         <ClientLayoutContent
           disconnected={disconnected}
           isAdminPage={Boolean(isAdminPage)}
+          isComptePage={Boolean(isComptePage)}
         >
           {children}
         </ClientLayoutContent>
@@ -37,12 +39,14 @@ interface ClientLayoutContentProps {
   children: React.ReactNode;
   disconnected: boolean;
   isAdminPage: boolean;
+  isComptePage: boolean;
 }
 
 function ClientLayoutContent({
   children,
   disconnected,
   isAdminPage,
+  isComptePage,
 }: ClientLayoutContentProps) {
   const { isLoading } = useUser();
   const showLoader = useMinimumVisibility(isLoading);
@@ -50,7 +54,7 @@ function ClientLayoutContent({
   return (
     <>
       {showLoader ? (
-        <GliftLoader className="bg-white/80 backdrop-blur-sm" />
+        <GliftLoader className={isComptePage ? "bg-white/80 backdrop-blur-sm" : undefined} />
       ) : null}
       {isAdminPage ? (
         <AdminHeader />
