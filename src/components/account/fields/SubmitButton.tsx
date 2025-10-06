@@ -15,7 +15,7 @@ export default function SubmitButton({
   label = "Enregistrer mes informations",
   onClick,
 }: Props) {
-  const isDisabled = disabled && !loading;
+  const isDisabled = disabled || loading;
 
   return (
     <div className="w-full flex justify-center mt-3 mb-8">
