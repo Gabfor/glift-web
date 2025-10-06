@@ -54,7 +54,7 @@ function ClientLayoutContent({
   return (
     <>
       {showLoader ? (
-        <GliftLoader className={isComptePage ? "bg-white/80 backdrop-blur-sm" : undefined} />
+        <GliftLoader className={isComptePage ? "bg-white" : undefined} />
       ) : null}
       {isAdminPage ? (
         <AdminHeader />
