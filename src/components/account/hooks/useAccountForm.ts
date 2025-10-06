@@ -512,6 +512,7 @@ export const useAccountForm = (user: User | null) => {
     initialBirthParts,
     startNameEdition,
     endNameEdition,
+    isEditingName,
   }
 }
 

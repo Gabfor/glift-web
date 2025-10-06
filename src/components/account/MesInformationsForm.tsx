@@ -41,6 +41,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     initialBirthParts,
     startNameEdition,
     endNameEdition,
+    isEditingName,
   } = useAccountForm(user)
 
   const {
@@ -54,7 +55,10 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   const [showSuccessBanner, setShowSuccessBanner] = useState(false)
 
   const trimmedName = values.name.trim()
-  const nameError = trimmedName.length === 0 ? "Ce champ ne peut pas être vide." : undefined
+  const nameError =
+    trimmedName.length === 0 && !isEditingName
+      ? "Ce champ ne peut pas être vide."
+      : undefined
   const missing = {
     gender: !values.gender,
     name: trimmedName.length === 0,
