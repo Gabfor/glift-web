@@ -10,20 +10,22 @@ export default function GliftLoader({ className }: GliftLoaderProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white px-4 text-center",
+        "fixed inset-0 z-[9999] flex items-center justify-center bg-white px-4 text-center",
         className,
       )}
     >
-      <Image
-        src="/logo-glift.svg"
-        alt="Glift"
-        width={150}
-        height={57}
-        priority
-        className="mb-6"
-      />
-      <div className="relative h-[3px] w-[100px] overflow-hidden rounded-full bg-gray-200">
-        <div className="animate-bar-loader absolute inset-0 bg-[#7069FA]" />
+      <div className="flex flex-col items-center -translate-y-[100px]">
+        <Image
+          src="/logo-glift.svg"
+          alt="Glift"
+          width={150}
+          height={57}
+          priority
+          className="mb-6"
+        />
+        <div className="relative h-[3px] w-[100px] overflow-hidden rounded-full bg-gray-200">
+          <div className="animate-bar-loader absolute inset-0 bg-[#7069FA]" />
+        </div>
       </div>
       <style jsx>{`
         @keyframes bar-loader {
