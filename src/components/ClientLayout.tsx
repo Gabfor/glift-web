@@ -47,12 +47,11 @@ function ClientLayoutContent({
   const { isLoading } = useUser();
   const showLoader = useMinimumVisibility(isLoading);
 
-  if (showLoader) {
-    return <GliftLoader />;
-  }
-
   return (
     <>
+      {showLoader ? (
+        <GliftLoader className="bg-white/80 backdrop-blur-sm" />
+      ) : null}
       {isAdminPage ? (
         <AdminHeader />
       ) : (

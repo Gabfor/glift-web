@@ -1,9 +1,19 @@
 "use client";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
-export default function GliftLoader() {
+interface GliftLoaderProps {
+  className?: string;
+}
+
+export default function GliftLoader({ className }: GliftLoaderProps) {
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4 text-center">
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4 text-center",
+        className,
+      )}
+    >
       <Image
         src="/logo-glift.svg"
         alt="Glift"
