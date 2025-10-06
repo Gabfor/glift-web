@@ -243,7 +243,10 @@ const useSuccessMessages = (params: {
     }
 
     if (latchedTouched.country && values.country && values.country !== initialFlat.country) {
-      next.country = "Ok, c'est un beau pays !"
+      next.country =
+        values.country === "Autre"
+          ? "Ok, c'est noté."
+          : "Ok, c'est un beau pays !"
     } else {
       delete next.country
     }

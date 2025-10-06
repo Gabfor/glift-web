@@ -54,6 +54,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   const [showSuccessBanner, setShowSuccessBanner] = useState(false)
 
   const trimmedName = values.name.trim()
+  const nameError = trimmedName.length === 0 ? "Ce champ ne peut pas être vide." : undefined
   const missing = {
     gender: !values.gender,
     name: trimmedName.length === 0,
@@ -110,6 +111,10 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
       onSubmit={async (event) => {
         event.preventDefault()
         setShowSuccessBanner(false)
+        if (trimmedName.length === 0) {
+          markTouched({ name: true })
+          return
+        }
         const submitSucceeded = await handleSubmit()
         if (submitSucceeded && !hasIncomplete) {
           setShowSuccessBanner(true)
@@ -194,6 +199,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
             startNameEdition()
           }}
           success={successMessages.name}
+          error={nameError}
         />
       </MissingField>
 
@@ -380,7 +386,10 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <SubmitButton loading={loading} disabled={!hasChanges || loading} />
+      <SubmitButton
+        loading={loading}
+        disabled={!hasChanges || loading || trimmedName.length === 0}
+      />
     </form>
   )
 }
