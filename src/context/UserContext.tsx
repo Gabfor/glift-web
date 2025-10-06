@@ -11,6 +11,7 @@ import {
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthChangeEvent, User } from "@supabase/supabase-js";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 
 // On étend ici le type Supabase User pour inclure user_metadata
 interface CustomUser extends User {
@@ -49,11 +50,48 @@ const UserContext = createContext<UserContextType>({
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClientComponentClient();
-  const [user, setUser] = useState<CustomUser | null>(null);
-  const [isPremiumUser, setIsPremiumUser] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { session } = useSessionContext();
+  const sessionUser = (session?.user as CustomUser) ?? null;
+
+  const [user, setUser] = useState<CustomUser | null>(() => sessionUser);
+  const [isPremiumUser, setIsPremiumUser] = useState(() => {
+    if (!sessionUser) {
+      return false;
+    }
+
+    const metadataPremiumFlag = Boolean(sessionUser.user_metadata?.is_premium);
+    const planFromMetadata = sessionUser.user_metadata?.subscription_plan;
+
+    return metadataPremiumFlag || planFromMetadata === "premium";
+  });
+  const [isLoading, setIsLoading] = useState(() => !sessionUser);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
+
+  useEffect(() => {
+    if (!sessionUser) {
+      return;
+    }
+
+    setUser((current) => {
+      if (current?.id === sessionUser.id) {
+        return current;
+      }
+
+      return sessionUser;
+    });
+
+    setIsPremiumUser((current) => {
+      if (current) {
+        return current;
+      }
+
+      const metadataPremiumFlag = Boolean(sessionUser.user_metadata?.is_premium);
+      const planFromMetadata = sessionUser.user_metadata?.subscription_plan;
+
+      return metadataPremiumFlag || planFromMetadata === "premium";
+    });
+  }, [sessionUser]);
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
