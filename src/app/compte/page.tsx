@@ -7,18 +7,47 @@ import MotDePasseSection from '@/components/account/sections/MotDePasseSection'
 import AbonnementSection from '@/components/account/sections/AbonnementSection'
 import PreferencesSection from '@/components/account/sections/PreferencesSection'
 import DeleteAccountButtonWithModal from '@/components/DeleteAccountButtonWithModal'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 export default function ComptePage() {
   const { user } = useUser()
   const [openSections, setOpenSections] = useState<string[]>([])
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace('#', '')
-      if (hash) setOpenSections([hash])
+  const openSectionFromHash = useCallback(() => {
+    if (typeof window === 'undefined') return
+
+    const hash = window.location.hash.replace('#', '')
+    if (!hash) {
+      return
+    }
+
+    setOpenSections((current) => {
+      if (current.length === 1 && current[0] === hash) {
+        return current
+      }
+      return [hash]
+    })
+
+    const target = document.getElementById(hash)
+    if (target) {
+      const headerOffset = 110
+      const { top } = target.getBoundingClientRect()
+      const scrollTop = window.scrollY + top - headerOffset
+      window.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
     }
   }, [])
+
+  useEffect(() => {
+    openSectionFromHash()
+
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    const handleHashChange = () => openSectionFromHash()
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [openSectionFromHash])
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
