@@ -10,7 +10,7 @@ export default function GliftLoader({ className }: GliftLoaderProps) {
   return (
     <div
       className={cn(
-        "fixed inset-0 z-50 flex flex-col items-center justify-center bg-white px-4 text-center",
+        "fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white px-4 text-center",
         className,
       )}
     >
