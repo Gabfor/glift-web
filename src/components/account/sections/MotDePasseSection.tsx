@@ -10,6 +10,7 @@ import {
   PasswordField,
   getPasswordValidationState,
 } from "@/components/forms/PasswordField"
+import type { PasswordFieldProps } from "@/components/forms/PasswordField"
 import { createClient } from "@/lib/supabaseClient"
 import ModalMessage from "@/components/ui/ModalMessage"
 
@@ -38,6 +39,9 @@ export default function MotDePasseSection() {
   const [success, setSuccess] = useState(false)
   const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null)
   const [newPasswordError, setNewPasswordError] = useState<string | null>(null)
+  const [newPasswordStatusOverride, setNewPasswordStatusOverride] = useState<
+    PasswordFieldProps["statusOverride"]
+  >()
   const [showForgotPassword, setShowForgotPassword] = useState(false)
 
   const validation = useMemo(() => getPasswordValidationState(newPassword), [newPassword])
@@ -57,6 +61,7 @@ export default function MotDePasseSection() {
     setSuccess(false)
     setCurrentPasswordError(null)
     setNewPasswordError(null)
+    setNewPasswordStatusOverride(undefined)
 
     try {
       const {
@@ -84,17 +89,18 @@ export default function MotDePasseSection() {
 
         switch (errorCode) {
           case "invalid-current-password":
-            setCurrentPasswordError(INVALID_CURRENT_PASSWORD_MESSAGE)
             setError(INVALID_CURRENT_PASSWORD_MESSAGE)
             break
           case "same-password":
             setError("Votre nouveau mot de passe doit être différent de l’actuel.")
+            setNewPasswordStatusOverride("neutral")
             if (hadPreviousSuccess) {
               setSuccess(true)
             }
             break
           case "invalid-password-format":
             setNewPasswordError("Votre nouveau mot de passe ne respecte pas les critères requis.")
+            setNewPasswordStatusOverride(undefined)
             setError("Impossible de mettre à jour le mot de passe.")
             break
           case "not-authenticated":
@@ -121,6 +127,7 @@ export default function MotDePasseSection() {
       setSuccess(true)
       setCurrentPassword("")
       setNewPassword("")
+      setNewPasswordStatusOverride(undefined)
     } catch (unknownError) {
       console.error("[MotDePasseSection] unexpected error", unknownError)
       setError("Une erreur est survenue. Merci de réessayer dans quelques instants.")
@@ -195,6 +202,9 @@ export default function MotDePasseSection() {
                 if (newPasswordError) {
                   setNewPasswordError(null)
                 }
+                if (newPasswordStatusOverride) {
+                  setNewPasswordStatusOverride(undefined)
+                }
                 if (error) {
                   setError(null)
                 }
@@ -218,6 +228,7 @@ export default function MotDePasseSection() {
               }
               blurDelay={100}
               externalError={newPasswordError}
+              statusOverride={newPasswordStatusOverride}
               containerClassName="w-full max-w-[368px]"
               messageContainerClassName="mt-[5px] min-h-[20px] text-left text-[13px] font-medium"
               autoComplete="new-password"

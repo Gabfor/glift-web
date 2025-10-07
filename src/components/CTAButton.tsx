@@ -155,7 +155,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       <span className="inline-flex items-center gap-2">
         <span
           aria-hidden
-          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"
+          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
         />
         <span>{loadingText}</span>
       </span>
