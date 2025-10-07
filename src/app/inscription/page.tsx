@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
+import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { PasswordField, getPasswordValidationState } from "@/components/forms/PasswordField";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
@@ -245,24 +246,26 @@ const AccountCreationPage = () => {
           {error && <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">{error}</p>}
 
           <div className="w-full flex justify-center mt-[10px]">
-            <button
+            <CTAButton
               type="submit"
+              className="w-full max-w-[220px] font-bold"
               disabled={!isFormValid}
-              className={`w-full max-w-[220px] h-[44px] rounded-[25px] text-[16px] font-bold text-center transition flex items-center justify-center gap-2 ${
-                isFormValid
-                  ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
-                  : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
-              }`}
+              loading={loading}
+              loadingText="En cours..."
             >
-              <Image
-                src="/icons/cadena_defaut.svg"
-                alt="Icône cadenas"
-                width={20}
-                height={20}
-                className={`w-[20px] h-[20px] transition-colors ${isFormValid ? "invert brightness-0" : ""}`}
-              />
-              {loading ? "En cours..." : "Créer mon compte"}
-            </button>
+              <>
+                <Image
+                  src="/icons/cadena_defaut.svg"
+                  alt="Icône cadenas"
+                  width={20}
+                  height={20}
+                  className={`h-[20px] w-[20px] transition-colors ${
+                    isFormValid ? "invert brightness-0" : ""
+                  }`}
+                />
+                Créer mon compte
+              </>
+            </CTAButton>
           </div>
 
           <p className="mt-[20px] text-sm font-semibold text-[#5D6494] text-center self-center">

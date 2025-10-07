@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { PasswordField } from "@/components/forms/PasswordField";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
-import Spinner from "@/components/ui/Spinner";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ModalMessage from "@/components/ui/ModalMessage";
@@ -137,12 +137,6 @@ export default function ConnexionPage() {
     }
   };
 
-  const buttonStateClasses = loading
-    ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
-    : isFormValid
-    ? "bg-[#7069FA] text-white hover:bg-[#6660E4] cursor-pointer"
-    : "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed";
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
       {showLoader ? <GliftLoader /> : null}
@@ -229,31 +223,26 @@ export default function ConnexionPage() {
 
           {/* Bouton Se connecter */}
           <div className="w-full flex justify-center">
-            <button
+            <CTAButton
               type="submit"
-              disabled={!isFormValid || loading}
-              className={`w-full max-w-[160px] h-[44px] rounded-[25px] text-[16px] font-bold text-center transition flex items-center justify-center gap-2 ${buttonStateClasses}`}
+              className="w-full max-w-[160px] font-bold"
+              disabled={!isFormValid}
+              loading={loading}
+              loadingText="En cours..."
             >
-              {loading ? (
-                <span className="inline-flex items-center gap-2 text-[15px]">
-                  <Spinner size="md" ariaLabel="Connexion en cours" />
-                  En cours
-                </span>
-              ) : (
-                <>
-                  <Image
-                    src="/icons/cadena_defaut.svg"
-                    alt="Icône cadenas"
-                    width={20}
-                    height={20}
-                    className={`transition-colors ${
-                      isFormValid ? "invert brightness-0" : ""
-                    }`}
-                  />
-                  Se connecter
-                </>
-              )}
-            </button>
+              <>
+                <Image
+                  src="/icons/cadena_defaut.svg"
+                  alt="Icône cadenas"
+                  width={20}
+                  height={20}
+                  className={`transition-colors ${
+                    isFormValid && !loading ? "invert brightness-0" : ""
+                  }`}
+                />
+                Se connecter
+              </>
+            </CTAButton>
           </div>
 
           {/* Lien inscription */}
