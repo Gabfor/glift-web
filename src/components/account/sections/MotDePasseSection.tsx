@@ -50,6 +50,8 @@ export default function MotDePasseSection() {
       return
     }
 
+    const hadPreviousSuccess = success
+
     setLoading(true)
     setError(null)
     setSuccess(false)
@@ -86,8 +88,10 @@ export default function MotDePasseSection() {
             setError(INVALID_CURRENT_PASSWORD_MESSAGE)
             break
           case "same-password":
-            setNewPasswordError("Votre nouveau mot de passe doit être différent de l’actuel.")
             setError("Votre nouveau mot de passe doit être différent de l’actuel.")
+            if (hadPreviousSuccess) {
+              setSuccess(true)
+            }
             break
           case "invalid-password-format":
             setNewPasswordError("Votre nouveau mot de passe ne respecte pas les critères requis.")
