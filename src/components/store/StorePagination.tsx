@@ -80,7 +80,7 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
             className={`text-[14px] px-2 transition
               ${
                 page === currentPage
-                  ? "text-[#3A416F] font-bold"
+                  ? "text-[#3A416F] font-semibold"
                   : "text-[#5D6494] font-semibold"
               }`}
           >

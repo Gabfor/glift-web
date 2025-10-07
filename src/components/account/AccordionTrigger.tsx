@@ -7,7 +7,7 @@ import { ReactNode } from 'react'
 export default function AccordionTrigger({ children }: { children: ReactNode }) {
   return (
     <BaseTrigger
-      className="h-[60px] font-bold text-[#5D6494] hover:text-[#3A416F] text-[16px] pl-4 pr-6 py-3 hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[5px] rounded-[5px]"
+      className="h-[60px] font-semibold text-[#5D6494] hover:text-[#3A416F] text-[16px] pl-4 pr-6 py-3 hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[5px] rounded-[5px]"
     >
       <span>{children}</span>
       <span className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180">

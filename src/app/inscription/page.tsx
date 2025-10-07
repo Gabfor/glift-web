@@ -248,7 +248,7 @@ const AccountCreationPage = () => {
           <div className="w-full flex justify-center mt-[10px]">
             <CTAButton
               type="submit"
-              className="w-full max-w-[220px] font-bold"
+              className="w-full max-w-[220px] font-semibold"
               disabled={!isFormValid}
               loading={loading}
               loadingText="En cours..."

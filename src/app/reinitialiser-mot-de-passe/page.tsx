@@ -388,7 +388,7 @@ export default function ResetPasswordPage() {
                 <div className="w-full flex justify-center mt-[5px]">
                   <CTAButton
                     type="submit"
-                    className="font-bold"
+                    className="font-semibold"
                     disabled={!isFormValid}
                     loading={submitting}
                     loadingText="En cours..."

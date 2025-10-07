@@ -117,7 +117,7 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
           <CTAButton
             onClick={handleDownload}
             loading={loading}
-            className="mx-auto font-bold text-[16px]"
+            className="mx-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
               Télécharger
@@ -130,7 +130,7 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
             onMouseEnter={() => setLockedHover(true)}
             onMouseLeave={() => setLockedHover(false)}
             variant="inactive"
-            className="mx-auto font-bold text-[16px]"
+            className="mx-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
               <Image
