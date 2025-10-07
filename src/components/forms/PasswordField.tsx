@@ -23,6 +23,7 @@ export interface PasswordFieldProps
   criteriaRenderer?: (context: { isFocused: boolean; isValid: boolean; value: string }) => React.ReactNode;
   blurDelay?: number;
   defaultShowPassword?: boolean;
+  statusOverride?: "neutral" | "success" | "error";
 }
 
 export function PasswordField({
@@ -44,6 +45,7 @@ export function PasswordField({
   criteriaRenderer,
   blurDelay = 0,
   defaultShowPassword = false,
+  statusOverride,
   onBlur,
   onFocus,
   ...rest
@@ -63,18 +65,38 @@ export function PasswordField({
   const hasValue = value.trim() !== "";
   const canValidate = typeof validate === "function";
   const isValid = validationResult.isValid;
-  const showSuccess = canValidate && touched && !focused && isValid && !externalError;
+  const showSuccessBase = canValidate && touched && !focused && isValid && !externalError;
   const showInternalError = canValidate && touched && !focused && hasValue && !isValid;
   const showExternalError = Boolean(externalError) && !focused;
-  const showError = showInternalError || showExternalError;
+  const showErrorBase = showInternalError || showExternalError;
 
-  const message = showExternalError
-    ? externalError
-    : showSuccess
-    ? successMessage
-    : showInternalError
-    ? errorMessage
-    : null;
+  let showSuccess = showSuccessBase;
+  let showError = showErrorBase;
+  let message: string | null = null;
+
+  if (statusOverride === "neutral") {
+    showSuccess = false;
+    showError = false;
+    message = null;
+  } else if (statusOverride === "success") {
+    showSuccess = true;
+    showError = false;
+    message = successMessage;
+  } else if (statusOverride === "error") {
+    showSuccess = false;
+    showError = true;
+    message = externalError ?? errorMessage;
+  } else {
+    if (showExternalError) {
+      message = externalError ?? null;
+    } else if (showSuccess) {
+      message = successMessage;
+    } else if (showInternalError) {
+      message = errorMessage;
+    } else {
+      message = null;
+    }
+  }
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement>) => {
     setFocused(true);
