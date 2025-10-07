@@ -132,7 +132,7 @@ export default function MotDePasseSection() {
         className="flex flex-col items-center"
       >
         {error ? (
-          <div className="mb-6 flex w-full justify-center">
+          <div className="mt-4 flex w-full justify-center">
             <ModalMessage
               variant="warning"
               title="Attention"
@@ -143,7 +143,7 @@ export default function MotDePasseSection() {
         ) : null}
 
         {success ? (
-          <div className="mb-6 flex w-full justify-center">
+          <div className="mt-4 flex w-full justify-center">
             <ModalMessage
               variant="success"
               title="Félicitations !"
@@ -154,7 +154,7 @@ export default function MotDePasseSection() {
         ) : null}
 
         <div className="mt-[30px] flex w-full flex-col items-center">
-          <div className="mb-[10px] flex w-full justify-center">
+          <div className="flex w-full justify-center">
             <PasswordField
               id="current-password"
               name="current-password"
@@ -175,7 +175,7 @@ export default function MotDePasseSection() {
               }}
               externalError={currentPasswordError}
               containerClassName="w-full max-w-[368px]"
-              messageContainerClassName="mt-[5px] min-h-[20px] text-left text-[13px] font-medium"
+              messageContainerClassName="mt-2 min-h-[20px] text-left text-[13px] font-medium"
               autoComplete="current-password"
             />
           </div>
@@ -235,7 +235,7 @@ export default function MotDePasseSection() {
         <button
           type="button"
           onClick={() => setShowForgotPassword(true)}
-          className="mt-4 mb-[40px] text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
+          className="mt-5 mb-[30px] text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
         >
           Mot de passe oublié ?
         </button>
