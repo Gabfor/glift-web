@@ -7,6 +7,8 @@ import { fr } from "date-fns/locale";
 
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { isAuthSessionMissingError } from "@supabase/auth-js";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 interface ProfileRow {
   email_verified: boolean | null;
@@ -98,62 +100,92 @@ export default function VerifyEmailBanner() {
       return metadataDeadline ?? profileDeadline ?? fallbackDeadline;
     };
 
+    const handleProfileLoadError = (error: unknown) => {
+      if (isAuthSessionMissingError(error)) {
+        setShow(false);
+        setDeadline(null);
+        return;
+      }
+
+      const isPostgrestError = (value: unknown): value is PostgrestError => {
+        return Boolean(value && typeof value === "object" && "code" in value);
+      };
+
+      if (isPostgrestError(error) && error.code === "PGRST116") {
+        setShow(false);
+        setDeadline(null);
+        return;
+      }
+
+      console.error("Lecture du profil impossible", error);
+      setShow(false);
+      setDeadline(null);
+    };
+
     const load = async () => {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("email_verified, email_verification_deadline")
-        .eq("id", userId)
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("email_verified, email_verification_deadline")
+          .eq("id", userId)
+          .maybeSingle();
 
-      if (cancelled) {
-        return;
-      }
+        if (cancelled) {
+          return;
+        }
 
-      if (error) {
-        console.error("Lecture du profil impossible", error);
-        setShow(false);
-        setDeadline(null);
-        setLoading(false);
-        return;
-      }
+        if (error) {
+          handleProfileLoadError(error);
+          return;
+        }
 
-      const profile = data as ProfileRow | null;
-      const isVerified =
-        Boolean(profile?.email_verified) || Boolean(user?.email_confirmed_at);
+        const profile = data as ProfileRow | null;
+        const isVerified =
+          Boolean(profile?.email_verified) || Boolean(user?.email_confirmed_at);
 
-      setShow(!isVerified);
+        setShow(!isVerified);
 
-      const computedDeadline = computeDeadline(profile);
-      setDeadline(computedDeadline);
-      setLoading(false);
+        const computedDeadline = computeDeadline(profile);
+        setDeadline(computedDeadline);
 
-      if (!isVerified) {
-        void enforceDeletion(computedDeadline);
-      }
+        if (!isVerified) {
+          void enforceDeletion(computedDeadline);
+        }
 
-      activeChannel = supabase
-        .channel(`profiles-email-verified-${userId}`)
-        .on(
-          "postgres_changes",
-          {
-            event: "UPDATE",
-            schema: "public",
-            table: "profiles",
-            filter: `id=eq.${userId}`,
-          },
-          (payload) => {
-            const next = (payload.new as ProfileRow | null)?.email_verified;
-            if (typeof next === "boolean") {
-              setShow(!next);
-              if (next) {
-                setDeadline(null);
+        activeChannel = supabase
+          .channel(`profiles-email-verified-${userId}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "UPDATE",
+              schema: "public",
+              table: "profiles",
+              filter: `id=eq.${userId}`,
+            },
+            (payload) => {
+              const next = (payload.new as ProfileRow | null)?.email_verified;
+              if (typeof next === "boolean") {
+                setShow(!next);
+                if (next) {
+                  setDeadline(null);
+                }
               }
-            }
-          },
-        )
-        .subscribe();
+            },
+          )
+          .subscribe();
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        handleProfileLoadError(error);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
     };
 
     void load();
