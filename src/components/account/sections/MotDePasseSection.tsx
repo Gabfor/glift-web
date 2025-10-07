@@ -153,7 +153,7 @@ export default function MotDePasseSection() {
           </div>
         ) : null}
 
-        <div className="flex w-full flex-col items-center">
+        <div className="mt-[30px] flex w-full flex-col items-center">
           <div className="mb-[10px] flex w-full justify-center">
             <PasswordField
               id="current-password"
@@ -223,7 +223,7 @@ export default function MotDePasseSection() {
 
         <CTAButton
           type="submit"
-          className="mt-6 w-full max-w-[260px] font-bold"
+          className="mt-4 w-full max-w-[260px] font-bold"
           disabled={!isFormReady || loading}
           loading={loading}
           loadingText="En cours..."
@@ -235,7 +235,7 @@ export default function MotDePasseSection() {
         <button
           type="button"
           onClick={() => setShowForgotPassword(true)}
-          className="mt-4 text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
+          className="mt-4 mb-[40px] text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
         >
           Mot de passe oublié ?
         </button>
