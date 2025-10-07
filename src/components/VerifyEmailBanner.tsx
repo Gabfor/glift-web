@@ -86,15 +86,6 @@ export default function VerifyEmailBanner() {
       };
     }
 
-    if (user?.email_confirmed_at) {
-      setShow(false);
-      setDeadline(null);
-      setLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
     const computeDeadline = (profile: ProfileRow | null): Date | null => {
       const metadataDeadline = parseISODate(
         (user?.user_metadata as Record<string, unknown> | undefined)?.
@@ -129,7 +120,8 @@ export default function VerifyEmailBanner() {
       }
 
       const profile = data as ProfileRow | null;
-      const isVerified = Boolean(profile?.email_verified);
+      const isVerified =
+        Boolean(profile?.email_verified) || Boolean(user?.email_confirmed_at);
 
       setShow(!isVerified);
 

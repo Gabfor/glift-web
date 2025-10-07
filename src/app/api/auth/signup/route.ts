@@ -38,6 +38,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: signupError.message }, { status: 400 });
     }
 
+    if (!signupData?.user?.email_confirmed_at) {
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      });
+
+      if (resendError) {
+        console.error(
+          "Envoi initial de l'email de vérification impossible",
+          resendError,
+        );
+      }
+    }
+
     // 🔑 Connexion automatique juste après
     const { error: signinError } = await supabase.auth.signInWithPassword({
       email,
