@@ -135,17 +135,19 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       ]
     );
 
+    const isDisabledOrLoading = disabled || effectiveLoading;
+    const resolvedVariant = isDisabledOrLoading ? "inactive" : variant;
+
     const baseClasses = clsx(
       "inline-flex items-center justify-center gap-2 h-[44px] px-[15px] rounded-full font-semibold text-[16px] whitespace-nowrap",
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
-      variant === "active" &&
+      resolvedVariant === "active" &&
         "bg-[#7069FA] text-white hover:bg-[#6660E4] focus-visible:ring-[#7069FA]",
-      variant === "inactive" &&
+      resolvedVariant === "inactive" &&
         "bg-[#F2F1F6] text-[#D7D4DC] hover:bg-[#ECE9F1] focus-visible:ring-[#D7D4DC]",
-      variant === "danger" &&
+      resolvedVariant === "danger" &&
         "bg-[#EF4F4E] text-white hover:bg-[#BA2524] focus-visible:ring-[#EF4F4E]",
-      (disabled || effectiveLoading) &&
-        "cursor-not-allowed opacity-100",
+      isDisabledOrLoading && "cursor-not-allowed opacity-100",
       className
     );
 
@@ -173,8 +175,8 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
           ref={elementRef as React.MutableRefObject<HTMLAnchorElement>}
           onClick={handleClick as unknown as (event: MouseEvent<HTMLAnchorElement>) => void}
           className={baseClasses}
-          aria-disabled={disabled || effectiveLoading}
-          tabIndex={disabled || effectiveLoading ? -1 : rest.tabIndex}
+          aria-disabled={isDisabledOrLoading}
+          tabIndex={isDisabledOrLoading ? -1 : rest.tabIndex}
           target={target}
           rel={rel}
           style={computedStyle}
@@ -189,7 +191,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         {...rest}
         ref={elementRef as React.MutableRefObject<HTMLButtonElement>}
         type={type as ButtonHTMLAttributes<HTMLButtonElement>["type"]}
-        disabled={disabled || effectiveLoading}
+        disabled={isDisabledOrLoading}
         onClick={handleClick as unknown as (event: MouseEvent<HTMLButtonElement>) => void}
         className={baseClasses}
         style={computedStyle}
