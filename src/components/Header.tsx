@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { MouseEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
@@ -33,7 +34,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const showAuthenticatedUI = isAuthenticated && !isRecoverySession && !disconnected;
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: globalThis.MouseEvent) => {
       if (
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
@@ -54,7 +55,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   }, []);
 
   const handleAccountLinkClick = (
-    event: MouseEvent<HTMLAnchorElement>,
+    event: ReactMouseEvent<HTMLAnchorElement>,
     sectionHash: string,
   ) => {
     if (pathname === "/compte") {
