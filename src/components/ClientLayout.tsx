@@ -8,6 +8,7 @@ import { useUser, UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
 import AuthDebug from "@/components/AuthDebug";
 import GliftLoader from "@/components/ui/GliftLoader";
+import VerifyEmailBanner from "@/components/VerifyEmailBanner";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 interface ClientLayoutProps {
@@ -61,6 +62,7 @@ function ClientLayoutContent({
       ) : (
         <Header disconnected={disconnected} />
       )}
+      {!isAdminPage && <VerifyEmailBanner />}
       {children}
       {!isAdminPage && <Footer />}
       {process.env.NODE_ENV === "development" && <AuthDebug />}

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { addDays } from "date-fns";
+
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 
 export async function POST(req: NextRequest) {
@@ -49,6 +51,9 @@ export async function POST(req: NextRequest) {
     const userId = signupData?.user?.id;
 
     if (userId) {
+      const verificationSentAt = new Date();
+      const verificationDeadline = addDays(verificationSentAt, 7);
+
       let supabaseAdmin: ReturnType<typeof createAdminClient>;
       try {
         supabaseAdmin = createAdminClient();
@@ -102,6 +107,45 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: "Création de l'abonnement impossible." },
           { status: 400 }
+        );
+      }
+
+      const nextMetadata = {
+        ...(signupData.user?.user_metadata as Record<string, unknown>),
+        email_verification_sent_at: verificationSentAt.toISOString(),
+        email_verification_deadline: verificationDeadline.toISOString(),
+      } satisfies Record<string, unknown>;
+
+      const { error: metadataError } = await supabaseAdmin.auth.admin.updateUserById(
+        userId,
+        {
+          user_metadata: nextMetadata,
+        },
+      );
+
+      if (metadataError) {
+        console.error(
+          "Mise à jour des métadonnées de vérification impossible",
+          metadataError,
+        );
+      }
+
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .upsert(
+          {
+            id: userId,
+            email_verified: false,
+            email_verification_sent_at: verificationSentAt.toISOString(),
+            email_verification_deadline: verificationDeadline.toISOString(),
+          },
+          { onConflict: "id" },
+        );
+
+      if (profileError) {
+        console.error(
+          "Mise à jour du profil de vérification impossible",
+          profileError,
         );
       }
     }
