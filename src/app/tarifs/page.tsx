@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
+import InfoAdornment from "@/components/InfoAdornment";
 
 export default function TarifsPage() {
   return (
@@ -84,8 +85,36 @@ export default function TarifsPage() {
     <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} /><b className="text-[#3A416F]">Un nombre illimité</b> d&apos;entraînements</li>
     <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} /><b className="text-[#3A416F]">Un nombre illimité</b> d&apos;exercices</li>
     <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un tableau de bord personnalisé</li>
-    <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} /><b className="text-[#3A416F]">Accès aux programmes du <span className="relative inline-block"><Link href="/store" className="underline decoration-dotted hover:decoration-solid underline-offset-4 peer">Glift Store</Link><span className="absolute left-full top-1/2 -translate-y-1/2 ml-3 w-[230px] px-3 py-2 text-white text-[14px] font-medium bg-[#2E3142] rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity z-10 pointer-events-none">Des programmes gratuits à télécharger et à utiliser directement dans Glift.<span className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 rotate-45 bg-[#2E3142]"></span></span></span></b></li>
-    <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} /><b className="text-[#3A416F]">Accès aux offres Premium de la <span className="relative inline-block"><Link href="/shop" className="underline decoration-dotted hover:decoration-solid underline-offset-4 peer">Glift Shop</Link><span className="absolute left-full top-1/2 -translate-y-1/2 ml-3 w-[230px] px-3 py-2 text-white text-[14px] font-medium bg-[#2E3142] rounded-md shadow-lg opacity-0 peer-hover:opacity-100 transition-opacity z-10 pointer-events-none">Une sélection d’offres régulièrement mise à jour correspondant à votre profil.<span className="absolute left-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 rotate-45 bg-[#2E3142]"></span></span></span></b></li>
+    <li className="flex items-center gap-1">
+      <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />
+      <span className="inline-flex items-center gap-1">
+        <span className="font-bold text-[#3A416F]">Accès aux programmes du Glift Store</span>
+        <InfoAdornment
+          message="Des programmes gratuits à télécharger et à utiliser directement dans Glift."
+          iconSrc="/icons/info_blue.svg"
+          iconHoverSrc="/icons/info_blue_hover.svg"
+          iconSize={18}
+          gapPx={12}
+          widthPx={220}
+          ariaLabel="Plus d’informations sur le Glift Store"
+        />
+      </span>
+    </li>
+    <li className="flex items-center gap-1">
+      <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />
+      <span className="inline-flex items-center gap-1">
+        <span className="font-bold text-[#3A416F]">Accès aux offres Premium de la Glift Shop</span>
+        <InfoAdornment
+          message="Une sélection d’offres régulièrement mise à jour correspondant à votre profil."
+          iconSrc="/icons/info_blue.svg"
+          iconHoverSrc="/icons/info_blue_hover.svg"
+          iconSize={18}
+          gapPx={12}
+          widthPx={220}
+          ariaLabel="Plus d’informations sur la Glift Shop"
+        />
+      </span>
+    </li>
     <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Annulation gratuite à tout moment</li>
   </ul>
 
