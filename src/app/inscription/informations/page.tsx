@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import CTAButton from "@/components/CTAButton";
 import StepDots from "@/components/onboarding/StepDots";
-import Spinner from "@/components/ui/Spinner";
 import DropdownField from "@/components/account/fields/DropdownField";
 import ToggleField from "@/components/account/fields/ToggleField";
 import BirthDateField from "@/components/account/fields/BirthDateField";
@@ -339,28 +339,15 @@ const InformationsPage = () => {
         </FieldRow>
 
         <div className="mt-5 flex flex-col items-center">
-          <button
+          <CTAButton
             type="submit"
-            aria-busy={hookLoading || submitting}
-            aria-disabled={hookLoading || submitting}
+            className="px-[30px] font-bold"
             disabled={!isFormValid && !(hookLoading || submitting)}
-            className={`inline-flex h-[44px] items-center justify-center rounded-[25px] px-[15px] text-[16px] font-bold ${
-              hookLoading || submitting
-                ? "bg-[#7069FA] text-white opacity-100 cursor-wait pointer-events-none"
-                : !isFormValid
-                ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
-                : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
-            }`}
+            loading={hookLoading || submitting}
+            loadingText="En cours..."
           >
-            {hookLoading || submitting ? (
-              <span className="inline-flex items-center gap-2">
-                <Spinner size="md" ariaLabel="En cours" />
-                En cours...
-              </span>
-            ) : (
-              "Enregistrer mes informations"
-            )}
-          </button>
+            Enregistrer mes informations
+          </CTAButton>
 
           <button
             type="button"

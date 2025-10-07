@@ -16,6 +16,8 @@ import {
   useState,
 } from "react";
 
+import Spinner from "@/components/ui/Spinner";
+
 type CTAElement = HTMLButtonElement | HTMLAnchorElement;
 
 type BaseProps = {
@@ -153,9 +155,9 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
 
     const content = effectiveLoading ? (
       <span className="inline-flex items-center gap-2">
-        <span
-          aria-hidden
-          className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+        <Spinner
+          size="sm"
+          ariaLabel={typeof loadingText === "string" ? loadingText : undefined}
         />
         <span>{loadingText}</span>
       </span>
@@ -176,6 +178,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
           onClick={handleClick as unknown as (event: MouseEvent<HTMLAnchorElement>) => void}
           className={baseClasses}
           aria-disabled={isDisabledOrLoading}
+          aria-busy={effectiveLoading || undefined}
           tabIndex={isDisabledOrLoading ? -1 : rest.tabIndex}
           target={target}
           rel={rel}
@@ -194,6 +197,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         disabled={isDisabledOrLoading}
         onClick={handleClick as unknown as (event: MouseEvent<HTMLButtonElement>) => void}
         className={baseClasses}
+        aria-busy={effectiveLoading || undefined}
         style={computedStyle}
       >
         {content}

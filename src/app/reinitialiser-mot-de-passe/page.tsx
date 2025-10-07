@@ -4,12 +4,12 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import CTAButton from "@/components/CTAButton";
 import {
   PasswordField,
   getPasswordValidationState,
 } from "@/components/forms/PasswordField";
 import type { PasswordFieldProps } from "@/components/forms/PasswordField";
-import Spinner from "@/components/ui/Spinner";
 import ModalMessage from "@/components/ui/ModalMessage";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
@@ -386,25 +386,15 @@ export default function ResetPasswordPage() {
 
                 {/* CTA */}
                 <div className="w-full flex justify-center mt-[5px]">
-                  <button
+                  <CTAButton
                     type="submit"
-                    disabled={!isFormValid || submitting}
-                    aria-busy={submitting}
-                    className={`inline-flex h-[44px] items-center justify-center rounded-[25px] px-[15px] text-[16px] font-bold ${
-                      !isFormValid || submitting
-                        ? "bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed"
-                        : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
-                    }`}
+                    className="font-bold"
+                    disabled={!isFormValid}
+                    loading={submitting}
+                    loadingText="En cours..."
                   >
-                    {submitting ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Spinner size="md" ariaLabel="En cours" />
-                        En cours...
-                      </span>
-                    ) : (
-                      "Enregistrer"
-                    )}
-                  </button>
+                    Enregistrer
+                  </CTAButton>
                 </div>
               </form>
             </>
