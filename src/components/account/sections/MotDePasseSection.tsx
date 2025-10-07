@@ -238,7 +238,7 @@ export default function MotDePasseSection() {
 
         <CTAButton
           type="submit"
-          className="mt-4 w-full max-w-[260px] font-bold"
+          className="mt-4 w-full max-w-[260px] font-semibold"
           disabled={!isFormReady || loading}
           loading={loading}
           loadingText="En cours..."

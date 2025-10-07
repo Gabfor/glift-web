@@ -25,7 +25,7 @@ export default function SubmitButton({
         disabled={isDisabled}
         loading={loading}
         variant={isDisabled ? "inactive" : "active"}
-        className="font-bold"
+        className="font-semibold"
       >
         {label}
       </CTAButton>

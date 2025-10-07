@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  button,
+  [type="button"],
+  [type="submit"],
+  [type="reset"] {
+    @apply font-semibold;
+  }
+}
+
 html, body {
   @apply bg-[#FBFCFE] text-[#202121] font-sans antialiased;
 }

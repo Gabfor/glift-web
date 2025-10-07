@@ -225,7 +225,7 @@ export default function ConnexionPage() {
           <div className="w-full flex justify-center">
             <CTAButton
               type="submit"
-              className="w-full max-w-[160px] font-bold"
+              className="w-full max-w-[160px] font-semibold"
               disabled={!isFormValid}
               loading={loading}
               loadingText="En cours..."

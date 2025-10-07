@@ -303,7 +303,7 @@ export default function ShopCard({ offer }: Props) {
               onMouseEnter={() => setLockedHover(true)}
               onMouseLeave={() => setLockedHover(false)}
               variant="inactive"
-              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
+              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
             >
               <span className="inline-flex items-center gap-2">
                 <Image
@@ -321,7 +321,7 @@ export default function ShopCard({ offer }: Props) {
               onMouseEnter={() => setLockedHover(true)}
               onMouseLeave={() => setLockedHover(false)}
               variant="inactive"
-              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
+              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
             >
               <span className="inline-flex items-center gap-2">
                 <Image
@@ -337,7 +337,7 @@ export default function ShopCard({ offer }: Props) {
             // Authentifié + premium → bouton actif
             <CTAButton
               onClick={handleClick}
-              className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
+              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
             >
               Profiter de cette offre
             </CTAButton>
@@ -346,7 +346,7 @@ export default function ShopCard({ offer }: Props) {
           // Offres non premium → toujours accessibles
           <CTAButton
             onClick={handleClick}
-            className="mt-[20px] mb-[30px] mx-auto font-bold text-[16px]"
+            className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
           >
             Profiter de cette offre
           </CTAButton>

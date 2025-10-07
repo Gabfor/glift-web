@@ -34,7 +34,7 @@ const PaymentPage = () => {
     if (explicit) return explicit;
 
     const now = new Date();
-    now.setDate(now.getDate() + 14);
+    now.setDate(now.getDate() + 30);
     return formatFr(now);
   }, [trialEndParam]);
 
@@ -142,7 +142,7 @@ const PaymentPage = () => {
             onClick={handleContinue}
             disabled={btnDisabled}
             aria-disabled={btnDisabled}
-            className={`inline-flex items-center justify-center h-[48px] rounded-[25px] px-[15px] text-[16px] font-bold ${
+            className={`inline-flex items-center justify-center h-[48px] rounded-[25px] px-[15px] text-[16px] font-semibold ${
               btnDisabled
                 ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
                 : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
