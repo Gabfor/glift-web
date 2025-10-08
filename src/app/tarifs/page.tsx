@@ -36,26 +36,12 @@ export default function TarifsPage() {
           <li className="flex items-center gap-1 text-[#B1BACC] line-through">
             <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
             Accès aux programmes du{" "}
-            <Link
-              href="/store"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-inherit [text-decoration-line:underline_line-through] underline decoration-dotted underline-offset-2"
-            >
-              Glift Store
-            </Link>
+            <span className="text-inherit">Glift Store</span>
           </li>
           <li className="flex items-center gap-1 text-[#B1BACC] line-through">
             <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
             Accès aux offres Premium de la{" "}
-            <Link
-              href="/shop"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-inherit [text-decoration-line:underline_line-through] underline decoration-dotted underline-offset-2"
-            >
-              Glift Shop
-            </Link>
+            <span className="text-inherit">Glift Shop</span>
           </li>
           </ul>
           {/* Bouton */}
@@ -116,7 +102,7 @@ export default function TarifsPage() {
             href="/store"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline decoration-dotted underline-offset-2"
+            className="no-underline hover:underline hover:decoration-solid underline-offset-2"
           >
             Glift Store
           </Link>
@@ -141,7 +127,7 @@ export default function TarifsPage() {
             href="/shop"
             target="_blank"
             rel="noopener noreferrer"
-            className="underline decoration-dotted underline-offset-2"
+            className="no-underline hover:underline hover:decoration-solid underline-offset-2"
           >
             Glift Shop
           </Link>
