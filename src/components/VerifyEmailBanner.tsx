@@ -27,7 +27,7 @@ const parseISODate = (value: unknown): Date | null => {
 
 export default function VerifyEmailBanner() {
   const { user } = useUser();
-  const supabase = createClientComponentClient();
+  const supabase = useMemo(() => createClientComponentClient(), []);
   const router = useRouter();
   const userId = user?.id ?? null;
 
