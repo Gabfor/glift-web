@@ -111,10 +111,21 @@ export default function VerifyEmailBanner() {
         return Boolean(value && typeof value === "object" && "code" in value);
       };
 
-      if (isPostgrestError(error) && error.code === "PGRST116") {
-        setShow(false);
-        setDeadline(null);
-        return;
+      if (isPostgrestError(error)) {
+        const silentCodes = new Set(["PGRST116", "PGRST301", "42501"]);
+
+        if (silentCodes.has(error.code)) {
+          setShow(false);
+          setDeadline(null);
+          return;
+        }
+
+        if (typeof error.message === "string") {
+          console.error("Lecture du profil impossible", error.message, error);
+          setShow(false);
+          setDeadline(null);
+          return;
+        }
       }
 
       console.error("Lecture du profil impossible", error);
