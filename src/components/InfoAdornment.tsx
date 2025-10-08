@@ -37,6 +37,23 @@ export default function InfoAdornment({
     side: "right",
   }))
 
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const clearHoverTimer = useCallback(() => {
+    if (hoverTimerRef.current) {
+      clearTimeout(hoverTimerRef.current)
+      hoverTimerRef.current = null
+    }
+  }, [])
+
+  const startHoverTimer = useCallback(() => {
+    clearHoverTimer()
+    hoverTimerRef.current = setTimeout(() => {
+      setOverAnchor(true)
+      hoverTimerRef.current = null
+    }, 200)
+  }, [clearHoverTimer])
+
   const EDGE_PADDING = 8
 
   const compute = useCallback(() => {
@@ -61,6 +78,12 @@ export default function InfoAdornment({
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    return () => {
+      clearHoverTimer()
+    }
+  }, [clearHoverTimer])
 
   useEffect(() => {
     if (!open) return
@@ -133,12 +156,22 @@ export default function InfoAdornment({
         ref={anchorRef}
         className="relative inline-block select-none group"
         style={{ width: iconSize, height: iconSize }}
-        onMouseEnter={() => setOverAnchor(true)}
-        onMouseLeave={() => setOverAnchor(false)}
-        onFocus={() => setOverAnchor(true)}
-        onBlur={() => setOverAnchor(false)}
+        onMouseEnter={startHoverTimer}
+        onMouseLeave={() => {
+          clearHoverTimer()
+          setOverAnchor(false)
+        }}
+        onFocus={() => {
+          clearHoverTimer()
+          setOverAnchor(true)
+        }}
+        onBlur={() => {
+          clearHoverTimer()
+          setOverAnchor(false)
+        }}
         onKeyDown={onKeyDown}
         onClick={() => {
+          clearHoverTimer()
           if (open) {
             setOverAnchor(false)
             setOverTip(false)
