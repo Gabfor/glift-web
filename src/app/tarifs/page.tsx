@@ -33,8 +33,30 @@ export default function TarifsPage() {
           <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un seul entraînement</li>
           <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un maximum de 10 exercices</li>
           <li className="flex items-center gap-1"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un tableau de bord personnalisé</li>
-          <li className="flex items-center gap-1 text-[#B1BACC] line-through"><Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />Accès aux programmes du Glift Store</li>
-          <li className="flex items-center gap-1 text-[#B1BACC] line-through"><Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />Accès aux offres Premium de la Glift Shop</li>
+          <li className="flex items-center gap-1 text-[#B1BACC] line-through">
+            <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
+            Accès aux programmes du{" "}
+            <Link
+              href="/store"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-inherit [text-decoration-line:underline_line-through] underline decoration-dotted underline-offset-2"
+            >
+              Glift Store
+            </Link>
+          </li>
+          <li className="flex items-center gap-1 text-[#B1BACC] line-through">
+            <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
+            Accès aux offres Premium de la{" "}
+            <Link
+              href="/shop"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-inherit [text-decoration-line:underline_line-through] underline decoration-dotted underline-offset-2"
+            >
+              Glift Shop
+            </Link>
+          </li>
           </ul>
           {/* Bouton */}
           <div className="mt-10">
@@ -88,7 +110,17 @@ export default function TarifsPage() {
     <li className="flex items-center gap-1">
       <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />
       <span className="inline-flex items-center gap-1">
-        <span className="font-bold text-[#3A416F]">Accès aux programmes du Glift Store</span>
+        <span className="font-bold text-[#3A416F]">
+          Accès aux programmes du{" "}
+          <Link
+            href="/store"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-dotted underline-offset-2"
+          >
+            Glift Store
+          </Link>
+        </span>
         <InfoAdornment
           message="Des programmes gratuits à télécharger et à utiliser directement dans Glift."
           iconSrc="/icons/info_blue.svg"
@@ -103,7 +135,17 @@ export default function TarifsPage() {
     <li className="flex items-center gap-1">
       <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />
       <span className="inline-flex items-center gap-1">
-        <span className="font-bold text-[#3A416F]">Accès aux offres Premium de la Glift Shop</span>
+        <span className="font-bold text-[#3A416F]">
+          Accès aux offres Premium de la{" "}
+          <Link
+            href="/shop"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline decoration-dotted underline-offset-2"
+          >
+            Glift Shop
+          </Link>
+        </span>
         <InfoAdornment
           message="Une sélection d’offres régulièrement mise à jour correspondant à votre profil."
           iconSrc="/icons/info_blue.svg"
