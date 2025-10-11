@@ -167,7 +167,7 @@ export default function OfferModal({
       )}
 
       {parsedCondition && (
-        <div className="order-5 mb-6 w-full text-left text-[#3A416F]">
+        <div className="order-5 w-full text-left text-[#3A416F]">
           <h3 className="mb-1 text-[14px] font-bold">Conditions de l&apos;offre</h3>
           <p className="text-[14px] font-semibold text-[#5D6494]">
             {parsedCondition}
