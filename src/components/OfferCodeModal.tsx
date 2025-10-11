@@ -71,7 +71,7 @@ export default function OfferModal({
       onClose={onCancel}
       titleClassName="order-2 mt-5 mb-5 text-center text-[18px] font-bold uppercase"
       contentClassName="flex flex-col items-center"
-      footerWrapperClassName="order-6 mt-8 w-full"
+      footerWrapperClassName="order-6 w-full"
       footer={
         <div className="flex justify-center gap-3">
           <button
