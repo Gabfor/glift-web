@@ -64,6 +64,43 @@ export async function POST(req: NextRequest) {
       }
 
       const {
+        data: existingProfile,
+        error: profileLookupError,
+      } = await supabaseAdmin
+        .from("profiles")
+        .select("id")
+        .eq("id", userId)
+        .maybeSingle();
+
+      if (profileLookupError) {
+        console.error("Lecture du profil impossible", profileLookupError);
+        return NextResponse.json(
+          { error: "Création du profil utilisateur impossible." },
+          { status: 400 }
+        );
+      }
+
+      if (!existingProfile) {
+        const { error: profileInsertError } = await supabaseAdmin
+          .from("profiles")
+          .insert({
+            id: userId,
+            name,
+          });
+
+        if (profileInsertError) {
+          console.error(
+            "Insertion du profil impossible",
+            profileInsertError
+          );
+          return NextResponse.json(
+            { error: "Création du profil utilisateur impossible." },
+            { status: 400 }
+          );
+        }
+      }
+
+      const {
         data: existingSubscription,
         error: subscriptionLookupError,
       } = await supabaseAdmin
