@@ -48,6 +48,7 @@ export function PasswordField({
   statusOverride,
   onBlur,
   onFocus,
+  onKeyDown,
   ...rest
 }: PasswordFieldProps) {
   const [showPassword, setShowPassword] = React.useState(defaultShowPassword);
@@ -113,6 +114,21 @@ export function PasswordField({
     onBlur?.(event);
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    onKeyDown?.(event);
+    if (event.defaultPrevented) {
+      return;
+    }
+
+    if (event.key === "Enter") {
+      const form = event.currentTarget.form;
+      if (form) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    }
+  };
+
   const criteriaContent = criteriaRenderer?.({ isFocused: focused, isValid, value });
 
   return (
@@ -133,6 +149,7 @@ export function PasswordField({
           onChange={(event) => onChange(event.target.value)}
           onFocus={handleFocus}
           onBlur={handleBlur}
+          onKeyDown={handleKeyDown}
           className={cn(
             "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border",
             showError
