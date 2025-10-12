@@ -16,7 +16,8 @@ interface HeaderProps {
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const supabase = createClientComponentClient();
-  const { user, isAuthenticated, isRecoverySession } = useUser();
+  const { user, isAuthenticated, isRecoverySession, isEmailVerified } =
+    useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -31,8 +32,12 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const userDisplayName = user?.user_metadata?.name?.trim() || "Profil";
 
   // Forcer le mode déconnecté si `disconnected` est vrai
-  const showAuthenticatedUI = isAuthenticated && !isRecoverySession && !disconnected;
-  const isEmailUnverified = showAuthenticatedUI && !user?.email_confirmed_at;
+  const showAuthenticatedUI =
+    isAuthenticated && !isRecoverySession && !disconnected;
+  const shouldShowEmailVerificationBanner =
+    showAuthenticatedUI &&
+    (isEmailVerified === false ||
+      (isEmailVerified === null && !user?.email_confirmed_at));
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
@@ -82,7 +87,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   return (
     <>
-      {isEmailUnverified && (
+      {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
             {
@@ -92,7 +97,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
         </div>
       )}
       <header
-        className={`fixed ${isEmailUnverified ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
+        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
           isSticky
             ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
             : "bg-[#FBFCFE]"

@@ -32,6 +32,7 @@ interface UserContextType {
   isPremiumUser: boolean;
   isLoading: boolean;
   isRecoverySession: boolean;
+  isEmailVerified: boolean | null;
   refreshUser: () => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
@@ -44,6 +45,7 @@ const UserContext = createContext<UserContextType>({
   isPremiumUser: false,
   isLoading: true,
   isRecoverySession: false,
+  isEmailVerified: null,
   refreshUser: async () => {},
   updateUserMetadata: () => {},
 });
@@ -66,6 +68,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   });
   const [isLoading, setIsLoading] = useState(() => !sessionUser);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(() => {
+    if (!sessionUser) {
+      return null;
+    }
+
+    return typeof sessionUser.email_confirmed_at === "string";
+  });
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   useEffect(() => {
@@ -91,6 +100,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       return metadataPremiumFlag || planFromMetadata === "premium";
     });
+
+    setIsEmailVerified((current) => {
+      if (current === true) {
+        return current;
+      }
+
+      return typeof sessionUser.email_confirmed_at === "string";
+    });
   }, [sessionUser]);
 
   const fetchUser = useCallback(async () => {
@@ -115,17 +132,33 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const customUser = user as CustomUser;
         setUser(customUser);
 
-        const { data, error: subscriptionError } = await supabase
-          .from("user_subscriptions")
-          .select("plan")
-          .eq("user_id", customUser.id)
-          .single();
+        const [subscriptionResult, profileResult] = await Promise.all([
+          supabase
+            .from("user_subscriptions")
+            .select("plan")
+            .eq("user_id", customUser.id)
+            .maybeSingle(),
+          supabase
+            .from("profiles")
+            .select("email_verified")
+            .eq("id", customUser.id)
+            .maybeSingle(),
+        ]);
+
+        const { data: subscriptionData, error: subscriptionError } =
+          subscriptionResult;
 
         if (subscriptionError && subscriptionError.code !== "PGRST116") {
           throw subscriptionError;
         }
 
-        const planFromSubscription = data?.plan;
+        const { data: profileData, error: profileError } = profileResult;
+
+        if (profileError && profileError.code !== "PGRST116") {
+          throw profileError;
+        }
+
+        const planFromSubscription = subscriptionData?.plan;
         const planFromMetadata = customUser.user_metadata?.subscription_plan;
         const metadataPremiumFlag = Boolean(customUser.user_metadata?.is_premium);
 
@@ -134,9 +167,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             planFromMetadata === "premium" ||
             metadataPremiumFlag
         );
+
+        if (profileData && typeof profileData.email_verified === "boolean") {
+          setIsEmailVerified(profileData.email_verified);
+        } else {
+          setIsEmailVerified(
+            typeof customUser.email_confirmed_at === "string"
+          );
+        }
       } else {
         setUser(null);
         setIsPremiumUser(false);
+        setIsEmailVerified(null);
       }
     } catch (error) {
       if (!isAuthSessionMissingError(error)) {
@@ -145,6 +187,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       setUser(null);
       setIsPremiumUser(false);
+      setIsEmailVerified(null);
     } finally {
       setIsLoading(false);
     }
@@ -271,6 +314,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isPremiumUser,
         isLoading,
         isRecoverySession,
+        isEmailVerified,
         refreshUser: fetchUser,
         updateUserMetadata,
       }}
