@@ -32,6 +32,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   // Forcer le mode déconnecté si `disconnected` est vrai
   const showAuthenticatedUI = isAuthenticated && !isRecoverySession && !disconnected;
+  const isEmailUnverified = showAuthenticatedUI && !user?.email_confirmed_at;
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
@@ -80,13 +81,23 @@ export default function Header({ disconnected = false }: HeaderProps) {
   };
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isSticky
-          ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
-          : "bg-[#FBFCFE]"
-      }`}
-    >
+    <>
+      {isEmailUnverified && (
+        <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
+          <p className="text-white text-[14px] font-semibold">
+            {
+              "\uD83D\uDCAA Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. Renvoyer l’email."
+            }
+          </p>
+        </div>
+      )}
+      <header
+        className={`fixed ${isEmailUnverified ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
+          isSticky
+            ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
+            : "bg-[#FBFCFE]"
+        }`}
+      >
       <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
@@ -344,6 +355,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           )}
         </div>
       </div>
-    </header>
+      </header>
+    </>
   );
 }
