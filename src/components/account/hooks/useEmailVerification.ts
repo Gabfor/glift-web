@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+
+import { createClient } from '@/lib/supabaseClient'
 import { useUser } from '@/context/UserContext'
 
 export function useEmailVerification() {
@@ -32,8 +34,8 @@ export function useEmailVerification() {
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
-        (payload) => {
-          const next = (payload.new as any)?.email_verified
+        (payload: RealtimePostgresChangesPayload<{ email_verified: boolean | null }>) => {
+          const next = payload.new?.email_verified
           if (typeof next === 'boolean') setVerified(next)
         }
       )
