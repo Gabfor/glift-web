@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Image from "next/image";
-
 import { cn } from "@/lib/utils";
+
 export { PASSWORD_MIN_LENGTH, getPasswordValidationState } from "@/utils/password";
 
 export interface PasswordFieldProps
@@ -56,10 +56,7 @@ export function PasswordField({
   const [focused, setFocused] = React.useState(false);
 
   const validationResult = React.useMemo(() => {
-    if (!validate) {
-      return { isValid: true } as const;
-    }
-
+    if (!validate) return { isValid: true } as const;
     return { isValid: validate(value) } as const;
   }, [validate, value]);
 
@@ -116,20 +113,18 @@ export function PasswordField({
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     onKeyDown?.(event);
-    if (event.defaultPrevented) {
-      return;
-    }
+    if (event.defaultPrevented) return;
 
     if (event.key === "Enter") {
-      const form = event.currentTarget.form;
-      if (form) {
-        event.preventDefault();
-        form.requestSubmit();
-      }
+      event.preventDefault();
+      setTouched(true);
+      setFocused(false); // masque le menu de critères
+      (event.currentTarget as HTMLInputElement).blur(); // force la validation finale
     }
   };
 
-  const criteriaContent = criteriaRenderer?.({ isFocused: focused, isValid, value });
+  const criteriaContent =
+    focused && criteriaRenderer?.({ isFocused: focused, isValid, value });
 
   return (
     <div className={cn("flex w-full flex-col", containerClassName)}>
