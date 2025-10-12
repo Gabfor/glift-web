@@ -17,7 +17,12 @@ export function useEmailVerification() {
       return
     }
 
-    setVerified(Boolean(user.email_confirmed_at))
+    const confirmedViaAuth = Boolean(user.email_confirmed_at)
+    setVerified(confirmedViaAuth)
+
+    if (confirmedViaAuth) {
+      return
+    }
 
     const load = async () => {
       const { data, error } = await supabase
