@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/Header";
 import AdminHeader from "@/components/AdminHeader";
 import Footer from "@/components/Footer";
+import VerifyEmailBanner from "@/components/account/VerifyEmailBanner";
 import { useUser, UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
 import AuthDebug from "@/components/AuthDebug";
@@ -61,6 +62,7 @@ function ClientLayoutContent({
       ) : (
         <Header disconnected={disconnected} />
       )}
+      <VerifyEmailBanner />
       {children}
       {!isAdminPage && <Footer />}
       {process.env.NODE_ENV === "development" && <AuthDebug />}
