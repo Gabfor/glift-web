@@ -24,7 +24,7 @@ export function useEmailVerification() {
         .eq('id', user.id)
         .single()
 
-      if (!error && data) setVerified(data.email_verified)
+      if (!error && data && 'email_verified' in data) setVerified(data.email_verified)
     }
 
     load()
@@ -35,8 +35,11 @@ export function useEmailVerification() {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${user.id}` },
         (payload: RealtimePostgresChangesPayload<{ email_verified: boolean | null }>) => {
-          const next = payload.new?.email_verified
-          if (typeof next === 'boolean') setVerified(next)
+          const record = payload.new
+          if (record && 'email_verified' in record) {
+            const next = record.email_verified
+            if (typeof next === 'boolean') setVerified(next)
+          }
         }
       )
       .subscribe()
