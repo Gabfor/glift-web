@@ -26,6 +26,7 @@ const AccountCreationPage = () => {
   const [accepted, setAccepted] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const [prenom, setPrenom] = useState("");
   const [prenomTouched, setPrenomTouched] = useState(false);
@@ -65,6 +66,7 @@ const AccountCreationPage = () => {
     if (!isFormValid || !plan || !nextStepPath) return;
 
     setError("");
+    setSuccessMessage("");
     setLoading(true);
 
     try {
@@ -83,6 +85,13 @@ const AccountCreationPage = () => {
 
       if (!response.ok || !result.success) {
         setError(result.error || "Une erreur est survenue.");
+        return;
+      }
+
+      if (result.requiresEmailConfirmation) {
+        setSuccessMessage(
+          "Merci ! Vérifie ta boîte mail et clique sur le lien de confirmation pour finaliser ton inscription."
+        );
         return;
       }
 
@@ -244,6 +253,9 @@ const AccountCreationPage = () => {
           </div>
 
           {error && <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">{error}</p>}
+          {successMessage && (
+            <p className="text-[#00A370] mb-4 text-sm text-center max-w-[368px]">{successMessage}</p>
+          )}
 
           <div className="w-full flex justify-center mt-[10px]">
             <CTAButton

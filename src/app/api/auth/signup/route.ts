@@ -43,16 +43,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: signupError.message }, { status: 400 });
     }
 
-    // 🔑 Connexion automatique juste après
-    const { error: signinError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (signinError) {
-      return NextResponse.json({ error: signinError.message }, { status: 400 });
-    }
-
     const userId = signupData?.user?.id;
 
     if (userId) {
@@ -113,8 +103,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ✅ Succès : le frontend peut rediriger vers /entrainements
-    return NextResponse.json({ success: true });
+    const requiresEmailConfirmation = !signupData?.session;
+
+    // ✅ Succès : le frontend peut rediriger vers /entrainements ou inviter à vérifier l'email
+    return NextResponse.json({ success: true, requiresEmailConfirmation });
   } catch (unhandledError) {
     console.error("Erreur inattendue lors de l'inscription", unhandledError);
     return NextResponse.json(
