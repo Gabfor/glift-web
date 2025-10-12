@@ -65,7 +65,7 @@ export const getNextStepPath = (plan: PlanType, step: StepKey, searchParams: URL
   const suffix = query ? `?${query}` : "";
 
   if (step === "account") {
-    return plan === "premium" ? `/inscription/paiement${suffix}` : `/inscription/informations${suffix}`;
+    return `/inscription/informations${suffix}`;
   }
 
   if (step === "payment") {

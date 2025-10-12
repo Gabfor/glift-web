@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { getAbsoluteUrl } from "@/lib/env";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
     const supabasePlan = plan === "starter" ? "basic" : "premium";
 
     // 📝 Inscription Supabase
+    const redirectParams = new URLSearchParams({ plan, origin: "signup" });
+    const redirectTarget = getAbsoluteUrl(
+      `/inscription/informations?${redirectParams.toString()}`,
+    );
+
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
@@ -29,6 +35,7 @@ export async function POST(req: NextRequest) {
           subscription_plan: supabasePlan,
           is_premium: supabasePlan === "premium",
         },
+        emailRedirectTo: redirectTarget,
       },
     });
 
