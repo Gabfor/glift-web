@@ -17,17 +17,22 @@ export function useEmailVerification() {
       return
     }
 
+    setVerified(Boolean(user.email_confirmed_at))
+
     const load = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('email_verified')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (!error && data && 'email_verified' in data) setVerified(data.email_verified)
+      if (!error && data && 'email_verified' in data) {
+        const next = data.email_verified
+        if (typeof next === 'boolean') setVerified(next)
+      }
     }
 
-    load()
+    void load()
 
     const channel = supabase
       .channel('email-verified')
