@@ -8,6 +8,7 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
+import VerifyEmailBanner from "@/components/account/VerifyEmailBanner";
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -87,7 +88,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
           : "bg-[#FBFCFE]"
       }`}
     >
-      <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
+      <VerifyEmailBanner />
+      <div className="relative mx-auto flex max-w-[1152px] items-center justify-between px-4 py-4 md:px-0">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
           <Link

@@ -1,5 +1,6 @@
 'use client'
 
+import clsx from 'clsx'
 import { useState } from 'react'
 import { useEmailVerification } from '@/components/account/hooks/useEmailVerification'
 import { useUser } from '@/context/UserContext'
@@ -25,35 +26,35 @@ export default function VerifyEmailBanner() {
     }
   }
 
+  const statusLabel = resending ? 'Renvoi…' : sent ? 'Email renvoyé !' : 'Renvoyer l’email'
+  const buttonClassName = clsx(
+    'inline-flex items-center justify-center whitespace-nowrap px-0 py-1 text-sm font-semibold transition md:ml-4 disabled:cursor-not-allowed',
+    sent
+      ? 'cursor-default text-white/80 no-underline'
+      : 'text-white underline decoration-white/60 underline-offset-4 hover:decoration-white',
+  )
+
   return (
-    <div className="w-full flex justify-center px-4 pt-2">
-      <div className="w-[1152px] max-w-full">
-        <div
-          className="relative rounded-lg px-5 py-4 bg-[#E3F9E5] flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
-          role="status"
-          aria-live="polite"
+    <div className="bg-[#6B5BFF] text-white">
+      <div
+        className="mx-auto flex w-full max-w-[1152px] flex-col gap-2 px-4 py-2.5 text-sm leading-5 md:flex-row md:items-center md:justify-between"
+        role="status"
+        aria-live="polite"
+      >
+        <p className="font-medium">
+          <span aria-hidden="true" className="mr-2">
+            ✉️
+          </span>
+          Pour finaliser votre inscription, merci de confirmer votre adresse email reçue par email.
+        </p>
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resending}
+          className={buttonClassName}
         >
-          <span className="absolute left-0 top-0 h-full w-[6px] bg-[#57AE5B] rounded-l-lg" />
-          <div>
-            <p className="text-[#245B2C] text-[15px] font-bold mb-1">
-              Merci pour votre inscription&nbsp;!
-            </p>
-            <p className="text-[#245B2C] text-[14px] font-semibold leading-relaxed">
-              Pour finaliser votre inscription, confirmez votre email en cliquant sur le lien reçu.
-              Ce bandeau restera visible tant que votre compte n’est pas validé.
-            </p>
-          </div>
-          <div className="flex flex-col items-start sm:items-end gap-1">
-            <button
-              type="button"
-              onClick={handleResend}
-              disabled={resending}
-              className="inline-flex h-[34px] items-center rounded-[18px] px-4 text-[14px] font-bold bg-[#7069FA] text-white hover:bg-[#6660E4] disabled:opacity-60"
-            >
-              {resending ? 'Renvoi…' : sent ? 'Email renvoyé !' : 'Renvoyer l’email'}
-            </button>
-          </div>
-        </div>
+          {statusLabel}
+        </button>
       </div>
     </div>
   )
