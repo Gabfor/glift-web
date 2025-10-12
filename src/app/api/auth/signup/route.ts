@@ -104,6 +104,18 @@ export async function POST(req: NextRequest) {
           { status: 400 }
         );
       }
+
+      const { error: profileError } = await supabaseAdmin
+        .from("profiles")
+        .upsert({ id: userId, name }, { onConflict: "id" });
+
+      if (profileError) {
+        console.error("Création du profil impossible", profileError);
+        return NextResponse.json(
+          { error: "Création du profil impossible." },
+          { status: 400 }
+        );
+      }
     }
 
     // ✅ Succès : le frontend peut rediriger vers /entrainements
