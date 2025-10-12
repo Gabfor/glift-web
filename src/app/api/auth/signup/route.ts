@@ -20,6 +20,9 @@ export async function POST(req: NextRequest) {
     const supabasePlan = plan === "starter" ? "basic" : "premium";
 
     // 📝 Inscription Supabase
+    const emailRedirectTo =
+      process.env.NEXT_PUBLIC_SUPABASE_EMAIL_CONFIRM_REDIRECT_URL ?? undefined;
+
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
@@ -29,6 +32,7 @@ export async function POST(req: NextRequest) {
           subscription_plan: supabasePlan,
           is_premium: supabasePlan === "premium",
         },
+        emailRedirectTo,
       },
     });
 

@@ -1,7 +1,8 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import CTAButton from "@/components/CTAButton";
@@ -12,6 +13,7 @@ import BirthDateField from "@/components/account/fields/BirthDateField";
 import FieldRow from "@/components/account/fields/FieldRow";
 import { useProfileSubmit } from "@/components/account/MesInformationsForm/hooks/useProfileSubmit";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import Spinner from "@/components/ui/Spinner";
 
 import { getStepMetadata, parsePlan } from "../constants";
 
@@ -43,6 +45,8 @@ const InformationsPage = () => {
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
   const { submit, loading: hookLoading, error: hookError } = useProfileSubmit();
+  const emailConfirmationRedirect =
+    process.env.NEXT_PUBLIC_SUPABASE_EMAIL_CONFIRM_REDIRECT_URL;
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
@@ -70,15 +74,44 @@ const InformationsPage = () => {
     mainGoal: false,
   });
 
+  const [userEmail, setUserEmail] = useState("");
+  const [emailConfirmedAt, setEmailConfirmedAt] = useState<string | null>(null);
+  const [refreshingEmailStatus, setRefreshingEmailStatus] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendFeedback, setResendFeedback] = useState<
+    { type: "success" | "error"; text: string } | null
+  >(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  const refreshAuthUser = useCallback(async () => {
+    const { data, error } = await supabase.auth.getUser();
+
+    if (error) {
+      console.error("[onboarding] récupération utilisateur échouée", error);
+      return null;
+    }
+
+    const user = data?.user ?? null;
+
+    setUserEmail(user?.email ?? "");
+    setEmailConfirmedAt(user?.email_confirmed_at ?? null);
+
+    return user;
+  }, [supabase]);
+
   useEffect(() => {
     let mounted = true;
 
     const fetchUserMetadata = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (!mounted) return;
+      const user = await refreshAuthUser();
+      if (!mounted || !user) {
+        return;
+      }
 
-      const metadata = data?.user?.user_metadata as Record<string, unknown> | undefined;
-      if (!metadata) return;
+      const metadata = user.user_metadata as Record<string, unknown> | undefined;
+      if (!metadata) {
+        return;
+      }
 
       if (typeof metadata.gender === "string") {
         setGender(metadata.gender);
@@ -120,7 +153,129 @@ const InformationsPage = () => {
     return () => {
       mounted = false;
     };
+  }, [refreshAuthUser]);
+
+  useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        const user = session?.user ?? null;
+        setUserEmail(user?.email ?? "");
+        setEmailConfirmedAt(user?.email_confirmed_at ?? null);
+      },
+    );
+
+    return () => {
+      subscription?.subscription.unsubscribe();
+    };
   }, [supabase]);
+
+  useEffect(() => {
+    if (emailConfirmedAt) {
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      void refreshAuthUser();
+    }, 15000);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [emailConfirmedAt, refreshAuthUser]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) {
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setResendCooldown((previous) => (previous > 0 ? previous - 1 : 0));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [resendCooldown]);
+
+  useEffect(() => {
+    if (!emailConfirmedAt) {
+      return;
+    }
+
+    setResendFeedback(null);
+  }, [emailConfirmedAt]);
+
+  const handleRefreshEmailStatus = useCallback(async () => {
+    if (refreshingEmailStatus) {
+      return;
+    }
+
+    setRefreshingEmailStatus(true);
+
+    try {
+      await refreshAuthUser();
+    } finally {
+      setRefreshingEmailStatus(false);
+    }
+  }, [refreshAuthUser, refreshingEmailStatus]);
+
+  const handleResendEmail = useCallback(async () => {
+    if (!userEmail || resendLoading || resendCooldown > 0) {
+      return;
+    }
+
+    setResendLoading(true);
+    setResendFeedback(null);
+
+    try {
+      const options = emailConfirmationRedirect
+        ? { emailRedirectTo: emailConfirmationRedirect }
+        : undefined;
+
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: userEmail,
+        options,
+      });
+
+      if (error) {
+        console.error(
+          "[onboarding] renvoi email confirmation échoué",
+          error,
+        );
+        setResendFeedback({
+          type: "error",
+          text:
+            error.message ||
+            "Impossible d'envoyer un nouvel email de confirmation.",
+        });
+        return;
+      }
+
+      setResendFeedback({
+        type: "success",
+        text: "Un nouvel email de confirmation vient d'être envoyé.",
+      });
+      setResendCooldown(60);
+    } catch (err) {
+      console.error(
+        "[onboarding] erreur inattendue lors du renvoi d'email",
+        err,
+      );
+      setResendFeedback({
+        type: "error",
+        text: "Une erreur est survenue lors de l'envoi de l'email.",
+      });
+    } finally {
+      setResendLoading(false);
+    }
+  }, [
+    emailConfirmationRedirect,
+    resendCooldown,
+    resendLoading,
+    supabase,
+    userEmail,
+  ]);
 
   const markTouched = (key: keyof typeof touched) => {
     setTouched((previous) => ({ ...previous, [key]: true }));
@@ -129,6 +284,12 @@ const InformationsPage = () => {
   const isFormValid = Boolean(
     gender && birthDay && birthMonth && birthYear && experience && mainGoal
   );
+
+  const isEmailConfirmed = Boolean(emailConfirmedAt);
+  const resendDisabled = resendLoading || resendCooldown > 0 || !userEmail;
+  const resendHelperText = resendCooldown > 0
+    ? `Tu pourras renvoyer un email dans ${resendCooldown}s.`
+    : "Tu n'as rien reçu ? Vérifie tes spams ou renvoie un email de confirmation.";
 
   const genderSuccess = useMemo(() => {
     if (!touched.gender || !gender) return "";
@@ -237,6 +398,83 @@ const InformationsPage = () => {
           currentStep={stepMetadata.currentStep}
         />
       </div>
+
+      {!isEmailConfirmed && (
+        <div className="mt-6 w-full max-w-[760px]">
+          <div className="rounded-[16px] border border-[#DAD8FF] bg-[#F7F5FF] p-5 text-left shadow-[0_10px_30px_rgba(46,50,113,0.05)]">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex flex-1 items-start gap-3">
+                <Image
+                  src="/icons/info_blue.svg"
+                  alt="Information"
+                  width={24}
+                  height={24}
+                  className="h-6 w-6"
+                />
+                <div className="flex-1">
+                  <p className="text-[16px] font-semibold text-[#2E3271]">
+                    Confirme ton email pour sécuriser ton compte
+                  </p>
+                  <p className="mt-1 text-[14px] leading-relaxed text-[#5D6494]">
+                    Un email de validation a été envoyé à{" "}
+                    <span className="font-semibold text-[#2E3271]">
+                      {userEmail || "ton adresse e-mail"}
+                    </span>
+                    . Clique sur le lien reçu pour activer définitivement ton compte.
+                  </p>
+                  {resendFeedback && (
+                    <p
+                      className={`mt-2 text-[14px] font-semibold ${
+                        resendFeedback.type === "success"
+                          ? "text-[#00A878]"
+                          : "text-[#EF4444]"
+                      }`}
+                    >
+                      {resendFeedback.text}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+                <button
+                  type="button"
+                  onClick={handleResendEmail}
+                  disabled={resendDisabled}
+                  className="inline-flex items-center justify-center rounded-full border border-[#7069FA] px-4 py-2 text-[14px] font-semibold text-[#7069FA] transition-colors hover:bg-[#ECEBFF] disabled:cursor-not-allowed disabled:border-[#D7D4DC] disabled:text-[#C2BFC6]"
+                >
+                  {resendLoading ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner size="sm" ariaLabel="Renvoi en cours" />
+                      Renvoyer...
+                    </span>
+                  ) : (
+                    "Renvoyer l'email"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleRefreshEmailStatus}
+                  disabled={refreshingEmailStatus}
+                  className="inline-flex items-center justify-center rounded-full px-4 py-2 text-[14px] font-semibold text-[#5D6494] transition-colors hover:bg-white/60 disabled:cursor-not-allowed disabled:text-[#C2BFC6]"
+                >
+                  {refreshingEmailStatus ? (
+                    <span className="inline-flex items-center gap-2">
+                      <Spinner size="sm" ariaLabel="Vérification en cours" />
+                      Vérification...
+                    </span>
+                  ) : (
+                    "J'ai confirmé mon email"
+                  )}
+                </button>
+                <p className="text-left text-[12px] text-[#8A8DB5] sm:text-right">
+                  {resendHelperText}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="w-[564px] max-w-full mb-6">
         <div className="relative bg-[#F4F5FE] rounded-[5px] px-5 py-3 text-left">
