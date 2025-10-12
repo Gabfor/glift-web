@@ -48,7 +48,8 @@ function ClientLayoutContent({
   isAdminPage,
   isComptePage,
 }: ClientLayoutContentProps) {
-  const { isLoading } = useUser();
+  const { isLoading, isAuthenticated } = useUser();
+  const shouldForceDisconnected = disconnected && !isAuthenticated;
   const showLoader = useMinimumVisibility(isLoading);
 
   return (
@@ -59,7 +60,7 @@ function ClientLayoutContent({
       {isAdminPage ? (
         <AdminHeader />
       ) : (
-        <Header disconnected={disconnected} />
+        <Header disconnected={shouldForceDisconnected} />
       )}
       {children}
       {!isAdminPage && <Footer />}
