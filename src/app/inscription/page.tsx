@@ -86,6 +86,12 @@ const AccountCreationPage = () => {
         return;
       }
 
+      if (result.requiresEmailConfirmation) {
+        router.refresh();
+        router.push(nextStepPath);
+        return;
+      }
+
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
