@@ -4,6 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(new URL("/entrainements", request.url));
 
+  const url = new URL(request.url);
+  const context = url.searchParams.get("context");
+  const type = url.searchParams.get("type");
+  const shouldMarkEmailVerified =
+    context === "email_verification" || type === "signup";
+
   type CookieOptions = Parameters<typeof response.cookies.set>[2];
 
   const rememberPreference = request.cookies.get("glift-remember")?.value;
@@ -41,7 +47,37 @@ export async function GET(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser(); // initialise la session
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser(); // initialise la session
+
+  if (userError && userError.status !== 400) {
+    console.error("[auth/callback] getUser error", userError);
+  }
+
+  if (shouldMarkEmailVerified && user?.id) {
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("email_verified")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError && profileError.code !== "PGRST116") {
+      console.error("[auth/callback] profile lookup failed", profileError);
+    }
+
+    if (!profileError && profile?.email_verified !== true) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ email_verified: true })
+        .eq("id", user.id);
+
+      if (updateError) {
+        console.error("[auth/callback] profile update failed", updateError);
+      }
+    }
+  }
 
   return response;
 }
