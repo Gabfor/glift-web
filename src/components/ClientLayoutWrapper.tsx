@@ -10,10 +10,15 @@ export default function ClientLayoutWrapper({
 }) {
   const pathname = usePathname();
 
-  const isPublicPage =
+  const isAuthPage =
     pathname?.startsWith("/connexion") ||
-    pathname?.startsWith("/inscription") ||
     pathname === "/reinitialiser-mot-de-passe";
 
-  return <ClientLayout disconnected={isPublicPage}>{children}</ClientLayout>;
+  const isOnboardingAccountStep = pathname === "/inscription";
+
+  const shouldUsePublicHeader = Boolean(isAuthPage || isOnboardingAccountStep);
+
+  return (
+    <ClientLayout disconnected={shouldUsePublicHeader}>{children}</ClientLayout>
+  );
 }
