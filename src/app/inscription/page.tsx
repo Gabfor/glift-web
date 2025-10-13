@@ -9,15 +9,18 @@ import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { PasswordField, getPasswordValidationState } from "@/components/forms/PasswordField";
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
-import { createClientComponentClient } from "@/lib/supabase/client";
+import { useSessionContext } from "@supabase/auth-helpers-react";
+import { useUser } from "@/context/UserContext";
 
 import StepIndicator from "./components/StepIndicator";
 import { getNextStepPath, getStepMetadata, parsePlan } from "./constants";
 
 const AccountCreationPage = () => {
-  const supabase = createClientComponentClient();
+  const { supabaseClient } = useSessionContext();
+  const supabase = supabaseClient;
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refreshUser } = useUser();
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
@@ -104,6 +107,8 @@ const AccountCreationPage = () => {
           );
           return;
         }
+
+        await refreshUser();
       }
 
       router.refresh();
