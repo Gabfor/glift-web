@@ -86,20 +86,24 @@ const AccountCreationPage = () => {
         return;
       }
 
-      if (result.requiresEmailConfirmation) {
-        router.refresh();
-        router.push(nextStepPath);
-        return;
-      }
+      const sessionPayload = result.session as
+        | { access_token: string; refresh_token: string }
+        | null
+        | undefined;
 
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      if (sessionPayload?.access_token && sessionPayload.refresh_token) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: sessionPayload.access_token,
+          refresh_token: sessionPayload.refresh_token,
+        });
 
-      if (signInError) {
-        setError(signInError.message || "Connexion impossible après la création du compte.");
-        return;
+        if (sessionError) {
+          setError(
+            sessionError.message ||
+              "Connexion impossible après la création du compte.",
+          );
+          return;
+        }
       }
 
       router.refresh();

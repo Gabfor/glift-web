@@ -47,10 +47,21 @@ export async function POST(req: NextRequest) {
     }
 
     // 🔑 Connexion automatique juste après
-    const { error: signinError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    let sessionTokens: { access_token: string; refresh_token: string } | null =
+      null;
+
+    const { data: signinData, error: signinError } =
+      await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+    if (signinData?.session) {
+      sessionTokens = {
+        access_token: signinData.session.access_token,
+        refresh_token: signinData.session.refresh_token,
+      };
+    }
 
     const emailNotConfirmed =
       Boolean(signinError?.message) &&
@@ -67,8 +78,40 @@ export async function POST(req: NextRequest) {
             "Connexion admin impossible pour contourner la confirmation email",
             adminSigninError,
           );
+
+          return NextResponse.json(
+            {
+              error:
+                "Connexion impossible après la création du compte. Merci de réessayer.",
+            },
+            { status: 500 },
+          );
         } else if (adminSigninData.session) {
-          await supabase.auth.setSession(adminSigninData.session);
+          const adminSession = adminSigninData.session;
+          const { error: setSessionError } = await supabase.auth.setSession({
+            access_token: adminSession.access_token,
+            refresh_token: adminSession.refresh_token,
+          });
+
+          if (setSessionError) {
+            console.error(
+              "Echec du placement de session suite à la connexion admin",
+              setSessionError,
+            );
+
+            return NextResponse.json(
+              {
+                error:
+                  "Connexion impossible après la création du compte. Merci de réessayer.",
+              },
+              { status: 500 },
+            );
+          }
+
+          sessionTokens = {
+            access_token: adminSession.access_token,
+            refresh_token: adminSession.refresh_token,
+          };
         }
       } catch (adminSigninException) {
         console.error(
@@ -186,6 +229,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       requiresEmailConfirmation: emailNotConfirmed,
+      session: sessionTokens,
     });
   } catch (unhandledError) {
     console.error("Erreur inattendue lors de l'inscription", unhandledError);
