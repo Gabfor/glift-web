@@ -191,6 +191,24 @@ const InformationsPage = () => {
       console.log(`[onboarding] submit() resolved, success = ${ok}`);
 
       if (ok) {
+        try {
+          const emailResponse = await fetch("/api/auth/email", {
+            method: "POST",
+          });
+
+          if (!emailResponse.ok) {
+            console.warn(
+              "[onboarding] failed to trigger verification email",
+              await emailResponse.json().catch(() => null),
+            );
+          }
+        } catch (emailError) {
+          console.error(
+            "[onboarding] unexpected error while sending verification email",
+            emailError,
+          );
+        }
+
         console.log("[onboarding] navigation vers /compte#mes-informations");
         router.push("/compte#mes-informations");
       }
