@@ -74,18 +74,24 @@ export async function POST(req: NextRequest) {
           await adminClient.auth.signInWithPassword({ email, password });
 
         if (adminSigninError) {
-          console.error(
-            "Connexion admin impossible pour contourner la confirmation email",
-            adminSigninError,
-          );
+          if (adminSigninError.code === "email_not_confirmed") {
+            console.info(
+              "Connexion admin bloquée par confirmation email, poursuite sans session",
+            );
+          } else {
+            console.error(
+              "Connexion admin impossible pour contourner la confirmation email",
+              adminSigninError,
+            );
 
-          return NextResponse.json(
-            {
-              error:
-                "Connexion impossible après la création du compte. Merci de réessayer.",
-            },
-            { status: 500 },
-          );
+            return NextResponse.json(
+              {
+                error:
+                  "Connexion impossible après la création du compte. Merci de réessayer.",
+              },
+              { status: 500 },
+            );
+          }
         } else if (adminSigninData.session) {
           const adminSession = adminSigninData.session;
           const { error: setSessionError } = await supabase.auth.setSession({
