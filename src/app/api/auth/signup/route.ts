@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createProvisionalSession } from "@/lib/auth/provisionalSession";
 
 export async function POST(req: NextRequest) {
   try {
@@ -164,6 +165,7 @@ export async function POST(req: NextRequest) {
             .insert({
               id: userId,
               name,
+              email_verified: false,
             });
 
           if (profileInsertError) {
@@ -227,6 +229,30 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: "Configuration Supabase incomplète." },
           { status: 500 },
+        );
+      }
+    }
+
+    if (!sessionTokens && email && password) {
+      try {
+        const adminClient = ensureAdminClient();
+        const provisionalResult = await createProvisionalSession(
+          adminClient,
+          { email, password },
+        );
+
+        if ("sessionTokens" in provisionalResult) {
+          sessionTokens = provisionalResult.sessionTokens;
+        } else {
+          console.warn(
+            "Création de session provisoire impossible après inscription",
+            provisionalResult,
+          );
+        }
+      } catch (provisionalError) {
+        console.error(
+          "Impossible d'initialiser une session provisoire post-inscription",
+          provisionalError,
         );
       }
     }

@@ -109,6 +109,48 @@ const AccountCreationPage = () => {
         }
 
         await refreshUser();
+      } else {
+        try {
+          const response = await fetch("/api/auth/provisional-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const provisionalResult: {
+            success?: boolean;
+            session?: { access_token: string; refresh_token: string } | null;
+            error?: string;
+          } = await response.json();
+
+          if (response.ok && provisionalResult.success && provisionalResult.session) {
+            const { error: sessionError } = await supabase.auth.setSession({
+              access_token: provisionalResult.session.access_token,
+              refresh_token: provisionalResult.session.refresh_token,
+            });
+
+            if (sessionError) {
+              setError(
+                sessionError.message ||
+                  "Connexion impossible après la création du compte.",
+              );
+              return;
+            }
+
+            await refreshUser();
+          } else if (!response.ok) {
+            setError(
+              provisionalResult.error ||
+                "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
+            );
+            return;
+          }
+        } catch (provisionalError) {
+          console.error(
+            "Impossible de récupérer une session provisoire après inscription",
+            provisionalError,
+          );
+        }
       }
 
       router.refresh();

@@ -121,12 +121,58 @@ export default function ConnexionPage() {
             "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
       } else if (error.message?.toLowerCase().includes("email not confirmed")) {
-        setError({
-          type: "email-not-confirmed",
-          title: "Adresse email non vérifiée",
-          description:
-            "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.",
-        });
+        try {
+          const response = await fetch("/api/auth/provisional-session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const result: {
+            success?: boolean;
+            session?: { access_token: string; refresh_token: string } | null;
+            error?: string;
+            code?: string;
+          } = await response.json();
+
+          if (response.ok && result.success && result.session) {
+            const { access_token, refresh_token } = result.session;
+
+            await supabase.auth.setSession({
+              access_token,
+              refresh_token,
+            });
+
+            setShowTransitionLoader(true);
+            router.push("/entrainements");
+            router.refresh();
+            return;
+          }
+
+          const description =
+            result.code === "grace_period_expired"
+              ? "Le délai de 7 jours pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer."
+              : result.error ??
+                "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.";
+
+          setError({
+            type: "email-not-confirmed",
+            title: "Adresse email non vérifiée",
+            description,
+          });
+        } catch (fallbackError) {
+          console.error(
+            "Erreur lors de la tentative de session provisoire",
+            fallbackError,
+          );
+
+          setError({
+            type: "email-not-confirmed",
+            title: "Adresse email non vérifiée",
+            description:
+              "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.",
+          });
+        }
       } else {
         setError({
           type: "generic",
