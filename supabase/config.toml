@@ -122,6 +122,7 @@ site_url = "http://localhost:3000"
 additional_redirect_urls = [
   "http://localhost:3000",
   "http://localhost:3000/inscription",
+  "http://localhost:3000/connexion",
   "http://localhost:3000/inscription/paiement",
   "http://localhost:3000/inscription/informations"
 ]
