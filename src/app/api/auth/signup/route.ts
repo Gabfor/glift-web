@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
           error: profileLookupError,
         } = await adminClient
           .from("profiles")
-          .select("id")
+          .select("id, email_verified")
           .eq("id", userId)
           .maybeSingle();
 
@@ -172,6 +172,33 @@ export async function POST(req: NextRequest) {
             console.error(
               "Insertion du profil impossible",
               profileInsertError,
+            );
+            return NextResponse.json(
+              { error: "Création du profil utilisateur impossible." },
+              { status: 400 },
+            );
+          }
+        } else {
+          const profileUpdatePayload: {
+            name: string;
+            email_verified?: boolean;
+          } = {
+            name,
+          };
+
+          if (existingProfile.email_verified !== false) {
+            profileUpdatePayload.email_verified = false;
+          }
+
+          const { error: profileUpdateError } = await adminClient
+            .from("profiles")
+            .update(profileUpdatePayload)
+            .eq("id", userId);
+
+          if (profileUpdateError) {
+            console.error(
+              "Mise à jour du profil impossible",
+              profileUpdateError,
             );
             return NextResponse.json(
               { error: "Création du profil utilisateur impossible." },
