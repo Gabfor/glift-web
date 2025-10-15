@@ -175,7 +175,11 @@ export async function GET(request: NextRequest) {
     exchangeError = error;
   }
 
-  const { error: sessionError } = await supabase.auth.getUser();
+  const {
+    data: userData,
+    error: sessionError,
+  } = await supabase.auth.getUser();
+  const user = userData?.user ?? null;
 
   const redirectUrl = new URL("/entrainements", request.url).toString();
   const queryErrorDescription = url.searchParams.get("error_description") ?? undefined;
@@ -187,6 +191,20 @@ export async function GET(request: NextRequest) {
     (otpExpired
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
       : sessionError?.message);
+
+  if (!errorMessage && user) {
+    const { error: profileUpdateError } = await supabase
+      .from("profiles")
+      .update({ email_verified: true })
+      .eq("id", user.id);
+
+    if (profileUpdateError) {
+      console.error(
+        "[auth-callback] Unable to mark email as verified",
+        profileUpdateError,
+      );
+    }
+  }
 
   const html = renderAutoCloseTemplate({
     success: !errorMessage,
