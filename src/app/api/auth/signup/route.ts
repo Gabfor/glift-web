@@ -284,6 +284,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    if (emailNotConfirmed && userId) {
+      try {
+        const adminClient = ensureAdminClient();
+        const { error: resetEmailVerifiedError } = await adminClient
+          .from("profiles")
+          .update({ email_verified: false })
+          .eq("id", userId);
+
+        if (resetEmailVerifiedError) {
+          console.error(
+            "Impossible de réinitialiser l'état de vérification email du profil",
+            resetEmailVerifiedError,
+          );
+        }
+      } catch (resetEmailVerifiedException) {
+        console.error(
+          "Réinitialisation de l'état de vérification email échouée",
+          resetEmailVerifiedException,
+        );
+      }
+    }
+
     // ✅ Succès : le frontend peut rediriger vers /entrainements
     return NextResponse.json({
       success: true,
