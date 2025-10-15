@@ -164,15 +164,26 @@ export async function GET(request: NextRequest) {
     }
   );
 
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  let exchangeError: Awaited<
+    ReturnType<typeof supabase.auth.exchangeCodeForSession>
+  >["error"] | null = null;
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    exchangeError = error;
+  }
+
   const { error: sessionError } = await supabase.auth.getUser();
 
-  const url = new URL(request.url);
   const redirectUrl = new URL("/entrainements", request.url).toString();
   const queryErrorDescription = url.searchParams.get("error_description") ?? undefined;
   const otpExpired = url.searchParams.get("error_code") === "otp_expired";
 
   const errorMessage =
     queryErrorDescription ??
+    exchangeError?.message ??
     (otpExpired
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
       : sessionError?.message);
