@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
 
     const { email, password, name, plan } = body;
 
+    const callbackUrl = new URL("/auth/callback", req.nextUrl.origin).toString();
+
     // 🔒 Vérifie les champs requis
     if (!email || !password || !name || !plan) {
       return NextResponse.json({ error: "Champs manquants." }, { status: 400 });
@@ -35,6 +37,7 @@ export async function POST(req: NextRequest) {
       email,
       password,
       options: {
+        emailRedirectTo: callbackUrl,
         data: {
           name,
           subscription_plan: supabasePlan,
