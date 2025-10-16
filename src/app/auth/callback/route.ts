@@ -166,13 +166,47 @@ export async function GET(request: NextRequest) {
 
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
-  let exchangeError: Awaited<
-    ReturnType<typeof supabase.auth.exchangeCodeForSession>
-  >["error"] | null = null;
+  const tokenHash = url.searchParams.get("token_hash");
+  type ExchangeError =
+    | Awaited<ReturnType<typeof supabase.auth.exchangeCodeForSession>>["error"]
+    | Awaited<ReturnType<typeof supabase.auth.verifyOtp>>["error"]
+    | null;
+
+  let exchangeError: ExchangeError = null;
 
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     exchangeError = error;
+  } else {
+    type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
+
+    const typeParam = url.searchParams
+      .get("type")
+      ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
+    const allowedVerifyTypes = new Set<VerifyOtpParams["type"]>([
+      "signup",
+      "magiclink",
+      "recovery",
+      "invite",
+      "email_change",
+    ]);
+
+    if (tokenHash && typeParam && allowedVerifyTypes.has(typeParam)) {
+      const verifyParams: VerifyOtpParams = {
+        type: typeParam,
+        token_hash: tokenHash,
+      };
+
+      const emailParam =
+        url.searchParams.get("email") ?? url.searchParams.get("new_email");
+
+      if (emailParam) {
+        verifyParams.email = emailParam;
+      }
+
+      const { error } = await supabase.auth.verifyOtp(verifyParams);
+      exchangeError = error;
+    }
   }
 
   const {
