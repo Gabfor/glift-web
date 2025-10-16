@@ -266,7 +266,7 @@ export async function GET(request: NextRequest) {
     : null;
   const shouldIgnoreSessionError =
     Boolean(confirmedUserId) &&
-    Boolean(normalizedSessionErrorMessage) &&
+    normalizedSessionErrorMessage !== null &&
     ["not authenticated", "auth session missing"].includes(
       normalizedSessionErrorMessage,
     );
