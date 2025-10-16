@@ -166,6 +166,7 @@ export async function GET(request: NextRequest) {
   );
 
   const url = new URL(request.url);
+  const fallbackConfirmedUserId = url.searchParams.get("user");
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
   const token = url.searchParams.get("token");
@@ -256,9 +257,16 @@ export async function GET(request: NextRequest) {
     confirmedUserId = user.id;
   }
 
+  if (!confirmedUserId && fallbackConfirmedUserId) {
+    confirmedUserId = fallbackConfirmedUserId;
+  }
+
   const redirectUrl = new URL("/entrainements", request.url).toString();
-  const queryErrorDescription = url.searchParams.get("error_description") ?? undefined;
-  const otpExpired = url.searchParams.get("error_code") === "otp_expired";
+  const queryErrorDescription =
+    url.searchParams.get("error_description") ?? undefined;
+  const rawErrorCode = url.searchParams.get("error_code");
+  const normalizedErrorCode = rawErrorCode?.toLowerCase() ?? null;
+  const otpExpired = normalizedErrorCode === "otp_expired";
 
   const rawSessionErrorMessage = sessionError?.message?.trim();
   const normalizedSessionErrorMessage = rawSessionErrorMessage
@@ -275,12 +283,41 @@ export async function GET(request: NextRequest) {
     ? undefined
     : rawSessionErrorMessage;
 
-  const errorMessage =
+  let errorMessage =
     queryErrorDescription ??
     exchangeError?.message ??
     (otpExpired
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
       : sessionErrorMessageForDisplay);
+
+  let authEmailConfirmed = false;
+
+  if (errorMessage && confirmedUserId && otpExpired) {
+    try {
+      const adminClient = createAdminClient();
+      const { data: adminUserData, error: adminLookupError } =
+        await adminClient.auth.admin.getUserById(confirmedUserId);
+
+      if (adminLookupError) {
+        console.warn(
+          "[auth-callback] Unable to retrieve user after OTP expiration",
+          adminLookupError,
+        );
+      } else {
+        const emailConfirmedAt = adminUserData?.user?.email_confirmed_at;
+
+        if (emailConfirmedAt) {
+          authEmailConfirmed = true;
+          errorMessage = undefined;
+        }
+      }
+    } catch (adminLookupException) {
+      console.error(
+        "[auth-callback] Unable to create admin client to check OTP expiration",
+        adminLookupException,
+      );
+    }
+  }
 
   if (!errorMessage && confirmedUserId) {
     let emailVerifiedUpdated = false;
@@ -304,18 +341,42 @@ export async function GET(request: NextRequest) {
     if (!emailVerifiedUpdated) {
       try {
         const adminClient = createAdminClient();
-        const { error: adminUpdateError } = await adminClient
-          .from("profiles")
-          .update({ email_verified: true })
-          .eq("id", confirmedUserId);
 
-        if (adminUpdateError) {
-          console.error(
-            "[auth-callback] Unable to mark email as verified with admin client",
-            adminUpdateError,
-          );
+        if (!authEmailConfirmed) {
+          const { data: adminUserData, error: adminLookupError } =
+            await adminClient.auth.admin.getUserById(confirmedUserId);
+
+          if (adminLookupError) {
+            console.warn(
+              "[auth-callback] Unable to verify auth email confirmation state with admin client",
+              adminLookupError,
+            );
+          } else {
+            authEmailConfirmed = Boolean(
+              adminUserData?.user?.email_confirmed_at,
+            );
+          }
+        }
+
+        if (authEmailConfirmed) {
+          const { error: adminUpdateError } = await adminClient
+            .from("profiles")
+            .update({ email_verified: true })
+            .eq("id", confirmedUserId);
+
+          if (adminUpdateError) {
+            console.error(
+              "[auth-callback] Unable to mark email as verified with admin client",
+              adminUpdateError,
+            );
+          } else {
+            emailVerifiedUpdated = true;
+          }
         } else {
-          emailVerifiedUpdated = true;
+          console.warn(
+            "[auth-callback] Auth email is not marked as confirmed despite OTP recovery",
+            { confirmedUserId },
+          );
         }
       } catch (adminClientError) {
         console.error(
