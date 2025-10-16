@@ -187,46 +187,61 @@ export async function GET(request: NextRequest) {
     }
   } else {
     type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
-
-    const typeParam = url.searchParams
-      .get("type")
-      ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
-    // Supabase utilise parfois le type "email" pour les liens de confirmation,
-    // en plus des autres types documentés. On l'autorise donc pour éviter de
-    // passer à côté du `verifyOtp` lorsque l'utilisateur confirme son adresse.
-    const allowedVerifyTypes = new Set<VerifyOtpParams["type"]>([
+    const allowedVerifyTypes = [
       "signup",
       "magiclink",
       "recovery",
       "invite",
       "email_change",
       "email",
-    ]);
+    ] as const;
+    type AllowedVerifyType = (typeof allowedVerifyTypes)[number];
 
-    const hasValidToken = Boolean(tokenHash ?? token);
+    const rawTypeParam = url.searchParams
+      .get("type")
+      ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
 
-    if (hasValidToken && typeParam && allowedVerifyTypes.has(typeParam)) {
-      const verifyParams: VerifyOtpParams = {
-        type: typeParam,
-        ...(tokenHash
-          ? { token_hash: tokenHash }
-          : token
-            ? { token }
-            : {}),
-      };
+    const isAllowedVerifyType = (
+      value: VerifyOtpParams["type"],
+    ): value is AllowedVerifyType =>
+      allowedVerifyTypes.includes(value as AllowedVerifyType);
 
+    const typeParam =
+      rawTypeParam && isAllowedVerifyType(rawTypeParam) ? rawTypeParam : undefined;
+
+    if (typeParam && (tokenHash || token)) {
       const emailParam =
         url.searchParams.get("email") ?? url.searchParams.get("new_email");
 
-      if (emailParam) {
-        verifyParams.email = emailParam;
-      }
+      if (tokenHash) {
+        const verifyParams: Extract<VerifyOtpParams, { token_hash: string }> = {
+          type: typeParam,
+          token_hash: tokenHash,
+        };
 
-      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
-      exchangeError = error;
+        const { data, error } = await supabase.auth.verifyOtp(verifyParams);
+        exchangeError = error;
 
-      if (data?.user?.id) {
-        confirmedUserId = data.user.id;
+        if (data?.user?.id) {
+          confirmedUserId = data.user.id;
+        }
+      } else if (token && emailParam) {
+        const verifyParams: Extract<VerifyOtpParams, { token: string; email: string }> = {
+          type: typeParam,
+          token,
+          email: emailParam,
+        };
+
+        const { data, error } = await supabase.auth.verifyOtp(verifyParams);
+        exchangeError = error;
+
+        if (data?.user?.id) {
+          confirmedUserId = data.user.id;
+        }
+      } else if (token && !emailParam) {
+        console.warn(
+          "[auth-callback] Missing email parameter for email OTP verification",
+        );
       }
     }
   }
@@ -246,11 +261,14 @@ export async function GET(request: NextRequest) {
   const otpExpired = url.searchParams.get("error_code") === "otp_expired";
 
   const rawSessionErrorMessage = sessionError?.message?.trim();
+  const normalizedSessionErrorMessage = rawSessionErrorMessage
+    ? rawSessionErrorMessage.toLowerCase()
+    : null;
   const shouldIgnoreSessionError =
     Boolean(confirmedUserId) &&
-    Boolean(rawSessionErrorMessage) &&
+    Boolean(normalizedSessionErrorMessage) &&
     ["not authenticated", "auth session missing"].includes(
-      rawSessionErrorMessage.toLowerCase(),
+      normalizedSessionErrorMessage,
     );
 
   const sessionErrorMessageForDisplay = shouldIgnoreSessionError
