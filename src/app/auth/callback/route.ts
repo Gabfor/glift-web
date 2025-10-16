@@ -191,12 +191,16 @@ export async function GET(request: NextRequest) {
     const typeParam = url.searchParams
       .get("type")
       ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
+    // Supabase utilise parfois le type "email" pour les liens de confirmation,
+    // en plus des autres types documentés. On l'autorise donc pour éviter de
+    // passer à côté du `verifyOtp` lorsque l'utilisateur confirme son adresse.
     const allowedVerifyTypes = new Set<VerifyOtpParams["type"]>([
       "signup",
       "magiclink",
       "recovery",
       "invite",
       "email_change",
+      "email",
     ]);
 
     const hasValidToken = Boolean(tokenHash ?? token);
