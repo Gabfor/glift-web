@@ -241,12 +241,24 @@ export async function GET(request: NextRequest) {
   const queryErrorDescription = url.searchParams.get("error_description") ?? undefined;
   const otpExpired = url.searchParams.get("error_code") === "otp_expired";
 
+  const rawSessionErrorMessage = sessionError?.message?.trim();
+  const shouldIgnoreSessionError =
+    Boolean(confirmedUserId) &&
+    Boolean(rawSessionErrorMessage) &&
+    ["not authenticated", "auth session missing"].includes(
+      rawSessionErrorMessage.toLowerCase(),
+    );
+
+  const sessionErrorMessageForDisplay = shouldIgnoreSessionError
+    ? undefined
+    : rawSessionErrorMessage;
+
   const errorMessage =
     queryErrorDescription ??
     exchangeError?.message ??
     (otpExpired
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
-      : sessionError?.message);
+      : sessionErrorMessageForDisplay);
 
   if (!errorMessage && confirmedUserId) {
     let emailVerifiedUpdated = false;
