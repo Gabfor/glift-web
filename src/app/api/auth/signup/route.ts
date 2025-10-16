@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     }
 
     const emailNotConfirmed =
-      Boolean(signinErrorMessage) &&
+      typeof signinErrorMessage === "string" &&
       signinErrorMessage.toLowerCase().includes("email not confirmed");
 
     if (emailNotConfirmed) {
