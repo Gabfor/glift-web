@@ -197,6 +197,10 @@ otp_expiry = 604800
 # sender_name = "Glift"
 
 # Uncomment to customize email template
+[auth.email.template.confirmation]
+subject = "Confirme ton adresse email Glift"
+content_path = "./supabase/templates/confirmation.html"
+
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"

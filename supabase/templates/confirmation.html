@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Confirme ton adresse email Glift</title>
+    <style>
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+          Arial, sans-serif;
+        background-color: #f7f7f8;
+        color: #1f2933;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 40px 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 16px;
+      }
+
+      p {
+        font-size: 16px;
+        line-height: 1.5;
+        margin: 0 0 16px;
+      }
+
+      a.button {
+        display: inline-block;
+        background-color: #ff6b6b;
+        color: #ffffff !important;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .fallback-link {
+        font-size: 14px;
+        word-break: break-all;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Confirme ton adresse email</h1>
+      <p>
+        Bonjour,
+        <br />
+        Merci d'avoir créé un compte Glift. Clique sur le bouton ci-dessous pour confirmer ton
+        adresse email et finaliser ton inscription.
+      </p>
+      <p style="text-align: center">
+        <a class="button" href="{{ .ConfirmationURL }}" target="_blank" rel="noopener"
+          >Confirmer mon email</a
+        >
+      </p>
+      <p>
+        Si le bouton ne fonctionne pas, copie-colle ce lien dans ton navigateur :
+      </p>
+      <p class="fallback-link">{{ .ConfirmationURL }}</p>
+      <p>
+        Ce lien est valable pendant 7 jours. Une fois confirmé, ton adresse email sera validée et
+        tu pourras accéder à toutes les fonctionnalités de Glift.
+      </p>
+      <p>
+        À bientôt,<br />
+        L'équipe Glift
+      </p>
+    </div>
+  </body>
+</html>
