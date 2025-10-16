@@ -167,6 +167,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const tokenHash = url.searchParams.get("token_hash");
+  const token = url.searchParams.get("token");
   type ExchangeError =
     | Awaited<ReturnType<typeof supabase.auth.exchangeCodeForSession>>["error"]
     | Awaited<ReturnType<typeof supabase.auth.verifyOtp>>["error"]
@@ -191,10 +192,16 @@ export async function GET(request: NextRequest) {
       "email_change",
     ]);
 
-    if (tokenHash && typeParam && allowedVerifyTypes.has(typeParam)) {
+    const hasValidToken = Boolean(tokenHash ?? token);
+
+    if (hasValidToken && typeParam && allowedVerifyTypes.has(typeParam)) {
       const verifyParams: VerifyOtpParams = {
         type: typeParam,
-        token_hash: tokenHash,
+        ...(tokenHash
+          ? { token_hash: tokenHash }
+          : token
+            ? { token }
+            : {}),
       };
 
       const emailParam =
