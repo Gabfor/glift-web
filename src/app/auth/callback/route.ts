@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createAdminClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
@@ -175,9 +176,15 @@ export async function GET(request: NextRequest) {
 
   let exchangeError: ExchangeError = null;
 
+  let confirmedUserId: string | null = null;
+
   if (code) {
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     exchangeError = error;
+
+    if (data?.user?.id) {
+      confirmedUserId = data.user.id;
+    }
   } else {
     type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
 
@@ -211,8 +218,12 @@ export async function GET(request: NextRequest) {
         verifyParams.email = emailParam;
       }
 
-      const { error } = await supabase.auth.verifyOtp(verifyParams);
+      const { data, error } = await supabase.auth.verifyOtp(verifyParams);
       exchangeError = error;
+
+      if (data?.user?.id) {
+        confirmedUserId = data.user.id;
+      }
     }
   }
 
@@ -221,6 +232,10 @@ export async function GET(request: NextRequest) {
     error: sessionError,
   } = await supabase.auth.getUser();
   const user = userData?.user ?? null;
+
+  if (!confirmedUserId && user) {
+    confirmedUserId = user.id;
+  }
 
   const redirectUrl = new URL("/entrainements", request.url).toString();
   const queryErrorDescription = url.searchParams.get("error_description") ?? undefined;
@@ -233,18 +248,59 @@ export async function GET(request: NextRequest) {
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
       : sessionError?.message);
 
-  if (!errorMessage && user) {
-    const { error: profileUpdateError } = await supabase
-      .from("profiles")
-      .update({ email_verified: true })
-      .eq("id", user.id);
+  if (!errorMessage && confirmedUserId) {
+    let emailVerifiedUpdated = false;
 
-    if (profileUpdateError) {
-      console.error(
-        "[auth-callback] Unable to mark email as verified",
-        profileUpdateError,
+    if (user && user.id === confirmedUserId) {
+      const { error: profileUpdateError } = await supabase
+        .from("profiles")
+        .update({ email_verified: true })
+        .eq("id", confirmedUserId);
+
+      if (profileUpdateError) {
+        console.warn(
+          "[auth-callback] Unable to mark email as verified with session",
+          profileUpdateError,
+        );
+      } else {
+        emailVerifiedUpdated = true;
+      }
+    }
+
+    if (!emailVerifiedUpdated) {
+      try {
+        const adminClient = createAdminClient();
+        const { error: adminUpdateError } = await adminClient
+          .from("profiles")
+          .update({ email_verified: true })
+          .eq("id", confirmedUserId);
+
+        if (adminUpdateError) {
+          console.error(
+            "[auth-callback] Unable to mark email as verified with admin client",
+            adminUpdateError,
+          );
+        } else {
+          emailVerifiedUpdated = true;
+        }
+      } catch (adminClientError) {
+        console.error(
+          "[auth-callback] Unable to create admin Supabase client",
+          adminClientError,
+        );
+      }
+    }
+
+    if (!emailVerifiedUpdated) {
+      console.warn(
+        "[auth-callback] Email verification confirmation succeeded but profile update failed",
+        { confirmedUserId },
       );
     }
+  } else if (!errorMessage && !confirmedUserId) {
+    console.warn(
+      "[auth-callback] Email confirmation succeeded but user identifier is unavailable",
+    );
   }
 
   const html = renderAutoCloseTemplate({
