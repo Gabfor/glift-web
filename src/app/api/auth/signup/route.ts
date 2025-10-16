@@ -60,6 +60,8 @@ export async function POST(req: NextRequest) {
         password,
       });
 
+    const signinErrorMessage = signinError?.message ?? null;
+
     if (signinData?.session) {
       sessionTokens = {
         access_token: signinData.session.access_token,
@@ -68,8 +70,8 @@ export async function POST(req: NextRequest) {
     }
 
     const emailNotConfirmed =
-      Boolean(signinError?.message) &&
-      signinError.message.toLowerCase().includes("email not confirmed");
+      Boolean(signinErrorMessage) &&
+      signinErrorMessage.toLowerCase().includes("email not confirmed");
 
     if (emailNotConfirmed) {
       try {
@@ -135,8 +137,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (signinError && !emailNotConfirmed) {
-      return NextResponse.json({ error: signinError.message }, { status: 400 });
+    if (signinErrorMessage && !emailNotConfirmed) {
+      return NextResponse.json({ error: signinErrorMessage }, { status: 400 });
     }
 
     const userId = signupData?.user?.id;
