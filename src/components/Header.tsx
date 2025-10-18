@@ -61,21 +61,28 @@ export default function Header({ disconnected = false }: HeaderProps) {
       setResendStatus("loading");
       console.log("[header] Resending verification email", { email });
 
-      const emailRedirectTo =
-        typeof window !== "undefined"
-          ? new URL("/auth/callback", window.location.origin).toString()
-          : undefined;
-
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email,
-        options: emailRedirectTo ? { emailRedirectTo } : undefined,
+      const response = await fetch("/api/auth/resend-confirmation", {
+        method: "POST",
       });
 
-      if (error) {
+      if (!response.ok) {
+        let errorMessage: string | null = null;
+
+        try {
+          const payload = await response.json();
+          if (payload && typeof payload.error === "string") {
+            errorMessage = payload.error;
+          }
+        } catch (parseError) {
+          console.warn(
+            "[header] Unable to parse resend confirmation error payload",
+            parseError,
+          );
+        }
+
         console.error(
           "[header] Unable to resend email verification message",
-          error,
+          errorMessage,
         );
         setResendStatus("error");
         return;
