@@ -161,7 +161,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           <p className="text-white text-[14px] font-semibold">
             <span>
               {
-                "⚠️ Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. "
+                "⚠️ Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu. "
               }
             </span>
             <button
@@ -175,7 +175,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 ? "Renvoi en cours..."
                 : resendStatus === "success"
                   ? "Email envoyé ✅"
-                  : "Renvoyer l’email"}
+                  : "Cliquez ici pour renvoyer l’email."}
             </button>
             {resendStatus === "error" && (
               <span className="ml-1">Une erreur est survenue.</span>
