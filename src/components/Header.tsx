@@ -60,9 +60,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
     try {
       setResendStatus("loading");
       console.log("[header] Resending verification email", { email });
+
+      const emailRedirectTo =
+        typeof window !== "undefined"
+          ? new URL("/auth/callback", window.location.origin).toString()
+          : undefined;
+
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
+        options: emailRedirectTo ? { emailRedirectTo } : undefined,
       });
 
       if (error) {
@@ -161,12 +168,13 @@ export default function Header({ disconnected = false }: HeaderProps) {
               type="button"
               onClick={handleResendVerificationEmail}
               disabled={resendStatus === "loading"}
-              className="ml-1 underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+              className="focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
+              {" "}
               {resendStatus === "loading"
                 ? "Renvoi en cours..."
                 : resendStatus === "success"
-                  ? "Email renvoyé ✅"
+                  ? "Email envoyé ✅"
                   : "Renvoyer l’email"}
             </button>
             {resendStatus === "error" && (
