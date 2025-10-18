@@ -261,7 +261,7 @@ const AccountCreationPage = () => {
           </div>
         ) : null}
 
-        <form onSubmit={handleSubmit} className="mt-6 flex w-full max-w-[368px] flex-col items-stretch">
+        <form onSubmit={handleSubmit} className="flex w-full max-w-[368px] flex-col items-stretch">
 
           <div className="w-full">
             <label htmlFor="prenom" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
