@@ -73,10 +73,25 @@ const AccountCreationPage = () => {
   const hasEmailFieldError = Boolean(error?.emailFieldError);
 
   useEffect(() => {
-    if (hasEmailFieldError && emailFieldState !== "error") {
-      setError(null);
+    if (!hasEmailFieldError) {
+      return;
     }
-  }, [emailFieldState, hasEmailFieldError]);
+
+    const trimmedEmail = email.trim();
+
+    if (
+      emailFieldState === "success" ||
+      (emailFieldState === "idle" && trimmedEmail === "")
+    ) {
+      setError((currentError) => {
+        if (!currentError?.emailFieldError) {
+          return currentError;
+        }
+
+        return { ...currentError, emailFieldError: undefined };
+      });
+    }
+  }, [emailFieldState, hasEmailFieldError, email]);
 
   const normalizeErrorMessage = (
     message: string | null | undefined,
