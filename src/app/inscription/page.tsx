@@ -69,6 +69,17 @@ const AccountCreationPage = () => {
     return getNextStepPath(plan, "account", params);
   }, [plan, searchParamsString]);
 
+  const handleEmailChange = (nextEmail: string) => {
+    setEmail(nextEmail);
+    setError((previous) => {
+      if (previous?.emailFieldError) {
+        return null;
+      }
+
+      return previous;
+    });
+  };
+
   const normalizeErrorMessage = (
     message: string | null | undefined,
   ): NormalizedError => {
@@ -304,7 +315,7 @@ const AccountCreationPage = () => {
             id="email"
             label="Email"
             value={email}
-            onChange={setEmail}
+            onChange={handleEmailChange}
             externalError={error?.emailFieldError ?? null}
             containerClassName="w-full"
             messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
