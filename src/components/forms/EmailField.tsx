@@ -17,6 +17,7 @@ export interface EmailFieldProps
   hideSuccessMessage?: boolean;
   errorMessage?: string;
   externalError?: string | null;
+  showExternalErrorWhenEmpty?: boolean;
   containerClassName?: string;
   inputClassName?: string;
   messageContainerClassName?: string;
@@ -33,6 +34,7 @@ export function EmailField({
   hideSuccessMessage = false,
   errorMessage = "Format d’adresse invalide",
   externalError,
+  showExternalErrorWhenEmpty = false,
   containerClassName,
   inputClassName,
   messageContainerClassName,
@@ -49,7 +51,8 @@ export function EmailField({
   const showSuccess =
     !hideSuccessMessage && touched && !focused && isValid && !externalError;
   const showInternalError = touched && !focused && hasValue && !isValid;
-  const showExternalError = Boolean(externalError) && !focused;
+  const showExternalError =
+    Boolean(externalError) && !focused && (hasValue || showExternalErrorWhenEmpty);
   const showError = showInternalError || showExternalError;
 
   const message = showExternalError

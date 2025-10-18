@@ -15,6 +15,7 @@ export interface PasswordFieldProps
   successMessage?: string;
   errorMessage?: string;
   externalError?: string | null;
+  showExternalErrorWhenEmpty?: boolean;
   validate?: (value: string) => boolean;
   containerClassName?: string;
   inputWrapperClassName?: string;
@@ -37,6 +38,7 @@ export function PasswordField({
   successMessage = "Mot de passe valide",
   errorMessage = "Mot de passe invalide",
   externalError,
+  showExternalErrorWhenEmpty = false,
   validate,
   containerClassName,
   inputWrapperClassName,
@@ -65,7 +67,8 @@ export function PasswordField({
   const isValid = validationResult.isValid;
   const showSuccessBase = canValidate && touched && !focused && isValid && !externalError;
   const showInternalError = canValidate && touched && !focused && hasValue && !isValid;
-  const showExternalError = Boolean(externalError) && !focused;
+  const showExternalError =
+    Boolean(externalError) && !focused && (hasValue || showExternalErrorWhenEmpty);
   const showErrorBase = showInternalError || showExternalError;
 
   let showSuccess = showSuccessBase;
