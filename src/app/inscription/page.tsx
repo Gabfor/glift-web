@@ -350,7 +350,11 @@ const AccountCreationPage = () => {
             </label>
           </div>
 
-          {error && <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">{error}</p>}
+          {error ? (
+            <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">
+              {error.description ?? error.title}
+            </p>
+          ) : null}
 
           <div className="w-full flex justify-center mt-[10px]">
             <CTAButton
