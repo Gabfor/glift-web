@@ -80,7 +80,12 @@ export default function Modal({
       : "/icons/close.svg"
 
   return createPortal(
-    <div className={clsx("fixed inset-0 z-50 flex items-center justify-center", className)}>
+    <div
+      className={clsx(
+        "fixed inset-0 z-[1000] flex items-center justify-center",
+        className,
+      )}
+    >
       <div
         className="absolute inset-0 bg-[#2E3142]/60"
         onClick={handleOverlayClick}
