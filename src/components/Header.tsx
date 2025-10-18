@@ -23,6 +23,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [resendStatus, setResendStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
+  const resendStatusResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const rawAvatarUrl =
@@ -49,12 +50,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
     const email = user?.email?.trim();
     if (!email) {
+      console.warn(
+        "[header] Unable to resend verification email because no email is available on the user session",
+      );
       setResendStatus("error");
       return;
     }
 
     try {
       setResendStatus("loading");
+      console.log("[header] Resending verification email", { email });
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
@@ -70,6 +75,14 @@ export default function Header({ disconnected = false }: HeaderProps) {
       }
 
       setResendStatus("success");
+      console.info("[header] Verification email successfully resent");
+      if (resendStatusResetTimeoutRef.current) {
+        clearTimeout(resendStatusResetTimeoutRef.current);
+      }
+      resendStatusResetTimeoutRef.current = setTimeout(() => {
+        setResendStatus("idle");
+        resendStatusResetTimeoutRef.current = null;
+      }, 3000);
     } catch (error) {
       console.error(
         "[header] Unexpected error when resending email verification",
@@ -78,6 +91,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
       setResendStatus("error");
     }
   };
+
+  useEffect(() => {
+    return () => {
+      if (resendStatusResetTimeoutRef.current) {
+        clearTimeout(resendStatusResetTimeoutRef.current);
+        resendStatusResetTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
@@ -132,7 +154,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           <p className="text-white text-[14px] font-semibold">
             <span>
               {
-                "\uD83D\uDCAA Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. "
+                "⚠️ Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. "
               }
             </span>
             <button
@@ -143,11 +165,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
             >
               {resendStatus === "loading"
                 ? "Renvoi en cours..."
-                : "Renvoyer l’email"}
+                : resendStatus === "success"
+                  ? "Email renvoyé ✅"
+                  : "Renvoyer l’email"}
             </button>
-            {resendStatus === "success" && (
-              <span className="ml-1">Email renvoyé ✅</span>
-            )}
             {resendStatus === "error" && (
               <span className="ml-1">Une erreur est survenue.</span>
             )}
