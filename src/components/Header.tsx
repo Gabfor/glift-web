@@ -20,6 +20,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [resendStatus, setResendStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const rawAvatarUrl =
@@ -38,6 +41,43 @@ export default function Header({ disconnected = false }: HeaderProps) {
     showAuthenticatedUI &&
     (isEmailVerified === false ||
       (isEmailVerified === null && !user?.email_confirmed_at));
+
+  const handleResendVerificationEmail = async () => {
+    if (resendStatus === "loading") {
+      return;
+    }
+
+    const email = user?.email?.trim();
+    if (!email) {
+      setResendStatus("error");
+      return;
+    }
+
+    try {
+      setResendStatus("loading");
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      });
+
+      if (error) {
+        console.error(
+          "[header] Unable to resend email verification message",
+          error,
+        );
+        setResendStatus("error");
+        return;
+      }
+
+      setResendStatus("success");
+    } catch (error) {
+      console.error(
+        "[header] Unexpected error when resending email verification",
+        error,
+      );
+      setResendStatus("error");
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
@@ -90,9 +130,27 @@ export default function Header({ disconnected = false }: HeaderProps) {
       {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
-            {
-              "\uD83D\uDCAA Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. Renvoyer l’email."
-            }
+            <span>
+              {
+                "\uD83D\uDCAA Pour finaliser votre inscription, merci de confirmer votre email en cliquant sur le lien reçu par email. "
+              }
+            </span>
+            <button
+              type="button"
+              onClick={handleResendVerificationEmail}
+              disabled={resendStatus === "loading"}
+              className="ml-1 underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+            >
+              {resendStatus === "loading"
+                ? "Renvoi en cours..."
+                : "Renvoyer l’email"}
+            </button>
+            {resendStatus === "success" && (
+              <span className="ml-1">Email renvoyé ✅</span>
+            )}
+            {resendStatus === "error" && (
+              <span className="ml-1">Une erreur est survenue.</span>
+            )}
           </p>
         </div>
       )}
