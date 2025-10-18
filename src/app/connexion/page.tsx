@@ -116,7 +116,7 @@ export default function ConnexionPage() {
       } else if (error.message === "Invalid login credentials") {
         setError({
           type: "invalid-credentials",
-          title: "Adresse email ou mot de passe incorrect",
+          title: "Email ou mot de passe incorrect",
           description:
             "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
@@ -157,7 +157,7 @@ export default function ConnexionPage() {
 
           setError({
             type: "email-not-confirmed",
-            title: "Adresse email non vérifiée",
+            title: "Email non vérifiée",
             description,
           });
         } catch (fallbackError) {
@@ -168,7 +168,7 @@ export default function ConnexionPage() {
 
           setError({
             type: "email-not-confirmed",
-            title: "Adresse email non vérifiée",
+            title: "Email non vérifiée",
             description:
               "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.",
           });

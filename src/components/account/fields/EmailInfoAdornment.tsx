@@ -140,7 +140,7 @@ export default function EmailInfoAdornment({
         tabIndex={0}
         aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="Plus d’informations sur l’adresse email"
+        aria-label="Plus d’informations sur l’email"
       >
         <Image
           src="/icons/info.svg"

@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
     success: !errorMessage,
     redirectUrl,
     successMessage:
-      "Votre adresse email a été confirmée. Vous pouvez retourner sur l'application Glift.",
+      "Votre email a été confirmée. Vous pouvez retourner sur l'application Glift.",
     errorMessage,
   });
 

@@ -97,7 +97,7 @@ export async function createProvisionalSession(
         if (!isWithinGracePeriod(provisionalUser.created_at)) {
           return {
             error:
-              "Votre période d'accès temporaire est expirée. Veuillez confirmer votre adresse email pour continuer.",
+              "Votre période d'accès temporaire est expirée. Veuillez confirmer votre email pour continuer.",
             status: 403,
             code: "grace_period_expired",
           } satisfies ProvisionalSessionError;
@@ -176,7 +176,7 @@ export async function createProvisionalSession(
     if (!isWithinGracePeriod(user?.created_at)) {
       return {
         error:
-          "Votre période d'accès temporaire est expirée. Veuillez confirmer votre adresse email pour continuer.",
+          "Votre période d'accès temporaire est expirée. Veuillez confirmer votre email pour continuer.",
         status: 403,
         code: "grace_period_expired",
       } satisfies ProvisionalSessionError;

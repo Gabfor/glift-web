@@ -242,7 +242,7 @@ const AccountCreationPage = () => {
 
           <EmailField
             id="email"
-            label="Adresse e-mail"
+            label="Email"
             value={email}
             onChange={setEmail}
             containerClassName="w-full"

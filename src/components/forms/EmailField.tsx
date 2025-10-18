@@ -27,7 +27,7 @@ export function EmailField({
   onChange,
   id = "email",
   name = "email",
-  label = "Adresse e-mail",
+  label = "Email",
   placeholder = "john.doe@email.com",
   successMessage = "Merci, cet email sera ton identifiant de connexion",
   hideSuccessMessage = false,
