@@ -28,7 +28,13 @@ const AccountCreationPage = () => {
   const stepMetadata = getStepMetadata(plan, "account");
 
   const [accepted, setAccepted] = useState(false);
-  const [error, setError] = useState<{ title: string; description?: string } | null>(null);
+  type NormalizedError = {
+    title: string;
+    description?: string;
+    emailFieldError?: string;
+  };
+
+  const [error, setError] = useState<NormalizedError | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [prenom, setPrenom] = useState("");
@@ -65,7 +71,7 @@ const AccountCreationPage = () => {
 
   const normalizeErrorMessage = (
     message: string | null | undefined,
-  ): { title: string; description?: string } => {
+  ): NormalizedError => {
     if (message) {
       const normalized = message.trim().toLowerCase();
       const normalizedWithoutDiacritics = normalized
@@ -86,6 +92,7 @@ const AccountCreationPage = () => {
           title: "Inscription impossible",
           description:
             "Vous ne pouvez pas utiliser cet email car il est déjà associé à un compte actif sur la plateforme.",
+          emailFieldError: "Mince, cet email est déjà utilisé",
         };
       }
 
@@ -298,6 +305,7 @@ const AccountCreationPage = () => {
             label="Email"
             value={email}
             onChange={setEmail}
+            externalError={error?.emailFieldError ?? null}
             containerClassName="w-full"
             messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
             successMessage="Merci, cet email sera ton identifiant de connexion"
