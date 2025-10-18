@@ -11,6 +11,7 @@ import { PasswordField, getPasswordValidationState } from "@/components/forms/Pa
 import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import { useUser } from "@/context/UserContext";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 import StepIndicator from "./components/StepIndicator";
 import { getNextStepPath, getStepMetadata, parsePlan } from "./constants";
@@ -27,7 +28,7 @@ const AccountCreationPage = () => {
   const stepMetadata = getStepMetadata(plan, "account");
 
   const [accepted, setAccepted] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<{ title: string; description?: string } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [prenom, setPrenom] = useState("");
@@ -62,12 +63,47 @@ const AccountCreationPage = () => {
     return getNextStepPath(plan, "account", params);
   }, [plan, searchParamsString]);
 
+  const normalizeErrorMessage = (
+    message: string | null | undefined,
+  ): { title: string; description?: string } => {
+    if (message) {
+      const normalized = message.trim().toLowerCase();
+      const normalizedWithoutDiacritics = normalized
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      const emailAlreadyUsed =
+        normalized.includes("already registered") ||
+        normalized.includes("already in use") ||
+        normalized.includes("already exists") ||
+        normalized.includes("email registered") ||
+        normalizedWithoutDiacritics.includes("deja utilise") ||
+        normalizedWithoutDiacritics.includes("deja associe") ||
+        normalizedWithoutDiacritics.includes("email deja");
+
+      if (emailAlreadyUsed) {
+        return {
+          title: "Inscription impossible",
+          description:
+            "Vous ne pouvez pas utiliser cet email car il est déjà associé à un compte actif sur la plateforme.",
+        };
+      }
+
+      return { title: message };
+    }
+
+    return {
+      title: "Une erreur est survenue.",
+      description: "Nous n'avons pas pu finaliser votre inscription. Merci de réessayer.",
+    };
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!isFormValid || !plan || !nextStepPath) return;
 
-    setError("");
+    setError(null);
     setLoading(true);
 
     try {
@@ -85,7 +121,7 @@ const AccountCreationPage = () => {
       const result = await response.json();
 
       if (!response.ok || !result.success) {
-        setError(result.error || "Une erreur est survenue.");
+        setError(normalizeErrorMessage(result.error));
         return;
       }
 
@@ -102,8 +138,10 @@ const AccountCreationPage = () => {
 
         if (sessionError) {
           setError(
-            sessionError.message ||
-              "Connexion impossible après la création du compte.",
+            normalizeErrorMessage(
+              sessionError.message ||
+                "Connexion impossible après la création du compte.",
+            ),
           );
           return;
         }
@@ -131,8 +169,10 @@ const AccountCreationPage = () => {
 
             if (sessionError) {
               setError(
-                sessionError.message ||
-                  "Connexion impossible après la création du compte.",
+                normalizeErrorMessage(
+                  sessionError.message ||
+                    "Connexion impossible après la création du compte.",
+                ),
               );
               return;
             }
@@ -140,8 +180,10 @@ const AccountCreationPage = () => {
             await refreshUser();
           } else if (!response.ok) {
             setError(
-              provisionalResult.error ||
-                "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
+              normalizeErrorMessage(
+                provisionalResult.error ||
+                  "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
+              ),
             );
             return;
           }
@@ -157,7 +199,7 @@ const AccountCreationPage = () => {
       router.push(nextStepPath);
     } catch (submitError) {
       console.error(submitError);
-      setError("Une erreur réseau est survenue.");
+      setError(normalizeErrorMessage("Une erreur réseau est survenue."));
     } finally {
       setLoading(false);
     }
@@ -210,6 +252,14 @@ const AccountCreationPage = () => {
         <StepIndicator totalSteps={stepMetadata.totalSteps} currentStep={stepMetadata.currentStep} />
 
         <form onSubmit={handleSubmit} className="mt-10 flex w-full max-w-[368px] flex-col items-stretch">
+          {error ? (
+            <ErrorMessage
+              title={error.title}
+              description={error.description}
+              className="w-full max-w-[368px] mb-6"
+            />
+          ) : null}
+
           <div className="w-full">
             <label htmlFor="prenom" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
               Prénom
