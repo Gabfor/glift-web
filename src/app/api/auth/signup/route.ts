@@ -50,6 +50,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: signupError.message }, { status: 400 });
     }
 
+    const userAlreadyExists =
+      signupData?.user?.identities && signupData.user.identities.length === 0;
+
+    if (userAlreadyExists) {
+      return NextResponse.json(
+        { error: "Cette adresse email est déjà utilisée." },
+        { status: 400 },
+      );
+    }
+
     // 🔑 Connexion automatique juste après
     let sessionTokens: { access_token: string; refresh_token: string } | null =
       null;
