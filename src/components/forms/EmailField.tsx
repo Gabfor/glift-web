@@ -21,6 +21,7 @@ export interface EmailFieldProps
   containerClassName?: string;
   inputClassName?: string;
   messageContainerClassName?: string;
+  onStateChange?: (state: "idle" | "success" | "error") => void;
 }
 
 export function EmailField({
@@ -38,12 +39,14 @@ export function EmailField({
   containerClassName,
   inputClassName,
   messageContainerClassName,
+  onStateChange,
   onBlur,
   onFocus,
   ...rest
 }: EmailFieldProps) {
   const [touched, setTouched] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
+  const previousStateRef = React.useRef<"idle" | "success" | "error">();
 
   const trimmedValue = value.trim();
   const hasValue = trimmedValue !== "";
@@ -54,6 +57,19 @@ export function EmailField({
   const showExternalError =
     Boolean(externalError) && !focused && (hasValue || showExternalErrorWhenEmpty);
   const showError = showInternalError || showExternalError;
+
+  const currentState: "idle" | "success" | "error" = showError
+    ? "error"
+    : showSuccess
+    ? "success"
+    : "idle";
+
+  React.useEffect(() => {
+    if (previousStateRef.current !== currentState) {
+      previousStateRef.current = currentState;
+      onStateChange?.(currentState);
+    }
+  }, [currentState, onStateChange]);
 
   const message = showExternalError
     ? externalError
