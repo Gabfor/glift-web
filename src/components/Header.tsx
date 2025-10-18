@@ -8,6 +8,7 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
+import Spinner from "@/components/ui/Spinner";
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -48,34 +49,35 @@ export default function Header({ disconnected = false }: HeaderProps) {
       return;
     }
 
-    const email = user?.email?.trim();
-    if (!email) {
-      console.warn(
-        "[header] Unable to resend verification email because no email is available on the user session",
-      );
-      setResendStatus("error");
-      return;
-    }
-
     try {
       setResendStatus("loading");
-      console.log("[header] Resending verification email", { email });
+      console.log("[header] Resending verification email request sent");
 
-      const emailRedirectTo =
-        typeof window !== "undefined"
-          ? new URL("/auth/callback", window.location.origin).toString()
-          : undefined;
-
-      const { error } = await supabase.auth.resend({
-        type: "signup",
-        email,
-        options: emailRedirectTo ? { emailRedirectTo } : undefined,
+      const response = await fetch("/api/auth/resend-verification-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
 
-      if (error) {
+      if (!response.ok) {
+        const errorPayload = await response.json().catch(() => null);
         console.error(
           "[header] Unable to resend email verification message",
-          error,
+          errorPayload,
+        );
+        setResendStatus("error");
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { success?: boolean }
+        | null;
+
+      if (!payload?.success) {
+        console.error(
+          "[header] Unexpected payload received when resending verification email",
+          payload,
         );
         setResendStatus("error");
         return;
@@ -171,11 +173,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
               className="focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
             >
               {" "}
-              {resendStatus === "loading"
-                ? "Renvoi en cours..."
-                : resendStatus === "success"
-                  ? "Email envoyé ✅"
-                  : "Cliquez ici pour renvoyer l’email."}
+              {resendStatus === "loading" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner ariaLabel="Renvoi de l'email de vérification" />
+                  Renvoi en cours...
+                </span>
+              ) : resendStatus === "success" ? (
+                "Email envoyé"
+              ) : (
+                "Cliquez ici pour renvoyer l’email."
+              )}
             </button>
             {resendStatus === "error" && (
               <span className="ml-1">Une erreur est survenue.</span>
