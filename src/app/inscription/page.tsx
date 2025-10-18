@@ -249,16 +249,19 @@ const AccountCreationPage = () => {
           {stepMetadata.subtitle}
         </p>
 
-        <StepIndicator totalSteps={stepMetadata.totalSteps} currentStep={stepMetadata.currentStep} />
+        <StepIndicator
+          totalSteps={stepMetadata.totalSteps}
+          currentStep={stepMetadata.currentStep}
+          className="mb-6"
+        />
 
-        <form onSubmit={handleSubmit} className="mt-10 flex w-full max-w-[368px] flex-col items-stretch">
-          {error ? (
-            <ErrorMessage
-              title={error.title}
-              description={error.description}
-              className="w-full max-w-[368px] mb-6"
-            />
-          ) : null}
+        {error ? (
+          <div className="w-[564px] max-w-full mb-6">
+            <ErrorMessage title={error.title} description={error.description} className="w-full" />
+          </div>
+        ) : null}
+
+        <form onSubmit={handleSubmit} className="mt-6 flex w-full max-w-[368px] flex-col items-stretch">
 
           <div className="w-full">
             <label htmlFor="prenom" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
@@ -349,13 +352,6 @@ const AccountCreationPage = () => {
               </span>
             </label>
           </div>
-
-          {error ? (
-            <p className="text-[#EF4444] mb-4 text-sm text-center max-w-[368px]">
-              {error.description ?? error.title}
-            </p>
-          ) : null}
-
           <div className="w-full flex justify-center mt-[10px]">
             <CTAButton
               type="submit"
