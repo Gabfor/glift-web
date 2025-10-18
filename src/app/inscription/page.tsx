@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
@@ -42,6 +42,7 @@ const AccountCreationPage = () => {
   const [prenomFocused, setPrenomFocused] = useState(false);
 
   const [email, setEmail] = useState("");
+  const [emailFieldState, setEmailFieldState] = useState<"idle" | "success" | "error">("idle");
 
   const [password, setPassword] = useState("");
 
@@ -68,6 +69,14 @@ const AccountCreationPage = () => {
     const params = new URLSearchParams(searchParamsString);
     return getNextStepPath(plan, "account", params);
   }, [plan, searchParamsString]);
+
+  const hasEmailFieldError = Boolean(error?.emailFieldError);
+
+  useEffect(() => {
+    if (hasEmailFieldError && emailFieldState !== "error") {
+      setError(null);
+    }
+  }, [emailFieldState, hasEmailFieldError]);
 
   const normalizeErrorMessage = (
     message: string | null | undefined,
@@ -306,6 +315,7 @@ const AccountCreationPage = () => {
             value={email}
             onChange={setEmail}
             externalError={error?.emailFieldError ?? null}
+            onStateChange={setEmailFieldState}
             containerClassName="w-full"
             messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
             successMessage="Merci, cet email sera ton identifiant de connexion"
