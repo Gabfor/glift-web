@@ -132,9 +132,29 @@ export async function createProvisionalSession(
           } satisfies ProvisionalSessionError;
         }
 
-        const emailVerified = Boolean(
+        let emailVerified = Boolean(
           otpData.session.user?.email_confirmed_at ?? provisionalUser.email_confirmed_at,
         );
+
+        const emailConfirmedByOtp =
+          !provisionalUser.email_confirmed_at &&
+          Boolean(otpData.session.user?.email_confirmed_at);
+
+        if (emailConfirmedByOtp) {
+          const { error: revertEmailConfirmationError } =
+            await adminClient.auth.admin.updateUserById(provisionalUser.id, {
+              email_confirm: false,
+            });
+
+          if (revertEmailConfirmationError) {
+            console.warn(
+              "Réinitialisation de la confirmation email échouée après OTP",
+              revertEmailConfirmationError,
+            );
+          } else {
+            emailVerified = false;
+          }
+        }
 
         return {
           sessionTokens: sessionTokensFromOtp,
