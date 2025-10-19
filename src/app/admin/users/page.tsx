@@ -163,34 +163,45 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error: rpcError } = await supabase
-      .schema("admin")
-      .rpc("list_users");
+    try {
+      const response = await fetch("/api/admin/users");
 
-    if (rpcError) {
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        console.error("Erreur lors du chargement des utilisateurs", payload);
+        setError("Impossible de récupérer la liste des utilisateurs.");
+        setLoading(false);
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { users?: Partial<AdminUser>[] }
+        | null;
+
+      const normalized = ((payload?.users ?? []) as Partial<AdminUser>[]).map(
+        (user) => ({
+          id: user.id ?? "",
+          email: user.email ?? "",
+          created_at: user.created_at ?? new Date().toISOString(),
+          name: user.name ?? null,
+          subscription_plan: normalizePlan(user.subscription_plan ?? null),
+          premium_trial_started_at: user.premium_trial_started_at ?? null,
+          gender: user.gender ?? null,
+          birth_date: user.birth_date ?? null,
+          email_verified: user.email_verified ?? false,
+        }),
+      );
+
+      setUsers(normalized);
+      setSelectedIds([]);
+      setEditingUserId(null);
+      setLoading(false);
+    } catch (rpcError) {
       console.error("Erreur lors du chargement des utilisateurs", rpcError);
       setError("Impossible de récupérer la liste des utilisateurs.");
       setLoading(false);
-      return;
     }
-
-    const normalized = ((data ?? []) as Partial<AdminUser>[]).map((user) => ({
-      id: user.id ?? "",
-      email: user.email ?? "",
-      created_at: user.created_at ?? new Date().toISOString(),
-      name: user.name ?? null,
-      subscription_plan: normalizePlan(user.subscription_plan ?? null),
-      premium_trial_started_at: user.premium_trial_started_at ?? null,
-      gender: user.gender ?? null,
-      birth_date: user.birth_date ?? null,
-      email_verified: user.email_verified ?? false,
-    }));
-
-    setUsers(normalized);
-    setSelectedIds([]);
-    setEditingUserId(null);
-    setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     void fetchUsers();
@@ -260,12 +271,13 @@ export default function AdminUsersPage() {
 
     const nextStatus = !targetUser.email_verified;
 
-    const { error: statusError } = await supabase
-      .schema("admin")
-      .rpc("set_user_email_verification", {
+    const { error: statusError } = await supabase.rpc(
+      "admin_set_user_email_verification",
+      {
         target_user: userId,
         verified: nextStatus,
-      });
+      },
+    );
 
     if (statusError) {
       console.error("Mise à jour du statut impossible", statusError);
