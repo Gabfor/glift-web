@@ -163,32 +163,45 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error: rpcError } = await supabase.rpc("admin_list_users");
+    try {
+      const response = await fetch("/api/admin/users");
 
-    if (rpcError) {
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        console.error("Erreur lors du chargement des utilisateurs", payload);
+        setError("Impossible de récupérer la liste des utilisateurs.");
+        setLoading(false);
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { users?: Partial<AdminUser>[] }
+        | null;
+
+      const normalized = ((payload?.users ?? []) as Partial<AdminUser>[]).map(
+        (user) => ({
+          id: user.id ?? "",
+          email: user.email ?? "",
+          created_at: user.created_at ?? new Date().toISOString(),
+          name: user.name ?? null,
+          subscription_plan: normalizePlan(user.subscription_plan ?? null),
+          premium_trial_started_at: user.premium_trial_started_at ?? null,
+          gender: user.gender ?? null,
+          birth_date: user.birth_date ?? null,
+          email_verified: user.email_verified ?? false,
+        }),
+      );
+
+      setUsers(normalized);
+      setSelectedIds([]);
+      setEditingUserId(null);
+      setLoading(false);
+    } catch (rpcError) {
       console.error("Erreur lors du chargement des utilisateurs", rpcError);
       setError("Impossible de récupérer la liste des utilisateurs.");
       setLoading(false);
-      return;
     }
-
-    const normalized = ((data ?? []) as Partial<AdminUser>[]).map((user) => ({
-      id: user.id ?? "",
-      email: user.email ?? "",
-      created_at: user.created_at ?? new Date().toISOString(),
-      name: user.name ?? null,
-      subscription_plan: normalizePlan(user.subscription_plan ?? null),
-      premium_trial_started_at: user.premium_trial_started_at ?? null,
-      gender: user.gender ?? null,
-      birth_date: user.birth_date ?? null,
-      email_verified: user.email_verified ?? false,
-    }));
-
-    setUsers(normalized);
-    setSelectedIds([]);
-    setEditingUserId(null);
-    setLoading(false);
-  }, [supabase]);
+  }, []);
 
   useEffect(() => {
     void fetchUsers();

@@ -6,6 +6,18 @@ type DeletePayload = {
   ids?: string[];
 };
 
+type AdminUserRow = {
+  id: string;
+  email: string;
+  created_at: string;
+  name: string | null;
+  subscription_plan: string | null;
+  premium_trial_started_at: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  email_verified: boolean | null;
+};
+
 const TABLES_TO_CLEAN: Array<"user_subscriptions" | "training_rows" | "trainings" | "programs"> = [
   "user_subscriptions",
   "training_rows",
@@ -34,6 +46,39 @@ const ensureAdmin = async () => {
 
   return { status: 200 as const, user };
 };
+
+export async function GET() {
+  try {
+    const adminCheck = await ensureAdmin();
+
+    if (adminCheck.status !== 200) {
+      return NextResponse.json(
+        { error: adminCheck.error },
+        { status: adminCheck.status },
+      );
+    }
+
+    const adminClient = createAdminClient();
+    const { data, error } = await adminClient.rpc("admin_list_users");
+
+    if (error) {
+      console.error("[admin/users] failed to list users", error);
+      return NextResponse.json(
+        { error: "list-users" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ users: (data ?? []) as AdminUserRow[] });
+  } catch (error: unknown) {
+    console.error("[admin/users] unexpected error", error);
+    const message = error instanceof Error ? error.message : undefined;
+    return NextResponse.json(
+      { error: message ?? "internal-error" },
+      { status: 500 },
+    );
+  }
+}
 
 export async function DELETE(request: NextRequest) {
   try {
