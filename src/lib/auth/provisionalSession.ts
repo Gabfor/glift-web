@@ -132,9 +132,25 @@ export async function createProvisionalSession(
           } satisfies ProvisionalSessionError;
         }
 
-        const emailVerified = Boolean(
+        let emailVerified = Boolean(
           otpData.session.user?.email_confirmed_at ?? provisionalUser.email_confirmed_at,
         );
+
+        if (emailVerified) {
+          const { error: resetConfirmationError } = await adminClient
+            .from("auth.users")
+            .update({ email_confirmed_at: null })
+            .eq("id", provisionalUser.id);
+
+          if (resetConfirmationError) {
+            console.warn(
+              "Unable to reset email confirmation after provisional session",
+              resetConfirmationError,
+            );
+          } else {
+            emailVerified = false;
+          }
+        }
 
         return {
           sessionTokens: sessionTokensFromOtp,
