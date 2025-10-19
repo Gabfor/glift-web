@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { getSiteOrigin } from "@/lib/url/getSiteOrigin";
 import { createProvisionalSession } from "@/lib/auth/provisionalSession";
 
 export async function POST(req: NextRequest) {
@@ -19,7 +20,10 @@ export async function POST(req: NextRequest) {
 
     const { email, password, name, plan } = body;
 
-    const callbackUrl = new URL("/auth/callback", req.nextUrl.origin).toString();
+    const fallbackOrigin = req.nextUrl.origin;
+    const siteOrigin =
+      getSiteOrigin(fallbackOrigin) ?? req.headers.get("origin") ?? fallbackOrigin;
+    const callbackUrl = new URL("/auth/callback", siteOrigin).toString();
 
     // 🔒 Vérifie les champs requis
     if (!email || !password || !name || !plan) {
