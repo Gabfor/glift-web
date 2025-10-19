@@ -20,15 +20,7 @@ type AdminUserRow = {
   email_verified: boolean | null;
 };
 
-type ProfileRow = {
-  id: string;
-  name: string | null;
-  subscription_plan: string | null;
-  premium_trial_started_at: string | null;
-  gender: string | null;
-  birth_date: string | null;
-  email_verified: boolean | null;
-};
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 type ServiceRoleClient = SupabaseClient<Database>;
 
@@ -126,9 +118,7 @@ export async function GET() {
     if (ids.length > 0) {
       const { data: profileRows, error: profilesError } = await adminClient
         .from("profiles")
-        .select(
-          "id, name, subscription_plan, premium_trial_started_at, gender, birth_date, email_verified",
-        )
+        .select("*")
         .in("id", ids);
 
       if (profilesError) {

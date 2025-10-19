@@ -84,8 +84,8 @@ const InformationsPage = () => {
         setGender(metadata.gender);
       }
 
-      if (typeof metadata.experience_years === "string") {
-        setExperience(metadata.experience_years);
+      if (typeof metadata.experience === "string") {
+        setExperience(metadata.experience);
       }
 
       if (typeof metadata.main_goal === "string") {

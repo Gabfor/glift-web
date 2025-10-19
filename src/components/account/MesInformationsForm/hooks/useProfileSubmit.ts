@@ -6,7 +6,7 @@ import { createClientComponentClient } from "@/lib/supabase/client";
 
 const KEY_OVERRIDES: Record<string, string> = {
   birthDate: "birth_date",
-  experience: "experience_years",
+  experience: "experience",
   mainGoal: "main_goal",
   trainingPlace: "training_place",
   weeklySessions: "weekly_sessions",
