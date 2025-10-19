@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { getSiteOrigin } from "@/lib/url/getSiteOrigin";
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,7 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const emailRedirectTo = new URL("/auth/callback", request.nextUrl.origin).toString();
+    const fallbackOrigin = request.nextUrl.origin;
+    const siteOrigin =
+      getSiteOrigin(fallbackOrigin) ?? request.headers.get("origin") ?? fallbackOrigin;
+    const emailRedirectTo = new URL("/auth/callback", siteOrigin).toString();
 
     const { error: resendError } = await supabase.auth.resend({
       type: "signup",
@@ -40,6 +44,35 @@ export async function POST(request: NextRequest) {
         "[resend-confirmation] Supabase failed to resend confirmation email",
         resendError,
       );
+      try {
+        const adminClient = createAdminClient();
+        const {
+          data: adminResendData,
+          error: adminResendError,
+        } = await adminClient.auth.resend({
+          type: "signup",
+          email,
+          options: { emailRedirectTo },
+        } as Parameters<typeof adminClient.auth.resend>[0]);
+
+        if (adminResendError) {
+          console.error(
+            "[resend-confirmation] Admin client also failed to resend confirmation email",
+            adminResendError,
+          );
+        } else if (!adminResendData) {
+          console.warn(
+            "[resend-confirmation] Admin client resend succeeded but returned no data",
+          );
+        } else {
+          return NextResponse.json({ success: true });
+        }
+      } catch (adminClientError) {
+        console.error(
+          "[resend-confirmation] Unable to create admin client for resend fallback",
+          adminClientError,
+        );
+      }
       return NextResponse.json(
         { error: "Échec de l'envoi de l'email de confirmation." },
         { status: 400 },
