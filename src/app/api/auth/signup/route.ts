@@ -83,70 +83,6 @@ export async function POST(req: NextRequest) {
       typeof signinErrorMessage === "string" &&
       signinErrorMessage.toLowerCase().includes("email not confirmed");
 
-    if (emailNotConfirmed) {
-      try {
-        const adminClient = ensureAdminClient();
-        const { data: adminSigninData, error: adminSigninError } =
-          await adminClient.auth.signInWithPassword({ email, password });
-
-        if (adminSigninError) {
-          if (adminSigninError.code === "email_not_confirmed") {
-            console.info(
-              "Connexion admin bloquée par confirmation email, poursuite sans session",
-            );
-          } else {
-            console.error(
-              "Connexion admin impossible pour contourner la confirmation email",
-              adminSigninError,
-            );
-
-            return NextResponse.json(
-              {
-                error:
-                  "Connexion impossible après la création du compte. Merci de réessayer.",
-              },
-              { status: 500 },
-            );
-          }
-        } else if (adminSigninData.session) {
-          const adminSession = adminSigninData.session;
-          const { error: setSessionError } = await supabase.auth.setSession({
-            access_token: adminSession.access_token,
-            refresh_token: adminSession.refresh_token,
-          });
-
-          if (setSessionError) {
-            console.error(
-              "Echec du placement de session suite à la connexion admin",
-              setSessionError,
-            );
-
-            return NextResponse.json(
-              {
-                error:
-                  "Connexion impossible après la création du compte. Merci de réessayer.",
-              },
-              { status: 500 },
-            );
-          }
-
-          sessionTokens = {
-            access_token: adminSession.access_token,
-            refresh_token: adminSession.refresh_token,
-          };
-        }
-      } catch (adminSigninException) {
-        console.error(
-          "Impossible de créer le client admin Supabase",
-          adminSigninException,
-        );
-        return NextResponse.json(
-          { error: "Configuration Supabase incomplète." },
-          { status: 500 },
-        );
-      }
-    }
-
     if (signinErrorMessage && !emailNotConfirmed) {
       return NextResponse.json({ error: signinErrorMessage }, { status: 400 });
     }
@@ -284,7 +220,27 @@ export async function POST(req: NextRequest) {
         );
 
         if ("sessionTokens" in provisionalResult) {
-          sessionTokens = provisionalResult.sessionTokens;
+          const provisionalTokens = provisionalResult.sessionTokens;
+          const { error: setSessionError } = await supabase.auth.setSession(
+            provisionalTokens,
+          );
+
+          if (setSessionError) {
+            console.error(
+              "Echec du placement de session suite à la session provisoire",
+              setSessionError,
+            );
+
+            return NextResponse.json(
+              {
+                error:
+                  "Connexion impossible après la création du compte. Merci de réessayer.",
+              },
+              { status: 500 },
+            );
+          }
+
+          sessionTokens = provisionalTokens;
         } else {
           console.warn(
             "Création de session provisoire impossible après inscription",
