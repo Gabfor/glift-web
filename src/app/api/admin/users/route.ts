@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 
 type DeletePayload = {
   ids?: string[];
@@ -29,7 +30,7 @@ type ProfileRow = {
   email_verified: boolean | null;
 };
 
-type ServiceRoleClient = SupabaseClient<unknown, unknown, unknown>;
+type ServiceRoleClient = SupabaseClient<Database>;
 
 const USERS_PAGE_SIZE = 200;
 

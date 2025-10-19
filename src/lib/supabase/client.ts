@@ -5,6 +5,8 @@ import { isAuthSessionMissingError } from "@supabase/auth-js";
 import type { CookieOptions } from "@supabase/ssr/dist/module/types";
 import { parse, serialize } from "cookie";
 
+import type { Database } from "./types";
+
 const readCookie = (name: string) => {
   if (typeof document === "undefined") {
     return undefined;
@@ -65,7 +67,7 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
 });
 
 export const createClientComponentClient = () => {
-  const client = createBrowserClient(
+  const client = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/types";
 import { NextRequest, NextResponse } from "next/server";
 
 type CookieOptions = Parameters<NextResponse["cookies"]["set"]>[2];
@@ -140,7 +141,7 @@ export async function GET(request: NextRequest) {
   const cookiesToSet: PendingCookie[] = [];
   const cookiesToRemove: PendingCookieRemoval[] = [];
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

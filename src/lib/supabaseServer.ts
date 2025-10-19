@@ -4,7 +4,11 @@ import {
 } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
-export async function createServerClient() {
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "./supabase/types";
+
+export async function createServerClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
   const rememberPreference = cookieStore.get("glift-remember")?.value;
   const shouldPersistSession = rememberPreference !== "0";
@@ -40,7 +44,7 @@ export async function createServerClient() {
     },
   } satisfies CookieMethodsServer;
 
-  return createSupabaseServerClient(
+  return createSupabaseServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {

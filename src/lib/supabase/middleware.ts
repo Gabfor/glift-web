@@ -16,6 +16,8 @@ import type { NextRequest } from "next/server";
 import type { GenericSchema } from "@supabase/supabase-js/dist/module/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import type { Database } from "./types";
+
 const PACKAGE_NAME = authHelpersPackage.name;
 const PACKAGE_VERSION = authHelpersPackage.version;
 
@@ -110,10 +112,6 @@ class RememberMiddlewareAuthStorageAdapter extends CookieAuthStorageAdapter {
 }
 
 export function createRememberingMiddlewareClient<
-  Database extends Record<string, GenericSchema> = Record<
-    string,
-    GenericSchema
-  >,
   SchemaName extends string & keyof Database = "public" extends keyof Database
     ? "public"
     : Extract<keyof Database, string>,
