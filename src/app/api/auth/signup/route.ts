@@ -56,6 +56,8 @@ export async function POST(req: NextRequest) {
 
     const userAlreadyExists =
       signupData?.user?.identities && signupData.user.identities.length === 0;
+    const userId = signupData?.user?.id ?? null;
+    const signupEmailConfirmedAt = signupData?.user?.email_confirmed_at ?? null;
 
     if (userAlreadyExists) {
       return NextResponse.json(
@@ -138,6 +140,30 @@ export async function POST(req: NextRequest) {
             access_token: adminSession.access_token,
             refresh_token: adminSession.refresh_token,
           };
+
+          const adminSessionUser = adminSession.user;
+          const adminSessionUserId = adminSessionUser?.id;
+
+          if (
+            adminSessionUserId &&
+            !signupEmailConfirmedAt &&
+            adminSessionUser?.email_confirmed_at
+          ) {
+            const { error: revertEmailConfirmationError } =
+              await adminClient.auth.admin.updateUserById(
+                adminSessionUserId,
+                {
+                  email_confirm: false,
+                },
+              );
+
+            if (revertEmailConfirmationError) {
+              console.warn(
+                "Impossible de réinitialiser l'état de confirmation email après la connexion admin",
+                revertEmailConfirmationError,
+              );
+            }
+          }
         }
       } catch (adminSigninException) {
         console.error(
@@ -154,8 +180,6 @@ export async function POST(req: NextRequest) {
     if (signinErrorMessage && !emailNotConfirmed) {
       return NextResponse.json({ error: signinErrorMessage }, { status: 400 });
     }
-
-    const userId = signupData?.user?.id;
 
     if (userId) {
       try {
