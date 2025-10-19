@@ -163,7 +163,9 @@ export default function AdminUsersPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error: rpcError } = await supabase.rpc("admin.list_users");
+    const { data, error: rpcError } = await supabase
+      .schema("admin")
+      .rpc("list_users");
 
     if (rpcError) {
       console.error("Erreur lors du chargement des utilisateurs", rpcError);
@@ -258,13 +260,12 @@ export default function AdminUsersPage() {
 
     const nextStatus = !targetUser.email_verified;
 
-    const { error: statusError } = await supabase.rpc(
-      "admin.set_user_email_verification",
-      {
+    const { error: statusError } = await supabase
+      .schema("admin")
+      .rpc("set_user_email_verification", {
         target_user: userId,
         verified: nextStatus,
-      },
-    );
+      });
 
     if (statusError) {
       console.error("Mise à jour du statut impossible", statusError);
