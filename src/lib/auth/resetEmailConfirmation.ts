@@ -4,7 +4,7 @@ export async function resetEmailConfirmation(
   adminClient: SupabaseClient,
   userId: string,
 ): Promise<boolean> {
-  const { error } = await adminClient.rpc("reset_email_confirmation", {
+  const { error } = await adminClient.rpc("auth.reset_email_confirmation", {
     user_id: userId,
   });
 
