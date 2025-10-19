@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { getSiteOrigin } from "@/lib/url/getSiteOrigin";
 import { createProvisionalSession } from "@/lib/auth/provisionalSession";
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -149,18 +150,15 @@ export async function POST(req: NextRequest) {
             !signupEmailConfirmedAt &&
             adminSessionUser?.email_confirmed_at
           ) {
-            const { error: revertEmailConfirmationError } =
-              await adminClient.auth.admin.updateUserById(
-                adminSessionUserId,
-                {
-                  email_confirm: false,
-                },
-              );
+            const resetConfirmationSucceeded = await resetEmailConfirmation(
+              adminClient,
+              adminSessionUserId,
+            );
 
-            if (revertEmailConfirmationError) {
+            if (!resetConfirmationSucceeded) {
               console.warn(
                 "Impossible de réinitialiser l'état de confirmation email après la connexion admin",
-                revertEmailConfirmationError,
+                { adminSessionUserId },
               );
             }
           }

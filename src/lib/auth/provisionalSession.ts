@@ -1,5 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+
 type SessionTokens = {
   access_token: string;
   refresh_token: string;
@@ -141,15 +143,15 @@ export async function createProvisionalSession(
           Boolean(otpData.session.user?.email_confirmed_at);
 
         if (emailConfirmedByOtp) {
-          const { error: revertEmailConfirmationError } =
-            await adminClient.auth.admin.updateUserById(provisionalUser.id, {
-              email_confirm: false,
-            });
+          const resetConfirmationSucceeded = await resetEmailConfirmation(
+            adminClient,
+            provisionalUser.id,
+          );
 
-          if (revertEmailConfirmationError) {
+          if (!resetConfirmationSucceeded) {
             console.warn(
               "Réinitialisation de la confirmation email échouée après OTP",
-              revertEmailConfirmationError,
+              { userId: provisionalUser.id },
             );
           } else {
             emailVerified = false;
@@ -188,15 +190,15 @@ export async function createProvisionalSession(
     let isEmailConfirmed = Boolean(user?.email_confirmed_at);
 
     if (userId && isEmailConfirmed) {
-      const { error: revertEmailConfirmationError } =
-        await adminClient.auth.admin.updateUserById(userId, {
-          email_confirm: false,
-        });
+      const resetConfirmationSucceeded = await resetEmailConfirmation(
+        adminClient,
+        userId,
+      );
 
-      if (revertEmailConfirmationError) {
+      if (!resetConfirmationSucceeded) {
         console.warn(
           "Réinitialisation de la confirmation email échouée après connexion provisoire",
-          revertEmailConfirmationError,
+          { userId },
         );
       } else {
         isEmailConfirmed = false;
