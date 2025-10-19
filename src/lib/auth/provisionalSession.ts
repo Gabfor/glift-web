@@ -184,7 +184,24 @@ export async function createProvisionalSession(
     }
 
     const user = session.user;
-    const isEmailConfirmed = Boolean(user?.email_confirmed_at);
+    const userId = user?.id;
+    let isEmailConfirmed = Boolean(user?.email_confirmed_at);
+
+    if (userId && isEmailConfirmed) {
+      const { error: revertEmailConfirmationError } =
+        await adminClient.auth.admin.updateUserById(userId, {
+          email_confirm: false,
+        });
+
+      if (revertEmailConfirmationError) {
+        console.warn(
+          "Réinitialisation de la confirmation email échouée après connexion provisoire",
+          revertEmailConfirmationError,
+        );
+      } else {
+        isEmailConfirmed = false;
+      }
+    }
 
     if (isEmailConfirmed) {
       return {
