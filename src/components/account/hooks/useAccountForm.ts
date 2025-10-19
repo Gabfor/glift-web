@@ -127,8 +127,8 @@ const buildSnapshot = (
   const country =
     typeof safeMetadata.country === "string" ? safeMetadata.country : ""
   const experience =
-    typeof safeMetadata.experience_years === "string"
-      ? safeMetadata.experience_years
+    typeof safeMetadata.experience === "string"
+      ? safeMetadata.experience
       : ""
   const mainGoal =
     typeof safeMetadata.main_goal === "string" ? safeMetadata.main_goal : ""
@@ -463,7 +463,7 @@ export const useAccountForm = (user: User | null) => {
           birth_date: currentFlat.birthDate || null,
           gender: currentFlat.gender,
           country: currentFlat.country,
-          experience_years: currentFlat.experience,
+          experience: currentFlat.experience,
           main_goal: currentFlat.mainGoal,
           training_place: currentFlat.trainingPlace,
           weekly_sessions: currentFlat.weeklySessions,
