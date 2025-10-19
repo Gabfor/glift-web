@@ -162,7 +162,9 @@ export async function POST(req: NextRequest) {
           error: profileLookupError,
         } = await adminClient
           .from("profiles")
-          .select("id, email_verified")
+          .select(
+            "id, email_verified, subscription_plan, premium_trial_started_at",
+          )
           .eq("id", userId)
           .maybeSingle();
 
@@ -174,6 +176,9 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        const trialStartTimestamp =
+          supabasePlan === "premium" ? new Date().toISOString() : null;
+
         if (!existingProfile) {
           const { error: profileInsertError } = await adminClient
             .from("profiles")
@@ -181,6 +186,8 @@ export async function POST(req: NextRequest) {
               id: userId,
               name,
               email_verified: false,
+              subscription_plan: supabasePlan,
+              premium_trial_started_at: trialStartTimestamp,
             });
 
           if (profileInsertError) {
@@ -197,6 +204,8 @@ export async function POST(req: NextRequest) {
           const profileUpdatePayload: {
             name: string;
             email_verified?: boolean;
+            subscription_plan?: string;
+            premium_trial_started_at?: string | null;
           } = {
             name,
           };
@@ -204,6 +213,12 @@ export async function POST(req: NextRequest) {
           if (existingProfile.email_verified !== false) {
             profileUpdatePayload.email_verified = false;
           }
+
+          profileUpdatePayload.subscription_plan = supabasePlan;
+          profileUpdatePayload.premium_trial_started_at =
+            supabasePlan === "premium"
+              ? existingProfile.premium_trial_started_at ?? trialStartTimestamp
+              : null;
 
           const { error: profileUpdateError } = await adminClient
             .from("profiles")
