@@ -338,18 +338,18 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="relative mt-[60px]">
           {showActionsBar && (
             <UserAdminActionsBar
               selectedIds={selectedIds}
               onDelete={handleDelete}
               onToggleStatus={handleToggleStatus}
               onEdit={handleEdit}
-              className="absolute right-0 top-0"
+              className="absolute right-0 top-0 -translate-y-[calc(100%+20px)]"
             />
           )}
 
-          <div className="pt-[60px]">
+          <div>
             {error && (
               <div className="mb-4 text-center text-sm text-[#EF4F4E] font-semibold">
                 {error}
