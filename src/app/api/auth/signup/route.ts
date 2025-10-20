@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const supabasePlan = plan === "starter" ? "basic" : "premium";
 
     // 📝 Inscription Supabase
-    const { data: signupData, error: signupError } = await supabase.auth.signUp({
+    let { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -45,6 +45,51 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    const isConfirmationEmailError = (
+      message: string | null | undefined,
+    ): boolean =>
+      typeof message === "string" &&
+      message.toLowerCase().includes("error sending confirmation email");
+
+    if (signupError && isConfirmationEmailError(signupError.message)) {
+      try {
+        const adminClient = ensureAdminClient();
+        const { data: adminSignupData, error: adminSignupError } =
+          await adminClient.auth.admin.createUser({
+            email,
+            password,
+            email_confirm: true,
+            user_metadata: {
+              name,
+              subscription_plan: supabasePlan,
+              is_premium: supabasePlan === "premium",
+            },
+          });
+
+        if (adminSignupError) {
+          return NextResponse.json(
+            { error: adminSignupError.message },
+            { status: 400 },
+          );
+        }
+
+        signupData = {
+          user: adminSignupData.user ?? null,
+          session: null,
+        } as typeof signupData;
+        signupError = null;
+      } catch (adminSignupException) {
+        console.error(
+          "Création de l'utilisateur impossible après l'échec d'envoi de l'email",
+          adminSignupException,
+        );
+        return NextResponse.json(
+          { error: "Création du compte impossible pour le moment." },
+          { status: 500 },
+        );
+      }
+    }
 
     if (signupError) {
       return NextResponse.json({ error: signupError.message }, { status: 400 });
