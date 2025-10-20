@@ -127,14 +127,17 @@ const computeStatus = (user: AdminUser) => {
     : "A supprimer";
 };
 
+const STATUS_BADGE_BASE_CLASS =
+  "inline-flex h-[20px] items-center justify-center rounded-[25px] text-[10px] font-semibold mx-[10px]";
+
 const statusClassName = (status: string) => {
   switch (status) {
     case "Validé":
-      return "text-[#00D591]";
+      return "bg-[#DCFAF1] text-[#00D591]";
     case "En attente":
-      return "text-[#F59E0B]";
+      return "bg-[#FEF7D0] text-[#DCBC04]";
     default:
-      return "text-[#EF4F4E]";
+      return "bg-[#FFE3E3] text-[#EF4F4E]";
   }
 };
 
@@ -454,8 +457,12 @@ export default function AdminUsersPage() {
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         {typeof age === "number" ? `${age} ans` : "—"}
                       </td>
-                      <td className={`px-4 font-semibold align-middle ${statusClassName(status)}`}>
-                        {status}
+                      <td className="px-4 align-middle">
+                        <span
+                          className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
+                        >
+                          {status}
+                        </span>
                       </td>
                     </tr>
                   );
@@ -523,12 +530,14 @@ export default function AdminUsersPage() {
                 <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
                   Statut
                 </p>
-                <p
-                  className={`text-sm font-semibold ${statusClassName(
-                    computeStatus(editingUser),
-                  )}`}
-                >
-                  {computeStatus(editingUser)}
+                <p className="text-sm">
+                  <span
+                    className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(
+                      computeStatus(editingUser),
+                    )}`}
+                  >
+                    {computeStatus(editingUser)}
+                  </span>
                 </p>
               </div>
             </div>
