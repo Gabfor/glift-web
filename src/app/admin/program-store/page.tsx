@@ -227,42 +227,41 @@ export default function ProgramStorePage() {
           </div>
         </div>
 
-        {showActionsBar ? (
-          <ProgramStoreActionsBar
-            selectedIds={selectedIds}
-            selectedStatus={selectedStatus}
-            onDelete={handleDelete}
-            onDuplicate={handleDuplicate}
-            onEdit={handleEdit}
-            onToggleStatus={handleToggleStatus}
-            onAdd={handleAdd}
-          />
-        ) : (
-        <div className="flex justify-end mb-4 relative group">
-          <Tooltip content="Ajouter une carte">
-            <button
-              onClick={handleAdd}
-              className="rounded-full transition-colors duration-200 flex items-center justify-center group"
-            >
-              <Image
-                src="/icons/plus.svg"
-                alt="Ajouter"
-                width={20}
-                height={20}
-                className="block group-hover:hidden"
-              />
-              <Image
-                src="/icons/plus_hover.svg"
-                alt="Ajouter"
-                width={20}
-                height={20}
-                className="hidden group-hover:block"
-              />
-            </button>
-          </Tooltip>
+        <div className="flex justify-end items-center mb-4 h-10">
+          {showActionsBar ? (
+            <ProgramStoreActionsBar
+              selectedIds={selectedIds}
+              selectedStatus={selectedStatus}
+              onDelete={handleDelete}
+              onDuplicate={handleDuplicate}
+              onEdit={handleEdit}
+              onToggleStatus={handleToggleStatus}
+              onAdd={handleAdd}
+            />
+          ) : (
+            <Tooltip content="Ajouter une carte">
+              <button
+                onClick={handleAdd}
+                className="rounded-full transition-colors duration-200 flex items-center justify-center group"
+              >
+                <Image
+                  src="/icons/plus.svg"
+                  alt="Ajouter"
+                  width={20}
+                  height={20}
+                  className="block group-hover:hidden"
+                />
+                <Image
+                  src="/icons/plus_hover.svg"
+                  alt="Ajouter"
+                  width={20}
+                  height={20}
+                  className="hidden group-hover:block"
+                />
+              </button>
+            </Tooltip>
+          )}
         </div>
-
-        )}
 
         {loading ? (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)] p-4">
