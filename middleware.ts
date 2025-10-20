@@ -2,7 +2,7 @@
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isAuthSessionMissingError } from "@supabase/auth-js";
+import { AuthApiError, isAuthSessionMissingError } from "@supabase/auth-js";
 import { createRememberingMiddlewareClient } from "@/lib/supabase/middleware";
 
 export async function middleware(req: NextRequest) {
@@ -20,7 +20,16 @@ export async function middleware(req: NextRequest) {
     } = await supabase.auth.getUser();
     user = fetchedUser;
   } catch (error: unknown) {
-    if (isAuthSessionMissingError(error)) {
+    const isRefreshTokenNotFoundError =
+      error instanceof AuthApiError && error.code === "refresh_token_not_found";
+
+    if (isRefreshTokenNotFoundError) {
+      const expireOptions = { path: "/", maxAge: 0 } as const;
+      res.cookies.set("sb-access-token", "", expireOptions);
+      res.cookies.set("sb-refresh-token", "", expireOptions);
+    }
+
+    if (isAuthSessionMissingError(error) || isRefreshTokenNotFoundError) {
       user = null;
     } else {
       throw error;
