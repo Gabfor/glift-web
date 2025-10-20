@@ -138,16 +138,12 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
           throw new Error("Impossible de récupérer l'URL de la photo.")
         }
 
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .upsert(
-            {
-              id: user.id,
-              avatar_url: publicUrl,
-              avatar_path: objectPath,
-            },
-            { onConflict: "id" }
-          )
+        const { error: updateError } = await supabase.auth.updateUser({
+          data: {
+            avatar_url: publicUrl,
+            avatar_path: objectPath,
+          },
+        })
 
         if (updateError) {
           throw updateError
@@ -214,16 +210,12 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
     setError(null)
 
     try {
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: user.id,
-            avatar_url: null,
-            avatar_path: null,
-          },
-          { onConflict: "id" }
-        )
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: {
+          avatar_url: null,
+          avatar_path: null,
+        },
+      })
 
       if (updateError) {
         throw updateError
