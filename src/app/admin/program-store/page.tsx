@@ -227,18 +227,18 @@ export default function ProgramStorePage() {
           </div>
         </div>
 
-        <div className="flex justify-end items-center mb-4 h-10">
-          {showActionsBar ? (
-            <ProgramStoreActionsBar
-              selectedIds={selectedIds}
-              selectedStatus={selectedStatus}
-              onDelete={handleDelete}
-              onDuplicate={handleDuplicate}
-              onEdit={handleEdit}
-              onToggleStatus={handleToggleStatus}
-              onAdd={handleAdd}
-            />
-          ) : (
+        {showActionsBar ? (
+          <ProgramStoreActionsBar
+            selectedIds={selectedIds}
+            selectedStatus={selectedStatus}
+            onDelete={handleDelete}
+            onDuplicate={handleDuplicate}
+            onEdit={handleEdit}
+            onToggleStatus={handleToggleStatus}
+            onAdd={handleAdd}
+          />
+        ) : (
+          <div className="flex justify-end items-center mb-4 min-h-[40px]">
             <Tooltip content="Ajouter une carte">
               <button
                 onClick={handleAdd}
@@ -260,8 +260,8 @@ export default function ProgramStorePage() {
                 />
               </button>
             </Tooltip>
-          )}
-        </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)] p-4">
