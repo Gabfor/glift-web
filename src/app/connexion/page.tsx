@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import CTAButton from "@/components/CTAButton";
@@ -46,6 +46,32 @@ export default function ConnexionPage() {
   const isFormValid = isEmailValidFormat && password.trim() !== "";
 
   const resetStatus = searchParams?.get("reset") ?? null;
+  const rawNextParam = searchParams?.get("next") ?? null;
+
+  const decodedNextParam = useMemo(() => {
+    if (!rawNextParam) {
+      return null;
+    }
+
+    try {
+      return decodeURIComponent(rawNextParam);
+    } catch (decodeError) {
+      console.warn("[connexion] Unable to decode next parameter", decodeError);
+      return rawNextParam;
+    }
+  }, [rawNextParam]);
+
+  const sanitizedNextParam = useMemo(() => {
+    if (!decodedNextParam) {
+      return null;
+    }
+
+    if (!decodedNextParam.startsWith("/") || decodedNextParam.startsWith("//")) {
+      return null;
+    }
+
+    return decodedNextParam;
+  }, [decodedNextParam]);
 
   const [showResetSuccess, setShowResetSuccess] = useState(
     resetStatus === "success"
@@ -111,7 +137,7 @@ export default function ConnexionPage() {
           await supabase.auth.setSession(data.session);
         }
         setShowTransitionLoader(true);
-        router.push("/entrainements");
+        router.push(sanitizedNextParam ?? "/entrainements");
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
         setError({
@@ -144,7 +170,7 @@ export default function ConnexionPage() {
             });
 
             setShowTransitionLoader(true);
-            router.push("/entrainements");
+            router.push(sanitizedNextParam ?? "/entrainements");
             router.refresh();
             return;
           }
