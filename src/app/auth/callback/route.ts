@@ -273,12 +273,36 @@ export async function GET(request: NextRequest) {
   const normalizedSessionErrorMessage = rawSessionErrorMessage
     ? rawSessionErrorMessage.toLowerCase()
     : null;
-  const shouldIgnoreSessionError =
-    Boolean(confirmedUserId) &&
+  const isSessionAuthMissing =
     normalizedSessionErrorMessage !== null &&
     ["not authenticated", "auth session missing"].includes(
       normalizedSessionErrorMessage,
     );
+  const shouldIgnoreSessionError =
+    Boolean(confirmedUserId) && isSessionAuthMissing;
+
+  const shouldRedirectToLogin =
+    !confirmedUserId &&
+    isSessionAuthMissing &&
+    Boolean(code || tokenHash || token || fallbackConfirmedUserId);
+
+  if (shouldRedirectToLogin) {
+    const loginUrl = new URL("/connexion", request.url);
+    const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    loginUrl.searchParams.set("next", encodeURIComponent(callbackPath));
+
+    const redirectResponse = NextResponse.redirect(loginUrl);
+
+    cookiesToSet.forEach(({ name, value, options }) => {
+      redirectResponse.cookies.set(name, value, options);
+    });
+
+    cookiesToRemove.forEach(({ name, options }) => {
+      redirectResponse.cookies.set(name, "", { ...options, maxAge: -1 });
+    });
+
+    return redirectResponse;
+  }
 
   const sessionErrorMessageForDisplay = shouldIgnoreSessionError
     ? undefined
