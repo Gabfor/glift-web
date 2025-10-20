@@ -328,7 +328,7 @@ export default function AdminUsersPage() {
           Utilisateurs
         </h2>
 
-        <div className="flex justify-center">
+        <div className="flex justify-center mb-6">
           <div className="w-[368px]">
             <SearchBar
               value={searchTerm}
@@ -338,142 +338,139 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="relative mt-[60px]">
+        <div className="flex justify-end mb-4 min-h-[40px]">
           {showActionsBar && (
             <UserAdminActionsBar
               selectedIds={selectedIds}
               onDelete={handleDelete}
               onToggleStatus={handleToggleStatus}
               onEdit={handleEdit}
-              className="absolute right-0 top-0 -translate-y-[calc(100%+20px)]"
             />
           )}
+        </div>
 
-          <div>
-            {error && (
-              <div className="mb-4 text-center text-sm text-[#EF4F4E] font-semibold">
-                {error}
-              </div>
-            )}
+        {error && (
+          <div className="mb-4 text-center text-sm text-[#EF4F4E] font-semibold">
+            {error}
+          </div>
+        )}
 
-            {loading ? (
-              <div className="animate-pulse space-y-3">
-                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-              </div>
-            ) : (
-              <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-[#ECE9F1] h-[60px]">
-                    <tr>
-                      <th className="w-[47px] px-4">
-                        <button onClick={toggleAll} aria-label="Tout sélectionner">
+        {loading ? (
+          <div className="animate-pulse space-y-3">
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-[#ECE9F1] h-[60px]">
+                <tr>
+                  <th className="w-[47px] px-4">
+                    <button onClick={toggleAll} aria-label="Tout sélectionner">
+                      <Image
+                        src={
+                          users.length > 0 && users.length === selectedIds.length
+                            ? "/icons/checkbox_checked.svg"
+                            : "/icons/checkbox_unchecked.svg"
+                        }
+                        alt="Checkbox"
+                        width={15}
+                        height={15}
+                        style={{ marginTop: "5px" }}
+                      />
+                    </button>
+                  </th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Prénom</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Email</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Période de test</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Abonnement</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Ancienneté</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Sexe</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Age</th>
+                  <th className="px-4 font-semibold text-[#3A416F]">Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map((user) => {
+                  const isSelected = selectedIds.includes(user.id);
+                  const trialActive = isInTrial(user);
+                  const age = calculateAge(user.birth_date);
+                  const status = computeStatus(user);
+
+                  const genderLower = user.gender?.toLowerCase() ?? "";
+                  const genderIcon =
+                    genderLower === "homme"
+                      ? "/icons/homme.svg"
+                      : genderLower === "femme"
+                      ? "/icons/femme.svg"
+                      : null;
+
+                  return (
+                    <tr key={user.id} className="border-b border-[#ECE9F1] h-[60px]">
+                      <td className="w-[47px] px-4 align-middle">
+                        <button
+                          onClick={() => toggleCheckbox(user.id)}
+                          aria-label={
+                            isSelected
+                              ? "Désélectionner l'utilisateur"
+                              : "Sélectionner l'utilisateur"
+                          }
+                        >
                           <Image
                             src={
-                              users.length > 0 && users.length === selectedIds.length
+                              isSelected
                                 ? "/icons/checkbox_checked.svg"
                                 : "/icons/checkbox_unchecked.svg"
                             }
-                            alt="Checkbox"
+                            alt="checkbox"
                             width={15}
                             height={15}
                             style={{ marginTop: "5px" }}
                           />
                         </button>
-                      </th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Prénom</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Email</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Période de test</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Abonnement</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Ancienneté</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Sexe</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Age</th>
-                      <th className="px-4 font-semibold text-[#3A416F]">Statut</th>
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {user.name ?? "—"}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {user.email}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {trialActive ? "Oui" : "Non"}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {formatSubscription(user.subscription_plan)}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {formatSeniority(user.created_at)}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {genderIcon ? (
+                          <div className="relative h-5 w-5">
+                            <Image src={genderIcon} alt={user.gender ?? "Sexe"} fill />
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {typeof age === "number" ? `${age} ans` : "—"}
+                      </td>
+                      <td className="px-4 align-middle">
+                        <span
+                          className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
+                        >
+                          {status}
+                        </span>
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {filteredUsers.map((user) => {
-                      const isSelected = selectedIds.includes(user.id);
-                      const trialActive = isInTrial(user);
-                      const age = calculateAge(user.birth_date);
-                      const status = computeStatus(user);
-
-                      const genderLower = user.gender?.toLowerCase() ?? "";
-                      const genderIcon =
-                        genderLower === "homme"
-                          ? "/icons/homme.svg"
-                          : genderLower === "femme"
-                          ? "/icons/femme.svg"
-                          : null;
-
-                      return (
-                        <tr key={user.id} className="border-b border-[#ECE9F1] h-[60px]">
-                          <td className="w-[47px] px-4 align-middle">
-                            <button
-                              onClick={() => toggleCheckbox(user.id)}
-                              aria-label={
-                                isSelected
-                                  ? "Désélectionner l'utilisateur"
-                                  : "Sélectionner l'utilisateur"
-                              }
-                            >
-                              <Image
-                                src={
-                                  isSelected
-                                    ? "/icons/checkbox_checked.svg"
-                                    : "/icons/checkbox_unchecked.svg"
-                                }
-                                alt="checkbox"
-                                width={15}
-                                height={15}
-                                style={{ marginTop: "5px" }}
-                              />
-                            </button>
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {user.name ?? "—"}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {user.email}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {trialActive ? "Oui" : "Non"}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {formatSubscription(user.subscription_plan)}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {formatSeniority(user.created_at)}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {genderIcon ? (
-                              <div className="relative h-5 w-5">
-                                <Image src={genderIcon} alt={user.gender ?? "Sexe"} fill />
-                              </div>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
-                          <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                            {typeof age === "number" ? `${age} ans` : "—"}
-                          </td>
-                          <td className="px-4 align-middle">
-                            <span
-                              className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
-                            >
-                              {status}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
+        )}
 
         {editingUser && (
           <div className="mt-6 rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)] p-6">
