@@ -515,11 +515,13 @@ export const useAccountForm = (user: User | null) => {
         throw new Error("Vous devez être connecté pour modifier vos informations.")
       }
 
+      const trimmedName = currentFlat.name.trim()
+
       const profilePatch: Database["public"]["Tables"]["profiles"]["Update"] & {
         id: string
       } = {
         id: user.id,
-        name: currentFlat.name,
+        name: trimmedName,
         birth_date: currentFlat.birthDate || null,
         gender: currentFlat.gender,
         country: currentFlat.country,
@@ -538,6 +540,11 @@ export const useAccountForm = (user: User | null) => {
 
       const metadataPatch = { ...profilePatch }
       delete metadataPatch.id
+      const { error: metadataUpdateError } = await supabase.auth.updateUser({
+        data: { name: trimmedName },
+      })
+
+      if (metadataUpdateError) throw metadataUpdateError
       updateUserMetadata(metadataPatch)
 
       setProfile((prev) => ({ ...(prev ?? {}), ...profilePatch }))
