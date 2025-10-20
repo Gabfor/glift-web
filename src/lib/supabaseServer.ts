@@ -29,6 +29,12 @@ export async function createServerClient(): Promise<SupabaseClient<Database>> {
     return sanitizedOptions;
   };
 
+  const isReadOnlyCookiesError = (error: unknown): boolean =>
+    error instanceof Error &&
+    error.message.includes(
+      "Cookies can only be modified in a Server Action or Route Handler",
+    );
+
   const cookieMethods: CookieMethodsServer = {
     getAll() {
       return cookieStore.getAll().map(({ name, value }) => ({ name, value }));
@@ -39,7 +45,13 @@ export async function createServerClient(): Promise<SupabaseClient<Database>> {
           options as NextCookieOptions,
         );
 
-        cookieStore.set(name, value, sanitizedOptions);
+        try {
+          cookieStore.set(name, value, sanitizedOptions);
+        } catch (error) {
+          if (!isReadOnlyCookiesError(error)) {
+            throw error;
+          }
+        }
       });
     },
   } satisfies CookieMethodsServer;
