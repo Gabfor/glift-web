@@ -12,6 +12,7 @@ import type { User } from "@supabase/supabase-js"
 
 import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
+import type { Database } from "@/lib/supabase/types"
 
 const supabase = createClient()
 
@@ -117,47 +118,54 @@ const toFlatValues = (values: FormValues): FlatValues => ({
   birthDate: formatBirthDate(values.birthDate),
 })
 
+type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"]
+type ProfileDetails = Partial<ProfileRow> | null | undefined
+
+const pickString = (
+  profileValue: unknown,
+  metadata: Record<string, unknown>,
+  metadataKey: string
+) => {
+  if (typeof profileValue === "string") {
+    return profileValue
+  }
+
+  if (profileValue === null) {
+    return ""
+  }
+
+  const fallback = metadata[metadataKey]
+  return typeof fallback === "string" ? fallback : ""
+}
+
 const buildSnapshot = (
+  profile: ProfileDetails,
   metadata: Record<string, unknown> | undefined
 ): { values: FormValues; flat: FlatValues } => {
   const safeMetadata = metadata && typeof metadata === "object" ? metadata : {}
 
-  const name = typeof safeMetadata.name === "string" ? safeMetadata.name : ""
-  const gender =
-    typeof safeMetadata.gender === "string" ? safeMetadata.gender : ""
-  const country =
-    typeof safeMetadata.country === "string" ? safeMetadata.country : ""
-  const experience =
-    typeof safeMetadata.experience === "string"
-      ? safeMetadata.experience
-      : ""
-  const mainGoal =
-    typeof safeMetadata.main_goal === "string" ? safeMetadata.main_goal : ""
-  const trainingPlace =
-    typeof safeMetadata.training_place === "string"
-      ? safeMetadata.training_place
-      : ""
-  const weeklySessions =
-    typeof safeMetadata.weekly_sessions === "string"
-      ? safeMetadata.weekly_sessions
-      : ""
-  const supplements =
-    typeof safeMetadata.supplements === "string"
-      ? safeMetadata.supplements
-      : ""
-
-  const birthDateParts = parseBirthDate(safeMetadata.birth_date)
-
   const values: FormValues = {
-    name,
-    gender,
-    country,
-    experience,
-    mainGoal,
-    trainingPlace,
-    weeklySessions,
-    supplements,
-    birthDate: birthDateParts,
+    name: pickString(profile?.name, safeMetadata, "name"),
+    gender: pickString(profile?.gender, safeMetadata, "gender"),
+    country: pickString(profile?.country, safeMetadata, "country"),
+    experience: pickString(profile?.experience, safeMetadata, "experience"),
+    mainGoal: pickString(profile?.main_goal, safeMetadata, "main_goal"),
+    trainingPlace: pickString(
+      profile?.training_place,
+      safeMetadata,
+      "training_place"
+    ),
+    weeklySessions: pickString(
+      profile?.weekly_sessions,
+      safeMetadata,
+      "weekly_sessions"
+    ),
+    supplements: pickString(profile?.supplements, safeMetadata, "supplements"),
+    birthDate: parseBirthDate(
+      typeof profile?.birth_date === "string"
+        ? profile?.birth_date
+        : safeMetadata.birth_date
+    ),
   }
 
   return {
@@ -337,9 +345,14 @@ type BirthDateUpdater = string | ((previous: string) => string)
 
 export const useAccountForm = (user: User | null) => {
   const { updateUserMetadata } = useUser()
+  const [profile, setProfile] = useState<ProfileDetails>(undefined)
   const snapshot = useMemo(
-    () => buildSnapshot(user?.user_metadata as Record<string, unknown> | undefined),
-    [user?.user_metadata]
+    () =>
+      buildSnapshot(
+        profile,
+        user?.user_metadata as Record<string, unknown> | undefined
+      ),
+    [profile, user?.user_metadata]
   )
 
   const [values, setValues] = useState<FormValues>(snapshot.values)
@@ -372,6 +385,45 @@ export const useAccountForm = (user: User | null) => {
     setIsEditingName(false)
     resetFeedback()
   }, [resetFeedback, snapshot])
+
+  useEffect(() => {
+    const userId = user?.id
+
+    if (!userId) {
+      setProfile(null)
+      return
+    }
+
+    let cancelled = false
+
+    const fetchProfile = async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select(
+          "id, name, birth_date, gender, country, experience, main_goal, training_place, weekly_sessions, supplements"
+        )
+        .eq("id", userId)
+        .maybeSingle<ProfileRow>()
+
+      if (cancelled) {
+        return
+      }
+
+      if (error && error.code !== "PGRST116") {
+        console.error("[useAccountForm] failed to load profile", error)
+        setProfile(null)
+        return
+      }
+
+      setProfile(data ?? null)
+    }
+
+    void fetchProfile()
+
+    return () => {
+      cancelled = true
+    }
+  }, [user?.id])
 
   const markTouched = useCallback((updates: Partial<TouchedState>) => {
     setTouched((prev) => ({ ...prev, ...updates }))
@@ -463,7 +515,9 @@ export const useAccountForm = (user: User | null) => {
         throw new Error("Vous devez être connecté pour modifier vos informations.")
       }
 
-      const profilePatch = {
+      const profilePatch: Database["public"]["Tables"]["profiles"]["Update"] & {
+        id: string
+      } = {
         id: user.id,
         name: currentFlat.name,
         birth_date: currentFlat.birthDate || null,
@@ -485,6 +539,8 @@ export const useAccountForm = (user: User | null) => {
       const metadataPatch = { ...profilePatch }
       delete metadataPatch.id
       updateUserMetadata(metadataPatch)
+
+      setProfile((prev) => ({ ...(prev ?? {}), ...profilePatch }))
 
       setInitialFlat({ ...currentFlat })
       setInitialBirthParts({ ...values.birthDate })
