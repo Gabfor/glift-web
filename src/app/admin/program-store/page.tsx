@@ -238,7 +238,7 @@ export default function ProgramStorePage() {
             onAdd={handleAdd}
           />
         ) : (
-          <div className="flex justify-end items-center mb-4 min-h-[40px]">
+          <div className="flex justify-end mb-4">
             <Tooltip content="Ajouter une carte">
               <button
                 onClick={handleAdd}
@@ -264,12 +264,10 @@ export default function ProgramStorePage() {
         )}
 
         {loading ? (
-          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)] p-4">
-            <div className="animate-pulse space-y-3">
-              <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-              <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-              <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-            </div>
+          <div className="animate-pulse space-y-3">
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
         ) : programs.length === 0 ? (
           <div className="text-center text-[#5D6494] mt-12">
