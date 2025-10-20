@@ -4,12 +4,14 @@ import Image from "next/image";
 import { useState } from "react";
 
 import Tooltip from "@/components/Tooltip";
+import { cn } from "@/lib/utils";
 
 type Props = {
   selectedIds: string[];
   onDelete: () => void;
   onToggleStatus: () => void;
   onEdit: () => void;
+  className?: string;
 };
 
 export default function UserAdminActionsBar({
@@ -17,6 +19,7 @@ export default function UserAdminActionsBar({
   onDelete,
   onToggleStatus,
   onEdit,
+  className,
 }: Props) {
   const [deleteIcon, setDeleteIcon] = useState("/icons/delete.svg");
   const [statusIcon, setStatusIcon] = useState("/icons/statut.svg");
@@ -26,7 +29,7 @@ export default function UserAdminActionsBar({
   const hasSingleSelection = selectedIds.length === 1;
 
   return (
-    <div className="flex justify-end items-center mb-4 gap-4">
+    <div className={cn("flex items-center justify-end gap-4", className)}>
       {hasSingleSelection && (
         <Tooltip content="Modifier" delay={0}>
           <button
