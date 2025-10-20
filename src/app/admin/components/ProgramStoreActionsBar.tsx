@@ -38,7 +38,7 @@ export default function ProgramStoreActionsBar({
   };
 
   return (
-    <div className="flex justify-end items-center mb-4 gap-4">
+    <div className="flex items-center gap-4">
       {selectedIds.length === 1 && (
         <>
           <Tooltip content={selectedStatus === "ON" ? "Désactiver" : "Activer"}>
