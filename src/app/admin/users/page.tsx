@@ -128,7 +128,7 @@ const computeStatus = (user: AdminUser) => {
 };
 
 const STATUS_BADGE_BASE_CLASS =
-  "inline-flex h-[20px] items-center justify-center rounded-[25px] text-[10px] font-semibold mx-[10px]";
+  "inline-flex h-[20px] items-center justify-center rounded-[25px] text-[10px] font-semibold px-2";
 
 const statusClassName = (status: string) => {
   switch (status) {
