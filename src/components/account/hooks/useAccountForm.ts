@@ -10,6 +10,7 @@ import {
 } from "react"
 import type { User } from "@supabase/supabase-js"
 
+import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
 
 const supabase = createClient()
@@ -335,6 +336,7 @@ type ValueUpdater = string | ((previous: string) => string)
 type BirthDateUpdater = string | ((previous: string) => string)
 
 export const useAccountForm = (user: User | null) => {
+  const { updateUserMetadata } = useUser()
   const snapshot = useMemo(
     () => buildSnapshot(user?.user_metadata as Record<string, unknown> | undefined),
     [user?.user_metadata]
@@ -457,21 +459,32 @@ export const useAccountForm = (user: User | null) => {
     setError(null)
 
     try {
-      const { error: updateError } = await supabase.auth.updateUser({
-        data: {
-          name: currentFlat.name,
-          birth_date: currentFlat.birthDate || null,
-          gender: currentFlat.gender,
-          country: currentFlat.country,
-          experience: currentFlat.experience,
-          main_goal: currentFlat.mainGoal,
-          training_place: currentFlat.trainingPlace,
-          weekly_sessions: currentFlat.weeklySessions,
-          supplements: currentFlat.supplements,
-        },
-      })
+      if (!user?.id) {
+        throw new Error("Vous devez être connecté pour modifier vos informations.")
+      }
+
+      const profilePatch = {
+        id: user.id,
+        name: currentFlat.name,
+        birth_date: currentFlat.birthDate || null,
+        gender: currentFlat.gender,
+        country: currentFlat.country,
+        experience: currentFlat.experience,
+        main_goal: currentFlat.mainGoal,
+        training_place: currentFlat.trainingPlace,
+        weekly_sessions: currentFlat.weeklySessions,
+        supplements: currentFlat.supplements,
+      }
+
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .upsert(profilePatch, { onConflict: "id" })
 
       if (updateError) throw updateError
+
+      const metadataPatch = { ...profilePatch }
+      delete metadataPatch.id
+      updateUserMetadata(metadataPatch)
 
       setInitialFlat({ ...currentFlat })
       setInitialBirthParts({ ...values.birthDate })
@@ -485,7 +498,13 @@ export const useAccountForm = (user: User | null) => {
     } finally {
       setLoading(false)
     }
-  }, [currentFlat, resetFeedback, values.birthDate])
+  }, [
+    currentFlat,
+    resetFeedback,
+    updateUserMetadata,
+    user?.id,
+    values.birthDate,
+  ])
 
   const startNameEdition = useCallback(() => {
     setIsEditingName(true)

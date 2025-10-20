@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 
+import { useUser } from "@/context/UserContext";
 import { createClientComponentClient } from "@/lib/supabase/client";
 
 const KEY_OVERRIDES: Record<string, string> = {
@@ -15,12 +16,19 @@ const KEY_OVERRIDES: Record<string, string> = {
 const camelToSnake = (input: string) =>
   input.replace(/([a-z0-9])([A-Z])/g, (_, a: string, b: string) => `${a}_${b.toLowerCase()}`).toLowerCase();
 
-const mapValuesToMetadata = (values: Record<string, unknown>) => {
+const mapValuesToProfilePatch = (values: Record<string, unknown>) => {
   const metadata: Record<string, unknown> = {};
 
   for (const [key, value] of Object.entries(values)) {
     if (value === undefined) continue;
+
     const normalizedKey = KEY_OVERRIDES[key] ?? (key.includes("_") ? key : camelToSnake(key));
+
+    if (normalizedKey === "birth_date" && value === "") {
+      metadata[normalizedKey] = null;
+      continue;
+    }
+
     metadata[normalizedKey] = value;
   }
 
@@ -37,6 +45,7 @@ type SubmitOptions = {
 
 export const useProfileSubmit = () => {
   const supabase = createClientComponentClient();
+  const { updateUserMetadata } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,23 +67,56 @@ export const useProfileSubmit = () => {
       try {
         applyInitials?.();
 
-        const metadata = mapValuesToMetadata(values);
-        const { data, error: updateError } = await supabase.auth.updateUser({
-          data: metadata,
-        });
+        const profilePatch = mapValuesToProfilePatch(values);
+        const {
+          data: userResult,
+          error: userError,
+        } = await supabase.auth.getUser();
 
-        if (updateError) {
-          setError(updateError.message || "Impossible d'enregistrer vos informations.");
+        if (userError || !userResult?.user?.id) {
+          setError("Vous devez être connecté pour enregistrer vos informations.");
           return false;
         }
 
-        onAfterPersist?.();
+        const userId = userResult.user.id;
 
-        if (!returnRow) {
-          return true;
+        const upsertPayload = {
+          id: userId,
+          ...profilePatch,
+        };
+
+        const query = supabase
+          .from("profiles")
+          .upsert(upsertPayload, { onConflict: "id" });
+
+        let persisted = true;
+
+        if (returnRow) {
+          const { error: updateError, data } = await query.select("id").maybeSingle();
+
+          if (updateError) {
+            setError(
+              updateError.message || "Impossible d'enregistrer vos informations.",
+            );
+            return false;
+          }
+
+          persisted = Boolean(data?.id);
+        } else {
+          const { error: updateError } = await query;
+
+          if (updateError) {
+            setError(
+              updateError.message || "Impossible d'enregistrer vos informations.",
+            );
+            return false;
+          }
         }
 
-        return Boolean(data?.user);
+        updateUserMetadata(profilePatch);
+        onAfterPersist?.();
+
+        return persisted;
       } catch (err) {
         console.error(`[${debugLabel}] submit() unexpected error`, err);
         setError("Une erreur est survenue lors de l'enregistrement.");
@@ -83,7 +125,7 @@ export const useProfileSubmit = () => {
         setLoading(false);
       }
     },
-    [loading, supabase]
+    [loading, supabase, updateUserMetadata]
   );
 
   return { submit, loading, error };
