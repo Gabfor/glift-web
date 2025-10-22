@@ -324,11 +324,11 @@ export default function AdminUsersPage() {
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
       <div className="w-full max-w-6xl">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[32px]">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
           Utilisateurs
         </h2>
 
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-[10px]">
           <div className="w-[368px]">
             <SearchBar
               value={searchTerm}
@@ -338,7 +338,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-        <div className="flex justify-end mb-4 min-h-[40px]">
+        <div className="flex justify-end mb-[6px] min-h-[40px]">
           {showActionsBar && (
             <UserAdminActionsBar
               selectedIds={selectedIds}
