@@ -7,6 +7,8 @@ import SearchBar from "@/components/SearchBar";
 import { createClientComponentClient } from "@/lib/supabase/client";
 
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
+import ChevronIcon from "/public/icons/chevron.svg";
+import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 
 type AdminUser = {
   id: string;
@@ -141,6 +143,17 @@ const statusClassName = (status: string) => {
   }
 };
 
+type SortableColumn =
+  | "created_at"
+  | "name"
+  | "email"
+  | "trial"
+  | "subscription"
+  | "seniority"
+  | "gender"
+  | "age"
+  | "status";
+
 export default function AdminUsersPage() {
   const supabase = createClientComponentClient();
 
@@ -151,6 +164,10 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
+    "desc",
+  );
 
   useEffect(() => {
     setShowActionsBar(selectedIds.length > 0);
@@ -248,11 +265,11 @@ export default function AdminUsersPage() {
         return;
       }
 
-     setUsers((current) =>
-       current.filter((user) => !selectedIds.includes(user.id)),
-     );
-     setSelectedIds([]);
-     setEditingUserId(null);
+      setUsers((current) =>
+        current.filter((user) => !selectedIds.includes(user.id)),
+      );
+      setSelectedIds([]);
+      setEditingUserId(null);
       setError(null);
     } catch (deleteError) {
       console.error("Suppression impossible", deleteError);
@@ -288,11 +305,11 @@ export default function AdminUsersPage() {
       return;
     }
 
-   setUsers((current) =>
-     current.map((user) =>
-       user.id === userId ? { ...user, email_verified: nextStatus } : user,
-     ),
-   );
+    setUsers((current) =>
+      current.map((user) =>
+        user.id === userId ? { ...user, email_verified: nextStatus } : user,
+      ),
+    );
     setError(null);
   };
 
@@ -316,10 +333,106 @@ export default function AdminUsersPage() {
     );
   }, [users, searchTerm]);
 
+  const handleSort = (column: SortableColumn) => {
+    if (sortBy === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortBy(column);
+    setSortDirection("asc");
+  };
+
+  const sortedUsers = useMemo(() => {
+    const getSortValue = (user: AdminUser): string | number => {
+      switch (sortBy) {
+        case "name":
+          return user.name?.toLowerCase() ?? "";
+        case "email":
+          return user.email.toLowerCase();
+        case "trial":
+          return isInTrial(user) ? 1 : 0;
+        case "subscription":
+          return formatSubscription(user.subscription_plan).toLowerCase();
+        case "seniority":
+        case "created_at": {
+          const timestamp = Date.parse(user.created_at);
+          return Number.isNaN(timestamp) ? 0 : timestamp;
+        }
+        case "gender":
+          return user.gender?.toLowerCase() ?? "";
+        case "age":
+          return calculateAge(user.birth_date) ?? -1;
+        case "status":
+          return computeStatus(user).toLowerCase();
+        default:
+          return 0;
+      }
+    };
+
+    const sorted = [...filteredUsers];
+
+    sorted.sort((a, b) => {
+      const aValue = getSortValue(a);
+      const bValue = getSortValue(b);
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
+      const aString = String(aValue);
+      const bString = String(bValue);
+      const comparison = aString.localeCompare(bString, "fr", {
+        sensitivity: "base",
+      });
+
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+    return sorted;
+  }, [filteredUsers, sortBy, sortDirection]);
+
   const editingUser = useMemo(
     () => users.find((user) => user.id === editingUserId) ?? null,
     [users, editingUserId],
   );
+
+  const renderHeaderCell = (
+    label: string,
+    column: SortableColumn,
+    className = "",
+  ) => {
+    const isActive = sortBy === column;
+    const isAscending = sortDirection === "asc";
+    const icon = isActive ? ChevronIcon : ChevronGreyIcon;
+
+    return (
+      <th
+        className={`px-4 font-semibold text-[#3A416F] cursor-pointer select-none ${className}`}
+        onClick={() => handleSort(column)}
+      >
+        <div className="flex items-center gap-1">
+          {label}
+          <span className="relative ml-[3px] mt-[3px] h-[8px] w-[8px]">
+            <Image
+              src={icon}
+              alt=""
+              fill
+              style={{
+                objectFit: "contain",
+                transform: isActive
+                  ? isAscending
+                    ? "rotate(-180deg)"
+                    : "rotate(0deg)"
+                  : "rotate(0deg)",
+                transition: "transform 0.2s ease",
+              }}
+            />
+          </span>
+        </div>
+      </th>
+    );
+  };
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
@@ -381,18 +494,18 @@ export default function AdminUsersPage() {
                       />
                     </button>
                   </th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Prénom</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Email</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Période de test</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Abonnement</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Ancienneté</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Sexe</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Age</th>
-                  <th className="px-4 font-semibold text-[#3A416F]">Statut</th>
+                  {renderHeaderCell("Prénom", "name")}
+                  {renderHeaderCell("Email", "email")}
+                  {renderHeaderCell("Période de test", "trial")}
+                  {renderHeaderCell("Abonnement", "subscription")}
+                  {renderHeaderCell("Ancienneté", "seniority")}
+                  {renderHeaderCell("Sexe", "gender")}
+                  {renderHeaderCell("Age", "age")}
+                  {renderHeaderCell("Statut", "status")}
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => {
+                {sortedUsers.map((user) => {
                   const isSelected = selectedIds.includes(user.id);
                   const trialActive = isInTrial(user);
                   const age = calculateAge(user.birth_date);
