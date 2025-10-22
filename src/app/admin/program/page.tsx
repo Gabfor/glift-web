@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import ProgramAdminActionsBar from "@/app/admin/components/ProgramAdminActionsBar";
+import type { Database } from "@/lib/supabase/types";
 
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -21,6 +22,9 @@ type ProgramRow = {
 type Program = ProgramRow & {
   linked: boolean;
 };
+
+type ProgramsAdminRow = Database["public"]["Tables"]["programs_admin"]["Row"];
+type ProgramsAdminInsert = Database["public"]["Tables"]["programs_admin"]["Insert"];
 
 type SortableColumn = "created_at" | "name" | "linked" | "id" | "vignettes";
 
@@ -183,13 +187,14 @@ export default function AdminProgramPage() {
       .from("programs_admin")
       .select("*")
       .eq("id", id)
-      .single();
+      .single<ProgramsAdminRow>();
 
     if (!data || error) return;
 
-    const duplicated = {
-      ...data,
-      id: undefined,
+    const { id: _id, ...baseProgram } = data;
+    void _id;
+    const duplicated: ProgramsAdminInsert = {
+      ...baseProgram,
       created_at: new Date().toISOString(),
       name: `${data.name} (copie)`,
     };

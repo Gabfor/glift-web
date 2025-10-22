@@ -8,6 +8,29 @@ import "swiper/css/pagination";
 import Image from "next/image";
 import { useRef, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
+import type { Database } from "@/lib/supabase/types";
+
+type SliderRow = Database["public"]["Tables"]["sliders_admin"]["Row"];
+type Slide = { image: string; alt: string; link: string };
+
+const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((slide) => {
+    if (typeof slide === "object" && slide !== null && !Array.isArray(slide)) {
+      const record = slide as Record<string, unknown>;
+      return {
+        image: typeof record.image === "string" ? record.image : "",
+        alt: typeof record.alt === "string" ? record.alt : "",
+        link: typeof record.link === "string" ? record.link : "",
+      };
+    }
+
+    return { image: "", alt: "", link: "" };
+  });
+};
 
 export default function ShopBannerSliderClient() {
   const supabase = createClient();
@@ -17,19 +40,17 @@ export default function ShopBannerSliderClient() {
   const [isPlaying, setIsPlaying] = useState(true);
   // on gère maintenant "single" comme valeur de type « slider simple »
   const [type, setType] = useState<"none" | "single" | "double">("none");
-  const [slides, setSlides] = useState<
-    { image: string; alt: string; link: string }[]
-  >([]);
+  const [slides, setSlides] = useState<Slide[]>([]);
 
   useEffect(() => {
     const fetchSliderConfig = async () => {
       const { data } = await supabase
         .from("sliders_admin")
         .select("*")
-        .single();
+        .single<SliderRow>();
       if (data && data.type !== "none") {
         setType(data.type as "single" | "double");
-        setSlides(data.slides || []);
+        setSlides(normalizeSlides(data.slides));
       }
     };
     fetchSliderConfig();

@@ -10,6 +10,7 @@ import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import type { Database } from "@/lib/supabase/types";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -29,9 +30,13 @@ const months = [
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 10 }, (_, i) => (currentYear + i).toString());
 
-type Offer = {
+type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
+type OfferInsert = Database["public"]["Tables"]["offer_shop"]["Insert"];
+type OfferUpdate = Database["public"]["Tables"]["offer_shop"]["Update"];
+
+type OfferFormState = {
   start_date: string;
-  end_date?: string | null;
+  end_date: string;
   name: string;
   image: string;
   image_alt: string;
@@ -48,7 +53,88 @@ type Offer = {
   status: string;
   premium: boolean;
   sport: string;
-  condition:string;
+  condition: string;
+};
+
+const emptyOffer: OfferFormState = {
+  start_date: "",
+  end_date: "",
+  name: "",
+  image: "",
+  image_alt: "",
+  brand_image: "",
+  brand_image_alt: "",
+  shop: "",
+  shop_website: "",
+  shop_link: "",
+  type: [],
+  code: "",
+  gender: "",
+  shipping: "",
+  modal: "",
+  status: "ON",
+  premium: false,
+  sport: "",
+  condition: "",
+};
+
+const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
+  start_date: row.start_date ?? "",
+  end_date: row.end_date ?? "",
+  name: row.name,
+  image: row.image,
+  image_alt: row.image_alt ?? "",
+  brand_image: row.brand_image ?? "",
+  brand_image_alt: row.brand_image_alt ?? "",
+  shop: row.shop ?? "",
+  shop_website: row.shop_website ?? "",
+  shop_link: row.shop_link ?? "",
+  type: Array.isArray(row.type)
+    ? row.type.filter((value): value is string => typeof value === "string")
+    : [],
+  code: row.code ?? "",
+  gender: row.gender ?? "",
+  shipping: row.shipping ?? "",
+  modal: row.modal ?? "",
+  status: row.status,
+  premium: Boolean(row.premium),
+  sport: row.sport ?? "",
+  condition: row.condition ?? "",
+});
+
+const buildOfferPayload = (form: OfferFormState): OfferInsert => {
+  const normalizedTypes = form.type.filter((value) => value.trim() !== "");
+  const normalizedShipping = form.shipping.trim();
+  return {
+    start_date: form.start_date ? form.start_date : null,
+    end_date:
+      form.end_date && form.end_date.includes("-") ? form.end_date : null,
+    name: form.name,
+    image: form.image,
+    image_alt: form.image_alt || null,
+    brand_image: form.brand_image || null,
+    brand_image_alt: form.brand_image_alt || null,
+    shop: form.shop || null,
+    shop_website: form.shop_website || null,
+    shop_link: form.shop_link || null,
+    type: normalizedTypes.length > 0 ? normalizedTypes : null,
+    code: form.code || null,
+    gender: form.gender || null,
+    shipping: normalizedShipping ? normalizedShipping.replace(",", ".") : null,
+    modal: form.modal || null,
+    status: form.status,
+    premium: form.premium,
+    sport: form.sport || null,
+    condition: form.condition || null,
+  };
+};
+
+const getDateParts = (value: string): [string, string, string] => {
+  if (value && value.includes("-")) {
+    const [year = "", month = "", day = ""] = value.split("-");
+    return [year, month, day];
+  }
+  return ["", "", ""];
 };
 
 const offerTypes = [
@@ -66,47 +152,24 @@ export default function CreateOfferPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [offerId, setOfferId] = useState<string | null>(null);
+  const [offerId, setOfferId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const showLoader = useMinimumVisibility(loading);
 
-  const [offer, setOffer] = useState<Omit<Offer, "id">>({
-    start_date: "",
-    end_date: "",
-    name: "",
-    image: "",
-    image_alt: "",
-    brand_image: "",
-    brand_image_alt: "",
-    shop: "",
-    shop_website: "",
-    shop_link: "",
-    type: [],
-    code: "",
-    gender: "",
-    shipping: "",
-    modal: "",
-    status: "ON",
-    premium: false,
-    sport: "",
-    condition: "",
-  });
+  const [offer, setOffer] = useState<OfferFormState>(emptyOffer);
 
   const fetchOffer = useCallback(
-    async (id: string) => {
+    async (id: number) => {
       const { data, error } = await supabase
         .from("offer_shop")
         .select("*")
         .eq("id", id)
-        .single();
+        .single<OfferRow>();
 
       if (error) {
         console.error(error);
       } else if (data) {
-        setOffer({
-          ...data,
-          premium: data.premium ?? false,
-        });
+        setOffer(mapOfferRowToForm(data));
       }
       setLoading(false);
     },
@@ -114,10 +177,16 @@ export default function CreateOfferPage() {
   );
 
   useEffect(() => {
-    const id = searchParams?.get("id");
-    if (id) {
-      setOfferId(id);
-      void fetchOffer(id);
+    const idParam = searchParams?.get("id");
+    if (idParam) {
+      const numericId = Number(idParam);
+      if (!Number.isNaN(numericId)) {
+        setOfferId(numericId);
+        void fetchOffer(numericId);
+      } else {
+        console.warn("Identifiant d’offre invalide :", idParam);
+        setLoading(false);
+      }
       return;
     }
 
@@ -127,23 +196,19 @@ export default function CreateOfferPage() {
   const handleSave = async () => {
     setLoading(true);
 
-    const offerToSave = {
-      ...offer,
-      shipping: offer.shipping.replace(",", "."),
-    };
-
-    if (!offer.end_date || !offer.end_date.includes("-")) {
-      delete offerToSave.end_date;
-    }
+    const offerPayload = buildOfferPayload(offer);
 
     if (offerId) {
+      const updatePayload: OfferUpdate = { ...offerPayload };
       const { error } = await supabase
         .from("offer_shop")
-        .update(offerToSave)
+        .update(updatePayload)
         .eq("id", offerId);
       if (error) alert("Erreur : " + error.message);
     } else {
-      const { error } = await supabase.from("offer_shop").insert([offerToSave]);
+      const { error } = await supabase
+        .from("offer_shop")
+        .insert([offerPayload]);
       if (error) alert("Erreur : " + error.message);
     }
 
@@ -173,6 +238,9 @@ export default function CreateOfferPage() {
     });
   };
 
+  const [startYear, startMonth, startDay] = getDateParts(offer.start_date);
+  const [endYear, endMonth, endDay] = getDateParts(offer.end_date);
+
   return (
     <>
       {showLoader && <GliftLoader />}
@@ -188,61 +256,52 @@ export default function CreateOfferPage() {
                 <div className="flex flex-col">
               <label className="text-[#3A416F] font-bold mb-1">Date de début</label>
               <div className="flex gap-2">
-                {(() => {
-                  const [y, m, d] =
-                    offer.start_date && offer.start_date.includes("-")
-                      ? offer.start_date.split("-")
-                      : ["", "", ""];
+                <>
+                  {/* Jour */}
+                  <AdminDropdown
+                    className="w-[88px]"
+                    label=""
+                    placeholder="Jour"
+                    selected={startDay || ""}
+                    onSelect={(day) => {
+                      setOffer({
+                        ...offer,
+                        start_date: `${startYear || ""}-${startMonth || ""}-${day}`,
+                      });
+                    }}
+                    options={days.map((day) => ({ value: day, label: day }))}
+                  />
 
-                  return (
-                    <>
-                      {/* Jour */}
-                      <AdminDropdown
-                        className="w-[88px]"
-                        label=""
-                        placeholder="Jour"
-                        selected={d || ""}
-                        onSelect={(day) => {
-                          setOffer({
-                            ...offer,
-                            start_date: `${y || ""}-${m || ""}-${day}`,
-                          });
-                        }}
-                        options={days.map((day) => ({ value: day, label: day }))}
-                      />
+                  {/* Mois */}
+                  <AdminDropdown
+                    className="w-[154px]"
+                    label=""
+                    placeholder="Mois"
+                    selected={startMonth || ""}
+                    onSelect={(month) => {
+                      setOffer({
+                        ...offer,
+                        start_date: `${startYear || ""}-${month}-${startDay || ""}`,
+                      });
+                    }}
+                    options={months}
+                  />
 
-                      {/* Mois */}
-                      <AdminDropdown
-                        className="w-[154px]"
-                        label=""
-                        placeholder="Mois"
-                        selected={m || ""}
-                        onSelect={(month) => {
-                          setOffer({
-                            ...offer,
-                            start_date: `${y || ""}-${month}-${d || ""}`,
-                          });
-                        }}
-                        options={months}
-                      />
-
-                      {/* Année */}
-                      <AdminDropdown
-                        className="w-[111px]"
-                        label=""
-                        placeholder="Année"
-                        selected={y || ""}
-                        onSelect={(year) => {
-                          setOffer({
-                            ...offer,
-                            start_date: `${year}-${m || ""}-${d || ""}`,
-                          });
-                        }}
-                        options={years.map((year) => ({ value: year, label: year }))}
-                      />
-                    </>
-                  );
-                })()}
+                  {/* Année */}
+                  <AdminDropdown
+                    className="w-[111px]"
+                    label=""
+                    placeholder="Année"
+                    selected={startYear || ""}
+                    onSelect={(year) => {
+                      setOffer({
+                        ...offer,
+                        start_date: `${year}-${startMonth || ""}-${startDay || ""}`,
+                      });
+                    }}
+                    options={years.map((year) => ({ value: year, label: year }))}
+                  />
+                </>
               </div>
             </div>
 
@@ -250,61 +309,52 @@ export default function CreateOfferPage() {
             <div className="flex flex-col">
               <label className="text-[#3A416F] font-bold mb-1">Date de fin</label>
               <div className="flex gap-2">
-                {(() => {
-                  const [y, m, d] =
-                    offer.end_date && offer.end_date.includes("-")
-                      ? offer.end_date.split("-")
-                      : ["", "", ""];
+                <>
+                  {/* Jour */}
+                  <AdminDropdown
+                    className="w-[83px]"
+                    label=""
+                    placeholder="Jour"
+                    selected={endDay || ""}
+                    onSelect={(day) => {
+                      setOffer({
+                        ...offer,
+                        end_date: `${endYear || ""}-${endMonth || ""}-${day}`,
+                      });
+                    }}
+                    options={days.map((day) => ({ value: day, label: day }))}
+                  />
 
-                  return (
-                    <>
-                      {/* Jour */}
-                      <AdminDropdown
-                        className="w-[83px]"
-                        label=""
-                        placeholder="Jour"
-                        selected={d || ""}
-                        onSelect={(day) => {
-                          setOffer({
-                            ...offer,
-                            end_date: `${y || ""}-${m || ""}-${day}`,
-                          });
-                        }}
-                        options={days.map((day) => ({ value: day, label: day }))}
-                      />
+                  {/* Mois */}
+                  <AdminDropdown
+                    className="w-[154px]"
+                    label=""
+                    placeholder="Mois"
+                    selected={endMonth || ""}
+                    onSelect={(month) => {
+                      setOffer({
+                        ...offer,
+                        end_date: `${endYear || ""}-${month}-${endDay || ""}`,
+                      });
+                    }}
+                    options={months}
+                  />
 
-                      {/* Mois */}
-                      <AdminDropdown
-                        className="w-[154px]"
-                        label=""
-                        placeholder="Mois"
-                        selected={m || ""}
-                        onSelect={(month) => {
-                          setOffer({
-                            ...offer,
-                            end_date: `${y || ""}-${month}-${d || ""}`,
-                          });
-                        }}
-                        options={months}
-                      />
-
-                      {/* Année */}
-                      <AdminDropdown
-                        className="w-[111px]"
-                        label=""
-                        placeholder="Année"
-                        selected={y || ""}
-                        onSelect={(year) => {
-                          setOffer({
-                            ...offer,
-                            end_date: `${year}-${m || ""}-${d || ""}`,
-                          });
-                        }}
-                        options={years.map((year) => ({ value: year, label: year }))}
-                      />
-                    </>
-                  );
-                })()}
+                  {/* Année */}
+                  <AdminDropdown
+                    className="w-[111px]"
+                    label=""
+                    placeholder="Année"
+                    selected={endYear || ""}
+                    onSelect={(year) => {
+                      setOffer({
+                        ...offer,
+                        end_date: `${year}-${endMonth || ""}-${endDay || ""}`,
+                      });
+                    }}
+                    options={years.map((year) => ({ value: year, label: year }))}
+                  />
+                </>
               </div>
             </div>
 

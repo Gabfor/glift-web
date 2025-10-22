@@ -10,6 +10,25 @@ import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import Tooltip from "@/components/Tooltip";
 import SearchBar from "@/components/SearchBar";
+import type { Database } from "@/lib/supabase/types";
+
+type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
+type ProgramInsert = Database["public"]["Tables"]["program_store"]["Insert"];
+type ProgramListRow = Pick<
+  ProgramRow,
+  |
+    "id"
+    | "title"
+    | "created_at"
+    | "status"
+    | "partner_name"
+    | "gender"
+    | "level"
+    | "duration"
+    | "sessions"
+    | "downloads"
+    | "actifs"
+>;
 
 type Program = {
   id: number;
@@ -25,12 +44,38 @@ type Program = {
   actifs: number;
 };
 
+const mapProgramRowToListItem = (row: ProgramListRow): Program => ({
+  id: row.id,
+  title: row.title,
+  created_at: row.created_at ?? "",
+  status: row.status ?? "",
+  partner_name: row.partner_name ?? "",
+  gender: row.gender ?? "",
+  level: row.level ?? "",
+  duration: row.duration ?? "",
+  sessions: row.sessions ?? 0,
+  downloads: row.downloads ?? 0,
+  actifs: row.actifs ?? 0,
+});
+
+type SortableColumn =
+  | "created_at"
+  | "status"
+  | "partner_name"
+  | "gender"
+  | "level"
+  | "duration"
+  | "sessions"
+  | "downloads"
+  | "actifs"
+  | "title";
+
 export default function ProgramStorePage() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const router = useRouter();
@@ -45,7 +90,8 @@ export default function ProgramStorePage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("program_store")
-      .select(`
+      .select(
+        `
         id,
         title,
         created_at,
@@ -57,11 +103,17 @@ export default function ProgramStorePage() {
         sessions,
         downloads,
         actifs
-      `)
-      .order(sortBy, { ascending: sortDirection === "asc" });
+      `,
+      )
+      .order(sortBy, { ascending: sortDirection === "asc" })
+      .returns<ProgramListRow[]>();
 
-    if (error) console.error("Erreur Supabase:", JSON.stringify(error, null, 2));
-    else setPrograms(data as Program[]);
+    if (error) {
+      console.error("Erreur Supabase:", JSON.stringify(error, null, 2));
+    } else {
+      const mappedPrograms = (data ?? []).map(mapProgramRowToListItem);
+      setPrograms(mappedPrograms);
+    }
     setSelectedIds([]);
     setShowActionsBar(false);
     setLoading(false);
@@ -71,9 +123,9 @@ export default function ProgramStorePage() {
     fetchPrograms();
   }, [fetchPrograms]);
 
-  const handleSort = (column: string) => {
+  const handleSort = (column: SortableColumn) => {
     if (sortBy === column) {
-      setSortDirection(prev => (prev === "asc" ? "desc" : "asc"));
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSortBy(column);
       setSortDirection("asc");
@@ -115,31 +167,35 @@ export default function ProgramStorePage() {
     setSelectedIds([]);
 
     const { data, error } = await supabase
-      .from('program_store')
-      .select('*')
-      .eq('id', idToDuplicate)
-      .single();
+      .from("program_store")
+      .select("*")
+      .eq("id", idToDuplicate)
+      .single<ProgramRow>();
 
     if (error || !data) {
-      console.error('Erreur duplication:', error);
+      console.error("Erreur duplication:", error);
       return;
     }
 
-    const duplicated = { ...data };
-    delete duplicated.id;
-    duplicated.status = 'OFF';
-    duplicated.created_at = new Date().toISOString();
+    const { id: _id, ...baseProgram } = data;
+    void _id;
+    const duplicated: ProgramInsert = {
+      ...baseProgram,
+      status: "OFF",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      downloads: 0,
+      actifs: 0,
+    };
 
-    const { data: inserted, error: insertError } = await supabase
-      .from('program_store')
-      .insert([duplicated])
-      .select()
-      .single();
+    const { error: insertError } = await supabase
+      .from("program_store")
+      .insert([duplicated]);
 
     if (insertError) {
-      console.error('Erreur insert duplication:', insertError);
+      console.error("Erreur insert duplication:", insertError);
     } else {
-      setPrograms(prev => [inserted, ...prev]);
+      fetchPrograms();
     }
   };
 
@@ -181,7 +237,7 @@ export default function ProgramStorePage() {
 
   const handleAdd = () => router.push("/admin/create-program");
 
-  const renderHeaderCell = (label: string, column: string) => {
+  const renderHeaderCell = (label: string, column: SortableColumn) => {
     const isActive = sortBy === column;
     const isAscending = sortDirection === "asc";
     const icon = isActive ? ChevronIcon : ChevronGreyIcon;

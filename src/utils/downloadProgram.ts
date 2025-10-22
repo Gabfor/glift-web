@@ -6,6 +6,9 @@ type ProgramsAdminRow = Database["public"]["Tables"]["programs_admin"]["Row"];
 type TrainingsAdminRow = Database["public"]["Tables"]["trainings_admin"]["Row"];
 type TrainingRowsAdminRow =
   Database["public"]["Tables"]["training_rows_admin"]["Row"];
+type UserProgramPositionRow = { position: number | null };
+type InsertedProgramRow = { id: string };
+type InsertedTrainingRow = { id: string };
 
 /**
  * Télécharge un programme depuis `program_store` en copiant les données sources
@@ -60,16 +63,18 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
     const { data: userPrograms, error: userProgramsError } = await supabase
     .from("programs")
     .select("position")
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)
+    .returns<UserProgramPositionRow[]>();
 
     if (userProgramsError) {
       console.error("Erreur récupération programmes utilisateur :", userProgramsError);
       return null;
     }
 
-    const nextPosition =
-    userPrograms && userPrograms.length > 0
-        ? Math.max(...userPrograms.map((p) => p.position ?? 0)) + 1
+    const positions = (userPrograms ?? [])
+      .map((p) => (typeof p.position === "number" ? p.position : 0));
+    const nextPosition = positions.length > 0
+        ? Math.max(...positions) + 1
         : 0;
 
     // ✅ Insertion du nouveau programme avec position
@@ -77,7 +82,7 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
     .from("programs")
     .insert([
         {
-        name: programToCopy.name || programToCopy.title || "Programme copié",
+        name: programToCopy.name ?? "Programme copié",
         user_id: user.id,
         created_at: new Date().toISOString(),
         position: nextPosition,
@@ -86,7 +91,7 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
         },
     ])
     .select()
-    .single();
+    .single<InsertedProgramRow>();
 
 
   if (insertProgramError || !insertedProgram) {
@@ -129,7 +134,7 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
         },
       ])
       .select()
-      .single();
+      .single<InsertedTrainingRow>();
 
     if (insertTrainingError || !insertedTraining) {
       console.error("Erreur insertion training :", insertTrainingError);
