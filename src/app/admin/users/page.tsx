@@ -2,9 +2,11 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import SearchBar from "@/components/SearchBar";
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
+import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 
@@ -154,26 +156,23 @@ type SortableColumn =
 
 export default function AdminUsersPage() {
 
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editingUserId = searchParams.get("id");
+
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
     "desc",
   );
 
   useEffect(() => {
-    setShowActionsBar(selectedIds.length > 0);
-  }, [selectedIds]);
-
-  useEffect(() => {
-    if (editingUserId && !selectedIds.includes(editingUserId)) {
-      setEditingUserId(null);
-    }
+    setShowActionsBar(!editingUserId && selectedIds.length > 0);
   }, [editingUserId, selectedIds]);
 
   const fetchUsers = useCallback(async () => {
@@ -211,7 +210,6 @@ export default function AdminUsersPage() {
 
       setUsers(normalized);
       setSelectedIds([]);
-      setEditingUserId(null);
       setLoading(false);
     } catch (rpcError) {
       console.error("Erreur lors du chargement des utilisateurs", rpcError);
@@ -266,7 +264,6 @@ export default function AdminUsersPage() {
         current.filter((user) => !selectedIds.includes(user.id)),
       );
       setSelectedIds([]);
-      setEditingUserId(null);
       setError(null);
     } catch (deleteError) {
       console.error("Suppression impossible", deleteError);
@@ -331,7 +328,13 @@ export default function AdminUsersPage() {
       return;
     }
 
-    setEditingUserId(selectedIds[0]);
+    const userId = selectedIds[0];
+
+    const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
+    nextParams.set("id", userId);
+
+    const query = nextParams.toString();
+    router.push(query ? `/admin/users?${query}` : "/admin/users");
   };
 
   const filteredUsers = useMemo(() => {
@@ -405,11 +408,6 @@ export default function AdminUsersPage() {
     return sorted;
   }, [filteredUsers, sortBy, sortDirection]);
 
-  const editingUser = useMemo(
-    () => users.find((user) => user.id === editingUserId) ?? null,
-    [users, editingUserId],
-  );
-
   const renderHeaderCell = (
     label: string,
     column: SortableColumn,
@@ -450,75 +448,89 @@ export default function AdminUsersPage() {
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
       <div className="w-full max-w-6xl">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
-          Utilisateurs
-        </h2>
-
-        <div className="flex justify-center mb-[10px]">
-          <div className="w-[368px]">
-            <SearchBar
-              value={searchTerm}
-              onChange={setSearchTerm}
-              placeholder="Rechercher par email"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end mb-[6px] min-h-[40px]">
-          {showActionsBar && (
-            <UserAdminActionsBar
-              selectedIds={selectedIds}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-              onEdit={handleEdit}
-            />
-          )}
-        </div>
-
-        {error && (
-          <div className="mb-4 text-center text-sm text-[#EF4F4E] font-semibold">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="animate-pulse space-y-3">
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-            <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
-          </div>
+        {editingUserId ? (
+          <AdminUserEditor
+            userId={editingUserId}
+            onClose={() => {
+              const nextParams = new URLSearchParams(
+                searchParams?.toString() ?? "",
+              );
+              nextParams.delete("id");
+              const query = nextParams.toString();
+              router.push(query ? `/admin/users?${query}` : "/admin/users");
+            }}
+          />
         ) : (
-          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-[#ECE9F1] h-[60px]">
-                <tr>
-                  <th className="w-[47px] px-4">
-                    <button onClick={toggleAll} aria-label="Tout sélectionner">
-                      <Image
-                        src={
-                          users.length > 0 && users.length === selectedIds.length
-                            ? "/icons/checkbox_checked.svg"
-                            : "/icons/checkbox_unchecked.svg"
-                        }
-                        alt="Checkbox"
-                        width={15}
-                        height={15}
-                        style={{ marginTop: "5px" }}
-                      />
-                    </button>
-                  </th>
-                  {renderHeaderCell("Prénom", "name")}
-                  {renderHeaderCell("Email", "email")}
-                  {renderHeaderCell("Période de test", "trial")}
-                  {renderHeaderCell("Abonnement", "subscription")}
-                  {renderHeaderCell("Ancienneté", "seniority")}
-                  {renderHeaderCell("Sexe", "gender")}
-                  {renderHeaderCell("Age", "age")}
-                  {renderHeaderCell("Statut", "status")}
-                </tr>
-              </thead>
-              <tbody>
-                {sortedUsers.map((user) => {
+          <>
+            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+              Utilisateurs
+            </h2>
+
+            <div className="flex justify-center mb-[10px]">
+              <div className="w-[368px]">
+                <SearchBar
+                  value={searchTerm}
+                  onChange={setSearchTerm}
+                  placeholder="Rechercher par email"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end mb-[6px] min-h-[40px]">
+              {showActionsBar && (
+                <UserAdminActionsBar
+                  selectedIds={selectedIds}
+                  onDelete={handleDelete}
+                  onToggleStatus={handleToggleStatus}
+                  onEdit={handleEdit}
+                />
+              )}
+            </div>
+
+            {error && (
+              <div className="mb-4 text-center text-sm text-[#EF4F4E] font-semibold">
+                {error}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="animate-pulse space-y-3">
+                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+                <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+                <table className="min-w-full text-left text-sm">
+                  <thead className="border-b border-[#ECE9F1] h-[60px]">
+                    <tr>
+                      <th className="w-[47px] px-4">
+                        <button onClick={toggleAll} aria-label="Tout sélectionner">
+                          <Image
+                            src={
+                              users.length > 0 && users.length === selectedIds.length
+                                ? "/icons/checkbox_checked.svg"
+                                : "/icons/checkbox_unchecked.svg"
+                            }
+                            alt="Checkbox"
+                            width={15}
+                            height={15}
+                            style={{ marginTop: "5px" }}
+                          />
+                        </button>
+                      </th>
+                      {renderHeaderCell("Prénom", "name")}
+                      {renderHeaderCell("Email", "email")}
+                      {renderHeaderCell("Période de test", "trial")}
+                      {renderHeaderCell("Abonnement", "subscription")}
+                      {renderHeaderCell("Ancienneté", "seniority")}
+                      {renderHeaderCell("Sexe", "gender")}
+                      {renderHeaderCell("Age", "age")}
+                      {renderHeaderCell("Statut", "status")}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedUsers.map((user) => {
                   const isSelected = selectedIds.includes(user.id);
                   const trialActive = isInTrial(user);
                   const age = calculateAge(user.birth_date);
@@ -590,84 +602,14 @@ export default function AdminUsersPage() {
                           {status}
                         </span>
                       </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {editingUser && (
-          <div className="mt-6 rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)] p-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-[#2E3271]">
-                Détails de l&apos;utilisateur
-              </h3>
-              <button
-                onClick={() => setEditingUserId(null)}
-                className="text-sm font-semibold text-[#7069FA] hover:text-[#3A416F]"
-              >
-                Fermer
-              </button>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Prénom
-                </p>
-                <p className="text-sm font-semibold text-[#3A416F]">
-                  {editingUser.name ?? "—"}
-                </p>
+                      </tr>
+                    );
+                  })}
+                  </tbody>
+                </table>
               </div>
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Email
-                </p>
-                <p className="text-sm font-semibold text-[#3A416F]">
-                  {editingUser.email}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Abonnement
-                </p>
-                <p className="text-sm font-semibold text-[#3A416F]">
-                  {formatSubscription(editingUser.subscription_plan)}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Période de test
-                </p>
-                <p className="text-sm font-semibold text-[#3A416F]">
-                  {isInTrial(editingUser) ? "Oui" : "Non"}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Ancienneté
-                </p>
-                <p className="text-sm font-semibold text-[#3A416F]">
-                  {formatSeniority(editingUser.created_at)}
-                </p>
-              </div>
-              <div>
-                <p className="mb-1 text-xs uppercase tracking-wide text-[#A7A5B2]">
-                  Statut
-                </p>
-                <p className="text-sm">
-                  <span
-                    className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(
-                      computeStatus(editingUser),
-                    )}`}
-                  >
-                    {computeStatus(editingUser)}
-                  </span>
-                </p>
-              </div>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </div>
     </main>

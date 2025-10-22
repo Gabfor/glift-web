@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { ensureAdmin } from "./utils";
 
 type DeletePayload = {
   ids?: string[];
@@ -68,28 +69,6 @@ const TABLES_TO_CLEAN: Array<"user_subscriptions" | "training_rows" | "trainings
   "trainings",
   "programs",
 ];
-
-const ensureAdmin = async () => {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error) {
-    throw new Error("user-fetch-failed");
-  }
-
-  if (!user) {
-    return { status: 401 as const, error: "not-authenticated" };
-  }
-
-  if (!user.user_metadata?.is_admin) {
-    return { status: 403 as const, error: "forbidden" };
-  }
-
-  return { status: 200 as const, user };
-};
 
 export async function GET() {
   try {
