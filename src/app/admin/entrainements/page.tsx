@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { Program, Training } from "@/types/training";
+import type { Database } from "@/lib/supabase/types";
 import ProgramEditor from "@/components/ProgramEditor";
 import DroppableProgram from "@/components/DroppableProgram";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
@@ -20,6 +21,9 @@ import { DragOverlay } from "@dnd-kit/core";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 
 export default function AdminSingleProgramPage() {
+  type TrainingsAdminRow = Database["public"]["Tables"]["trainings_admin"]["Row"];
+  type TrainingsAdminInsert = Database["public"]["Tables"]["trainings_admin"]["Insert"];
+
   const [program, setProgram] = useState<Program | null>(null);
   const [originalName, setOriginalName] = useState<string>("Nouveau programme");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -148,22 +152,44 @@ export default function AdminSingleProgramPage() {
     const original = program?.trainings.find((t) => t.id === id);
     if (!original || !program?.id) return;
 
+    const { data: trainingRow, error: trainingRowError } = await supabase
+      .from("trainings_admin")
+      .select("*")
+      .eq("id", id)
+      .single<TrainingsAdminRow>();
+
+    if (!trainingRow || trainingRowError) {
+      console.error("Erreur lors de la récupération de l'entraînement :", trainingRowError);
+      return;
+    }
+
+    const { id: _id, ...baseTraining } = trainingRow;
+    void _id;
+    const insertPayload: TrainingsAdminInsert = {
+      ...baseTraining,
+      name: `${trainingRow.name} (copie)`,
+      position: (trainingRow.position ?? 0) + 1,
+    };
+
     const { data } = await supabase
       .from("trainings_admin")
-      .insert({
-        ...original,
-        id: undefined,
-        name: original.name + " (copie)",
-        position: original.position + 1,
-      })
+      .insert([insertPayload])
       .select()
-      .single();
+      .single<TrainingsAdminRow>();
 
     if (!data) return;
 
     const updatedTrainings = [...program.trainings];
     const insertAt = original.position + 1;
-    updatedTrainings.splice(insertAt, 0, data);
+    const newTraining: Training = {
+      id: data.id,
+      name: data.name,
+      app: Boolean(data.app),
+      dashboard: Boolean(data.dashboard),
+      program_id: data.program_id ?? program.id,
+      position: data.position ?? 0,
+    };
+    updatedTrainings.splice(insertAt, 0, newTraining);
 
     setProgram({
       ...program,

@@ -6,11 +6,39 @@ import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
 import ShopPagination from "@/components/shop/ShopPagination";
 import { createClient } from "@/lib/supabaseClient";
+import type { Database } from "@/lib/supabase/types";
 import dynamic from "next/dynamic";
 
 const ShopBannerSlider = dynamic(() => import("@/components/ShopBannerSliderClient"), {
   ssr: false,
 });
+
+type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
+type OfferTypeRow = Pick<OfferRow, "type">;
+type OfferSportRow = Pick<OfferRow, "sport">;
+
+const parseOfferTypes = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string");
+      }
+
+      if (typeof parsed === "string") {
+        return [parsed];
+      }
+    } catch {
+      return value.split(",").map((entry: string) => entry.trim());
+    }
+  }
+
+  return [];
+};
 
 export default function ShopPage() {
   const [sortBy, setSortBy] = useState("newest");
@@ -28,49 +56,16 @@ export default function ShopPage() {
       const { data, error } = await supabase
         .from("offer_shop")
         .select("type")
-        .eq("status", "ON");
+        .eq("status", "ON")
+        .returns<OfferTypeRow[]>();
 
       if (error || !data) return;
 
       const allTypes: string[] = [];
 
       data.forEach((item) => {
-        const raw = item.type;
-
-        try {
-          let parsed: string[] = [];
-
-          if (Array.isArray(raw)) {
-            parsed = raw;
-          } else if (typeof raw === "string") {
-            try {
-              const firstParse = JSON.parse(raw);
-              if (Array.isArray(firstParse)) {
-                parsed = firstParse;
-              } else if (typeof firstParse === "string") {
-                try {
-                  parsed = JSON.parse(firstParse);
-                } catch {
-                  parsed = [firstParse];
-                }
-              } else {
-                parsed = [];
-              }
-            } catch {
-              parsed = raw.split(",").map((v) => v.trim());
-            }
-          }
-
-          if (Array.isArray(parsed)) {
-            parsed.forEach((v) => {
-              if (typeof v === "string") {
-                allTypes.push(v.trim());
-              }
-            });
-          }
-        } catch {
-          // skip
-        }
+        const parsed = parseOfferTypes(item.type);
+        allTypes.push(...parsed);
       });
 
       const uniqueTypes = [...new Set(allTypes)];
@@ -82,13 +77,14 @@ export default function ShopPage() {
       const { data, error } = await supabase
         .from("offer_shop")
         .select("sport")
-        .eq("status", "ON");
+        .eq("status", "ON")
+        .returns<OfferSportRow[]>();
 
       if (error || !data) return;
 
       const sports = data
         .map((item) => item.sport?.trim())
-        .filter((v) => v && v.length > 0);
+        .filter((v): v is string => Boolean(v && v.length > 0));
 
       const uniqueSports = [...new Set(sports)];
       setSportOptions(uniqueSports);

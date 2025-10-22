@@ -14,3 +14,4 @@ Thumbs.db
 
 # Ensure removed components stay untracked
 src/components/AddProgramButton.tsx
+tsconfig.tsbuildinfo

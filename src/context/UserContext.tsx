@@ -16,10 +16,10 @@ import { useSessionContext } from "@supabase/auth-helpers-react";
 // On étend ici le type Supabase User pour inclure user_metadata
 interface CustomUser extends User {
   user_metadata: {
-    name?: string;
-    is_admin?: boolean;
-    is_premium?: boolean;
-    subscription_plan?: string;
+    name?: string | null;
+    is_admin?: boolean | null;
+    is_premium?: boolean | null;
+    subscription_plan?: string | null;
     avatar_url?: string | null;
     avatar_path?: string | null;
     [key: string]: unknown;

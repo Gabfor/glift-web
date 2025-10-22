@@ -8,9 +8,13 @@ import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import type { Database } from "@/lib/supabase/types";
 
-type Program = {
-  id?: number;
+type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
+type ProgramInsert = Database["public"]["Tables"]["program_store"]["Insert"];
+type ProgramUpdate = Database["public"]["Tables"]["program_store"]["Update"];
+
+type ProgramFormState = {
   title: string;
   level: string;
   gender: string;
@@ -29,6 +33,63 @@ type Program = {
   goal: string;
 };
 
+const emptyProgram: ProgramFormState = {
+  title: "",
+  level: "",
+  gender: "",
+  duration: "",
+  sessions: 0,
+  description: "",
+  link: "",
+  image: "",
+  image_alt: "",
+  partner_image: "",
+  partner_image_alt: "",
+  partner_link: "",
+  linked_program_id: "",
+  partner_name: "",
+  status: "ON",
+  goal: "",
+};
+
+const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
+  title: row.title,
+  level: row.level ?? "",
+  gender: row.gender ?? "",
+  duration: row.duration ?? "",
+  sessions: row.sessions ?? 0,
+  description: row.description ?? "",
+  link: row.link ?? "",
+  image: row.image ?? "",
+  image_alt: row.image_alt ?? "",
+  partner_image: row.partner_image ?? "",
+  partner_image_alt: row.partner_image_alt ?? "",
+  partner_link: row.partner_link ?? "",
+  linked_program_id: row.linked_program_id ?? "",
+  partner_name: row.partner_name ?? "",
+  status: row.status ?? "ON",
+  goal: row.goal ?? "",
+});
+
+const buildProgramPayload = (form: ProgramFormState): ProgramInsert => ({
+  title: form.title,
+  level: form.level || null,
+  gender: form.gender || null,
+  duration: form.duration || null,
+  sessions: form.sessions,
+  description: form.description || null,
+  link: form.link || null,
+  image: form.image || null,
+  image_alt: form.image_alt || null,
+  partner_image: form.partner_image || null,
+  partner_image_alt: form.partner_image_alt || null,
+  partner_link: form.partner_link || null,
+  linked_program_id: form.linked_program_id || null,
+  partner_name: form.partner_name || null,
+  status: form.status,
+  goal: form.goal || null,
+});
+
 export default function CreateProgramPage() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
@@ -36,35 +97,18 @@ export default function CreateProgramPage() {
 
   const [loading, setLoading] = useState(true);
   const showLoader = useMinimumVisibility(loading);
-  const [programId, setProgramId] = useState<string | null>(null);
+  const [programId, setProgramId] = useState<number | null>(null);
 
-  const [program, setProgram] = useState<Omit<Program, "id">>({
-    title: "",
-    level: "",
-    gender: "",
-    duration: "",
-    sessions: 0,
-    description: "",
-    link: "",
-    image: "",
-    image_alt: "",
-    partner_image: "",
-    partner_image_alt: "",
-    partner_link: "",
-    linked_program_id: "",
-    partner_name: "",
-    status: "ON",
-    goal: "",
-  });
+  const [program, setProgram] = useState<ProgramFormState>(emptyProgram);
 
   const fetchProgram = useCallback(
-    async (id: string) => {
+    async (id: number) => {
       setLoading(true);
       const { data, error } = await supabase
         .from("program_store")
         .select("*")
         .eq("id", id)
-        .single();
+        .single<ProgramRow>();
 
       if (error) {
         console.error("Erreur lors de la récupération :", error);
@@ -73,43 +117,7 @@ export default function CreateProgramPage() {
       }
 
       if (data) {
-        const {
-          title,
-          level,
-          gender,
-          duration,
-          sessions,
-          description,
-          link,
-          image,
-          image_alt,
-          partner_image,
-          partner_image_alt,
-          partner_link,
-          linked_program_id,
-          partner_name,
-          status,
-          goal,
-        } = data;
-
-        setProgram({
-          title,
-          level,
-          gender,
-          duration,
-          sessions,
-          description,
-          link,
-          image,
-          image_alt,
-          partner_image,
-          partner_image_alt,
-          partner_link,
-          linked_program_id,
-          partner_name,
-          status,
-          goal,
-        });
+        setProgram(mapProgramRowToForm(data));
       }
 
       setLoading(false);
@@ -118,10 +126,16 @@ export default function CreateProgramPage() {
   );
 
   useEffect(() => {
-    const id = searchParams?.get("id");
-    if (id) {
-      setProgramId(id);
-      void fetchProgram(id);
+    const idParam = searchParams?.get("id");
+    if (idParam) {
+      const numericId = Number(idParam);
+      if (!Number.isNaN(numericId)) {
+        setProgramId(numericId);
+        void fetchProgram(numericId);
+      } else {
+        console.warn("Identifiant de programme invalide :", idParam);
+        setLoading(false);
+      }
       return;
     }
 
@@ -130,10 +144,13 @@ export default function CreateProgramPage() {
 
   const handleSave = async () => {
     if (programId) {
+      const updatePayload: ProgramUpdate = {
+        ...buildProgramPayload(program),
+      };
       // UPDATE
       const { error } = await supabase
         .from("program_store")
-        .update(program)
+        .update(updatePayload)
         .eq("id", programId);
 
       if (error) {
@@ -143,10 +160,11 @@ export default function CreateProgramPage() {
         router.push("/admin/program-store");
       }
     } else {
+      const insertPayload = buildProgramPayload(program);
       // INSERT
       const { error } = await supabase
         .from("program_store")
-        .insert([program]);
+        .insert([insertPayload]);
 
       if (error) {
         console.error("Erreur lors de la création :", error);

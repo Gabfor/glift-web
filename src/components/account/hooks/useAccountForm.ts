@@ -211,7 +211,7 @@ const useSuccessMessages = (params: {
   values: FormValues
   initialFlat: FlatValues
   isBirthDateValid: boolean
-  successRef: MutableRefObject<Record<string, string>>
+  successRef: MutableRefObject<SuccessMessages>
   suppress: boolean
 }): SuccessMessages => {
   const {
@@ -227,7 +227,7 @@ const useSuccessMessages = (params: {
   return useMemo(() => {
     if (suppress) return {}
 
-    const next: Record<string, string> = { ...successRef.current }
+    const next: SuccessMessages = { ...successRef.current }
 
     if (latchedTouched.gender && values.gender && values.gender !== initialFlat.gender) {
       next.gender =
@@ -364,7 +364,7 @@ export const useAccountForm = (user: User | null) => {
   const [resetCounter, setResetCounter] = useState(0)
   const latchedTouched = useLatchedTouched(touched, resetCounter)
 
-  const successRef = useRef<Record<string, string>>({})
+  const successRef = useRef<SuccessMessages>({})
   const [suppressSuccess, setSuppressSuccess] = useState(false)
   const [isEditingName, setIsEditingName] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -538,8 +538,8 @@ export const useAccountForm = (user: User | null) => {
 
       if (updateError) throw updateError
 
-      const metadataPatch = { ...profilePatch }
-      delete metadataPatch.id
+      const { id: _profileId, ...metadataPatch } = profilePatch
+      void _profileId
       const { error: metadataUpdateError } = await supabase.auth.updateUser({
         data: { name: trimmedName },
       })

@@ -5,13 +5,37 @@ import ShopCard from "@/components/shop/ShopCard";
 import GliftLoader from "@/components/ui/GliftLoader";
 import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import type { Database } from "@/lib/supabase/types";
+
+type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
+type OfferQueryRow = Pick<
+  OfferRow,
+  |
+    "id"
+    | "name"
+    | "start_date"
+    | "end_date"
+    | "type"
+    | "code"
+    | "image"
+    | "image_alt"
+    | "brand_image"
+    | "brand_image_alt"
+    | "shop"
+    | "shop_website"
+    | "shop_link"
+    | "shipping"
+    | "premium"
+    | "modal"
+    | "condition"
+>;
 
 type Offer = {
   id: number;
   name: string;
   start_date: string;
   end_date: string;
-  type: string[] | string;
+  type: string[];
   code: string;
   image: string;
   image_alt: string;
@@ -21,10 +45,49 @@ type Offer = {
   shop_website?: string;
   shop_link?: string;
   shipping?: string;
-  premium?: boolean;
+  premium: boolean;
   modal?: string;
   condition?: string;
 };
+
+const parseOfferTypes = (value: unknown): string[] => {
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === "string");
+  }
+
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((item): item is string => typeof item === "string");
+      }
+    } catch {
+      return value.split(",").map((item: string) => item.trim());
+    }
+  }
+
+  return [];
+};
+
+const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
+  id: row.id,
+  name: row.name,
+  start_date: row.start_date ?? "",
+  end_date: row.end_date ?? "",
+  type: parseOfferTypes(row.type),
+  code: row.code ?? "",
+  image: row.image,
+  image_alt: row.image_alt ?? "",
+  brand_image: row.brand_image ?? "",
+  brand_image_alt: row.brand_image_alt ?? "",
+  shop: row.shop ?? "",
+  shop_website: row.shop_website ?? "",
+  shop_link: row.shop_link ?? "",
+  shipping: row.shipping ?? "",
+  premium: Boolean(row.premium),
+  modal: row.modal ?? "",
+  condition: row.condition ?? "",
+});
 
 export default function ShopGrid({
   sortBy,
@@ -98,21 +161,25 @@ export default function ShopGrid({
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
 
-      const { data, error } = await finalQuery.range(start, end);
-
-      if (sortBy === "expiration" && data) {
-        data.sort((a, b) => {
-          if (!a.end_date && !b.end_date) return 0;
-          if (!a.end_date) return 1;
-          if (!b.end_date) return -1;
-          return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
-        });
-      }
+      const { data, error } = await finalQuery
+        .range(start, end)
+        .returns<OfferQueryRow[]>();
 
       if (error) {
         console.error("Erreur Supabase :", error.message);
       } else {
-        setOffers(data || []);
+        const normalized = (data ?? []).map(mapOfferRowToOffer);
+
+        if (sortBy === "expiration") {
+          normalized.sort((a, b) => {
+            if (!a.end_date && !b.end_date) return 0;
+            if (!a.end_date) return 1;
+            if (!b.end_date) return -1;
+            return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+          });
+        }
+
+        setOffers(normalized);
       }
 
       setLoading(false);
@@ -122,23 +189,11 @@ export default function ShopGrid({
   }, [sortBy, currentPage, filters]);
 
   const filteredOffers = offers
-    .filter((offer) => !!offer.image)
+    .filter((offer) => Boolean(offer.image))
     .filter((offer) => {
       if (!filters[1]) return true;
 
-      let parsed: string[] = [];
-
-      try {
-        if (Array.isArray(offer.type)) {
-          parsed = offer.type;
-        } else if (typeof offer.type === "string") {
-          parsed = JSON.parse(offer.type);
-        }
-      } catch {
-        parsed = [];
-      }
-
-      return parsed.some((t) =>
+      return offer.type.some((t) =>
         t.toLowerCase().includes(filters[1].toLowerCase())
       );
     });
@@ -153,22 +208,7 @@ export default function ShopGrid({
 
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
           {filteredOffers.map((offer) => (
-            <ShopCard
-              key={offer.id}
-              offer={{
-                ...offer,
-                type: Array.isArray(offer.type)
-                  ? offer.type
-                  : (() => {
-                      try {
-                        const parsed = JSON.parse(offer.type || "[]");
-                        return Array.isArray(parsed) ? parsed : [parsed];
-                      } catch {
-                        return [];
-                      }
-                    })(),
-              }}
-            />
+            <ShopCard key={offer.id} offer={offer} />
           ))}
         </div>
 

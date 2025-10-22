@@ -8,6 +8,7 @@ import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import type { Database } from "@/lib/supabase/types";
 
 const sliderTypeOptions = [
   { value: "none", label: "Aucun slider" },
@@ -27,6 +28,31 @@ const sliderDoubleOptions = [
   { value: "6", label: "6 sliders" },
 ];
 
+type SliderRow = Database["public"]["Tables"]["sliders_admin"]["Row"];
+type SliderInsert = Database["public"]["Tables"]["sliders_admin"]["Insert"];
+type SliderUpdate = Database["public"]["Tables"]["sliders_admin"]["Update"];
+
+type Slide = {
+  image: string;
+  alt: string;
+  link: string;
+};
+
+const emptySlide: Slide = { image: "", alt: "", link: "" };
+
+const normalizeSlide = (value: unknown): Slide => {
+  if (typeof value === "object" && value !== null && !Array.isArray(value)) {
+    const record = value as Record<string, unknown>;
+    return {
+      image: typeof record.image === "string" ? record.image : "",
+      alt: typeof record.alt === "string" ? record.alt : "",
+      link: typeof record.link === "string" ? record.link : "",
+    };
+  }
+
+  return { ...emptySlide };
+};
+
 export default function AdminSliderPage() {
   const supabase = useMemo(() => createClient(), []);
 
@@ -34,25 +60,42 @@ export default function AdminSliderPage() {
   const showLoader = useMinimumVisibility(loading);
   const [type, setType] = useState("none");
   const [count, setCount] = useState("1");
-  const [slides, setSlides] = useState(
-    Array.from({ length: 6 }, () => ({ image: "", alt: "", link: "" }))
+  const [slides, setSlides] = useState<Slide[]>(
+    Array.from({ length: 6 }, () => ({ ...emptySlide }))
   );
 
   const fetchSliderConfig = useCallback(async () => {
-    const { data } = await supabase.from("sliders_admin").select("*").single();
-    if (data) {
-      setType(data.type || "none");
-      setCount(String(data.slide_count || data.slides?.length || "1"));
-      setSlides(
-        [...(data.slides || []), {}, {}, {}, {}, {}, {}]
-          .slice(0, 6)
-          .map((slide) => ({
-            image: slide.image || "",
-            alt: slide.alt || "",
-            link: slide.link || "",
-          }))
-      );
+    const { data, error } = await supabase
+      .from("sliders_admin")
+      .select("*")
+      .maybeSingle<SliderRow>();
+
+    if (error) {
+      console.error("Erreur select sliders_admin :", error);
+      setLoading(false);
+      return;
     }
+
+    if (data) {
+      setType(data.type ?? "none");
+
+      const slidesValue = Array.isArray(data.slides) ? data.slides : [];
+      const normalizedSlides = slidesValue.map(normalizeSlide);
+      const paddedSlides = [
+        ...normalizedSlides,
+        ...Array.from({ length: 6 }, () => ({ ...emptySlide })),
+      ].slice(0, 6);
+
+      setSlides(paddedSlides);
+      setCount(
+        String(normalizedSlides.length > 0 ? normalizedSlides.length : 1),
+      );
+    } else {
+      setType("none");
+      setCount("1");
+      setSlides(Array.from({ length: 6 }, () => ({ ...emptySlide })));
+    }
+
     setLoading(false);
   }, [supabase]);
 
@@ -78,19 +121,20 @@ export default function AdminSliderPage() {
   const handleSave = async () => {
     setLoading(true);
 
-    const trimmedSlides = slides.slice(0, Number(count)).map((slide) => ({
-      image: slide.image || "",
-      alt: slide.alt || "",
-      link: slide.link || "",
-    }));
+    const effectiveCount = type === "none" ? 0 : Number(count);
+    const trimmedSlides = slides.slice(0, Math.max(0, effectiveCount)).map(
+      (slide) => ({
+        image: slide.image || "",
+        alt: slide.alt || "",
+        link: slide.link || "",
+      }),
+    );
 
-    const payload = {
+    const slidesPayload = trimmedSlides as unknown as SliderInsert["slides"];
+    const payload: SliderInsert = {
       type,
-      slide_count: Number(count),
-      slides: trimmedSlides,
+      slides: slidesPayload,
     };
-
-    console.log("Payload envoyé à Supabase :", payload);
 
     const { data: existing, error } = await supabase
       .from("sliders_admin")
@@ -107,9 +151,9 @@ export default function AdminSliderPage() {
     const { error: saveError } = existing?.id
       ? await supabase
           .from("sliders_admin")
-          .update(payload)
+          .update({ ...payload } as SliderUpdate)
           .eq("id", existing.id)
-      : await supabase.from("sliders_admin").insert(payload);
+      : await supabase.from("sliders_admin").insert([payload]);
 
     if (saveError) {
       console.error("Erreur sauvegarde slider :", saveError);

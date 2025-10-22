@@ -9,6 +9,14 @@ import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import Tooltip from "@/components/Tooltip";
 import SearchBar from "@/components/SearchBar";
+import type { Database } from "@/lib/supabase/types";
+
+type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
+type OfferInsert = Database["public"]["Tables"]["offer_shop"]["Insert"];
+type OfferListRow = Pick<
+  OfferRow,
+  "id" | "name" | "created_at" | "start_date" | "end_date" | "shop" | "code" | "status" | "click_count"
+>;
 
 type Offer = {
   id: number;
@@ -22,12 +30,34 @@ type Offer = {
   click_count: number;
 };
 
+const mapOfferRowToListItem = (row: OfferListRow): Offer => ({
+  id: row.id,
+  name: row.name,
+  created_at: row.created_at ?? "",
+  start_date: row.start_date ?? "",
+  end_date: row.end_date ?? "",
+  shop: row.shop ?? "",
+  code: row.code ?? "",
+  status: row.status,
+  click_count: row.click_count,
+});
+
+type SortableColumn =
+  | "created_at"
+  | "status"
+  | "start_date"
+  | "end_date"
+  | "name"
+  | "code"
+  | "shop"
+  | "click_count";
+
 export default function OfferShopPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<string>("created_at");
+  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const router = useRouter();
@@ -43,10 +73,17 @@ export default function OfferShopPage() {
     const { data, error } = await supabase
       .from("offer_shop")
       .select(`id, name, created_at, start_date, end_date, shop, code, status, click_count`)
-      .order(sortBy, { ascending: sortDirection === "asc" });
+      .order(sortBy, { ascending: sortDirection === "asc" })
+      .returns<OfferListRow[]>();
 
-    if (error) console.error("Erreur Supabase:", error);
-    else setOffers(data as Offer[]);
+    if (error) {
+      console.error("Erreur Supabase:", error);
+    } else {
+      const mappedOffers = (data ?? []).map((row) =>
+        mapOfferRowToListItem(row)
+      );
+      setOffers(mappedOffers);
+    }
 
     setSelectedIds([]);
     setShowActionsBar(false);
@@ -57,9 +94,13 @@ export default function OfferShopPage() {
     fetchOffers();
   }, [fetchOffers]);
 
-  const handleSort = (column: string) => {
-    setSortBy(prev => (prev === column ? column : column));
-    setSortDirection(prev => (sortBy === column && prev === "asc" ? "desc" : "asc"));
+  const handleSort = (column: SortableColumn) => {
+    if (sortBy === column) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortDirection("asc");
+    }
   };
 
   const toggleCheckbox = (id: number) => {
@@ -93,16 +134,32 @@ export default function OfferShopPage() {
       .from("offer_shop")
       .select("*")
       .eq("id", idToDuplicate)
-      .single();
+      .single<OfferRow>();
 
-    if (!data || error) return;
+    if (!data || error) {
+      console.error("Erreur duplication:", error);
+      return;
+    }
 
-    const duplicated = { ...data };
-    delete duplicated.id;
-    duplicated.status = "OFF";
-    duplicated.created_at = new Date().toISOString();
+    const { id: _id, ...baseOffer } = data;
+    void _id;
+    const duplicated: OfferInsert = {
+      ...baseOffer,
+      status: "OFF",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      click_count: data.click_count,
+    };
 
-    await supabase.from("offer_shop").insert([duplicated]);
+    const { error: insertError } = await supabase
+      .from("offer_shop")
+      .insert([duplicated]);
+
+    if (insertError) {
+      console.error("Erreur insert duplication:", insertError);
+      return;
+    }
+
     fetchOffers();
   };
 
@@ -123,7 +180,11 @@ export default function OfferShopPage() {
 
   const handleAdd = () => router.push("/admin/create-offer");
 
-  const renderHeaderCell = (label: string, column: string, className = "") => {
+  const renderHeaderCell = (
+    label: string,
+    column: SortableColumn,
+    className = "",
+  ) => {
     const isActive = sortBy === column;
     const isAscending = sortDirection === "asc";
     const icon = isActive ? ChevronIcon : ChevronGreyIcon;
