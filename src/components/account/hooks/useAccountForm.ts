@@ -538,14 +538,14 @@ export const useAccountForm = (user: User | null) => {
 
       if (updateError) throw updateError
 
-      const { id: _profileId, ...metadataPatch } = profilePatch
+      const { id: _profileId } = profilePatch
       void _profileId
       const { error: metadataUpdateError } = await supabase.auth.updateUser({
         data: { name: trimmedName },
       })
 
       if (metadataUpdateError) throw metadataUpdateError
-      updateUserMetadata(metadataPatch)
+      updateUserMetadata({ name: trimmedName })
 
       setProfile((prev) => ({ ...(prev ?? {}), ...profilePatch }))
 
