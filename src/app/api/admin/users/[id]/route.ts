@@ -30,7 +30,7 @@ const pickString = (
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id?: string } },
+  context: { params: Promise<{ id?: string }> },
 ) {
   try {
     const adminCheck = await ensureAdmin();
@@ -42,7 +42,7 @@ export async function GET(
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await context.params;
 
     if (!userId) {
       return NextResponse.json(
@@ -149,7 +149,7 @@ type UpdatePayload = {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id?: string } },
+  context: { params: Promise<{ id?: string }> },
 ) {
   try {
     const adminCheck = await ensureAdmin();
@@ -161,7 +161,7 @@ export async function PUT(
       );
     }
 
-    const userId = params.id;
+    const { id: userId } = await context.params;
 
     if (!userId) {
       return NextResponse.json(
