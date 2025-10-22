@@ -272,11 +272,53 @@ export async function PATCH(request: NextRequest) {
     );
 
     if (error) {
-      console.error("[admin/users] failed to update verification status", error);
-      return NextResponse.json(
-        { error: "update-status" },
-        { status: 500 },
-      );
+      if (error.code === "PGRST202") {
+        console.warn(
+          "[admin/users] admin_set_user_email_verification missing, falling back to admin API",
+          error,
+        );
+
+        const { error: authUpdateError } = await adminClient.auth.admin.updateUserById(
+          body.id,
+          { email_confirm: verified },
+        );
+
+        if (authUpdateError) {
+          console.error(
+            "[admin/users] failed to update auth email verification status",
+            authUpdateError,
+          );
+          return NextResponse.json(
+            { error: "update-status" },
+            { status: 500 },
+          );
+        }
+
+        const { error: profileUpdateError } = await adminClient
+          .from("profiles")
+          .update({
+            email_verified: verified,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", body.id);
+
+        if (profileUpdateError) {
+          console.error(
+            "[admin/users] failed to update profile verification status",
+            profileUpdateError,
+          );
+          return NextResponse.json(
+            { error: "update-status" },
+            { status: 500 },
+          );
+        }
+      } else {
+        console.error("[admin/users] failed to update verification status", error);
+        return NextResponse.json(
+          { error: "update-status" },
+          { status: 500 },
+        );
+      }
     }
 
     return NextResponse.json({ success: true });
