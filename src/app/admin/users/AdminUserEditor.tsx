@@ -172,6 +172,9 @@ export default function AdminUserEditor({ userId }: Props) {
     [form, initialForm],
   );
 
+  const formContainerClass = "w-full max-w-[768px]";
+  const fieldWrapperClass = "flex w-full justify-center md:justify-start";
+
   const resetState = useCallback(() => {
     setForm(EMPTY_FORM);
     setInitialForm(null);
@@ -368,168 +371,202 @@ export default function AdminUserEditor({ userId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center gap-6">
+      <div className="flex w-full flex-col items-center gap-6 px-4">
         <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
           Modifier un utilisateur
         </h2>
-        <div className="flex w-[368px] flex-col gap-4">
-          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
+        <div
+          className={`${formContainerClass} grid grid-cols-1 place-items-center gap-4 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
+        >
+          {Array.from({ length: 10 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-[45px] w-[368px] rounded-[5px] bg-[#ECE9F1]"
+            />
+          ))}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex w-full flex-col items-center gap-6 px-4">
       <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
         Modifier un utilisateur
       </h2>
 
       {error && (
-        <div className="w-[368px] rounded-[8px] bg-[#FFE3E3] px-4 py-3 text-[14px] font-semibold text-[#EF4F4E]">
+        <div
+          className={`${formContainerClass} rounded-[8px] bg-[#FFE3E3] px-4 py-3 text-center text-[14px] font-semibold text-[#EF4F4E] md:text-left`}
+        >
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex w-full flex-col items-center gap-6">
-        <TextField
-          label="Prénom"
-          value={form.name}
-          onChange={(value) => {
-            updateField("name", value);
-          }}
-        />
+      <form
+        onSubmit={handleSubmit}
+        className={`${formContainerClass} grid grid-cols-1 place-items-center gap-6 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
+      >
+        <div className={fieldWrapperClass}>
+          <TextField
+            label="Prénom"
+            value={form.name}
+            onChange={(value) => {
+              updateField("name", value);
+            }}
+          />
+        </div>
 
-        <TextField
-          label="Email"
-          value={form.email}
-          onChange={(value) => {
-            updateField("email", value);
-          }}
-        />
+        <div className={fieldWrapperClass}>
+          <TextField
+            label="Email"
+            value={form.email}
+            onChange={(value) => {
+              updateField("email", value);
+            }}
+          />
+        </div>
 
-        <ToggleField
-          label="Sexe"
-          value={form.gender}
-          options={Array.from(GENDER_OPTIONS)}
-          onChange={(value) => {
-            updateField("gender", value);
-            setFieldTouchedValue("gender", true);
-          }}
-          touched={fieldTouched.gender}
-          setTouched={() => setFieldTouchedValue("gender", true)}
-        />
+        <div className={fieldWrapperClass}>
+          <ToggleField
+            label="Sexe"
+            value={form.gender}
+            options={Array.from(GENDER_OPTIONS)}
+            onChange={(value) => {
+              updateField("gender", value);
+              setFieldTouchedValue("gender", true);
+            }}
+            touched={fieldTouched.gender}
+            setTouched={() => setFieldTouchedValue("gender", true)}
+          />
+        </div>
 
-        <BirthDateField
-          birthDay={form.birthDay}
-          birthMonth={form.birthMonth}
-          birthYear={form.birthYear}
-          setBirthDay={(value) => {
-            updateField("birthDay", value);
-            setBirthTouched((current) => ({ ...current, birthDay: true }));
-          }}
-          setBirthMonth={(value) => {
-            updateField("birthMonth", value);
-            setBirthTouched((current) => ({ ...current, birthMonth: true }));
-          }}
-          setBirthYear={(value) => {
-            updateField("birthYear", value);
-            setBirthTouched((current) => ({ ...current, birthYear: true }));
-          }}
-          touched={birthTouched}
-          setTouched={(partial) =>
-            setBirthTouched((current) => ({ ...current, ...partial }))
-          }
-          successMessage=""
-          initialBirthDay={initialForm?.birthDay ?? ""}
-          initialBirthMonth={initialForm?.birthMonth ?? ""}
-          initialBirthYear={initialForm?.birthYear ?? ""}
-        />
+        <div className={fieldWrapperClass}>
+          <BirthDateField
+            birthDay={form.birthDay}
+            birthMonth={form.birthMonth}
+            birthYear={form.birthYear}
+            setBirthDay={(value) => {
+              updateField("birthDay", value);
+              setBirthTouched((current) => ({ ...current, birthDay: true }));
+            }}
+            setBirthMonth={(value) => {
+              updateField("birthMonth", value);
+              setBirthTouched((current) => ({ ...current, birthMonth: true }));
+            }}
+            setBirthYear={(value) => {
+              updateField("birthYear", value);
+              setBirthTouched((current) => ({ ...current, birthYear: true }));
+            }}
+            touched={birthTouched}
+            setTouched={(partial) =>
+              setBirthTouched((current) => ({ ...current, ...partial }))
+            }
+            successMessage=""
+            initialBirthDay={initialForm?.birthDay ?? ""}
+            initialBirthMonth={initialForm?.birthMonth ?? ""}
+            initialBirthYear={initialForm?.birthYear ?? ""}
+          />
+        </div>
 
-        <DropdownField
-          label="Pays de résidence"
-          placeholder="Sélectionnez un pays"
-          selected={form.country}
-          onSelect={(value) => {
-            updateField("country", value);
-            setFieldTouchedValue("country", true);
-          }}
-          options={COUNTRIES.map((country) => ({ value: country, label: country }))}
-          touched={fieldTouched.country}
-          setTouched={(next) => setFieldTouchedValue("country", next)}
-        />
+        <div className={fieldWrapperClass}>
+          <DropdownField
+            label="Pays de résidence"
+            placeholder="Sélectionnez un pays"
+            selected={form.country}
+            onSelect={(value) => {
+              updateField("country", value);
+              setFieldTouchedValue("country", true);
+            }}
+            options={COUNTRIES.map((country) => ({
+              value: country,
+              label: country,
+            }))}
+            touched={fieldTouched.country}
+            setTouched={(next) => setFieldTouchedValue("country", next)}
+          />
+        </div>
 
-        <ToggleField
-          label="Années de pratique"
-          value={form.experience}
-          options={Array.from(EXPERIENCE_OPTIONS)}
-          onChange={(value) => {
-            updateField("experience", value);
-            setFieldTouchedValue("experience", true);
-          }}
-          touched={fieldTouched.experience}
-          setTouched={() => setFieldTouchedValue("experience", true)}
-          variant="boxed"
-        />
+        <div className={fieldWrapperClass}>
+          <ToggleField
+            label="Années de pratique"
+            value={form.experience}
+            options={Array.from(EXPERIENCE_OPTIONS)}
+            onChange={(value) => {
+              updateField("experience", value);
+              setFieldTouchedValue("experience", true);
+            }}
+            touched={fieldTouched.experience}
+            setTouched={() => setFieldTouchedValue("experience", true)}
+            variant="boxed"
+          />
+        </div>
 
-        <DropdownField
-          label="Objectif principal"
-          placeholder="Sélectionnez un objectif"
-          selected={form.mainGoal}
-          onSelect={(value) => {
-            updateField("mainGoal", value);
-            setFieldTouchedValue("mainGoal", true);
-          }}
-          options={MAIN_GOALS.map((goal) => ({ value: goal, label: goal }))}
-          touched={fieldTouched.mainGoal}
-          setTouched={(next) => setFieldTouchedValue("mainGoal", next)}
-        />
+        <div className={fieldWrapperClass}>
+          <DropdownField
+            label="Objectif principal"
+            placeholder="Sélectionnez un objectif"
+            selected={form.mainGoal}
+            onSelect={(value) => {
+              updateField("mainGoal", value);
+              setFieldTouchedValue("mainGoal", true);
+            }}
+            options={MAIN_GOALS.map((goal) => ({ value: goal, label: goal }))}
+            touched={fieldTouched.mainGoal}
+            setTouched={(next) => setFieldTouchedValue("mainGoal", next)}
+          />
+        </div>
 
-        <ToggleField
-          label="Lieu d’entraînement"
-          value={form.trainingPlace}
-          options={Array.from(TRAINING_PLACES)}
-          onChange={(value) => {
-            updateField("trainingPlace", value);
-            setFieldTouchedValue("trainingPlace", true);
-          }}
-          touched={fieldTouched.trainingPlace}
-          setTouched={() => setFieldTouchedValue("trainingPlace", true)}
-        />
+        <div className={fieldWrapperClass}>
+          <ToggleField
+            label="Lieu d’entraînement"
+            value={form.trainingPlace}
+            options={Array.from(TRAINING_PLACES)}
+            onChange={(value) => {
+              updateField("trainingPlace", value);
+              setFieldTouchedValue("trainingPlace", true);
+            }}
+            touched={fieldTouched.trainingPlace}
+            setTouched={() => setFieldTouchedValue("trainingPlace", true)}
+          />
+        </div>
 
-        <ToggleField
-          label="Nombre de séances par semaine"
-          value={form.weeklySessions}
-          options={Array.from(WEEKLY_SESSIONS_OPTIONS)}
-          onChange={(value) => {
-            updateField("weeklySessions", value);
-            setFieldTouchedValue("weeklySessions", true);
-          }}
-          touched={fieldTouched.weeklySessions}
-          setTouched={() => setFieldTouchedValue("weeklySessions", true)}
-          variant="boxed"
-        />
+        <div className={fieldWrapperClass}>
+          <ToggleField
+            label="Nombre de séances par semaine"
+            value={form.weeklySessions}
+            options={Array.from(WEEKLY_SESSIONS_OPTIONS)}
+            onChange={(value) => {
+              updateField("weeklySessions", value);
+              setFieldTouchedValue("weeklySessions", true);
+            }}
+            touched={fieldTouched.weeklySessions}
+            setTouched={() => setFieldTouchedValue("weeklySessions", true)}
+            variant="boxed"
+          />
+        </div>
 
-        <ToggleField
-          label="Prise de compléments alimentaires"
-          value={form.supplements}
-          options={Array.from(SUPPLEMENTS_OPTIONS)}
-          onChange={(value) => {
-            updateField("supplements", value);
-            setFieldTouchedValue("supplements", true);
-          }}
-          touched={fieldTouched.supplements}
-          setTouched={() => setFieldTouchedValue("supplements", true)}
-        />
+        <div className={fieldWrapperClass}>
+          <ToggleField
+            label="Prise de compléments alimentaires"
+            value={form.supplements}
+            options={Array.from(SUPPLEMENTS_OPTIONS)}
+            onChange={(value) => {
+              updateField("supplements", value);
+              setFieldTouchedValue("supplements", true);
+            }}
+            touched={fieldTouched.supplements}
+            setTouched={() => setFieldTouchedValue("supplements", true)}
+          />
+        </div>
 
-        <SubmitButton
-          loading={saving}
-          disabled={!isDirty || saving}
-          label="Enregistrer"
-        />
+        <div className="flex w-full justify-center md:col-span-2">
+          <SubmitButton
+            loading={saving}
+            disabled={!isDirty || saving}
+            label="Enregistrer"
+          />
+        </div>
       </form>
     </div>
   );
