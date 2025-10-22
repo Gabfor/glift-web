@@ -8,6 +8,11 @@ type DeletePayload = {
   ids?: string[];
 };
 
+type UpdatePayload = {
+  id?: string;
+  verified?: boolean;
+};
+
 type AdminUserRow = {
   id: string;
   email: string;
@@ -218,6 +223,63 @@ export async function DELETE(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true, deleted: body.ids });
+  } catch (error: unknown) {
+    console.error("[admin/users] unexpected error", error);
+    const message = error instanceof Error ? error.message : undefined;
+    return NextResponse.json(
+      { error: message ?? "internal-error" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const adminCheck = await ensureAdmin();
+
+    if (adminCheck.status !== 200) {
+      return NextResponse.json(
+        { error: adminCheck.error },
+        { status: adminCheck.status },
+      );
+    }
+
+    const body = (await request.json().catch(() => null)) as UpdatePayload | null;
+
+    if (!body || typeof body.id !== "string" || body.id.trim() === "") {
+      return NextResponse.json(
+        { error: "missing-id" },
+        { status: 400 },
+      );
+    }
+
+    const verified = body.verified ?? true;
+
+    if (typeof verified !== "boolean") {
+      return NextResponse.json(
+        { error: "invalid-verified" },
+        { status: 400 },
+      );
+    }
+
+    const adminClient = createAdminClient();
+    const { error } = await adminClient.rpc(
+      "admin_set_user_email_verification",
+      {
+        target_user: body.id,
+        verified,
+      },
+    );
+
+    if (error) {
+      console.error("[admin/users] failed to update verification status", error);
+      return NextResponse.json(
+        { error: "update-status" },
+        { status: 500 },
+      );
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error: unknown) {
     console.error("[admin/users] unexpected error", error);
     const message = error instanceof Error ? error.message : undefined;

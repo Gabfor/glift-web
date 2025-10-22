@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 
 import SearchBar from "@/components/SearchBar";
-import { createClientComponentClient } from "@/lib/supabase/client";
-
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -155,7 +153,6 @@ type SortableColumn =
   | "status";
 
 export default function AdminUsersPage() {
-  const supabase = createClientComponentClient();
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -293,15 +290,29 @@ export default function AdminUsersPage() {
       return;
     }
 
-    const { error: statusError } = await supabase.rpc(
-      "admin_set_user_email_verification",
-      {
-        target_user: userId,
-        verified: true,
-      },
-    );
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: userId, verified: true }),
+      });
 
-    if (statusError) {
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        console.error(
+          "Mise à jour du statut impossible",
+          payload ?? response.statusText,
+        );
+
+        if (response.status === 401 || response.status === 403) {
+          setError("Vous n'avez pas la permission de mettre à jour ce statut.");
+        } else {
+          setError("Impossible de mettre à jour le statut de l'utilisateur.");
+        }
+
+        return;
+      }
+    } catch (statusError) {
       console.error("Mise à jour du statut impossible", statusError);
       setError("Impossible de mettre à jour le statut de l'utilisateur.");
       return;
