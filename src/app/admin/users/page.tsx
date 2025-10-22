@@ -289,13 +289,15 @@ export default function AdminUsersPage() {
       return;
     }
 
-    const nextStatus = !targetUser.email_verified;
+    if (targetUser.email_verified) {
+      return;
+    }
 
     const { error: statusError } = await supabase.rpc(
       "admin_set_user_email_verification",
       {
         target_user: userId,
-        verified: nextStatus,
+        verified: true,
       },
     );
 
@@ -307,7 +309,7 @@ export default function AdminUsersPage() {
 
     setUsers((current) =>
       current.map((user) =>
-        user.id === userId ? { ...user, email_verified: nextStatus } : user,
+        user.id === userId ? { ...user, email_verified: true } : user,
       ),
     );
     setError(null);
