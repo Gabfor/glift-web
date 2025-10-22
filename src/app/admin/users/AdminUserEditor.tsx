@@ -11,6 +11,11 @@ import {
   TRAINING_PLACES,
   WEEKLY_SESSIONS_OPTIONS,
 } from "@/components/account/constants";
+import BirthDateField from "@/components/account/fields/BirthDateField";
+import DropdownField from "@/components/account/fields/DropdownField";
+import SubmitButton from "@/components/account/fields/SubmitButton";
+import TextField from "@/components/account/fields/TextField";
+import ToggleField from "@/components/account/fields/ToggleField";
 
 type FormState = {
   name: string;
@@ -25,6 +30,22 @@ type FormState = {
   trainingPlace: string;
   weeklySessions: string;
   supplements: string;
+};
+
+type FieldTouchedState = {
+  gender: boolean;
+  country: boolean;
+  experience: boolean;
+  mainGoal: boolean;
+  trainingPlace: boolean;
+  weeklySessions: boolean;
+  supplements: boolean;
+};
+
+type BirthTouchedState = {
+  birthDay: boolean;
+  birthMonth: boolean;
+  birthYear: boolean;
 };
 
 const EMPTY_FORM: FormState = {
@@ -42,28 +63,21 @@ const EMPTY_FORM: FormState = {
   supplements: "",
 };
 
-const days = Array.from({ length: 31 }, (_, index) =>
-  String(index + 1).padStart(2, "0"),
-);
+const createInitialFieldTouched = (): FieldTouchedState => ({
+  gender: false,
+  country: false,
+  experience: false,
+  mainGoal: false,
+  trainingPlace: false,
+  weeklySessions: false,
+  supplements: false,
+});
 
-const months = [
-  { value: "01", label: "Janvier" },
-  { value: "02", label: "Février" },
-  { value: "03", label: "Mars" },
-  { value: "04", label: "Avril" },
-  { value: "05", label: "Mai" },
-  { value: "06", label: "Juin" },
-  { value: "07", label: "Juillet" },
-  { value: "08", label: "Août" },
-  { value: "09", label: "Septembre" },
-  { value: "10", label: "Octobre" },
-  { value: "11", label: "Novembre" },
-  { value: "12", label: "Décembre" },
-];
-
-const years = Array.from({ length: 100 }, (_, index) =>
-  String(new Date().getFullYear() - index),
-);
+const createInitialBirthTouched = (): BirthTouchedState => ({
+  birthDay: false,
+  birthMonth: false,
+  birthYear: false,
+});
 
 const pickString = (
   value: unknown,
@@ -140,13 +154,18 @@ type Props = {
   onClose: () => void;
 };
 
-export default function AdminUserEditor({ userId, onClose }: Props) {
+export default function AdminUserEditor({ userId }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState<FormState | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
+  const [fieldTouched, setFieldTouched] = useState<FieldTouchedState>(() =>
+    createInitialFieldTouched(),
+  );
+  const [birthTouched, setBirthTouched] = useState<BirthTouchedState>(() =>
+    createInitialBirthTouched(),
+  );
 
   const isDirty = useMemo(
     () => (initialForm ? !areFormsEqual(form, initialForm) : false),
@@ -157,8 +176,9 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
     setForm(EMPTY_FORM);
     setInitialForm(null);
     setError(null);
-    setSuccess(null);
     setLoading(true);
+    setFieldTouched(createInitialFieldTouched());
+    setBirthTouched(createInitialBirthTouched());
   }, []);
 
   useEffect(() => {
@@ -243,6 +263,8 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
 
         setForm(nextForm);
         setInitialForm(cloneForm(nextForm));
+        setFieldTouched(createInitialFieldTouched());
+        setBirthTouched(createInitialBirthTouched());
         setLoading(false);
         setError(null);
       } catch (fetchError) {
@@ -267,7 +289,14 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
   const updateField = useCallback(
     <K extends keyof FormState>(field: K, value: FormState[K]) => {
       setForm((current) => ({ ...current, [field]: value }));
-      setSuccess(null);
+      setError(null);
+    },
+    [],
+  );
+
+  const setFieldTouchedValue = useCallback(
+    <K extends keyof FieldTouchedState>(field: K, value: boolean) => {
+      setFieldTouched((current) => ({ ...current, [field]: value }));
     },
     [],
   );
@@ -287,7 +316,6 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
     setForm(trimmedForm);
     setSaving(true);
     setError(null);
-    setSuccess(null);
 
     try {
       if (!trimmedForm.name) {
@@ -324,7 +352,8 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
       }
 
       setInitialForm(cloneForm(trimmedForm));
-      setSuccess("Modifications enregistrées avec succès.");
+      setFieldTouched(createInitialFieldTouched());
+      setBirthTouched(createInitialBirthTouched());
     } catch (submitError) {
       console.error("[AdminUserEditor] submit failed", submitError);
       setError(
@@ -337,293 +366,171 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
     }
   };
 
-  const fieldLabelClass = "text-[16px] font-bold text-[#3A416F] mb-[6px]";
-  const inputClass =
-    "h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#3A416F] placeholder:text-[#C2BFC6] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] focus:border-transparent";
-
   if (loading) {
     return (
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-6">
         <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
           Modifier un utilisateur
         </h2>
-        <div className="w-full max-w-3xl rounded-[16px] bg-white p-8 shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-          <div className="space-y-4">
-            <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-            <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-            <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-            <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
-          </div>
+        <div className="flex w-[368px] flex-col gap-4">
+          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
+          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
+          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
+          <div className="h-[45px] rounded-[5px] bg-[#ECE9F1]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center">
-      <button
-        type="button"
-        onClick={onClose}
-        className="mb-6 self-start text-[14px] font-semibold text-[#7069FA] hover:text-[#3A416F]"
-      >
-        ← Retour à la liste
-      </button>
-
-      <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[30px]">
+    <div className="flex flex-col items-center gap-6">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
         Modifier un utilisateur
       </h2>
 
-      <div className="w-full max-w-3xl rounded-[16px] bg-white p-8 shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-        {error && (
-          <div className="mb-4 rounded-[8px] bg-[#FFE3E3] px-4 py-3 text-[14px] font-semibold text-[#EF4F4E]">
-            {error}
-          </div>
-        )}
+      {error && (
+        <div className="w-[368px] rounded-[8px] bg-[#FFE3E3] px-4 py-3 text-[14px] font-semibold text-[#EF4F4E]">
+          {error}
+        </div>
+      )}
 
-        {success && (
-          <div className="mb-4 rounded-[8px] bg-[#DCFAF1] px-4 py-3 text-[14px] font-semibold text-[#00B47D]">
-            {success}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="flex w-full flex-col items-center gap-6">
+        <TextField
+          label="Prénom"
+          value={form.name}
+          onChange={(value) => {
+            updateField("name", value);
+          }}
+        />
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            <div className="flex flex-col">
-              <label className={fieldLabelClass} htmlFor="name">
-                Prénom
-              </label>
-              <input
-                id="name"
-                className={inputClass}
-                value={form.name}
-                onChange={(event) => updateField("name", event.target.value)}
-                placeholder="Prénom"
-              />
-            </div>
+        <TextField
+          label="Email"
+          value={form.email}
+          onChange={(value) => {
+            updateField("email", value);
+          }}
+        />
 
-            <div className="flex flex-col">
-              <label className={fieldLabelClass} htmlFor="email">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                className={inputClass}
-                value={form.email}
-                onChange={(event) => updateField("email", event.target.value)}
-                placeholder="email@example.com"
-              />
-            </div>
+        <ToggleField
+          label="Sexe"
+          value={form.gender}
+          options={Array.from(GENDER_OPTIONS)}
+          onChange={(value) => {
+            updateField("gender", value);
+            setFieldTouchedValue("gender", true);
+          }}
+          touched={fieldTouched.gender}
+          setTouched={() => setFieldTouchedValue("gender", true)}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Sexe</span>
-              <SegmentedToggle
-                options={GENDER_OPTIONS}
-                value={form.gender}
-                onChange={(value) => updateField("gender", value)}
-              />
-            </div>
+        <BirthDateField
+          birthDay={form.birthDay}
+          birthMonth={form.birthMonth}
+          birthYear={form.birthYear}
+          setBirthDay={(value) => {
+            updateField("birthDay", value);
+            setBirthTouched((current) => ({ ...current, birthDay: true }));
+          }}
+          setBirthMonth={(value) => {
+            updateField("birthMonth", value);
+            setBirthTouched((current) => ({ ...current, birthMonth: true }));
+          }}
+          setBirthYear={(value) => {
+            updateField("birthYear", value);
+            setBirthTouched((current) => ({ ...current, birthYear: true }));
+          }}
+          touched={birthTouched}
+          setTouched={(partial) =>
+            setBirthTouched((current) => ({ ...current, ...partial }))
+          }
+          successMessage=""
+          initialBirthDay={initialForm?.birthDay ?? ""}
+          initialBirthMonth={initialForm?.birthMonth ?? ""}
+          initialBirthYear={initialForm?.birthYear ?? ""}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Date de naissance</span>
-              <div className="flex gap-2">
-                <SelectField
-                  placeholder="Jour"
-                  options={days.map((day) => ({ value: day, label: day }))}
-                  value={form.birthDay}
-                  onChange={(value) => updateField("birthDay", value)}
-                />
-                <SelectField
-                  placeholder="Mois"
-                  options={months}
-                  value={form.birthMonth}
-                  onChange={(value) => updateField("birthMonth", value)}
-                />
-                <SelectField
-                  placeholder="Année"
-                  options={years.map((year) => ({ value: year, label: year }))}
-                  value={form.birthYear}
-                  onChange={(value) => updateField("birthYear", value)}
-                />
-              </div>
-            </div>
+        <DropdownField
+          label="Pays de résidence"
+          placeholder="Sélectionnez un pays"
+          selected={form.country}
+          onSelect={(value) => {
+            updateField("country", value);
+            setFieldTouchedValue("country", true);
+          }}
+          options={COUNTRIES.map((country) => ({ value: country, label: country }))}
+          touched={fieldTouched.country}
+          setTouched={(next) => setFieldTouchedValue("country", next)}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Pays de résidence</span>
-              <SelectField
-                placeholder="Sélectionner un pays"
-                options={COUNTRIES.map((country) => ({
-                  value: country,
-                  label: country,
-                }))}
-                value={form.country}
-                onChange={(value) => updateField("country", value)}
-              />
-            </div>
+        <ToggleField
+          label="Années de pratique"
+          value={form.experience}
+          options={Array.from(EXPERIENCE_OPTIONS)}
+          onChange={(value) => {
+            updateField("experience", value);
+            setFieldTouchedValue("experience", true);
+          }}
+          touched={fieldTouched.experience}
+          setTouched={() => setFieldTouchedValue("experience", true)}
+          variant="boxed"
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Années de pratique</span>
-              <SegmentedToggle
-                options={EXPERIENCE_OPTIONS}
-                value={form.experience}
-                onChange={(value) => updateField("experience", value)}
-                variant="boxed"
-              />
-            </div>
+        <DropdownField
+          label="Objectif principal"
+          placeholder="Sélectionnez un objectif"
+          selected={form.mainGoal}
+          onSelect={(value) => {
+            updateField("mainGoal", value);
+            setFieldTouchedValue("mainGoal", true);
+          }}
+          options={MAIN_GOALS.map((goal) => ({ value: goal, label: goal }))}
+          touched={fieldTouched.mainGoal}
+          setTouched={(next) => setFieldTouchedValue("mainGoal", next)}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Objectif principal</span>
-              <SelectField
-                placeholder="Sélectionner un objectif"
-                options={MAIN_GOALS.map((goal) => ({ value: goal, label: goal }))}
-                value={form.mainGoal}
-                onChange={(value) => updateField("mainGoal", value)}
-              />
-            </div>
+        <ToggleField
+          label="Lieu d’entraînement"
+          value={form.trainingPlace}
+          options={Array.from(TRAINING_PLACES)}
+          onChange={(value) => {
+            updateField("trainingPlace", value);
+            setFieldTouchedValue("trainingPlace", true);
+          }}
+          touched={fieldTouched.trainingPlace}
+          setTouched={() => setFieldTouchedValue("trainingPlace", true)}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Lieu d&apos;entraînement</span>
-              <SegmentedToggle
-                options={TRAINING_PLACES}
-                value={form.trainingPlace}
-                onChange={(value) => updateField("trainingPlace", value)}
-              />
-            </div>
+        <ToggleField
+          label="Nombre de séances par semaine"
+          value={form.weeklySessions}
+          options={Array.from(WEEKLY_SESSIONS_OPTIONS)}
+          onChange={(value) => {
+            updateField("weeklySessions", value);
+            setFieldTouchedValue("weeklySessions", true);
+          }}
+          touched={fieldTouched.weeklySessions}
+          setTouched={() => setFieldTouchedValue("weeklySessions", true)}
+          variant="boxed"
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Nombre de séances par semaine</span>
-              <SegmentedToggle
-                options={WEEKLY_SESSIONS_OPTIONS}
-                value={form.weeklySessions}
-                onChange={(value) => updateField("weeklySessions", value)}
-                variant="boxed"
-              />
-            </div>
+        <ToggleField
+          label="Prise de compléments alimentaires"
+          value={form.supplements}
+          options={Array.from(SUPPLEMENTS_OPTIONS)}
+          onChange={(value) => {
+            updateField("supplements", value);
+            setFieldTouchedValue("supplements", true);
+          }}
+          touched={fieldTouched.supplements}
+          setTouched={() => setFieldTouchedValue("supplements", true)}
+        />
 
-            <div className="flex flex-col">
-              <span className={fieldLabelClass}>Prise de compléments alimentaires</span>
-              <SegmentedToggle
-                options={SUPPLEMENTS_OPTIONS}
-                value={form.supplements}
-                onChange={(value) => updateField("supplements", value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-center pt-4">
-            <button
-              type="submit"
-              disabled={!isDirty || saving}
-              className={`h-[48px] rounded-[30px] px-8 text-[16px] font-semibold text-white transition-colors duration-150 ${
-                !isDirty || saving
-                  ? "bg-[#C2C1F0]"
-                  : "bg-[#7069FA] hover:bg-[#5B55E0]"
-              }`}
-            >
-              {saving ? "Enregistrement..." : "Enregistrer"}
-            </button>
-          </div>
-        </form>
-      </div>
+        <SubmitButton
+          loading={saving}
+          disabled={!isDirty || saving}
+          label="Enregistrer"
+        />
+      </form>
     </div>
-  );
-}
-
-type ToggleProps = {
-  options: readonly string[];
-  value: string;
-  onChange: (value: string) => void;
-  variant?: "segmented" | "boxed";
-};
-
-function SegmentedToggle({
-  options,
-  value,
-  onChange,
-  variant = "segmented",
-}: ToggleProps) {
-  if (variant === "segmented") {
-    return (
-      <div className="flex h-[45px]">
-        {options.map((option, index) => {
-          const selected = value === option;
-          const baseClasses =
-            "flex-1 border text-[16px] font-semibold transition-all duration-150";
-          const radiusClasses = `${
-            index === 0
-              ? "rounded-l-[5px]"
-              : index === options.length - 1
-              ? "rounded-r-[5px]"
-              : ""
-          }`;
-
-          return (
-            <button
-              key={option}
-              type="button"
-              onClick={() => onChange(selected ? "" : option)}
-              className={`${baseClasses} ${
-                index > 0 ? "-ml-px" : ""
-              } ${radiusClasses} ${
-                selected
-                  ? "bg-[#F2F1FF] text-[#3A416F] border-[#7069FA] z-10"
-                  : "bg-white text-[#D7D4DC] border-[#D7D4DC] hover:border-[#C2BFC6]"
-              }`}
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((option) => {
-        const selected = value === option;
-
-        return (
-          <button
-            key={option}
-            type="button"
-            onClick={() => onChange(selected ? "" : option)}
-            className={`h-[45px] min-w-[53px] rounded-[8px] border px-4 text-[16px] font-semibold transition-all duration-150 ${
-              selected
-                ? "bg-[#F2F1FF] text-[#3A416F] border-[#7069FA]"
-                : "bg-white text-[#D7D4DC] border-[#D7D4DC] hover:border-[#C2BFC6]"
-            }`}
-          >
-            {option}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-type SelectFieldProps = {
-  placeholder: string;
-  options: Array<{ value: string; label: string }>;
-  value: string;
-  onChange: (value: string) => void;
-};
-
-function SelectField({ placeholder, options, value, onChange }: SelectFieldProps) {
-  return (
-    <select
-      className="h-[45px] flex-1 rounded-[5px] border border-[#D7D4DC] bg-white px-[15px] text-[16px] font-semibold text-[#3A416F] focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] focus:border-transparent"
-      value={value}
-      onChange={(event) => onChange(event.target.value)}
-    >
-      <option value="">
-        {placeholder}
-      </option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
   );
 }
