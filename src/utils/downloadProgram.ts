@@ -1,4 +1,11 @@
 import { createClient } from "@/lib/supabaseClient";
+import type { Database } from "@/lib/supabase/types";
+
+type ProgramStoreRow = Database["public"]["Tables"]["program_store"]["Row"];
+type ProgramsAdminRow = Database["public"]["Tables"]["programs_admin"]["Row"];
+type TrainingsAdminRow = Database["public"]["Tables"]["trainings_admin"]["Row"];
+type TrainingRowsAdminRow =
+  Database["public"]["Tables"]["training_rows_admin"]["Row"];
 
 /**
  * Télécharge un programme depuis `program_store` en copiant les données sources
@@ -24,7 +31,7 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
     .from("program_store")
     .select("linked_program_id")
     .eq("id", storeProgramId)
-    .single();
+    .single<Pick<ProgramStoreRow, "linked_program_id">>();
 
   if (storeError || !storeProgram?.linked_program_id) {
     console.error("Impossible de retrouver le linked_program_id :", storeError);
@@ -39,7 +46,7 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
     .from("programs_admin")
     .select("*")
     .eq("id", linkedProgramId)
-    .single();
+    .single<ProgramsAdminRow>();
 
   if (programError || !programToCopy) {
     console.error("Erreur programme admin :", programError);
@@ -94,7 +101,8 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
   const { data: adminTrainings, error: trainingsError } = await supabase
     .from("trainings_admin")
     .select("*")
-    .eq("program_id", linkedProgramId);
+    .eq("program_id", linkedProgramId)
+    .returns<TrainingsAdminRow[]>();
 
   if (trainingsError || !adminTrainings) {
     console.error("Erreur trainings_admin :", trainingsError);
@@ -136,13 +144,14 @@ export async function downloadProgram(storeProgramId: number): Promise<string | 
   console.log("🧩 TrainingMapping (admin ➜ user) :", trainingMapping);
   console.log("🔍 IDs à chercher dans training_rows_admin :", adminTrainingIds);
 
-  let rowsToCopy = [];
+  let rowsToCopy: TrainingRowsAdminRow[] = [];
 
   if (adminTrainingIds.length > 0) {
     const { data, error } = await supabase
       .from("training_rows_admin")
       .select("*")
-      .in("training_id", adminTrainingIds);
+      .in("training_id", adminTrainingIds)
+      .returns<TrainingRowsAdminRow[]>();
 
     if (error) {
       console.error("❌ Erreur récupération training_rows_admin :", error);

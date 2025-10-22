@@ -104,12 +104,347 @@ export interface Database {
         };
         Relationships: never[];
       };
+      offer_shop: {
+        Row: {
+          id: number;
+          start_date: Nullable<string>;
+          end_date: Nullable<string>;
+          name: string;
+          image: string;
+          image_alt: Nullable<string>;
+          brand_image: Nullable<string>;
+          brand_image_alt: Nullable<string>;
+          shop: Nullable<string>;
+          shop_website: Nullable<string>;
+          shop_link: Nullable<string>;
+          type: Nullable<string[]>;
+          code: Nullable<string>;
+          gender: Nullable<string>;
+          shipping: Nullable<string>;
+          modal: Nullable<string>;
+          status: string;
+          premium: boolean;
+          created_at: Nullable<string>;
+          updated_at: Nullable<string>;
+          click_count: number;
+          sport: Nullable<string>;
+          condition: Nullable<string>;
+        };
+        Insert: {
+          id?: number;
+          start_date?: Nullable<string>;
+          end_date?: Nullable<string>;
+          name: string;
+          image: string;
+          image_alt?: Nullable<string>;
+          brand_image?: Nullable<string>;
+          brand_image_alt?: Nullable<string>;
+          shop?: Nullable<string>;
+          shop_website?: Nullable<string>;
+          shop_link?: Nullable<string>;
+          type?: Nullable<string[]>;
+          code?: Nullable<string>;
+          gender?: Nullable<string>;
+          shipping?: Nullable<string>;
+          modal?: Nullable<string>;
+          status?: string;
+          premium?: boolean;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+          click_count?: number;
+          sport?: Nullable<string>;
+          condition?: Nullable<string>;
+        };
+        Update: {
+          id?: number;
+          start_date?: Nullable<string>;
+          end_date?: Nullable<string>;
+          name?: string;
+          image?: string;
+          image_alt?: Nullable<string>;
+          brand_image?: Nullable<string>;
+          brand_image_alt?: Nullable<string>;
+          shop?: Nullable<string>;
+          shop_website?: Nullable<string>;
+          shop_link?: Nullable<string>;
+          type?: Nullable<string[]>;
+          code?: Nullable<string>;
+          gender?: Nullable<string>;
+          shipping?: Nullable<string>;
+          modal?: Nullable<string>;
+          status?: string;
+          premium?: boolean;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+          click_count?: number;
+          sport?: Nullable<string>;
+          condition?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
+      program_store: {
+        Row: {
+          id: number;
+          image: Nullable<string>;
+          title: string;
+          partner_image: Nullable<string>;
+          partner_link: Nullable<string>;
+          level: Nullable<string>;
+          sessions: number;
+          duration: Nullable<string>;
+          description: Nullable<string>;
+          link: Nullable<string>;
+          created_at: Nullable<string>;
+          image_alt: Nullable<string>;
+          gender: Nullable<string>;
+          partner_image_alt: Nullable<string>;
+          linked_program_id: Nullable<string>;
+          status: string;
+          partner_name: Nullable<string>;
+          downloads: number;
+          actifs: number;
+          goal: Nullable<string>;
+          created_by: Nullable<string>;
+          is_active: boolean;
+          updated_at: Nullable<string>;
+        };
+        Insert: {
+          id?: number;
+          image?: Nullable<string>;
+          title: string;
+          partner_image?: Nullable<string>;
+          partner_link?: Nullable<string>;
+          level?: Nullable<string>;
+          sessions?: number;
+          duration?: Nullable<string>;
+          description?: Nullable<string>;
+          link?: Nullable<string>;
+          created_at?: Nullable<string>;
+          image_alt?: Nullable<string>;
+          gender?: Nullable<string>;
+          partner_image_alt?: Nullable<string>;
+          linked_program_id?: Nullable<string>;
+          status?: string;
+          partner_name?: Nullable<string>;
+          downloads?: number;
+          actifs?: number;
+          goal?: Nullable<string>;
+          created_by?: Nullable<string>;
+          is_active?: boolean;
+          updated_at?: Nullable<string>;
+        };
+        Update: {
+          id?: number;
+          image?: Nullable<string>;
+          title?: string;
+          partner_image?: Nullable<string>;
+          partner_link?: Nullable<string>;
+          level?: Nullable<string>;
+          sessions?: number;
+          duration?: Nullable<string>;
+          description?: Nullable<string>;
+          link?: Nullable<string>;
+          created_at?: Nullable<string>;
+          image_alt?: Nullable<string>;
+          gender?: Nullable<string>;
+          partner_image_alt?: Nullable<string>;
+          linked_program_id?: Nullable<string>;
+          status?: string;
+          partner_name?: Nullable<string>;
+          downloads?: number;
+          actifs?: number;
+          goal?: Nullable<string>;
+          created_by?: Nullable<string>;
+          is_active?: boolean;
+          updated_at?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
+      programs_admin: {
+        Row: {
+          id: string;
+          user_id: Nullable<string>;
+          name: string;
+          created_at: Nullable<string>;
+          position: Nullable<number>;
+          linked: Nullable<string>;
+          created_by: Nullable<string>;
+        };
+        Insert: {
+          id?: string;
+          user_id?: Nullable<string>;
+          name: string;
+          created_at?: Nullable<string>;
+          position?: Nullable<number>;
+          linked?: Nullable<string>;
+          created_by?: Nullable<string>;
+        };
+        Update: {
+          id?: string;
+          user_id?: Nullable<string>;
+          name?: string;
+          created_at?: Nullable<string>;
+          position?: Nullable<number>;
+          linked?: Nullable<string>;
+          created_by?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
+      trainings_admin: {
+        Row: {
+          id: string;
+          name: string;
+          user_id: string;
+          program_id: Nullable<string>;
+          position: Nullable<number>;
+          columns_settings: Nullable<string>;
+          app: boolean;
+          dashboard: boolean;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          user_id: string;
+          program_id?: Nullable<string>;
+          position?: Nullable<number>;
+          columns_settings?: Nullable<string>;
+          app?: boolean;
+          dashboard?: boolean;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          user_id?: string;
+          program_id?: Nullable<string>;
+          position?: Nullable<number>;
+          columns_settings?: Nullable<string>;
+          app?: boolean;
+          dashboard?: boolean;
+        };
+        Relationships: never[];
+      };
+      training_rows_admin: {
+        Row: {
+          id: string;
+          training_id: string;
+          user_id: string;
+          order: number;
+          series: number;
+          repetitions: string[];
+          poids: string[];
+          repos: string;
+          effort: string[];
+          checked: boolean;
+          created_at: Nullable<string>;
+          updated_at: Nullable<string>;
+          exercice: string;
+          materiel: string;
+          superset_id: Nullable<string>;
+          link: Nullable<string>;
+          note: Nullable<string>;
+          position: Nullable<number>;
+        };
+        Insert: {
+          id?: string;
+          training_id: string;
+          user_id: string;
+          order: number;
+          series: number;
+          repetitions: string[];
+          poids: string[];
+          repos: string;
+          effort: string[];
+          checked?: boolean;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+          exercice?: string;
+          materiel?: string;
+          superset_id?: Nullable<string>;
+          link?: Nullable<string>;
+          note?: Nullable<string>;
+          position?: Nullable<number>;
+        };
+        Update: {
+          id?: string;
+          training_id?: string;
+          user_id?: string;
+          order?: number;
+          series?: number;
+          repetitions?: string[];
+          poids?: string[];
+          repos?: string;
+          effort?: string[];
+          checked?: boolean;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+          exercice?: string;
+          materiel?: string;
+          superset_id?: Nullable<string>;
+          link?: Nullable<string>;
+          note?: Nullable<string>;
+          position?: Nullable<number>;
+        };
+        Relationships: never[];
+      };
+      sliders_admin: {
+        Row: {
+          id: string;
+          type: string;
+          slides: Json;
+          created_at: Nullable<string>;
+          updated_at: Nullable<string>;
+        };
+        Insert: {
+          id?: string;
+          type: string;
+          slides: Json;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+        };
+        Update: {
+          id?: string;
+          type?: string;
+          slides?: Json;
+          created_at?: Nullable<string>;
+          updated_at?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
       training_rows: GenericTable;
       trainings: GenericTable;
       programs: GenericTable;
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      admin_set_user_email_verification: {
+        Args: {
+          target_user: string;
+          verified: boolean;
+        };
+        Returns: null;
+      };
+      increment_downloads: {
+        Args: {
+          store_program_id: number;
+        };
+        Returns: null;
+      };
+      increment_offer_click: {
+        Args: {
+          offer_id: number;
+        };
+        Returns: null;
+      };
+      programs_admin_with_count: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          created_at: string;
+          vignettes: number;
+        }[];
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
