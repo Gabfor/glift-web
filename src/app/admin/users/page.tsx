@@ -614,10 +614,10 @@ export default function AdminUsersPage() {
                 <div className="mt-5 flex items-center justify-end gap-[20px]">
                   <button
                     type="button"
-                    className="h-10 min-w-[153px] border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+                    className="h-10 border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
                   >
                     <div className="flex items-center gap-2 pr-[10px]">
-                      <Image src={ExportIcon} alt="" width={16} height={16} />
+                      <Image src={ExportIcon} alt="" width={10} height={13} />
                       <span>Export</span>
                     </div>
                     <Image src={ChevronIcon} alt="" width={8.73} height={6.13} />
