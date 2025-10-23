@@ -158,7 +158,7 @@ export default function AdminUsersPage() {
 
   const router = useRouter();
   const searchParams = useSearchParams();
-  const editingUserId = searchParams.get("id");
+  const editingUserId = searchParams?.get("id") ?? null;
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);

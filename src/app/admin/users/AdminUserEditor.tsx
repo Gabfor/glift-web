@@ -371,8 +371,8 @@ export default function AdminUserEditor({ userId }: Props) {
 
   if (loading) {
     return (
-      <div className="flex w-full flex-col items-center gap-6 px-4">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
+      <div className="flex w-full flex-col items-center px-4">
+        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
           Modifier un utilisateur
         </h2>
         <div
@@ -390,8 +390,8 @@ export default function AdminUserEditor({ userId }: Props) {
   }
 
   return (
-    <div className="flex w-full flex-col items-center gap-6 px-4">
-      <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center">
+    <div className="flex w-full flex-col items-center px-4">
+      <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
         Modifier un utilisateur
       </h2>
 
@@ -405,7 +405,7 @@ export default function AdminUserEditor({ userId }: Props) {
 
       <form
         onSubmit={handleSubmit}
-        className={`${formContainerClass} grid grid-cols-1 place-items-center gap-6 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
+        className={`${formContainerClass} grid grid-cols-1 place-items-center gap-1 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
       >
         <div className={fieldWrapperClass}>
           <TextField
