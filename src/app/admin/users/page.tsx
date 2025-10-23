@@ -9,6 +9,7 @@ import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
 import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
+import ExportIcon from "/public/icons/export.svg";
 
 type AdminUser = {
   id: string;
@@ -500,37 +501,38 @@ export default function AdminUsersPage() {
                 <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
-                <table className="min-w-full text-left text-sm">
-                  <thead className="border-b border-[#ECE9F1] h-[60px]">
-                    <tr>
-                      <th className="w-[47px] px-4">
-                        <button onClick={toggleAll} aria-label="Tout sélectionner">
-                          <Image
-                            src={
-                              users.length > 0 && users.length === selectedIds.length
-                                ? "/icons/checkbox_checked.svg"
-                                : "/icons/checkbox_unchecked.svg"
-                            }
-                            alt="Checkbox"
-                            width={15}
-                            height={15}
-                            style={{ marginTop: "5px" }}
-                          />
-                        </button>
-                      </th>
-                      {renderHeaderCell("Prénom", "name")}
-                      {renderHeaderCell("Email", "email")}
-                      {renderHeaderCell("Période de test", "trial")}
-                      {renderHeaderCell("Abonnement", "subscription")}
-                      {renderHeaderCell("Ancienneté", "seniority")}
-                      {renderHeaderCell("Sexe", "gender")}
-                      {renderHeaderCell("Age", "age")}
-                      {renderHeaderCell("Statut", "status")}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedUsers.map((user) => {
+              <>
+                <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+                  <table className="min-w-full text-left text-sm">
+                    <thead className="border-b border-[#ECE9F1] h-[60px]">
+                      <tr>
+                        <th className="w-[47px] px-4">
+                          <button onClick={toggleAll} aria-label="Tout sélectionner">
+                            <Image
+                              src={
+                                users.length > 0 && users.length === selectedIds.length
+                                  ? "/icons/checkbox_checked.svg"
+                                  : "/icons/checkbox_unchecked.svg"
+                              }
+                              alt="Checkbox"
+                              width={15}
+                              height={15}
+                              style={{ marginTop: "5px" }}
+                            />
+                          </button>
+                        </th>
+                        {renderHeaderCell("Prénom", "name")}
+                        {renderHeaderCell("Email", "email")}
+                        {renderHeaderCell("Période de test", "trial")}
+                        {renderHeaderCell("Abonnement", "subscription")}
+                        {renderHeaderCell("Ancienneté", "seniority")}
+                        {renderHeaderCell("Sexe", "gender")}
+                        {renderHeaderCell("Age", "age")}
+                        {renderHeaderCell("Statut", "status")}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedUsers.map((user) => {
                   const isSelected = selectedIds.includes(user.id);
                   const trialActive = isInTrial(user);
                   const age = calculateAge(user.birth_date);
@@ -604,10 +606,27 @@ export default function AdminUsersPage() {
                       </td>
                       </tr>
                     );
-                  })}
-                  </tbody>
-                </table>
-              </div>
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mt-5 flex items-center justify-end gap-[20px]">
+                  <button
+                    type="button"
+                    className="h-10 min-w-[153px] border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+                  >
+                    <div className="flex items-center gap-2 pr-[10px]">
+                      <Image src={ExportIcon} alt="" width={16} height={16} />
+                      <span>Export</span>
+                    </div>
+                    <Image src={ChevronIcon} alt="" width={8.73} height={6.13} />
+                  </button>
+                  <span className="text-[14px] font-semibold text-[#5D6494]">
+                    {`${sortedUsers.length} résultats`}
+                  </span>
+                </div>
+              </>
             )}
           </>
         )}
