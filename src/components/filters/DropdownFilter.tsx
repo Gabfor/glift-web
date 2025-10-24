@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -38,6 +38,45 @@ export default function DropdownFilter({
     ? placeholder
     : options.find((option) => option.value === selected)?.label ?? placeholder;
 
+  const computedWidth = useMemo(() => {
+    if (width) {
+      return width;
+    }
+
+    const labels = [placeholder, ...options.map((option) => option.label)];
+    const fallbackWidth = (() => {
+      const maxChars = labels.reduce(
+        (max, label) => Math.max(max, label.length),
+        0,
+      );
+      const averageCharWidth = 9; // Approximation for 16px semibold text
+      const extraPadding = 56; // Account for button padding and chevron icon
+
+      return `${Math.ceil(maxChars * averageCharWidth + extraPadding)}px`;
+    })();
+
+    if (typeof window === "undefined") {
+      return fallbackWidth;
+    }
+
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      return fallbackWidth;
+    }
+
+    context.font = "600 16px Inter, sans-serif";
+    const longestTextWidth = labels.reduce((maxWidth, label) => {
+      const measurement = context.measureText(label);
+      return Math.max(maxWidth, measurement.width);
+    }, 0);
+
+    const extraPadding = 56;
+
+    return `${Math.ceil(longestTextWidth + extraPadding)}px`;
+  }, [options, placeholder, width]);
+
   useEffect(() => {
     if (!open) {
       return;
@@ -66,7 +105,7 @@ export default function DropdownFilter({
   return (
     <div
       className={`flex flex-col gap-[5px] relative transition-all duration-300 ${className ?? ""}`}
-      style={{ width: width ?? "180px" }}
+      style={{ width: computedWidth }}
       ref={menuRef}
     >
       <div className="flex items-center justify-between">
