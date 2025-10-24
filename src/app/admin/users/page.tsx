@@ -951,7 +951,7 @@ export default function AdminUsersPage() {
                   onSelect={(value) => handleFilterChange("country", value)}
                 />
               </div>
-              <div className="flex w-full justify-end lg:w-auto">
+              <div className="flex w-full justify-end lg:w-auto mt-[49px]">
                 {showActionsBar && (
                   <UserAdminActionsBar
                     selectedIds={selectedIds}
