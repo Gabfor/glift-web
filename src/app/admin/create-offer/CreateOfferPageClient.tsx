@@ -56,7 +56,7 @@ const offerTypes = [
 
 type CreateOfferPageClientProps = {
   initialOffer: OfferFormState | null;
-  offerId: number | null;
+  offerId: string | null;
 };
 
 export default function CreateOfferPageClient({
@@ -73,7 +73,7 @@ export default function CreateOfferPageClient({
   const showLoader = useMinimumVisibility(loading);
 
   const fetchOffer = useCallback(
-    async (id: number) => {
+    async (id: string) => {
       setLoading(true);
       const { data, error } = await supabase
         .from("offer_shop")

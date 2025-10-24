@@ -9,28 +9,24 @@ import {
 export default async function CreateOfferPage({
   searchParams,
 }: {
-  searchParams: Promise<{ id?: string }>;
+  searchParams?: { id?: string };
 }) {
-  const { id: idParam } = await searchParams;
-  let offerId: number | null = null;
+  const idParam = searchParams?.id;
+  let offerId: string | null = null;
   let initialOffer: OfferFormState | null = null;
 
   if (idParam) {
-    const numericId = Number(idParam);
+    offerId = idParam;
 
-    if (!Number.isNaN(numericId)) {
-      offerId = numericId;
+    const supabase = await createServerClient();
+    const { data, error } = await supabase
+      .from("offer_shop")
+      .select("*")
+      .eq("id", idParam)
+      .maybeSingle<OfferRow>();
 
-      const supabase = await createServerClient();
-      const { data, error } = await supabase
-        .from("offer_shop")
-        .select("*")
-        .eq("id", numericId)
-        .maybeSingle<OfferRow>();
-
-      if (!error && data) {
-        initialOffer = mapOfferRowToForm(data);
-      }
+    if (!error && data) {
+      initialOffer = mapOfferRowToForm(data);
     }
   }
 

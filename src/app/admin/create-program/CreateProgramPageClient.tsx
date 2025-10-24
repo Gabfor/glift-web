@@ -18,7 +18,7 @@ import {
 
 type CreateProgramPageClientProps = {
   initialProgram: ProgramFormState | null;
-  programId: number | null;
+  programId: string | null;
 };
 
 export default function CreateProgramPageClient({
@@ -37,7 +37,7 @@ export default function CreateProgramPageClient({
   const showLoader = useMinimumVisibility(loading);
 
   const fetchProgram = useCallback(
-    async (id: number) => {
+    async (id: string) => {
       setLoading(true);
       const { data, error } = await supabase
         .from("program_store")
