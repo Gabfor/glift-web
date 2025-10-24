@@ -5,6 +5,9 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import SearchBar from "@/components/SearchBar";
+import DropdownFilter, {
+  type FilterOption,
+} from "@/components/filters/DropdownFilter";
 import Pagination from "@/components/pagination/Pagination";
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
 import AdminUserEditor from "./AdminUserEditor";
@@ -33,6 +36,13 @@ type AdminUser = {
   supplements: string | null;
 };
 
+type FiltersState = {
+  gender: string;
+  status: string;
+  subscription: string;
+  country: string;
+};
+
 const MS_IN_DAY = 86_400_000;
 const TRIAL_DURATION_DAYS = 30;
 const GRACE_PERIOD_DAYS = 7;
@@ -59,6 +69,29 @@ const normalizePlan = (plan: string | null) => {
 
 const formatSubscription = (plan: string | null) =>
   SUBSCRIPTION_LABELS[normalizePlan(plan)] ?? "Starter";
+
+const normalizeText = (value: string | null | undefined) =>
+  value?.trim().toLocaleLowerCase("fr-FR") ?? "";
+
+const formatOptionLabel = (value: string) => {
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  const upper = trimmed.toLocaleUpperCase("fr-FR");
+
+  if (trimmed === upper) {
+    return trimmed;
+  }
+
+  const lower = trimmed.toLocaleLowerCase("fr-FR");
+
+  return (
+    lower.charAt(0).toLocaleUpperCase("fr-FR") + lower.slice(1)
+  );
+};
 
 const formatDays = (days: number) => {
   if (days <= 0) {
@@ -260,6 +293,12 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [filters, setFilters] = useState<FiltersState>({
+    gender: "",
+    status: "",
+    subscription: "",
+    country: "",
+  });
   const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
     "desc",
@@ -271,6 +310,122 @@ export default function AdminUsersPage() {
   const [isRowsDropdownOpen, setIsRowsDropdownOpen] = useState(false);
   const rowsDropdownButtonRef = useRef<HTMLButtonElement>(null);
   const rowsDropdownMenuRef = useRef<HTMLDivElement>(null);
+
+  const genderOptions = useMemo<FilterOption[]>(() => {
+    const entries = new Map<string, string>();
+
+    users.forEach((user) => {
+      const normalized = normalizeText(user.gender);
+
+      if (!normalized) {
+        return;
+      }
+
+      const labelSource = user.gender ?? "";
+      entries.set(normalized, formatOptionLabel(labelSource));
+    });
+
+    return Array.from(entries.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
+      );
+  }, [users]);
+
+  const statusOptions = useMemo<FilterOption[]>(() => {
+    const values = new Set<string>();
+
+    users.forEach((user) => {
+      values.add(computeStatus(user));
+    });
+
+    return Array.from(values)
+      .map((label) => ({ value: label, label }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
+      );
+  }, [users]);
+
+  const subscriptionOptions = useMemo<FilterOption[]>(() => {
+    const entries = new Map<string, string>();
+
+    users.forEach((user) => {
+      const normalizedPlan = normalizePlan(user.subscription_plan);
+      const label = formatSubscription(user.subscription_plan);
+
+      entries.set(normalizedPlan, label);
+    });
+
+    return Array.from(entries.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
+      );
+  }, [users]);
+
+  const countryOptions = useMemo<FilterOption[]>(() => {
+    const entries = new Map<string, string>();
+
+    users.forEach((user) => {
+      const normalized = normalizeText(user.country);
+
+      if (!normalized) {
+        return;
+      }
+
+      const labelSource = user.country ?? "";
+      entries.set(normalized, formatOptionLabel(labelSource));
+    });
+
+    return Array.from(entries.entries())
+      .map(([value, label]) => ({ value, label }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
+      );
+  }, [users]);
+
+  useEffect(() => {
+    setFilters((current) => {
+      let changed = false;
+      const next: FiltersState = { ...current };
+
+      if (
+        current.gender &&
+        !genderOptions.some((option) => option.value === current.gender)
+      ) {
+        next.gender = "";
+        changed = true;
+      }
+
+      if (
+        current.status &&
+        !statusOptions.some((option) => option.value === current.status)
+      ) {
+        next.status = "";
+        changed = true;
+      }
+
+      if (
+        current.subscription &&
+        !subscriptionOptions.some(
+          (option) => option.value === current.subscription,
+        )
+      ) {
+        next.subscription = "";
+        changed = true;
+      }
+
+      if (
+        current.country &&
+        !countryOptions.some((option) => option.value === current.country)
+      ) {
+        next.country = "";
+        changed = true;
+      }
+
+      return changed ? next : current;
+    });
+  }, [countryOptions, genderOptions, statusOptions, subscriptionOptions]);
 
   useEffect(() => {
     setShowActionsBar(!editingUserId && selectedIds.length > 0);
@@ -356,6 +511,13 @@ export default function AdminUsersPage() {
   useEffect(() => {
     void fetchUsers();
   }, [fetchUsers]);
+
+  const handleFilterChange = (key: keyof FiltersState, value: string) => {
+    setFilters((current) => ({
+      ...current,
+      [key]: value,
+    }));
+  };
 
   const handleEditorClose = useCallback(
     (options?: { refresh?: boolean }) => {
@@ -491,14 +653,43 @@ export default function AdminUsersPage() {
   const filteredUsers = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
 
-    if (!normalizedTerm) {
-      return users;
-    }
+    return users.filter((user) => {
+      if (
+        normalizedTerm &&
+        !user.email.toLowerCase().includes(normalizedTerm)
+      ) {
+        return false;
+      }
 
-    return users.filter((user) =>
-      user.email.toLowerCase().includes(normalizedTerm),
-    );
-  }, [users, searchTerm]);
+      if (filters.gender && normalizeText(user.gender) !== filters.gender) {
+        return false;
+      }
+
+      if (filters.status && computeStatus(user) !== filters.status) {
+        return false;
+      }
+
+      if (
+        filters.subscription &&
+        normalizePlan(user.subscription_plan) !== filters.subscription
+      ) {
+        return false;
+      }
+
+      if (filters.country && normalizeText(user.country) !== filters.country) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [
+    users,
+    searchTerm,
+    filters.country,
+    filters.gender,
+    filters.status,
+    filters.subscription,
+  ]);
 
   const handleSort = (column: SortableColumn) => {
     if (sortBy === column) {
@@ -568,7 +759,16 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, sortBy, sortDirection, users]);
+  }, [
+    searchTerm,
+    sortBy,
+    sortDirection,
+    users,
+    filters.country,
+    filters.gender,
+    filters.status,
+    filters.subscription,
+  ]);
 
   useEffect(() => {
     setCurrentPage((prevPage) => {
@@ -718,15 +918,53 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
-            <div className="flex justify-end mb-[6px] min-h-[40px]">
-              {showActionsBar && (
-                <UserAdminActionsBar
-                  selectedIds={selectedIds}
-                  onDelete={handleDelete}
-                  onToggleStatus={handleToggleStatus}
-                  onEdit={handleEdit}
+            <div className="mb-[6px] flex min-h-[40px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap gap-3">
+                <DropdownFilter
+                  label="Sexe"
+                  placeholder="Tous les sexes"
+                  options={genderOptions}
+                  selected={filters.gender}
+                  onSelect={(value) => handleFilterChange("gender", value)}
+                  width="190px"
                 />
-              )}
+                <DropdownFilter
+                  label="Statut"
+                  placeholder="Tous les statuts"
+                  options={statusOptions}
+                  selected={filters.status}
+                  onSelect={(value) => handleFilterChange("status", value)}
+                  width="210px"
+                />
+                <DropdownFilter
+                  label="Abonnement"
+                  placeholder="Tous les abonnements"
+                  options={subscriptionOptions}
+                  selected={filters.subscription}
+                  onSelect={(value) =>
+                    handleFilterChange("subscription", value)
+                  }
+                  width="210px"
+                />
+                <DropdownFilter
+                  label="Pays"
+                  placeholder="Tous les pays"
+                  options={countryOptions}
+                  selected={filters.country}
+                  onSelect={(value) => handleFilterChange("country", value)}
+                  width="210px"
+                />
+              </div>
+              <div className="flex w-full justify-end lg:w-auto">
+                {showActionsBar && (
+                  <UserAdminActionsBar
+                    selectedIds={selectedIds}
+                    onDelete={handleDelete}
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={handleEdit}
+                  />
+                )}
+              </div>
             </div>
 
             {error && (
