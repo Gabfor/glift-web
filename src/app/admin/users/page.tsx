@@ -355,6 +355,21 @@ export default function AdminUsersPage() {
     void fetchUsers();
   }, [fetchUsers]);
 
+  const handleEditorClose = useCallback(
+    (options?: { refresh?: boolean }) => {
+      const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
+      nextParams.delete("id");
+      const query = nextParams.toString();
+      router.push(query ? `/admin/users?${query}` : "/admin/users");
+      setSelectedIds([]);
+
+      if (options?.refresh) {
+        void fetchUsers();
+      }
+    },
+    [fetchUsers, router, searchParams],
+  );
+
   const toggleCheckbox = (id: string) => {
     setSelectedIds((current) =>
       current.includes(id)
@@ -453,6 +468,7 @@ export default function AdminUsersPage() {
         user.id === userId ? { ...user, email_verified: true } : user,
       ),
     );
+    setSelectedIds([]);
     setError(null);
   };
 
@@ -668,14 +684,7 @@ export default function AdminUsersPage() {
         {editingUserId ? (
           <AdminUserEditor
             userId={editingUserId}
-            onClose={() => {
-              const nextParams = new URLSearchParams(
-                searchParams?.toString() ?? "",
-              );
-              nextParams.delete("id");
-              const query = nextParams.toString();
-              router.push(query ? `/admin/users?${query}` : "/admin/users");
-            }}
+            onClose={handleEditorClose}
           />
         ) : (
           <>
