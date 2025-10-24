@@ -11,11 +11,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./supabase/types";
 
 export async function createServerClient(): Promise<SupabaseClient<Database>> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const rememberPreference = cookieStore.get("glift-remember")?.value;
   const shouldPersistSession = rememberPreference !== "0";
 
-  type NextCookieOptions = Parameters<typeof cookieStore.set>[2];
+  type CookieStore = Awaited<ReturnType<typeof cookies>>;
+  type NextCookieOptions = Parameters<CookieStore["set"]>[2];
 
   const sanitizeCookieOptions = (
     options?: NextCookieOptions,

@@ -9,9 +9,9 @@ import {
 export default async function CreateOfferPage({
   searchParams,
 }: {
-  searchParams: { id?: string };
+  searchParams: Promise<{ id?: string }>;
 }) {
-  const idParam = searchParams?.id;
+  const { id: idParam } = await searchParams;
   let offerId: number | null = null;
   let initialOffer: OfferFormState | null = null;
 
