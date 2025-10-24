@@ -159,7 +159,7 @@ export default function DropdownFilter({
           px-3
           py-2
           flex items-center
-          justify-between
+          gap-[10px]
           text-[16px]
           font-semibold
           bg-white
@@ -168,7 +168,9 @@ export default function DropdownFilter({
         `}
       >
         <span
-          className={`pr-[10px] ${isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"}`}
+          className={`${
+            isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
+          } whitespace-nowrap`}
         >
           {selectedLabel}
         </span>
@@ -177,6 +179,7 @@ export default function DropdownFilter({
           alt=""
           width={8.73}
           height={6.13}
+          className="shrink-0"
           style={{
             transform: open ? "rotate(-180deg)" : "rotate(0deg)",
             transition: "transform 0.2s ease",
