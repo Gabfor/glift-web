@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -18,6 +19,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const { user, isAuthenticated, isRecoverySession, isEmailVerified } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [resendStatus, setResendStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -162,6 +164,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   return (
     <>
+      {isLoggingOut && <GliftLoader />}
       {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
@@ -444,7 +447,11 @@ export default function Header({ disconnected = false }: HeaderProps) {
               </Link>
               <button
                 onClick={() => {
+                  if (isLoggingOut) {
+                    return;
+                  }
                   setDropdownOpen(false);
+                  setIsLoggingOut(true);
                   router.push("/deconnexion");
                 }}
                 className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
