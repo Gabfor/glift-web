@@ -148,7 +148,7 @@ export default function ShopCard({ offer }: Props) {
       )}
 
       <div className="pt-2.5 px-2.5 flex-1 flex flex-col">
-        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left">
+        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words">
           {offer.name}
         </h3>
 
