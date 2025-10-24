@@ -11,9 +11,10 @@ export const dynamic = "force-dynamic";
 export default async function CreateOfferPage({
   searchParams,
 }: {
-  searchParams?: { id?: string };
+  searchParams: Promise<{ id?: string }>;
 }) {
-  const idParam = searchParams?.id;
+  const resolvedSearchParams = await searchParams;
+  const idParam = resolvedSearchParams?.id;
   let offerId: string | null = null;
   let initialOffer: OfferFormState | null = null;
 
