@@ -11,6 +11,18 @@ import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 
+const BUTTON_LEFT_PADDING = 12; // Tailwind pl-3 => 0.75rem
+const BUTTON_RIGHT_PADDING = 15; // Explicit requirement: 15px spacing to the right border
+const BUTTON_CONTENT_GAP = 10; // Tailwind gap-[10px]
+const CHEVRON_WIDTH = 9; // Approximate width of the chevron icon in pixels
+const WIDTH_BUFFER = 10; // Additional buffer to avoid text clipping
+const EXTRA_PADDING =
+  BUTTON_LEFT_PADDING +
+  BUTTON_RIGHT_PADDING +
+  BUTTON_CONTENT_GAP +
+  CHEVRON_WIDTH +
+  WIDTH_BUFFER;
+
 type FilterOption = {
   value: string;
   label: string;
@@ -59,7 +71,7 @@ export default function DropdownFilter({
     }
 
     const averageCharWidth = 9; // Approximation for 16px semibold text
-    const extraPadding = 56; // Account for button padding and chevron icon
+    const extraPadding = EXTRA_PADDING; // Account for button padding, chevron icon and buffer
 
     return `${Math.ceil(longestLabel.length * averageCharWidth + extraPadding)}px`;
   }, [longestLabel, width]);
@@ -82,7 +94,7 @@ export default function DropdownFilter({
       return;
     }
 
-    const extraPadding = 56;
+    const extraPadding = EXTRA_PADDING;
     const measuredWidth = measurementNode.getBoundingClientRect().width;
 
     setComputedWidth(`${Math.ceil(measuredWidth + extraPadding)}px`);
@@ -156,7 +168,8 @@ export default function DropdownFilter({
               : "border-[#D7D4DC]"
           }
           rounded-[5px]
-          px-3
+          pl-3
+          pr-[15px]
           py-2
           flex items-center
           gap-[10px]
