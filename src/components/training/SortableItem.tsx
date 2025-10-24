@@ -9,6 +9,7 @@ import Image from 'next/image'
 import type * as React from 'react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import Spinner from '@/components/ui/Spinner'
 
 interface Training {
   id: string
@@ -28,6 +29,7 @@ type Props = {
   dragDisabled: boolean
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
   simulateDrag?: boolean;
+  isLoading?: boolean;
 }
 
 export default function SortableItem({
@@ -41,6 +43,7 @@ export default function SortableItem({
   dragDisabled,
   onUpdateTrainingVisibility,
   simulateDrag = false,
+  isLoading = false,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -124,7 +127,13 @@ export default function SortableItem({
           />
         </div>
 
-        <span className="truncate text-center flex-1 px-6">{training.name}</span>
+        <div className="flex-1 px-6 flex items-center justify-center">
+          {isLoading ? (
+            <Spinner size="sm" className="text-[#3A416F]" ariaLabel="Chargement de l’entraînement" />
+          ) : (
+            <span className="truncate text-center w-full">{training.name}</span>
+          )}
+        </div>
 
         <div
           className="w-[25px] h-[25px] z-10"
