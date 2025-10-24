@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
-import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
 
 interface HeaderProps {
@@ -15,7 +14,7 @@ interface HeaderProps {
 
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const router = useRouter();
   const { user, isAuthenticated, isRecoverySession, isEmailVerified } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -444,9 +443,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 Mes préférences
               </Link>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/";
+                onClick={() => {
+                  setDropdownOpen(false);
+                  router.push("/deconnexion");
                 }}
                 className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
               >

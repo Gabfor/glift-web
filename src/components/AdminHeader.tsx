@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
-import { createClientComponentClient } from "@/lib/supabase/client";
 
 export default function AdminHeader() {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const router = useRouter();
   const { user } = useUser();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -170,9 +169,9 @@ export default function AdminHeader() {
             <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
               <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/";
+                onClick={() => {
+                  setDropdownOpen(false);
+                  router.push("/deconnexion");
                 }}
                 className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
               >
