@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import ShopHeader from "@/components/shop/ShopHeader";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
-import ShopPagination from "@/components/shop/ShopPagination";
+import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
 import dynamic from "next/dynamic";
@@ -149,9 +149,9 @@ export default function ShopPage() {
       />
         <ShopGrid sortBy={sortBy} currentPage={currentPage} filters={filters} />
         {!loadingCount && (
-          <ShopPagination
+          <Pagination
             currentPage={currentPage}
-            totalPrograms={totalPrograms}
+            totalItems={totalPrograms}
             onPageChange={(page) => setCurrentPage(page)}
           />
         )}

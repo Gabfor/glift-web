@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import SearchBar from "@/components/SearchBar";
+import Pagination from "@/components/pagination/Pagination";
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
 import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
@@ -263,6 +264,7 @@ export default function AdminUsersPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
     "desc",
   );
+  const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState<number>(
     ROWS_PER_PAGE_OPTIONS[0],
   );
@@ -557,10 +559,24 @@ export default function AdminUsersPage() {
     return sorted;
   }, [filteredUsers, sortBy, sortDirection]);
 
-  const displayedUsers = useMemo(
-    () => sortedUsers.slice(0, rowsPerPage),
-    [rowsPerPage, sortedUsers],
-  );
+  const displayedUsers = useMemo(() => {
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = startIndex + rowsPerPage;
+
+    return sortedUsers.slice(startIndex, endIndex);
+  }, [currentPage, rowsPerPage, sortedUsers]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy, sortDirection, users]);
+
+  useEffect(() => {
+    setCurrentPage((prevPage) => {
+      const maxPage = Math.max(1, Math.ceil(sortedUsers.length / rowsPerPage));
+
+      return Math.min(prevPage, maxPage);
+    });
+  }, [rowsPerPage, sortedUsers]);
 
   const handleExport = useCallback(() => {
     if (sortedUsers.length === 0) {
@@ -927,6 +943,7 @@ export default function AdminUsersPage() {
                               key={option}
                               onClick={() => {
                                 setRowsPerPage(option);
+                                setCurrentPage(1);
                                 setIsRowsDropdownOpen(false);
                                 rowsDropdownButtonRef.current?.blur();
                               }}
@@ -955,6 +972,14 @@ export default function AdminUsersPage() {
                     )}
                   </div>
                 </div>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={sortedUsers.length}
+                  itemsPerPage={rowsPerPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                  className="mt-6"
+                />
               </>
             )}
           </>
