@@ -17,7 +17,10 @@ export default function AccountAccordionSection({ value, title, children }: Prop
         <div className="overflow-hidden rounded-[5px]">
           <AccordionTrigger>{title}</AccordionTrigger>
         </div>
-        <AccordionContent className="px-4 py-4 bg-white border-t border-[#ECE9F1] rounded-b-[5px]">
+        <AccordionContent
+          forceMount
+          className="px-4 py-4 bg-white border-t border-[#ECE9F1] rounded-b-[5px]"
+        >
           {children}
         </AccordionContent>
       </div>
