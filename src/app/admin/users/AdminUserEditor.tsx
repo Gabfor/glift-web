@@ -149,12 +149,16 @@ const areFormsEqual = (a: FormState | null, b: FormState | null) => {
   );
 };
 
-type Props = {
-  userId: string;
-  onClose: () => void;
+type CloseOptions = {
+  refresh?: boolean;
 };
 
-export default function AdminUserEditor({ userId }: Props) {
+type Props = {
+  userId: string;
+  onClose: (options?: CloseOptions) => void;
+};
+
+export default function AdminUserEditor({ userId, onClose }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [initialForm, setInitialForm] = useState<FormState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -357,6 +361,7 @@ export default function AdminUserEditor({ userId }: Props) {
       setInitialForm(cloneForm(trimmedForm));
       setFieldTouched(createInitialFieldTouched());
       setBirthTouched(createInitialBirthTouched());
+      onClose({ refresh: true });
     } catch (submitError) {
       console.error("[AdminUserEditor] submit failed", submitError);
       setError(
