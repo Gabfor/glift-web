@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -30,11 +30,44 @@ export default function DropdownFilter({
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const measurementRef = useRef<HTMLButtonElement>(null);
+  const [calculatedWidth, setCalculatedWidth] = useState<number>();
 
   const isPlaceholder = selected === "";
   const selectedLabel = isPlaceholder
     ? placeholder
     : options.find((option) => option.value === selected)?.label ?? placeholder;
+
+  const longestText = useMemo(() => {
+    const labels = [placeholder, ...options.map((option) => option.label)];
+
+    if (!isPlaceholder && !labels.includes(selectedLabel)) {
+      labels.push(selectedLabel);
+    }
+
+    return labels.reduce(
+      (longest, current) => (current.length > longest.length ? current : longest),
+      labels[0] ?? "",
+    );
+  }, [isPlaceholder, options, placeholder, selectedLabel]);
+
+  useLayoutEffect(() => {
+    const updateWidth = () => {
+      if (!measurementRef.current) {
+        return;
+      }
+
+      const { width } = measurementRef.current.getBoundingClientRect();
+      setCalculatedWidth(Math.ceil(width));
+    };
+
+    updateWidth();
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+    };
+  }, [longestText]);
 
   useEffect(() => {
     if (!open) {
@@ -80,6 +113,33 @@ export default function DropdownFilter({
       </div>
       <button
         type="button"
+        ref={measurementRef}
+        tabIndex={-1}
+        aria-hidden
+        className="
+          absolute
+          opacity-0
+          pointer-events-none
+          -z-10
+          h-10
+          border
+          border-[#D7D4DC]
+          rounded-[5px]
+          pl-3
+          pr-[15px]
+          py-2
+          flex items-center
+          gap-[10px]
+          text-[16px]
+          font-semibold
+          whitespace-nowrap
+        "
+      >
+        <span className="whitespace-nowrap">{longestText}</span>
+        <span className="shrink-0" style={{ width: 8.73, height: 6.13 }} />
+      </button>
+      <button
+        type="button"
         ref={buttonRef}
         onClick={() => setOpen((current) => !current)}
         className={`
@@ -102,6 +162,7 @@ export default function DropdownFilter({
           hover:border-[#C2BFC6]
           transition
         `}
+        style={calculatedWidth ? { width: calculatedWidth } : undefined}
       >
         <span
           className={`${
