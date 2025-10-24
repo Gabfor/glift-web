@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
-import { createClientComponentClient } from "@/lib/supabase/client";
 import CTAButton from "@/components/CTAButton";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -15,10 +15,11 @@ interface HeaderProps {
 
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
-  const supabase = createClientComponentClient();
+  const router = useRouter();
   const { user, isAuthenticated, isRecoverySession, isEmailVerified } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [resendStatus, setResendStatus] = useState<
     "idle" | "loading" | "success" | "error"
@@ -163,6 +164,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   return (
     <>
+      {isLoggingOut && <GliftLoader />}
       {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
@@ -444,9 +446,13 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 Mes préférences
               </Link>
               <button
-                onClick={async () => {
-                  await supabase.auth.signOut();
-                  window.location.href = "/";
+                onClick={() => {
+                  if (isLoggingOut) {
+                    return;
+                  }
+                  setDropdownOpen(false);
+                  setIsLoggingOut(true);
+                  router.push("/deconnexion");
                 }}
                 className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
               >
