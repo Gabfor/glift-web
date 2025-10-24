@@ -98,16 +98,21 @@ export default function SortableItem({
       )}
     >
       <div
-        className={`w-[270px] h-[60px] bg-white border border-[#ECE9F1] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px]
-          ${showVisibility ? 'rounded-t-[5px] rounded-b-none' : 'rounded-[5px]'}
-          ${showVisibility ? '' : 'hover:shadow-[0px_1px_15px_rgba(0,0,0,0.05)]'}
-          transition-transform duration-300 ease-in-out cursor-pointer`}
+        className={cn(
+          "w-[270px] h-[60px] bg-white border border-[#ECE9F1] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
+          showVisibility
+            ? "rounded-t-[5px] rounded-b-none"
+            : "rounded-[5px] hover:shadow-[0px_1px_15px_rgba(0,0,0,0.05)]"
+        )}
         onClick={() => onClick(training.id)}
       >
         <div
-          className={`w-[25px] h-[25px] group relative ${
-            dragDisabled ? 'cursor-not-allowed' : 'cursor-grab active:cursor-grabbing'
-          } bg-[rgba(0,0,0,0.001)]`}
+          className={cn(
+            "w-[25px] h-[25px] group relative bg-[rgba(0,0,0,0.001)]",
+            dragDisabled
+              ? "cursor-not-allowed"
+              : "cursor-grab active:cursor-grabbing"
+          )}
           {...(!dragDisabled ? listeners : {})}
           onClick={(e) => e.stopPropagation()}
         >
