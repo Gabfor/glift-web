@@ -862,7 +862,7 @@ export default function AdminUsersPage() {
                       }
                       className={`
                         h-10
-                        min-w-[82px]
+                        min-w-[70px]
                         border
                         ${
                           isRowsDropdownOpen
@@ -873,7 +873,8 @@ export default function AdminUsersPage() {
                         px-3
                         py-2
                         flex items-center
-                        justify-between
+                        justify-end
+                        gap-[10px]
                         text-[16px]
                         font-semibold
                         text-[#3A416F]
@@ -882,7 +883,7 @@ export default function AdminUsersPage() {
                         transition
                       `}
                     >
-                      <span className="pr-[10px]">{rowsPerPage}</span>
+                      <span className="text-right">{rowsPerPage}</span>
                       <Image
                         src={ChevronIcon}
                         alt=""
