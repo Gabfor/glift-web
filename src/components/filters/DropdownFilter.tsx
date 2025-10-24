@@ -1,6 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -32,50 +38,60 @@ export default function DropdownFilter({
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const measurementRef = useRef<HTMLSpanElement>(null);
+
+  const labels = useMemo(
+    () => [placeholder, ...options.map((option) => option.label)],
+    [options, placeholder],
+  );
+
+  const longestLabel = useMemo(
+    () =>
+      labels.reduce((longest, label) =>
+        label.length > longest.length ? label : longest,
+      ),
+    [labels],
+  );
+
+  const fallbackWidth = useMemo(() => {
+    if (width) {
+      return width;
+    }
+
+    const averageCharWidth = 9; // Approximation for 16px semibold text
+    const extraPadding = 56; // Account for button padding and chevron icon
+
+    return `${Math.ceil(longestLabel.length * averageCharWidth + extraPadding)}px`;
+  }, [longestLabel, width]);
+
+  const [computedWidth, setComputedWidth] = useState<string>(fallbackWidth);
+
+  const useIsomorphicLayoutEffect =
+    typeof window === "undefined" ? useEffect : useLayoutEffect;
+
+  useIsomorphicLayoutEffect(() => {
+    if (width) {
+      setComputedWidth(width);
+      return;
+    }
+
+    const measurementNode = measurementRef.current;
+
+    if (!measurementNode) {
+      setComputedWidth(fallbackWidth);
+      return;
+    }
+
+    const extraPadding = 56;
+    const measuredWidth = measurementNode.getBoundingClientRect().width;
+
+    setComputedWidth(`${Math.ceil(measuredWidth + extraPadding)}px`);
+  }, [fallbackWidth, width, longestLabel]);
 
   const isPlaceholder = selected === "";
   const selectedLabel = isPlaceholder
     ? placeholder
     : options.find((option) => option.value === selected)?.label ?? placeholder;
-
-  const computedWidth = useMemo(() => {
-    if (width) {
-      return width;
-    }
-
-    const labels = [placeholder, ...options.map((option) => option.label)];
-    const fallbackWidth = (() => {
-      const maxChars = labels.reduce(
-        (max, label) => Math.max(max, label.length),
-        0,
-      );
-      const averageCharWidth = 9; // Approximation for 16px semibold text
-      const extraPadding = 56; // Account for button padding and chevron icon
-
-      return `${Math.ceil(maxChars * averageCharWidth + extraPadding)}px`;
-    })();
-
-    if (typeof window === "undefined") {
-      return fallbackWidth;
-    }
-
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      return fallbackWidth;
-    }
-
-    context.font = "600 16px Inter, sans-serif";
-    const longestTextWidth = labels.reduce((maxWidth, label) => {
-      const measurement = context.measureText(label);
-      return Math.max(maxWidth, measurement.width);
-    }, 0);
-
-    const extraPadding = 56;
-
-    return `${Math.ceil(longestTextWidth + extraPadding)}px`;
-  }, [options, placeholder, width]);
 
   useEffect(() => {
     if (!open) {
@@ -108,6 +124,13 @@ export default function DropdownFilter({
       style={{ width: computedWidth }}
       ref={menuRef}
     >
+      <span
+        ref={measurementRef}
+        aria-hidden
+        className="pointer-events-none absolute -z-50 whitespace-nowrap text-[16px] font-semibold opacity-0"
+      >
+        {longestLabel}
+      </span>
       <div className="flex items-center justify-between">
         <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
         {!isPlaceholder && (
