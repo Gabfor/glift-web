@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
-import GliftLoader from "@/components/ui/GliftLoader";
+import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
@@ -82,7 +82,7 @@ export default function StoreGrid({
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const showLoader = useMinimumVisibility(loading);
+  const showSkeleton = useMinimumVisibility(loading);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -165,23 +165,26 @@ export default function StoreGrid({
 
   return (
     <>
-      {showLoader && <GliftLoader />}
-      <div className="relative mt-8">
-        {programs.length === 0 && !showLoader && !loading && (
-          <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
-        )}
+      {showSkeleton ? (
+        <StoreGridSkeleton />
+      ) : (
+        <div className="relative mt-8">
+          {programs.length === 0 && !loading && (
+            <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
+          )}
 
-        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-          {programs.map((program) => (
-            <StoreCard
-              key={program.id}
-              program={program}
-              isAuthenticated={isAuthenticated}
-            />
-          ))}
+          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+            {programs.map((program) => (
+              <StoreCard
+                key={program.id}
+                program={program}
+                isAuthenticated={isAuthenticated}
+              />
+            ))}
+          </div>
+
         </div>
-
-      </div>
+      )}
     </>
   );
 }
