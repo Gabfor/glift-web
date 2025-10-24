@@ -6,6 +6,8 @@ import {
   mapOfferRowToForm,
 } from "./offerForm";
 
+export const dynamic = "force-dynamic";
+
 export default async function CreateOfferPage({
   searchParams,
 }: {
