@@ -37,6 +37,8 @@ a {
 
 html {
   scroll-behavior: smooth;
+  /* Préserve la place de la barre de défilement pour éviter les décalages visuels */
+  scrollbar-gutter: stable;
 }
 
 /* Désactive le scroll-lock appliqué dynamiquement par Radix */
