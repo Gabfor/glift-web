@@ -136,7 +136,7 @@ export default function SortableItem({
           {isLoading ? (
             <Spinner size="sm" className="text-[#3A416F]" ariaLabel="Chargement de l’entraînement" />
           ) : (
-            <span className="truncate text-center w-full">{training.name}</span>
+            <span className="block w-full truncate text-center">{training.name}</span>
           )}
         </div>
 
