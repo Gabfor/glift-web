@@ -170,7 +170,9 @@ export default function StoreGrid({
       ) : (
         <div className="relative mt-8">
           {programs.length === 0 && !loading && (
-            <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
+            <p className="text-center text-[#5D6494] font-semibold">
+              Aucun programme trouvé.
+            </p>
           )}
 
           <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
