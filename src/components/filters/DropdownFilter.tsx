@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -31,6 +31,7 @@ export default function DropdownFilter({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const measurementRef = useRef<HTMLButtonElement>(null);
+  const measurementTextRef = useRef<HTMLSpanElement>(null);
   const [calculatedWidth, setCalculatedWidth] = useState<number>();
 
   const isPlaceholder = selected === "";
@@ -38,27 +39,33 @@ export default function DropdownFilter({
     ? placeholder
     : options.find((option) => option.value === selected)?.label ?? placeholder;
 
-  const longestText = useMemo(() => {
-    const labels = [placeholder, ...options.map((option) => option.label)];
-
-    if (!isPlaceholder && !labels.includes(selectedLabel)) {
-      labels.push(selectedLabel);
-    }
-
-    return labels.reduce(
-      (longest, current) => (current.length > longest.length ? current : longest),
-      labels[0] ?? "",
-    );
-  }, [isPlaceholder, options, placeholder, selectedLabel]);
-
   useLayoutEffect(() => {
     const updateWidth = () => {
-      if (!measurementRef.current) {
+      if (!measurementRef.current || !measurementTextRef.current) {
         return;
       }
 
-      const { width } = measurementRef.current.getBoundingClientRect();
-      setCalculatedWidth(Math.ceil(width));
+      const labelsToMeasure = new Set<string>([
+        placeholder,
+        ...options.map((option) => option.label),
+      ]);
+
+      if (!isPlaceholder) {
+        labelsToMeasure.add(selectedLabel);
+      }
+
+      let maxWidth = 0;
+
+      labelsToMeasure.forEach((label) => {
+        measurementTextRef.current!.textContent = label;
+        const { width } = measurementRef.current!.getBoundingClientRect();
+        maxWidth = Math.max(maxWidth, Math.ceil(width));
+      });
+
+      setCalculatedWidth(maxWidth);
+
+      // Reset to the currently displayed label so the hidden element reflects the UI state
+      measurementTextRef.current.textContent = isPlaceholder ? placeholder : selectedLabel;
     };
 
     updateWidth();
@@ -67,7 +74,7 @@ export default function DropdownFilter({
     return () => {
       window.removeEventListener("resize", updateWidth);
     };
-  }, [longestText]);
+  }, [isPlaceholder, options, placeholder, selectedLabel]);
 
   useEffect(() => {
     if (!open) {
@@ -129,13 +136,19 @@ export default function DropdownFilter({
           pr-[15px]
           py-2
           flex items-center
+          justify-between
           gap-[10px]
           text-[16px]
           font-semibold
           whitespace-nowrap
         "
       >
-        <span className="whitespace-nowrap">{longestText}</span>
+        <span
+          ref={measurementTextRef}
+          className="whitespace-nowrap text-left flex-1"
+        >
+          {isPlaceholder ? placeholder : selectedLabel}
+        </span>
         <span className="shrink-0" style={{ width: 8.73, height: 6.13 }} />
       </button>
       <button
@@ -155,6 +168,7 @@ export default function DropdownFilter({
           pr-[15px]
           py-2
           flex items-center
+          justify-between
           gap-[10px]
           text-[16px]
           font-semibold
@@ -167,7 +181,7 @@ export default function DropdownFilter({
         <span
           className={`${
             isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          } whitespace-nowrap`}
+          } whitespace-nowrap text-left flex-1`}
         >
           {selectedLabel}
         </span>
