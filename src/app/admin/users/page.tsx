@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -40,6 +40,8 @@ const SUBSCRIPTION_LABELS: Record<string, string> = {
   premium: "Premium",
   basic: "Starter",
 };
+
+const ROWS_PER_PAGE_OPTIONS = [25, 50, 75, 100] as const;
 
 const normalizePlan = (plan: string | null) => {
   if (!plan) {
@@ -261,10 +263,41 @@ export default function AdminUsersPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">(
     "desc",
   );
+  const [rowsPerPage, setRowsPerPage] = useState<number>(
+    ROWS_PER_PAGE_OPTIONS[0],
+  );
+  const [isRowsDropdownOpen, setIsRowsDropdownOpen] = useState(false);
+  const rowsDropdownButtonRef = useRef<HTMLButtonElement>(null);
+  const rowsDropdownMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setShowActionsBar(!editingUserId && selectedIds.length > 0);
   }, [editingUserId, selectedIds]);
+
+  useEffect(() => {
+    if (!isRowsDropdownOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (
+        rowsDropdownMenuRef.current &&
+        !rowsDropdownMenuRef.current.contains(target) &&
+        !rowsDropdownButtonRef.current?.contains(target)
+      ) {
+        setIsRowsDropdownOpen(false);
+        rowsDropdownButtonRef.current?.blur();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isRowsDropdownOpen]);
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -508,6 +541,11 @@ export default function AdminUsersPage() {
     return sorted;
   }, [filteredUsers, sortBy, sortDirection]);
 
+  const displayedUsers = useMemo(
+    () => sortedUsers.slice(0, rowsPerPage),
+    [rowsPerPage, sortedUsers],
+  );
+
   const handleExport = useCallback(() => {
     if (sortedUsers.length === 0) {
       return;
@@ -710,7 +748,7 @@ export default function AdminUsersPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedUsers.map((user) => {
+                      {displayedUsers.map((user) => {
                   const isSelected = selectedIds.includes(user.id);
                   const trialActive = isInTrial(user);
                   const age = calculateAge(user.birth_date);
@@ -809,6 +847,103 @@ export default function AdminUsersPage() {
                   <span className="text-[14px] font-semibold text-[#5D6494]">
                     {`${sortedUsers.length} résultats`}
                   </span>
+                  <div className="relative" ref={rowsDropdownMenuRef}>
+                    <button
+                      type="button"
+                      ref={rowsDropdownButtonRef}
+                      onClick={() =>
+                        setIsRowsDropdownOpen((prev) => {
+                          if (prev) {
+                            rowsDropdownButtonRef.current?.blur();
+                          }
+
+                          return !prev;
+                        })
+                      }
+                      className={`
+                        h-10
+                        min-w-[82px]
+                        border
+                        ${
+                          isRowsDropdownOpen
+                            ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+                            : "border-[#D7D4DC]"
+                        }
+                        rounded-[5px]
+                        px-3
+                        py-2
+                        flex items-center
+                        justify-between
+                        text-[16px]
+                        font-semibold
+                        text-[#3A416F]
+                        bg-white
+                        hover:border-[#C2BFC6]
+                        transition
+                      `}
+                    >
+                      <span className="pr-[10px]">{rowsPerPage}</span>
+                      <Image
+                        src={ChevronIcon}
+                        alt=""
+                        width={8.73}
+                        height={6.13}
+                        style={{
+                          transform: isRowsDropdownOpen
+                            ? "rotate(-180deg)"
+                            : "rotate(0deg)",
+                          transition: "transform 0.2s ease",
+                          transformOrigin: "center 45%",
+                        }}
+                      />
+                    </button>
+
+                    {isRowsDropdownOpen && (
+                      <div
+                        className="
+                          absolute right-0 mt-2
+                          w-full
+                          bg-white
+                          rounded-[5px]
+                          py-2
+                          z-50
+                          shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]
+                        "
+                      >
+                        <div className="flex flex-col">
+                          {ROWS_PER_PAGE_OPTIONS.map((option) => (
+                            <button
+                              type="button"
+                              key={option}
+                              onClick={() => {
+                                setRowsPerPage(option);
+                                setIsRowsDropdownOpen(false);
+                                rowsDropdownButtonRef.current?.blur();
+                              }}
+                              className={`
+                                text-left
+                                text-[16px]
+                                font-semibold
+                                py-[8px]
+                                px-3
+                                mx-[8px]
+                                rounded-[5px]
+                                hover:bg-[#FAFAFF]
+                                transition-colors duration-150
+                                ${
+                                  rowsPerPage === option
+                                    ? "text-[#7069FA]"
+                                    : "text-[#5D6494] hover:text-[#3A416F]"
+                                }
+                              `}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </>
             )}
