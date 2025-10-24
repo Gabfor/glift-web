@@ -57,6 +57,7 @@ export default function EntrainementsPage() {
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
+  const [loadingTrainingId, setLoadingTrainingId] = useState<string | null>(null);
 
   useEffect(() => {
     const id = localStorage.getItem("newly_downloaded_program_id");
@@ -309,7 +310,10 @@ export default function EntrainementsPage() {
           <DroppableProgram
             programId={program.id}
             trainings={program.trainings}
-            onClickTraining={(id: string) => router.push(`/entrainements/${id}`)}
+            onClickTraining={(id: string) => {
+              setLoadingTrainingId(id);
+              router.push(`/entrainements/${id}`);
+            }}
             onReorderTrainings={(programId: string, ids: string[]) =>
               handleReorderTrainings(programId, ids)
             }
@@ -318,6 +322,7 @@ export default function EntrainementsPage() {
 
               const newData = await handleAddTraining(program.id);
               if (newData?.id) {
+                setLoadingTrainingId(newData.id);
                 router.push(`/entrainements/${newData.id}?new=1`);
               }
             }}
@@ -327,6 +332,7 @@ export default function EntrainementsPage() {
             openVisibilityIds={openVisibilityIds}
             setOpenVisibilityIds={setOpenVisibilityIds}
             onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
+            loadingTrainingId={loadingTrainingId}
           />
         </div>
       );

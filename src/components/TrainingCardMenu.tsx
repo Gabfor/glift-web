@@ -40,7 +40,9 @@ export default function TrainingCardMenu({
 
       <DropdownMenu.Content
         align="end"
+        side="bottom"
         sideOffset={8}
+        avoidCollisions={false}
         className={cn(
           'z-10 w-[175px] rounded-[5px] border border-[#ECE9F1] bg-white py-2',
           'shadow-[0px_4px_16px_rgba(0,0,0,0.08)]',
