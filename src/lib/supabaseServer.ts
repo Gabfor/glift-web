@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   createServerClient as createSupabaseServerClient,
   type CookieMethodsServer,
@@ -9,7 +11,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "./supabase/types";
 
 export async function createServerClient(): Promise<SupabaseClient<Database>> {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const rememberPreference = cookieStore.get("glift-remember")?.value;
   const shouldPersistSession = rememberPreference !== "0";
 
