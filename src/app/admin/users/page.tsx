@@ -878,8 +878,8 @@ export default function AdminUsersPage() {
               src={icon}
               alt=""
               fill
+              className="object-contain object-bottom"
               style={{
-                objectFit: "contain",
                 transform: isActive
                   ? isAscending
                     ? "rotate(-180deg)"
@@ -1063,7 +1063,12 @@ export default function AdminUsersPage() {
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         {genderIcon ? (
                           <div className="relative h-5 w-5">
-                            <Image src={genderIcon} alt={user.gender ?? "Sexe"} fill />
+                            <Image
+                              src={genderIcon}
+                              alt={user.gender ?? "Sexe"}
+                              fill
+                              className="object-contain object-bottom"
+                            />
                           </div>
                         ) : (
                           "—"
