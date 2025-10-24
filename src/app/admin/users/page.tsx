@@ -15,12 +15,21 @@ type AdminUser = {
   id: string;
   email: string;
   created_at: string;
+  last_sign_in_at: string | null;
   name: string | null;
   subscription_plan: string | null;
   premium_trial_started_at: string | null;
   gender: string | null;
   birth_date: string | null;
   email_verified: boolean | null;
+  grace_expires_at: string | null;
+  email_confirmed_at: string | null;
+  country: string | null;
+  experience: string | null;
+  main_goal: string | null;
+  training_place: string | null;
+  weekly_sessions: string | null;
+  supplements: string | null;
 };
 
 const MS_IN_DAY = 86_400_000;
@@ -130,6 +139,87 @@ const computeStatus = (user: AdminUser) => {
     : "A supprimer";
 };
 
+const formatDate = (date: string | null | undefined) => {
+  if (!date) {
+    return "";
+  }
+
+  const timestamp = Date.parse(date);
+
+  if (Number.isNaN(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp).toLocaleDateString("fr-FR");
+};
+
+const formatDateTime = (date: string | null | undefined) => {
+  if (!date) {
+    return "";
+  }
+
+  const timestamp = Date.parse(date);
+
+  if (Number.isNaN(timestamp)) {
+    return "";
+  }
+
+  return new Date(timestamp).toLocaleString("fr-FR");
+};
+
+const formatTrialEndDate = (user: AdminUser) => {
+  if (!user.premium_trial_started_at) {
+    return "";
+  }
+
+  const startTimestamp = Date.parse(user.premium_trial_started_at);
+
+  if (Number.isNaN(startTimestamp)) {
+    return "";
+  }
+
+  const endTimestamp = startTimestamp + TRIAL_DURATION_DAYS * MS_IN_DAY;
+
+  return new Date(endTimestamp).toLocaleDateString("fr-FR");
+};
+
+const calculateProfileCompletion = (user: AdminUser) => {
+  const normalizedName = user.name?.trim() ?? "";
+  const completionEntries = [
+    Boolean(user.gender),
+    normalizedName.length > 0,
+    Boolean(user.birth_date),
+    Boolean(user.country),
+    Boolean(user.experience),
+    Boolean(user.main_goal),
+    Boolean(user.training_place),
+    Boolean(user.weekly_sessions),
+    user.supplements !== null && user.supplements !== undefined
+      ? user.supplements.trim().length > 0
+      : false,
+    Boolean(user.email),
+  ];
+
+  if (completionEntries.length === 0) {
+    return 0;
+  }
+
+  const completed = completionEntries.filter(Boolean).length;
+
+  return Math.round((completed / completionEntries.length) * 100);
+};
+
+const escapeCsvValue = (value: string | number | boolean | null | undefined) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const stringValue = String(value);
+  const escapedValue = stringValue.replace(/"/g, '""');
+
+  return `"${escapedValue}"`;
+};
+
 const STATUS_BADGE_BASE_CLASS =
   "inline-flex h-[20px] items-center justify-center rounded-[25px] text-[10px] font-semibold px-2";
 
@@ -200,12 +290,21 @@ export default function AdminUsersPage() {
           id: user.id ?? "",
           email: user.email ?? "",
           created_at: user.created_at ?? new Date().toISOString(),
+          last_sign_in_at: user.last_sign_in_at ?? null,
           name: user.name ?? null,
           subscription_plan: normalizePlan(user.subscription_plan ?? null),
           premium_trial_started_at: user.premium_trial_started_at ?? null,
           gender: user.gender ?? null,
           birth_date: user.birth_date ?? null,
           email_verified: user.email_verified ?? false,
+          grace_expires_at: user.grace_expires_at ?? null,
+          email_confirmed_at: user.email_confirmed_at ?? null,
+          country: user.country ?? null,
+          experience: user.experience ?? null,
+          main_goal: user.main_goal ?? null,
+          training_place: user.training_place ?? null,
+          weekly_sessions: user.weekly_sessions ?? null,
+          supplements: user.supplements ?? null,
         }),
       );
 
@@ -408,6 +507,85 @@ export default function AdminUsersPage() {
 
     return sorted;
   }, [filteredUsers, sortBy, sortDirection]);
+
+  const handleExport = useCallback(() => {
+    if (sortedUsers.length === 0) {
+      return;
+    }
+
+    const headers = [
+      "Date de création",
+      "Date de connexion",
+      "Prénom",
+      "Sexe",
+      "Email",
+      "Date de naissance",
+      "Âge",
+      "Statut",
+      "Date fin de validation",
+      "Date de validation",
+      "Abonnement",
+      "Période d'essai",
+      "Date fin période d'essai",
+      "% remplissage profil",
+      "Pays",
+      "Années",
+      "Objectif",
+      "Lieu",
+      "Séances",
+      "Compléments",
+    ];
+
+    const rows = sortedUsers.map((user) => {
+      const trialActive = isInTrial(user);
+      const age = calculateAge(user.birth_date);
+      const status = computeStatus(user);
+      const profileCompletion = `${calculateProfileCompletion(user)}%`;
+
+      return [
+        formatDateTime(user.created_at),
+        formatDateTime(user.last_sign_in_at),
+        user.name ?? "",
+        user.gender ?? "",
+        user.email,
+        formatDate(user.birth_date),
+        typeof age === "number" ? age : "",
+        status,
+        formatDate(user.grace_expires_at),
+        formatDateTime(user.email_confirmed_at),
+        formatSubscription(user.subscription_plan),
+        trialActive ? "Oui" : "Non",
+        formatTrialEndDate(user),
+        profileCompletion,
+        user.country ?? "",
+        user.experience ?? "",
+        user.main_goal ?? "",
+        user.training_place ?? "",
+        user.weekly_sessions ?? "",
+        user.supplements ?? "",
+      ]
+        .map(escapeCsvValue)
+        .join(";");
+    });
+
+    const csvContent = [headers.map(escapeCsvValue).join(";"), ...rows].join("\r\n");
+    const blob = new Blob([`\uFEFF${csvContent}`], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const dateSuffix = new Date().toISOString().split("T")[0];
+    link.href = url;
+    link.download = `utilisateurs-${dateSuffix}.csv`;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [sortedUsers]);
+
+  const isExportDisabled = sortedUsers.length === 0;
 
   const renderHeaderCell = (
     label: string,
@@ -614,7 +792,13 @@ export default function AdminUsersPage() {
                 <div className="mt-5 flex items-center justify-end gap-[20px]">
                   <button
                     type="button"
-                    className="h-10 border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+                    className={`h-10 border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white transition ${
+                      isExportDisabled
+                        ? "opacity-60 cursor-not-allowed"
+                        : "hover:border-[#C2BFC6]"
+                    }`}
+                    onClick={handleExport}
+                    disabled={isExportDisabled}
                   >
                     <div className="flex items-center gap-2 pr-[10px]">
                       <Image src={ExportIcon} alt="" width={10} height={13} />
