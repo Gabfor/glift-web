@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
+import GliftLoader from "@/components/ui/GliftLoader";
 
 export default function AdminHeader() {
   const pathname = usePathname();
@@ -12,6 +13,7 @@ export default function AdminHeader() {
   const { user } = useUser();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,13 +41,15 @@ export default function AdminHeader() {
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isSticky
-          ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
-          : "bg-[#FBFCFE]"
-      }`}
-    >
+    <>
+      {isLoggingOut && <GliftLoader />}
+      <header
+        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+          isSticky
+            ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
+            : "bg-[#FBFCFE]"
+        }`}
+      >
       <div className="max-w-[1152px] mx-auto px-4 md:px-0 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
@@ -170,7 +174,11 @@ export default function AdminHeader() {
               <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
               <button
                 onClick={() => {
+                  if (isLoggingOut) {
+                    return;
+                  }
                   setDropdownOpen(false);
+                  setIsLoggingOut(true);
                   router.push("/deconnexion");
                 }}
                 className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
@@ -182,5 +190,6 @@ export default function AdminHeader() {
         </div>
       </div>
     </header>
+    </>
   );
 }
