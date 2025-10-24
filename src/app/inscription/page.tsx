@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
@@ -21,7 +21,7 @@ const AccountCreationPage = () => {
   const supabase = supabaseClient;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refreshUser } = useUser();
+  const { refreshUser, isAuthenticated, isLoading } = useUser();
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
@@ -68,6 +68,14 @@ const AccountCreationPage = () => {
     const params = new URLSearchParams(searchParamsString);
     return getNextStepPath(plan, "account", params);
   }, [plan, searchParamsString]);
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated || !plan || !nextStepPath) {
+      return;
+    }
+
+    router.replace(nextStepPath);
+  }, [isAuthenticated, isLoading, nextStepPath, plan, router]);
 
   const handleEmailChange = (nextEmail: string) => {
     setEmail(nextEmail);
