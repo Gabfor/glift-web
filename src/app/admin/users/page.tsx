@@ -926,7 +926,6 @@ export default function AdminUsersPage() {
                   options={genderOptions}
                   selected={filters.gender}
                   onSelect={(value) => handleFilterChange("gender", value)}
-                  width="190px"
                 />
                 <DropdownFilter
                   label="Statut"
@@ -934,17 +933,15 @@ export default function AdminUsersPage() {
                   options={statusOptions}
                   selected={filters.status}
                   onSelect={(value) => handleFilterChange("status", value)}
-                  width="210px"
                 />
                 <DropdownFilter
                   label="Abonnement"
-                  placeholder="Tous les abonnements"
+                  placeholder="Abonnements"
                   options={subscriptionOptions}
                   selected={filters.subscription}
                   onSelect={(value) =>
                     handleFilterChange("subscription", value)
                   }
-                  width="210px"
                 />
                 <DropdownFilter
                   label="Pays"
@@ -952,7 +949,6 @@ export default function AdminUsersPage() {
                   options={countryOptions}
                   selected={filters.country}
                   onSelect={(value) => handleFilterChange("country", value)}
-                  width="210px"
                 />
               </div>
               <div className="flex w-full justify-end lg:w-auto">
