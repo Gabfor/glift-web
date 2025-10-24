@@ -18,12 +18,21 @@ type AdminUserRow = {
   id: string;
   email: string;
   created_at: string;
+  last_sign_in_at: string | null;
   name: string | null;
   subscription_plan: string | null;
   premium_trial_started_at: string | null;
   gender: string | null;
   birth_date: string | null;
   email_verified: boolean | null;
+  grace_expires_at: string | null;
+  email_confirmed_at: string | null;
+  country: string | null;
+  experience: string | null;
+  main_goal: string | null;
+  training_place: string | null;
+  weekly_sessions: string | null;
+  supplements: string | null;
 };
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -125,6 +134,7 @@ export async function GET() {
         id: user.id,
         email: user.email ?? "",
         created_at: user.created_at ?? new Date().toISOString(),
+        last_sign_in_at: user.last_sign_in_at ?? null,
         name: profile?.name ?? null,
         subscription_plan: profile?.subscription_plan ?? null,
         premium_trial_started_at: profile?.premium_trial_started_at ?? null,
@@ -134,6 +144,14 @@ export async function GET() {
           typeof profile?.email_verified === "boolean"
             ? profile.email_verified
             : Boolean(user.email_confirmed_at),
+        grace_expires_at: profile?.grace_expires_at ?? null,
+        email_confirmed_at: user.email_confirmed_at ?? null,
+        country: profile?.country ?? null,
+        experience: profile?.experience ?? null,
+        main_goal: profile?.main_goal ?? null,
+        training_place: profile?.training_place ?? null,
+        weekly_sessions: profile?.weekly_sessions ?? null,
+        supplements: profile?.supplements ?? null,
       } satisfies AdminUserRow;
     });
 
