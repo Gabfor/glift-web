@@ -10,19 +10,31 @@ import {
 
 type Props = {
   currentPage: number;
-  totalPrograms: number;
+  totalItems: number;
   onPageChange: (page: number) => void;
+  itemsPerPage?: number;
+  className?: string;
 };
 
-export default function StorePagination({ currentPage, totalPrograms, onPageChange }: Props) {
-  const ITEMS_PER_PAGE = 8;
-  const validTotal = Math.max(0, totalPrograms || 0);
-  const totalPages = Math.ceil(validTotal / ITEMS_PER_PAGE);
+const DEFAULT_ITEMS_PER_PAGE = 8;
+
+export default function Pagination({
+  currentPage,
+  totalItems,
+  onPageChange,
+  itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
+  className,
+}: Props) {
+  const validTotal = Math.max(0, totalItems || 0);
+  const validItemsPerPage = Math.max(1, itemsPerPage || DEFAULT_ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(validTotal / validItemsPerPage);
 
   const [prevHover, setPrevHover] = useState(false);
   const [nextHover, setNextHover] = useState(false);
 
-  if (!Number.isFinite(totalPages) || totalPages <= 1) return null;
+  if (!Number.isFinite(totalPages) || totalPages <= 1) {
+    return null;
+  }
 
   const getVisiblePages = () => {
     const pages: (number | string)[] = [];
@@ -45,8 +57,15 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
   const prevDisabled = currentPage === 1;
   const nextDisabled = currentPage === totalPages;
 
+  const containerClassName = [
+    "flex items-center justify-center gap-2",
+    className ?? "mt-[50px]",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="flex items-center justify-center mt-[50px] gap-2">
+    <div className={containerClassName}>
       {/* Previous Button */}
       <button
         onClick={() => !prevDisabled && onPageChange(currentPage - 1)}
@@ -54,6 +73,7 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
         onMouseEnter={() => setPrevHover(true)}
         onMouseLeave={() => setPrevHover(false)}
         className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent p-0 m-0"
+        aria-label="Page précédente"
       >
         {prevDisabled ? (
           <PreviousDisabledIcon className="h-8 w-8" />
@@ -64,7 +84,7 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
                 ? "/icons/previous_active_hover.svg"
                 : "/icons/previous_active.svg"
             }
-            alt="Previous"
+            alt="Page précédente"
             width={32}
             height={32}
           />
@@ -77,18 +97,20 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
           <button
             key={idx}
             onClick={() => onPageChange(page)}
-            className={`text-[14px] px-2 transition
-              ${
-                page === currentPage
-                  ? "text-[#3A416F] font-semibold"
-                  : "text-[#5D6494] font-semibold"
-              }`}
+            className={`text-[14px] px-2 transition ${
+              page === currentPage
+                ? "text-[#3A416F] font-semibold"
+                : "text-[#5D6494] font-semibold"
+            }`}
+            aria-current={page === currentPage ? "page" : undefined}
           >
             {page}
           </button>
         ) : (
-          <span key={idx} className="px-2 text-[#5D6494]">...</span>
-        )
+          <span key={idx} className="px-2 text-[#5D6494]">
+            ...
+          </span>
+        ),
       )}
 
       {/* Next Button */}
@@ -98,6 +120,7 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
         onMouseEnter={() => setNextHover(true)}
         onMouseLeave={() => setNextHover(false)}
         className="w-8 h-8 flex items-center justify-center rounded-full bg-transparent p-0 m-0"
+        aria-label="Page suivante"
       >
         {nextDisabled ? (
           <NextDisabledIcon className="h-8 w-8" />
@@ -108,7 +131,7 @@ export default function StorePagination({ currentPage, totalPrograms, onPageChan
                 ? "/icons/next_active_hover.svg"
                 : "/icons/next_active.svg"
             }
-            alt="Next"
+            alt="Page suivante"
             width={32}
             height={32}
           />

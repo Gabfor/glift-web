@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import StoreHeader from "@/components/store/StoreHeader";
 import StoreFilters from "@/components/store/StoreFilters";
 import StoreGrid from "@/components/store/StoreGrid";
-import StorePagination from "@/components/store/StorePagination";
+import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
 
 export default function StorePage() {
@@ -69,9 +69,9 @@ export default function StorePage() {
           filters={filters}
         />
         {!loadingCount && (
-          <StorePagination
+          <Pagination
             currentPage={currentPage}
-            totalPrograms={totalPrograms}
+            totalItems={totalPrograms}
             onPageChange={(page) => setCurrentPage(page)}
           />
         )}
