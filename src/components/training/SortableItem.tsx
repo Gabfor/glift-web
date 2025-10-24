@@ -132,7 +132,7 @@ export default function SortableItem({
           />
         </div>
 
-        <div className="flex-1 px-6 flex items-center justify-center">
+        <div className="flex-1 px-6 flex items-center justify-center min-w-0">
           {isLoading ? (
             <Spinner size="sm" className="text-[#3A416F]" ariaLabel="Chargement de l’entraînement" />
           ) : (
