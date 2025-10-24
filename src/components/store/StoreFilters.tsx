@@ -26,14 +26,12 @@ const FilterDropdown = ({
   placeholder,
   selected,
   onSelect,
-  width,
 }: {
   label: string;
   options: FilterOption[];
   placeholder: string;
   selected: string;
   onSelect: (value: string) => void;
-  width?: string;
 }) => {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -69,8 +67,7 @@ const FilterDropdown = ({
 
   return (
     <div
-      className="flex flex-col gap-[5px] relative transition-all duration-300"
-      style={{ width: width ?? "153px" }}
+      className="inline-flex flex-col gap-[5px] relative transition-all duration-300"
       ref={menuRef}
     >
       <div className="flex items-center justify-between">
@@ -293,7 +290,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     },
   ];
 
-  const filterWidths = ["108px", "215px", "170px", "200px"];
   const [selectedFilters, setSelectedFilters] = useState(["", "", "", ""]);
 
   const handleFilterChange = (index: number, value: string) => {
@@ -436,7 +432,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
               options={filter.options}
               selected={selectedFilters[idx]}
               onSelect={(val) => handleFilterChange(idx, val)}
-              width={filterWidths[idx]}
             />
           ))}
         </div>

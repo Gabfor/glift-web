@@ -139,8 +139,6 @@ export default function ShopFilters({ sortBy, onSortChange, onFiltersChange, typ
     { label: "Sport", placeholder: "Tous les sports", options: mappedSportOptions },
     { label: "Boutique", placeholder: "Toutes les boutiques", options: partnerOptions },
   ];
-
-  const filterWidths = ["108px", "215px", "175px", "200px"];
   const [selectedFilters, setSelectedFilters] = useState(["", "", "", ""]);
 
   const handleFilterChange = (index: number, value: string) => {
@@ -234,7 +232,6 @@ export default function ShopFilters({ sortBy, onSortChange, onFiltersChange, typ
               options={filter.options}
               selected={selectedFilters[idx]}
               onSelect={(val) => handleFilterChange(idx, val)}
-              width={filterWidths[idx]}
             />
           ))}
         </div>
