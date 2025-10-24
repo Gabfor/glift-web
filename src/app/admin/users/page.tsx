@@ -908,7 +908,7 @@ export default function AdminUsersPage() {
               Utilisateurs
             </h2>
 
-            <div className="flex justify-center mb-[10px]">
+            <div className="flex justify-center mb-[60px]">
               <div className="w-[368px]">
                 <SearchBar
                   value={searchTerm}
@@ -918,7 +918,7 @@ export default function AdminUsersPage() {
               </div>
             </div>
 
-            <div className="mb-[6px] flex min-h-[40px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="mb-[20px] flex min-h-[40px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap gap-3">
                 <DropdownFilter
                   label="Sexe"
