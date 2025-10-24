@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import ShopCard from "@/components/shop/ShopCard";
-import GliftLoader from "@/components/ui/GliftLoader";
+import ShopGridSkeleton from "@/components/shop/ShopGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
@@ -100,7 +100,7 @@ export default function ShopGrid({
 }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
-  const showLoader = useMinimumVisibility(loading);
+  const showSkeleton = useMinimumVisibility(loading);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -200,19 +200,22 @@ export default function ShopGrid({
 
   return (
     <>
-      {showLoader && <GliftLoader />}
-      <div className="relative mt-8">
-        {filteredOffers.length === 0 && !showLoader && !loading && (
-          <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
-        )}
+      {showSkeleton ? (
+        <ShopGridSkeleton />
+      ) : (
+        <div className="relative mt-8">
+          {filteredOffers.length === 0 && !loading && (
+            <p className="text-center text-[#5D6494]">Aucun programme trouvé.</p>
+          )}
 
-        <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-          {filteredOffers.map((offer) => (
-            <ShopCard key={offer.id} offer={offer} />
-          ))}
+          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+            {filteredOffers.map((offer) => (
+              <ShopCard key={offer.id} offer={offer} />
+            ))}
+          </div>
+
         </div>
-
-      </div>
+      )}
     </>
   );
 }
