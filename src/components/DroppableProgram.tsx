@@ -12,6 +12,8 @@ interface Training {
   dashboard: boolean
 }
 
+export type LoadingTrainingState = { id: string; type: "open" | "add" } | null;
+
 interface Props {
   programId: string
   trainings: Training[]
@@ -31,7 +33,7 @@ interface Props {
   showVisibilityTrainingId?: string | null
   setShowVisibilityTrainingId?: (id: string | null) => void
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
-  loadingTrainingId?: string | null
+  loadingTraining?: LoadingTrainingState
 }
 
 export default function DroppableProgram(props: Props) {
@@ -45,7 +47,7 @@ export default function DroppableProgram(props: Props) {
     openVisibilityIds,
     setOpenVisibilityIds,
     onUpdateTrainingVisibility,
-    loadingTrainingId,
+    loadingTraining,
   } = props;
 
   const { setNodeRef } = useDroppable({
@@ -70,27 +72,33 @@ export default function DroppableProgram(props: Props) {
         strategy={rectSortingStrategy}
       >
         <div className="flex flex-wrap gap-4 items-start">
-          {filteredTrainings.map((training) => (
-            <SortableItem
-              key={training.id}
-              training={training}
-              programId={programId}
-              onClick={onClickTraining}
-              onDelete={onDeleteTraining}
-              onDuplicate={onDuplicateTraining}
-              onToggleVisibility={() => {
-                setOpenVisibilityIds((prev) =>
-                  prev.includes(training.id)
-                    ? prev.filter((id) => id !== training.id)
-                    : [...prev, training.id]
-                );
-              }}
-              showVisibility={openVisibilityIds.includes(training.id)}
-              dragDisabled={dragDisabled}
-              onUpdateTrainingVisibility={onUpdateTrainingVisibility}
-              isLoading={loadingTrainingId === training.id}
-            />
-          ))}
+          {filteredTrainings.map((training) => {
+            const isTrainingLoading = loadingTraining?.id === training.id;
+            const loadingType = isTrainingLoading ? loadingTraining?.type ?? null : null;
+
+            return (
+              <SortableItem
+                key={training.id}
+                training={training}
+                programId={programId}
+                onClick={onClickTraining}
+                onDelete={onDeleteTraining}
+                onDuplicate={onDuplicateTraining}
+                onToggleVisibility={() => {
+                  setOpenVisibilityIds((prev) =>
+                    prev.includes(training.id)
+                      ? prev.filter((id) => id !== training.id)
+                      : [...prev, training.id]
+                  );
+                }}
+                showVisibility={openVisibilityIds.includes(training.id)}
+                dragDisabled={dragDisabled}
+                onUpdateTrainingVisibility={onUpdateTrainingVisibility}
+                isLoading={isTrainingLoading}
+                loadingType={loadingType}
+              />
+            );
+          })}
           <div className="ml-0">
             <button
               className="border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[6px] w-[270px] h-[60px] transition border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"

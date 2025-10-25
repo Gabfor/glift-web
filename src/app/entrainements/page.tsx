@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import ProgramEditor from "@/components/ProgramEditor";
 import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
-import DroppableProgram from "@/components/DroppableProgram";
+import DroppableProgram, {
+  type LoadingTrainingState,
+} from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 
 import {
@@ -57,7 +59,7 @@ export default function EntrainementsPage() {
   const sensors = useSensors(useSensor(PointerSensor));
 
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
-  const [loadingTrainingId, setLoadingTrainingId] = useState<string | null>(null);
+  const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
 
   useEffect(() => {
     const id = localStorage.getItem("newly_downloaded_program_id");
@@ -311,7 +313,7 @@ export default function EntrainementsPage() {
             programId={program.id}
             trainings={program.trainings}
             onClickTraining={(id: string) => {
-              setLoadingTrainingId(id);
+              setLoadingTraining({ id, type: "open" });
               router.push(`/entrainements/${id}`);
             }}
             onReorderTrainings={(programId: string, ids: string[]) =>
@@ -322,7 +324,7 @@ export default function EntrainementsPage() {
 
               const newData = await handleAddTraining(program.id);
               if (newData?.id) {
-                setLoadingTrainingId(newData.id);
+                setLoadingTraining({ id: newData.id, type: "add" });
                 router.push(`/entrainements/${newData.id}?new=1`);
               }
             }}
@@ -332,7 +334,7 @@ export default function EntrainementsPage() {
             openVisibilityIds={openVisibilityIds}
             setOpenVisibilityIds={setOpenVisibilityIds}
             onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
-            loadingTrainingId={loadingTrainingId}
+            loadingTraining={loadingTraining}
           />
         </div>
       );
