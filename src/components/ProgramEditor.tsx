@@ -6,6 +6,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Tooltip from "@/components/Tooltip";
 import { TrashHoverIcon, TrashIcon } from "./icons/TrashIcons";
 
+const DEFAULT_PROGRAM_NAME = "Nom du programme";
+
 interface ProgramEditorProps {
   name: string;
   index: number;
@@ -192,14 +194,22 @@ export default function ProgramEditor({
               onChange={(e) => onChangeName(index, e.target.value)}
               onBlur={() => onSubmit(index)}
               onKeyDown={handleKeyDown}
-              placeholder="Nom du programme"
+              onFocus={() => {
+                if (name.trim() === DEFAULT_PROGRAM_NAME) {
+                  onChangeName(index, "");
+                }
+              }}
+              placeholder={DEFAULT_PROGRAM_NAME}
               className="h-[34px] max-w-[250px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-[40px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
             />
             {name && (
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
-              onClick={() => onChangeName(index, "")}
+              onClick={() => {
+                onChangeName(index, "");
+                requestAnimationFrame(() => inputRef.current?.focus());
+              }}
               className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
               aria-label="Effacer le nom"
             >
@@ -210,14 +220,14 @@ export default function ProgramEditor({
                     alt="Effacer"
                     fill
                     sizes="100%"
-                    className="absolute top-[3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                    className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
                   <Image
                     src="/icons/cross_reset_hover.svg"
                     alt="Effacer"
                     fill
                     sizes="100%"
-                    className="absolute top-[3px] left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
                   />
                 </div>
               </Tooltip>
@@ -229,7 +239,7 @@ export default function ProgramEditor({
           className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
           onClick={() => onStartEdit(index)}
         >
-          <span>{name || `Nom du programme`}</span>
+          <span>{name || DEFAULT_PROGRAM_NAME}</span>
           <Tooltip content="Editer">
           <div className="relative ml-1 w-[15px] h-[15px]">
             <Image
