@@ -382,7 +382,6 @@ export default function TrainingTable({
                   columns={columns}
                   setIsEditing={setIsEditing}
                   isHidden={dragActive && dragGroup.some(d => d.id === row.id)}
-                  style={{ transition: "transform 200ms ease" }}
                   adminMode={adminMode}
                 />
               ))}
