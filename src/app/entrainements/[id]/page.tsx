@@ -1,8 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams, useParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams, useParams, usePathname } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import EditableTitle from "@/components/EditableTitle";
 import TrainingTable from "@/components/TrainingTable";
@@ -19,6 +19,40 @@ import { useTrainingColumns } from "@/utils/useTrainingColumns";
 import { useSeriesChange } from "@/utils/useSeriesChange";
 import { useCheckboxChange } from "@/utils/useCheckboxChange";
 import { useIconHover } from "@/utils/useIconHover";
+import { notifyTrainingChange } from "@/components/ProgramEditor";
+import type { Row } from "@/types/training";
+
+const DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
+const DEFAULT_SERIES_COUNT = 4;
+const DEFAULT_EFFORT_VALUE = "parfait";
+
+const isRowContentEmpty = (row: Row) => {
+  const textFields = [
+    row.exercice,
+    row.materiel,
+    row.repos,
+    row.link ?? "",
+    row.note ?? "",
+  ];
+
+  const hasTextContent = textFields.some((value) => Boolean(value && value.trim().length));
+  const hasRepetitions = (row.repetitions ?? []).some((rep) => rep.trim().length > 0);
+  const hasWeights = (row.poids ?? []).some((weight) => weight.trim().length > 0);
+  const hasEffortChange = (row.effort ?? []).some((effort) => effort && effort !== DEFAULT_EFFORT_VALUE);
+  const hasSeriesChange = typeof row.series === "number" && row.series !== DEFAULT_SERIES_COUNT;
+  const hasChecked = Boolean(row.checked);
+  const hasSuperset = Boolean(row.superset_id);
+
+  return !(
+    hasTextContent ||
+    hasRepetitions ||
+    hasWeights ||
+    hasEffortChange ||
+    hasSeriesChange ||
+    hasChecked ||
+    hasSuperset
+  );
+};
 
 export default function AdminEntrainementDetailPage() {
   const params = useParams();
@@ -27,6 +61,22 @@ export default function AdminEntrainementDetailPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
+  const pathname = usePathname();
+
+  const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+  const trainingsTableName = isAdminRoute ? "trainings_admin" : "trainings";
+  const trainingRowsTableName = isAdminRoute ? "training_rows_admin" : "training_rows";
+  const isNewParam = searchParams?.get("new") === "1";
+
+  const isNewTrainingRef = useRef(isNewParam);
+  useEffect(() => {
+    if (isNewParam) {
+      isNewTrainingRef.current = true;
+    }
+  }, [isNewParam]);
+
+  const shouldDeleteRef = useRef(false);
+  const hasDeletedRef = useRef(false);
 
   // ✅ States
   const [editing, setEditing] = useState(false);
@@ -58,6 +108,78 @@ export default function AdminEntrainementDetailPage() {
       setProgramName("");
     }
   }, [searchParams, setProgramName]);
+
+  useEffect(() => {
+    if (!isNewTrainingRef.current) {
+      shouldDeleteRef.current = false;
+      return;
+    }
+
+    const normalizedName = programName.trim();
+    const isNameMissing =
+      normalizedName.length === 0 || normalizedName === DEFAULT_TRAINING_NAME;
+
+    const hasTableContent = rows.some((row) => !isRowContentEmpty(row));
+
+    shouldDeleteRef.current = isNameMissing && !hasTableContent;
+  }, [programName, rows]);
+
+  const deleteEmptyTraining = useCallback(async () => {
+    if (hasDeletedRef.current) return;
+    if (!isNewTrainingRef.current) return;
+    if (!shouldDeleteRef.current) return;
+    if (!trainingId) return;
+
+    let userId = user?.id ?? null;
+    if (!userId) {
+      const { data } = await supabase.auth.getUser();
+      userId = data.user?.id ?? null;
+    }
+
+    try {
+      let rowsDeleteQuery = supabase
+        .from(trainingRowsTableName)
+        .delete()
+        .eq("training_id", trainingId);
+
+      if (userId) {
+        rowsDeleteQuery = rowsDeleteQuery.eq("user_id", userId);
+      }
+
+      const { error: rowsError } = await rowsDeleteQuery;
+      if (rowsError) {
+        console.error("❌ Erreur suppression lignes entraînement vide :", rowsError);
+      }
+
+      let trainingDeleteQuery = supabase
+        .from(trainingsTableName)
+        .delete()
+        .eq("id", trainingId);
+
+      if (userId) {
+        trainingDeleteQuery = trainingDeleteQuery.eq("user_id", userId);
+      }
+
+      const { error: trainingError } = await trainingDeleteQuery;
+      if (trainingError) {
+        console.error("❌ Erreur suppression entraînement vide :", trainingError);
+        return;
+      }
+
+      notifyTrainingChange("all-programs");
+      hasDeletedRef.current = true;
+      shouldDeleteRef.current = false;
+      console.log("🗑️ Entraînement vide supprimé automatiquement");
+    } catch (error) {
+      console.error("❌ Erreur inattendue lors de la suppression de l'entraînement vide :", error);
+    }
+  }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id]);
+
+  useEffect(() => {
+    return () => {
+      void deleteEmptyTraining();
+    };
+  }, [deleteEmptyTraining]);
 
   const handleDeleteSelectedRows = () => {
     const newRows = rows.filter((row) => !selectedRowIds.includes(row.id ?? ""));
@@ -93,25 +215,27 @@ export default function AdminEntrainementDetailPage() {
         <div
           className="flex items-center text-sm text-[#5D6494] hover:text-[#3A416F] text-[15px] font-semibold mb-6 cursor-pointer group w-fit"
             onClick={async () => {
-              if (!programName.trim()) {
-                await supabase.from("trainings_admin").delete().eq("id", trainingId);
-                console.log("🗑️ Entraînement vide supprimé (retour)");
-              }
+              let adminProgramId: string | null = null;
 
-              const isAdmin = window.location.pathname.startsWith("/admin");
-
-              if (isAdmin) {
+              if (isAdminRoute) {
                 const { data, error } = await supabase
                   .from("trainings_admin")
                   .select("program_id")
                   .eq("id", trainingId)
                   .single();
 
-                if (error || !data?.program_id) {
-                  console.error("❌ Impossible de récupérer le program_id", error);
-                  router.push("/admin/entrainements");
+                if (!error && data?.program_id) {
+                  adminProgramId = data.program_id;
+                }
+              }
+
+              await deleteEmptyTraining();
+
+              if (isAdminRoute) {
+                if (adminProgramId) {
+                  router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
                 } else {
-                  router.push(`/admin/entrainements?id=${data.program_id}&edit=1`);
+                  router.push("/admin/entrainements");
                 }
               } else {
                 router.push("/entrainements");
