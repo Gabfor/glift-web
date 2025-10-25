@@ -15,23 +15,25 @@ export default async function CreateOfferPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const idParam = resolvedSearchParams?.id;
-  const idParamNumber =
-    typeof idParam === "string" ? Number(idParam) : Number.NaN;
   let offerId: string | null = null;
   let initialOffer: OfferFormState | null = null;
 
-  if (!Number.isNaN(idParamNumber)) {
-    offerId = idParam;
+  if (typeof idParam === "string") {
+    const idParamNumber = Number(idParam);
 
-    const supabase = await createServerClient();
-    const { data, error } = await supabase
-      .from("offer_shop")
-      .select("*")
-      .eq("id", idParamNumber)
-      .maybeSingle<OfferRow>();
+    if (!Number.isNaN(idParamNumber)) {
+      offerId = idParam;
 
-    if (!error && data) {
-      initialOffer = mapOfferRowToForm(data);
+      const supabase = await createServerClient();
+      const { data, error } = await supabase
+        .from("offer_shop")
+        .select("*")
+        .eq("id", idParamNumber)
+        .maybeSingle<OfferRow>();
+
+      if (!error && data) {
+        initialOffer = mapOfferRowToForm(data);
+      }
     }
   }
 
