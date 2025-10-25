@@ -233,7 +233,7 @@ export default function TableActionsBar({
         </Tooltip>
       )}
 
-      <div ref={menuRef} className="relative">
+      <div ref={menuRef} className="relative inline-flex items-center">
         <Tooltip content="Colonnes">
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
