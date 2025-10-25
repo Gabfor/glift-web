@@ -31,7 +31,7 @@ type ProgramListRow = Pick<
 >;
 
 type Program = {
-  id: number;
+  id: string;
   title: string;
   created_at: string;
   status: string;
@@ -72,7 +72,7 @@ type SortableColumn =
 
 export default function ProgramStorePage() {
   const [programs, setPrograms] = useState<Program[]>([]);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
@@ -132,7 +132,7 @@ export default function ProgramStorePage() {
     }
   };
 
-  const toggleCheckbox = (id: number) => {
+  const toggleCheckbox = (id: string) => {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
     );

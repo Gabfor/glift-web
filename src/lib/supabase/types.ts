@@ -184,7 +184,7 @@ export interface Database {
       };
       program_store: {
         Row: {
-          id: number;
+          id: string;
           image: Nullable<string>;
           title: string;
           partner_image: Nullable<string>;
@@ -209,7 +209,7 @@ export interface Database {
           updated_at: Nullable<string>;
         };
         Insert: {
-          id?: number;
+          id?: string;
           image?: Nullable<string>;
           title: string;
           partner_image?: Nullable<string>;
@@ -234,7 +234,7 @@ export interface Database {
           updated_at?: Nullable<string>;
         };
         Update: {
-          id?: number;
+          id?: string;
           image?: Nullable<string>;
           title?: string;
           partner_image?: Nullable<string>;

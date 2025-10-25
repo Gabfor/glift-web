@@ -15,7 +15,7 @@ type InsertedTrainingRow = { id: string };
  * de `programs_admin`, `trainings_admin`, et `training_rows_admin` vers
  * `programs`, `trainings`, et `training_rows` de l'utilisateur.
  */
-export async function downloadProgram(storeProgramId: number): Promise<string | null> {
+export async function downloadProgram(storeProgramId: string): Promise<string | null> {
   const supabase = createClient();
 
   // 1. Récupérer l'utilisateur connecté

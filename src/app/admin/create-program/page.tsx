@@ -18,22 +18,18 @@ export default async function CreateProgramPage({
   let programId: string | null = null;
   let initialProgram: ProgramFormState | null = null;
 
-  if (typeof idParam === "string") {
-    const idParamNumber = Number(idParam);
+  if (typeof idParam === "string" && idParam.trim() !== "") {
+    programId = idParam;
 
-    if (!Number.isNaN(idParamNumber)) {
-      programId = idParam;
+    const supabase = await createServerClient();
+    const { data, error } = await supabase
+      .from("program_store")
+      .select("*")
+      .eq("id", idParam)
+      .maybeSingle<ProgramRow>();
 
-      const supabase = await createServerClient();
-      const { data, error } = await supabase
-        .from("program_store")
-        .select("*")
-        .eq("id", idParamNumber)
-        .maybeSingle<ProgramRow>();
-
-      if (!error && data) {
-        initialProgram = mapProgramRowToForm(data);
-      }
+    if (!error && data) {
+      initialProgram = mapProgramRowToForm(data);
     }
   }
 

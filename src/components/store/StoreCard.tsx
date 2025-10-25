@@ -9,7 +9,7 @@ import CTAButton from "@/components/CTAButton";
 
 type Props = {
   program: {
-    id: number;
+    id: string;
     title: string;
     level: string;
     duration: string;
