@@ -35,7 +35,7 @@ export default function Spinner({ size = "sm", className, ariaLabel }: SpinnerPr
   return (
     <span
       className={clsx(
-        "relative inline-flex items-center justify-center text-current",
+        "relative inline-flex items-center justify-center",
         className,
       )}
       role={ariaLabel ? "status" : undefined}

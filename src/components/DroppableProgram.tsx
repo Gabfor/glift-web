@@ -17,9 +17,9 @@ export type LoadingTrainingState = { id: string; type: "open" | "add" } | null;
 interface Props {
   programId: string
   trainings: Training[]
-  onClickTraining: (id: string) => void
+  onClickTraining: (id: string) => void | Promise<void>
   onReorderTrainings: (programId: string, ids: string[]) => void
-  onAddTraining: () => void
+  onAddTraining: () => void | Promise<void>
   onDeleteTraining: (id: string) => void
   onDuplicateTraining: (id: string) => void
   onDropTraining: (
