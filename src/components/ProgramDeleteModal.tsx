@@ -25,7 +25,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
           <CTAButton
             variant="danger"
             onClick={() => onConfirm()}
-            loadingText="En cours..."
+            loadingText=""
           >
             Confirmer
           </CTAButton>
