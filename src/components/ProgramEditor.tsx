@@ -249,7 +249,10 @@ export default function ProgramEditor({
         ) : (
         <div
           className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
-          onClick={() => onStartEdit(index)}
+          onClick={() => {
+            setLocalName("");
+            onStartEdit(index);
+          }}
         >
           <span>{name || DEFAULT_PROGRAM_NAME}</span>
           <Tooltip content="Editer">
