@@ -24,9 +24,8 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
           </button>
           <CTAButton
             variant="danger"
-            className="w-[116px]"
             onClick={() => onConfirm()}
-            loadingText="Suppression..."
+            loadingText="En cours..."
           >
             Confirmer
           </CTAButton>
