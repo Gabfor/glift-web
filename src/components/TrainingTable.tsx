@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   PointerSensor,
   useSensor,
   useSensors,
   DragOverlay,
+  defaultDropAnimation,
   type DragStartEvent,
   type DragOverEvent,
   type CollisionDetection,
@@ -93,19 +94,115 @@ export default function TrainingTable({
     })
   );
 
+  const dragOverlayDropAnimation = {
+    ...defaultDropAnimation,
+    duration: 220,
+    easing: "cubic-bezier(0.33, 1, 0.68, 1)",
+  } as const;
+
   const [dragActive, setDragActive] = useState(false);
   const isVisible = (name: string) => columns.find(c => c.name === name)?.visible;
   const [dragGroup, setDragGroup] = useState<Row[]>([]);
+  const dragGroupRef = useRef<Row[]>([]);
+  const lastOverIdRef = useRef<string | null>(null);
+  const animationFrameRef = useRef<number>();
+
+  const cancelScheduledReorder = useCallback(() => {
+    if (animationFrameRef.current !== undefined) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = undefined;
+    }
+  }, []);
+
+  const applyScheduledReorder = useCallback(() => {
+    animationFrameRef.current = undefined;
+    const overId = lastOverIdRef.current;
+    if (!overId) {
+      return;
+    }
+
+    let nextGroup: Row[] | null = null;
+
+    setRows((prevRows) => {
+      const currentGroup = dragGroupRef.current;
+      if (currentGroup.length === 0) {
+        return prevRows;
+      }
+
+      const groupSet = new Set(currentGroup);
+      const sortedGroupRows = prevRows.filter((row) => groupSet.has(row));
+      if (sortedGroupRows.length === 0) {
+        return prevRows;
+      }
+
+      const overIndex = prevRows.findIndex((row) => (row.id ?? "").toString() === overId);
+      if (overIndex === -1) {
+        return prevRows;
+      }
+
+      const overRow = prevRows[overIndex];
+      if (groupSet.has(overRow)) {
+        return prevRows;
+      }
+
+      const firstGroupIndex = prevRows.findIndex((row) => row === sortedGroupRows[0]);
+      if (firstGroupIndex === -1) {
+        return prevRows;
+      }
+
+      const remainingRows = prevRows.filter((row) => !groupSet.has(row));
+
+      const insertIndex =
+        overIndex < firstGroupIndex
+          ? overIndex
+          : overIndex - sortedGroupRows.length + 1;
+
+      const clampedInsertIndex = Math.max(0, Math.min(insertIndex, remainingRows.length));
+
+      const updatedRows = [
+        ...remainingRows.slice(0, clampedInsertIndex),
+        ...sortedGroupRows,
+        ...remainingRows.slice(clampedInsertIndex),
+      ];
+
+      const didChange = updatedRows.some((row, index) => row !== prevRows[index]);
+      if (!didChange) {
+        return prevRows;
+      }
+
+      nextGroup = sortedGroupRows;
+      dragGroupRef.current = sortedGroupRows;
+      return updatedRows;
+    });
+
+    if (nextGroup) {
+      setDragGroup(nextGroup);
+    }
+  }, [setRows, setDragGroup]);
+
+  const scheduleReorder = useCallback(() => {
+    if (animationFrameRef.current === undefined) {
+      animationFrameRef.current = requestAnimationFrame(applyScheduledReorder);
+    }
+  }, [applyScheduledReorder]);
+
+  useEffect(() => () => {
+    cancelScheduledReorder();
+  }, [cancelScheduledReorder]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const draggedRow = rows.find((r) => r.id === event.active.id);
     if (!draggedRow) return;
 
+    lastOverIdRef.current = null;
+
     if (draggedRow.superset_id) {
       const group = rows.filter((r) => r.superset_id === draggedRow.superset_id);
       setDragGroup(group);
+      dragGroupRef.current = group;
     } else {
       setDragGroup([draggedRow]);
+      dragGroupRef.current = [draggedRow];
     }
 
     setDragActive(true);
@@ -122,6 +219,7 @@ export default function TrainingTable({
     const oldIndex = rows.findIndex(r => r.id?.toString() === activeId);
     const overIndex = rows.findIndex(r => r.id?.toString() === overId);
     if (oldIndex === -1 || overIndex === -1) return;
+    if (oldIndex === overIndex) return;
 
     const overRow = rows[overIndex];
     const draggedIsSameGroup =
@@ -137,21 +235,17 @@ export default function TrainingTable({
       if (isInGroup) return;
     }
 
-    const draggedIds = dragGroup.map(r => r.id);
-    const remainingRows = rows.filter(r => !draggedIds.includes(r.id));
-    const insertIndex = overIndex < oldIndex ? overIndex : overIndex - dragGroup.length + 1;
-    const updatedRows = [
-      ...remainingRows.slice(0, insertIndex),
-      ...dragGroup,
-      ...remainingRows.slice(insertIndex),
-    ];
-    setRows(updatedRows);
+    lastOverIdRef.current = overId;
+    scheduleReorder();
   };
 
   const handleDragEnd = () => {
     setDragActive(false);
     onDragActiveChange?.(false);
     setDragGroup([]);
+    dragGroupRef.current = [];
+    lastOverIdRef.current = null;
+    cancelScheduledReorder();
   };
 
   const getSupersetGroups = () => {
@@ -275,7 +369,7 @@ export default function TrainingTable({
             </tbody>
           </table>
         </SortableContext>
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={dragOverlayDropAnimation}>
           {dragGroup.length > 0 && (
             <div className="relative">
               {dragGroup.length > 1 && (
