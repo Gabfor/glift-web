@@ -6,8 +6,8 @@ import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import CTAButton from "@/components/CTAButton";
-import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import AdminSliderSkeleton from "./AdminSliderSkeleton";
 import type { Database } from "@/lib/supabase/types";
 
 const sliderTypeOptions = [
@@ -57,7 +57,7 @@ export default function AdminSliderPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [loading, setLoading] = useState(true);
-  const showLoader = useMinimumVisibility(loading);
+  const showSkeleton = useMinimumVisibility(loading);
   const [type, setType] = useState("none");
   const [count, setCount] = useState("1");
   const [slides, setSlides] = useState<Slide[]>(
@@ -181,15 +181,15 @@ export default function AdminSliderPage() {
   };
 
   return (
-    <>
-      {showLoader && <GliftLoader />}
-      <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-        <div className="w-full max-w-3xl">
-          <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-10">
-            Slider
-          </h2>
+    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+      <div className="w-full max-w-3xl">
+        <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-10">
+          Slider
+        </h2>
 
-        {!loading && (
+        {showSkeleton ? (
+          <AdminSliderSkeleton />
+        ) : (
           <>
             {type !== "none" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
@@ -293,6 +293,5 @@ export default function AdminSliderPage() {
         </div>
       </div>
     </main>
-  </>
   );
 }
