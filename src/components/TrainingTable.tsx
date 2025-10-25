@@ -96,8 +96,8 @@ export default function TrainingTable({
 
   const dragOverlayDropAnimation = {
     ...defaultDropAnimation,
-    duration: 220,
-    easing: "cubic-bezier(0.33, 1, 0.68, 1)",
+    duration: 360,
+    easing: "cubic-bezier(0.22, 1, 0.36, 1)",
   } as const;
 
   const [dragActive, setDragActive] = useState(false);

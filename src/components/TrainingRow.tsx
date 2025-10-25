@@ -81,12 +81,12 @@ export default function TrainingRow({
 
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
 
-  const transitionTiming = "cubic-bezier(0.33, 1, 0.68, 1)";
+  const transitionTiming = "cubic-bezier(0.22, 1, 0.36, 1)";
   const sortableStyle: React.CSSProperties = {
     transform: transform
       ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)`
       : undefined,
-    transition: !isDragging ? `transform 220ms ${transitionTiming}` : undefined,
+    transition: !isDragging ? `transform 360ms ${transitionTiming}` : undefined,
     willChange: "transform",
     zIndex: isDragging ? 50 : undefined,
     position: isDragging ? "absolute" : undefined,
