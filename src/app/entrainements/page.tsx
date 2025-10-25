@@ -10,6 +10,7 @@ import DroppableProgram, {
   type LoadingTrainingState,
 } from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
+import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
 
 import {
   DndContext,
@@ -34,6 +35,7 @@ const wait = (duration: number) =>
 export default function EntrainementsPage() {
   const {
     programs,
+    isLoading,
     fetchProgramsWithTrainings,
     handleReorderTrainings,
     handleDuplicateTraining,
@@ -284,94 +286,102 @@ export default function EntrainementsPage() {
           Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.
         </p>
 
-        <DndContext
-          sensors={sensors}
-          collisionDetection={rectIntersection}
-          onDragStart={handleDragStart}
-          onDragOver={handleDragOver}
-          onDragEnd={handleDragEnd}
-        >
-    {programsToRender.map((program, index) => {
-      const computedZIndex = programsToRender.length - index;
+        {isLoading ? (
+          <ProgramsSkeleton />
+        ) : (
+          <DndContext
+            sensors={sensors}
+            collisionDetection={rectIntersection}
+            onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
+            onDragEnd={handleDragEnd}
+          >
+            {programsToRender.map((program, index) => {
+              const computedZIndex = programsToRender.length - index;
 
-      return (
-        <div
-          key={program.id || index}
-          className="relative w-full max-w-[1152px] mb-[20px]"
-          style={{ zIndex: computedZIndex }}
-        >
-          <ProgramEditor
-            name={program.name ?? ""}
-            index={index}
-            editingIndex={editingIndex}
-            onChangeName={handleChangeName}
-            onSubmit={() => {
-              handleSubmit(index);
-              setEditingIndex(null);
-            }}
-            onStartEdit={setEditingIndex}
-            onCancel={() => setEditingIndex(null)}
-            programId={program.id}
-            isVisible={visibility[program.id] !== false}
-            onToggleVisibility={() => {
-              setVisibility((prev) => ({
-                ...prev,
-                [program.id]: !prev[program.id],
-              }));
-            }}
-            onDelete={() => {
-              if (programs.length <= 1) return;
-              setShowProgramDeleteModal(true);
-              setProgramIdToDelete(program.id);
-            }}
-            isFirst={index === 0}
-            isLastActive={index === lastActiveIndex}
-            onMoveUp={() => moveProgramUp(index)}
-            onMoveDown={() => moveProgramDown(index)}
-            onDuplicate={() => handleDuplicateProgram(index)}
-            zIndex={computedZIndex}
-            tableName="trainings"
-            programsTableName="programs"
-            isNew={program.id === newlyDownloadedId}
-          />
+              return (
+                <div
+                  key={program.id || index}
+                  className="relative w-full max-w-[1152px] mb-[20px]"
+                  style={{ zIndex: computedZIndex }}
+                >
+                  <ProgramEditor
+                    name={program.name ?? ""}
+                    index={index}
+                    editingIndex={editingIndex}
+                    onChangeName={handleChangeName}
+                    onSubmit={() => {
+                      handleSubmit(index);
+                      setEditingIndex(null);
+                    }}
+                    onStartEdit={setEditingIndex}
+                    onCancel={() => setEditingIndex(null)}
+                    programId={program.id}
+                    isVisible={visibility[program.id] !== false}
+                    onToggleVisibility={() => {
+                      setVisibility((prev) => ({
+                        ...prev,
+                        [program.id]: !prev[program.id],
+                      }));
+                    }}
+                    onDelete={() => {
+                      if (programs.length <= 1) return;
+                      setShowProgramDeleteModal(true);
+                      setProgramIdToDelete(program.id);
+                    }}
+                    isFirst={index === 0}
+                    isLastActive={index === lastActiveIndex}
+                    onMoveUp={() => moveProgramUp(index)}
+                    onMoveDown={() => moveProgramDown(index)}
+                    onDuplicate={() => handleDuplicateProgram(index)}
+                    zIndex={computedZIndex}
+                    tableName="trainings"
+                    programsTableName="programs"
+                    isNew={program.id === newlyDownloadedId}
+                  />
 
-          <DroppableProgram
-            programId={program.id}
-            trainings={program.trainings}
-            onClickTraining={handleTrainingNavigation}
-            onReorderTrainings={(programId: string, ids: string[]) =>
-              handleReorderTrainings(programId, ids)
-            }
-            onAddTraining={async () => {
-              if (loadingTraining) return;
-              if (!program.id) return;
+                  <DroppableProgram
+                    programId={program.id}
+                    trainings={program.trainings}
+                    onClickTraining={handleTrainingNavigation}
+                    onReorderTrainings={(programId: string, ids: string[]) =>
+                      handleReorderTrainings(programId, ids)
+                    }
+                    onAddTraining={async () => {
+                      if (loadingTraining) return;
+                      if (!program.id) return;
 
-              const newData = await handleAddTraining(program.id);
-              if (newData?.id) {
-                setLoadingTraining({ id: newData.id, type: "add" });
-                await wait(MINIMUM_TRAINING_SPINNER_DURATION);
-                if (!isMountedRef.current) return;
-                router.push(`/entrainements/${newData.id}?new=1`);
-              }
-            }}
-            onDeleteTraining={(id: string) => handleDeleteTraining(program.id, id)}
-            onDuplicateTraining={(id: string) => handleDuplicateTraining(program.id, id)}
-            onDropTraining={moveTrainingToAnotherProgram}
-            openVisibilityIds={openVisibilityIds}
-            setOpenVisibilityIds={setOpenVisibilityIds}
-            onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
-            loadingTraining={loadingTraining}
-          />
-        </div>
-      );
-    })}
+                      const newData = await handleAddTraining(program.id);
+                      if (newData?.id) {
+                        setLoadingTraining({ id: newData.id, type: "add" });
+                        await wait(MINIMUM_TRAINING_SPINNER_DURATION);
+                        if (!isMountedRef.current) return;
+                        router.push(`/entrainements/${newData.id}?new=1`);
+                      }
+                    }}
+                    onDeleteTraining={(id: string) =>
+                      handleDeleteTraining(program.id, id)
+                    }
+                    onDuplicateTraining={(id: string) =>
+                      handleDuplicateTraining(program.id, id)
+                    }
+                    onDropTraining={moveTrainingToAnotherProgram}
+                    openVisibilityIds={openVisibilityIds}
+                    setOpenVisibilityIds={setOpenVisibilityIds}
+                    onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
+                    loadingTraining={loadingTraining}
+                  />
+                </div>
+              );
+            })}
 
-          <DragOverlay>
-            {activeTraining && (
-              <DragPreviewItem training={activeTraining} />
-            )}
-          </DragOverlay>
-        </DndContext>
+            <DragOverlay>
+              {activeTraining && (
+                <DragPreviewItem training={activeTraining} />
+              )}
+            </DragOverlay>
+          </DndContext>
+        )}
       </div>
 
       <ProgramDeleteModal

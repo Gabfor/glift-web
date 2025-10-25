@@ -11,56 +11,66 @@ type ProgramWithTrainings = Program & {
 
 export default function usePrograms() {
   const [programs, setPrograms] = useState<ProgramWithTrainings[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const supabase = useSupabaseClient();
 
   const fetchProgramsWithTrainings = useCallback(async () => {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user?.id) return;
+    setIsLoading(true);
 
-    let { data: programsData } = await supabase
-      .from("programs")
-      .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
-      .eq("user_id", user.id)
-      .order("position", { ascending: true });
-
-    if (!programsData || programsData.length === 0) {
-      const { data: newProgram } = await supabase
-        .from("programs")
-        .insert({ name: "Nom du programme", user_id: user.id })
-        .select()
-        .single();
-      if (newProgram) {
-        programsData = [{ ...newProgram, trainings: [] }];
+    try {
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user?.id) {
+        setPrograms([]);
+        return;
       }
-    }
 
-    const existingPrograms = (programsData || []).map((p) => ({
-      ...p,
-      trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
-    }));
+      let { data: programsData } = await supabase
+        .from("programs")
+        .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
 
-    let result = [...existingPrograms];
-    const hasEmpty = result.some(p => p.trainings.length === 0);
-    if (!hasEmpty) {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.id) {
+      if (!programsData || programsData.length === 0) {
         const { data: newProgram } = await supabase
           .from("programs")
           .insert({ name: "Nom du programme", user_id: user.id })
           .select()
           .single();
-
         if (newProgram) {
-          result.push({ ...newProgram, trainings: [] });
+          programsData = [{ ...newProgram, trainings: [] }];
         }
       }
-    } else {
-      const nonEmpty = result.filter(p => p.trainings.length > 0);
-      const emptyPrograms = result.filter(p => p.trainings.length === 0);
-      result = [...nonEmpty, ...emptyPrograms];
-    }
 
-    setPrograms(result);
+      const existingPrograms = (programsData || []).map((p) => ({
+        ...p,
+        trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
+      }));
+
+      let result = [...existingPrograms];
+      const hasEmpty = result.some(p => p.trainings.length === 0);
+      if (!hasEmpty) {
+        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+        if (refreshedUser?.id) {
+          const { data: newProgram } = await supabase
+            .from("programs")
+            .insert({ name: "Nom du programme", user_id: refreshedUser.id })
+            .select()
+            .single();
+
+          if (newProgram) {
+            result.push({ ...newProgram, trainings: [] });
+          }
+        }
+      } else {
+        const nonEmpty = result.filter(p => p.trainings.length > 0);
+        const emptyPrograms = result.filter(p => p.trainings.length === 0);
+        result = [...nonEmpty, ...emptyPrograms];
+      }
+
+      setPrograms(result);
+    } finally {
+      setIsLoading(false);
+    }
   }, [supabase]);
 
   useEffect(() => {
@@ -671,5 +681,6 @@ export default function usePrograms() {
     moveProgramUp,
     moveProgramDown,
     handleDuplicateProgram,
+    isLoading,
   };
 }
