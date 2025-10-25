@@ -108,14 +108,18 @@ export default function EntrainementsPage() {
     [loadingTraining, router]
   );
 
-  const programsToRender = (programsDuringDrag ?? programs).filter((p, i) => {
-    const isEmpty = p.trainings.length === 0;
-    const isLast = i === (programsDuringDrag ?? programs).length - 1;
-    return !isEmpty || isLast;
-  });
+  const basePrograms = programsDuringDrag ?? programs;
+
+  const programsToRender = basePrograms
+    .map((program, originalIndex) => ({ program, originalIndex }))
+    .filter(({ program, originalIndex }) => {
+      const isEmpty = program.trainings.length === 0;
+      const isLast = originalIndex === basePrograms.length - 1;
+      return !isEmpty || isLast;
+    });
 
   const lastActiveIndex = programsToRender.reduce(
-    (lastIdx, p, i) => (p.trainings.length > 0 ? i : lastIdx),
+    (lastIdx, { program }, i) => (program.trainings.length > 0 ? i : lastIdx),
     -1
   );
 
@@ -296,22 +300,22 @@ export default function EntrainementsPage() {
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
-            {programsToRender.map((program, index) => {
+            {programsToRender.map(({ program, originalIndex }, index) => {
               const computedZIndex = programsToRender.length - index;
 
               return (
                 <div
-                  key={program.id || index}
+                  key={program.id || originalIndex}
                   className="relative w-full max-w-[1152px] mb-[20px]"
                   style={{ zIndex: computedZIndex }}
                 >
                   <ProgramEditor
                     name={program.name ?? ""}
-                    index={index}
+                    index={originalIndex}
                     editingIndex={editingIndex}
                     onChangeName={handleChangeName}
                     onSubmit={() => {
-                      handleSubmit(index);
+                      handleSubmit(originalIndex);
                       setEditingIndex(null);
                     }}
                     onStartEdit={setEditingIndex}
@@ -329,11 +333,11 @@ export default function EntrainementsPage() {
                       setShowProgramDeleteModal(true);
                       setProgramIdToDelete(program.id);
                     }}
-                    isFirst={index === 0}
+                    isFirst={originalIndex === 0}
                     isLastActive={index === lastActiveIndex}
-                    onMoveUp={() => moveProgramUp(index)}
-                    onMoveDown={() => moveProgramDown(index)}
-                    onDuplicate={() => handleDuplicateProgram(index)}
+                    onMoveUp={() => moveProgramUp(originalIndex)}
+                    onMoveDown={() => moveProgramDown(originalIndex)}
+                    onDuplicate={() => handleDuplicateProgram(originalIndex)}
                     zIndex={computedZIndex}
                     tableName="trainings"
                     programsTableName="programs"
