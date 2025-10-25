@@ -16,6 +16,7 @@ import {
   buildOfferPayload,
   emptyOffer,
   mapOfferRowToForm,
+  normalizeOfferId,
 } from "./offerForm";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
@@ -75,18 +76,10 @@ export default function CreateOfferPageClient({
   const fetchOffer = useCallback(
     async (id: string) => {
       setLoading(true);
-
-      const numericId = Number(id);
-      if (Number.isNaN(numericId)) {
-        console.error("Identifiant d’offre invalide reçu :", id);
-        setLoading(false);
-        return;
-      }
-
       const { data, error } = await supabase
         .from("offer_shop")
         .select("*")
-        .eq("id", numericId)
+        .eq("id", normalizeOfferId(id))
         .maybeSingle<OfferRow>();
 
       if (error) {
@@ -125,17 +118,10 @@ export default function CreateOfferPageClient({
     const offerPayload = buildOfferPayload(offer);
 
     if (offerId) {
-      const numericId = Number(offerId);
-      if (Number.isNaN(numericId)) {
-        alert("Identifiant de l’offre invalide.");
-        setLoading(false);
-        return;
-      }
-
       const { error } = await supabase
         .from("offer_shop")
         .update(offerPayload)
-        .eq("id", numericId);
+        .eq("id", normalizeOfferId(offerId));
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);

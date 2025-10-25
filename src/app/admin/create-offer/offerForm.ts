@@ -98,5 +98,20 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
   };
 };
 
+const normalizeOfferId = (id: string | number): string | number => {
+  if (typeof id === "number") {
+    return id;
+  }
+
+  const numericId = Number(id);
+
+  return Number.isNaN(numericId) ? id : numericId;
+};
+
 export type { OfferFormState, OfferRow };
-export { buildOfferPayload, emptyOffer, mapOfferRowToForm };
+export {
+  buildOfferPayload,
+  emptyOffer,
+  mapOfferRowToForm,
+  normalizeOfferId,
+};
