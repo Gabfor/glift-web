@@ -44,12 +44,17 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
     }
   };
 
-  const genderIcon =
-    program.gender === "Homme"
-      ? "/icons/homme.svg"
+  const genderIcons =
+    program.gender === "Tous"
+      ? [
+          { src: "/icons/homme.svg", label: "homme" },
+          { src: "/icons/femme.svg", label: "femme" },
+        ]
+      : program.gender === "Homme"
+      ? [{ src: "/icons/homme.svg", label: "homme" }]
       : program.gender === "Femme"
-      ? "/icons/femme.svg"
-      : null;
+      ? [{ src: "/icons/femme.svg", label: "femme" }]
+      : [];
 
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-all duration-300 transform hover:-translate-y-1">
@@ -114,21 +119,22 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
           <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center gap-[5px]">
             {program.duration} min
           </span>
-          {genderIcon && (
+          {genderIcons.map(({ src, label }) => (
             <span
+              key={label}
               className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center gap-[5px]"
-              title={`Programme ${program.gender.toLowerCase()}`}
+              title={`Programme ${label}`}
             >
               <Image
-                src={genderIcon}
-                alt={`Icône ${program.gender.toLowerCase()}`}
+                src={src}
+                alt={`Icône ${label}`}
                 width={14}
                 height={14}
                 aria-hidden="true"
               />
-              <span className="sr-only">Programme {program.gender.toLowerCase()}</span>
+              <span className="sr-only">Programme {label}</span>
             </span>
-          )}
+          ))}
         </div>
 
         <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left">
