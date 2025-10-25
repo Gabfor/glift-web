@@ -78,6 +78,12 @@ export default function AdminEntrainementDetailPage() {
 
   const shouldDeleteRef = useRef(false);
   const hasDeletedRef = useRef(false);
+  const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
+  const deleteEmptyTrainingRef = useRef(deleteEmptyTraining);
+
+  useEffect(() => {
+    deleteEmptyTrainingRef.current = deleteEmptyTraining;
+  }, [deleteEmptyTraining]);
 
   // ✅ States
   const [editing, setEditing] = useState(false);
@@ -180,9 +186,14 @@ export default function AdminEntrainementDetailPage() {
 
   useEffect(() => {
     return () => {
-      void deleteEmptyTraining();
+      if (skipInitialCleanupRef.current) {
+        skipInitialCleanupRef.current = false;
+        return;
+      }
+
+      void deleteEmptyTrainingRef.current();
     };
-  }, [deleteEmptyTraining]);
+  }, []);
 
   const handleDeleteSelectedRows = () => {
     const newRows = rows.filter((row) => !selectedRowIds.includes(row.id ?? ""));
