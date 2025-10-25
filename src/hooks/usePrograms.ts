@@ -260,7 +260,7 @@ export default function usePrograms() {
       .from("trainings")
       .insert({
         user_id: user.id,
-        name: "Nom de l’entraînement",
+        name: "Nom de l'entraînement",
         program_id: targetId,
         position: programs.find(p => p.id === targetId)?.trainings.length ?? 0,
       })
@@ -268,6 +268,31 @@ export default function usePrograms() {
       .single();
 
     if (!data) return;
+
+    const defaultRow = {
+      training_id: data.id,
+      user_id: user.id,
+      order: 0,
+      series: 4,
+      repetitions: Array(4).fill(""),
+      poids: Array(4).fill(""),
+      repos: "",
+      effort: Array(4).fill("parfait"),
+      checked: false,
+      exercice: "",
+      materiel: "",
+      superset_id: null,
+      link: "",
+      note: "",
+    };
+
+    const { error: firstRowError } = await supabase
+      .from("training_rows")
+      .insert(defaultRow);
+
+    if (firstRowError) {
+      console.error("❌ Erreur création première ligne entraînement :", firstRowError);
+    }
 
     const updatedPrograms = [...programs];
     const programIdx = updatedPrograms.findIndex(p => p.id === targetId);

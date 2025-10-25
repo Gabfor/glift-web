@@ -14,6 +14,9 @@ type Props = {
   setIsEditing: (val: boolean) => void;
 };
 
+const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
+const LEGACY_DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
+
 function EditableTitle({
   loading,
   editing,
@@ -43,7 +46,7 @@ function EditableTitle({
 
   // Nouvelle fonction pour tronquer
   const getDisplayName = (name: string) => {
-    if (!name) return "Nom de l’entraînement";
+    if (!name || name === LEGACY_DEFAULT_TRAINING_NAME) return DEFAULT_TRAINING_NAME;
     if (name.length > 27) {
       return name.slice(0, 27) + "...";
     }
