@@ -29,9 +29,8 @@ type Props = {
   showVisibility: boolean
   dragDisabled: boolean
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
-  simulateDrag?: boolean;
-  isLoading?: boolean;
-  loadingType?: 'open' | 'add' | null;
+  simulateDrag?: boolean
+  isLoading?: boolean
 }
 
 export default function SortableItem({
@@ -46,7 +45,6 @@ export default function SortableItem({
   onUpdateTrainingVisibility,
   simulateDrag = false,
   isLoading = false,
-  loadingType = null,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -89,7 +87,7 @@ export default function SortableItem({
 
   const [menuOpen, setMenuOpen] = useState(false)
   const showLoader = useMinimumVisibility(isLoading, 2000)
-  const spinnerColorClass = loadingType === 'add' ? 'text-[#A1A5FD]' : 'text-[#D7D4DC]'
+  const spinnerColorClass = 'text-[#D7D4DC]'
 
   return (
     <div
@@ -140,7 +138,7 @@ export default function SortableItem({
         <div className="flex-1 px-6 flex items-center justify-center min-w-0">
           {showLoader ? (
             <Spinner
-              size="sm"
+              size="lg"
               className={cn(spinnerColorClass)}
               ariaLabel="Chargement de l’entraînement"
             />

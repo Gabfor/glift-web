@@ -101,7 +101,6 @@ export default function EntrainementsPage() {
       setLoadingTraining({ id: trainingId, type: "open" });
       await wait(MINIMUM_TRAINING_SPINNER_DURATION);
       if (!isMountedRef.current) return;
-      setLoadingTraining(null);
       router.push(`/entrainements/${trainingId}`);
     },
     [loadingTraining, router]
@@ -352,7 +351,6 @@ export default function EntrainementsPage() {
                 setLoadingTraining({ id: newData.id, type: "add" });
                 await wait(MINIMUM_TRAINING_SPINNER_DURATION);
                 if (!isMountedRef.current) return;
-                setLoadingTraining(null);
                 router.push(`/entrainements/${newData.id}?new=1`);
               }
             }}

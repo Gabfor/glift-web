@@ -74,7 +74,6 @@ export default function DroppableProgram(props: Props) {
         <div className="flex flex-wrap gap-4 items-start">
           {filteredTrainings.map((training) => {
             const isTrainingLoading = loadingTraining?.id === training.id;
-            const loadingType = isTrainingLoading ? loadingTraining?.type ?? null : null;
 
             return (
               <SortableItem
@@ -95,7 +94,6 @@ export default function DroppableProgram(props: Props) {
                 dragDisabled={dragDisabled}
                 onUpdateTrainingVisibility={onUpdateTrainingVisibility}
                 isLoading={isTrainingLoading}
-                loadingType={loadingType}
               />
             );
           })}
