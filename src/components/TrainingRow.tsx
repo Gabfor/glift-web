@@ -65,14 +65,6 @@ export default function TrainingRow({
     }
   }, [handleIconHover, index, isDragging, row.iconHovered]);
 
-  if (isHidden) {
-    return (
-      <tr style={{ height: "40px" }}>
-        <td colSpan={100} style={{ height: "40px", padding: 0, border: "none" }} />
-      </tr>
-    );
-  }
-
   const dragListeners =
     !adminMode && listeners && typeof listeners.onPointerDown === "function"
       ? { onPointerDown: (event: React.PointerEvent<HTMLImageElement>) => listeners.onPointerDown!(event) }
@@ -106,6 +98,7 @@ export default function TrainingRow({
     width: "100%",
     backgroundColor: row.checked ? "#F4F5FE" : "#ffffff",
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
+    height: "40px",
     ...transitionStyles,
   };
 
@@ -116,6 +109,8 @@ export default function TrainingRow({
       style={{
         ...sortableStyle,
         visibility: isHidden ? "hidden" : "visible",
+        opacity: isHidden ? 0 : 1,
+        pointerEvents: isHidden ? "none" : undefined,
         borderBottom: isAnimating ? "1px solid #E0E0E0" : undefined,
       }}
       className={`bg-white border-[#ECE9F1] ${isHidden ? "opacity-0" : ""}`}

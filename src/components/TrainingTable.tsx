@@ -336,12 +336,9 @@ export default function TrainingTable({
         modifiers={[restrictToVerticalAxis, restrictToParentElement]}
       >
         <SortableContext
-        items={rows
-          .filter(r => !(dragActive && dragGroup.some(d => d.id === r.id))) // ⛔ masqués temporairement
-          .map(r => r.id?.toString() || "")
-        }
-        strategy={verticalListSortingStrategy}
-      >
+          items={rows.map((row, index) => (row.id ?? `temp-${index}`).toString())}
+          strategy={verticalListSortingStrategy}
+        >
           <table
             className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0]"
             style={{
