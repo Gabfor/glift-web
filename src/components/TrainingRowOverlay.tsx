@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Image from "next/image";
 import React from "react";
@@ -87,21 +88,21 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
           <span className="w-9 h-8 text-left px-2 py-1 font-semibold text-[#5D6494]" style={{ lineHeight: "1.5", display: "flex", alignItems: "center", justifyContent: "center" }}>{row.series}</span>
           <div className="flex flex-col items-center justify-between">
             <div className="w-5 h-3 flex items-center justify-center mb-1">
-              <Image
+              <img
                 src="/icons/chevron_training_up.svg"
                 alt="Up"
-                width={10}
-                height={7}
-                className="w-[10px] h-[7px]"
+                className="w-5 h-3"
+                width={20}
+                height={12}
               />
             </div>
             <div className="w-5 h-3 flex items-center justify-center">
-              <Image
+              <img
                 src="/icons/chevron_training_down.svg"
                 alt="Down"
-                width={10}
-                height={7}
-                className="w-[10px] h-[7px]"
+                className="w-5 h-3"
+                width={20}
+                height={12}
               />
             </div>
           </div>
@@ -213,21 +214,21 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
                 </div>
                 <div className="flex flex-col items-center ml-auto">
                   <div className="w-5 h-3 flex items-center justify-center mb-1">
-                    <Image
+                    <img
                       src="/icons/chevron_training_up.svg"
                       alt="Up"
+                      className="w-5 h-3"
                       width={20}
                       height={12}
-                      className="w-5 h-3"
                     />
                   </div>
                   <div className="w-5 h-3 flex items-center justify-center">
-                    <Image
+                    <img
                       src="/icons/chevron_training_down.svg"
                       alt="Down"
+                      className="w-5 h-3"
                       width={20}
                       height={12}
-                      className="w-5 h-3"
                     />
                   </div>
                 </div>

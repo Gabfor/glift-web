@@ -240,6 +240,23 @@ export default function TrainingTable({
   };
 
   const handleDragEnd = () => {
+    setRows((prevRows) => {
+      let hasUpdate = false;
+      const updatedRows = prevRows.map((row) => {
+        if (!row.iconHovered) {
+          return row;
+        }
+
+        hasUpdate = true;
+        return {
+          ...row,
+          iconHovered: false,
+        };
+      });
+
+      return hasUpdate ? updatedRows : prevRows;
+    });
+
     setDragActive(false);
     onDragActiveChange?.(false);
     setDragGroup([]);

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Image from "next/image";
 import React, { useState, useEffect } from "react";
@@ -207,14 +208,26 @@ export default function TrainingRow({
               className="w-5 h-3 flex items-center justify-center mb-1"
               disabled={row.series >= 6}
             >
-              <img src="/icons/chevron_training_up.svg" alt="+" />
+              <img
+                src="/icons/chevron_training_up.svg"
+                alt="+"
+                className="w-5 h-3"
+                width={20}
+                height={12}
+              />
             </button>
             <button
               onClick={() => handleDecrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center"
               disabled={row.series <= 1}
             >
-              <img src="/icons/chevron_training_down.svg" alt="-" />
+              <img
+                src="/icons/chevron_training_down.svg"
+                alt="-"
+                className="w-5 h-3"
+                width={20}
+                height={12}
+              />
             </button>
           </div>
         </div>
@@ -327,14 +340,26 @@ export default function TrainingRow({
                     onClick={() => handleEffortChange(index, subIndex, "up")}
                     disabled={eff === "trop facile"}
                   >
-                    <img src="/icons/chevron_training_up.svg" alt="+" />
+                    <img
+                      src="/icons/chevron_training_up.svg"
+                      alt="+"
+                      className="w-5 h-3"
+                      width={20}
+                      height={12}
+                    />
                   </button>
                   <button
                     className="w-5 h-3 flex items-center justify-center"
                     onClick={() => handleEffortChange(index, subIndex, "down")}
                     disabled={eff === "trop dur"}
                   >
-                    <img src="/icons/chevron_training_down.svg" alt="-" />
+                    <img
+                      src="/icons/chevron_training_down.svg"
+                      alt="-"
+                      className="w-5 h-3"
+                      width={20}
+                      height={12}
+                    />
                   </button>
                 </div>
               </div>
