@@ -113,15 +113,22 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
           </span>
           <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center gap-[5px]">
             {program.duration} min
-            {genderIcon && (
+          </span>
+          {genderIcon && (
+            <span
+              className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center gap-[5px]"
+              title={`Programme ${program.gender.toLowerCase()}`}
+            >
               <Image
                 src={genderIcon}
                 alt={`Icône ${program.gender.toLowerCase()}`}
                 width={14}
                 height={14}
+                aria-hidden="true"
               />
-            )}
-          </span>
+              <span className="sr-only">Programme {program.gender.toLowerCase()}</span>
+            </span>
+          )}
         </div>
 
         <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left">
