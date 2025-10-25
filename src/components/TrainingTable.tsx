@@ -114,6 +114,25 @@ export default function TrainingTable({
     }
   }, []);
 
+  const resetIconHoverState = useCallback(() => {
+    setRows((previousRows) => {
+      let hasChanges = false;
+      const updatedRows = previousRows.map((row) => {
+        if (!row.iconHovered) {
+          return row;
+        }
+
+        hasChanges = true;
+        return {
+          ...row,
+          iconHovered: false,
+        };
+      });
+
+      return hasChanges ? updatedRows : previousRows;
+    });
+  }, [setRows]);
+
   const applyScheduledReorder = useCallback(() => {
     animationFrameRef.current = undefined;
     const overId = lastOverIdRef.current;
@@ -240,6 +259,7 @@ export default function TrainingTable({
   };
 
   const handleDragEnd = () => {
+    resetIconHoverState();
     setDragActive(false);
     onDragActiveChange?.(false);
     setDragGroup([]);
