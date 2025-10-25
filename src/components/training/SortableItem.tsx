@@ -88,8 +88,8 @@ export default function SortableItem({
   }
 
   const [menuOpen, setMenuOpen] = useState(false)
-  const showLoader = useMinimumVisibility(isLoading, 1000)
-  const spinnerColorClass = loadingType === 'add' ? 'text-[#A1A5FD]' : 'text-[#3A416F]'
+  const showLoader = useMinimumVisibility(isLoading, 2000)
+  const spinnerColorClass = loadingType === 'add' ? 'text-[#A1A5FD]' : 'text-[#D7D4DC]'
 
   return (
     <div
