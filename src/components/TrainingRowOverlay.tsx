@@ -33,20 +33,20 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
         className="px-0 py-0"
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
-        <div className="flex items-center h-10 justify-start border-t border-[#ECE9F1] pl-3">
+        <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
           <Image
             src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
             alt="Icone"
-            width={16}
-            height={16}
-            className="w-4 h-4 mr-1 cursor-grabbing select-none"
+            width={20}
+            height={20}
+            className="w-5 h-5 cursor-grabbing select-none"
             style={{ display: "block" }}
           />
           <Image
             src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
             alt={row.checked ? "Coché" : "Non coché"}
-            width={16}
-            height={16}
+            width={15}
+            height={15}
             style={{ width: "15px", height: "15px" }}
           />
         </div>
@@ -90,18 +90,18 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
               <Image
                 src="/icons/chevron_training_up.svg"
                 alt="Up"
-                width={20}
-                height={12}
-                className="w-5 h-3"
+                width={10}
+                height={7}
+                className="w-[10px] h-[7px]"
               />
             </div>
             <div className="w-5 h-3 flex items-center justify-center">
               <Image
                 src="/icons/chevron_training_down.svg"
                 alt="Down"
-                width={20}
-                height={12}
-                className="w-5 h-3"
+                width={10}
+                height={7}
+                className="w-[10px] h-[7px]"
               />
             </div>
           </div>
