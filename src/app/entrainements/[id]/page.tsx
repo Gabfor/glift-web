@@ -79,11 +79,7 @@ export default function AdminEntrainementDetailPage() {
   const shouldDeleteRef = useRef(false);
   const hasDeletedRef = useRef(false);
   const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
-  const deleteEmptyTrainingRef = useRef(deleteEmptyTraining);
-
-  useEffect(() => {
-    deleteEmptyTrainingRef.current = deleteEmptyTraining;
-  }, [deleteEmptyTraining]);
+  const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => {});
 
   // ✅ States
   const [editing, setEditing] = useState(false);
@@ -183,6 +179,10 @@ export default function AdminEntrainementDetailPage() {
       console.error("❌ Erreur inattendue lors de la suppression de l'entraînement vide :", error);
     }
   }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id]);
+
+  useEffect(() => {
+    deleteEmptyTrainingRef.current = deleteEmptyTraining;
+  }, [deleteEmptyTraining]);
 
   useEffect(() => {
     return () => {
