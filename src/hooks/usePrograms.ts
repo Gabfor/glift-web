@@ -308,13 +308,16 @@ export default function usePrograms() {
     }
 
     const updatedPrograms = [...programs];
-    const programIdx = updatedPrograms.findIndex(p => p.id === targetId);
+    const programIdx = updatedPrograms.findIndex((p) => p.id === targetId);
 
     if (programIdx !== -1) {
+      const existingTrainings = updatedPrograms[programIdx].trainings ?? [];
+      const wasEmptyBeforeAdd = existingTrainings.length === 0;
+
       updatedPrograms[programIdx] = {
         ...updatedPrograms[programIdx],
         trainings: [
-          ...updatedPrograms[programIdx].trainings,
+          ...existingTrainings,
           {
             id: data.id,
             name: data.name,
@@ -326,24 +329,44 @@ export default function usePrograms() {
         ],
       };
 
-        if (programIdx === updatedPrograms.length - 1) {
-          const { data: newProgram } = await supabase
-            .from("programs")
-            .insert({
-              name: DEFAULT_PROGRAM_NAME,
-              user_id: user.id,
-              position: updatedPrograms.length
-            })
-            .select()
-            .single();
+      if (programIdx === updatedPrograms.length - 1) {
+        const { data: newProgram } = await supabase
+          .from("programs")
+          .insert({
+            name: DEFAULT_PROGRAM_NAME,
+            user_id: user.id,
+            position: updatedPrograms.length,
+          })
+          .select()
+          .single();
 
         if (newProgram) {
-          updatedPrograms.push({ id: newProgram.id, name: newProgram.name, position: newProgram.position, trainings: [] });
+          updatedPrograms.push({
+            id: newProgram.id,
+            name: newProgram.name,
+            position: newProgram.position,
+            trainings: [],
+          });
         }
       }
-    }
 
-    setPrograms(updatedPrograms);
+      let finalPrograms: ProgramWithTrainings[] = [...updatedPrograms];
+
+      if (wasEmptyBeforeAdd) {
+        const nonEmptyPrograms = finalPrograms.filter((p) => p.trainings.length > 0);
+        const emptyPrograms = finalPrograms.filter((p) => p.trainings.length === 0);
+        finalPrograms = [...nonEmptyPrograms, ...emptyPrograms].map((program, index) => ({
+          ...program,
+          position: program.id ? index : program.position,
+        }));
+        setPrograms(finalPrograms);
+        await updateAllProgramPositionsInSupabase(finalPrograms);
+      } else {
+        setPrograms(finalPrograms);
+      }
+    } else {
+      setPrograms(updatedPrograms);
+    }
     notifyTrainingChange(targetId);
     return data ?? null;
   };
@@ -639,12 +662,14 @@ export default function usePrograms() {
 
   const updateAllProgramPositionsInSupabase = async (programList: ProgramWithTrainings[]) => {
     await Promise.all(
-      programList.map((p, idx) =>
-        supabase
-          .from("programs")
-          .update({ position: idx })
-          .eq("id", p.id)
-      )
+      programList
+        .filter((p) => p.id)
+        .map((p, idx) =>
+          supabase
+            .from("programs")
+            .update({ position: idx })
+            .eq("id", p.id)
+        )
     );
   };
 
