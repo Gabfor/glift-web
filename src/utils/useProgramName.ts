@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useSearchParams, usePathname } from "next/navigation";
+import type { PostgrestError } from "@supabase/supabase-js";
 
 export function useProgramName(trainingId: string, setEditing: (val: boolean) => void) {
   const supabase = useSupabaseClient();
@@ -34,6 +35,17 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
         .single();
 
       if (error) {
+        const { code, message } = error as PostgrestError;
+        const isMissingRowError =
+          code === "PGRST116" || message?.toLowerCase().includes("0 rows");
+
+        if (isMissingRowError) {
+          // Le programme vient probablement d'être supprimé (ex: entraînement vide).
+          setProgramName(DEFAULT_TRAINING_NAME);
+          setLoading(false);
+          return;
+        }
+
         console.error("❌ Erreur chargement nom entraînement :", error);
         setLoading(false);
         return;
