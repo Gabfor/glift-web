@@ -82,14 +82,14 @@ export default function TrainingCardMenu({
       </button>
 
       {open && (
-        <div className="mt-2 flex justify-end">
+        <div className="mt-2 flex justify-end -mr-2">
           <div
             className={cn(
               'relative w-[175px] rounded-[5px] border border-[#ECE9F1] bg-white py-2',
               'shadow-[0px_4px_16px_rgba(0,0,0,0.08)]'
             )}
           >
-            <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
+            <div className="absolute -top-2 right-3 w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
 
             <div className="flex flex-col gap-1">
               <button
