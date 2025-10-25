@@ -21,6 +21,7 @@ type Props = {
     partner_image_alt?: string;
     partner_link?: string;
     link?: string;
+    gender: string;
   };
   isAuthenticated: boolean;
 };
@@ -42,6 +43,13 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
       router.push("/entrainements");
     }
   };
+
+  const genderIcon =
+    program.gender === "Homme"
+      ? "/icons/homme.svg"
+      : program.gender === "Femme"
+      ? "/icons/femme.svg"
+      : null;
 
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-all duration-300 transform hover:-translate-y-1">
@@ -103,8 +111,16 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
           <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
             {program.sessions} séances
           </span>
-          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
+          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center gap-[5px]">
             {program.duration} min
+            {genderIcon && (
+              <Image
+                src={genderIcon}
+                alt={`Icône ${program.gender.toLowerCase()}`}
+                width={14}
+                height={14}
+              />
+            )}
           </span>
         </div>
 
