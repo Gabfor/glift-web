@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { Program, Training } from "@/types/training";
 import { useRouter } from "next/navigation";
 import ProgramEditor from "@/components/ProgramEditor";
@@ -23,6 +23,13 @@ import {
 } from "@dnd-kit/core";
 import { DragOverlay } from "@dnd-kit/core";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
+
+const MINIMUM_TRAINING_SPINNER_DURATION = 2000;
+
+const wait = (duration: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, duration);
+  });
 
 export default function EntrainementsPage() {
   const {
@@ -60,6 +67,14 @@ export default function EntrainementsPage() {
 
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
   const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const id = localStorage.getItem("newly_downloaded_program_id");
@@ -79,6 +94,18 @@ export default function EntrainementsPage() {
     };
     return () => channel.close();
   }, [fetchProgramsWithTrainings]);
+
+  const handleTrainingNavigation = useCallback(
+    async (trainingId: string) => {
+      if (loadingTraining) return;
+      setLoadingTraining({ id: trainingId, type: "open" });
+      await wait(MINIMUM_TRAINING_SPINNER_DURATION);
+      if (!isMountedRef.current) return;
+      setLoadingTraining(null);
+      router.push(`/entrainements/${trainingId}`);
+    },
+    [loadingTraining, router]
+  );
 
   const programsToRender = (programsDuringDrag ?? programs).filter((p, i) => {
     const isEmpty = p.trainings.length === 0;
@@ -312,19 +339,20 @@ export default function EntrainementsPage() {
           <DroppableProgram
             programId={program.id}
             trainings={program.trainings}
-            onClickTraining={(id: string) => {
-              setLoadingTraining({ id, type: "open" });
-              router.push(`/entrainements/${id}`);
-            }}
+            onClickTraining={handleTrainingNavigation}
             onReorderTrainings={(programId: string, ids: string[]) =>
               handleReorderTrainings(programId, ids)
             }
             onAddTraining={async () => {
+              if (loadingTraining) return;
               if (!program.id) return;
 
               const newData = await handleAddTraining(program.id);
               if (newData?.id) {
                 setLoadingTraining({ id: newData.id, type: "add" });
+                await wait(MINIMUM_TRAINING_SPINNER_DURATION);
+                if (!isMountedRef.current) return;
+                setLoadingTraining(null);
                 router.push(`/entrainements/${newData.id}?new=1`);
               }
             }}
