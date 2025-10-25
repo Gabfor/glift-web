@@ -10,7 +10,6 @@ import { getEffortTextColor } from "@/utils/effortColors";
 type Props = {
   row: Row;
   index: number;
-  style?: React.CSSProperties;
   isHidden?: boolean;
   isAnimating?: boolean;
   setRows: React.Dispatch<React.SetStateAction<Row[]>>;
@@ -82,11 +81,23 @@ export default function TrainingRow({
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
 
   const transitionTiming = "cubic-bezier(0.22, 1, 0.36, 1)";
+  const transitionStyles: React.CSSProperties = isDragging
+    ? {
+        transition: undefined,
+        transitionProperty: undefined,
+        transitionDuration: undefined,
+        transitionTimingFunction: undefined,
+      }
+    : {
+        transitionProperty: "transform",
+        transitionDuration: "360ms",
+        transitionTimingFunction: transitionTiming,
+      };
+
   const sortableStyle: React.CSSProperties = {
     transform: transform
       ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)`
       : undefined,
-    transition: !isDragging ? `transform 360ms ${transitionTiming}` : undefined,
     willChange: "transform",
     zIndex: isDragging ? 50 : undefined,
     position: isDragging ? "absolute" : undefined,
@@ -95,6 +106,7 @@ export default function TrainingRow({
     width: "100%",
     backgroundColor: row.checked ? "#F4F5FE" : "#ffffff",
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
+    ...transitionStyles,
   };
 
   return (
