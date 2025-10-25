@@ -60,6 +60,12 @@ export default function TrainingRow({
     return () => window.removeEventListener("pointerup", handlePointerUp);
   }, []);
 
+  useEffect(() => {
+    if (!isDragging && row.iconHovered) {
+      handleIconHover(index, false);
+    }
+  }, [handleIconHover, index, isDragging, row.iconHovered]);
+
   if (isHidden) {
     return (
       <tr style={{ height: "40px" }}>
