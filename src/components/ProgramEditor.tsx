@@ -250,7 +250,12 @@ export default function ProgramEditor({
         <div
           className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
           onClick={() => {
-            setLocalName("");
+            const trimmedName = (name ?? "").trim();
+            if (!trimmedName || trimmedName === DEFAULT_PROGRAM_NAME) {
+              setLocalName("");
+            } else {
+              setLocalName(trimmedName);
+            }
             onStartEdit(index);
           }}
         >
