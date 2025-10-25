@@ -25,7 +25,7 @@ import {
 import { DragOverlay } from "@dnd-kit/core";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 
-const MINIMUM_TRAINING_SPINNER_DURATION = 2000;
+const MINIMUM_TRAINING_SPINNER_DURATION = 1000;
 
 const wait = (duration: number) =>
   new Promise<void>((resolve) => {
