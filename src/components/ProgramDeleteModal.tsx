@@ -1,10 +1,11 @@
+import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 import ModalMessage from "@/components/ui/ModalMessage";
 
 interface ProgramDeleteModalProps {
   show: boolean;
   onCancel: () => void;
-  onConfirm: () => void;
+  onConfirm: () => void | Promise<void>;
 }
 
 export default function ProgramDeleteModal({ show, onCancel, onConfirm }: ProgramDeleteModalProps) {
@@ -21,12 +22,14 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
           >
             Annuler
           </button>
-          <button
-            onClick={onConfirm}
-            className="inline-flex h-[44px] w-[116px] items-center justify-center gap-1 rounded-full bg-[#EF4F4E] font-semibold text-white transition-all duration-300 hover:bg-[#BA2524]"
+          <CTAButton
+            variant="danger"
+            className="w-[116px]"
+            onClick={() => onConfirm()}
+            loadingText="Suppression..."
           >
             Confirmer
-          </button>
+          </CTAButton>
         </div>
       }
     >
