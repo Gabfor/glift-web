@@ -5,6 +5,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";
 
+const DEFAULT_PROGRAM_NAME = "Nom du programme";
+
 type ProgramWithTrainings = Program & {
   position?: number;
 };
@@ -33,7 +35,7 @@ export default function usePrograms() {
       if (!programsData || programsData.length === 0) {
         const { data: newProgram } = await supabase
           .from("programs")
-          .insert({ name: "Nom du programme", user_id: user.id })
+          .insert({ name: DEFAULT_PROGRAM_NAME, user_id: user.id })
           .select()
           .single();
         if (newProgram) {
@@ -53,7 +55,7 @@ export default function usePrograms() {
         if (refreshedUser?.id) {
           const { data: newProgram } = await supabase
             .from("programs")
-            .insert({ name: "Nom du programme", user_id: refreshedUser.id })
+            .insert({ name: DEFAULT_PROGRAM_NAME, user_id: refreshedUser.id })
             .select()
             .single();
 
@@ -204,8 +206,9 @@ export default function usePrograms() {
   };
 
   const handleSubmit = async (index: number) => {
-    const name = programs[index]?.name?.trim();
-    if (!name) return null;
+    const rawName = programs[index]?.name ?? "";
+    const trimmedName = rawName.trim();
+    const safeName = trimmedName || DEFAULT_PROGRAM_NAME;
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return;
@@ -214,13 +217,12 @@ export default function usePrograms() {
     if (!existingProgram) return null;
 
     const orphanTrainings = existingProgram.trainings || [];
-    const safeName = name || "Nom du programme";
 
     let result;
     if (existingProgram?.id) {
       const { data } = await supabase
         .from("programs")
-        .update({ name })
+        .update({ name: safeName })
         .eq("id", existingProgram.id)
         .eq("user_id", user.id)
         .select()
@@ -241,7 +243,8 @@ export default function usePrograms() {
     }
 
     const updatedPrograms = [...programs];
-    updatedPrograms[index] = { id: result.id, name: result.name, trainings: updatedPrograms[index]?.trainings || [] };
+    const updatedName = result?.name?.trim() || safeName;
+    updatedPrograms[index] = { id: result.id, name: updatedName, trainings: updatedPrograms[index]?.trainings || [] };
 
     setPrograms(updatedPrograms);
     return updatedPrograms[index];
@@ -323,16 +326,16 @@ export default function usePrograms() {
         ],
       };
 
-      if (programIdx === updatedPrograms.length - 1) {
-        const { data: newProgram } = await supabase
-          .from("programs")
-          .insert({
-            name: "Nom du programme",
-            user_id: user.id,
-            position: updatedPrograms.length
-          })
-          .select()
-          .single();
+        if (programIdx === updatedPrograms.length - 1) {
+          const { data: newProgram } = await supabase
+            .from("programs")
+            .insert({
+              name: DEFAULT_PROGRAM_NAME,
+              user_id: user.id,
+              position: updatedPrograms.length
+            })
+            .select()
+            .single();
 
         if (newProgram) {
           updatedPrograms.push({ id: newProgram.id, name: newProgram.name, position: newProgram.position, trainings: [] });
@@ -539,7 +542,7 @@ export default function usePrograms() {
 
       const { data: newProgram, error } = await supabase
         .from("programs")
-        .insert({ name: "Nom du programme", user_id: userId })
+        .insert({ name: DEFAULT_PROGRAM_NAME, user_id: userId })
         .select()
         .single();
 
