@@ -69,6 +69,7 @@ export default function ProgramEditor({
 
   const [isEyeVisible, setIsEyeVisible] = useState(isVisible);
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
+  const [localName, setLocalName] = useState(name ?? "");
 
   const fetchTrainingsData = useCallback(async () => {
     if (!programId || programId === "xxx") {
@@ -109,6 +110,12 @@ export default function ProgramEditor({
       inputRef.current.focus();
     }
   }, [editingIndex, index]);
+
+  useEffect(() => {
+    if (editingIndex !== index) {
+      setLocalName(name ?? "");
+    }
+  }, [editingIndex, index, name]);
 
   useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
@@ -190,27 +197,32 @@ export default function ProgramEditor({
           <div className="relative max-w-[250px]">
             <input
               ref={inputRef}
-              value={name}
-              onChange={(e) => onChangeName(index, e.target.value)}
+              value={localName}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLocalName(value);
+                onChangeName(index, value);
+              }}
               onBlur={() => onSubmit(index)}
               onKeyDown={handleKeyDown}
               onFocus={() => {
-                if (name.trim() === DEFAULT_PROGRAM_NAME) {
-                  onChangeName(index, "");
+                if (localName.trim() === DEFAULT_PROGRAM_NAME) {
+                  requestAnimationFrame(() => inputRef.current?.select());
                 }
               }}
               placeholder={DEFAULT_PROGRAM_NAME}
               className="h-[34px] max-w-[250px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-[40px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
             />
-            {name && (
+            {localName.length > 0 && (
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
+                setLocalName("");
                 onChangeName(index, "");
                 requestAnimationFrame(() => inputRef.current?.focus());
               }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1"
+              className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
               aria-label="Effacer le nom"
             >
               <Tooltip content="Effacer">
