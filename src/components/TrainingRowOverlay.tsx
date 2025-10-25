@@ -216,18 +216,18 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
                     <Image
                       src="/icons/chevron_training_up.svg"
                       alt="Up"
-                      width={20}
-                      height={12}
-                      className="w-5 h-3"
+                      width={10}
+                      height={7}
+                      className="w-[10px] h-[7px]"
                     />
                   </div>
                   <div className="w-5 h-3 flex items-center justify-center">
                     <Image
                       src="/icons/chevron_training_down.svg"
                       alt="Down"
-                      width={20}
-                      height={12}
-                      className="w-5 h-3"
+                      width={10}
+                      height={7}
+                      className="w-[10px] h-[7px]"
                     />
                   </div>
                 </div>
