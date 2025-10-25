@@ -108,12 +108,13 @@ export default function AdminSingleProgramPage() {
     if (!program?.id) return;
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user?.id) return;
+    const userId = user.user.id;
 
     const { data, error } = await supabase
       .from("trainings_admin")
       .insert({
         name: "Nouvel entraînement",
-        user_id: user.user.id,
+        user_id: userId,
         program_id: program.id,
         position: program.trainings.length,
       })
@@ -121,6 +122,31 @@ export default function AdminSingleProgramPage() {
       .single();
 
     if (!data || error) return;
+
+    const defaultRow = {
+      training_id: data.id,
+      user_id: userId,
+      order: 0,
+      series: 4,
+      repetitions: Array(4).fill(""),
+      poids: Array(4).fill(""),
+      repos: "",
+      effort: Array(4).fill("parfait"),
+      checked: false,
+      exercice: "",
+      materiel: "",
+      superset_id: null,
+      link: "",
+      note: "",
+    };
+
+    const { error: firstRowError } = await supabase
+      .from("training_rows_admin")
+      .insert(defaultRow);
+
+    if (firstRowError) {
+      console.error("❌ Erreur création première ligne entraînement admin :", firstRowError);
+    }
 
     setProgram({ ...program, trainings: [...program.trainings, data] });
     router.push(`/admin/entrainements/${data.id}?new=1`);

@@ -11,6 +11,9 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
 
   const tableName = isAdmin ? "trainings_admin" : "trainings";
 
+  const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
+  const LEGACY_DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
+
   const [programName, setProgramName] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -32,10 +35,15 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
 
       if (error) {
         console.error("❌ Erreur chargement nom entraînement :", error);
+        setLoading(false);
         return;
       }
 
-      setProgramName(data.name ?? "");
+      const name = data.name ?? "";
+      const normalizedName =
+        name === LEGACY_DEFAULT_TRAINING_NAME ? DEFAULT_TRAINING_NAME : name;
+
+      setProgramName(normalizedName);
       setLoading(false);
     };
 
@@ -45,22 +53,26 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
   const handleBlur = async () => {
     setEditing(false);
 
-    const trimmedName = programName.trim() || "Nom de l’entraînement";
-    setProgramName(trimmedName);
+    const trimmedName = programName.trim();
+    const normalizedTrimmed =
+      trimmedName === LEGACY_DEFAULT_TRAINING_NAME ? DEFAULT_TRAINING_NAME : trimmedName;
+    const finalName = normalizedTrimmed || DEFAULT_TRAINING_NAME;
+
+    setProgramName(finalName);
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
     const { error } = await supabase
       .from(tableName)
-      .update({ name: trimmedName })
+      .update({ name: finalName })
       .eq("id", trainingId)
       .eq("user_id", user.id);
 
     if (error) {
       console.error("❌ Erreur enregistrement nom :", error);
     } else {
-      console.log("✅ Nom enregistré :", trimmedName);
+      console.log("✅ Nom enregistré :", finalName);
     }
 
     // ✅ Nettoie l'URL en retirant le paramètre ?new=1

@@ -22,7 +22,8 @@ import { useIconHover } from "@/utils/useIconHover";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Row } from "@/types/training";
 
-const DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
+const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
+const LEGACY_DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
 const DEFAULT_SERIES_COUNT = 4;
 const DEFAULT_EFFORT_VALUE = "parfait";
 
@@ -117,7 +118,9 @@ export default function AdminEntrainementDetailPage() {
 
     const normalizedName = programName.trim();
     const isNameMissing =
-      normalizedName.length === 0 || normalizedName === DEFAULT_TRAINING_NAME;
+      normalizedName.length === 0 ||
+      normalizedName === DEFAULT_TRAINING_NAME ||
+      normalizedName === LEGACY_DEFAULT_TRAINING_NAME;
 
     const hasTableContent = rows.some((row) => !isRowContentEmpty(row));
 
