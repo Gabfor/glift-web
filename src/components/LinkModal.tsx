@@ -20,12 +20,24 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
     }, 0);
   }, []);
 
-  const isValidUrl = (url: string) => {
+  const normalizeLink = (url: string) => {
+    const trimmed = url.trim();
+    if (trimmed === "") {
+      return "";
+    }
+
     try {
-      const parsed = new URL(url);
-      return parsed.protocol === "http:" || parsed.protocol === "https:";
+      // Lien déjà complet (avec http ou https)
+      new URL(trimmed);
+      return trimmed;
     } catch {
-      return false;
+      try {
+        const fallback = `https://${trimmed}`;
+        new URL(fallback);
+        return fallback;
+      } catch {
+        return null;
+      }
     }
   };
 
@@ -55,12 +67,14 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
           )}
           <CTAButton
             onClick={() => {
-              if (link.trim() === "") {
+              const normalizedLink = normalizeLink(link);
+
+              if (normalizedLink === "") {
                 onSave("", exerciceInput);
-              } else if (isValidUrl(link)) {
-                onSave(link, exerciceInput);
+              } else if (normalizedLink) {
+                onSave(normalizedLink, exerciceInput);
               } else {
-                alert("Veuillez entrer un lien valide (http ou https).");
+                alert("Veuillez entrer un lien valide.");
               }
             }}
           >
