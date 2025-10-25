@@ -75,10 +75,18 @@ export default function CreateOfferPageClient({
   const fetchOffer = useCallback(
     async (id: string) => {
       setLoading(true);
+
+      const numericId = Number(id);
+      if (Number.isNaN(numericId)) {
+        console.error("Identifiant d’offre invalide reçu :", id);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("offer_shop")
         .select("*")
-        .eq("id", id)
+        .eq("id", numericId)
         .maybeSingle<OfferRow>();
 
       if (error) {
@@ -117,10 +125,17 @@ export default function CreateOfferPageClient({
     const offerPayload = buildOfferPayload(offer);
 
     if (offerId) {
+      const numericId = Number(offerId);
+      if (Number.isNaN(numericId)) {
+        alert("Identifiant de l’offre invalide.");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase
         .from("offer_shop")
         .update(offerPayload)
-        .eq("id", offerId);
+        .eq("id", numericId);
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);
