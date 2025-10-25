@@ -17,7 +17,6 @@ export function useTrainingRows(trainingId: string, user: User | null) {
   const hasMountedRef = useRef(false);
   const hasInsertedFirstRow = useRef(false);
   const skipNextSaveRef = useRef(false);
-  const isSyncingRef = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef<string>("");
   const previousIdsRef = useRef<string[]>([]);
@@ -227,8 +226,6 @@ export function useTrainingRows(trainingId: string, user: User | null) {
 
   useEffect(() => {
     if (!user || !user.id || !trainingId || rows.length === 0) return;
-    if (isSyncingRef.current) return;
-
     const cleanRows = rows.map(({ iconHovered, ...row }) => {
       void iconHovered;
       return row;
@@ -261,44 +258,43 @@ export function useTrainingRows(trainingId: string, user: User | null) {
 
       const rowsWithOrder = rows.map((row, index) => ({ ...row, _finalOrder: index }));
 
-      const newRows = rowsWithOrder
-        .filter((row) => !row.id)
-        .map((row) => ({
-          training_id: trainingId,
-          user_id: user.id,
-          order: row._finalOrder,
-          series: row.series,
-          repetitions: row.repetitions,
-          poids: row.poids,
-          repos: row.repos,
-          effort: row.effort,
-          checked: row.checked,
-          exercice: row.exercice,
-          materiel: row.materiel,
-          superset_id: row.superset_id,
-          link: row.link,
-          note: row.note,
-        }));
+      const newRowsWithOrder = rowsWithOrder.filter((row) => !row.id);
+      const existingRowsWithOrder = rowsWithOrder.filter((row) => !!row.id);
 
-      const existingRows = rowsWithOrder
-        .filter((row) => !!row.id)
-        .map((row) => ({
-          id: row.id!,
-          training_id: trainingId,
-          user_id: user.id,
-          order: row._finalOrder,
-          series: row.series,
-          repetitions: row.repetitions,
-          poids: row.poids,
-          repos: row.repos,
-          effort: row.effort,
-          checked: row.checked,
-          exercice: row.exercice,
-          materiel: row.materiel,
-          superset_id: row.superset_id,
-          link: row.link,
-          note: row.note,
-        }));
+      const newRows = newRowsWithOrder.map((row) => ({
+        training_id: trainingId,
+        user_id: user.id,
+        order: row._finalOrder,
+        series: row.series,
+        repetitions: row.repetitions,
+        poids: row.poids,
+        repos: row.repos,
+        effort: row.effort,
+        checked: row.checked,
+        exercice: row.exercice,
+        materiel: row.materiel,
+        superset_id: row.superset_id,
+        link: row.link,
+        note: row.note,
+      }));
+
+      const existingRows = existingRowsWithOrder.map((row) => ({
+        id: row.id!,
+        training_id: trainingId,
+        user_id: user.id,
+        order: row._finalOrder,
+        series: row.series,
+        repetitions: row.repetitions,
+        poids: row.poids,
+        repos: row.repos,
+        effort: row.effort,
+        checked: row.checked,
+        exercice: row.exercice,
+        materiel: row.materiel,
+        superset_id: row.superset_id,
+        link: row.link,
+        note: row.note,
+      }));
 
       const currentIds = rows.filter(r => r.id).map(r => r.id as string);
       const deletedIds = previousIdsRef.current.filter(id => !currentIds.includes(id));
@@ -311,43 +307,59 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           .in("id", deletedIds);
       }
 
+      let insertedRows: { id: string; order: number }[] = [];
+
       if (newRows.length > 0) {
-        await supabase.from(tableName).insert(newRows);
+        const { data: insertedData, error: insertError } = await supabase
+          .from(tableName)
+          .insert(newRows)
+          .select("id, order");
+
+        if (insertError) {
+          console.error("❌ Erreur insertion lignes entraînement :", insertError);
+        } else if (insertedData) {
+          insertedRows = insertedData.map((row) => ({ id: row.id, order: row.order }));
+        }
       }
 
       if (existingRows.length > 0) {
-        await supabase.from(tableName).upsert(existingRows);
+        const { error: upsertError } = await supabase.from(tableName).upsert(existingRows);
+        if (upsertError) {
+          console.error("❌ Erreur mise à jour lignes entraînement :", upsertError);
+        }
       }
 
-      const { data: refreshedRows } = await supabase
-        .from(tableName)
-        .select("*")
-        .eq("training_id", trainingId)
-        .order("order", { ascending: true });
+      if (insertedRows.length > 0) {
+        const insertedMap = new Map(insertedRows.map((row) => [row.order, row.id]));
+        setRows((previousRows) => {
+          const updatedRows = previousRows.map((row, index) => {
+            if (row.id) {
+              return row;
+            }
 
-      if (refreshedRows) {
-        isSyncingRef.current = true;
-        setRows(
-          refreshedRows.map((row) => ({
-            id: row.id,
-            series: row.series,
-            repetitions: row.repetitions,
-            poids: row.poids,
-            repos: row.repos,
-            effort: row.effort,
-            checked: rows.find(r => r.id === row.id)?.checked || false,
-            iconHovered: rows.find(r => r.id === row.id)?.iconHovered || false,
-            exercice: row.exercice,
-            materiel: row.materiel,
-            superset_id: row.superset_id,
-            link: row.link,
-            note: row.note,
-          }))
-        );
+            const newId = insertedMap.get(index);
+            if (!newId) {
+              return row;
+            }
 
-        setTimeout(() => {
-          isSyncingRef.current = false;
-        }, 100);
+            return {
+              ...row,
+              id: newId,
+            };
+          });
+
+          lastSavedRef.current = JSON.stringify(
+            updatedRows.map((row) => {
+              const { iconHovered: _iconHovered, ...rest } = row;
+              void _iconHovered;
+              return rest;
+            })
+          );
+
+          return updatedRows;
+        });
+
+        skipNextSaveRef.current = true;
       }
 
       saveTimeoutRef.current = null;
