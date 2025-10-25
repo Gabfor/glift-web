@@ -5,7 +5,7 @@ import { useState } from "react";
 import Tooltip from "@/components/Tooltip";
 
 type Props = {
-  selectedIds: number[];
+  selectedIds: Array<string | number>;
   selectedStatus: string | null;
   onDelete: () => void;
   onDuplicate: () => void;

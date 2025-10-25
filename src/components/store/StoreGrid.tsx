@@ -31,7 +31,7 @@ type ProgramQueryRow = Pick<
 >;
 
 type Program = {
-  id: number;
+  id: string;
   title: string;
   level: string;
   sessions: string;

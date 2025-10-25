@@ -40,17 +40,10 @@ export default function CreateProgramPageClient({
     async (id: string) => {
       setLoading(true);
 
-      const numericId = Number(id);
-      if (Number.isNaN(numericId)) {
-        console.error("Identifiant de programme invalide reçu :", id);
-        setLoading(false);
-        return;
-      }
-
       const { data, error } = await supabase
         .from("program_store")
         .select("*")
-        .eq("id", numericId)
+        .eq("id", id)
         .maybeSingle<ProgramRow>();
 
       if (error) {
@@ -88,16 +81,10 @@ export default function CreateProgramPageClient({
     const payload = buildProgramPayload(program);
 
     if (programId) {
-      const numericId = Number(programId);
-      if (Number.isNaN(numericId)) {
-        alert("Identifiant de programme invalide.");
-        return;
-      }
-
       const { error } = await supabase
         .from("program_store")
         .update(payload)
-        .eq("id", numericId);
+        .eq("id", programId);
 
       if (error) {
         console.error("Erreur lors de la mise à jour :", error);
