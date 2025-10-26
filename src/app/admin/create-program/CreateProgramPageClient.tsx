@@ -385,6 +385,7 @@ export default function CreateProgramPageClient({
                   { value: "Gagner en force", label: "Gagner en force" },
                   { value: "Perdre du poids", label: "Perdre du poids" },
                   { value: "Rester en forme", label: "Rester en forme" },
+                  { value: "Remise en forme", label: "Remise en forme" },
                   { value: "Endurance musculaire", label: "Endurance musculaire" },
                   { value: "Performance sportive", label: "Performance sportive" },
                 ]}
