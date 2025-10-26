@@ -97,6 +97,10 @@ export default function BirthDateField({
             }}
             onOpenChange={handleOpenDay}
             success={showSuccess && touched.birthDay && birthDay !== initialBirthDay}
+            allowTyping
+            digitsOnly
+            inputLength={2}
+            padWithZero
           />
         </div>
 
@@ -112,6 +116,10 @@ export default function BirthDateField({
             }}
             onOpenChange={handleOpenMonth}
             success={showSuccess && touched.birthMonth && birthMonth !== initialBirthMonth}
+            allowTyping
+            digitsOnly
+            inputLength={2}
+            padWithZero
           />
         </div>
 
@@ -127,6 +135,9 @@ export default function BirthDateField({
             }}
             onOpenChange={handleOpenYear}
             success={showSuccess && touched.birthYear && birthYear !== initialBirthYear}
+            allowTyping
+            digitsOnly
+            inputLength={4}
           />
         </div>
       </div>
