@@ -25,6 +25,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
   const [goalOptions, setGoalOptions] = useState<FilterOption[]>([]);
   const [levelOptions, setLevelOptions] = useState<FilterOption[]>([]);
   const [partnerOptions, setPartnerOptions] = useState<FilterOption[]>([]);
+  const [durationOptions, setDurationOptions] = useState<FilterOption[]>([]);
 
   useEffect(() => {
     const fetchFilterOptions = async () => {
@@ -35,6 +36,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
         goal?: string | null;
         level?: string | null;
         partner_name?: string | null;
+        duration?: string | null;
       };
 
       const fields: Array<keyof ProgramStoreField> = [
@@ -73,6 +75,52 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
           setter(options);
         }
       }
+
+      const { data: durationData, error: durationError } = await supabase
+        .from("program_store")
+        .select("duration")
+        .eq("status", "ON")
+        .not("duration", "is", null);
+
+      if (durationError) {
+        console.error("Erreur fetch duration:", durationError.message);
+        setDurationOptions([]);
+      } else {
+        const numericDurations = (durationData ?? [])
+          .map((item: ProgramStoreField) => {
+            const value = item.duration;
+            if (typeof value === "number") {
+              return Number.isFinite(value) ? value : null;
+            }
+            if (typeof value === "string") {
+              const parsed = Number.parseInt(value, 10);
+              return Number.isNaN(parsed) ? null : parsed;
+            }
+            return null;
+          })
+          .filter((value): value is number => value !== null && value > 0);
+
+        if (numericDurations.length === 0) {
+          setDurationOptions([]);
+        } else {
+          const maxRoundedDuration = Math.min(
+            120,
+            Math.max(
+              ...numericDurations.map((duration) => {
+                const remainder = duration % 30;
+                return remainder === 0 ? duration : duration + (30 - remainder);
+              })
+            )
+          );
+
+          const options: FilterOption[] = [];
+          for (let limit = 30; limit <= maxRoundedDuration; limit += 30) {
+            options.push({ value: String(limit), label: `${limit} minutes` });
+          }
+
+          setDurationOptions(options);
+        }
+      }
     };
 
     fetchFilterOptions();
@@ -95,13 +143,18 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       options: levelOptions,
     },
     {
+      label: "Durée max.",
+      placeholder: "Toutes les durées",
+      options: durationOptions,
+    },
+    {
       label: "Partenaire",
       placeholder: "Tous les partenaires",
       options: partnerOptions,
     },
   ];
 
-  const [selectedFilters, setSelectedFilters] = useState(["", "", "", ""]);
+  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", ""]);
 
   const handleFilterChange = (index: number, value: string) => {
     const newFilters = [...selectedFilters];

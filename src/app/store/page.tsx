@@ -12,38 +12,44 @@ export default function StorePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
-  const [filters, setFilters] = useState(["", "", "", ""]);
+  const [filters, setFilters] = useState(["", "", "", "", ""]);
 
   // Fetch total count of ON programs once (or when sort/filter changes)
   useEffect(() => {
-  const fetchTotalCount = async () => {
-    setLoadingCount(true);
-    const supabase = createClient();
+    const fetchTotalCount = async () => {
+      setLoadingCount(true);
+      const supabase = createClient();
 
-    let query = supabase
-      .from('program_store')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'ON');
+      let query = supabase
+        .from("program_store")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "ON");
 
-    // appliquer les filtres s'ils sont actifs
-    if (filters[0]) {
-      query = query.in('gender', [filters[0], 'Tous']);
-    }
-    if (filters[1]) query = query.eq('goal', filters[1]);
-    if (filters[2]) query = query.eq('level', filters[2]);
-    if (filters[3]) query = query.eq('partner_name', filters[3]);
+      // appliquer les filtres s'ils sont actifs
+      if (filters[0]) {
+        query = query.in("gender", [filters[0], "Tous"]);
+      }
+      if (filters[1]) query = query.eq("goal", filters[1]);
+      if (filters[2]) query = query.eq("level", filters[2]);
+      if (filters[3]) query = query.eq("partner_name", filters[3]);
+      if (filters[4]) {
+        const maxDuration = Number.parseInt(filters[4], 10);
+        if (!Number.isNaN(maxDuration)) {
+          query = query.lte("duration", maxDuration);
+        }
+      }
 
-    const { count, error } = await query;
+      const { count, error } = await query;
 
-    if (error) {
-      console.error("Erreur lors du comptage des programmes :", error.message);
-      setTotalPrograms(0);
-    } else {
-      setTotalPrograms(count || 0);
-    }
+      if (error) {
+        console.error("Erreur lors du comptage des programmes :", error.message);
+        setTotalPrograms(0);
+      } else {
+        setTotalPrograms(count || 0);
+      }
 
-    setLoadingCount(false);
-  };
+      setLoadingCount(false);
+    };
 
     fetchTotalCount();
   }, [sortBy, filters]);
