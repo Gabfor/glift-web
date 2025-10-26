@@ -152,10 +152,11 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold text-[#7069FA] underline focus:outline-none training-input"
+            className="w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold text-[#7069FA] underline focus:outline-none training-input truncate"
             style={{ backgroundColor: "transparent" }}
+            title={row.exercice || undefined}
           >
-            {row.exercice || "Nom de l’exercice"}
+            <span className="block truncate">{row.exercice || "Nom de l’exercice"}</span>
           </a>
         ) : (
           <input
@@ -173,6 +174,7 @@ export default function TrainingRow({
             className="w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate"
             placeholder="Nom de l’exercice"
             style={{ backgroundColor: "transparent" }}
+            title={row.exercice || undefined}
           />
         )}
       </td>

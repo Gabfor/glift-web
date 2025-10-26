@@ -340,7 +340,7 @@ export default function TrainingTable({
           strategy={verticalListSortingStrategy}
         >
           <table
-            className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0]"
+            className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
             style={{
               borderSpacing: "0px",
               marginBottom: isLastSupersetAtBottom ? "1px" : "0px"

@@ -58,11 +58,14 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
           disabled
           value={row.exercice}
           placeholder="Nom de l’exercice"
-          className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 training-input ${row.link ? "underline" : ""}`}
+          className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 training-input truncate ${row.link ? "underline" : ""}`}
           style={{
             backgroundColor: "transparent",
             color: row.link ? "#7069FA" : "#5D6494",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
           }}
+          title={row.exercice || undefined}
         />
       </td>
 
