@@ -24,6 +24,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
   const [genderOptions, setGenderOptions] = useState<FilterOption[]>([]);
   const [goalOptions, setGoalOptions] = useState<FilterOption[]>([]);
   const [levelOptions, setLevelOptions] = useState<FilterOption[]>([]);
+  const [locationOptions, setLocationOptions] = useState<FilterOption[]>([]);
   const [partnerOptions, setPartnerOptions] = useState<FilterOption[]>([]);
   const [durationOptions, setDurationOptions] = useState<FilterOption[]>([]);
 
@@ -37,15 +38,23 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
         level?: string | null;
         partner_name?: string | null;
         duration?: string | null;
+        location?: string | null;
       };
 
       const fields: Array<keyof ProgramStoreField> = [
         "gender",
         "goal",
         "level",
+        "location",
         "partner_name",
       ];
-      const setters = [setGenderOptions, setGoalOptions, setLevelOptions, setPartnerOptions];
+      const setters = [
+        setGenderOptions,
+        setGoalOptions,
+        setLevelOptions,
+        setLocationOptions,
+        setPartnerOptions,
+      ];
 
       for (let i = 0; i < fields.length; i++) {
         const field = fields[i];
@@ -59,7 +68,14 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
         if (error) {
           console.error(`Erreur fetch ${field}:`, error.message);
-          setter([]);
+          if (field === "location") {
+            setter([
+              { value: "Salle", label: "Salle" },
+              { value: "Domicile", label: "Domicile" },
+            ]);
+          } else {
+            setter([]);
+          }
         } else {
           const uniqueValues = Array.from(
             new Set(
@@ -72,7 +88,14 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
             .sort((a, b) => a.localeCompare(b));
 
           const options = uniqueValues.map((val) => ({ value: val, label: val }));
-          setter(options);
+          if (field === "location" && options.length === 0) {
+            setter([
+              { value: "Salle", label: "Salle" },
+              { value: "Domicile", label: "Domicile" },
+            ]);
+          } else {
+            setter(options);
+          }
         }
       }
 
@@ -143,6 +166,11 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       options: levelOptions,
     },
     {
+      label: "Lieu",
+      placeholder: "Tous les lieux",
+      options: locationOptions,
+    },
+    {
       label: "Durée max.",
       placeholder: "Toutes les durées",
       options: durationOptions,
@@ -154,7 +182,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     },
   ];
 
-  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", ""]);
+  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", ""]);
 
   const handleFilterChange = (index: number, value: string) => {
     const newFilters = [...selectedFilters];

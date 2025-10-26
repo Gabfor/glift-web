@@ -12,7 +12,7 @@ export default function StorePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
-  const [filters, setFilters] = useState(["", "", "", "", ""]);
+  const [filters, setFilters] = useState(["", "", "", "", "", ""]);
 
   // Fetch total count of ON programs once (or when sort/filter changes)
   useEffect(() => {
@@ -25,7 +25,14 @@ export default function StorePage() {
         .select("*", { count: "exact", head: true })
         .eq("status", "ON");
 
-      const [genderFilter, goalFilter, levelFilter, durationFilter, partnerFilter] = filters;
+      const [
+        genderFilter,
+        goalFilter,
+        levelFilter,
+        locationFilter,
+        durationFilter,
+        partnerFilter,
+      ] = filters;
 
       // appliquer les filtres s'ils sont actifs
       if (genderFilter) {
@@ -33,6 +40,7 @@ export default function StorePage() {
       }
       if (goalFilter) query = query.eq("goal", goalFilter);
       if (levelFilter) query = query.eq("level", levelFilter);
+      if (locationFilter) query = query.eq("location", locationFilter);
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) {

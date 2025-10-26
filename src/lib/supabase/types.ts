@@ -201,6 +201,7 @@ export interface Database {
           linked_program_id: Nullable<string>;
           status: string;
           partner_name: Nullable<string>;
+          location: Nullable<string>;
           downloads: number;
           actifs: number;
           goal: Nullable<string>;
@@ -226,6 +227,7 @@ export interface Database {
           linked_program_id?: Nullable<string>;
           status?: string;
           partner_name?: Nullable<string>;
+          location?: Nullable<string>;
           downloads?: number;
           actifs?: number;
           goal?: Nullable<string>;
@@ -251,6 +253,7 @@ export interface Database {
           linked_program_id?: Nullable<string>;
           status?: string;
           partner_name?: Nullable<string>;
+          location?: Nullable<string>;
           downloads?: number;
           actifs?: number;
           goal?: Nullable<string>;

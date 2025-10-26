@@ -115,6 +115,7 @@ export default function CreateProgramPageClient({
       program.level !== "" &&
       program.gender !== "" &&
       program.goal !== "" &&
+      program.location !== "" &&
       program.duration.trim() !== "" &&
       program.sessions > 0 &&
       program.description.trim() !== "" &&
@@ -316,20 +317,34 @@ export default function CreateProgramPageClient({
                 />
               </div>
 
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
-                <AdminDropdown
-                  label=""
-                  placeholder="Sélectionnez le niveau"
-                  selected={program.level}
-                  onSelect={(value) => setProgram({ ...program, level: value })}
-                  options={[
-                    { value: "Débutant", label: "Débutant" },
-                    { value: "Intermédiaire", label: "Intermédiaire" },
-                    { value: "Confirmé", label: "Confirmé" },
-                  ]}
-                />
-              </div>
+            <div className="flex flex-col">
+              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
+              <AdminDropdown
+                label=""
+                placeholder="Sélectionnez le niveau"
+                selected={program.level}
+                onSelect={(value) => setProgram({ ...program, level: value })}
+                options={[
+                  { value: "Débutant", label: "Débutant" },
+                  { value: "Intermédiaire", label: "Intermédiaire" },
+                  { value: "Confirmé", label: "Confirmé" },
+                ]}
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
+              <AdminDropdown
+                label=""
+                placeholder="Sélectionnez le lieu"
+                selected={program.location}
+                onSelect={(value) => setProgram({ ...program, location: value })}
+                options={[
+                  { value: "Salle", label: "Salle" },
+                  { value: "Domicile", label: "Domicile" },
+                ]}
+              />
+            </div>
 
               <div className="flex flex-col">
                 <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
