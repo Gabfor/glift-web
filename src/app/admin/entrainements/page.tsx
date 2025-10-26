@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -255,9 +256,23 @@ export default function AdminSingleProgramPage() {
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
-      <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">
-        {isEditing ? "Modifier le programme" : "Créer un programme"}
-      </h1>
+        <div
+          className="flex items-center text-sm text-[#5D6494] hover:text-[#3A416F] text-[15px] font-semibold mb-6 cursor-pointer group w-fit self-start"
+          onClick={() => router.push("/admin/program")}
+        >
+          <Image src="/icons/chevron_left.svg" alt="Retour" width={12} height={12} className="h-3 w-2 mr-2 group-hover:hidden" />
+          <Image
+            src="/icons/chevron_left_hover.svg"
+            alt="Retour (hover)"
+            width={12}
+            height={12}
+            className="h-3 w-2 mr-2 hidden group-hover:inline"
+          />
+          Programmes
+        </div>
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">
+          {isEditing ? "Modifier le programme" : "Créer un programme"}
+        </h1>
 
         <DndContext
           sensors={sensors}
