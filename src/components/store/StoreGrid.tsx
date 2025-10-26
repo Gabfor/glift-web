@@ -137,19 +137,21 @@ export default function StoreGrid({
         `)
         .eq('status', 'ON');
 
+      const [genderFilter, goalFilter, levelFilter, durationFilter, partnerFilter] = filters;
+
       // Apply filters if active
-      if (filters[0]) {
-        query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
+      if (genderFilter) {
+        query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
       }
-      if (filters[1]) query = query.eq('goal', filters[1]);
-      if (filters[2]) query = query.eq('level', filters[2]);
-      if (filters[3]) query = query.eq('partner_name', filters[3]);
-      if (filters[4]) {
-        const maxDuration = Number.parseInt(filters[4], 10);
+      if (goalFilter) query = query.eq('goal', goalFilter);
+      if (levelFilter) query = query.eq('level', levelFilter);
+      if (durationFilter) {
+        const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) {
           query = query.lte('duration', maxDuration);
         }
       }
+      if (partnerFilter) query = query.eq('partner_name', partnerFilter);
 
       const { data, error } = await query
         .order(order.column, { ascending: order.ascending })
