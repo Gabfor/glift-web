@@ -201,6 +201,10 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={days.map((day) => ({ value: day, label: day }))}
+                    allowTyping
+                    digitsOnly
+                    inputLength={2}
+                    padWithZero
                   />
 
                   {/* Mois */}
@@ -216,6 +220,10 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={months}
+                    allowTyping
+                    digitsOnly
+                    inputLength={2}
+                    padWithZero
                   />
 
                   {/* Année */}
@@ -231,6 +239,9 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={years.map((year) => ({ value: year, label: year }))}
+                    allowTyping
+                    digitsOnly
+                    inputLength={4}
                   />
                 </>
               </div>
@@ -254,6 +265,10 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={days.map((day) => ({ value: day, label: day }))}
+                    allowTyping
+                    digitsOnly
+                    inputLength={2}
+                    padWithZero
                   />
 
                   {/* Mois */}
@@ -269,6 +284,10 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={months}
+                    allowTyping
+                    digitsOnly
+                    inputLength={2}
+                    padWithZero
                   />
 
                   {/* Année */}
@@ -284,6 +303,9 @@ export default function CreateOfferPageClient({
                       });
                     }}
                     options={years.map((year) => ({ value: year, label: year }))}
+                    allowTyping
+                    digitsOnly
+                    inputLength={4}
                   />
                 </>
               </div>

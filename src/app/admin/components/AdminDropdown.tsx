@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import type { KeyboardEvent } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -20,6 +21,10 @@ export default function AdminDropdown({
   buttonClassName = "",
   onOpenChange,
   success = false,
+  allowTyping = false,
+  inputLength,
+  digitsOnly = false,
+  padWithZero = false,
 }: {
   label: string;
   options: DropdownOption[];
@@ -30,12 +35,18 @@ export default function AdminDropdown({
   buttonClassName?: string;
   onOpenChange?: (open: boolean) => void;
   success?: boolean;
+  allowTyping?: boolean;
+  inputLength?: number;
+  digitsOnly?: boolean;
+  padWithZero?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [typedValue, setTypedValue] = useState("");
 
   const isPlaceholder = selected === "";
+  const isShowingPlaceholder = isPlaceholder && typedValue === "";
   const selectedLabel =
     isPlaceholder
       ? placeholder
@@ -44,6 +55,12 @@ export default function AdminDropdown({
   useEffect(() => {
     onOpenChange?.(open);
   }, [open, onOpenChange]);
+
+  useEffect(() => {
+    if (!open) {
+      setTypedValue("");
+    }
+  }, [open]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -64,6 +81,108 @@ export default function AdminDropdown({
   const defaultBorder =
     "border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]";
 
+  const maxInputLength = useMemo(() => {
+    if (inputLength) {
+      return inputLength;
+    }
+    return options.reduce((max, option) => Math.max(max, option.value.length), 0);
+  }, [inputLength, options]);
+
+  const commitValue = (raw: string) => {
+    const directMatch = options.find((option) => option.value === raw);
+    if (directMatch) {
+      onSelect(directMatch.value);
+      return true;
+    }
+
+    if (padWithZero && digitsOnly && maxInputLength > 0) {
+      const padded = raw.padStart(maxInputLength, "0");
+      const paddedMatch = options.find((option) => option.value === padded);
+      if (paddedMatch) {
+        onSelect(paddedMatch.value);
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  const updateTypedValue = (next: string) => {
+    if (!allowTyping) {
+      return;
+    }
+
+    let value = next;
+
+    if (digitsOnly) {
+      value = value.replace(/\D/g, "");
+    }
+
+    if (maxInputLength > 0) {
+      value = value.slice(-maxInputLength);
+    }
+
+    if (value === "") {
+      setTypedValue("");
+      onSelect("");
+      return;
+    }
+
+    if (maxInputLength > 0 && value.length >= maxInputLength) {
+      const success = commitValue(value);
+      setTypedValue(success ? "" : value);
+      return;
+    }
+
+    if (commitValue(value)) {
+      setTypedValue("");
+      return;
+    }
+
+    setTypedValue(value);
+  };
+
+  useEffect(() => {
+    if (!allowTyping) {
+      return;
+    }
+    setTypedValue("");
+  }, [allowTyping, selected]);
+
+  const handleBlur = () => {
+    if (!allowTyping) {
+      return;
+    }
+    if (typedValue === "") {
+      return;
+    }
+    const success = commitValue(typedValue);
+    if (success) {
+      setTypedValue("");
+    }
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (!allowTyping) {
+      return;
+    }
+
+    if (event.key === "Backspace") {
+      event.preventDefault();
+      updateTypedValue(typedValue.slice(0, -1));
+      return;
+    }
+
+    if (digitsOnly && !/^\d$/.test(event.key)) {
+      return;
+    }
+
+    if (event.key.length === 1) {
+      event.preventDefault();
+      updateTypedValue(typedValue + event.key);
+    }
+  };
+
   return (
     <div
       className={`flex flex-col relative transition-all duration-300 ${className}`}
@@ -75,6 +194,8 @@ export default function AdminDropdown({
         type="button"
         ref={buttonRef}
         onClick={() => setOpen((prev) => !prev)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
         className={`
           h-[45px]
           border
@@ -93,13 +214,13 @@ export default function AdminDropdown({
       >
         <span
           className={`pr-[10px] ${
-            isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
+            isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
           }`}
         >
-          {selectedLabel}
+          {allowTyping && typedValue !== "" ? typedValue : selectedLabel}
         </span>
         <Image
-          src={isPlaceholder ? ChevronGreyIcon : ChevronIcon}
+          src={isShowingPlaceholder ? ChevronGreyIcon : ChevronIcon}
           alt=""
           width={9}
           height={6}
