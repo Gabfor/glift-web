@@ -192,7 +192,7 @@ const InformationsPage = () => {
 
       if (ok) {
         console.log("[onboarding] navigation vers /compte#mes-informations");
-        router.push("/compte#mes-informations");
+        router.replace("/compte#mes-informations");
       }
     } catch (err) {
       console.error("[onboarding] submit() erreur inattendue:", err);
@@ -355,7 +355,7 @@ const InformationsPage = () => {
               console.log(
                 "[onboarding] clic 'Ignorer pour le moment' → /compte#mes-informations"
               );
-              router.push("/compte#mes-informations");
+              router.replace("/compte#mes-informations");
             }}
             className="mt-5 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
           >
