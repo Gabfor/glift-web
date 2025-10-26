@@ -2,7 +2,12 @@
 const nextConfig = {
   // Autres options ici
   images: {
-    domains: ['wzdkuqxjcqrwrouobpxo.supabase.co'], // ✅ domaine Supabase autorisé
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'wzdkuqxjcqrwrouobpxo.supabase.co',
+      },
+    ], // ✅ domaine Supabase autorisé
   },
 };
 
