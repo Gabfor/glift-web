@@ -171,15 +171,34 @@ export default function CreateOfferPageClient({
 
   const [startYear, startMonth, startDay] = getDateParts(offer.start_date);
   const [endYear, endMonth, endDay] = getDateParts(offer.end_date);
+  const canClear = useMemo(
+    () => JSON.stringify(offer) !== JSON.stringify(emptyOffer),
+    [offer],
+  );
+
+  const handleClear = () => {
+    setOffer({ ...emptyOffer });
+  };
 
   return (
     <>
       {showLoader && <GliftLoader />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl">
-          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
-            {offerId ? "Modifier l’offre" : "Créer une offre"}
-          </h2>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-10">
+            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center sm:text-left">
+              {offerId ? "Modifier l’offre" : "Créer une offre"}
+            </h2>
+            {canClear && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4] self-end sm:self-auto"
+              >
+                Effacer
+              </button>
+            )}
+          </div>
 
           {!loading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
