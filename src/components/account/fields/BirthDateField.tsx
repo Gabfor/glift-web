@@ -120,6 +120,7 @@ export default function BirthDateField({
             digitsOnly
             inputLength={2}
             padWithZero
+            sortStrategy="month"
           />
         </div>
 
@@ -138,6 +139,7 @@ export default function BirthDateField({
             allowTyping
             digitsOnly
             inputLength={4}
+            sortStrategy="year-desc"
           />
         </div>
       </div>

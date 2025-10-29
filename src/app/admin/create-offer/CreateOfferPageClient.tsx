@@ -224,6 +224,7 @@ export default function CreateOfferPageClient({
                     digitsOnly
                     inputLength={2}
                     padWithZero
+                    sortStrategy="month"
                   />
 
                   {/* Année */}
@@ -242,6 +243,7 @@ export default function CreateOfferPageClient({
                     allowTyping
                     digitsOnly
                     inputLength={4}
+                    sortStrategy="year-desc"
                   />
                 </>
               </div>
@@ -288,6 +290,7 @@ export default function CreateOfferPageClient({
                     digitsOnly
                     inputLength={2}
                     padWithZero
+                    sortStrategy="month"
                   />
 
                   {/* Année */}
@@ -306,6 +309,7 @@ export default function CreateOfferPageClient({
                     allowTyping
                     digitsOnly
                     inputLength={4}
+                    sortStrategy="year-desc"
                   />
                 </>
               </div>
