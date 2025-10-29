@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -47,7 +47,15 @@ export default function AdminMultiSelectDropdown({
 
   const isPlaceholder = selectedArray.length === 0;
 
-  const selectedLabels = options
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+      ),
+    [options]
+  );
+
+  const selectedLabels = sortedOptions
     .filter((o) => selectedArray.includes(o.value))
     .map((o) => o.label)
     .join(", ");
@@ -138,7 +146,7 @@ export default function AdminMultiSelectDropdown({
           "
         >
           <div className="flex flex-col">
-            {options.map((option) => {
+            {sortedOptions.map((option) => {
               const isChecked = selectedArray.includes(option.value);
               return (
                 <button

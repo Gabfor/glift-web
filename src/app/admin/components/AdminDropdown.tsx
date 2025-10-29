@@ -51,12 +51,20 @@ export default function AdminDropdown({
   const menuRef = useRef<HTMLDivElement>(null);
   const [typedValue, setTypedValue] = useState("");
 
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+      ),
+    [options]
+  );
+
   const isPlaceholder = selected === "";
   const isShowingPlaceholder = isPlaceholder && typedValue === "";
   const selectedLabel =
     isPlaceholder
       ? placeholder
-      : options.find((o) => o.value === selected)?.label ?? placeholder;
+      : sortedOptions.find((o) => o.value === selected)?.label ?? placeholder;
 
   useEffect(() => {
     onOpenChange?.(open);
@@ -91,11 +99,14 @@ export default function AdminDropdown({
     if (inputLength) {
       return inputLength;
     }
-    return options.reduce((max, option) => Math.max(max, option.value.length), 0);
-  }, [inputLength, options]);
+    return sortedOptions.reduce(
+      (max, option) => Math.max(max, option.value.length),
+      0
+    );
+  }, [inputLength, sortedOptions]);
 
   const commitValue = (raw: string) => {
-    const directMatch = options.find((option) => option.value === raw);
+    const directMatch = sortedOptions.find((option) => option.value === raw);
     if (directMatch) {
       onSelect(directMatch.value);
       return true;
@@ -103,7 +114,7 @@ export default function AdminDropdown({
 
     if (padWithZero && digitsOnly && maxInputLength > 0) {
       const padded = raw.padStart(maxInputLength, "0");
-      const paddedMatch = options.find((option) => option.value === padded);
+      const paddedMatch = sortedOptions.find((option) => option.value === padded);
       if (paddedMatch) {
         onSelect(paddedMatch.value);
         return true;
@@ -260,7 +271,7 @@ export default function AdminDropdown({
       {open && (
         <div className="absolute left-0 mt-[60px] w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] scrollable-dropdown max-h-[180px] overflow-y-auto">
           <div className="flex flex-col">
-            {options.map((option) => (
+            {sortedOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
