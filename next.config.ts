@@ -7,6 +7,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'wzdkuqxjcqrwrouobpxo.supabase.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+        pathname: '/npm/@flagpack/core@*/svg/**',
+      },
     ], // ✅ domaine Supabase autorisé
   },
 };

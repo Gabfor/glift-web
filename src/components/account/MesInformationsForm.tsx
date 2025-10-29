@@ -24,6 +24,8 @@ import IncompleteAlert from "./IncompleteAlert"
 import ProfileCompleteAlert from "./ProfileCompleteAlert"
 import MissingField from "./fields/MissingField"
 import ProfilePictureBlock from "./fields/ProfilePictureBlock"
+import CountryFlag from "@/components/flags/CountryFlag"
+import { getCountryCode } from "@/utils/countryCodes"
 
 export default function MesInformationsForm({ user }: { user: User | null }) {
   const {
@@ -267,10 +269,15 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
               updateValue("country", option)
               markTouched({ country: true })
             }}
-            options={Array.from(COUNTRIES).map((country) => ({
-              value: country,
-              label: country,
-            }))}
+            options={Array.from(COUNTRIES).map((country) => {
+              const code = getCountryCode(country)
+
+              return {
+                value: country,
+                label: country,
+                icon: code ? <CountryFlag code={code} /> : undefined,
+              }
+            })}
             touched={latchedTouched.country}
             setTouched={(isTouched) => {
               if (isTouched) {

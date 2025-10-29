@@ -2,8 +2,9 @@
 
 import AdminDropdown from '@/app/admin/components/AdminDropdown'
 import SuccessMsg from './SuccessMsg'
+import type { ReactNode } from 'react'
 
-type Option = { value: string; label: string }
+type Option = { value: string; label: string; icon?: ReactNode }
 
 type Props = {
   label: string

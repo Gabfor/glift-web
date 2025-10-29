@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, ReactNode } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -9,6 +9,7 @@ import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 export type DropdownOption = {
   value: string;
   label: string;
+  icon?: ReactNode;
 };
 
 type SortStrategy = "label" | "month" | "year-desc" | "none";
@@ -96,10 +97,17 @@ export default function AdminDropdown({
 
   const isPlaceholder = selected === "";
   const isShowingPlaceholder = isPlaceholder && typedValue === "";
-  const selectedLabel =
-    isPlaceholder
-      ? placeholder
-      : sortedOptions.find((o) => o.value === selected)?.label ?? placeholder;
+  const selectedOption = useMemo(() => {
+    if (isPlaceholder) {
+      return null;
+    }
+
+    return sortedOptions.find((o) => o.value === selected) ?? null;
+  }, [isPlaceholder, selected, sortedOptions]);
+
+  const selectedLabel = isPlaceholder
+    ? placeholder
+    : selectedOption?.label ?? placeholder;
 
   useEffect(() => {
     onOpenChange?.(open);
@@ -284,11 +292,18 @@ export default function AdminDropdown({
         `}
       >
         <span
-          className={`pr-[10px] ${
+          className={`pr-[10px] flex items-center gap-2 ${
             isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
           }`}
         >
-          {allowTyping && typedValue !== "" ? typedValue : selectedLabel}
+          {!isShowingPlaceholder && typedValue === "" && selectedOption?.icon ? (
+            <span className="inline-flex shrink-0 items-center">
+              {selectedOption.icon}
+            </span>
+          ) : null}
+          <span className="block">
+            {allowTyping && typedValue !== "" ? typedValue : selectedLabel}
+          </span>
         </span>
         <Image
           src={isShowingPlaceholder ? ChevronGreyIcon : ChevronIcon}
@@ -332,7 +347,14 @@ export default function AdminDropdown({
                   }
                 `}
               >
-                {option.label}
+                <span className="flex items-center gap-2">
+                  {option.icon ? (
+                    <span className="inline-flex shrink-0 items-center">
+                      {option.icon}
+                    </span>
+                  ) : null}
+                  <span className="block">{option.label}</span>
+                </span>
               </button>
             ))}
           </div>

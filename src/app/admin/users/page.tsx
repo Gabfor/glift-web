@@ -14,6 +14,8 @@ import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import ExportIcon from "/public/icons/export.svg";
+import CountryFlag from "@/components/flags/CountryFlag";
+import { getCountryCode } from "@/utils/countryCodes";
 
 type AdminUser = {
   id: string;
@@ -364,7 +366,7 @@ export default function AdminUsersPage() {
   }, [users]);
 
   const countryOptions = useMemo<FilterOption[]>(() => {
-    const entries = new Map<string, string>();
+    const entries = new Map<string, FilterOption>();
 
     users.forEach((user) => {
       const normalized = normalizeText(user.country);
@@ -374,11 +376,17 @@ export default function AdminUsersPage() {
       }
 
       const labelSource = user.country ?? "";
-      entries.set(normalized, formatOptionLabel(labelSource));
+      const formattedLabel = formatOptionLabel(labelSource);
+      const code = getCountryCode(labelSource);
+
+      entries.set(normalized, {
+        value: normalized,
+        label: formattedLabel,
+        icon: code ? <CountryFlag code={code} /> : undefined,
+      });
     });
 
-    return Array.from(entries.entries())
-      .map(([value, label]) => ({ value, label }))
+    return Array.from(entries.values())
       .sort((a, b) =>
         a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
       );

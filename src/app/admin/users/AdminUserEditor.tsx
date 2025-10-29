@@ -16,6 +16,8 @@ import DropdownField from "@/components/account/fields/DropdownField";
 import SubmitButton from "@/components/account/fields/SubmitButton";
 import TextField from "@/components/account/fields/TextField";
 import ToggleField from "@/components/account/fields/ToggleField";
+import CountryFlag from "@/components/flags/CountryFlag";
+import { getCountryCode } from "@/utils/countryCodes";
 
 type FormState = {
   name: string;
@@ -483,10 +485,15 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
               updateField("country", value);
               setFieldTouchedValue("country", true);
             }}
-            options={COUNTRIES.map((country) => ({
-              value: country,
-              label: country,
-            }))}
+            options={COUNTRIES.map((country) => {
+              const code = getCountryCode(country);
+
+              return {
+                value: country,
+                label: country,
+                icon: code ? <CountryFlag code={code} /> : undefined,
+              };
+            })}
             touched={fieldTouched.country}
             setTouched={(next) => setFieldTouchedValue("country", next)}
           />

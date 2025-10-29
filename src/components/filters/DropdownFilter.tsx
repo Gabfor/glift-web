@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -8,6 +15,7 @@ import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 type FilterOption = {
   value: string;
   label: string;
+  icon?: ReactNode;
 };
 
 type DropdownFilterProps = {
@@ -42,6 +50,14 @@ export default function DropdownFilter({
     [options]
   );
 
+  const selectedOption = useMemo(() => {
+    if (selected === "") {
+      return null;
+    }
+
+    return sortedOptions.find((option) => option.value === selected) ?? null;
+  }, [selected, sortedOptions]);
+
   const isPlaceholder = selected === "";
   const selectedLabel = isPlaceholder
     ? placeholder
@@ -70,7 +86,10 @@ export default function DropdownFilter({
         maxWidth = Math.max(maxWidth, Math.ceil(width));
       });
 
-      setCalculatedWidth(maxWidth);
+      const needsIconSpace = sortedOptions.some((option) => option.icon);
+      const iconPadding = needsIconSpace ? 28 : 0;
+
+      setCalculatedWidth(maxWidth + iconPadding);
 
       // Reset to the currently displayed label so the hidden element reflects the UI state
       measurementTextRef.current.textContent = isPlaceholder ? placeholder : selectedLabel;
@@ -189,9 +208,14 @@ export default function DropdownFilter({
         <span
           className={`${
             isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          } whitespace-nowrap text-left flex-1`}
+          } whitespace-nowrap text-left flex-1 flex items-center gap-2`}
         >
-          {selectedLabel}
+          {!isPlaceholder && selectedOption?.icon ? (
+            <span className="shrink-0 inline-flex items-center">
+              {selectedOption.icon}
+            </span>
+          ) : null}
+          <span className="block">{selectedLabel}</span>
         </span>
         <Image
           src={isPlaceholder ? ChevronGreyIcon : ChevronIcon}
@@ -227,7 +251,14 @@ export default function DropdownFilter({
                     : "text-[#5D6494] hover:text-[#3A416F]"
                 }`}
               >
-                {option.label}
+                <span className="flex items-center gap-2">
+                  {option.icon ? (
+                    <span className="shrink-0 inline-flex items-center">
+                      {option.icon}
+                    </span>
+                  ) : null}
+                  <span className="block">{option.label}</span>
+                </span>
               </button>
             ))}
           </div>
