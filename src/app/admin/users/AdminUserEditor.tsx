@@ -10,6 +10,7 @@ import {
   SUPPLEMENTS_OPTIONS,
   TRAINING_PLACES,
   WEEKLY_SESSIONS_OPTIONS,
+  getCountryFlagIcon,
 } from "@/components/account/constants";
 import BirthDateField from "@/components/account/fields/BirthDateField";
 import DropdownField from "@/components/account/fields/DropdownField";
@@ -486,6 +487,7 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
             options={COUNTRIES.map((country) => ({
               value: country,
               label: country,
+              iconSrc: getCountryFlagIcon(country),
             }))}
             touched={fieldTouched.country}
             setTouched={(next) => setFieldTouchedValue("country", next)}

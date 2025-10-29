@@ -9,6 +9,7 @@ import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 export type DropdownOption = {
   value: string;
   label: string;
+  iconSrc?: string;
 };
 
 type SortStrategy = "label" | "month" | "year-desc" | "none";
@@ -96,10 +97,13 @@ export default function AdminDropdown({
 
   const isPlaceholder = selected === "";
   const isShowingPlaceholder = isPlaceholder && typedValue === "";
-  const selectedLabel =
-    isPlaceholder
-      ? placeholder
-      : sortedOptions.find((o) => o.value === selected)?.label ?? placeholder;
+  const selectedOption = useMemo(
+    () => sortedOptions.find((option) => option.value === selected),
+    [selected, sortedOptions],
+  );
+  const selectedLabel = isPlaceholder
+    ? placeholder
+    : selectedOption?.label ?? placeholder;
 
   useEffect(() => {
     onOpenChange?.(open);
@@ -243,6 +247,21 @@ export default function AdminDropdown({
     onClear?.();
   };
 
+  const renderOptionContent = (option: DropdownOption) => (
+    <span className="flex items-center">
+      <span>{option.label}</span>
+      {option.iconSrc && (
+        <Image
+          src={option.iconSrc}
+          alt=""
+          width={20}
+          height={15}
+          className="ml-[10px] shrink-0"
+        />
+      )}
+    </span>
+  );
+
   return (
     <div
       className={`flex flex-col relative transition-all duration-300 ${className}`}
@@ -282,13 +301,22 @@ export default function AdminDropdown({
           ${success ? "border-[#00D591]" : defaultBorder}
           ${buttonClassName}
         `}
-      >
+        >
         <span
           className={`pr-[10px] ${
             isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
           }`}
         >
-          {allowTyping && typedValue !== "" ? typedValue : selectedLabel}
+          {allowTyping && typedValue !== ""
+            ? typedValue
+            : isShowingPlaceholder
+              ? placeholder
+              : renderOptionContent(
+                  selectedOption ?? {
+                    value: selected,
+                    label: selectedLabel,
+                  },
+                )}
         </span>
         <Image
           src={isShowingPlaceholder ? ChevronGreyIcon : ChevronIcon}
@@ -332,7 +360,7 @@ export default function AdminDropdown({
                   }
                 `}
               >
-                {option.label}
+                {renderOptionContent(option)}
               </button>
             ))}
           </div>

@@ -3,7 +3,7 @@
 import AdminDropdown from '@/app/admin/components/AdminDropdown'
 import SuccessMsg from './SuccessMsg'
 
-type Option = { value: string; label: string }
+type Option = { value: string; label: string; iconSrc?: string }
 
 type Props = {
   label: string

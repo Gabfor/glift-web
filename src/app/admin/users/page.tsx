@@ -8,6 +8,7 @@ import SearchBar from "@/components/SearchBar";
 import DropdownFilter, {
   type FilterOption,
 } from "@/components/filters/DropdownFilter";
+import { getCountryFlagIcon } from "@/components/account/constants";
 import Pagination from "@/components/pagination/Pagination";
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
 import AdminUserEditor from "./AdminUserEditor";
@@ -378,7 +379,11 @@ export default function AdminUsersPage() {
     });
 
     return Array.from(entries.entries())
-      .map(([value, label]) => ({ value, label }))
+      .map(([value, label]) => ({
+        value,
+        label,
+        iconSrc: getCountryFlagIcon(label),
+      }))
       .sort((a, b) =>
         a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
       );

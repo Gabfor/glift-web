@@ -8,6 +8,7 @@ import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 type FilterOption = {
   value: string;
   label: string;
+  iconSrc?: string;
 };
 
 type DropdownFilterProps = {
@@ -43,9 +44,16 @@ export default function DropdownFilter({
   );
 
   const isPlaceholder = selected === "";
+  const selectedOption = isPlaceholder
+    ? undefined
+    : sortedOptions.find((option) => option.value === selected);
   const selectedLabel = isPlaceholder
     ? placeholder
-    : sortedOptions.find((option) => option.value === selected)?.label ?? placeholder;
+    : selectedOption?.label ?? placeholder;
+  const hasIcons = useMemo(
+    () => sortedOptions.some((option) => option.iconSrc),
+    [sortedOptions]
+  );
 
   useLayoutEffect(() => {
     const updateWidth = () => {
@@ -70,7 +78,8 @@ export default function DropdownFilter({
         maxWidth = Math.max(maxWidth, Math.ceil(width));
       });
 
-      setCalculatedWidth(maxWidth);
+      const iconSpacing = hasIcons ? 30 : 0;
+      setCalculatedWidth(maxWidth + iconSpacing);
 
       // Reset to the currently displayed label so the hidden element reflects the UI state
       measurementTextRef.current.textContent = isPlaceholder ? placeholder : selectedLabel;
@@ -82,7 +91,7 @@ export default function DropdownFilter({
     return () => {
       window.removeEventListener("resize", updateWidth);
     };
-  }, [isPlaceholder, placeholder, selectedLabel, sortedOptions]);
+  }, [hasIcons, isPlaceholder, placeholder, selectedLabel, sortedOptions]);
 
   useEffect(() => {
     if (!open) {
@@ -189,9 +198,18 @@ export default function DropdownFilter({
         <span
           className={`${
             isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          } whitespace-nowrap text-left flex-1`}
+          } flex items-center whitespace-nowrap text-left flex-1`}
         >
-          {selectedLabel}
+          <span className="whitespace-nowrap">{selectedLabel}</span>
+          {selectedOption?.iconSrc && (
+            <Image
+              src={selectedOption.iconSrc}
+              alt=""
+              width={20}
+              height={15}
+              className="ml-[10px] shrink-0"
+            />
+          )}
         </span>
         <Image
           src={isPlaceholder ? ChevronGreyIcon : ChevronIcon}
@@ -227,7 +245,18 @@ export default function DropdownFilter({
                     : "text-[#5D6494] hover:text-[#3A416F]"
                 }`}
               >
-                {option.label}
+                <span className="flex items-center">
+                  <span>{option.label}</span>
+                  {option.iconSrc && (
+                    <Image
+                      src={option.iconSrc}
+                      alt=""
+                      width={20}
+                      height={15}
+                      className="ml-[10px] shrink-0"
+                    />
+                  )}
+                </span>
               </button>
             ))}
           </div>
