@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { createProvisionalSession } from "@/lib/auth/provisionalSession";
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -216,33 +217,16 @@ export async function POST(req: NextRequest) {
               adminUserData?.user?.email_confirmed_at ?? null;
 
             if (emailConfirmedAt) {
-              const { error: revertConfirmationError } =
-                await adminClient.auth.admin.updateUserById(userId, {
-                  email_confirm: false,
-                });
+              const resetSuccess = await resetEmailConfirmation(
+                adminClient,
+                userId,
+              );
 
-              if (revertConfirmationError) {
+              if (!resetSuccess) {
                 console.warn(
-                  "Impossible de réinitialiser la confirmation email post-inscription",
-                  revertConfirmationError,
+                  "Impossible de réinitialiser l'état de confirmation email post-inscription",
+                  { userId },
                 );
-              }
-
-              if (!revertConfirmationError) {
-                const { error: verificationResetError } = await adminClient.rpc(
-                  "admin_set_user_email_verification",
-                  {
-                    target_user: userId,
-                    verified: false,
-                  },
-                );
-
-                if (verificationResetError) {
-                  console.warn(
-                    "Impossible de nettoyer l'état de confirmation email post-inscription",
-                    verificationResetError,
-                  );
-                }
               }
             }
           }
