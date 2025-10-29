@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -34,10 +34,18 @@ export default function DropdownFilter({
   const measurementTextRef = useRef<HTMLSpanElement>(null);
   const [calculatedWidth, setCalculatedWidth] = useState<number>();
 
+  const sortedOptions = useMemo(
+    () =>
+      [...options].sort((a, b) =>
+        a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+      ),
+    [options]
+  );
+
   const isPlaceholder = selected === "";
   const selectedLabel = isPlaceholder
     ? placeholder
-    : options.find((option) => option.value === selected)?.label ?? placeholder;
+    : sortedOptions.find((option) => option.value === selected)?.label ?? placeholder;
 
   useLayoutEffect(() => {
     const updateWidth = () => {
@@ -47,7 +55,7 @@ export default function DropdownFilter({
 
       const labelsToMeasure = new Set<string>([
         placeholder,
-        ...options.map((option) => option.label),
+        ...sortedOptions.map((option) => option.label),
       ]);
 
       if (!isPlaceholder) {
@@ -74,7 +82,7 @@ export default function DropdownFilter({
     return () => {
       window.removeEventListener("resize", updateWidth);
     };
-  }, [isPlaceholder, options, placeholder, selectedLabel]);
+  }, [isPlaceholder, placeholder, selectedLabel, sortedOptions]);
 
   useEffect(() => {
     if (!open) {
@@ -204,7 +212,7 @@ export default function DropdownFilter({
           className="absolute left-0 mt-20 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]"
         >
           <div className="flex flex-col">
-            {options.map((option) => (
+            {sortedOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
