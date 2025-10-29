@@ -23,10 +23,15 @@ export default async function CreateOfferPage({
     offerId = idParam.trim();
 
     const supabase = await createServerClient();
+    const normalizedId = normalizeOfferId(offerId);
+
+    if (normalizedId === null) {
+      return <CreateOfferPageClient initialOffer={null} offerId={offerId} />;
+    }
     const { data, error } = await supabase
       .from("offer_shop")
       .select("*")
-      .eq("id", normalizeOfferId(offerId))
+      .eq("id", normalizedId)
       .maybeSingle<OfferRow>();
 
     if (!error && data) {

@@ -105,12 +105,12 @@ export default function TrainingTable({
   const [dragGroup, setDragGroup] = useState<Row[]>([]);
   const dragGroupRef = useRef<Row[]>([]);
   const lastOverIdRef = useRef<string | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   const cancelScheduledReorder = useCallback(() => {
-    if (animationFrameRef.current !== undefined) {
+    if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = undefined;
+      animationFrameRef.current = null;
     }
   }, []);
 
@@ -134,7 +134,7 @@ export default function TrainingTable({
   }, [setRows]);
 
   const applyScheduledReorder = useCallback(() => {
-    animationFrameRef.current = undefined;
+    animationFrameRef.current = null;
     const overId = lastOverIdRef.current;
     if (!overId) {
       return;
@@ -200,7 +200,7 @@ export default function TrainingTable({
   }, [setRows, setDragGroup]);
 
   const scheduleReorder = useCallback(() => {
-    if (animationFrameRef.current === undefined) {
+    if (animationFrameRef.current === null) {
       animationFrameRef.current = requestAnimationFrame(applyScheduledReorder);
     }
   }, [applyScheduledReorder]);

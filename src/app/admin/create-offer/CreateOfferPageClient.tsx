@@ -76,10 +76,17 @@ export default function CreateOfferPageClient({
   const fetchOffer = useCallback(
     async (id: string) => {
       setLoading(true);
+      const normalizedId = normalizeOfferId(id);
+
+      if (normalizedId === null) {
+        console.error("Identifiant d’offre invalide:", id);
+        setLoading(false);
+        return;
+      }
       const { data, error } = await supabase
         .from("offer_shop")
         .select("*")
-        .eq("id", normalizeOfferId(id))
+        .eq("id", normalizedId)
         .maybeSingle<OfferRow>();
 
       if (error) {
@@ -118,10 +125,17 @@ export default function CreateOfferPageClient({
     const offerPayload = buildOfferPayload(offer);
 
     if (offerId) {
+      const normalizedId = normalizeOfferId(offerId);
+
+      if (normalizedId === null) {
+        alert("Erreur : identifiant d’offre invalide.");
+        setLoading(false);
+        return;
+      }
       const { error } = await supabase
         .from("offer_shop")
         .update(offerPayload)
-        .eq("id", normalizeOfferId(offerId));
+        .eq("id", normalizedId);
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);
