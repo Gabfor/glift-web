@@ -49,6 +49,31 @@ export default function ComptePage() {
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [openSectionFromHash])
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    if (window.location.hash !== '#mes-informations') {
+      return
+    }
+
+    const enforceStayOnPage = () => {
+      window.history.pushState(null, '', window.location.href)
+    }
+
+    const handlePopState = () => {
+      enforceStayOnPage()
+    }
+
+    enforceStayOnPage()
+
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+    }
+  }, [])
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
