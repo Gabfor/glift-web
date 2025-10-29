@@ -1,5 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+
 type SessionTokens = {
   access_token: string;
   refresh_token: string;
@@ -141,40 +143,15 @@ export async function createProvisionalSession(
           otpData.session.user?.id ?? provisionalUser?.id ?? null;
 
         if (emailVerified && userId) {
-          try {
-            const { error: revertConfirmationError } =
-              await adminClient.auth.admin.updateUserById(userId, {
-                email_confirm: false,
-              });
+          const resetSuccess = await resetEmailConfirmation(adminClient, userId);
 
-            if (revertConfirmationError) {
-              console.warn(
-                "Unable to revert email confirmation after provisional session",
-                revertConfirmationError,
-              );
-            } else {
-              const { error: verificationResetError } = await adminClient.rpc(
-                "admin_set_user_email_verification",
-                {
-                  target_user: userId,
-                  verified: false,
-                },
-              );
-
-              if (verificationResetError) {
-                console.warn(
-                  "Unable to clear email confirmation metadata after provisional session",
-                  verificationResetError,
-                );
-              }
-
-              emailVerified = false;
-            }
-          } catch (revertConfirmationException) {
-            console.error(
-              "Unexpected error when reverting email confirmation after provisional session",
-              revertConfirmationException,
+          if (!resetSuccess) {
+            console.warn(
+              "Unable to clear Supabase email confirmation during provisional session",
+              { userId },
             );
+          } else {
+            emailVerified = false;
           }
         }
 
