@@ -98,14 +98,18 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
   };
 };
 
-const normalizeOfferId = (id: string | number): string | number => {
-  if (typeof id === "number") {
+const normalizeOfferId = (id: string | number): number | null => {
+  if (typeof id === "number" && Number.isFinite(id)) {
     return id;
   }
 
-  const numericId = Number(id);
+  const numericId = Number.parseInt(String(id), 10);
 
-  return Number.isNaN(numericId) ? id : numericId;
+  if (Number.isNaN(numericId)) {
+    return null;
+  }
+
+  return numericId;
 };
 
 export type { OfferFormState, OfferRow };

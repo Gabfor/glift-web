@@ -202,14 +202,25 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
   }
 
   // 9. Incrémenter manuellement le champ `downloads`
-  const { error: downloadsError } = await supabase.rpc('increment_downloads', {
-    store_program_id: storeProgramId,
-  });
+  const normalizedStoreProgramId = Number.parseInt(storeProgramId, 10);
 
-  if (downloadsError) {
-    console.error("❌ Erreur incrémentation téléchargements :", downloadsError);
+  if (Number.isNaN(normalizedStoreProgramId)) {
+    console.error(
+      "❌ Erreur incrémentation téléchargements : identifiant de programme invalide.",
+    );
   } else {
-    console.log("✅ Nombre de téléchargements mis à jour.");
+    const { error: downloadsError } = await supabase.rpc(
+      "increment_downloads",
+      {
+        store_program_id: normalizedStoreProgramId,
+      },
+    );
+
+    if (downloadsError) {
+      console.error("❌ Erreur incrémentation téléchargements :", downloadsError);
+    } else {
+      console.log("✅ Nombre de téléchargements mis à jour.");
+    }
   }
 
   return newProgramId;
