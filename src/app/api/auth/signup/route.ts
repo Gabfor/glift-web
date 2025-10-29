@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
           await adminClient.auth.admin.createUser({
             email,
             password,
-            email_confirm: true,
+            email_confirm: false,
             user_metadata: {
               name,
               subscription_plan: supabasePlan,
