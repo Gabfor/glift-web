@@ -240,7 +240,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
               ) : resendStatus === "success" ? (
                 "Email envoyé ✅"
               ) : (
-                <span className="underline">Renvoyer l&apos;email.</span>
+                <span className="underline ml-1">Renvoyer l&apos;email.</span>
               )}
             </button>
             {resendStatus === "error" && (
