@@ -98,12 +98,16 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
   };
 };
 
-const normalizeOfferId = (id: string | number): number | null => {
-  if (typeof id === "number") {
-    return Number.isFinite(id) ? id : null;
+const normalizeOfferId = (rawId: unknown): number | null => {
+  if (typeof rawId === "number") {
+    return Number.isFinite(rawId) ? rawId : null;
   }
 
-  const trimmedId = id.trim();
+  if (typeof rawId !== "string") {
+    return null;
+  }
+
+  const trimmedId = rawId.trim();
   if (trimmedId === "") {
     return null;
   }
