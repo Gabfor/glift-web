@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { createProvisionalSession } from "@/lib/auth/provisionalSession";
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
           await adminClient.auth.admin.createUser({
             email,
             password,
-            email_confirm: true,
+            email_confirm: false,
             user_metadata: {
               name,
               subscription_plan: supabasePlan,
@@ -201,6 +202,40 @@ export async function POST(req: NextRequest) {
     if (userId) {
       try {
         const adminClient = ensureAdminClient();
+
+        try {
+          const { data: adminUserData, error: adminUserError } =
+            await adminClient.auth.admin.getUserById(userId);
+
+          if (adminUserError) {
+            console.warn(
+              "Impossible de vérifier l'état de confirmation email post-inscription",
+              adminUserError,
+            );
+          } else {
+            const emailConfirmedAt =
+              adminUserData?.user?.email_confirmed_at ?? null;
+
+            if (emailConfirmedAt) {
+              const resetSuccess = await resetEmailConfirmation(
+                adminClient,
+                userId,
+              );
+
+              if (!resetSuccess) {
+                console.warn(
+                  "Impossible de réinitialiser l'état de confirmation email post-inscription",
+                  { userId },
+                );
+              }
+            }
+          }
+        } catch (adminConfirmationCheckError) {
+          console.error(
+            "Erreur inattendue lors du contrôle de confirmation email post-inscription",
+            adminConfirmationCheckError,
+          );
+        }
 
         const {
           data: existingProfile,

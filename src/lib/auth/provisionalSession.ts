@@ -1,5 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+
 type SessionTokens = {
   access_token: string;
   refresh_token: string;
@@ -8,6 +10,7 @@ type SessionTokens = {
 type ProvisionalSessionSuccess = {
   sessionTokens: SessionTokens;
   emailVerified: boolean;
+  userId: string | null;
 };
 
 type ProvisionalSessionError = {
@@ -16,7 +19,7 @@ type ProvisionalSessionError = {
   code?: "grace_period_expired" | "invalid_credentials" | "server_error";
 };
 
-const GRACE_PERIOD_DAYS = 7;
+const GRACE_PERIOD_DAYS = 2;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 
 const extractSessionTokens = (session: {
@@ -132,13 +135,30 @@ export async function createProvisionalSession(
           } satisfies ProvisionalSessionError;
         }
 
-        const emailVerified = Boolean(
+        let emailVerified = Boolean(
           otpData.session.user?.email_confirmed_at ?? provisionalUser.email_confirmed_at,
         );
+
+        const userId =
+          otpData.session.user?.id ?? provisionalUser?.id ?? null;
+
+        if (emailVerified && userId) {
+          const resetSuccess = await resetEmailConfirmation(adminClient, userId);
+
+          if (!resetSuccess) {
+            console.warn(
+              "Unable to clear Supabase email confirmation during provisional session",
+              { userId },
+            );
+          } else {
+            emailVerified = false;
+          }
+        }
 
         return {
           sessionTokens: sessionTokensFromOtp,
           emailVerified,
+          userId,
         } satisfies ProvisionalSessionSuccess;
       }
 
@@ -164,12 +184,14 @@ export async function createProvisionalSession(
     }
 
     const user = session.user;
+    const userId = user?.id ?? null;
     const isEmailConfirmed = Boolean(user?.email_confirmed_at);
 
     if (isEmailConfirmed) {
       return {
         sessionTokens,
         emailVerified: true,
+        userId,
       } satisfies ProvisionalSessionSuccess;
     }
 
@@ -185,6 +207,7 @@ export async function createProvisionalSession(
     return {
       sessionTokens,
       emailVerified: false,
+      userId,
     } satisfies ProvisionalSessionSuccess;
   } catch (unhandledError) {
     console.error("createProvisionalSession() unexpected error", unhandledError);

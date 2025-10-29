@@ -33,6 +33,7 @@ interface UserContextType {
   isLoading: boolean;
   isRecoverySession: boolean;
   isEmailVerified: boolean | null;
+  gracePeriodExpiresAt: string | null;
   refreshUser: () => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
@@ -46,6 +47,7 @@ const UserContext = createContext<UserContextType>({
   isLoading: true,
   isRecoverySession: false,
   isEmailVerified: null,
+  gracePeriodExpiresAt: null,
   refreshUser: async () => {},
   updateUserMetadata: () => {},
 });
@@ -75,10 +77,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
     return typeof sessionUser.email_confirmed_at === "string";
   });
+  const [gracePeriodExpiresAt, setGracePeriodExpiresAt] = useState<string | null>(null);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   useEffect(() => {
     if (!sessionUser) {
+      setGracePeriodExpiresAt(null);
       return;
     }
 
@@ -140,7 +144,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             .maybeSingle(),
           supabase
             .from("profiles")
-            .select("email_verified")
+            .select("email_verified, grace_expires_at")
             .eq("id", customUser.id)
             .maybeSingle(),
         ]);
@@ -175,10 +179,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             typeof customUser.email_confirmed_at === "string"
           );
         }
+
+        if (profileData && typeof profileData.grace_expires_at === "string") {
+          setGracePeriodExpiresAt(profileData.grace_expires_at);
+        } else {
+          setGracePeriodExpiresAt(null);
+        }
       } else {
         setUser(null);
         setIsPremiumUser(false);
         setIsEmailVerified(null);
+        setGracePeriodExpiresAt(null);
       }
     } catch (error) {
       if (!isAuthSessionMissingError(error)) {
@@ -188,6 +199,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
       setIsPremiumUser(false);
       setIsEmailVerified(null);
+      setGracePeriodExpiresAt(null);
     } finally {
       setIsLoading(false);
     }
@@ -315,6 +327,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isRecoverySession,
         isEmailVerified,
+        gracePeriodExpiresAt,
         refreshUser: fetchUser,
         updateUserMetadata,
       }}

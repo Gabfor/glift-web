@@ -419,6 +419,12 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      admin_reset_email_confirmation: {
+        Args: {
+          target_user: string;
+        };
+        Returns: null;
+      };
       admin_set_user_email_verification: {
         Args: {
           target_user: string;

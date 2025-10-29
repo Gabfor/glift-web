@@ -8,6 +8,9 @@ import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 
+const HOUR_IN_MS = 60 * 60 * 1000;
+const DEFAULT_GRACE_PERIOD_HOURS = 48;
+
 interface HeaderProps {
   disconnected?: boolean;
 }
@@ -15,7 +18,7 @@ interface HeaderProps {
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isRecoverySession, isEmailVerified } =
+  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -24,6 +27,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
   >("idle");
   const resendStatusResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [remainingVerificationHours, setRemainingVerificationHours] =
+    useState<number | null>(null);
 
   const rawAvatarUrl =
     typeof user?.user_metadata?.avatar_url === "string"
@@ -135,6 +140,56 @@ export default function Header({ disconnected = false }: HeaderProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    if (!shouldShowEmailVerificationBanner) {
+      setRemainingVerificationHours(null);
+      return;
+    }
+
+    const computeRemainingHours = () => {
+      const expiryInput = gracePeriodExpiresAt ?? null;
+
+      let expiryTimestamp = expiryInput ? Date.parse(expiryInput) : Number.NaN;
+
+      if (Number.isNaN(expiryTimestamp) && user?.created_at) {
+        const createdTimestamp = Date.parse(user.created_at);
+
+        if (!Number.isNaN(createdTimestamp)) {
+          expiryTimestamp =
+            createdTimestamp + DEFAULT_GRACE_PERIOD_HOURS * HOUR_IN_MS;
+        }
+      }
+
+      if (Number.isNaN(expiryTimestamp)) {
+        return null;
+      }
+
+      const diffMs = expiryTimestamp - Date.now();
+
+      if (diffMs <= 0) {
+        return 0;
+      }
+
+      return Math.ceil(diffMs / HOUR_IN_MS);
+    };
+
+    const updateRemainingHours = () => {
+      setRemainingVerificationHours(computeRemainingHours());
+    };
+
+    updateRemainingHours();
+
+    const intervalId = window.setInterval(updateRemainingHours, 60 * 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [
+    gracePeriodExpiresAt,
+    shouldShowEmailVerificationBanner,
+    user?.created_at,
+  ]);
+
   const handleAccountLinkClick = (
     event: ReactMouseEvent<HTMLAnchorElement>,
     sectionHash: string,
@@ -160,15 +215,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
     setDropdownOpen(false);
   };
 
+  const remainingHoursForBanner =
+    remainingVerificationHours ?? DEFAULT_GRACE_PERIOD_HOURS;
+  const safeHoursForBanner = Math.max(1, remainingHoursForBanner);
+  const verificationCountdownMessage = `⚠️ Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
+
   return (
     <>
       {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
             <span>
-              {
-                "⚠️ Il vous reste 7 jours pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail. "
-              }
+              {verificationCountdownMessage}
             </span>
             <button
               type="button"
