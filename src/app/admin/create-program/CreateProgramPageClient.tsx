@@ -325,6 +325,7 @@ export default function CreateProgramPageClient({
                 selected={program.level}
                 onSelect={(value) => setProgram({ ...program, level: value })}
                 options={[
+                  { value: "Tous niveaux", label: "Tous niveaux" },
                   { value: "Débutant", label: "Débutant" },
                   { value: "Intermédiaire", label: "Intermédiaire" },
                   { value: "Confirmé", label: "Confirmé" },
