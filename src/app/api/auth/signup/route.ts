@@ -227,6 +227,23 @@ export async function POST(req: NextRequest) {
                   revertConfirmationError,
                 );
               }
+
+              if (!revertConfirmationError) {
+                const { error: verificationResetError } = await adminClient.rpc(
+                  "admin_set_user_email_verification",
+                  {
+                    target_user: userId,
+                    verified: false,
+                  },
+                );
+
+                if (verificationResetError) {
+                  console.warn(
+                    "Impossible de nettoyer l'état de confirmation email post-inscription",
+                    verificationResetError,
+                  );
+                }
+              }
             }
           }
         } catch (adminConfirmationCheckError) {

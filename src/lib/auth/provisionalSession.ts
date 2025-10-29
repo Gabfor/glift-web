@@ -153,6 +153,21 @@ export async function createProvisionalSession(
                 revertConfirmationError,
               );
             } else {
+              const { error: verificationResetError } = await adminClient.rpc(
+                "admin_set_user_email_verification",
+                {
+                  target_user: userId,
+                  verified: false,
+                },
+              );
+
+              if (verificationResetError) {
+                console.warn(
+                  "Unable to clear email confirmation metadata after provisional session",
+                  verificationResetError,
+                );
+              }
+
               emailVerified = false;
             }
           } catch (revertConfirmationException) {
