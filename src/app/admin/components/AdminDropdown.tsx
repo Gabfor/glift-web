@@ -11,6 +11,8 @@ export type DropdownOption = {
   label: string;
 };
 
+type SortStrategy = "label" | "month" | "year-desc" | "none";
+
 export default function AdminDropdown({
   label,
   options,
@@ -28,6 +30,7 @@ export default function AdminDropdown({
   clearable = false,
   clearLabel = "Effacer",
   onClear,
+  sortStrategy = "label",
 }: {
   label: string;
   options: DropdownOption[];
@@ -45,19 +48,51 @@ export default function AdminDropdown({
   clearable?: boolean;
   clearLabel?: string;
   onClear?: () => void;
+  sortStrategy?: SortStrategy;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [typedValue, setTypedValue] = useState("");
 
-  const sortedOptions = useMemo(
-    () =>
-      [...options].sort((a, b) =>
-        a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
-      ),
-    [options]
-  );
+  const sortedOptions = useMemo(() => {
+    if (sortStrategy === "none") {
+      return options;
+    }
+
+    if (sortStrategy === "month") {
+      const monthOrder = [
+        "01",
+        "02",
+        "03",
+        "04",
+        "05",
+        "06",
+        "07",
+        "08",
+        "09",
+        "10",
+        "11",
+        "12",
+      ];
+      const getMonthIndex = (value: string) => {
+        const index = monthOrder.indexOf(value);
+        return index === -1 ? monthOrder.length : index;
+      };
+
+      return [...options].sort(
+        (a, b) => getMonthIndex(a.value) - getMonthIndex(b.value)
+      );
+    }
+
+    if (sortStrategy === "year-desc") {
+      return [...options].sort((a, b) => Number(b.value) - Number(a.value));
+    }
+
+    return [...options].sort((a, b) =>
+      a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+    );
+  }, [options, sortStrategy]);
 
   const isPlaceholder = selected === "";
   const isShowingPlaceholder = isPlaceholder && typedValue === "";
