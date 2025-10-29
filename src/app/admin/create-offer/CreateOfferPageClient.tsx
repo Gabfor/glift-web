@@ -495,10 +495,11 @@ export default function CreateOfferPageClient({
                 placeholder="Sélectionnez un sport"
                 selected={offer.sport}
                 onSelect={(value) => setOffer({ ...offer, sport: value })}
+                clearable
                 options={[
                   { value: "Boxe", label: "Boxe" },
                   { value: "Musculation", label: "Musculation" },
-                  { value: "Running", label: "Running" },            
+                  { value: "Running", label: "Running" },
                   { value: "Yoga", label: "Yoga" },
                 ]}
               />
