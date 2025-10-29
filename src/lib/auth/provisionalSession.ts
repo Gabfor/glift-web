@@ -8,6 +8,7 @@ type SessionTokens = {
 type ProvisionalSessionSuccess = {
   sessionTokens: SessionTokens;
   emailVerified: boolean;
+  userId: string | null;
 };
 
 type ProvisionalSessionError = {
@@ -132,13 +133,40 @@ export async function createProvisionalSession(
           } satisfies ProvisionalSessionError;
         }
 
-        const emailVerified = Boolean(
+        let emailVerified = Boolean(
           otpData.session.user?.email_confirmed_at ?? provisionalUser.email_confirmed_at,
         );
+
+        const userId =
+          otpData.session.user?.id ?? provisionalUser?.id ?? null;
+
+        if (emailVerified && userId) {
+          try {
+            const { error: revertConfirmationError } =
+              await adminClient.auth.admin.updateUserById(userId, {
+                email_confirm: false,
+              });
+
+            if (revertConfirmationError) {
+              console.warn(
+                "Unable to revert email confirmation after provisional session",
+                revertConfirmationError,
+              );
+            } else {
+              emailVerified = false;
+            }
+          } catch (revertConfirmationException) {
+            console.error(
+              "Unexpected error when reverting email confirmation after provisional session",
+              revertConfirmationException,
+            );
+          }
+        }
 
         return {
           sessionTokens: sessionTokensFromOtp,
           emailVerified,
+          userId,
         } satisfies ProvisionalSessionSuccess;
       }
 
@@ -164,12 +192,14 @@ export async function createProvisionalSession(
     }
 
     const user = session.user;
+    const userId = user?.id ?? null;
     const isEmailConfirmed = Boolean(user?.email_confirmed_at);
 
     if (isEmailConfirmed) {
       return {
         sessionTokens,
         emailVerified: true,
+        userId,
       } satisfies ProvisionalSessionSuccess;
     }
 
@@ -185,6 +215,7 @@ export async function createProvisionalSession(
     return {
       sessionTokens,
       emailVerified: false,
+      userId,
     } satisfies ProvisionalSessionSuccess;
   } catch (unhandledError) {
     console.error("createProvisionalSession() unexpected error", unhandledError);
