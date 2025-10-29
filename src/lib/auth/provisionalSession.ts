@@ -1,5 +1,7 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+import { EMAIL_VERIFICATION_GRACE_PERIOD_MS } from "./constants";
+
 type SessionTokens = {
   access_token: string;
   refresh_token: string;
@@ -17,8 +19,7 @@ type ProvisionalSessionError = {
   code?: "grace_period_expired" | "invalid_credentials" | "server_error";
 };
 
-const GRACE_PERIOD_DAYS = 7;
-const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+const GRACE_PERIOD_MS = EMAIL_VERIFICATION_GRACE_PERIOD_MS;
 
 const extractSessionTokens = (session: {
   access_token?: string;

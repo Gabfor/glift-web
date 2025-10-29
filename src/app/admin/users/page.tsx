@@ -10,6 +10,7 @@ import DropdownFilter, {
 } from "@/components/filters/DropdownFilter";
 import Pagination from "@/components/pagination/Pagination";
 import UserAdminActionsBar from "@/app/admin/components/UserAdminActionsBar";
+import { EMAIL_VERIFICATION_GRACE_PERIOD_DAYS } from "@/lib/auth/constants";
 import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
@@ -45,7 +46,7 @@ type FiltersState = {
 
 const MS_IN_DAY = 86_400_000;
 const TRIAL_DURATION_DAYS = 30;
-const GRACE_PERIOD_DAYS = 7;
+const GRACE_PERIOD_DAYS = EMAIL_VERIFICATION_GRACE_PERIOD_DAYS;
 
 const SUBSCRIPTION_LABELS: Record<string, string> = {
   premium: "Premium",

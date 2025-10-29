@@ -7,6 +7,10 @@ import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
+import {
+  EMAIL_VERIFICATION_GRACE_PERIOD_HOURS,
+  EMAIL_VERIFICATION_GRACE_PERIOD_MS,
+} from "@/lib/auth/constants";
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -24,6 +28,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
   >("idle");
   const resendStatusResetTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [verificationHoursLeft, setVerificationHoursLeft] =
+    useState<number | null>(null);
 
   const rawAvatarUrl =
     typeof user?.user_metadata?.avatar_url === "string"
@@ -41,6 +47,17 @@ export default function Header({ disconnected = false }: HeaderProps) {
     showAuthenticatedUI &&
     (isEmailVerified === false ||
       (isEmailVerified === null && !user?.email_confirmed_at));
+
+  const verificationBannerMessage = (() => {
+    const hoursForBanner =
+      verificationHoursLeft ?? EMAIL_VERIFICATION_GRACE_PERIOD_HOURS;
+    const hoursLabel =
+      hoursForBanner === 1
+        ? "1 heure"
+        : `${hoursForBanner} heures`;
+
+    return `⚠️ Il vous reste ${hoursLabel} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
+  })();
 
   const handleResendVerificationEmail = async () => {
     if (resendStatus === "loading") {
@@ -128,6 +145,47 @@ export default function Header({ disconnected = false }: HeaderProps) {
   }, []);
 
   useEffect(() => {
+    if (!shouldShowEmailVerificationBanner) {
+      setVerificationHoursLeft(null);
+      return;
+    }
+
+    const createdAt = user?.created_at;
+
+    if (!createdAt) {
+      setVerificationHoursLeft(EMAIL_VERIFICATION_GRACE_PERIOD_HOURS);
+      return;
+    }
+
+    const createdTimestamp = Date.parse(createdAt);
+
+    if (Number.isNaN(createdTimestamp)) {
+      setVerificationHoursLeft(EMAIL_VERIFICATION_GRACE_PERIOD_HOURS);
+      return;
+    }
+
+    const updateCountdown = () => {
+      const deadline = createdTimestamp + EMAIL_VERIFICATION_GRACE_PERIOD_MS;
+      const remainingMs = deadline - Date.now();
+      const remainingHours = Math.ceil(remainingMs / 3_600_000);
+      const normalizedHours = Math.min(
+        EMAIL_VERIFICATION_GRACE_PERIOD_HOURS,
+        Math.max(1, remainingHours),
+      );
+
+      setVerificationHoursLeft(normalizedHours);
+    };
+
+    updateCountdown();
+
+    const intervalId = window.setInterval(updateCountdown, 60_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [shouldShowEmailVerificationBanner, user?.created_at]);
+
+  useEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 0);
     };
@@ -165,11 +223,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
       {shouldShowEmailVerificationBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
-            <span>
-              {
-                "⚠️ Il vous reste 7 jours pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail. "
-              }
-            </span>
+            <span>{verificationBannerMessage} </span>
             <button
               type="button"
               onClick={handleResendVerificationEmail}
