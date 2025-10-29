@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import CTAButton from "@/components/CTAButton";
 import StepDots from "@/components/onboarding/StepDots";
@@ -40,6 +40,7 @@ function cleanCamel(values: Record<string, unknown>) {
 
 const InformationsPage = () => {
   const router = useRouter();
+  const pathname = usePathname() ?? "/inscription/informations";
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
   const { submit, loading: hookLoading, error: hookError } = useProfileSubmit();
@@ -69,6 +70,8 @@ const InformationsPage = () => {
     experience: false,
     mainGoal: false,
   });
+
+  const searchParamsString = searchParams?.toString() ?? "";
 
   useEffect(() => {
     let mounted = true;
@@ -121,6 +124,28 @@ const InformationsPage = () => {
       mounted = false;
     };
   }, [supabase]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const enforceSamePage = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    enforceSamePage();
+
+    const handlePopState = () => {
+      enforceSamePage();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [pathname, searchParamsString]);
 
   const markTouched = (key: keyof typeof touched) => {
     setTouched((previous) => ({ ...previous, [key]: true }));
