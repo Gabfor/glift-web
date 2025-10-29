@@ -1,1 +1,4 @@
-export { createClientComponentClient as createClient } from "./supabase/client";
+export {
+  createClientComponentClient as createClient,
+  type CreateClientComponentClientOptions,
+} from "./supabase/client";

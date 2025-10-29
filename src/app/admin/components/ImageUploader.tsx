@@ -11,7 +11,7 @@ type Props = {
 
 export default function ImageUploader({ value, onChange }: Props) {
   const [loading, setLoading] = useState(false);
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createClient({ scope: "admin" }), []);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

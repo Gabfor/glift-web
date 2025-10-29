@@ -38,7 +38,7 @@ export default function AdminProgramPage() {
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClientComponentClient({ scope: "admin" });
 
   const [copiedId, setCopiedId] = useState<string | null>(null);
 

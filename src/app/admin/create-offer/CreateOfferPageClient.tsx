@@ -64,7 +64,7 @@ export default function CreateOfferPageClient({
   initialOffer,
   offerId,
 }: CreateOfferPageClientProps) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createClient({ scope: "admin" }), []);
   const router = useRouter();
 
   const [offer, setOffer] = useState<OfferFormState>(initialOffer ?? emptyOffer);

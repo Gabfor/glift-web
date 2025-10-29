@@ -21,7 +21,7 @@ export default async function CreateOfferPage({
   if (typeof idParam === "string" && idParam.trim() !== "") {
     offerId = idParam.trim();
 
-    const supabase = await createServerClient();
+    const supabase = await createServerClient({ scope: "admin" });
     const { data, error } = await supabase
       .from("offer_shop")
       .select("*")

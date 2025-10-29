@@ -54,7 +54,7 @@ const normalizeSlide = (value: unknown): Slide => {
 };
 
 export default function AdminSliderPage() {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createClient({ scope: "admin" }), []);
 
   const [loading, setLoading] = useState(true);
   const showSkeleton = useMinimumVisibility(loading);

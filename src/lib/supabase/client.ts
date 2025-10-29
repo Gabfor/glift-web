@@ -6,6 +6,10 @@ import type { CookieOptions } from "@supabase/ssr/dist/module/types";
 import { parse, serialize } from "cookie";
 
 import type { Database } from "./types";
+import {
+  getSupabaseCookieOptions,
+  type SupabaseSessionScope,
+} from "./sessionScope";
 
 const readCookie = (name: string) => {
   if (typeof document === "undefined") {
@@ -66,12 +70,20 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
   },
 });
 
-export const createClientComponentClient = () => {
+export interface CreateClientComponentClientOptions {
+  scope?: SupabaseSessionScope;
+}
+
+export const createClientComponentClient = ({
+  scope = "front",
+}: CreateClientComponentClientOptions = {}) => {
+  const cookieOptions = getSupabaseCookieOptions(scope);
   const client = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: createCookieBridge(),
+      cookieOptions,
     },
   );
 

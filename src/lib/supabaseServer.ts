@@ -8,9 +8,16 @@ import { cookies } from "next/headers";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { getSupabaseCookieOptions, type SupabaseSessionScope } from "./supabase/sessionScope";
 import type { Database } from "./supabase/types";
 
-export async function createServerClient(): Promise<SupabaseClient<Database>> {
+interface CreateServerClientOptions {
+  scope?: SupabaseSessionScope;
+}
+
+export async function createServerClient({
+  scope = "front",
+}: CreateServerClientOptions = {}): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
   const rememberPreference = cookieStore.get("glift-remember")?.value;
   const shouldPersistSession = rememberPreference !== "0";
@@ -59,11 +66,14 @@ export async function createServerClient(): Promise<SupabaseClient<Database>> {
     },
   } satisfies CookieMethodsServer;
 
+  const cookieOptions = getSupabaseCookieOptions(scope);
+
   return createSupabaseServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: cookieMethods,
+      cookieOptions,
     },
   );
 }

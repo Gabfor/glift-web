@@ -6,7 +6,7 @@ type AdminCheckFailure = { status: 401 | 403; error: string };
 export const ensureAdmin = async (): Promise<
   AdminCheckSuccess | AdminCheckFailure
 > => {
-  const supabase = await createClient();
+  const supabase = await createClient({ scope: "admin" });
   const {
     data: { user },
     error,

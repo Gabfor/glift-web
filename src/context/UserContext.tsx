@@ -8,10 +8,13 @@ import {
   useRef,
   useState,
 } from "react";
-import { createClientComponentClient } from "@/lib/supabase/client";
 import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthChangeEvent, User } from "@supabase/supabase-js";
 import { useSessionContext } from "@supabase/auth-helpers-react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+import type { Database } from "@/lib/supabase/types";
+import type { SupabaseSessionScope } from "@/lib/supabase/sessionScope";
 
 // On étend ici le type Supabase User pour inclure user_metadata
 interface CustomUser extends User {
@@ -50,9 +53,15 @@ const UserContext = createContext<UserContextType>({
   updateUserMetadata: () => {},
 });
 
-export function UserProvider({ children }: { children: React.ReactNode }) {
-  const supabase = createClientComponentClient();
-  const { session } = useSessionContext();
+export function UserProvider({
+  children,
+  scope,
+}: {
+  children: React.ReactNode;
+  scope: SupabaseSessionScope;
+}) {
+  const { supabaseClient, session } = useSessionContext();
+  const supabase = supabaseClient as SupabaseClient<Database>;
   const sessionUser = (session?.user as CustomUser) ?? null;
 
   const [user, setUser] = useState<CustomUser | null>(() => sessionUser);
@@ -79,6 +88,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!sessionUser) {
+      setUser(null);
+      setIsPremiumUser(false);
+      setIsEmailVerified(null);
       return;
     }
 
@@ -108,7 +120,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       return typeof sessionUser.email_confirmed_at === "string";
     });
-  }, [sessionUser]);
+  }, [sessionUser, scope]);
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true);

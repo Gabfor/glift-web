@@ -16,6 +16,10 @@ import type { NextRequest } from "next/server";
 import type { GenericSchema } from "@supabase/supabase-js/dist/module/lib/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  getSupabaseCookieOptions,
+  type SupabaseSessionScope,
+} from "./sessionScope";
 import type { Database } from "./types";
 
 const PACKAGE_NAME = authHelpersPackage.name;
@@ -123,11 +127,13 @@ export function createRememberingMiddlewareClient<
     supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     options,
     cookieOptions,
+    scope = "front",
   }: {
     supabaseUrl?: string;
     supabaseKey?: string;
     options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
     cookieOptions?: CookieOptionsWithName;
+    scope?: SupabaseSessionScope;
   } = {},
 ): SupabaseClient<Database, SchemaName, Schema> {
   if (!supabaseUrl || !supabaseKey) {
@@ -137,6 +143,8 @@ export function createRememberingMiddlewareClient<
   }
 
   const persistSession = shouldPersistSession(context.req);
+  const resolvedCookieOptions =
+    cookieOptions ?? getSupabaseCookieOptions(scope);
 
   return createSupabaseClient<Database, SchemaName, Schema>(
     supabaseUrl,
@@ -154,8 +162,9 @@ export function createRememberingMiddlewareClient<
         storage: new RememberMiddlewareAuthStorageAdapter(
           context,
           persistSession,
-          cookieOptions,
+          resolvedCookieOptions,
         ),
+        storageKey: resolvedCookieOptions.name,
       },
     },
   );

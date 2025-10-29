@@ -6,6 +6,7 @@ import AdminHeader from "@/components/AdminHeader";
 import Footer from "@/components/Footer";
 import { useUser, UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
+import type { SupabaseSessionScope } from "@/lib/supabase/sessionScope";
 import AuthDebug from "@/components/AuthDebug";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
@@ -20,9 +21,11 @@ export default function ClientLayout({ children, disconnected = false }: ClientL
   const isAdminPage = pathname?.startsWith("/admin");
   const isComptePage = pathname?.startsWith("/compte");
 
+  const sessionScope: SupabaseSessionScope = isAdminPage ? "admin" : "front";
+
   return (
-    <SupabaseProvider>
-      <UserProvider>
+    <SupabaseProvider scope={sessionScope}>
+      <UserProvider scope={sessionScope}>
         <ClientLayoutContent
           disconnected={disconnected}
           isAdminPage={Boolean(isAdminPage)}

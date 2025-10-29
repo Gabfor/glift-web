@@ -3,9 +3,14 @@ import { createServerClient } from "@/lib/supabaseServer";
 
 import type { Database } from "./types";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseSessionScope } from "./sessionScope";
 
-export async function createClient(): Promise<SupabaseClient<Database>> {
-  return createServerClient();
+export async function createClient({
+  scope = "front",
+}: { scope?: SupabaseSessionScope } = {}): Promise<
+  SupabaseClient<Database>
+> {
+  return createServerClient({ scope });
 }
 
 export function createAdminClient(): SupabaseClient<Database> {

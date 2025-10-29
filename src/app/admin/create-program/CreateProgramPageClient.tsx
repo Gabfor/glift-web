@@ -25,7 +25,7 @@ export default function CreateProgramPageClient({
   initialProgram,
   programId,
 }: CreateProgramPageClientProps) {
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createClient({ scope: "admin" }), []);
   const router = useRouter();
 
   const [program, setProgram] = useState<ProgramFormState>(

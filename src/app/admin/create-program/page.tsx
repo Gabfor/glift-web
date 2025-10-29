@@ -21,7 +21,7 @@ export default async function CreateProgramPage({
   if (typeof idParam === "string" && idParam.trim() !== "") {
     programId = idParam;
 
-    const supabase = await createServerClient();
+    const supabase = await createServerClient({ scope: "admin" });
     const { data, error } = await supabase
       .from("program_store")
       .select("*")

@@ -61,7 +61,7 @@ export default function OfferShopPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
+  const supabase = useMemo(() => createClient({ scope: "admin" }), []);
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
