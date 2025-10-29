@@ -489,13 +489,23 @@ export default function CreateOfferPageClient({
 
             {/* Sport */}
             <div className="flex flex-col">
-              <label className="text-[#3A416F] font-bold mb-1">Sport</label>
+              <div className="flex justify-between mb-1">
+                <label className="text-[#3A416F] font-bold">Sport</label>
+                {offer.sport && (
+                  <button
+                    type="button"
+                    onClick={() => setOffer({ ...offer, sport: "" })}
+                    className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+                  >
+                    Effacer
+                  </button>
+                )}
+              </div>
               <AdminDropdown
                 label=""
                 placeholder="Sélectionnez un sport"
                 selected={offer.sport}
                 onSelect={(value) => setOffer({ ...offer, sport: value })}
-                clearable
                 options={[
                   { value: "Boxe", label: "Boxe" },
                   { value: "Musculation", label: "Musculation" },
