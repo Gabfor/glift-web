@@ -218,7 +218,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const remainingHoursForBanner =
     remainingVerificationHours ?? DEFAULT_GRACE_PERIOD_HOURS;
   const safeHoursForBanner = Math.max(1, remainingHoursForBanner);
-  const verificationCountdownMessage = `⚠️ Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
+  const verificationCountdownMessage = `Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
 
   return (
     <>

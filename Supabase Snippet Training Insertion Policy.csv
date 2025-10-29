@@ -278,7 +278,7 @@ public,offer_shop,condition,text,YES,null
 public,offer_shop,updated_at,timestamp with time zone,YES,"timezone('utc'::text, now())"
 public,profiles,id,uuid,NO,null
 public,profiles,email_verified,boolean,NO,false
-public,profiles,grace_expires_at,timestamp with time zone,NO,(now() + '7 days'::interval)
+public,profiles,grace_expires_at,timestamp with time zone,NO,(now() + '48 hours'::interval)
 public,profiles,created_at,timestamp with time zone,NO,now()
 public,profiles,updated_at,timestamp with time zone,NO,now()
 public,profiles,experience,text,YES,null
