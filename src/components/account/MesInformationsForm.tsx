@@ -11,6 +11,7 @@ import {
   SUPPLEMENTS_OPTIONS,
   TRAINING_PLACES,
   WEEKLY_SESSIONS_OPTIONS,
+  getCountryFlagIcon,
 } from "./constants"
 import { useAccountForm } from "./hooks/useAccountForm"
 import { useAvatar } from "./hooks/useAvatar"
@@ -270,6 +271,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
             options={Array.from(COUNTRIES).map((country) => ({
               value: country,
               label: country,
+              iconSrc: getCountryFlagIcon(country),
             }))}
             touched={latchedTouched.country}
             setTouched={(isTouched) => {
