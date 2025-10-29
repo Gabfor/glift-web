@@ -19,7 +19,7 @@ type ProvisionalSessionError = {
   code?: "grace_period_expired" | "invalid_credentials" | "server_error";
 };
 
-const GRACE_PERIOD_DAYS = 7;
+const GRACE_PERIOD_DAYS = 2;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
 
 const extractSessionTokens = (session: {
