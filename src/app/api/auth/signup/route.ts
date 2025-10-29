@@ -198,6 +198,17 @@ export async function POST(req: NextRequest) {
     }
 
     const userId = signupData?.user?.id;
+    const userCreatedAtIso = signupData?.user?.created_at ?? null;
+    const userCreatedAtTimestamp = userCreatedAtIso
+      ? Date.parse(userCreatedAtIso)
+      : Number.NaN;
+    const GRACE_PERIOD_HOURS = 48;
+    const GRACE_PERIOD_MS = GRACE_PERIOD_HOURS * 60 * 60 * 1000;
+    const gracePeriodExpiration = new Date(
+      (Number.isNaN(userCreatedAtTimestamp)
+        ? Date.now()
+        : userCreatedAtTimestamp) + GRACE_PERIOD_MS,
+    ).toISOString();
 
     if (userId) {
       try {
@@ -266,6 +277,7 @@ export async function POST(req: NextRequest) {
               id: userId,
               name,
               email_verified: false,
+              grace_expires_at: gracePeriodExpiration,
               subscription_plan: supabasePlan,
               premium_trial_started_at: trialStartTimestamp,
             });
