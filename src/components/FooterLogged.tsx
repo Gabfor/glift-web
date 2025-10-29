@@ -7,7 +7,7 @@ import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/fr
 
 export default function FooterConnected() {
   return (
-    <footer className="mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[30px] pb-[30px]">
+    <footer className="mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[30px] pb-[30px]">
       {/* Top Section - Logo uniquement */}
       <div className="max-w-[1152px] mx-auto flex flex-col lg:flex-row justify-between items-start gap-10 border-b border-[#ECE9F1] pb-[30px]">
         <div className="flex items-center gap-3">
