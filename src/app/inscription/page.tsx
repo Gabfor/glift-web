@@ -70,6 +70,28 @@ const AccountCreationPage = () => {
   }, [plan, searchParamsString]);
 
   useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const enforceSamePage = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    enforceSamePage();
+
+    const handlePopState = () => {
+      enforceSamePage();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [searchParamsString]);
+
+  useEffect(() => {
     if (isLoading || !isAuthenticated || !plan || !nextStepPath) {
       return;
     }
@@ -222,7 +244,7 @@ const AccountCreationPage = () => {
       }
 
       router.refresh();
-      router.push(nextStepPath);
+      router.replace(nextStepPath);
     } catch (submitError) {
       console.error(submitError);
       setError(normalizeErrorMessage("Une erreur réseau est survenue."));
