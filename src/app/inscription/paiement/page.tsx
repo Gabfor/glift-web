@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import StepDots from "@/components/onboarding/StepDots";
@@ -23,6 +23,30 @@ const PaymentPage = () => {
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
   const stepMetadata = plan ? getStepMetadata(plan, "payment") : null;
+
+  const searchParamsString = searchParams?.toString() ?? "";
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const enforceSamePage = () => {
+      window.history.pushState(null, "", window.location.href);
+    };
+
+    enforceSamePage();
+
+    const handlePopState = () => {
+      enforceSamePage();
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [pathname, searchParamsString]);
 
   const [loading, setLoading] = useState(false);
   const [accepted, setAccepted] = useState(false);
@@ -46,7 +70,7 @@ const PaymentPage = () => {
     try {
       const params = new URLSearchParams(searchParams?.toString() ?? "");
       const destination = nextStepPath(pathname, params);
-      router.push(destination);
+      router.replace(destination);
     } finally {
       setLoading(false);
     }
