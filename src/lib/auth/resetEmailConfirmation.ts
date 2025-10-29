@@ -15,11 +15,26 @@ export async function resetEmailConfirmation(
     );
 
     if (resetError) {
-      console.warn(
-        "resetEmailConfirmation() unable to clear auth email confirmation",
-        resetError,
-      );
-      return false;
+      if (resetError.code === "PGRST202") {
+        const { error: adminFallbackError } =
+          await adminClient.auth.admin.updateUserById(userId, {
+            email_confirm: false,
+          });
+
+        if (adminFallbackError) {
+          console.warn(
+            "resetEmailConfirmation() fallback unable to clear auth email confirmation",
+            adminFallbackError,
+          );
+          return false;
+        }
+      } else {
+        console.warn(
+          "resetEmailConfirmation() unable to clear auth email confirmation",
+          resetError,
+        );
+        return false;
+      }
     }
 
     const { error: verificationResetError } = await adminClient.rpc(
@@ -31,11 +46,26 @@ export async function resetEmailConfirmation(
     );
 
     if (verificationResetError) {
-      console.warn(
-        "resetEmailConfirmation() unable to reset profile email verification",
-        verificationResetError,
-      );
-      return false;
+      if (verificationResetError.code === "PGRST202") {
+        const { error: profileFallbackError } = await adminClient
+          .from("profiles")
+          .update({ email_verified: false })
+          .eq("id", userId);
+
+        if (profileFallbackError) {
+          console.warn(
+            "resetEmailConfirmation() fallback unable to reset profile email verification",
+            profileFallbackError,
+          );
+          return false;
+        }
+      } else {
+        console.warn(
+          "resetEmailConfirmation() unable to reset profile email verification",
+          verificationResetError,
+        );
+        return false;
+      }
     }
 
     return true;
