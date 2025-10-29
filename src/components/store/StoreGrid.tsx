@@ -151,7 +151,9 @@ export default function StoreGrid({
         query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
       }
       if (goalFilter) query = query.eq('goal', goalFilter);
-      if (levelFilter) query = query.eq('level', levelFilter);
+      if (levelFilter) {
+        query = query.in('level', [levelFilter, 'Tous niveaux']);
+      }
       if (locationFilter) query = query.eq('location', locationFilter);
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);

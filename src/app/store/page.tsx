@@ -39,7 +39,9 @@ export default function StorePage() {
         query = query.in("gender", [genderFilter, "Tous"]);
       }
       if (goalFilter) query = query.eq("goal", goalFilter);
-      if (levelFilter) query = query.eq("level", levelFilter);
+      if (levelFilter) {
+        query = query.in("level", [levelFilter, "Tous niveaux"]);
+      }
       if (locationFilter) query = query.eq("location", locationFilter);
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);

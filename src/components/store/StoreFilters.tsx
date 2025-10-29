@@ -84,7 +84,9 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
                 .filter((value): value is string => typeof value === "string")
             )
           )
-            .filter((value) => value !== "Tous")
+            .filter(
+              (value) => value !== "Tous" && value !== "Tous niveaux"
+            )
             .sort((a, b) => a.localeCompare(b));
 
           const options = uniqueValues.map((val) => ({ value: val, label: val }));
