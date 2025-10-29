@@ -99,11 +99,16 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
 };
 
 const normalizeOfferId = (id: string | number): number | null => {
-  if (typeof id === "number" && Number.isFinite(id)) {
-    return id;
+  if (typeof id === "number") {
+    return Number.isFinite(id) ? id : null;
   }
 
-  const numericId = Number.parseInt(String(id), 10);
+  const trimmedId = id.trim();
+  if (trimmedId === "") {
+    return null;
+  }
+
+  const numericId = Number.parseInt(trimmedId, 10);
 
   if (Number.isNaN(numericId)) {
     return null;
