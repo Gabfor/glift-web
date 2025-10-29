@@ -378,9 +378,9 @@ const InformationsPage = () => {
             type="button"
             onClick={() => {
               console.log(
-                "[onboarding] clic 'Ignorer pour le moment' → /compte#mes-informations"
+                "[onboarding] clic 'Ignorer pour le moment' → /entrainements"
               );
-              router.replace("/compte#mes-informations");
+              router.replace("/entrainements");
             }}
             className="mt-5 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
           >
