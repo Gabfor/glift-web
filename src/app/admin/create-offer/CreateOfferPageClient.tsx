@@ -71,34 +71,48 @@ export default function CreateOfferPageClient({
   const [loading, setLoading] = useState(
     () => Boolean(offerId) && !initialOffer,
   );
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const showLoader = useMinimumVisibility(loading);
 
   const fetchOffer = useCallback(
     async (id: string) => {
+      setErrorMessage(null);
       setLoading(true);
       const normalizedId = normalizeOfferId(id);
 
       if (normalizedId === null) {
-        console.error("Identifiant d’offre invalide:", id);
+        setErrorMessage("Identifiant d’offre invalide.");
         setLoading(false);
         return;
       }
-      const { data, error } = await supabase
-        .from("offer_shop")
-        .select("*")
-        .eq("id", normalizedId)
-        .maybeSingle<OfferRow>();
+      try {
+        const { data, error } = await supabase
+          .from("offer_shop")
+          .select("*")
+          .eq("id", normalizedId)
+          .maybeSingle<OfferRow>();
 
-      if (error) {
-        console.error(error);
+        if (error) {
+          setErrorMessage(
+            error.message ||
+              "Une erreur est survenue lors du chargement de l’offre.",
+          );
+          setLoading(false);
+          return;
+        }
+
+        if (data) {
+          setOffer(mapOfferRowToForm(data));
+        }
         setLoading(false);
-        return;
+      } catch (unknownError) {
+        setErrorMessage(
+          unknownError instanceof Error
+            ? unknownError.message
+            : "Une erreur inattendue est survenue.",
+        );
+        setLoading(false);
       }
-
-      if (data) {
-        setOffer(mapOfferRowToForm(data));
-      }
-      setLoading(false);
     },
     [supabase],
   );
@@ -106,6 +120,7 @@ export default function CreateOfferPageClient({
   useEffect(() => {
     if (initialOffer) {
       setOffer(initialOffer);
+      setErrorMessage(null);
       setLoading(false);
       return;
     }
@@ -116,6 +131,7 @@ export default function CreateOfferPageClient({
     }
 
     setOffer(emptyOffer);
+    setErrorMessage(null);
     setLoading(false);
   }, [initialOffer, offerId, fetchOffer]);
 
@@ -194,6 +210,12 @@ export default function CreateOfferPageClient({
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
             {offerId ? "Modifier l’offre" : "Créer une offre"}
           </h2>
+
+          {errorMessage && (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              {errorMessage}
+            </div>
+          )}
 
           {!loading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
