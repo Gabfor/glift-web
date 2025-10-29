@@ -249,16 +249,16 @@ export default function AdminDropdown({
 
   const renderOptionContent = (option: DropdownOption) => (
     <span className="flex items-center">
-      <span>{option.label}</span>
       {option.iconSrc && (
         <Image
           src={option.iconSrc}
           alt=""
           width={20}
           height={15}
-          className="ml-[10px] shrink-0"
+          className="mr-[10px] shrink-0"
         />
       )}
+      <span>{option.label}</span>
     </span>
   );
 
