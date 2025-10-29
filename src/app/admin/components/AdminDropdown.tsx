@@ -25,6 +25,9 @@ export default function AdminDropdown({
   inputLength,
   digitsOnly = false,
   padWithZero = false,
+  clearable = false,
+  clearLabel = "Effacer",
+  onClear,
 }: {
   label: string;
   options: DropdownOption[];
@@ -39,6 +42,9 @@ export default function AdminDropdown({
   inputLength?: number;
   digitsOnly?: boolean;
   padWithZero?: boolean;
+  clearable?: boolean;
+  clearLabel?: string;
+  onClear?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -183,12 +189,31 @@ export default function AdminDropdown({
     }
   };
 
+  const handleClear = () => {
+    if (allowTyping) {
+      setTypedValue("");
+    }
+    onSelect("");
+    onClear?.();
+  };
+
   return (
     <div
       className={`flex flex-col relative transition-all duration-300 ${className}`}
       ref={menuRef}
     >
-      <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
+      <div className="flex items-center justify-between">
+        <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
+        {clearable && !isShowingPlaceholder && (
+          <button
+            type="button"
+            onClick={handleClear}
+            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+          >
+            {clearLabel}
+          </button>
+        )}
+      </div>
 
       <button
         type="button"
