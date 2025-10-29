@@ -202,6 +202,40 @@ export async function POST(req: NextRequest) {
       try {
         const adminClient = ensureAdminClient();
 
+        try {
+          const { data: adminUserData, error: adminUserError } =
+            await adminClient.auth.admin.getUserById(userId);
+
+          if (adminUserError) {
+            console.warn(
+              "Impossible de vérifier l'état de confirmation email post-inscription",
+              adminUserError,
+            );
+          } else {
+            const emailConfirmedAt =
+              adminUserData?.user?.email_confirmed_at ?? null;
+
+            if (emailConfirmedAt) {
+              const { error: revertConfirmationError } =
+                await adminClient.auth.admin.updateUserById(userId, {
+                  email_confirm: false,
+                });
+
+              if (revertConfirmationError) {
+                console.warn(
+                  "Impossible de réinitialiser la confirmation email post-inscription",
+                  revertConfirmationError,
+                );
+              }
+            }
+          }
+        } catch (adminConfirmationCheckError) {
+          console.error(
+            "Erreur inattendue lors du contrôle de confirmation email post-inscription",
+            adminConfirmationCheckError,
+          );
+        }
+
         const {
           data: existingProfile,
           error: profileLookupError,
