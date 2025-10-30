@@ -98,9 +98,15 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
   };
 };
 
-const normalizeOfferId = (rawId: unknown): OfferRow["id"] | null => {
+type NormalizedOfferId =
+  | { type: "numeric"; value: number }
+  | { type: "uuid"; value: string };
+
+const normalizeOfferId = (rawId: unknown): NormalizedOfferId | null => {
   if (typeof rawId === "number") {
-    return Number.isFinite(rawId) ? (String(rawId) as OfferRow["id"]) : null;
+    return Number.isSafeInteger(rawId)
+      ? { type: "numeric", value: rawId }
+      : null;
   }
 
   if (typeof rawId !== "string") {
@@ -113,14 +119,17 @@ const normalizeOfferId = (rawId: unknown): OfferRow["id"] | null => {
   }
 
   if (/^\d+$/.test(trimmedId)) {
-    return trimmedId as OfferRow["id"];
+    const parsedId = Number(trimmedId);
+    return Number.isSafeInteger(parsedId)
+      ? { type: "numeric", value: parsedId }
+      : null;
   }
 
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   if (uuidRegex.test(trimmedId)) {
-    return trimmedId as OfferRow["id"];
+    return { type: "uuid", value: trimmedId };
   }
 
   return null;

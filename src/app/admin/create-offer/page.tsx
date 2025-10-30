@@ -31,7 +31,7 @@ export default async function CreateOfferPage({
     const { data, error } = await supabase
       .from("offer_shop")
       .select("*")
-      .eq("id", normalizedId)
+      .filter("id", "eq", normalizedId.value)
       .maybeSingle<OfferRow>();
 
     if (!error && data) {
