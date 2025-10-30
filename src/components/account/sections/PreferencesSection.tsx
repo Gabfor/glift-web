@@ -124,7 +124,7 @@ export default function PreferencesSection() {
   return (
     <AccountAccordionSection value="mes-preferences" title="Mes préférences">
       <form
-        className="flex flex-col items-center gap-6"
+        className="flex flex-col px-[100px]"
         onSubmit={handleSubmit}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -132,8 +132,8 @@ export default function PreferencesSection() {
           }
         }}
       >
-        <div className="w-[368px] flex flex-col gap-4">
-          <h3 className="text-[14px] font-bold text-[#D7D4DC]">
+        <div className="flex w-full max-w-[368px] flex-col gap-4 pt-[30px]">
+          <h3 className="text-[14px] font-bold uppercase text-[#D7D4DC]">
             Réglages de la plateforme
           </h3>
 
@@ -150,7 +150,7 @@ export default function PreferencesSection() {
             }}
             touched={weightTouched}
             setTouched={() => setWeightTouched(true)}
-            className="w-full"
+            className="w-[246px]"
           />
 
           <DropdownField
@@ -174,12 +174,12 @@ export default function PreferencesSection() {
           />
         </div>
 
-        <div className="w-[368px] flex flex-col gap-5 pt-2">
-          <h3 className="text-[14px] font-bold text-[#D7D4DC]">
+        <div className="mt-[30px] flex w-full max-w-[368px] flex-col gap-[30px]">
+          <h3 className="text-[14px] font-bold uppercase text-[#D7D4DC]">
             Réglages de vos communications
           </h3>
 
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-[30px]">
             {COMMUNICATION_FIELDS.map((field) => (
               <PreferenceToggleRow
                 key={field.key}
@@ -193,7 +193,12 @@ export default function PreferencesSection() {
           </div>
         </div>
 
-        <SubmitButton label="Mettre à jour" loading={false} disabled={!hasChanges} />
+        <SubmitButton
+          label="Mettre à jour"
+          loading={false}
+          disabled={!hasChanges}
+          className="mt-6 self-start"
+        />
       </form>
     </AccountAccordionSection>
   )
