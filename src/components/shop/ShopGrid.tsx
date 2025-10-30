@@ -30,8 +30,10 @@ type OfferQueryRow = Pick<
     | "condition"
 >;
 
+type OfferId = OfferRow["id"];
+
 type Offer = {
-  id: number;
+  id: OfferId;
   name: string;
   start_date: string;
   end_date: string;

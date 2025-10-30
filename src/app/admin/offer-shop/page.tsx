@@ -13,13 +13,14 @@ import type { Database } from "@/lib/supabase/types";
 
 type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
 type OfferInsert = Database["public"]["Tables"]["offer_shop"]["Insert"];
+type OfferId = OfferRow["id"];
 type OfferListRow = Pick<
   OfferRow,
   "id" | "name" | "created_at" | "start_date" | "end_date" | "shop" | "code" | "status" | "click_count"
 >;
 
 type Offer = {
-  id: number;
+  id: OfferId;
   name: string;
   created_at: string;
   start_date: string;
@@ -54,7 +55,7 @@ type SortableColumn =
 
 export default function OfferShopPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [selectedIds, setSelectedIds] = useState<OfferId[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
@@ -103,7 +104,7 @@ export default function OfferShopPage() {
     }
   };
 
-  const toggleCheckbox = (id: number) => {
+  const toggleCheckbox = (id: OfferId) => {
     setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
   };
 
