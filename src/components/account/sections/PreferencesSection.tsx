@@ -81,7 +81,7 @@ function PreferenceToggleRow({ field, checked, onCheckedChange }: PreferenceTogg
     <div className="flex items-center justify-between gap-6 py-1">
       <div className="flex-1 pr-2">
         <div className="text-[16px] font-bold text-[#3A416F] leading-tight">{field.title}</div>
-        <p className="text-[15px] font-medium text-[#5D6494] leading-snug mt-[4px]">
+        <p className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">
           {field.description}
         </p>
       </div>
@@ -142,43 +142,48 @@ export default function PreferencesSection() {
             Réglages de la plateforme
           </h3>
 
-          <ToggleField
-            label="Unités de poids"
-            value={weightUnit}
-            options={Array.from(WEIGHT_UNIT_OPTIONS)}
-            onChange={(next) => {
-              if (!next) return
-              setWeightUnit(next as WeightUnit)
-              setWeightTouched(true)
-            }}
-            touched={weightTouched}
-            setTouched={() => setWeightTouched(true)}
-            className="w-[246px] mt-1"
-          />
-
-          <DropdownField
-            label="Type de courbe par défaut"
-            placeholder="Sélectionnez un type de courbe"
-            selected={defaultCurve}
-            onSelect={(value) => {
-              setDefaultCurve(value as CurveOptionValue)
-              setCurveTouched(value !== "")
-            }}
-            options={CURVE_OPTIONS.map((option) => ({
-              value: option.value,
-              label: option.label,
-            }))}
-            touched={curveTouched}
-            setTouched={(isTouched) => setCurveTouched(isTouched)}
-            endAdornment={
-              <InfoTooltipAdornment
-                message={CURVE_TOOLTIP_MESSAGE}
-                ariaLabel="Plus d’informations sur le type de courbe par défaut"
+          <div className="flex flex-col items-center gap-0">
+            <div className="flex justify-center w-full">
+              <ToggleField
+                label="Unités de poids"
+                value={weightUnit}
+                options={Array.from(WEIGHT_UNIT_OPTIONS)}
+                onChange={(next) => {
+                  if (!next) return
+                  setWeightUnit(next as WeightUnit)
+                  setWeightTouched(true)
+                }}
+                touched={weightTouched}
+                setTouched={() => setWeightTouched(true)}
               />
-            }
-            clearable={false}
-            className="mt-2"
-          />
+            </div>
+
+            <div className="flex justify-center w-full">
+              <DropdownField
+                label="Type de courbe par défaut"
+                placeholder="Sélectionnez un type de courbe"
+                selected={defaultCurve}
+                onSelect={(value) => {
+                  setDefaultCurve(value as CurveOptionValue)
+                  setCurveTouched(value !== "")
+                }}
+                options={CURVE_OPTIONS.map((option) => ({
+                  value: option.value,
+                  label: option.label,
+                }))}
+                touched={curveTouched}
+                setTouched={(isTouched) => setCurveTouched(isTouched)}
+                endAdornment={
+                  <InfoTooltipAdornment
+                    message={CURVE_TOOLTIP_MESSAGE}
+                    ariaLabel="Plus d’informations sur le type de courbe par défaut"
+                  />
+                }
+                clearable={false}
+                width="w-[368px]"
+              />
+            </div>
+          </div>
         </div>
 
         <div className="mt-[5px] flex w-full text-left flex-col gap-[21px]">
@@ -200,7 +205,12 @@ export default function PreferencesSection() {
           </div>
         </div>
 
-        <SubmitButton label="Mettre à jour" loading={false} disabled={!hasChanges} className="mt-10 self-start" />
+        <SubmitButton
+          label="Mettre à jour"
+          loading={false}
+          disabled={!hasChanges}
+          className="mt-10 self-start mb-8"
+        />
       </form>
     </AccountAccordionSection>
   )
