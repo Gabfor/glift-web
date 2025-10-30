@@ -323,7 +323,12 @@ export default function AdminDropdown({
           alt=""
           width={9}
           height={6}
+          className="shrink-0"
           style={{
+            width: "auto",
+            height: "auto",
+            maxWidth: "9px",
+            maxHeight: "6px",
             transform: open ? "rotate(-180deg)" : "rotate(0deg)",
             transition: "transform 0.2s ease",
             transformOrigin: "center 45%",
