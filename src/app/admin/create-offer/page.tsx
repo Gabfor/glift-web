@@ -28,6 +28,10 @@ export default async function CreateOfferPage({
     if (normalizedId === null) {
       return <CreateOfferPageClient initialOffer={null} offerId={offerId} />;
     }
+
+    if (typeof normalizedId !== "number") {
+      return <CreateOfferPageClient initialOffer={null} offerId={offerId} />;
+    }
     const { data, error } = await supabase
       .from("offer_shop")
       .select("*")
