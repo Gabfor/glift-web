@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import ToggleSwitch from '@/components/ui/ToggleSwitch'
 
 interface Training {
   id: string
@@ -40,30 +41,24 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
 
       <div className="flex justify-between items-center mb-4">
         <span className="text-[16px] font-semibold text-[#5D6494]">Application mobile</span>
-        <label className="switch">
-          <input
-            type="checkbox"
-            checked={!!training.app}
-            onChange={async () => {
-              await onUpdateVisibility({ app: !training.app })
-            }}
-          />
-          <span className="slider round" />
-        </label>
+        <ToggleSwitch
+          checked={!!training.app}
+          onCheckedChange={async (checked) => {
+            await onUpdateVisibility({ app: checked })
+          }}
+          ariaLabel="Basculer la visibilité sur l’application mobile"
+        />
       </div>
 
       <div className="flex justify-between items-center">
         <span className="text-[16px] font-semibold text-[#5D6494]">Dashboard</span>
-        <label className="switch">
-          <input
-            type="checkbox"
-            checked={!!training.dashboard}
-            onChange={async () => {
-              await onUpdateVisibility({ dashboard: !training.dashboard })
-            }}
-          />
-          <span className="slider round" />
-        </label>
+        <ToggleSwitch
+          checked={!!training.dashboard}
+          onCheckedChange={async (checked) => {
+            await onUpdateVisibility({ dashboard: checked })
+          }}
+          ariaLabel="Basculer la visibilité sur le dashboard"
+        />
       </div>
     </div>
   )
