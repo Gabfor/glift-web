@@ -86,16 +86,11 @@ export default function CreateOfferPageClient({
         return;
       }
 
-      if (typeof normalizedId !== "number") {
-        setErrorMessage("Identifiant d’offre invalide.");
-        setLoading(false);
-        return;
-      }
       try {
         const { data, error } = await supabase
           .from("offer_shop")
           .select("*")
-          .eq("id", normalizedId)
+          .eq("id", normalizedId as number | string)
           .maybeSingle<OfferRow>();
 
         if (error) {
@@ -155,15 +150,10 @@ export default function CreateOfferPageClient({
         return;
       }
 
-      if (typeof normalizedId !== "number") {
-        alert("Erreur : identifiant d’offre invalide.");
-        setLoading(false);
-        return;
-      }
       const { error } = await supabase
         .from("offer_shop")
         .update(offerPayload)
-        .eq("id", normalizedId);
+        .eq("id", normalizedId as number | string);
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);
