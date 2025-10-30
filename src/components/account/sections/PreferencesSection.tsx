@@ -137,7 +137,7 @@ export default function PreferencesSection() {
           if (event.key === "Enter") event.preventDefault()
         }}
       >
-        <div className="flex w-full max-w-[368px] flex-col gap-5 pt-[30px]">
+        <div className="flex w-full text-left flex-col gap-5 pt-[14px]">
           <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
             Réglages de la plateforme
           </h3>
@@ -181,12 +181,12 @@ export default function PreferencesSection() {
           />
         </div>
 
-        <div className="mt-[40px] flex w-full max-w-[368px] flex-col gap-[26px]">
+        <div className="mt-[5px] flex w-full text-left flex-col gap-[21px]">
           <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
             Réglages de vos communications
           </h3>
 
-          <div className="flex flex-col gap-[26px]">
+          <div className="flex flex-col gap-[21px]">
             {COMMUNICATION_FIELDS.map((field) => (
               <PreferenceToggleRow
                 key={field.key}
