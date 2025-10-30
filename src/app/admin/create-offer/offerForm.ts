@@ -98,15 +98,9 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
   };
 };
 
-type NormalizedOfferId =
-  | { type: "numeric"; value: number }
-  | { type: "uuid"; value: string };
-
-const normalizeOfferId = (rawId: unknown): NormalizedOfferId | null => {
+const normalizeOfferId = (rawId: unknown): string | number | null => {
   if (typeof rawId === "number") {
-    return Number.isSafeInteger(rawId)
-      ? { type: "numeric", value: rawId }
-      : null;
+    return Number.isSafeInteger(rawId) ? rawId : null;
   }
 
   if (typeof rawId !== "string") {
@@ -120,19 +114,13 @@ const normalizeOfferId = (rawId: unknown): NormalizedOfferId | null => {
 
   if (/^\d+$/.test(trimmedId)) {
     const parsedId = Number(trimmedId);
-    return Number.isSafeInteger(parsedId)
-      ? { type: "numeric", value: parsedId }
-      : null;
+    return Number.isSafeInteger(parsedId) ? parsedId : null;
   }
 
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-  if (uuidRegex.test(trimmedId)) {
-    return { type: "uuid", value: trimmedId };
-  }
-
-  return null;
+  return uuidRegex.test(trimmedId) ? trimmedId : null;
 };
 
 export type { OfferFormState, OfferRow };
