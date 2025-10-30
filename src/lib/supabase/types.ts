@@ -106,7 +106,7 @@ export interface Database {
       };
       offer_shop: {
         Row: {
-          id: number;
+          id: string;
           start_date: Nullable<string>;
           end_date: Nullable<string>;
           name: string;
@@ -131,7 +131,7 @@ export interface Database {
           condition: Nullable<string>;
         };
         Insert: {
-          id?: number;
+          id?: string;
           start_date?: Nullable<string>;
           end_date?: Nullable<string>;
           name: string;
@@ -156,7 +156,7 @@ export interface Database {
           condition?: Nullable<string>;
         };
         Update: {
-          id?: number;
+          id?: string;
           start_date?: Nullable<string>;
           end_date?: Nullable<string>;
           name?: string;
@@ -440,7 +440,7 @@ export interface Database {
       };
       increment_offer_click: {
         Args: {
-          offer_id: number;
+          offer_id: string;
         };
         Returns: null;
       };

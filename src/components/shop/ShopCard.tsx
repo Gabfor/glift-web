@@ -3,15 +3,18 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
+import type { Database } from "@/lib/supabase/types";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import PremiumOnlyModal from "@/components/PremiumOnlyModal";
 import OfferCodeModal from "@/components/OfferCodeModal";
 import CTAButton from "@/components/CTAButton";
 import { useUser } from "@/context/UserContext";
 
+type OfferId = Database["public"]["Tables"]["offer_shop"]["Row"]["id"];
+
 type Props = {
   offer: {
-    id: number;
+    id: OfferId;
     name: string;
     start_date: string;
     end_date: string;

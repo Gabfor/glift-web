@@ -90,7 +90,7 @@ export default function CreateOfferPageClient({
         const { data, error } = await supabase
           .from("offer_shop")
           .select("*")
-          .eq("id", normalizedId as number | string)
+          .eq("id", normalizedId)
           .maybeSingle<OfferRow>();
 
         if (error) {
@@ -153,7 +153,7 @@ export default function CreateOfferPageClient({
       const { error } = await supabase
         .from("offer_shop")
         .update(offerPayload)
-        .eq("id", normalizedId as number | string);
+        .eq("id", normalizedId);
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);
