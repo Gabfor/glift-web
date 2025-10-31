@@ -23,7 +23,19 @@ export type DropdownFieldProps = {
    * Optional wrapper classes for the dropdown container.
    */
   containerClassName?: string
+  /**
+   * Controls whether the user can clear the current selection.
+   * Defaults to `true` to keep the previous behaviour.
+   */
   clearable?: boolean
+  /**
+   * Custom label for the "clear" button when `clearable` is enabled.
+   */
+  clearLabel?: string
+  /**
+   * Optional callback fired after the field has been cleared.
+   */
+  onClear?: () => void
 }
 
 export default function DropdownField({
@@ -38,6 +50,8 @@ export default function DropdownField({
   width = "w-full",
   containerClassName,
   clearable = true,
+  clearLabel = "Effacer",
+  onClear,
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
@@ -69,11 +83,12 @@ export default function DropdownField({
               if (selected !== '') {
                 onSelect('')
                 setTouched(false)
+                onClear?.()
               }
             }}
             className="text-[12px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
           >
-            Effacer
+            {clearLabel}
           </button>
         )}
       </div>
