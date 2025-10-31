@@ -1,17 +1,17 @@
-'use client'
+"use client"
 
-import SuccessMsg from './SuccessMsg'
+import SuccessMsg from "./SuccessMsg"
 
-type Props = {
+export type ToggleFieldProps = {
   label: string
   value: string
-  options: string[]
+  options: readonly string[]
   onChange: (val: string) => void
   touched: boolean
   setTouched: () => void
   success?: string
   className?: string
-  variant?: 'segmented' | 'boxed'
+  variant?: "segmented" | "boxed"
   itemClassName?: string
   containerClassName?: string
 }
@@ -28,7 +28,7 @@ export default function ToggleField({
   variant = 'segmented',
   itemClassName = '',
   containerClassName = 'w-[368px]',
-}: Props) {
+}: ToggleFieldProps) {
   const showSuccess = !!success && touched
 
   return (
