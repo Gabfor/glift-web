@@ -1,8 +1,9 @@
 'use client'
 
-import AdminDropdown from '@/app/admin/components/AdminDropdown'
-import SuccessMsg from './SuccessMsg'
-import type { ReactNode } from 'react'
+import clsx from "clsx"
+import AdminDropdown from "@/app/admin/components/AdminDropdown"
+import SuccessMsg from "./SuccessMsg"
+import type { ReactNode } from "react"
 
 type Option = { value: string; label: string; iconSrc?: string }
 
@@ -15,7 +16,14 @@ type Props = {
   touched: boolean
   success?: string
   setTouched: (val: boolean) => void
+  /**
+   * Tailwind width class applied to the dropdown button. Defaults to `w-full`.
+   */
   width?: string
+  /**
+   * Optional wrapper classes for the dropdown container.
+   */
+  containerClassName?: string
   endAdornment?: ReactNode
   clearable?: boolean
 }
@@ -29,27 +37,32 @@ export default function DropdownField({
   touched,
   success,
   setTouched,
-  width = 'w-full',
+  width = "w-full",
+  containerClassName,
   endAdornment,
   clearable = true,
 }: Props) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
 
-  const buttonClassName = `
-    ${width} h-[45px] rounded-[5px] px-[15px]
-    text-[16px] font-semibold bg-white text-[#3A416F]
-    border transition-all duration-150
-    focus:outline-none
-    ${
-      showSuccess
-        ? '!border-[#00D591]'
-        : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'
-    }
-  `
+  const buttonClassName = clsx(
+    width,
+    "h-[45px] rounded-[5px] px-[15px]",
+    "text-[16px] font-semibold bg-white text-[#3A416F]",
+    "border transition-all duration-150",
+    "focus:outline-none",
+    showSuccess
+      ? "!border-[#00D591]"
+      : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]",
+  )
 
   return (
-    <div className="w-[368px] flex flex-col text-left">
+    <div
+      className={clsx(
+        "flex flex-col text-left",
+        containerClassName ?? "w-[368px]",
+      )}
+    >
       <div className="flex items-center justify-between mb-[6px]">
         <label className="text-[16px] font-bold text-[#3A416F]">{label}</label>
         {hasSelection && clearable && (

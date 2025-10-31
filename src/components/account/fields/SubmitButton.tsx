@@ -1,34 +1,45 @@
-"use client";
+"use client"
 
-import CTAButton from "@/components/CTAButton";
+import clsx from "clsx"
+
+import CTAButton from "@/components/CTAButton"
 
 type Props = {
-  loading: boolean;
-  disabled: boolean;
-  label?: string;
-  onClick?: () => void;
-};
+  loading: boolean
+  disabled: boolean
+  label?: string
+  onClick?: () => void
+  containerClassName?: string
+  buttonClassName?: string
+}
 
 export default function SubmitButton({
   loading,
   disabled,
   label = "Enregistrer mes informations",
   onClick,
+  containerClassName,
+  buttonClassName,
 }: Props) {
-  const isDisabled = disabled || loading;
+  const isDisabled = disabled || loading
 
   return (
-    <div className="w-full flex justify-center mt-3 mb-8">
+    <div
+      className={clsx(
+        "w-full flex justify-center mt-3 mb-8",
+        containerClassName,
+      )}
+    >
       <CTAButton
         type="submit"
         onClick={onClick}
         disabled={isDisabled}
         loading={loading}
         variant={isDisabled ? "inactive" : "active"}
-        className="font-semibold"
+        className={clsx("font-semibold", buttonClassName)}
       >
         {label}
       </CTAButton>
     </div>
-  );
+  )
 }
