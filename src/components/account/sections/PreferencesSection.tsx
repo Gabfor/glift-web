@@ -1,14 +1,31 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import AccountAccordionSection from "../AccountAccordionSection"
 import ToggleField from "../fields/ToggleField"
 import DropdownField from "../fields/DropdownField"
 import SubmitButton from "../fields/SubmitButton"
 import InfoTooltipAdornment from "../fields/InfoTooltipAdornment"
 import ToggleSwitch from "@/components/ui/ToggleSwitch"
+import { useUser } from "@/context/UserContext"
+import { createClient } from "@/lib/supabaseClient"
+import type { Database } from "@/lib/supabase/types"
 
 const WEIGHT_UNIT_OPTIONS = ["Métrique (kg)", "Impérial (lb)"] as const
+type WeightUnit = (typeof WEIGHT_UNIT_OPTIONS)[number]
+
+type PreferencesRow = Database["public"]["Tables"]["preferences"]["Row"]
+type PreferencesInsert = Database["public"]["Tables"]["preferences"]["Insert"]
+
+const WEIGHT_UNIT_TO_DB: Record<WeightUnit, PreferencesRow["weight_unit"]> = {
+  "Métrique (kg)": "kg",
+  "Impérial (lb)": "lb",
+}
+
+const WEIGHT_UNIT_FROM_DB: Record<PreferencesRow["weight_unit"], WeightUnit> = {
+  kg: "Métrique (kg)",
+  lb: "Impérial (lb)",
+}
 
 const CURVE_OPTIONS = [
   { value: "poids-moyen", label: "Poids moyen" },
@@ -18,6 +35,26 @@ const CURVE_OPTIONS = [
   { value: "repetition-maximum", label: "Répétition maximum" },
   { value: "repetitions-totales", label: "Répétitions totales" },
 ] as const
+
+type CurveOptionValue = (typeof CURVE_OPTIONS)[number]["value"]
+
+const CURVE_TO_DB: Record<CurveOptionValue, PreferencesRow["curve"]> = {
+  "poids-maximum": "maximum_weight",
+  "poids-moyen": "average_weight",
+  "poids-total": "total_weight",
+  "repetition-maximum": "maximum_rep",
+  "repetition-moyenne": "average_rep",
+  "repetitions-totales": "total_rep",
+}
+
+const CURVE_FROM_DB: Record<PreferencesRow["curve"], CurveOptionValue> = {
+  maximum_weight: "poids-maximum",
+  average_weight: "poids-moyen",
+  total_weight: "poids-total",
+  maximum_rep: "repetition-maximum",
+  average_rep: "repetition-moyenne",
+  total_rep: "repetitions-totales",
+}
 
 const COMMUNICATION_FIELDS = [
   {
@@ -49,8 +86,6 @@ const COMMUNICATION_FIELDS = [
 const CURVE_TOOLTIP_MESSAGE =
   "Ce réglage détermine la courbe affichée par défaut dans vos graphiques et vos tableaux de bord."
 
-type WeightUnit = (typeof WEIGHT_UNIT_OPTIONS)[number]
-type CurveOptionValue = (typeof CURVE_OPTIONS)[number]["value"]
 type CommunicationKey = (typeof COMMUNICATION_FIELDS)[number]["key"]
 
 type PreferencesState = {
@@ -70,6 +105,37 @@ const createInitialState = (): PreferencesState => ({
     {} as Record<CommunicationKey, boolean>,
   ),
 })
+
+const COMMUNICATION_FIELD_TO_DB: Record<CommunicationKey, keyof PreferencesRow> = {
+  newsletterGlift: "newsletter",
+  surveys: "survey",
+  shop: "newsletter_shop",
+  store: "newsletter_store",
+}
+
+const createStateFromPreferences = (
+  row: PreferencesRow | null,
+): PreferencesState => {
+  const base = createInitialState()
+  if (!row) {
+    return base
+  }
+
+  const communications = COMMUNICATION_FIELDS.reduce(
+    (acc, field) => {
+      const column = COMMUNICATION_FIELD_TO_DB[field.key]
+      acc[field.key] = Boolean(row[column])
+      return acc
+    },
+    {} as Record<CommunicationKey, boolean>,
+  )
+
+  return {
+    weightUnit: WEIGHT_UNIT_FROM_DB[row.weight_unit] ?? base.weightUnit,
+    defaultCurve: CURVE_FROM_DB[row.curve] ?? base.defaultCurve,
+    communications,
+  }
+}
 
 type CommunicationField = (typeof COMMUNICATION_FIELDS)[number]
 
@@ -102,6 +168,9 @@ function PreferenceToggleRow({ field, checked, onCheckedChange }: PreferenceTogg
 export default function PreferencesSection() {
   const initialStateRef = useRef<PreferencesState>(createInitialState())
 
+  const { user } = useUser()
+  const supabase = useMemo(() => createClient(), [])
+
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(initialStateRef.current.weightUnit)
   const [weightTouched, setWeightTouched] = useState(false)
   const [defaultCurve, setDefaultCurve] = useState<CurveOptionValue>(
@@ -111,6 +180,55 @@ export default function PreferencesSection() {
   const [communications, setCommunications] = useState<Record<CommunicationKey, boolean>>(
     () => ({ ...initialStateRef.current.communications }),
   )
+  const [isLoadingPreferences, setIsLoadingPreferences] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    let isActive = true
+
+    const loadPreferences = async () => {
+      if (!user?.id) {
+        setIsLoadingPreferences(false)
+        return
+      }
+
+      setIsLoadingPreferences(true)
+
+      const { data, error } = await supabase
+        .from("preferences")
+        .select("weight_unit, curve, newsletter, newsletter_shop, newsletter_store, survey")
+        .eq("id", user.id)
+        .maybeSingle()
+
+      if (!isActive) {
+        return
+      }
+
+      if (error && error.code !== "PGRST116") {
+        console.error("Erreur lors du chargement des préférences", error)
+      }
+
+      const nextState = createStateFromPreferences(data ?? null)
+      initialStateRef.current = {
+        weightUnit: nextState.weightUnit,
+        defaultCurve: nextState.defaultCurve,
+        communications: { ...nextState.communications },
+      }
+
+      setWeightUnit(nextState.weightUnit)
+      setDefaultCurve(nextState.defaultCurve)
+      setCommunications({ ...nextState.communications })
+      setWeightTouched(false)
+      setCurveTouched(false)
+      setIsLoadingPreferences(false)
+    }
+
+    void loadPreferences()
+
+    return () => {
+      isActive = false
+    }
+  }, [supabase, user?.id])
 
   const hasChanges = useMemo(() => {
     if (weightUnit !== initialStateRef.current.weightUnit) return true
@@ -122,13 +240,43 @@ export default function PreferencesSection() {
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
-    initialStateRef.current = {
-      weightUnit,
-      defaultCurve,
-      communications: { ...communications },
+    if (!user?.id) {
+      return
     }
-    setWeightTouched(false)
-    setCurveTouched(false)
+
+    const persistPreferences = async () => {
+      setIsSubmitting(true)
+      const payload: PreferencesInsert = {
+        id: user.id,
+        weight_unit: WEIGHT_UNIT_TO_DB[weightUnit],
+        curve: CURVE_TO_DB[defaultCurve],
+        newsletter: communications.newsletterGlift,
+        newsletter_shop: communications.shop,
+        newsletter_store: communications.store,
+        survey: communications.surveys,
+      }
+
+      const { error } = await supabase
+        .from("preferences")
+        .upsert(payload, { onConflict: "id" })
+
+      if (error) {
+        console.error("Erreur lors de la mise à jour des préférences", error)
+        setIsSubmitting(false)
+        return
+      }
+
+      initialStateRef.current = {
+        weightUnit,
+        defaultCurve,
+        communications: { ...communications },
+      }
+      setWeightTouched(false)
+      setCurveTouched(false)
+      setIsSubmitting(false)
+    }
+
+    void persistPreferences()
   }
 
   return (
@@ -219,8 +367,8 @@ export default function PreferencesSection() {
 
         <SubmitButton
           label="Mettre à jour"
-          loading={false}
-          disabled={!hasChanges}
+          loading={isSubmitting}
+          disabled={!hasChanges || isLoadingPreferences}
           containerClassName="mt-[35px] mb-[32px]"
         />
       </form>
