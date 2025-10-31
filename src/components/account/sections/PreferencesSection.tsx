@@ -216,7 +216,7 @@ export default function PreferencesSection() {
           label="Mettre à jour"
           loading={false}
           disabled={!hasChanges}
-          containerClassName="mt-[35px] mb-[48px]"
+          containerClassName="mt-[35px] mb-[32px]"
         />
       </form>
     </AccountAccordionSection>
