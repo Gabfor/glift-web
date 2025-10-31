@@ -80,6 +80,54 @@ export interface Database {
         };
         Relationships: never[];
       };
+      preferences: {
+        Row: {
+          id: string;
+          weight_unit: "kg" | "lb";
+          curve:
+            | "maximum_weight"
+            | "average_weight"
+            | "total_weight"
+            | "maximum_rep"
+            | "average_rep"
+            | "total_rep";
+          newsletter: boolean;
+          newsletter_shop: boolean;
+          newsletter_store: boolean;
+          survey: boolean;
+        };
+        Insert: {
+          id: string;
+          weight_unit?: "kg" | "lb";
+          curve?:
+            | "maximum_weight"
+            | "average_weight"
+            | "total_weight"
+            | "maximum_rep"
+            | "average_rep"
+            | "total_rep";
+          newsletter?: boolean;
+          newsletter_shop?: boolean;
+          newsletter_store?: boolean;
+          survey?: boolean;
+        };
+        Update: {
+          id?: string;
+          weight_unit?: "kg" | "lb";
+          curve?:
+            | "maximum_weight"
+            | "average_weight"
+            | "total_weight"
+            | "maximum_rep"
+            | "average_rep"
+            | "total_rep";
+          newsletter?: boolean;
+          newsletter_shop?: boolean;
+          newsletter_store?: boolean;
+          survey?: boolean;
+        };
+        Relationships: never[];
+      };
       user_subscriptions: {
         Row: {
           user_id: string;
