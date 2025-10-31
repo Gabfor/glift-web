@@ -131,7 +131,7 @@ export default function PreferencesSection() {
   return (
     <AccountAccordionSection value="mes-preferences" title="Mes préférences">
       <form
-        className="flex flex-col px-[100px] pb-12"
+        className="flex flex-col px-[100px] pb-0"
         onSubmit={handleSubmit}
         onKeyDown={(event) => {
           if (event.key === "Enter") event.preventDefault()
@@ -209,7 +209,7 @@ export default function PreferencesSection() {
           label="Mettre à jour"
           loading={false}
           disabled={!hasChanges}
-          containerClassName="mt-10 mb-8"
+          containerClassName="mt-[35px] mb-[48px]"
         />
       </form>
     </AccountAccordionSection>
