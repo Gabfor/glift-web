@@ -3,7 +3,6 @@
 import clsx from "clsx"
 import AdminDropdown from "@/app/admin/components/AdminDropdown"
 import SuccessMsg from "./SuccessMsg"
-import type { ReactNode } from "react"
 
 type Option = { value: string; label: string; iconSrc?: string }
 
@@ -24,7 +23,6 @@ export type DropdownFieldProps = {
    * Optional wrapper classes for the dropdown container.
    */
   containerClassName?: string
-  endAdornment?: ReactNode
   clearable?: boolean
 }
 
@@ -39,7 +37,6 @@ export default function DropdownField({
   setTouched,
   width = "w-full",
   containerClassName,
-  endAdornment,
   clearable = true,
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
@@ -95,17 +92,6 @@ export default function DropdownField({
           options={options}
           buttonClassName={buttonClassName}
         />
-
-        {endAdornment && (
-          <div
-            className="absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
-            style={{ left: 'calc(100% + 10px)' }}
-          >
-            <div className="relative w-[18px] h-[18px] pointer-events-auto flex items-center justify-center">
-              {endAdornment}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="h-[20px] mt-[5px] text-[13px] font-medium">
