@@ -159,29 +159,36 @@ export default function PreferencesSection() {
             </div>
 
             <div className="flex justify-center w-full">
-              <DropdownField
-                label="Type de courbe par défaut"
-                placeholder="Sélectionnez un type de courbe"
-                selected={defaultCurve}
-                onSelect={(value) => {
-                  setDefaultCurve(value as CurveOptionValue)
-                  setCurveTouched(value !== "")
-                }}
-                options={CURVE_OPTIONS.map((option) => ({
-                  value: option.value,
-                  label: option.label,
-                }))}
-                touched={curveTouched}
-                setTouched={(isTouched) => setCurveTouched(isTouched)}
-                endAdornment={
-                  <InfoTooltipAdornment
-                    message={CURVE_TOOLTIP_MESSAGE}
-                    ariaLabel="Plus d’informations sur le type de courbe par défaut"
-                  />
-                }
-                clearable={false}
-                width="w-[368px]"
-              />
+              <div className="relative">
+                <DropdownField
+                  label="Type de courbe par défaut"
+                  placeholder="Sélectionnez un type de courbe"
+                  selected={defaultCurve}
+                  onSelect={(value) => {
+                    setDefaultCurve(value as CurveOptionValue)
+                    setCurveTouched(value !== "")
+                  }}
+                  options={CURVE_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  }))}
+                  touched={curveTouched}
+                  setTouched={(isTouched) => setCurveTouched(isTouched)}
+                  clearable={false}
+                  width="w-[368px]"
+                />
+
+                <div
+                  className="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 z-20"
+                >
+                  <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+                    <InfoTooltipAdornment
+                      message={CURVE_TOOLTIP_MESSAGE}
+                      ariaLabel="Plus d’informations sur le type de courbe par défaut"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
