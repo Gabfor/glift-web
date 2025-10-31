@@ -365,7 +365,7 @@ export default function PreferencesSection() {
         </div>
 
         <SubmitButton
-          label="Mettre à jour"
+          label="Enregistrer mes préférences"
           loading={isSubmitting}
           disabled={!hasChanges || isLoadingPreferences || isSubmitting}
           containerClassName="mt-[35px] mb-[32px]"
