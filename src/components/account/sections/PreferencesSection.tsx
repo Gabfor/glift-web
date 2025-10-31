@@ -12,8 +12,11 @@ const WEIGHT_UNIT_OPTIONS = ["Métrique (kg)", "Impérial (lb)"] as const
 
 const CURVE_OPTIONS = [
   { value: "poids-moyen", label: "Poids moyen" },
-  { value: "poids-median", label: "Poids médian" },
-  { value: "poids-maximal", label: "Poids maximal" },
+  { value: "poids-maximum", label: "Poids maximum" },
+  { value: "poids-total", label: "Poids total" },
+  { value: "repetition-moyenne", label: "Répétition moyenne" },
+  { value: "repetition-maximum", label: "Répétition maximum" },
+  { value: "repetitions-totales", label: "Répétitions totales" },
 ] as const
 
 const COMMUNICATION_FIELDS = [
