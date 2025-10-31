@@ -368,7 +368,7 @@ export default function PreferencesSection() {
         <SubmitButton
           label="Mettre à jour"
           loading={isSubmitting}
-          disabled={!hasChanges || isLoadingPreferences}
+          disabled={!hasChanges || isLoadingPreferences || isSubmitting}
           containerClassName="mt-[35px] mb-[32px]"
         />
       </form>
