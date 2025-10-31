@@ -7,7 +7,7 @@ import type { ReactNode } from "react"
 
 type Option = { value: string; label: string; iconSrc?: string }
 
-type Props = {
+export type DropdownFieldProps = {
   label: string
   selected: string
   onSelect: (val: string) => void
@@ -41,7 +41,7 @@ export default function DropdownField({
   containerClassName,
   endAdornment,
   clearable = true,
-}: Props) {
+}: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
 
