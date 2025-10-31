@@ -4,7 +4,7 @@ import { FormEvent, useMemo, useState } from "react"
 import Image from "next/image"
 
 import AccountAccordionSection from "../AccountAccordionSection"
-import CTAButton from "@/components/CTAButton"
+import SubmitButton from "../fields/SubmitButton"
 import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal"
 import {
   PasswordField,
@@ -236,16 +236,13 @@ export default function MotDePasseSection() {
           </div>
         </div>
 
-        <CTAButton
-          type="submit"
-          className="mt-4 w-full max-w-[260px] font-semibold"
-          disabled={!isFormReady || loading}
+        <SubmitButton
+          label="Modifier mon mot de passe"
           loading={loading}
-          loadingText="En cours..."
-          variant={isFormReady ? "active" : "inactive"}
-        >
-          Modifier mon mot de passe
-        </CTAButton>
+          disabled={!isFormReady || loading}
+          containerClassName="mt-4 mb-0"
+          buttonClassName="w-full max-w-[260px]"
+        />
 
         <button
           type="button"

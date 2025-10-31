@@ -209,7 +209,7 @@ export default function PreferencesSection() {
           label="Mettre à jour"
           loading={false}
           disabled={!hasChanges}
-          className="mt-10 self-start mb-8"
+          containerClassName="mt-10 mb-8"
         />
       </form>
     </AccountAccordionSection>
