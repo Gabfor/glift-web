@@ -142,8 +142,8 @@ export default function PreferencesSection() {
             Réglages de la plateforme
           </h3>
 
-          <div className="flex flex-col items-start gap-0">
-            <div className="flex w-full justify-start">
+          <div className="flex flex-col items-center gap-0">
+            <div className="flex w-[368px] justify-start">
               <ToggleField
                 label="Unités de poids"
                 value={weightUnit}
@@ -155,11 +155,13 @@ export default function PreferencesSection() {
                 }}
                 touched={weightTouched}
                 setTouched={() => setWeightTouched(true)}
+                containerClassName="w-full"
+                className="w-[246px]"
               />
             </div>
 
-            <div className="flex w-full justify-start">
-              <div className="relative">
+            <div className="flex w-[368px] justify-start">
+              <div className="relative w-full">
                 <DropdownField
                   label="Type de courbe par défaut"
                   placeholder="Sélectionnez un type de courbe"
