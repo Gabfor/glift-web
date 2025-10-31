@@ -230,13 +230,12 @@ export default function PreferencesSection() {
     }
   }, [supabase, user?.id])
 
-  const hasChanges = useMemo(() => {
-    if (weightUnit !== initialStateRef.current.weightUnit) return true
-    if (defaultCurve !== initialStateRef.current.defaultCurve) return true
-    return COMMUNICATION_FIELDS.some(
+  const hasChanges =
+    weightUnit !== initialStateRef.current.weightUnit ||
+    defaultCurve !== initialStateRef.current.defaultCurve ||
+    COMMUNICATION_FIELDS.some(
       (field) => communications[field.key] !== initialStateRef.current.communications[field.key],
     )
-  }, [communications, defaultCurve, weightUnit])
 
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
