@@ -13,6 +13,7 @@ type Props = {
   className?: string
   variant?: 'segmented' | 'boxed'
   itemClassName?: string
+  containerClassName?: string
 }
 
 export default function ToggleField({
@@ -26,11 +27,12 @@ export default function ToggleField({
   className = '',
   variant = 'segmented',
   itemClassName = '',
+  containerClassName = 'w-[368px]',
 }: Props) {
   const showSuccess = !!success && touched
 
   return (
-    <div className="w-[368px] flex flex-col text-left">
+    <div className={`${containerClassName} flex flex-col text-left`}>
       <label className="text-[16px] font-bold text-[#3A416F] mb-[6px]">{label}</label>
 
       <div

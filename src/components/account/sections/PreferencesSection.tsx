@@ -155,6 +155,7 @@ export default function PreferencesSection() {
                 }}
                 touched={weightTouched}
                 setTouched={() => setWeightTouched(true)}
+                containerClassName="w-[246px]"
               />
             </div>
 
