@@ -193,7 +193,7 @@ export default function DropdownFilter({
           hover:border-[#C2BFC6]
           transition
         `}
-        style={calculatedWidth ? { width: calculatedWidth } : undefined}
+        style={calculatedWidth ? { minWidth: calculatedWidth } : undefined}
       >
         <span
           className={`${
