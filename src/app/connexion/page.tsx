@@ -177,7 +177,7 @@ export default function ConnexionPage() {
 
           const description =
             result.code === "grace_period_expired"
-              ? "Le délai de 48 heures pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer."
+              ? "Le délai de 72 heures pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer."
               : result.error ??
                 "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.";
 

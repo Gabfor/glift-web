@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     const userCreatedAtTimestamp = userCreatedAtIso
       ? Date.parse(userCreatedAtIso)
       : Number.NaN;
-    const GRACE_PERIOD_HOURS = 48;
+    const GRACE_PERIOD_HOURS = 72;
     const GRACE_PERIOD_MS = GRACE_PERIOD_HOURS * 60 * 60 * 1000;
     const gracePeriodExpiration = new Date(
       (Number.isNaN(userCreatedAtTimestamp)
