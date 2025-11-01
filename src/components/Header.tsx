@@ -9,7 +9,7 @@ import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
-const DEFAULT_GRACE_PERIOD_HOURS = 48;
+const DEFAULT_GRACE_PERIOD_HOURS = 72;
 
 interface HeaderProps {
   disconnected?: boolean;
@@ -142,7 +142,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const remainingHoursForBanner =
     remainingVerificationHours ?? DEFAULT_GRACE_PERIOD_HOURS;
   const safeHoursForBanner = Math.max(1, remainingHoursForBanner);
-  const verificationCountdownMessage = `Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
+  const verificationCountdownMessage = `⚠️ Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
 
   return (
     <>
