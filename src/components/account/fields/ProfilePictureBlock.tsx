@@ -174,7 +174,11 @@ export default function ProfilePictureBlock({
             </svg>
 
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative w-[75px] h-[75px] rounded-full overflow-hidden bg-[#ECE9F1]">
+              <div
+                className={`relative w-[75px] h-[75px] rounded-full overflow-hidden ${
+                  hasImage ? "" : "bg-[#F2F1F6]"
+                }`}
+              >
                 {hasImage ? (
                   <Image
                     src={imageUrl as string}
