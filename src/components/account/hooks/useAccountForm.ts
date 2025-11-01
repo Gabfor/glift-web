@@ -346,6 +346,7 @@ type BirthDateUpdater = string | ((previous: string) => string)
 export const useAccountForm = (user: User | null) => {
   const { updateUserMetadata } = useUser()
   const [profile, setProfile] = useState<ProfileDetails>(undefined)
+  const isInitialLoading = profile === undefined
   const snapshot = useMemo(
     () =>
       buildSnapshot(
@@ -595,6 +596,7 @@ export const useAccountForm = (user: User | null) => {
     startNameEdition,
     endNameEdition,
     isEditingName,
+    isInitialLoading,
   }
 }
 
