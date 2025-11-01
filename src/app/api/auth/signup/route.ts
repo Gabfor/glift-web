@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { createProvisionalSession } from "@/lib/auth/provisionalSession";
 import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+import { getAbsoluteUrl } from "@/lib/url";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
 
     const { email, password, name, plan } = body;
 
-    const callbackUrl = new URL("/auth/callback", req.nextUrl.origin).toString();
+    const callbackUrl = getAbsoluteUrl("/auth/callback", req.nextUrl.origin);
 
     // 🔒 Vérifie les champs requis
     if (!email || !password || !name || !plan) {
