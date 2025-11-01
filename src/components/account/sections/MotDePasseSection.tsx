@@ -240,14 +240,14 @@ export default function MotDePasseSection() {
           label="Modifier mon mot de passe"
           loading={loading}
           disabled={!isFormReady || loading}
-          containerClassName="mt-4 mb-0"
+          containerClassName="mt-4 mb-[16px]"
           buttonClassName="w-full max-w-[260px]"
         />
 
         <button
           type="button"
           onClick={() => setShowForgotPassword(true)}
-          className="mt-5 mb-[30px] text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
+          className="mb-8 text-[14px] font-semibold text-[#7069FA] transition-colors hover:text-[#6660E4]"
         >
           Mot de passe oublié ?
         </button>
