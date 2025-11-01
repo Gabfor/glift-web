@@ -330,6 +330,43 @@ export async function POST(req: NextRequest) {
         }
 
         const {
+          data: existingPreferences,
+          error: preferencesLookupError,
+        } = await adminClient
+          .from("preferences")
+          .select("id")
+          .eq("id", userId)
+          .maybeSingle();
+
+        if (preferencesLookupError) {
+          console.error(
+            "Lecture des préférences impossible",
+            preferencesLookupError,
+          );
+          return NextResponse.json(
+            { error: "Création des préférences utilisateur impossible." },
+            { status: 400 },
+          );
+        }
+
+        if (!existingPreferences) {
+          const { error: preferencesInsertError } = await adminClient
+            .from("preferences")
+            .insert({ id: userId });
+
+          if (preferencesInsertError) {
+            console.error(
+              "Insertion des préférences impossible",
+              preferencesInsertError,
+            );
+            return NextResponse.json(
+              { error: "Création des préférences utilisateur impossible." },
+              { status: 400 },
+            );
+          }
+        }
+
+        const {
           data: existingSubscription,
           error: subscriptionLookupError,
         } = await adminClient
