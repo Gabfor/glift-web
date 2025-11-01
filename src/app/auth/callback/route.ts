@@ -179,6 +179,7 @@ export async function GET(request: NextRequest) {
   let exchangeError: ExchangeError = null;
 
   let confirmedUserId: string | null = null;
+  let confirmedUserEmailConfirmedAt: string | null = null;
 
   const queryEmailParam =
     url.searchParams.get("email") ?? url.searchParams.get("new_email");
@@ -187,8 +188,20 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     exchangeError = error;
 
-    if (data?.user?.id) {
-      confirmedUserId = data.user.id;
+    const exchangeUserId =
+      data?.user?.id ?? data?.session?.user?.id ?? null;
+
+    if (exchangeUserId) {
+      confirmedUserId = exchangeUserId;
+    }
+
+    const exchangeEmailConfirmedAt =
+      data?.user?.email_confirmed_at ??
+      data?.session?.user?.email_confirmed_at ??
+      null;
+
+    if (exchangeEmailConfirmedAt) {
+      confirmedUserEmailConfirmedAt = exchangeEmailConfirmedAt;
     }
   } else {
     type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
@@ -224,8 +237,20 @@ export async function GET(request: NextRequest) {
         const { data, error } = await supabase.auth.verifyOtp(verifyParams);
         exchangeError = error;
 
-        if (data?.user?.id) {
-          confirmedUserId = data.user.id;
+        const verifiedUserId =
+          data?.user?.id ?? data?.session?.user?.id ?? null;
+
+        if (verifiedUserId) {
+          confirmedUserId = verifiedUserId;
+        }
+
+        const verifiedEmailConfirmedAt =
+          data?.user?.email_confirmed_at ??
+          data?.session?.user?.email_confirmed_at ??
+          null;
+
+        if (verifiedEmailConfirmedAt) {
+          confirmedUserEmailConfirmedAt = verifiedEmailConfirmedAt;
         }
       } else if (token && queryEmailParam) {
         const verifyParams: Extract<VerifyOtpParams, { token: string; email: string }> = {
@@ -256,6 +281,10 @@ export async function GET(request: NextRequest) {
 
   if (!confirmedUserId && user) {
     confirmedUserId = user.id;
+  }
+
+  if (!confirmedUserEmailConfirmedAt && user?.email_confirmed_at) {
+    confirmedUserEmailConfirmedAt = user.email_confirmed_at;
   }
 
   if (!confirmedUserId && fallbackConfirmedUserId) {
@@ -292,6 +321,10 @@ export async function GET(request: NextRequest) {
 
         if (matchedUser?.id) {
           confirmedUserId = matchedUser.id;
+
+          if (!confirmedUserEmailConfirmedAt && matchedUser.email_confirmed_at) {
+            confirmedUserEmailConfirmedAt = matchedUser.email_confirmed_at;
+          }
         }
       }
     } catch (adminLookupException) {
@@ -355,7 +388,7 @@ export async function GET(request: NextRequest) {
       ? "Le lien de confirmation a expiré. Merci de demander un nouveau lien depuis l'application."
       : sessionErrorMessageForDisplay);
 
-  let authEmailConfirmed = false;
+  let authEmailConfirmed = Boolean(confirmedUserEmailConfirmedAt);
 
   if (errorMessage && confirmedUserId && otpExpired) {
     try {
@@ -373,6 +406,7 @@ export async function GET(request: NextRequest) {
 
         if (emailConfirmedAt) {
           authEmailConfirmed = true;
+          confirmedUserEmailConfirmedAt = emailConfirmedAt;
           errorMessage = undefined;
         }
       }
@@ -417,9 +451,14 @@ export async function GET(request: NextRequest) {
               adminLookupError,
             );
           } else {
-            authEmailConfirmed = Boolean(
-              adminUserData?.user?.email_confirmed_at,
-            );
+            const adminEmailConfirmedAt =
+              adminUserData?.user?.email_confirmed_at ?? null;
+
+            authEmailConfirmed = Boolean(adminEmailConfirmedAt);
+
+            if (adminEmailConfirmedAt) {
+              confirmedUserEmailConfirmedAt = adminEmailConfirmedAt;
+            }
           }
         }
 
