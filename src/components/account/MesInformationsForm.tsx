@@ -25,6 +25,7 @@ import IncompleteAlert from "./IncompleteAlert"
 import ProfileCompleteAlert from "./ProfileCompleteAlert"
 import MissingField from "./fields/MissingField"
 import ProfilePictureBlock from "./fields/ProfilePictureBlock"
+import MesInformationsFormSkeleton from "./MesInformationsFormSkeleton"
 
 export default function MesInformationsForm({ user }: { user: User | null }) {
   const {
@@ -43,8 +44,8 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     startNameEdition,
     endNameEdition,
     isEditingName,
+    isInitialLoading,
   } = useAccountForm(user)
-
   const {
     displayUrl: avatarDisplayUrl,
     isWorking: isAvatarWorking,
@@ -100,16 +101,28 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
   )
 
   useEffect(() => {
+    if (isInitialLoading) {
+      return
+    }
+
     if (hasIncomplete) {
       setShowSuccessBanner(false)
     }
-  }, [hasIncomplete])
+  }, [hasIncomplete, isInitialLoading])
 
   useEffect(() => {
+    if (isInitialLoading) {
+      return
+    }
+
     if (hasChanges) {
       setShowSuccessBanner(false)
     }
-  }, [hasChanges])
+  }, [hasChanges, isInitialLoading])
+
+  if (isInitialLoading) {
+    return <MesInformationsFormSkeleton />
+  }
 
   return (
     <form
