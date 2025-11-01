@@ -11,6 +11,7 @@ import ModalMessage from "@/components/ui/ModalMessage"
 interface ForgotPasswordModalProps {
   open: boolean
   onClose: () => void
+  initialEmail?: string
 }
 
 const RESET_PASSWORD_REDIRECT_URL =
@@ -27,6 +28,7 @@ const formatCooldownMessage = (remainingMs: number) => {
 export default function ForgotPasswordModal({
   open,
   onClose,
+  initialEmail,
 }: ForgotPasswordModalProps) {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -42,11 +44,13 @@ export default function ForgotPasswordModal({
       return
     }
 
-    setEmail("")
+    const sanitizedEmail = initialEmail?.trim() ?? ""
+
+    setEmail(sanitizedEmail)
     setLoading(false)
     setError(null)
     setSuccess(false)
-  }, [open])
+  }, [open, initialEmail])
 
   useEffect(() => {
     if (!lastRequestAt) {

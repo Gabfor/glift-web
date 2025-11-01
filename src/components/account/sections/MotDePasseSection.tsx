@@ -13,6 +13,7 @@ import {
 import type { PasswordFieldProps } from "@/components/forms/PasswordField"
 import { createClient } from "@/lib/supabaseClient"
 import ModalMessage from "@/components/ui/ModalMessage"
+import { useUser } from "@/context/UserContext"
 
 const INVALID_CURRENT_PASSWORD_MESSAGE =
   "L’ancien mot de passe que vous avez renseigné ne correspond pas au mot de passe actuellement utilisé pour vous connecter à votre compte."
@@ -32,6 +33,7 @@ export const SECTION_ID = "mot-de-passe"
 
 export default function MotDePasseSection() {
   const supabase = useMemo(() => createClient(), [])
+  const { user } = useUser()
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [loading, setLoading] = useState(false)
@@ -253,7 +255,11 @@ export default function MotDePasseSection() {
         </button>
       </form>
 
-      <ForgotPasswordModal open={showForgotPassword} onClose={() => setShowForgotPassword(false)} />
+      <ForgotPasswordModal
+        open={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        initialEmail={user?.email ?? undefined}
+      />
     </AccountAccordionSection>
   )
 }
