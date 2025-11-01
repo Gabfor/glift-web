@@ -6,39 +6,11 @@ import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
 import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
-import type { Database } from "@/lib/supabase/types";
 import dynamic from "next/dynamic";
 
 const ShopBannerSlider = dynamic(() => import("@/components/ShopBannerSliderClient"), {
   ssr: false,
 });
-
-type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
-type OfferTypeRow = Pick<OfferRow, "type">;
-type OfferSportRow = Pick<OfferRow, "sport">;
-
-const parseOfferTypes = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string");
-  }
-
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === "string");
-      }
-
-      if (typeof parsed === "string") {
-        return [parsed];
-      }
-    } catch {
-      return value.split(",").map((entry: string) => entry.trim());
-    }
-  }
-
-  return [];
-};
 
 export default function ShopPage() {
   const [sortBy, setSortBy] = useState("newest");
@@ -46,54 +18,6 @@ export default function ShopPage() {
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
   const [filters, setFilters] = useState(["", "", "", ""]);
-  const [typeOptions, setTypeOptions] = useState<string[]>([]);
-  const [sportOptions, setSportOptions] = useState<string[]>([]);
-
-  // ✅ Charger les types uniques au montage
-  useEffect(() => {
-    const fetchOfferTypes = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("offer_shop")
-        .select("type")
-        .eq("status", "ON")
-        .returns<OfferTypeRow[]>();
-
-      if (error || !data) return;
-
-      const allTypes: string[] = [];
-
-      data.forEach((item) => {
-        const parsed = parseOfferTypes(item.type);
-        allTypes.push(...parsed);
-      });
-
-      const uniqueTypes = [...new Set(allTypes)];
-      setTypeOptions(uniqueTypes);
-    };
-
-    const fetchSports = async () => {
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("offer_shop")
-        .select("sport")
-        .eq("status", "ON")
-        .returns<OfferSportRow[]>();
-
-      if (error || !data) return;
-
-      const sports = data
-        .map((item) => item.sport?.trim())
-        .filter((v): v is string => Boolean(v && v.length > 0));
-
-      const uniqueSports = [...new Set(sports)];
-      setSportOptions(uniqueSports);
-    };
-
-    fetchOfferTypes();
-    fetchSports();
-  }, []);
-
   // ✅ Compter les offres filtrées
   useEffect(() => {
     const fetchTotalCount = async () => {
@@ -134,18 +58,16 @@ export default function ShopPage() {
       </div>
       <ShopBannerSlider />
       <div className="max-w-[1152px] mx-auto">
-      <ShopFilters
-        sortBy={sortBy}
-        onSortChange={(value) => {
-          setSortBy(value);
-          setCurrentPage(1);
-        }}
-        onFiltersChange={(newFilters) => {
-          setFilters(newFilters);
-          setCurrentPage(1);
-        }}
-        typeOptions={typeOptions}
-        sportOptions={sportOptions}
+        <ShopFilters
+          sortBy={sortBy}
+          onSortChange={(value) => {
+            setSortBy(value);
+            setCurrentPage(1);
+          }}
+          onFiltersChange={(newFilters) => {
+            setFilters(newFilters);
+            setCurrentPage(1);
+          }}
       />
         <ShopGrid sortBy={sortBy} currentPage={currentPage} filters={filters} />
         {!loadingCount && (
