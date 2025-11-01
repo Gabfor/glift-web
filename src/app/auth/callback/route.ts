@@ -180,6 +180,9 @@ export async function GET(request: NextRequest) {
 
   let confirmedUserId: string | null = null;
 
+  const queryEmailParam =
+    url.searchParams.get("email") ?? url.searchParams.get("new_email");
+
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     exchangeError = error;
@@ -212,9 +215,6 @@ export async function GET(request: NextRequest) {
       rawTypeParam && isAllowedVerifyType(rawTypeParam) ? rawTypeParam : undefined;
 
     if (typeParam && (tokenHash || token)) {
-      const emailParam =
-        url.searchParams.get("email") ?? url.searchParams.get("new_email");
-
       if (tokenHash) {
         const verifyParams: Extract<VerifyOtpParams, { token_hash: string }> = {
           type: typeParam,
@@ -227,11 +227,11 @@ export async function GET(request: NextRequest) {
         if (data?.user?.id) {
           confirmedUserId = data.user.id;
         }
-      } else if (token && emailParam) {
+      } else if (token && queryEmailParam) {
         const verifyParams: Extract<VerifyOtpParams, { token: string; email: string }> = {
           type: typeParam,
           token,
-          email: emailParam,
+          email: queryEmailParam,
         };
 
         const { data, error } = await supabase.auth.verifyOtp(verifyParams);
@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
         if (data?.user?.id) {
           confirmedUserId = data.user.id;
         }
-      } else if (token && !emailParam) {
+      } else if (token && !queryEmailParam) {
         console.warn(
           "[auth-callback] Missing email parameter for email OTP verification",
         );
@@ -260,6 +260,46 @@ export async function GET(request: NextRequest) {
 
   if (!confirmedUserId && fallbackConfirmedUserId) {
     confirmedUserId = fallbackConfirmedUserId;
+  }
+
+  if (!confirmedUserId && queryEmailParam) {
+    try {
+      const adminClient = createAdminClient();
+      const {
+        data: adminUsersData,
+        error: adminLookupError,
+      } = await adminClient.auth.admin.listUsers({
+        email: queryEmailParam,
+        perPage: 1,
+      });
+
+      if (adminLookupError) {
+        console.warn(
+          "[auth-callback] Unable to retrieve user by email after verification",
+          adminLookupError,
+        );
+      } else {
+        const normalizedEmail = queryEmailParam.toLowerCase();
+        const matchedUser = adminUsersData?.users?.find((candidate) => {
+          const candidateEmail = candidate.email?.toLowerCase();
+          const candidateNewEmail = candidate.new_email?.toLowerCase();
+
+          return (
+            candidateEmail === normalizedEmail ||
+            candidateNewEmail === normalizedEmail
+          );
+        });
+
+        if (matchedUser?.id) {
+          confirmedUserId = matchedUser.id;
+        }
+      }
+    } catch (adminLookupException) {
+      console.error(
+        "[auth-callback] Unable to create admin client to retrieve user by email",
+        adminLookupException,
+      );
+    }
   }
 
   const redirectUrl = new URL("/entrainements", request.url).toString();
