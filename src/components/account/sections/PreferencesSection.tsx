@@ -7,6 +7,7 @@ import DropdownField from "../fields/DropdownField"
 import SubmitButton from "../fields/SubmitButton"
 import InfoTooltipAdornment from "../fields/InfoTooltipAdornment"
 import ToggleSwitch from "@/components/ui/ToggleSwitch"
+import ModalMessage from "@/components/ui/ModalMessage"
 import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
 import type { Database } from "@/lib/supabase/types"
@@ -182,6 +183,7 @@ export default function PreferencesSection() {
   )
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false)
 
   useEffect(() => {
     let isActive = true
@@ -221,6 +223,7 @@ export default function PreferencesSection() {
       setWeightTouched(false)
       setCurveTouched(false)
       setIsLoadingPreferences(false)
+      setShowSuccessMessage(false)
     }
 
     void loadPreferences()
@@ -245,6 +248,7 @@ export default function PreferencesSection() {
 
     const persistPreferences = async () => {
       setIsSubmitting(true)
+      setShowSuccessMessage(false)
       const payload: PreferencesInsert = {
         id: user.id,
         weight_unit: WEIGHT_UNIT_TO_DB[weightUnit],
@@ -273,6 +277,7 @@ export default function PreferencesSection() {
       setWeightTouched(false)
       setCurveTouched(false)
       setIsSubmitting(false)
+      setShowSuccessMessage(true)
     }
 
     void persistPreferences()
@@ -287,6 +292,17 @@ export default function PreferencesSection() {
           if (event.key === "Enter") event.preventDefault()
         }}
       >
+        {showSuccessMessage ? (
+          <div className="mt-[14px] mb-[16px] flex w-full justify-center">
+            <ModalMessage
+              variant="success"
+              title="Préférences mises à jour"
+              description="Merci ! Vos préférences ont bien été enregistrées et sont applicables dès maintenant. Vous pouvez revenir les mettre à jour quand vous le souhaitez."
+              className="w-full max-w-[564px]"
+            />
+          </div>
+        ) : null}
+
         <div className="flex w-full text-left flex-col gap-5 pt-[14px]">
           <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
             Réglages de la plateforme
@@ -302,6 +318,7 @@ export default function PreferencesSection() {
                   if (!next) return
                   setWeightUnit(next as WeightUnit)
                   setWeightTouched(true)
+                  setShowSuccessMessage(false)
                 }}
                 touched={weightTouched}
                 setTouched={() => setWeightTouched(true)}
@@ -319,6 +336,7 @@ export default function PreferencesSection() {
                   onSelect={(value) => {
                     setDefaultCurve(value as CurveOptionValue)
                     setCurveTouched(value !== "")
+                    setShowSuccessMessage(false)
                   }}
                   options={CURVE_OPTIONS.map((option) => ({
                     value: option.value,
@@ -356,9 +374,10 @@ export default function PreferencesSection() {
                 key={field.key}
                 field={field}
                 checked={communications[field.key]}
-                onCheckedChange={(checked) =>
+                onCheckedChange={(checked) => {
                   setCommunications((prev) => ({ ...prev, [field.key]: checked }))
-                }
+                  setShowSuccessMessage(false)
+                }}
               />
             ))}
           </div>
