@@ -204,6 +204,8 @@ const InformationsPage = () => {
       );
     }, 5000);
 
+    let shouldResetSubmitting = true;
+
     try {
       const ok = await submit({
         values: valuesForDb,
@@ -218,12 +220,15 @@ const InformationsPage = () => {
       if (ok) {
         console.log("[onboarding] navigation vers /compte#mes-informations");
         router.replace("/compte#mes-informations");
+        shouldResetSubmitting = false;
       }
     } catch (err) {
       console.error("[onboarding] submit() erreur inattendue:", err);
     } finally {
       clearInterval(progress);
-      setSubmitting(false);
+      if (shouldResetSubmitting) {
+        setSubmitting(false);
+      }
       console.log("[onboarding] handleSubmit: END");
     }
   };
