@@ -22,6 +22,10 @@ export async function POST(req: NextRequest) {
     const { email, password, name, plan } = body;
 
     const callbackUrl = getAbsoluteUrl("/auth/callback", req.nextUrl.origin);
+    const callbackUrlWithEmail = new URL(callbackUrl);
+    callbackUrlWithEmail.searchParams.set("email", email);
+
+    const emailRedirectTo = callbackUrlWithEmail.toString();
 
     // 🔒 Vérifie les champs requis
     if (!email || !password || !name || !plan) {
@@ -39,7 +43,7 @@ export async function POST(req: NextRequest) {
       email,
       password,
       options: {
-        emailRedirectTo: callbackUrl,
+        emailRedirectTo,
         data: {
           name,
           subscription_plan: supabasePlan,
