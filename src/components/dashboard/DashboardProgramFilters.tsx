@@ -25,7 +25,15 @@ type TrainingRow = {
   name: string | null;
 };
 
-export default function DashboardProgramFilters() {
+type DashboardProgramFiltersProps = {
+  onProgramChange?: (programId: string) => void;
+  onTrainingChange?: (trainingId: string) => void;
+};
+
+export default function DashboardProgramFilters({
+  onProgramChange,
+  onTrainingChange,
+}: DashboardProgramFiltersProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
@@ -35,6 +43,14 @@ export default function DashboardProgramFilters() {
   const [selectedTraining, setSelectedTraining] = useState("");
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
+
+  useEffect(() => {
+    onProgramChange?.(selectedProgram);
+  }, [onProgramChange, selectedProgram]);
+
+  useEffect(() => {
+    onTrainingChange?.(selectedTraining);
+  }, [onTrainingChange, selectedTraining]);
 
   useEffect(() => {
     let isMounted = true;
@@ -180,20 +196,18 @@ export default function DashboardProgramFilters() {
   })();
 
   const trainingPlaceholder = (() => {
-    if (!selectedProgram) {
-      return "Sélectionnez un programme";
-    }
-
     if (loadingTrainings) {
       return "Chargement...";
     }
 
-    if (trainingOptions.length === 0) {
+    if (selectedProgram && trainingOptions.length === 0) {
       return "Aucun entraînement disponible";
     }
 
     return "Sélectionnez un entraînement";
   })();
+
+  const isTrainingDisabled = selectedProgram === "";
 
   return (
     <div className="mt-10 flex flex-wrap justify-start gap-4">
@@ -215,6 +229,7 @@ export default function DashboardProgramFilters() {
         selected={selectedTraining}
         onSelect={setSelectedTraining}
         className="min-w-[240px]"
+        disabled={isTrainingDisabled}
       />
     </div>
   );
