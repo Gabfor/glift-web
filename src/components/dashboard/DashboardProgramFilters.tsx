@@ -196,8 +196,8 @@ export default function DashboardProgramFilters({
   })();
 
   const trainingPlaceholder = (() => {
-    if (loadingTrainings) {
-      return "Chargement...";
+    if (selectedProgram && loadingTrainings) {
+      return "Sélectionnez un entraînement";
     }
 
     if (selectedProgram && trainingOptions.length === 0) {
