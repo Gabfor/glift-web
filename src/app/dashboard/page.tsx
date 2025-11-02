@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 
 export default function DashboardPage() {
+  const [selectedProgram, setSelectedProgram] = useState("");
+  const [, setSelectedTraining] = useState("");
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto">
@@ -16,7 +20,15 @@ export default function DashboardPage() {
             votre progression par exercice et vous fixer des objectifs.
           </p>
         </div>
-        <DashboardProgramFilters />
+        <DashboardProgramFilters
+          onProgramChange={setSelectedProgram}
+          onTrainingChange={setSelectedTraining}
+        />
+        {selectedProgram === "" && (
+          <p className="mt-8 text-center text-[#5D6494] font-semibold">
+            Aucun programme trouvé.
+          </p>
+        )}
       </div>
     </main>
   );

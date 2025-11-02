@@ -18,6 +18,7 @@ type DropdownFilterProps = {
   selected: string;
   onSelect: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 };
 
 export default function DropdownFilter({
@@ -27,6 +28,7 @@ export default function DropdownFilter({
   selected,
   onSelect,
   className,
+  disabled = false,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -118,6 +120,32 @@ export default function DropdownFilter({
     };
   }, [open]);
 
+  useEffect(() => {
+    if (disabled && open) {
+      setOpen(false);
+    }
+  }, [disabled, open]);
+
+  const buttonStateClasses = (() => {
+    if (disabled) {
+      return "border-[#D7D4DC] bg-[#F2F1F6] cursor-not-allowed";
+    }
+
+    if (open) {
+      return "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD] bg-white";
+    }
+
+    return "border-[#D7D4DC] bg-white hover:border-[#C2BFC6]";
+  })();
+
+  const labelColorClass = disabled
+    ? "text-[#D7D4DC]"
+    : isPlaceholder
+      ? "text-[#D7D4DC]"
+      : "text-[#3A416F]";
+
+  const chevronIcon = disabled || isPlaceholder ? ChevronGreyIcon : ChevronIcon;
+
   return (
     <div
       className={`inline-flex flex-col gap-[5px] relative transition-all duration-300 ${className ?? ""}`}
@@ -171,15 +199,16 @@ export default function DropdownFilter({
       <button
         type="button"
         ref={buttonRef}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (!disabled) {
+            setOpen((current) => !current);
+          }
+        }}
+        disabled={disabled}
         className={`
           h-10
           border
-          ${
-            open
-              ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
-              : "border-[#D7D4DC]"
-          }
+          ${buttonStateClasses}
           rounded-[5px]
           pl-3
           pr-[15px]
@@ -189,16 +218,12 @@ export default function DropdownFilter({
           gap-[10px]
           text-[16px]
           font-semibold
-          bg-white
-          hover:border-[#C2BFC6]
           transition
         `}
         style={calculatedWidth ? { minWidth: calculatedWidth } : undefined}
       >
         <span
-          className={`${
-            isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          } flex items-center whitespace-nowrap text-left flex-1`}
+          className={`${labelColorClass} flex items-center whitespace-nowrap text-left flex-1`}
         >
           <span className="whitespace-nowrap">{selectedLabel}</span>
           {selectedOption?.iconSrc && (
@@ -212,7 +237,7 @@ export default function DropdownFilter({
           )}
         </span>
         <Image
-          src={isPlaceholder ? ChevronGreyIcon : ChevronIcon}
+          src={chevronIcon}
           alt=""
           width={8.73}
           height={6.13}
