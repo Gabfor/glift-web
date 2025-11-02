@@ -10,9 +10,14 @@ import { useUser } from "@/context/UserContext";
 const FALLBACK_PROGRAM_LABEL = "Programme sans titre";
 const FALLBACK_TRAINING_LABEL = "Entraînement sans titre";
 
+type ProgramTrainingRow = {
+  id: string | number | null;
+};
+
 type ProgramRow = {
   id: string | number;
   name: string | null;
+  trainings?: ProgramTrainingRow[] | null;
 };
 
 type TrainingRow = {
@@ -48,7 +53,7 @@ export default function DashboardProgramFilters() {
 
       const { data, error } = await supabase
         .from("programs")
-        .select("id, name")
+        .select("id, name, trainings ( id )")
         .eq("user_id", user.id)
         .order("position", { ascending: true });
 
@@ -61,10 +66,24 @@ export default function DashboardProgramFilters() {
         setProgramOptions([]);
         setSelectedProgram("");
       } else {
-        const options = (data as ProgramRow[] | null)?.map((program) => ({
-          value: String(program.id),
-          label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
-        })) ?? [];
+        const options =
+          (data as ProgramRow[] | null)?.filter((program) => {
+            if (!program.trainings || !Array.isArray(program.trainings)) {
+              return false;
+            }
+
+            return program.trainings.some((training) => {
+              if (!training) {
+                return false;
+              }
+
+              return training.id !== null && training.id !== undefined;
+            });
+          })
+            .map((program) => ({
+              value: String(program.id),
+              label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
+            })) ?? [];
 
         setProgramOptions(options);
       }
@@ -177,7 +196,7 @@ export default function DashboardProgramFilters() {
   })();
 
   return (
-    <div className="mt-10 flex flex-wrap justify-center gap-4">
+    <div className="mt-10 flex flex-wrap justify-start gap-4">
       <DropdownFilter
         label="Programme"
         placeholder={programPlaceholder}
