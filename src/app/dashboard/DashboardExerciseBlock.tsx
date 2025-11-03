@@ -135,37 +135,66 @@ export default function DashboardExerciseBlock({
         </div>
 
         {/* Bloc droit : graphique */}
-        <div className="h-[220px] w-full md:flex-1 flex items-center justify-center">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={mockData}>
-              <defs>
-                <linearGradient id={`color-${id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#7056E4" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#7056E4" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: "#9CA0C0", fontSize: 12 }} />
-              <YAxis domain={["dataMin-1", "dataMax+1"]} tick={{ fill: "#9CA0C0", fontSize: 12 }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  borderRadius: "6px",
-                  border: "1px solid #ECE9F1",
-                  color: "#2E3271",
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="value"
-                stroke="#7056E4"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill={`url(#color-${id})`}
-                dot={{ r: 4, stroke: "#7056E4", strokeWidth: 2, fill: "#fff" }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+        <div className="h-[220px] w-full md:flex-1">
+          <div className="h-full w-full rounded-[16px] bg-gradient-to-b from-[#F6F4FF] via-[#FBFAFF] to-[#FFFFFF] px-[20px] pt-[26px] pb-[18px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={mockData}
+                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id={`color-${id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#6F63F3" stopOpacity={0.35} />
+                    <stop offset="80%" stopColor="#6F63F3" stopOpacity={0.12} />
+                    <stop offset="100%" stopColor="#6F63F3" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  stroke="#E5E1F8"
+                  strokeDasharray="0"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
+                  tickMargin={12}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  domain={["dataMin-1", "dataMax+1"]}
+                  tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
+                  tickFormatter={(value: number) => `${value} kg`}
+                  width={52}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  cursor={{ stroke: "#6F63F3", strokeWidth: 1, strokeOpacity: 0.1 }}
+                  labelStyle={{ color: "#5D6494", fontWeight: 600 }}
+                  contentStyle={{
+                    backgroundColor: "#FFFFFF",
+                    borderRadius: "10px",
+                    border: "1px solid #ECE9F6",
+                    boxShadow: "0 8px 18px rgba(111, 99, 243, 0.12)",
+                    color: "#2E3271",
+                    fontWeight: 600,
+                  }}
+                  itemStyle={{ color: "#2E3271" }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#6F63F3"
+                  strokeWidth={3}
+                  fillOpacity={1}
+                  fill={`url(#color-${id})`}
+                  dot={{ r: 5, stroke: "#6F63F3", strokeWidth: 3, fill: "#fff" }}
+                  activeDot={{ r: 6, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
