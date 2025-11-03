@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
+import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import {
@@ -297,9 +298,7 @@ export default function DashboardPage() {
         {selectedTraining !== "" && (
           <div className="mt-[30px]">
             {isLoadingExercises ? (
-              <p className="text-center text-[#5D6494] font-semibold">
-                Chargement des exercices...
-              </p>
+              <DashboardExercisesSkeleton />
             ) : fetchError ? (
               <p className="text-center text-[#E53E3E] font-semibold">
                 {fetchError}
