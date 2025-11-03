@@ -1,11 +1,82 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
+import { useUser } from "@/context/UserContext";
+import { createClient } from "@/lib/supabaseClient";
+
+type TrainingExercise = {
+  id: string;
+  exercice: string | null;
+};
+
+const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
 
 export default function DashboardPage() {
+  const { user } = useUser();
+  const supabase = useMemo(() => createClient(), []);
+
   const [selectedProgram, setSelectedProgram] = useState("");
-  const [, setSelectedTraining] = useState("");
+  const [selectedTraining, setSelectedTraining] = useState("");
+  const [trainingExercises, setTrainingExercises] = useState<TrainingExercise[]>(
+    [],
+  );
+  const [isLoadingExercises, setIsLoadingExercises] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedTraining || !user?.id) {
+      setTrainingExercises([]);
+      setIsLoadingExercises(false);
+      setFetchError(null);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchExercises = async () => {
+      setIsLoadingExercises(true);
+      setFetchError(null);
+
+      const { data, error } = await supabase
+        .from("training_rows")
+        .select("id, exercice")
+        .eq("training_id", selectedTraining)
+        .eq("user_id", user.id)
+        .order("order", { ascending: true });
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        console.error(
+          "Erreur lors du chargement des exercices :",
+          error.message,
+        );
+        setTrainingExercises([]);
+        setFetchError(
+          "Une erreur est survenue lors du chargement des exercices.",
+        );
+      } else {
+        setTrainingExercises(
+          (data ?? []).map((row) => ({
+            id: String(row.id),
+            exercice:
+              typeof row.exercice === "string" ? row.exercice : null,
+          })),
+        );
+      }
+
+      setIsLoadingExercises(false);
+    };
+
+    void fetchExercises();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedTraining, supabase, user?.id]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
@@ -28,6 +99,38 @@ export default function DashboardPage() {
           <p className="mt-8 text-center text-[#5D6494] font-semibold">
             Aucun programme trouvé.
           </p>
+        )}
+        {selectedTraining !== "" && (
+          <div className="mt-[30px]">
+            {isLoadingExercises ? (
+              <p className="text-center text-[#5D6494] font-semibold">
+                Chargement des exercices...
+              </p>
+            ) : fetchError ? (
+              <p className="text-center text-[#E53E3E] font-semibold">
+                {fetchError}
+              </p>
+            ) : trainingExercises.length === 0 ? (
+              <p className="text-center text-[#5D6494] font-semibold">
+                Aucun exercice n&apos;a été trouvé pour cet entraînement.
+              </p>
+            ) : (
+              <div className="space-y-[30px]">
+                {trainingExercises.map((exercise) => (
+                  <div
+                    key={exercise.id}
+                    className="w-full shadow-glift border border-[#ECE9F1] bg-white rounded-[5px]"
+                  >
+                    <div className="h-[60px] flex items-center px-4">
+                      <p className="text-[16px] font-bold text-[#3A416F]">
+                        {exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </main>
