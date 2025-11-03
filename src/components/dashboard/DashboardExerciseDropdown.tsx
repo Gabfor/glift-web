@@ -117,7 +117,7 @@ export default function DashboardExerciseDropdown({
 
       {open ? (
         <div
-          className="absolute right-0 mt-2 min-w-[220px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,168,0.15)] py-2 z-50 border border-[#ECE9F1]"
+          className="absolute -right-[23px] mt-2 min-w-[220px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,168,0.15)] py-2 z-50 border border-[#ECE9F1]"
         >
           <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
           <div className="flex flex-col">
