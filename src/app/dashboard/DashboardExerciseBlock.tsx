@@ -283,7 +283,12 @@ export default function DashboardExerciseBlock({
                 />
                 <YAxis
                   domain={["dataMin - 1", "dataMax + 1"]}
-                  tick={{ fill: "#3A416F", fontSize: 12, fontWeight: 700 }}
+                  tick={{
+                    fill: "#3A416F",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    dx: -20,
+                  }}
                   tickFormatter={(value: number) => `${value} kg`}
                   width={60}
                   tickMargin={8}
