@@ -177,22 +177,35 @@ export default function DashboardProgramFilters({
   }, [onTrainingChange, selectedProgram, selectedTraining, supabase]);
 
   useEffect(() => {
+    if (loadingPrograms) {
+      return;
+    }
+
     if (
       selectedProgram &&
       !programOptions.some((option) => option.value === selectedProgram)
     ) {
       onProgramChange?.("");
     }
-  }, [onProgramChange, programOptions, selectedProgram]);
+  }, [loadingPrograms, onProgramChange, programOptions, selectedProgram]);
 
   useEffect(() => {
+    if (loadingTrainings) {
+      return;
+    }
+
     if (
       selectedTraining &&
       !trainingOptions.some((option) => option.value === selectedTraining)
     ) {
       onTrainingChange?.("");
     }
-  }, [onTrainingChange, selectedTraining, trainingOptions]);
+  }, [
+    loadingTrainings,
+    onTrainingChange,
+    selectedTraining,
+    trainingOptions,
+  ]);
 
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {
