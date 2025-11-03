@@ -6,11 +6,13 @@ import {
   Area,
   XAxis,
   YAxis,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
+import CustomTooltip from "@/components/ui/Tooltip";
+import React from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -39,6 +41,20 @@ const mockData = [
   { date: "08 Fév", value: 25 },
 ];
 
+// Tooltip personnalisé pour Recharts — calqué sur le style Glift Tooltip
+const RechartsCustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    const value = payload[0].value;
+    return (
+      <div className="bg-[#2E3142] text-white rounded-md px-3 py-2 shadow-md">
+        <p className="text-[10px] font-medium leading-tight">{label}</p>
+        <p className="text-[12px] font-semibold leading-tight">{value} kg</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function DashboardExerciseBlock({
   id,
   name,
@@ -49,7 +65,7 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   return (
     <div className="w-full bg-white border border-[#ECE9F1] rounded-[8px] shadow-glift overflow-hidden">
-      {/* HEADER — 60px de haut */}
+      {/* HEADER */}
       <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#F1EEF4]">
         <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
         <div className="flex items-center gap-[30px]">
@@ -78,18 +94,17 @@ export default function DashboardExerciseBlock({
         </div>
       </div>
 
-      {/* CONTENU principal */}
+      {/* CONTENU */}
       <div className="flex flex-col md:flex-row gap-[20px] md:gap-[30px] px-[30px] py-[25px]">
         {/* Bloc gauche */}
         <div className="flex flex-col gap-[30px] justify-center h-full md:w-[430px] flex-shrink-0">
-          {/* Bloc "record personnel" */}
           <div className="flex flex-col justify-center h-[90px] w-full">
             <p className="text-[40px] font-bold text-[#2E3271] leading-none">25 kg</p>
             <p className="text-[#3A416F] font-bold text-[14px] mt-2">Record personnel</p>
             <p className="text-[#C2BFC6] text-[12px] mt-1">01 Février 2026</p>
           </div>
 
-          {/* Bloc "Atteinte de l’objectif" */}
+          {/* Objectif */}
           <div className="flex items-center gap-4 h-[90px] w-full">
             <div className="relative w-[70px] h-[70px] flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -98,9 +113,7 @@ export default function DashboardExerciseBlock({
                   stroke="currentColor"
                   strokeWidth="3"
                   fill="none"
-                  d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path
                   className="text-[#7069FA]"
@@ -108,9 +121,7 @@ export default function DashboardExerciseBlock({
                   strokeWidth="3"
                   strokeDasharray="74, 100"
                   fill="none"
-                  d="M18 2.0845
-                    a 15.9155 15.9155 0 0 1 0 31.831
-                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                  d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
@@ -125,7 +136,8 @@ export default function DashboardExerciseBlock({
             </div>
             <div className="flex flex-col justify-center items-start text-left">
               <p className="text-[#5D6494] font-semibold text-left">
-                Vous avez atteint <span className="text-[#7069FA] font-bold">74%</span> de votre objectif.
+                Vous avez atteint{" "}
+                <span className="text-[#7069FA] font-bold">74 %</span> de votre objectif.
               </p>
               <button className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]">
                 Voir mon objectif.
@@ -134,63 +146,64 @@ export default function DashboardExerciseBlock({
           </div>
         </div>
 
-        {/* Bloc droit : graphique */}
+        {/* Bloc droit : Graphique */}
         <div className="h-[220px] w-full md:flex-1">
-          <div className="h-full w-full rounded-[16px] bg-gradient-to-b from-[#F6F4FF] via-[#FBFAFF] to-[#FFFFFF] px-[20px] pt-[26px] pb-[18px]">
+          <div className="h-full w-full rounded-[16px] bg-white px-[20px] pt-[26px] pb-[18px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={mockData}
                 margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
               >
                 <defs>
-                  <linearGradient id={`color-${id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#6F63F3" stopOpacity={0.35} />
-                    <stop offset="80%" stopColor="#6F63F3" stopOpacity={0.12} />
-                    <stop offset="100%" stopColor="#6F63F3" stopOpacity={0} />
+                  <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
-                  stroke="#E5E1F8"
+                  stroke="#ECE9F1"
+                  strokeWidth={1}
                   strokeDasharray="0"
                   vertical={false}
                 />
                 <XAxis
                   dataKey="date"
                   tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
-                  tickMargin={12}
+                  tickMargin={10}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  domain={["dataMin-1", "dataMax+1"]}
+                  domain={["dataMin - 1", "dataMax + 1"]}
                   tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
                   tickFormatter={(value: number) => `${value} kg`}
                   width={52}
                   axisLine={false}
                   tickLine={false}
                 />
-                <Tooltip
-                  cursor={{ stroke: "#6F63F3", strokeWidth: 1, strokeOpacity: 0.1 }}
-                  labelStyle={{ color: "#5D6494", fontWeight: 600 }}
-                  contentStyle={{
-                    backgroundColor: "#FFFFFF",
-                    borderRadius: "10px",
-                    border: "1px solid #ECE9F6",
-                    boxShadow: "0 8px 18px rgba(111, 99, 243, 0.12)",
-                    color: "#2E3271",
-                    fontWeight: 600,
-                  }}
-                  itemStyle={{ color: "#2E3271" }}
+                <RechartsTooltip
+                  cursor={{ stroke: "#A1A5FD", strokeWidth: 1, strokeOpacity: 0.2 }}
+                  content={<RechartsCustomTooltip />}
                 />
                 <Area
                   type="monotone"
                   dataKey="value"
-                  stroke="#6F63F3"
+                  stroke="#A1A5FD"
                   strokeWidth={3}
                   fillOpacity={1}
-                  fill={`url(#color-${id})`}
-                  dot={{ r: 5, stroke: "#6F63F3", strokeWidth: 3, fill: "#fff" }}
-                  activeDot={{ r: 6, strokeWidth: 0 }}
+                  fill={`url(#gradient-${id})`}
+                  dot={{
+                    r: 4,
+                    stroke: "#fff",
+                    strokeWidth: 1,
+                    fill: "#7069FA",
+                  }}
+                  activeDot={{
+                    r: 5,
+                    fill: "#7069FA",
+                    stroke: "#fff",
+                    strokeWidth: 1,
+                  }}
                 />
               </AreaChart>
             </ResponsiveContainer>
