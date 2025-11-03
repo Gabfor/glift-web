@@ -92,9 +92,11 @@ type WeightAxisTickProps = {
   payload: { value: number };
 };
 
+const Y_AXIS_TICK_OFFSET = 20;
+
 const WeightAxisTick = ({ x, y, payload }: WeightAxisTickProps) => (
   <text
-    x={x}
+    x={x - Y_AXIS_TICK_OFFSET}
     y={y}
     fill="#3A416F"
     fontSize={12}
@@ -318,7 +320,6 @@ export default function DashboardExerciseBlock({
       mirror={false}
       orientation="left"
       padding={{ top: 0, bottom: 0 }}
-      dx={-20} // ← décalage visuel vers la gauche (crée ton espace de 20 px)
     />
 
     <Area
