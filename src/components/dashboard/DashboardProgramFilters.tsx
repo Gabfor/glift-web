@@ -267,12 +267,19 @@ export default function DashboardProgramFilters({
       <button
         type="button"
         onClick={() => onShowStatsChange?.(!showStats)}
-        className="ml-auto self-end h-10 min-w-[200px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+        className="relative ml-auto self-end h-10 border border-[#D7D4DC] rounded-[5px] px-3 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
         aria-pressed={showStats}
       >
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 opacity-0 pointer-events-none select-none whitespace-nowrap"
+          aria-hidden
+        >
+          <Image src={StatsGreenIcon} alt="" width={16} height={16} />
+          <span>Afficher les stats</span>
+        </div>
+        <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
           <Image
-            src={showStats ? StatsGreenIcon : StatsRedIcon}
+            src={showStats ? StatsRedIcon : StatsGreenIcon}
             alt=""
             width={16}
             height={16}
