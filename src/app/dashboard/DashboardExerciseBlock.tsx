@@ -279,6 +279,7 @@ export default function DashboardExerciseBlock({
                   tickMargin={18}
                   axisLine={false}
                   tickLine={false}
+                  interval={0}
                 />
                 <YAxis
                   domain={["dataMin - 1", "dataMax + 1"]}
