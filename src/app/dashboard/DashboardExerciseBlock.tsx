@@ -278,63 +278,71 @@ export default function DashboardExerciseBlock({
             ref={chartContainerRef}
             className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
           >
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart
-                data={mockData}
-                margin={{ top: 0, right: 20, left: 20, bottom: 20 }}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={hideTooltip}
-              >
-                <defs>
-                  <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
-                    <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  stroke="#ECE9F1"
-                  strokeWidth={1}
-                  strokeDasharray="0"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="date"
-                  tick={renderDateAxisTick}
-                  tickMargin={18}
-                  axisLine={false}
-                  tickLine={false}
-                  interval={0}
-                />
-                <YAxis
-                  domain={["dataMin - 1", "dataMax + 1"]}
-                  tick={renderWeightAxisTick}
-                  width={60}
-                  tickMargin={8}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="value"
-                  stroke="#A1A5FD"
-                  strokeWidth={1}
-                  fillOpacity={1}
-                  fill={`url(#gradient-${id})`}
-                  dot={{
-                    r: 4,
-                    stroke: "#fff",
-                    strokeWidth: 1,
-                    fill: "#7069FA",
-                  }}
-                  activeDot={{
-                    r: 5,
-                    fill: "#7069FA",
-                    stroke: "#fff",
-                    strokeWidth: 1,
-                  }}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+<ResponsiveContainer width="100%" height="100%">
+  <AreaChart
+    data={mockData}
+    margin={{ top: 0, right: 20, left: 0, bottom: 20 }}
+    onMouseMove={handleMouseMove}
+    onMouseLeave={hideTooltip}
+  >
+    <defs>
+      <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
+        <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
+      </linearGradient>
+    </defs>
+
+    <CartesianGrid
+      stroke="#ECE9F1"
+      strokeWidth={1}
+      strokeDasharray="0"
+      vertical={false}
+    />
+
+    <XAxis
+      dataKey="date"
+      tick={renderDateAxisTick}
+      tickMargin={18}
+      axisLine={false}
+      tickLine={false}
+      interval={0}
+    />
+
+    <YAxis
+      domain={["dataMin - 1", "dataMax + 1"]}
+      tick={renderWeightAxisTick}
+      width={60}
+      tickMargin={8}
+      axisLine={false}
+      tickLine={false}
+      mirror={false}
+      orientation="left"
+      padding={{ top: 0, bottom: 0 }}
+      dx={-20} // ← décalage visuel vers la gauche (crée ton espace de 20 px)
+    />
+
+    <Area
+      type="monotone"
+      dataKey="value"
+      stroke="#A1A5FD"
+      strokeWidth={1}
+      fillOpacity={1}
+      fill={`url(#gradient-${id})`}
+      dot={{
+        r: 4,
+        stroke: "#fff",
+        strokeWidth: 1,
+        fill: "#7069FA",
+      }}
+      activeDot={{
+        r: 5,
+        fill: "#7069FA",
+        stroke: "#fff",
+        strokeWidth: 1,
+      }}
+    />
+  </AreaChart>
+</ResponsiveContainer>
             <Tooltip
               key={`${tooltipState.label}-${tooltipState.x}-${tooltipState.y}-${tooltipState.visible}`}
               content={tooltipContent}
