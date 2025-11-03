@@ -10,7 +10,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 
-type Props = {
+export type TooltipProps = {
   children: ReactNode;
   content: string;
   placement?: "top" | "bottom";
@@ -40,7 +40,7 @@ export default function Tooltip({
   forceVisible = false,
   disableHover = false,
   asChild = false,
-}: Props) {
+}: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
