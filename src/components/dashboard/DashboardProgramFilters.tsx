@@ -52,6 +52,7 @@ export default function DashboardProgramFilters({
   const [trainingOptions, setTrainingOptions] = useState<FilterOption[]>([]);
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
+  const [hasFetchedTrainings, setHasFetchedTrainings] = useState(false);
 
   const selectedProgram = selectedProgramId;
   const selectedTraining = selectedTrainingId;
@@ -125,6 +126,7 @@ export default function DashboardProgramFilters({
     if (!selectedProgram) {
       setTrainingOptions([]);
       setLoadingTrainings(false);
+      setHasFetchedTrainings(false);
       if (selectedTraining) {
         onTrainingChange?.("");
       }
@@ -135,6 +137,7 @@ export default function DashboardProgramFilters({
 
     const fetchTrainings = async () => {
       setLoadingTrainings(true);
+      setHasFetchedTrainings(false);
 
       const { data, error } = await supabase
         .from("trainings")
@@ -166,6 +169,7 @@ export default function DashboardProgramFilters({
         setTrainingOptions(options);
       }
 
+      setHasFetchedTrainings(true);
       setLoadingTrainings(false);
     };
 
@@ -190,7 +194,7 @@ export default function DashboardProgramFilters({
   }, [loadingPrograms, onProgramChange, programOptions, selectedProgram]);
 
   useEffect(() => {
-    if (loadingTrainings) {
+    if (loadingTrainings || !hasFetchedTrainings) {
       return;
     }
 
@@ -201,6 +205,7 @@ export default function DashboardProgramFilters({
       onTrainingChange?.("");
     }
   }, [
+    hasFetchedTrainings,
     loadingTrainings,
     onTrainingChange,
     selectedTraining,
