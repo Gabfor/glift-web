@@ -86,6 +86,30 @@ const DateAxisTick = ({ x, y, payload }: AxisTickProps) => {
 
 const renderDateAxisTick = (props: AxisTickProps) => <DateAxisTick {...props} />;
 
+type WeightAxisTickProps = {
+  x: number;
+  y: number;
+  payload: { value: number };
+};
+
+const WeightAxisTick = ({ x, y, payload }: WeightAxisTickProps) => (
+  <text
+    x={x}
+    y={y}
+    fill="#3A416F"
+    fontSize={12}
+    fontWeight={700}
+    textAnchor="end"
+    dominantBaseline="middle"
+  >
+    {`${payload?.value ?? 0} kg`}
+  </text>
+);
+
+const renderWeightAxisTick = (props: WeightAxisTickProps) => (
+  <WeightAxisTick {...props} />
+);
+
 export default function DashboardExerciseBlock({
   id,
   name,
@@ -283,13 +307,7 @@ export default function DashboardExerciseBlock({
                 />
                 <YAxis
                   domain={["dataMin - 1", "dataMax + 1"]}
-                  tick={{
-                    fill: "#3A416F",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    textAnchor: "end",
-                  }}
-                  tickFormatter={(value: number) => `${value} kg`}
+                  tick={renderWeightAxisTick}
                   width={60}
                   tickMargin={8}
                   axisLine={false}
