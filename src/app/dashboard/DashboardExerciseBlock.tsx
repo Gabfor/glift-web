@@ -217,7 +217,6 @@ export default function DashboardExerciseBlock({
             options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
             iconSrc="/icons/courbe.svg"
             iconHoverSrc="/icons/courbe_hover.svg"
-            selectedValueClassName="text-[#7069FA]"
           />
         </div>
       </div>
