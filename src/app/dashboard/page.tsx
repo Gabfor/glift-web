@@ -2,14 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
-import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
-import {
-  CURVE_OPTIONS,
-  type CurveOptionValue,
-} from "@/constants/curveOptions";
+import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
+import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -79,14 +76,10 @@ export default function DashboardPage() {
 
   const [selectedProgram, setSelectedProgram] = useState("");
   const [selectedTraining, setSelectedTraining] = useState("");
-  const [trainingExercises, setTrainingExercises] = useState<TrainingExercise[]>(
-    [],
-  );
+  const [trainingExercises, setTrainingExercises] = useState<TrainingExercise[]>([]);
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<
-    ExerciseDisplaySettings
-  >({});
+  const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<ExerciseDisplaySettings>({});
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
 
@@ -98,14 +91,13 @@ export default function DashboardPage() {
 
   const updateExerciseSettings = (
     exerciseId: string,
-    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>,
+    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>
   ) => {
     setExerciseDisplaySettings((previous) => {
       const current = previous[exerciseId] ?? {
         sessionCount: DEFAULT_SESSION_VALUE,
         curveType: DEFAULT_CURVE_VALUE,
       };
-
       return {
         ...previous,
         [exerciseId]: { ...current, ...partial },
@@ -113,6 +105,7 @@ export default function DashboardPage() {
     });
   };
 
+  // Charger préférences utilisateur
   useEffect(() => {
     if (!user?.id) {
       setSelectedProgram("");
@@ -124,27 +117,18 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
-
     const fetchPreferences = async () => {
       setHasLoadedPreferences(false);
-
       const { data, error } = await supabase
         .from("dashboard_preferences")
-        .select(
-          "selected_program_id, selected_training_id, exercise_settings, show_stats",
-        )
+        .select("selected_program_id, selected_training_id, exercise_settings, show_stats")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
       if (error) {
-        console.error(
-          "Erreur lors du chargement des préférences du tableau de bord :",
-          error.message,
-        );
+        console.error("Erreur lors du chargement des préférences du tableau de bord :", error.message);
         setSelectedProgram("");
         setSelectedTraining("");
         setExerciseDisplaySettings({});
@@ -154,27 +138,20 @@ export default function DashboardPage() {
         setSelectedTraining(data.selected_training_id ?? "");
         setExerciseDisplaySettings(parseExerciseSettings(data.exercise_settings));
         setShowStats(Boolean(data.show_stats));
-      } else {
-        setSelectedProgram("");
-        setSelectedTraining("");
-        setExerciseDisplaySettings({});
-        setShowStats(false);
       }
 
       setHasLoadedPreferences(true);
     };
 
     void fetchPreferences();
-
     return () => {
       isMounted = false;
     };
   }, [supabase, user?.id]);
 
+  // Sauvegarder préférences
   useEffect(() => {
-    if (!user?.id || !hasLoadedPreferences) {
-      return;
-    }
+    if (!user?.id || !hasLoadedPreferences) return;
 
     const persistPreferences = async () => {
       const { error } = await supabase
@@ -188,14 +165,11 @@ export default function DashboardPage() {
             show_stats: showStats,
             updated_at: new Date().toISOString(),
           },
-          { onConflict: "user_id" },
+          { onConflict: "user_id" }
         );
 
       if (error) {
-        console.error(
-          "Erreur lors de l'enregistrement des préférences du tableau de bord :",
-          error.message,
-        );
+        console.error("Erreur lors de l'enregistrement des préférences du tableau de bord :", error.message);
       }
     };
 
@@ -210,6 +184,7 @@ export default function DashboardPage() {
     user?.id,
   ]);
 
+  // Charger les exercices d’un entraînement
   useEffect(() => {
     if (!selectedTraining || !user?.id) {
       setTrainingExercises([]);
@@ -219,7 +194,6 @@ export default function DashboardPage() {
     }
 
     let isMounted = true;
-
     const fetchExercises = async () => {
       setIsLoadingExercises(true);
       setFetchError(null);
@@ -231,26 +205,18 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .order("order", { ascending: true });
 
-      if (!isMounted) {
-        return;
-      }
+      if (!isMounted) return;
 
       if (error) {
-        console.error(
-          "Erreur lors du chargement des exercices :",
-          error.message,
-        );
+        console.error("Erreur lors du chargement des exercices :", error.message);
         setTrainingExercises([]);
-        setFetchError(
-          "Une erreur est survenue lors du chargement des exercices.",
-        );
+        setFetchError("Une erreur est survenue lors du chargement des exercices.");
       } else {
         setTrainingExercises(
           (data ?? []).map((row) => ({
             id: String(row.id),
-            exercice:
-              typeof row.exercice === "string" ? row.exercice : null,
-          })),
+            exercice: typeof row.exercice === "string" ? row.exercice : null,
+          }))
         );
       }
 
@@ -258,7 +224,6 @@ export default function DashboardPage() {
     };
 
     void fetchExercises();
-
     return () => {
       isMounted = false;
     };
@@ -268,15 +233,14 @@ export default function DashboardPage() {
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto">
         <div className="text-center">
-          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
-            Tableau de bord
-          </h1>
+          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">Tableau de bord</h1>
           <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494]">
             Sélectionnez un programme et un entraînement pour suivre
             <br />
             votre progression par exercice et vous fixer des objectifs.
           </p>
         </div>
+
         <DashboardProgramFilters
           onProgramChange={setSelectedProgram}
           onTrainingChange={setSelectedTraining}
@@ -285,24 +249,21 @@ export default function DashboardPage() {
           showStats={showStats}
           onShowStatsChange={setShowStats}
         />
+
         {selectedProgram === "" && (
-          <p className="mt-8 text-center text-[#5D6494] font-semibold">
-            Aucun programme trouvé.
-          </p>
+          <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
         )}
+
         {selectedProgram !== "" && selectedTraining === "" && (
-          <p className="mt-8 text-center text-[#5D6494] font-semibold">
-            Aucun entraînement sélectionné.
-          </p>
+          <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun entraînement sélectionné.</p>
         )}
+
         {selectedTraining !== "" && (
           <div className="mt-[30px]">
             {isLoadingExercises ? (
               <DashboardExercisesSkeleton />
             ) : fetchError ? (
-              <p className="text-center text-[#E53E3E] font-semibold">
-                {fetchError}
-              </p>
+              <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
             ) : trainingExercises.length === 0 ? (
               <p className="text-center text-[#5D6494] font-semibold">
                 Aucun exercice n&apos;a été trouvé pour cet entraînement.
@@ -311,54 +272,24 @@ export default function DashboardPage() {
               <div className="space-y-[30px]">
                 {trainingExercises.map((exercise) => {
                   const settings = getExerciseSettings(exercise.id);
-
                   return (
-                    <div
+                    <DashboardExerciseBlock
                       key={exercise.id}
-                      className="w-full shadow-glift border border-[#ECE9F1] bg-white rounded-[5px]"
-                    >
-                      <div className="h-[60px] flex items-center justify-between px-[30px]">
-                        <p className="text-[16px] font-bold text-[#3A416F]">
-                          {exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                        </p>
-                        <div className="flex items-center gap-[30px]">
-                          <DashboardExerciseDropdown
-                            value={settings.sessionCount}
-                            onChange={(nextValue) => {
-                              if (
-                                SESSION_OPTIONS.some(
-                                  (option) => option.value === nextValue,
-                                )
-                              ) {
-                                updateExerciseSettings(exercise.id, {
-                                  sessionCount: nextValue as SessionValue,
-                                });
-                              }
-                            }}
-                            options={SESSION_OPTIONS}
-                            iconSrc="/icons/tableau.svg"
-                            iconHoverSrc="/icons/tableau_hover.svg"
-                          />
-                          <DashboardExerciseDropdown
-                            value={settings.curveType}
-                            onChange={(nextValue) => {
-                              if (
-                                CURVE_OPTIONS.some(
-                                  (option) => option.value === nextValue,
-                                )
-                              ) {
-                                updateExerciseSettings(exercise.id, {
-                                  curveType: nextValue as CurveOptionValue,
-                                });
-                              }
-                            }}
-                            options={CURVE_OPTIONS}
-                            iconSrc="/icons/courbe.svg"
-                            iconHoverSrc="/icons/courbe_hover.svg"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                      id={exercise.id}
+                      name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                      sessionCount={settings.sessionCount}
+                      curveType={settings.curveType}
+                      onSessionChange={(nextValue) => {
+                        if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
+                          updateExerciseSettings(exercise.id, { sessionCount: nextValue as SessionValue });
+                        }
+                      }}
+                      onCurveChange={(nextValue) => {
+                        if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                          updateExerciseSettings(exercise.id, { curveType: nextValue as CurveOptionValue });
+                        }
+                      }}
+                    />
                   );
                 })}
               </div>
