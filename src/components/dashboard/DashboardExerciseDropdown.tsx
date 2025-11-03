@@ -99,7 +99,7 @@ export default function DashboardExerciseDropdown({
           />
         </span>
         <span className="whitespace-nowrap">{selectedLabel}</span>
-        <span className="relative w-[12px] h-[7px]">
+        <span className="relative w-[10px] h-[6px]">
           <Image
             src={ChevronIcon}
             alt=""
