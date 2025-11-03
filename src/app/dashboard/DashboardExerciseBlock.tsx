@@ -94,6 +94,7 @@ type WeightAxisTickProps = {
 
 const Y_AXIS_TICK_OFFSET = 10;
 const Y_AXIS_WIDTH = 52;
+const CHART_MARGIN = { top: 20, right: 20, bottom: 20, left: Y_AXIS_WIDTH };
 
 const WeightAxisTick = ({ x, y, payload }: WeightAxisTickProps) => (
   <text
@@ -284,7 +285,7 @@ export default function DashboardExerciseBlock({
 <ResponsiveContainer width="100%" height="100%">
   <AreaChart
     data={mockData}
-    margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+    margin={CHART_MARGIN}
     onMouseMove={handleMouseMove}
     onMouseLeave={hideTooltip}
   >
