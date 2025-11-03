@@ -18,6 +18,7 @@ export type DashboardExerciseDropdownProps = {
   iconSrc: string
   iconHoverSrc: string
   className?: string
+  selectedValueClassName?: string
 }
 
 export default function DashboardExerciseDropdown({
@@ -27,6 +28,7 @@ export default function DashboardExerciseDropdown({
   iconSrc,
   iconHoverSrc,
   className,
+  selectedValueClassName,
 }: DashboardExerciseDropdownProps) {
   const [open, setOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -98,7 +100,9 @@ export default function DashboardExerciseDropdown({
             aria-hidden
           />
         </span>
-        <span className="whitespace-nowrap">{selectedLabel}</span>
+        <span className={clsx("whitespace-nowrap", selectedValueClassName)}>
+          {selectedLabel}
+        </span>
         <span className="relative w-[10px] h-[6px]">
           <Image
             src={ChevronIcon}

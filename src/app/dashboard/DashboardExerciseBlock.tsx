@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
+import { CURVE_OPTIONS } from "@/constants/curveOptions";
 import Tooltip from "@/components/Tooltip";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
@@ -213,13 +214,10 @@ export default function DashboardExerciseBlock({
           <DashboardExerciseDropdown
             value={curveType}
             onChange={onCurveChange}
-            options={[
-              { value: "average_weight", label: "Poids moyen" },
-              { value: "max_weight", label: "Poids maximum" },
-              { value: "total_weight", label: "Poids total" },
-            ]}
+            options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
             iconSrc="/icons/courbe.svg"
             iconHoverSrc="/icons/courbe_hover.svg"
+            selectedValueClassName="text-[#7069FA]"
           />
         </div>
       </div>
