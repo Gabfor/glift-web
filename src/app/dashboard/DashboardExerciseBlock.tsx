@@ -48,7 +48,7 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   return (
     <div className="w-full bg-white border border-[#ECE9F1] rounded-[8px] shadow-glift overflow-hidden">
-      {/* HEADER du bloc — 60px de haut */}
+      {/* HEADER — 60px de haut */}
       <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#F1EEF4]">
         <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
         <div className="flex items-center gap-[30px]">
@@ -79,16 +79,18 @@ export default function DashboardExerciseBlock({
 
       {/* CONTENU principal */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] px-[30px] py-[25px]">
-        {/* Bloc gauche : record personnel et objectif */}
-        <div className="flex flex-col justify-center">
-          <div>
-            <p className="text-[36px] font-bold text-[#2E3271] leading-none">25 kg</p>
-            <p className="text-[#5D6494] font-semibold mt-1">Record personnel</p>
-            <p className="text-[#9CA0C0] text-[14px]">08 Juin 2020</p>
+        {/* Bloc gauche */}
+        <div className="flex flex-col gap-[30px] justify-center h-full">
+          {/* Bloc "record personnel" */}
+          <div className="flex flex-col justify-center h-[90px]">
+            <p className="text-[40px] font-bold text-[#2E3271] leading-none">25 kg</p>
+            <p className="text-[#3A416F] font-bold text-[14px] mt-2">Record personnel</p>
+            <p className="text-[#C2BFC6] text-[12px] mt-1">01 Février 2026</p>
           </div>
 
-          <div className="mt-8 flex items-center gap-4">
-            <div className="relative w-[60px] h-[60px]">
+          {/* Bloc "Atteinte de l’objectif" */}
+          <div className="flex items-center gap-4 h-[90px]">
+            <div className="relative w-[70px] h-[70px] flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <path
                   className="text-[#E9E7F3]"
@@ -111,10 +113,10 @@ export default function DashboardExerciseBlock({
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/icons/trophy.svg" alt="Objectif" className="w-5 h-5" />
+                <img src="/icons/trophy.svg" alt="Objectif" className="w-6 h-6" />
               </div>
             </div>
-            <div>
+            <div className="flex flex-col justify-center">
               <p className="text-[#5D6494] font-semibold">
                 Vous avez atteint <span className="text-[#7056E4] font-bold">74%</span> de votre objectif.
               </p>
@@ -126,7 +128,7 @@ export default function DashboardExerciseBlock({
         </div>
 
         {/* Bloc droit : graphique */}
-        <div className="h-[220px] w-full">
+        <div className="h-[220px] w-full flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={mockData}>
               <defs>
