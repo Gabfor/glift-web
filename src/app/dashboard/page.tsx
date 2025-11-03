@@ -7,6 +7,7 @@ import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
+import type { Database } from "@/lib/supabase/types";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -30,6 +31,11 @@ type ExerciseDisplaySettings = Record<
   string,
   { sessionCount: SessionValue; curveType: CurveOptionValue }
 >;
+
+type DashboardPreferencesRow =
+  Database["public"]["Tables"]["dashboard_preferences"]["Row"];
+type DashboardPreferencesInsert =
+  Database["public"]["Tables"]["dashboard_preferences"]["Insert"];
 
 const isSessionValue = (value: unknown): value is SessionValue =>
   typeof value === "string" &&
@@ -121,9 +127,9 @@ export default function DashboardPage() {
       setHasLoadedPreferences(false);
       const { data, error } = await supabase
         .from("dashboard_preferences")
-        .select("selected_program_id, selected_training_id, exercise_settings, show_stats")
+        .select("*")
         .eq("user_id", user.id)
-        .maybeSingle();
+        .limit(1);
 
       if (!isMounted) return;
 
@@ -133,11 +139,15 @@ export default function DashboardPage() {
         setSelectedTraining("");
         setExerciseDisplaySettings({});
         setShowStats(false);
-      } else if (data) {
-        setSelectedProgram(data.selected_program_id ?? "");
-        setSelectedTraining(data.selected_training_id ?? "");
-        setExerciseDisplaySettings(parseExerciseSettings(data.exercise_settings));
-        setShowStats(Boolean(data.show_stats));
+      } else {
+        const preferences = data?.[0] as DashboardPreferencesRow | undefined;
+
+        setSelectedProgram(preferences?.selected_program_id ?? "");
+        setSelectedTraining(preferences?.selected_training_id ?? "");
+        setExerciseDisplaySettings(
+          parseExerciseSettings(preferences?.exercise_settings),
+        );
+        setShowStats(Boolean(preferences?.show_stats));
       }
 
       setHasLoadedPreferences(true);
@@ -154,19 +164,18 @@ export default function DashboardPage() {
     if (!user?.id || !hasLoadedPreferences) return;
 
     const persistPreferences = async () => {
+      const payload: DashboardPreferencesInsert = {
+        user_id: user.id,
+        selected_program_id: selectedProgram || null,
+        selected_training_id: selectedTraining || null,
+        exercise_settings: exerciseDisplaySettings,
+        show_stats: showStats,
+        updated_at: new Date().toISOString(),
+      };
+
       const { error } = await supabase
         .from("dashboard_preferences")
-        .upsert(
-          {
-            user_id: user.id,
-            selected_program_id: selectedProgram || null,
-            selected_training_id: selectedTraining || null,
-            exercise_settings: exerciseDisplaySettings,
-            show_stats: showStats,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "user_id" }
-        );
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
         console.error("Erreur lors de l'enregistrement des préférences du tableau de bord :", error.message);
