@@ -257,7 +257,7 @@ export default function DashboardExerciseBlock({
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={mockData}
-                margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                margin={{ top: 0, right: 20, left: 0, bottom: 20 }}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={hideTooltip}
               >
@@ -286,6 +286,7 @@ export default function DashboardExerciseBlock({
                   tick={{ fill: "#3A416F", fontSize: 12, fontWeight: 700 }}
                   tickFormatter={(value: number) => `${value} kg`}
                   width={52}
+                  tickMargin={20}
                   axisLine={false}
                   tickLine={false}
                 />
