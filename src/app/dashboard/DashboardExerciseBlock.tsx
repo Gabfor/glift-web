@@ -287,7 +287,7 @@ export default function DashboardExerciseBlock({
                     fill: "#3A416F",
                     fontSize: 12,
                     fontWeight: 700,
-                    dx: -20,
+                    textAnchor: "end",
                   }}
                   tickFormatter={(value: number) => `${value} kg`}
                   width={60}
