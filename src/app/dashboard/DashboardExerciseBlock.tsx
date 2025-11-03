@@ -103,7 +103,7 @@ export default function DashboardExerciseBlock({
                     a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path
-                  className="text-[#7056E4]"
+                  className="text-[#7069FA]"
                   stroke="currentColor"
                   strokeWidth="3"
                   strokeDasharray="74, 100"
@@ -123,11 +123,11 @@ export default function DashboardExerciseBlock({
                 />
               </div>
             </div>
-            <div className="flex flex-col justify-center">
-              <p className="text-[#5D6494] font-semibold">
-                Vous avez atteint <span className="text-[#7056E4] font-bold">74%</span> de votre objectif.
+            <div className="flex flex-col justify-center items-start text-left">
+              <p className="text-[#5D6494] font-semibold text-left">
+                Vous avez atteint <span className="text-[#7069FA] font-bold">74%</span> de votre objectif.
               </p>
-              <button className="text-[#7056E4] text-[15px] font-semibold mt-1 hover:underline">
+              <button className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]">
                 Voir mon objectif.
               </button>
             </div>
