@@ -4,8 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import clsx from "clsx"
 
-import ChevronDownIcon from "/public/icons/chevron_training_down.svg"
-import ChevronUpIcon from "/public/icons/chevron_training_up.svg"
+import ChevronIcon from "/public/icons/chevron.svg"
 
 export type DashboardExerciseDropdownOption = {
   value: string
@@ -102,10 +101,15 @@ export default function DashboardExerciseDropdown({
         <span className="whitespace-nowrap">{selectedLabel}</span>
         <span className="relative w-[12px] h-[7px]">
           <Image
-            src={open ? ChevronUpIcon : ChevronDownIcon}
+            src={ChevronIcon}
             alt=""
             fill
             className="object-contain"
+            style={{
+              transform: open ? "rotate(-180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+              transformOrigin: "center 45%",
+            }}
             aria-hidden
           />
         </span>
@@ -130,7 +134,7 @@ export default function DashboardExerciseDropdown({
                   className={clsx(
                     "text-[16px] text-left font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] transition-colors",
                     isSelected
-                      ? "text-[#3A416F] bg-[#F4F4FF]"
+                      ? "text-[#7069FA]"
                       : "text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]",
                   )}
                 >
