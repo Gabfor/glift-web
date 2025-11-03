@@ -31,30 +31,30 @@ type TrainingRow = {
 type DashboardProgramFiltersProps = {
   onProgramChange?: (programId: string) => void;
   onTrainingChange?: (trainingId: string) => void;
+  selectedProgramId?: string;
+  selectedTrainingId?: string;
+  showStats?: boolean;
+  onShowStatsChange?: (showStats: boolean) => void;
 };
 
 export default function DashboardProgramFilters({
   onProgramChange,
   onTrainingChange,
+  selectedProgramId = "",
+  selectedTrainingId = "",
+  showStats = false,
+  onShowStatsChange,
 }: DashboardProgramFiltersProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
   const [programOptions, setProgramOptions] = useState<FilterOption[]>([]);
   const [trainingOptions, setTrainingOptions] = useState<FilterOption[]>([]);
-  const [selectedProgram, setSelectedProgram] = useState("");
-  const [selectedTraining, setSelectedTraining] = useState("");
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
-  const [showStats, setShowStats] = useState(false);
 
-  useEffect(() => {
-    onProgramChange?.(selectedProgram);
-  }, [onProgramChange, selectedProgram]);
-
-  useEffect(() => {
-    onTrainingChange?.(selectedTraining);
-  }, [onTrainingChange, selectedTraining]);
+  const selectedProgram = selectedProgramId;
+  const selectedTraining = selectedTrainingId;
 
   useEffect(() => {
     let isMounted = true;
@@ -63,8 +63,10 @@ export default function DashboardProgramFilters({
       if (!user?.id) {
         if (isMounted) {
           setProgramOptions([]);
-          setSelectedProgram("");
           setLoadingPrograms(false);
+          if (selectedProgram) {
+            onProgramChange?.("");
+          }
         }
         return;
       }
@@ -84,7 +86,9 @@ export default function DashboardProgramFilters({
       if (error) {
         console.error("Erreur lors du chargement des programmes :", error.message);
         setProgramOptions([]);
-        setSelectedProgram("");
+        if (selectedProgram) {
+          onProgramChange?.("");
+        }
       } else {
         const options =
           (data as ProgramRow[] | null)?.filter((program) => {
@@ -116,15 +120,17 @@ export default function DashboardProgramFilters({
     return () => {
       isMounted = false;
     };
-  }, [supabase, user?.id]);
+  }, [onProgramChange, selectedProgram, supabase, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
 
     if (!selectedProgram) {
       setTrainingOptions([]);
-      setSelectedTraining("");
       setLoadingTrainings(false);
+      if (selectedTraining) {
+        onTrainingChange?.("");
+      }
       return () => {
         isMounted = false;
       };
@@ -149,7 +155,9 @@ export default function DashboardProgramFilters({
           error.message,
         );
         setTrainingOptions([]);
-        setSelectedTraining("");
+        if (selectedTraining) {
+          onTrainingChange?.("");
+        }
       } else {
         const options = (data as TrainingRow[] | null)?.map((training) => ({
           value: String(training.id),
@@ -167,25 +175,25 @@ export default function DashboardProgramFilters({
     return () => {
       isMounted = false;
     };
-  }, [supabase, selectedProgram]);
+  }, [onTrainingChange, selectedProgram, selectedTraining, supabase]);
 
   useEffect(() => {
     if (
       selectedProgram &&
       !programOptions.some((option) => option.value === selectedProgram)
     ) {
-      setSelectedProgram("");
+      onProgramChange?.("");
     }
-  }, [programOptions, selectedProgram]);
+  }, [onProgramChange, programOptions, selectedProgram]);
 
   useEffect(() => {
     if (
       selectedTraining &&
       !trainingOptions.some((option) => option.value === selectedTraining)
     ) {
-      setSelectedTraining("");
+      onTrainingChange?.("");
     }
-  }, [selectedTraining, trainingOptions]);
+  }, [onTrainingChange, selectedTraining, trainingOptions]);
 
   const programPlaceholder = (() => {
     if (loadingPrograms) {
@@ -222,8 +230,8 @@ export default function DashboardProgramFilters({
           options={programOptions}
           selected={selectedProgram}
           onSelect={(value) => {
-            setSelectedProgram(value);
-            setSelectedTraining("");
+            onProgramChange?.(value);
+            onTrainingChange?.("");
           }}
           className="min-w-[240px]"
         />
@@ -232,14 +240,14 @@ export default function DashboardProgramFilters({
           placeholder={trainingPlaceholder}
           options={trainingOptions}
           selected={selectedTraining}
-          onSelect={setSelectedTraining}
+          onSelect={onTrainingChange}
           className="min-w-[240px]"
           disabled={isTrainingDisabled}
         />
       </div>
       <button
         type="button"
-        onClick={() => setShowStats((current) => !current)}
+        onClick={() => onShowStatsChange?.(!showStats)}
         className="ml-auto self-end h-10 border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
         aria-pressed={showStats}
       >

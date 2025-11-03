@@ -128,6 +128,52 @@ export interface Database {
         };
         Relationships: never[];
       };
+      dashboard_preferences: {
+        Row: {
+          user_id: string;
+          selected_program_id: Nullable<string>;
+          selected_training_id: Nullable<string>;
+          exercise_settings: Json;
+          show_stats: boolean;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          selected_program_id?: Nullable<string>;
+          selected_training_id?: Nullable<string>;
+          exercise_settings?: Json;
+          show_stats?: boolean;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          selected_program_id?: Nullable<string>;
+          selected_training_id?: Nullable<string>;
+          exercise_settings?: Json;
+          show_stats?: boolean;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "dashboard_preferences_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dashboard_preferences_selected_program_id_fkey";
+            columns: ["selected_program_id"];
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dashboard_preferences_selected_training_id_fkey";
+            columns: ["selected_training_id"];
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_subscriptions: {
         Row: {
           user_id: string;
