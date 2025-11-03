@@ -188,12 +188,10 @@ export default function DashboardProgramFilters({
   }, [selectedTraining, trainingOptions]);
 
   const programPlaceholder = (() => {
-    if (loadingPrograms) {
-      return "Chargement...";
-    }
-
     if (programOptions.length === 0) {
-      return "Aucun programme disponible";
+      return loadingPrograms
+        ? "Sélectionnez un programme"
+        : "Aucun programme disponible";
     }
 
     return "Sélectionnez un programme";
