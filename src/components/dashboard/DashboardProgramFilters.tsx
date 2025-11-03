@@ -20,7 +20,7 @@ type ProgramTrainingRow = {
 type ProgramRow = {
   id: string | number;
   name: string | null;
-  trainings?: ProgramTrainingRow[] | null;
+  trainings: ProgramTrainingRow[] | null;
 };
 
 type TrainingRow = {
@@ -77,7 +77,8 @@ export default function DashboardProgramFilters({
         .from("programs")
         .select("id, name, trainings ( id )")
         .eq("user_id", user.id)
-        .order("position", { ascending: true });
+        .order("position", { ascending: true })
+        .returns<ProgramRow[]>();
 
       if (!isMounted) {
         return;
@@ -90,24 +91,20 @@ export default function DashboardProgramFilters({
           onProgramChange?.("");
         }
       } else {
-        const options =
-          (data as ProgramRow[] | null)?.filter((program) => {
-            if (!program.trainings || !Array.isArray(program.trainings)) {
-              return false;
-            }
+        const programs = data ?? [];
+        const options = programs
+          .filter((program) => {
+            const trainings = program.trainings ?? [];
 
-            return program.trainings.some((training) => {
-              if (!training) {
-                return false;
-              }
-
-              return training.id !== null && training.id !== undefined;
-            });
+            return trainings.some(
+              (training) =>
+                training?.id !== null && training?.id !== undefined,
+            );
           })
-            .map((program) => ({
-              value: String(program.id),
-              label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
-            })) ?? [];
+          .map((program) => ({
+            value: String(program.id),
+            label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
+          }));
 
         setProgramOptions(options);
       }
@@ -143,7 +140,8 @@ export default function DashboardProgramFilters({
         .from("trainings")
         .select("id, name")
         .eq("program_id", selectedProgram)
-        .order("position", { ascending: true });
+        .order("position", { ascending: true })
+        .returns<TrainingRow[]>();
 
       if (!isMounted) {
         return;
@@ -159,10 +157,11 @@ export default function DashboardProgramFilters({
           onTrainingChange?.("");
         }
       } else {
-        const options = (data as TrainingRow[] | null)?.map((training) => ({
+        const trainings = data ?? [];
+        const options = trainings.map((training) => ({
           value: String(training.id),
           label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
-        })) ?? [];
+        }));
 
         setTrainingOptions(options);
       }
@@ -238,7 +237,11 @@ export default function DashboardProgramFilters({
           placeholder={trainingPlaceholder}
           options={trainingOptions}
           selected={selectedTraining}
-          onSelect={onTrainingChange}
+          onSelect={(value) => {
+            if (onTrainingChange) {
+              onTrainingChange(value);
+            }
+          }}
           className="min-w-[240px]"
           disabled={isTrainingDisabled}
         />
