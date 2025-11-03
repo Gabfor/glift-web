@@ -84,6 +84,8 @@ const DateAxisTick = ({ x, y, payload }: AxisTickProps) => {
   );
 };
 
+const renderDateAxisTick = (props: AxisTickProps) => <DateAxisTick {...props} />;
+
 export default function DashboardExerciseBlock({
   id,
   name,
@@ -273,7 +275,7 @@ export default function DashboardExerciseBlock({
                 />
                 <XAxis
                   dataKey="date"
-                  tick={<DateAxisTick />}
+                  tick={renderDateAxisTick}
                   tickMargin={18}
                   axisLine={false}
                   tickLine={false}
