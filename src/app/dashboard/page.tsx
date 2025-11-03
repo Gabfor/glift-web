@@ -2,8 +2,24 @@
 
 import { useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
+import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
+import {
+  CURVE_OPTIONS,
+  type CurveOptionValue,
+} from "@/constants/curveOptions";
+
+const SESSION_OPTIONS = [
+  { value: "5", label: "5 dernières séances" },
+  { value: "10", label: "10 dernières séances" },
+  { value: "15", label: "15 dernières séances" },
+] as const;
+
+type SessionValue = (typeof SESSION_OPTIONS)[number]["value"];
+
+const DEFAULT_SESSION_VALUE: SessionValue = SESSION_OPTIONS[2].value;
+const DEFAULT_CURVE_VALUE: CurveOptionValue = CURVE_OPTIONS[0].value;
 
 type TrainingExercise = {
   id: string;
@@ -23,6 +39,35 @@ export default function DashboardPage() {
   );
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<
+    Record<
+      string,
+      { sessionCount: SessionValue; curveType: CurveOptionValue }
+    >
+  >({});
+
+  const getExerciseSettings = (exerciseId: string) =>
+    exerciseDisplaySettings[exerciseId] ?? {
+      sessionCount: DEFAULT_SESSION_VALUE,
+      curveType: DEFAULT_CURVE_VALUE,
+    };
+
+  const updateExerciseSettings = (
+    exerciseId: string,
+    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>,
+  ) => {
+    setExerciseDisplaySettings((previous) => {
+      const current = previous[exerciseId] ?? {
+        sessionCount: DEFAULT_SESSION_VALUE,
+        curveType: DEFAULT_CURVE_VALUE,
+      };
+
+      return {
+        ...previous,
+        [exerciseId]: { ...current, ...partial },
+      };
+    });
+  };
 
   useEffect(() => {
     if (!selectedTraining || !user?.id) {
@@ -116,18 +161,58 @@ export default function DashboardPage() {
               </p>
             ) : (
               <div className="space-y-[30px]">
-                {trainingExercises.map((exercise) => (
-                  <div
-                    key={exercise.id}
-                    className="w-full shadow-glift border border-[#ECE9F1] bg-white rounded-[5px]"
-                  >
-                    <div className="h-[60px] flex items-center px-4">
-                      <p className="text-[16px] font-bold text-[#3A416F]">
-                        {exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                      </p>
+                {trainingExercises.map((exercise) => {
+                  const settings = getExerciseSettings(exercise.id);
+
+                  return (
+                    <div
+                      key={exercise.id}
+                      className="w-full shadow-glift border border-[#ECE9F1] bg-white rounded-[5px]"
+                    >
+                      <div className="h-[60px] flex items-center justify-between px-[30px]">
+                        <p className="text-[16px] font-bold text-[#3A416F]">
+                          {exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                        </p>
+                        <div className="flex items-center gap-[30px]">
+                          <DashboardExerciseDropdown
+                            value={settings.sessionCount}
+                            onChange={(nextValue) => {
+                              if (
+                                SESSION_OPTIONS.some(
+                                  (option) => option.value === nextValue,
+                                )
+                              ) {
+                                updateExerciseSettings(exercise.id, {
+                                  sessionCount: nextValue as SessionValue,
+                                });
+                              }
+                            }}
+                            options={SESSION_OPTIONS}
+                            iconSrc="/icons/tableau.svg"
+                            iconHoverSrc="/icons/tableau_hover.svg"
+                          />
+                          <DashboardExerciseDropdown
+                            value={settings.curveType}
+                            onChange={(nextValue) => {
+                              if (
+                                CURVE_OPTIONS.some(
+                                  (option) => option.value === nextValue,
+                                )
+                              ) {
+                                updateExerciseSettings(exercise.id, {
+                                  curveType: nextValue as CurveOptionValue,
+                                });
+                              }
+                            }}
+                            options={CURVE_OPTIONS}
+                            iconSrc="/icons/courbe.svg"
+                            iconHoverSrc="/icons/courbe_hover.svg"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
