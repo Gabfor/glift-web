@@ -41,6 +41,49 @@ const mockData = [
   { date: "08 Fév", value: 25 },
 ];
 
+const splitDateLabel = (label: string) => {
+  const [day, ...rest] = label.split(" ");
+  return {
+    day: day ?? "",
+    month: rest.join(" ") ?? "",
+  };
+};
+
+type AxisTickProps = {
+  x: number;
+  y: number;
+  payload: { value: string };
+};
+
+const DateAxisTick = ({ x, y, payload }: AxisTickProps) => {
+  const { day, month } = splitDateLabel(payload?.value ?? "");
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text textAnchor="middle">
+        <tspan
+          x={0}
+          dy={-6}
+          fill="#3A416F"
+          fontSize={12}
+          fontWeight={700}
+        >
+          {day}
+        </tspan>
+        <tspan
+          x={0}
+          dy={14}
+          fill="#C2BFC6"
+          fontSize={10}
+          fontWeight={600}
+        >
+          {month}
+        </tspan>
+      </text>
+    </g>
+  );
+};
+
 export default function DashboardExerciseBlock({
   id,
   name,
@@ -207,12 +250,12 @@ export default function DashboardExerciseBlock({
         <div className="h-[220px] w-full md:flex-1">
           <div
             ref={chartContainerRef}
-            className="relative h-full w-full rounded-[16px] bg-white px-[20px] pt-[26px] pb-[18px]"
+            className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
           >
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart
                 data={mockData}
-                margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+                margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={hideTooltip}
               >
@@ -230,14 +273,14 @@ export default function DashboardExerciseBlock({
                 />
                 <XAxis
                   dataKey="date"
-                  tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
-                  tickMargin={10}
+                  tick={<DateAxisTick />}
+                  tickMargin={18}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
                   domain={["dataMin - 1", "dataMax + 1"]}
-                  tick={{ fill: "#8D8FB3", fontSize: 12, fontWeight: 600 }}
+                  tick={{ fill: "#3A416F", fontSize: 12, fontWeight: 700 }}
                   tickFormatter={(value: number) => `${value} kg`}
                   width={52}
                   axisLine={false}
@@ -247,7 +290,7 @@ export default function DashboardExerciseBlock({
                   type="monotone"
                   dataKey="value"
                   stroke="#A1A5FD"
-                  strokeWidth={3}
+                  strokeWidth={1}
                   fillOpacity={1}
                   fill={`url(#gradient-${id})`}
                   dot={{
@@ -289,6 +332,11 @@ export default function DashboardExerciseBlock({
           </div>
         </div>
       </div>
+      <style jsx global>{`
+        .dashboard-exercise-chart .recharts-surface:focus {
+          outline: none;
+        }
+      `}</style>
     </div>
   );
 }
