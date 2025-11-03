@@ -277,7 +277,7 @@ export default function DashboardProgramFilters({
             width={16}
             height={16}
           />
-          <span>Afficher les stats</span>
+          <span>{showStats ? "Masquer les stats" : "Afficher les stats"}</span>
         </div>
       </button>
     </div>
