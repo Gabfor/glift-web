@@ -1,7 +1,15 @@
 "use client";
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Area, AreaChart } from "recharts";
-import DashboardExerciseDropdown from "./DashboardExerciseDropdown";
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  CartesianGrid,
+} from "recharts";
+import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -40,9 +48,10 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   return (
     <div className="w-full bg-white border border-[#ECE9F1] rounded-[8px] shadow-glift overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between px-[30px] py-[25px] border-b border-[#F1EEF4]">
-        <h2 className="text-[18px] font-bold text-[#2E3271]">{name}</h2>
-        <div className="flex items-center gap-[30px] mt-4 md:mt-0">
+      {/* HEADER du bloc — 60px de haut */}
+      <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#F1EEF4]">
+        <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
+        <div className="flex items-center gap-[30px]">
           <DashboardExerciseDropdown
             value={sessionCount}
             onChange={onSessionChange}
@@ -68,7 +77,9 @@ export default function DashboardExerciseBlock({
         </div>
       </div>
 
+      {/* CONTENU principal */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] px-[30px] py-[25px]">
+        {/* Bloc gauche : record personnel et objectif */}
         <div className="flex flex-col justify-center">
           <div>
             <p className="text-[36px] font-bold text-[#2E3271] leading-none">25 kg</p>
@@ -114,6 +125,7 @@ export default function DashboardExerciseBlock({
           </div>
         </div>
 
+        {/* Bloc droit : graphique */}
         <div className="h-[220px] w-full">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={mockData}>
