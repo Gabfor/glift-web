@@ -28,6 +28,50 @@ type TrainingExercise = {
 
 const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
 
+type ExerciseDisplaySettings = Record<
+  string,
+  { sessionCount: SessionValue; curveType: CurveOptionValue }
+>;
+
+const isSessionValue = (value: unknown): value is SessionValue =>
+  typeof value === "string" &&
+  SESSION_OPTIONS.some((option) => option.value === value);
+
+const isCurveValue = (value: unknown): value is CurveOptionValue =>
+  typeof value === "string" &&
+  CURVE_OPTIONS.some((option) => option.value === value);
+
+const parseExerciseSettings = (value: unknown): ExerciseDisplaySettings => {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value as Record<string, unknown>).reduce<
+    ExerciseDisplaySettings
+  >((accumulator, [exerciseId, settings]) => {
+    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
+      return accumulator;
+    }
+
+    const { sessionCount, curveType } = settings as {
+      sessionCount?: unknown;
+      curveType?: unknown;
+    };
+
+    if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
+      return accumulator;
+    }
+
+    return {
+      ...accumulator,
+      [exerciseId]: {
+        sessionCount,
+        curveType,
+      },
+    };
+  }, {});
+};
+
 export default function DashboardPage() {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -40,11 +84,10 @@ export default function DashboardPage() {
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<
-    Record<
-      string,
-      { sessionCount: SessionValue; curveType: CurveOptionValue }
-    >
+    ExerciseDisplaySettings
   >({});
+  const [showStats, setShowStats] = useState(false);
+  const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
 
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
@@ -68,6 +111,103 @@ export default function DashboardPage() {
       };
     });
   };
+
+  useEffect(() => {
+    if (!user?.id) {
+      setSelectedProgram("");
+      setSelectedTraining("");
+      setExerciseDisplaySettings({});
+      setShowStats(false);
+      setHasLoadedPreferences(false);
+      return;
+    }
+
+    let isMounted = true;
+
+    const fetchPreferences = async () => {
+      setHasLoadedPreferences(false);
+
+      const { data, error } = await supabase
+        .from("dashboard_preferences")
+        .select(
+          "selected_program_id, selected_training_id, exercise_settings, show_stats",
+        )
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        console.error(
+          "Erreur lors du chargement des préférences du tableau de bord :",
+          error.message,
+        );
+        setSelectedProgram("");
+        setSelectedTraining("");
+        setExerciseDisplaySettings({});
+        setShowStats(false);
+      } else if (data) {
+        setSelectedProgram(data.selected_program_id ?? "");
+        setSelectedTraining(data.selected_training_id ?? "");
+        setExerciseDisplaySettings(parseExerciseSettings(data.exercise_settings));
+        setShowStats(Boolean(data.show_stats));
+      } else {
+        setSelectedProgram("");
+        setSelectedTraining("");
+        setExerciseDisplaySettings({});
+        setShowStats(false);
+      }
+
+      setHasLoadedPreferences(true);
+    };
+
+    void fetchPreferences();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase, user?.id]);
+
+  useEffect(() => {
+    if (!user?.id || !hasLoadedPreferences) {
+      return;
+    }
+
+    const persistPreferences = async () => {
+      const { error } = await supabase
+        .from("dashboard_preferences")
+        .upsert(
+          {
+            user_id: user.id,
+            selected_program_id: selectedProgram || null,
+            selected_training_id: selectedTraining || null,
+            exercise_settings: exerciseDisplaySettings,
+            show_stats: showStats,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
+
+      if (error) {
+        console.error(
+          "Erreur lors de l'enregistrement des préférences du tableau de bord :",
+          error.message,
+        );
+      }
+    };
+
+    void persistPreferences();
+  }, [
+    exerciseDisplaySettings,
+    hasLoadedPreferences,
+    selectedProgram,
+    selectedTraining,
+    showStats,
+    supabase,
+    user?.id,
+  ]);
 
   useEffect(() => {
     if (!selectedTraining || !user?.id) {
@@ -139,6 +279,10 @@ export default function DashboardPage() {
         <DashboardProgramFilters
           onProgramChange={setSelectedProgram}
           onTrainingChange={setSelectedTraining}
+          selectedProgramId={selectedProgram}
+          selectedTrainingId={selectedTraining}
+          showStats={showStats}
+          onShowStatsChange={setShowStats}
         />
         {selectedProgram === "" && (
           <p className="mt-8 text-center text-[#5D6494] font-semibold">
