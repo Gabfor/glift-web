@@ -11,6 +11,10 @@ import ModalMessage from "@/components/ui/ModalMessage"
 import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
 import type { Database } from "@/lib/supabase/types"
+import {
+  CURVE_OPTIONS,
+  type CurveOptionValue,
+} from "@/constants/curveOptions"
 
 const WEIGHT_UNIT_OPTIONS = ["Métrique (kg)", "Impérial (lb)"] as const
 type WeightUnit = (typeof WEIGHT_UNIT_OPTIONS)[number]
@@ -27,17 +31,6 @@ const WEIGHT_UNIT_FROM_DB: Record<PreferencesRow["weight_unit"], WeightUnit> = {
   kg: "Métrique (kg)",
   lb: "Impérial (lb)",
 }
-
-const CURVE_OPTIONS = [
-  { value: "poids-moyen", label: "Poids moyen" },
-  { value: "poids-maximum", label: "Poids maximum" },
-  { value: "poids-total", label: "Poids total" },
-  { value: "repetition-moyenne", label: "Répétition moyenne" },
-  { value: "repetition-maximum", label: "Répétition maximum" },
-  { value: "repetitions-totales", label: "Répétitions totales" },
-] as const
-
-type CurveOptionValue = (typeof CURVE_OPTIONS)[number]["value"]
 
 const CURVE_TO_DB: Record<CurveOptionValue, PreferencesRow["curve"]> = {
   "poids-maximum": "maximum_weight",
