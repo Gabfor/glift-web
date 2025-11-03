@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
 } from "@/components/filters/DropdownFilter";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
+import StatsRedIcon from "/public/icons/stats_red.svg";
+import StatsGreenIcon from "/public/icons/stats_green.svg";
 
 const FALLBACK_PROGRAM_LABEL = "Programme sans titre";
 const FALLBACK_TRAINING_LABEL = "Entraînement sans titre";
@@ -43,6 +46,7 @@ export default function DashboardProgramFilters({
   const [selectedTraining, setSelectedTraining] = useState("");
   const [loadingPrograms, setLoadingPrograms] = useState(false);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
+  const [showStats, setShowStats] = useState(false);
 
   useEffect(() => {
     onProgramChange?.(selectedProgram);
@@ -210,27 +214,45 @@ export default function DashboardProgramFilters({
   const isTrainingDisabled = selectedProgram === "";
 
   return (
-    <div className="mt-10 flex flex-wrap justify-start gap-4">
-      <DropdownFilter
-        label="Programme"
-        placeholder={programPlaceholder}
-        options={programOptions}
-        selected={selectedProgram}
-        onSelect={(value) => {
-          setSelectedProgram(value);
-          setSelectedTraining("");
-        }}
-        className="min-w-[240px]"
-      />
-      <DropdownFilter
-        label="Entraînements"
-        placeholder={trainingPlaceholder}
-        options={trainingOptions}
-        selected={selectedTraining}
-        onSelect={setSelectedTraining}
-        className="min-w-[240px]"
-        disabled={isTrainingDisabled}
-      />
+    <div className="mt-10 flex flex-wrap items-center gap-4">
+      <div className="flex flex-wrap gap-4 grow">
+        <DropdownFilter
+          label="Programme"
+          placeholder={programPlaceholder}
+          options={programOptions}
+          selected={selectedProgram}
+          onSelect={(value) => {
+            setSelectedProgram(value);
+            setSelectedTraining("");
+          }}
+          className="min-w-[240px]"
+        />
+        <DropdownFilter
+          label="Entraînements"
+          placeholder={trainingPlaceholder}
+          options={trainingOptions}
+          selected={selectedTraining}
+          onSelect={setSelectedTraining}
+          className="min-w-[240px]"
+          disabled={isTrainingDisabled}
+        />
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowStats((current) => !current)}
+        className="ml-auto h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+        aria-pressed={showStats}
+      >
+        <div className="flex items-center gap-2">
+          <Image
+            src={showStats ? StatsGreenIcon : StatsRedIcon}
+            alt=""
+            width={16}
+            height={16}
+          />
+          <span>Afficher les stats</span>
+        </div>
+      </button>
     </div>
   );
 }
