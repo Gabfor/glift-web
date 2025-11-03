@@ -21,6 +21,16 @@ type Props = {
   asChild?: boolean;
 };
 
+type TooltipChildProps = {
+  onMouseEnter?: React.MouseEventHandler<HTMLElement>;
+  onMouseLeave?: React.MouseEventHandler<HTMLElement>;
+  onClick?: React.MouseEventHandler<HTMLElement>;
+};
+
+type TooltipChildElement = ReactElement<TooltipChildProps> & {
+  ref?: React.Ref<HTMLElement> | string;
+};
+
 export default function Tooltip({
   children,
   content,
@@ -39,6 +49,9 @@ export default function Tooltip({
   const triggerRef = useRef<HTMLElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const setTriggerRef = useCallback((node: HTMLElement | null) => {
+    triggerRef.current = node;
+  }, []);
 
   const clearDelayTimeout = useCallback(() => {
     if (timeoutRef.current) {
@@ -79,20 +92,23 @@ export default function Tooltip({
     setReady(true);
   }, [offset, placement]);
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter: React.MouseEventHandler<HTMLElement> = () => {
     if (disableHover) return;
     timeoutRef.current = setTimeout(() => {
       setVisible(true);
     }, delay);
   };
 
-  const hideTooltip = useCallback(() => {
+  const hideTooltip = useCallback((event?: React.SyntheticEvent) => {
+    if (event) {
+      event.stopPropagation();
+    }
     clearDelayTimeout();
     setVisible(false);
     setReady(false);
   }, [clearDelayTimeout]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave: React.MouseEventHandler<HTMLElement> = () => {
     hideTooltip();
   };
 
@@ -143,10 +159,31 @@ export default function Tooltip({
       });
     };
 
+  const mergeRefs = <T,>(
+    ...refs: Array<React.Ref<T> | null | undefined>
+  ): React.RefCallback<T> => {
+    return (value) => {
+      refs.forEach((ref) => {
+        if (!ref) return;
+        if (typeof ref === "function") {
+          ref(value);
+        } else {
+          (ref as React.MutableRefObject<T | null>).current = value;
+        }
+      });
+    };
+  };
+
   if (asChild && React.isValidElement(children)) {
-    const child = children as ReactElement;
-    const childProps = {
-      ref: triggerRef,
+    const child = children as TooltipChildElement;
+    const existingRef =
+      typeof child.ref === "string"
+        ? undefined
+        : child.ref;
+    const mergedRef = mergeRefs<HTMLElement>(existingRef, setTriggerRef);
+
+    const childProps: TooltipChildProps & { ref: React.RefCallback<HTMLElement> } = {
+      ref: mergedRef,
       onMouseEnter: disableHover
         ? child.props.onMouseEnter
         : combineHandlers(child.props.onMouseEnter, handleMouseEnter),
@@ -167,7 +204,7 @@ export default function Tooltip({
   return (
     <>
       <div
-        ref={triggerRef}
+        ref={setTriggerRef}
         onMouseEnter={disableHover ? undefined : handleMouseEnter}
         onMouseLeave={disableHover ? undefined : handleMouseLeave}
         onClick={hideTooltip}
