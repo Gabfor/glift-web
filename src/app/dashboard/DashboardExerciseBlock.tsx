@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import {
   AreaChart,
   Area,
@@ -113,7 +114,13 @@ export default function DashboardExerciseBlock({
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <img src="/icons/trophy.svg" alt="Objectif" className="w-6 h-6" />
+                <Image
+                  src="/icons/trophy.svg"
+                  alt="Objectif"
+                  width={24}
+                  height={24}
+                  className="w-6 h-6"
+                />
               </div>
             </div>
             <div className="flex flex-col justify-center">
