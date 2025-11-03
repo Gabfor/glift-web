@@ -9,10 +9,23 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
 import React, { useCallback, useMemo, useRef, useState } from "react";
+
+type ChartCoordinate = {
+  x: number;
+  y: number;
+};
+
+type ChartState = {
+  isTooltipActive?: boolean;
+  activePayload?: Array<{ value?: number | string | null } | undefined>;
+  activeCoordinate?: ChartCoordinate;
+  chartX?: number;
+  chartY?: number;
+  activeLabel?: string | number;
+};
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -64,7 +77,7 @@ export default function DashboardExerciseBlock({
     );
   }, []);
 
-  const handleMouseMove = useCallback((state: CategoricalChartState | undefined) => {
+  const handleMouseMove = useCallback((state: ChartState | undefined) => {
     if (!chartContainerRef.current || !state) {
       hideTooltip();
       return;
