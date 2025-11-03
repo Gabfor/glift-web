@@ -289,6 +289,11 @@ export default function DashboardPage() {
             Aucun programme trouvé.
           </p>
         )}
+        {selectedProgram !== "" && selectedTraining === "" && (
+          <p className="mt-8 text-center text-[#5D6494] font-semibold">
+            Aucun entraînement sélectionné.
+          </p>
+        )}
         {selectedTraining !== "" && (
           <div className="mt-[30px]">
             {isLoadingExercises ? (
