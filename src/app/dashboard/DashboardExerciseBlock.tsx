@@ -92,7 +92,8 @@ type WeightAxisTickProps = {
   payload: { value: number };
 };
 
-const Y_AXIS_TICK_OFFSET = 20;
+const Y_AXIS_TICK_OFFSET = 10;
+const Y_AXIS_WIDTH = 52;
 
 const WeightAxisTick = ({ x, y, payload }: WeightAxisTickProps) => (
   <text
@@ -313,7 +314,7 @@ export default function DashboardExerciseBlock({
     <YAxis
       domain={["dataMin - 1", "dataMax + 1"]}
       tick={renderWeightAxisTick}
-      width={60}
+      width={Y_AXIS_WIDTH}
       tickMargin={8}
       axisLine={false}
       tickLine={false}
