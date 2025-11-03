@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { AuthError, SupabaseClient, User } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,6 +25,58 @@ type CallbackTemplateOptions = {
 };
 
 const CALLBACK_EVENT_SOURCE = "glift-auth-callback";
+
+const DEFAULT_ADMIN_USERS_PER_PAGE = 100;
+
+const findAdminUserByEmail = async (
+  adminClient: SupabaseClient<Database>,
+  email: string,
+): Promise<{ user: User | null; error: AuthError | null }> => {
+  const normalizedEmail = email.toLowerCase();
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await adminClient.auth.admin.listUsers({
+      page,
+      perPage: DEFAULT_ADMIN_USERS_PER_PAGE,
+    });
+
+    if (error) {
+      return { user: null, error };
+    }
+
+    const users = data?.users ?? [];
+    const matchedUser = users.find((candidate) => {
+      const candidateEmail = candidate.email?.toLowerCase();
+      const candidateNewEmail = candidate.new_email?.toLowerCase();
+
+      return (
+        candidateEmail === normalizedEmail ||
+        candidateNewEmail === normalizedEmail
+      );
+    });
+
+    if (matchedUser) {
+      return { user: matchedUser, error: null };
+    }
+
+    const nextPage = data?.nextPage ?? null;
+    const lastPage = data?.lastPage ?? null;
+
+    if (
+      nextPage === null ||
+      nextPage === page ||
+      (typeof lastPage === "number" && lastPage !== 0 && page >= lastPage) ||
+      users.length === 0
+    ) {
+      break;
+    }
+
+    page = nextPage;
+  }
+
+  return { user: null, error: null };
+};
 
 const renderAutoCloseTemplate = ({
   success,
@@ -294,37 +347,22 @@ export async function GET(request: NextRequest) {
   if (!confirmedUserId && queryEmailParam) {
     try {
       const adminClient = createAdminClient();
-      const {
-        data: adminUsersData,
-        error: adminLookupError,
-      } = await adminClient.auth.admin.listUsers({
-        email: queryEmailParam,
-        perPage: 1,
-      });
+      const { user: matchedUser, error: adminLookupError } =
+        await findAdminUserByEmail(adminClient, queryEmailParam);
 
       if (adminLookupError) {
         console.warn(
           "[auth-callback] Unable to retrieve user by email after verification",
           adminLookupError,
         );
-      } else {
-        const normalizedEmail = queryEmailParam.toLowerCase();
-        const matchedUser = adminUsersData?.users?.find((candidate) => {
-          const candidateEmail = candidate.email?.toLowerCase();
-          const candidateNewEmail = candidate.new_email?.toLowerCase();
+      } else if (matchedUser?.id) {
+        confirmedUserId = matchedUser.id;
 
-          return (
-            candidateEmail === normalizedEmail ||
-            candidateNewEmail === normalizedEmail
-          );
-        });
-
-        if (matchedUser?.id) {
-          confirmedUserId = matchedUser.id;
-
-          if (!confirmedUserEmailConfirmedAt && matchedUser.email_confirmed_at) {
-            confirmedUserEmailConfirmedAt = matchedUser.email_confirmed_at;
-          }
+        if (
+          !confirmedUserEmailConfirmedAt &&
+          matchedUser.email_confirmed_at
+        ) {
+          confirmedUserEmailConfirmedAt = matchedUser.email_confirmed_at;
         }
       }
     } catch (adminLookupException) {

@@ -191,7 +191,9 @@ export default function PreferencesSection() {
 
       const { data, error } = await supabase
         .from("preferences")
-        .select("weight_unit, curve, newsletter, newsletter_shop, newsletter_store, survey")
+        .select(
+          "id, weight_unit, curve, newsletter, newsletter_shop, newsletter_store, survey",
+        )
         .eq("id", user.id)
         .maybeSingle()
 
