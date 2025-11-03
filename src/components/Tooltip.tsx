@@ -1,6 +1,13 @@
 "use client";
 
-import React, { ReactNode, useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  ReactElement,
+  ReactNode,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import { createPortal } from "react-dom";
 
 type Props = {
@@ -11,6 +18,7 @@ type Props = {
   offset?: number;
   forceVisible?: boolean;
   disableHover?: boolean;
+  asChild?: boolean;
 };
 
 export default function Tooltip({
@@ -21,13 +29,14 @@ export default function Tooltip({
   offset = 20,
   forceVisible = false,
   disableHover = false,
+  asChild = false,
 }: Props) {
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [coords, setCoords] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const [ready, setReady] = useState(false);
 
-  const triggerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -95,6 +104,66 @@ export default function Tooltip({
     }
   }, [calculatePosition, forceVisible, mounted, visible]);
 
+  const mountTooltip =
+    mounted && (visible || forceVisible) &&
+    createPortal(
+      <div
+        ref={tooltipRef}
+        style={{
+          position: "absolute",
+          top: coords.top,
+          left: coords.left,
+          transform: "translateX(-50%)",
+          zIndex: 9999,
+          opacity: ready ? 1 : 0,
+          pointerEvents: ready ? "auto" : "none",
+          transition: "opacity 0.1s ease",
+        }}
+      >
+        <div className="relative bg-[#2E3142] text-white text-[14px] font-medium px-3 h-[40px] flex items-center justify-center rounded-md shadow-md whitespace-nowrap">
+          {content}
+          <div
+            className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-[#2E3142] rotate-45 ${
+              placement === "top" ? "top-full mt-[-6px]" : "bottom-full mb-[-6px]"
+            }`}
+          />
+        </div>
+      </div>,
+      document.body,
+    );
+
+  const combineHandlers = <T extends React.SyntheticEvent>(
+    ...handlers: Array<((event: T) => void) | undefined>
+  ) =>
+    (event: T) => {
+      handlers.forEach((handler) => {
+        if (handler) {
+          handler(event);
+        }
+      });
+    };
+
+  if (asChild && React.isValidElement(children)) {
+    const child = children as ReactElement;
+    const childProps = {
+      ref: triggerRef,
+      onMouseEnter: disableHover
+        ? child.props.onMouseEnter
+        : combineHandlers(child.props.onMouseEnter, handleMouseEnter),
+      onMouseLeave: disableHover
+        ? child.props.onMouseLeave
+        : combineHandlers(child.props.onMouseLeave, handleMouseLeave),
+      onClick: combineHandlers(child.props.onClick, hideTooltip),
+    };
+
+    return (
+      <>
+        {React.cloneElement(child, childProps)}
+        {mountTooltip}
+      </>
+    );
+  }
+
   return (
     <>
       <div
@@ -106,32 +175,7 @@ export default function Tooltip({
       >
         {children}
       </div>
-
-      {mounted && (visible || forceVisible) && createPortal(
-        <div
-          ref={tooltipRef}
-          style={{
-            position: "absolute",
-            top: coords.top,
-            left: coords.left,
-            transform: "translateX(-50%)",
-            zIndex: 9999,
-            opacity: ready ? 1 : 0,
-            pointerEvents: ready ? "auto" : "none",
-            transition: "opacity 0.1s ease",
-          }}
-        >
-          <div className="relative bg-[#2E3142] text-white text-[14px] font-medium px-3 h-[40px] flex items-center justify-center rounded-md shadow-md whitespace-nowrap">
-            {content}
-            <div
-              className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-[#2E3142] rotate-45 ${
-                placement === "top" ? "top-full mt-[-6px]" : "bottom-full mb-[-6px]"
-              }`}
-            />
-          </div>
-        </div>,
-        document.body
-      )}
+      {mountTooltip}
     </>
   );
 }

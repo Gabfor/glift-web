@@ -272,6 +272,7 @@ export default function DashboardExerciseBlock({
               disableHover
               delay={0}
               offset={16}
+              asChild
             >
               <div
                 style={{
