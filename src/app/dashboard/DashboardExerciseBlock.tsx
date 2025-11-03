@@ -281,7 +281,7 @@ export default function DashboardExerciseBlock({
 <ResponsiveContainer width="100%" height="100%">
   <AreaChart
     data={mockData}
-    margin={{ top: 0, right: 20, left: 0, bottom: 20 }}
+    margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
     onMouseMove={handleMouseMove}
     onMouseLeave={hideTooltip}
   >
