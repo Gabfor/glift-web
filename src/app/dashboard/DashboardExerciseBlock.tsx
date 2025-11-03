@@ -79,18 +79,18 @@ export default function DashboardExerciseBlock({
       </div>
 
       {/* CONTENU principal */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-[20px] px-[30px] py-[25px]">
+      <div className="flex flex-col md:flex-row gap-[20px] md:gap-[30px] px-[30px] py-[25px]">
         {/* Bloc gauche */}
-        <div className="flex flex-col gap-[30px] justify-center h-full">
+        <div className="flex flex-col gap-[30px] justify-center h-full md:w-[430px] flex-shrink-0">
           {/* Bloc "record personnel" */}
-          <div className="flex flex-col justify-center h-[90px]">
+          <div className="flex flex-col justify-center h-[90px] w-full">
             <p className="text-[40px] font-bold text-[#2E3271] leading-none">25 kg</p>
             <p className="text-[#3A416F] font-bold text-[14px] mt-2">Record personnel</p>
             <p className="text-[#C2BFC6] text-[12px] mt-1">01 Février 2026</p>
           </div>
 
           {/* Bloc "Atteinte de l’objectif" */}
-          <div className="flex items-center gap-4 h-[90px]">
+          <div className="flex items-center gap-4 h-[90px] w-full">
             <div className="relative w-[70px] h-[70px] flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <path
@@ -135,7 +135,7 @@ export default function DashboardExerciseBlock({
         </div>
 
         {/* Bloc droit : graphique */}
-        <div className="h-[220px] w-full flex items-center justify-center">
+        <div className="h-[220px] w-full md:flex-1 flex items-center justify-center">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={mockData}>
               <defs>
