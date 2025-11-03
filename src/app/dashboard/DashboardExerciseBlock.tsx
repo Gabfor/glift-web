@@ -105,7 +105,7 @@ export default function DashboardExerciseBlock({
     setTooltipState({
       visible: true,
       label: typeof activeLabel === "string" ? activeLabel : "",
-      value: Number(activePayload[0].value ?? 0),
+      value: Number(activePayload?.[0]?.value ?? 0),
       x: activeCoordinate.x,
       y: activeCoordinate.y,
     });
