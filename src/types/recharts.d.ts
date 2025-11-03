@@ -11,3 +11,17 @@ declare module "recharts" {
   export const ResponsiveContainer: React.ComponentType<RechartsProps>;
   export const CartesianGrid: React.ComponentType<RechartsProps>;
 }
+
+declare module "recharts/types/chart/generateCategoricalChart" {
+  export interface CategoricalChartState {
+    isTooltipActive?: boolean;
+    activePayload?: Array<{ value?: number | string | null } | undefined>;
+    activeCoordinate?: {
+      x: number;
+      y: number;
+    };
+    chartX?: number;
+    chartY?: number;
+    activeLabel?: string | number;
+  }
+}
