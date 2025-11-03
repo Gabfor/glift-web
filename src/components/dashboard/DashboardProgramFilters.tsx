@@ -267,7 +267,7 @@ export default function DashboardProgramFilters({
       <button
         type="button"
         onClick={() => onShowStatsChange?.(!showStats)}
-        className="ml-auto self-end h-10 border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+        className="ml-auto self-end h-10 min-w-[200px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
         aria-pressed={showStats}
       >
         <div className="flex items-center gap-2">
