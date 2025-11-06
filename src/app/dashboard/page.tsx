@@ -32,6 +32,11 @@ type ExerciseDisplaySettings = Record<
   { sessionCount: SessionValue; curveType: CurveOptionValue }
 >;
 
+type ParsedExercisePreferences = {
+  settings: ExerciseDisplaySettings;
+  selectedExerciseId: string;
+};
+
 type DashboardPreferencesRow =
   Database["public"]["Tables"]["dashboard_preferences"]["Row"];
 type DashboardPreferencesInsert =
@@ -45,36 +50,77 @@ const isCurveValue = (value: unknown): value is CurveOptionValue =>
   typeof value === "string" &&
   CURVE_OPTIONS.some((option) => option.value === value);
 
-const parseExerciseSettings = (value: unknown): ExerciseDisplaySettings => {
+const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
+  const empty: ParsedExercisePreferences = { settings: {}, selectedExerciseId: "" };
+
+  const parseSettingsRecord = (input: unknown): ExerciseDisplaySettings => {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return {};
+    }
+
+    return Object.entries(input as Record<string, unknown>).reduce<
+      ExerciseDisplaySettings
+    >((accumulator, [exerciseId, rawSettings]) => {
+      if (!rawSettings || typeof rawSettings !== "object" || Array.isArray(rawSettings)) {
+        return accumulator;
+      }
+
+      const { sessionCount, curveType } = rawSettings as {
+        sessionCount?: unknown;
+        curveType?: unknown;
+      };
+
+      if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
+        return accumulator;
+      }
+
+      return {
+        ...accumulator,
+        [exerciseId]: {
+          sessionCount,
+          curveType,
+        },
+      };
+    }, {});
+  };
+
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return {};
+    return empty;
   }
 
-  return Object.entries(value as Record<string, unknown>).reduce<
-    ExerciseDisplaySettings
-  >((accumulator, [exerciseId, settings]) => {
-    if (!settings || typeof settings !== "object" || Array.isArray(settings)) {
-      return accumulator;
-    }
+  const rawValue = value as Record<string, unknown>;
+  const maybeSelectedExercise = rawValue.selectedExerciseId;
+  const maybeExercises = rawValue.exercises;
 
-    const { sessionCount, curveType } = settings as {
-      sessionCount?: unknown;
-      curveType?: unknown;
-    };
-
-    if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
-      return accumulator;
-    }
-
+  if (
+    typeof maybeSelectedExercise === "string" ||
+    typeof maybeSelectedExercise === "number" ||
+    maybeSelectedExercise === null
+  ) {
     return {
-      ...accumulator,
-      [exerciseId]: {
-        sessionCount,
-        curveType,
-      },
+      settings: parseSettingsRecord(maybeExercises ?? {}),
+      selectedExerciseId:
+        typeof maybeSelectedExercise === "number"
+          ? String(maybeSelectedExercise)
+          : typeof maybeSelectedExercise === "string"
+            ? maybeSelectedExercise
+            : "",
     };
-  }, {});
+  }
+
+  return {
+    settings: parseSettingsRecord(rawValue),
+    selectedExerciseId: "",
+  };
 };
+
+const buildExerciseSettingsPayload = (
+  settings: ExerciseDisplaySettings,
+  selectedExerciseId: string,
+) => ({
+  selectedExerciseId: selectedExerciseId || null,
+  exercises: settings,
+});
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -165,6 +211,7 @@ export default function DashboardPage() {
         console.error("Erreur lors du chargement des préférences du tableau de bord :", error.message);
         setSelectedProgram("");
         setSelectedTraining("");
+        setSelectedExercise("");
         setExerciseDisplaySettings({});
         setShowStats(false);
       } else {
@@ -172,10 +219,9 @@ export default function DashboardPage() {
 
         setSelectedProgram(preferences?.selected_program_id ?? "");
         setSelectedTraining(preferences?.selected_training_id ?? "");
-        setSelectedExercise("");
-        setExerciseDisplaySettings(
-          parseExerciseSettings(preferences?.exercise_settings),
-        );
+        const parsedPreferences = parseExerciseSettings(preferences?.exercise_settings);
+        setSelectedExercise(parsedPreferences.selectedExerciseId);
+        setExerciseDisplaySettings(parsedPreferences.settings);
         setShowStats(Boolean(preferences?.show_stats));
       }
 
@@ -197,7 +243,10 @@ export default function DashboardPage() {
         user_id: user.id,
         selected_program_id: selectedProgram || null,
         selected_training_id: selectedTraining || null,
-        exercise_settings: exerciseDisplaySettings,
+        exercise_settings: buildExerciseSettingsPayload(
+          exerciseDisplaySettings,
+          selectedExercise,
+        ),
         show_stats: showStats,
         updated_at: new Date().toISOString(),
       };
@@ -217,6 +266,7 @@ export default function DashboardPage() {
     hasLoadedPreferences,
     selectedProgram,
     selectedTraining,
+    selectedExercise,
     showStats,
     supabase,
     user?.id,

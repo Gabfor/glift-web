@@ -309,7 +309,7 @@ export default function DashboardProgramFilters({
           className="min-w-[240px]"
         />
         <DropdownFilter
-          label="Entraînements"
+          label="Entraînement"
           placeholder={trainingPlaceholder}
           options={trainingOptions}
           selected={selectedTraining}
