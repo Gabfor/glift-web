@@ -226,15 +226,10 @@ export default function DashboardProgramFilters({
     ) {
       onTrainingChange?.("");
     }
-    if (selectedExercise) {
-      onExerciseChange?.("");
-    }
   }, [
     hasFetchedTrainings,
     loadingTrainings,
-    onExerciseChange,
     onTrainingChange,
-    selectedExercise,
     selectedTraining,
     trainingOptions,
   ]);
@@ -334,6 +329,7 @@ export default function DashboardProgramFilters({
           }}
           className="min-w-[240px]"
           disabled={isExerciseDisabled}
+          sortOptions={false}
         />
       </div>
       <button
