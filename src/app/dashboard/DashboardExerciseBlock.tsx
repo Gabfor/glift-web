@@ -12,7 +12,6 @@ import {
 import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import Tooltip from "@/components/Tooltip";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
@@ -181,13 +180,30 @@ export default function DashboardExerciseBlock({
     });
   }, [hideTooltip]);
 
-  const tooltipContent = useMemo(() => {
+  const tooltipContent = useMemo<React.ReactNode | null>(() => {
     if (!tooltipState.visible) {
-      return "";
+      return null;
     }
-    const label = tooltipState.label;
-    const value = tooltipState.value;
-    return label ? `${label} · ${value} kg` : `${value} kg`;
+
+    const { day, month } = splitDateLabel(tooltipState.label);
+    const dateLabel = tooltipState.label && month ? (
+      <span className="text-[12px] font-semibold leading-[14px] text-white">
+        {day} {month}
+      </span>
+    ) : (
+      <span className="text-[12px] font-semibold leading-[14px] text-white">
+        {tooltipState.label}
+      </span>
+    );
+
+    return (
+      <div className="flex flex-col items-center">
+        {dateLabel}
+        <span className="mt-[4px] text-[16px] font-bold leading-[16px] text-white">
+          {tooltipState.value.toLocaleString("fr-FR")} kg
+        </span>
+      </div>
+    );
   }, [tooltipState]);
 
   return (
@@ -339,27 +355,23 @@ export default function DashboardExerciseBlock({
     />
   </AreaChart>
 </ResponsiveContainer>
-            <Tooltip
-              key={`${tooltipState.label}-${tooltipState.x}-${tooltipState.y}-${tooltipState.visible}`}
-              content={tooltipContent}
-              forceVisible={tooltipState.visible}
-              disableHover
-              delay={0}
-              offset={16}
-              asChild
-            >
+            {tooltipState.visible && tooltipContent && (
               <div
                 style={{
                   position: "absolute",
                   left: tooltipState.x,
                   top: tooltipState.y,
-                  width: 1,
-                  height: 1,
+                  transform: "translate(-50%, -100%) translateY(-18px)",
                   pointerEvents: "none",
-                  transform: "translate(-50%, -50%)",
+                  zIndex: 5,
                 }}
-              />
-            </Tooltip>
+              >
+                <div className="relative flex flex-col items-center rounded-[8px] bg-[#2E3142] px-[12px] py-[10px] shadow-md">
+                  {tooltipContent}
+                  <span className="absolute left-1/2 top-full h-[14px] w-[14px] -translate-x-1/2 -translate-y-[2px] rotate-45 bg-[#2E3142]" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
