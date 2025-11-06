@@ -19,6 +19,7 @@ type DropdownFilterProps = {
   onSelect: (value: string) => void;
   className?: string;
   disabled?: boolean;
+  sortOptions?: boolean;
 };
 
 export default function DropdownFilter({
@@ -29,6 +30,7 @@ export default function DropdownFilter({
   onSelect,
   className,
   disabled = false,
+  sortOptions = true,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -37,24 +39,28 @@ export default function DropdownFilter({
   const measurementTextRef = useRef<HTMLSpanElement>(null);
   const [calculatedWidth, setCalculatedWidth] = useState<number>();
 
-  const sortedOptions = useMemo(
-    () =>
-      [...options].sort((a, b) =>
-        a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
-      ),
-    [options]
-  );
+  const preparedOptions = useMemo(() => {
+    const clonedOptions = [...options];
+
+    if (!sortOptions) {
+      return clonedOptions;
+    }
+
+    return clonedOptions.sort((a, b) =>
+      a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+    );
+  }, [options, sortOptions]);
 
   const isPlaceholder = selected === "";
   const selectedOption = isPlaceholder
     ? undefined
-    : sortedOptions.find((option) => option.value === selected);
+    : preparedOptions.find((option) => option.value === selected);
   const selectedLabel = isPlaceholder
     ? placeholder
     : selectedOption?.label ?? placeholder;
   const hasIcons = useMemo(
-    () => sortedOptions.some((option) => option.iconSrc),
-    [sortedOptions]
+    () => preparedOptions.some((option) => option.iconSrc),
+    [preparedOptions]
   );
 
   useLayoutEffect(() => {
@@ -65,7 +71,7 @@ export default function DropdownFilter({
 
       const labelsToMeasure = new Set<string>([
         placeholder,
-        ...sortedOptions.map((option) => option.label),
+        ...preparedOptions.map((option) => option.label),
       ]);
 
       if (!isPlaceholder) {
@@ -93,7 +99,7 @@ export default function DropdownFilter({
     return () => {
       window.removeEventListener("resize", updateWidth);
     };
-  }, [hasIcons, isPlaceholder, placeholder, selectedLabel, sortedOptions]);
+  }, [hasIcons, isPlaceholder, placeholder, preparedOptions, selectedLabel]);
 
   useEffect(() => {
     if (!open) {
@@ -255,7 +261,7 @@ export default function DropdownFilter({
           className="absolute left-0 mt-20 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]"
         >
           <div className="flex flex-col">
-            {sortedOptions.map((option) => (
+            {preparedOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
