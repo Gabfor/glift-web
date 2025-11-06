@@ -155,7 +155,9 @@ export default function DashboardPage() {
   );
 
   const shouldShowSkeleton =
-    isLoadingFilters || (selectedTraining !== "" && isLoadingExercises);
+    isLoadingFilters ||
+    !hasLoadedPreferences ||
+    (selectedTraining !== "" && isLoadingExercises);
 
   useEffect(() => {
     if (
@@ -196,7 +198,7 @@ export default function DashboardPage() {
       setSelectedExercise("");
       setExerciseDisplaySettings({});
       setShowStats(false);
-      setHasLoadedPreferences(false);
+      setHasLoadedPreferences(true);
       return;
     }
 
