@@ -39,6 +39,7 @@ type DashboardProgramFiltersProps = {
   loadingExercises?: boolean;
   showStats?: boolean;
   onShowStatsChange?: (showStats: boolean) => void;
+  onLoadingFiltersChange?: (loading: boolean) => void;
 };
 
 export default function DashboardProgramFilters({
@@ -52,13 +53,14 @@ export default function DashboardProgramFilters({
   loadingExercises = false,
   showStats = false,
   onShowStatsChange,
+  onLoadingFiltersChange,
 }: DashboardProgramFiltersProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
   const [programOptions, setProgramOptions] = useState<FilterOption[]>([]);
   const [trainingOptions, setTrainingOptions] = useState<FilterOption[]>([]);
-  const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
   const [hasFetchedTrainings, setHasFetchedTrainings] = useState(false);
 
@@ -287,6 +289,12 @@ export default function DashboardProgramFilters({
     return "Sélectionnez un exercice";
   })();
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
+
+  const filtersLoading = loadingPrograms || loadingTrainings || loadingExercises;
+
+  useEffect(() => {
+    onLoadingFiltersChange?.(filtersLoading);
+  }, [filtersLoading, onLoadingFiltersChange]);
 
   return (
     <div className="mt-10 flex flex-wrap items-center gap-4">
