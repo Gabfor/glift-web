@@ -358,7 +358,7 @@ export default function DashboardProgramFilters({
               height={16}
             />
           </div>
-          <span className="ml-2 flex-1 text-center">
+          <span className="ml-2 flex-1 text-left whitespace-nowrap">
             {showStats ? "Masquer les stats" : "Afficher les stats"}
           </span>
           <div className="w-4" aria-hidden />
