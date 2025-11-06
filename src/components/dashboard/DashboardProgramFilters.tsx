@@ -339,30 +339,16 @@ export default function DashboardProgramFilters({
       <button
         type="button"
         onClick={() => onShowStatsChange?.(!showStats)}
-        className="relative ml-auto self-end h-10 border border-[#D7D4DC] rounded-[5px] px-3 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+        className="ml-auto self-end h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
         aria-pressed={showStats}
       >
-        <div
-          className="flex items-center gap-2 opacity-0 pointer-events-none select-none whitespace-nowrap"
-          aria-hidden
-        >
-          <Image src={StatsRedIcon} alt="" width={16} height={16} />
-          <span>Masquer les stats</span>
-        </div>
-        <div className="absolute inset-0 flex items-center px-3">
-          <div className="flex w-4 justify-center">
-            <Image
-              src={showStats ? StatsRedIcon : StatsGreenIcon}
-              alt=""
-              width={16}
-              height={16}
-            />
-          </div>
-          <span className="ml-2 flex-1 text-left whitespace-nowrap">
-            {showStats ? "Masquer les stats" : "Afficher les stats"}
-          </span>
-          <div className="w-4" aria-hidden />
-        </div>
+        <Image
+          src={showStats ? StatsRedIcon : StatsGreenIcon}
+          alt=""
+          width={16}
+          height={16}
+        />
+        <span>{showStats ? "Masquer les stats" : "Afficher les stats"}</span>
       </button>
     </div>
   );
