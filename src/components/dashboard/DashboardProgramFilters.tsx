@@ -277,14 +277,19 @@ export default function DashboardProgramFilters({
           <Image src={StatsRedIcon} alt="" width={16} height={16} />
           <span>Masquer les stats</span>
         </div>
-        <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
-          <Image
-            src={showStats ? StatsRedIcon : StatsGreenIcon}
-            alt=""
-            width={16}
-            height={16}
-          />
-          <span>{showStats ? "Masquer les stats" : "Afficher les stats"}</span>
+        <div className="absolute inset-0 flex items-center px-3">
+          <div className="flex w-4 justify-center">
+            <Image
+              src={showStats ? StatsRedIcon : StatsGreenIcon}
+              alt=""
+              width={16}
+              height={16}
+            />
+          </div>
+          <span className="ml-2 flex-1 text-center">
+            {showStats ? "Masquer les stats" : "Afficher les stats"}
+          </span>
+          <div className="w-4" aria-hidden />
         </div>
       </button>
     </div>
