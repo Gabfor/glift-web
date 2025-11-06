@@ -9,10 +9,10 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import Tooltip from "@/components/Tooltip";
+import React from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -122,89 +122,43 @@ export default function DashboardExerciseBlock({
   onSessionChange,
   onCurveChange,
 }: DashboardExerciseBlockProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const [tooltipState, setTooltipState] = useState<{
-    visible: boolean;
-    label: string;
-    value: number;
-    x: number;
-    y: number;
-  }>({ visible: false, label: "", value: 0, x: 0, y: 0 });
+  const renderDot = React.useCallback(
+    (props: {
+      cx?: number;
+      cy?: number;
+      value?: number;
+      payload?: { date?: string };
+    }) => {
+      const { cx, cy, value, payload } = props;
 
-  const hideTooltip = useCallback(() => {
-    setTooltipState((prev) =>
-      prev.visible ? { ...prev, visible: false } : prev,
-    );
-  }, []);
+      if (
+        typeof cx !== "number" ||
+        typeof cy !== "number" ||
+        typeof value !== "number"
+      ) {
+        return null;
+      }
 
-  const handleMouseMove = useCallback((state: CategoricalChartState | undefined) => {
-    if (!chartContainerRef.current || !state) {
-      hideTooltip();
-      return;
-    }
+      const { day, month } = splitDateLabel(payload?.date ?? "");
+      const dateLabel = month ? `${day} ${month}` : payload?.date ?? "";
+      const tooltipLabel = `${dateLabel} · ${value.toLocaleString("fr-FR")} kg`;
 
-    const { isTooltipActive, activePayload, activeCoordinate, activeLabel } = state;
-
-    if (
-      !isTooltipActive ||
-      !activePayload?.length ||
-      !activeCoordinate ||
-      typeof activeCoordinate.x !== "number" ||
-      typeof activeCoordinate.y !== "number"
-    ) {
-      hideTooltip();
-      return;
-    }
-
-    const svgElement = chartContainerRef.current.querySelector<SVGSVGElement>(
-      "svg.recharts-surface",
-    );
-
-    let tooltipX = activeCoordinate.x;
-    let tooltipY = activeCoordinate.y;
-
-    if (svgElement) {
-      const containerRect = chartContainerRef.current.getBoundingClientRect();
-      const svgRect = svgElement.getBoundingClientRect();
-
-      tooltipX += svgRect.left - containerRect.left;
-      tooltipY += svgRect.top - containerRect.top;
-    }
-
-    setTooltipState({
-      visible: true,
-      label: typeof activeLabel === "string" ? activeLabel : "",
-      value: Number(activePayload?.[0]?.value ?? 0),
-      x: tooltipX,
-      y: tooltipY,
-    });
-  }, [hideTooltip]);
-
-  const tooltipContent = useMemo<React.ReactNode | null>(() => {
-    if (!tooltipState.visible) {
-      return null;
-    }
-
-    const { day, month } = splitDateLabel(tooltipState.label);
-    const dateLabel = tooltipState.label && month ? (
-      <span className="text-[12px] font-semibold leading-[14px] text-white">
-        {day} {month}
-      </span>
-    ) : (
-      <span className="text-[12px] font-semibold leading-[14px] text-white">
-        {tooltipState.label}
-      </span>
-    );
-
-    return (
-      <div className="flex flex-col items-center">
-        {dateLabel}
-        <span className="mt-[4px] text-[16px] font-bold leading-[16px] text-white">
-          {tooltipState.value.toLocaleString("fr-FR")} kg
-        </span>
-      </div>
-    );
-  }, [tooltipState]);
+      return (
+        <Tooltip content={tooltipLabel} delay={1000} asChild>
+          <circle
+            cx={cx}
+            cy={cy}
+            r={4}
+            stroke="#fff"
+            strokeWidth={1}
+            fill="#7069FA"
+            style={{ cursor: "pointer" }}
+          />
+        </Tooltip>
+      );
+    },
+    [],
+  );
 
   return (
     <div className="w-full bg-white border border-[#ECE9F1] rounded-[8px] shadow-glift overflow-hidden">
@@ -287,91 +241,61 @@ export default function DashboardExerciseBlock({
 
         {/* Bloc droit : Graphique */}
         <div className="h-[220px] w-full md:flex-1">
-          <div
-            ref={chartContainerRef}
-            className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
-          >
-<ResponsiveContainer width="100%" height="100%">
-  <AreaChart
-    data={mockData}
-    margin={CHART_MARGIN}
-    onMouseMove={handleMouseMove}
-    onMouseLeave={hideTooltip}
-  >
-    <defs>
-      <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
-        <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
-      </linearGradient>
-    </defs>
+          <div className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={mockData} margin={CHART_MARGIN}>
+                <defs>
+                  <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
+                    <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
 
-    <CartesianGrid
-      stroke="#ECE9F1"
-      strokeWidth={1}
-      strokeDasharray="0"
-      vertical={false}
-    />
+                <CartesianGrid
+                  stroke="#ECE9F1"
+                  strokeWidth={1}
+                  strokeDasharray="0"
+                  vertical={false}
+                />
 
-    <XAxis
-      dataKey="date"
-      tick={renderDateAxisTick}
-      tickMargin={18}
-      axisLine={false}
-      tickLine={false}
-      interval={0}
-    />
+                <XAxis
+                  dataKey="date"
+                  tick={renderDateAxisTick}
+                  tickMargin={18}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                />
 
-    <YAxis
-      domain={["dataMin - 1", "dataMax + 1"]}
-      tick={renderWeightAxisTick}
-      width={Y_AXIS_WIDTH}
-      tickMargin={8}
-      axisLine={false}
-      tickLine={false}
-      mirror={false}
-      orientation="left"
-      padding={{ top: 0, bottom: 0 }}
-    />
+                <YAxis
+                  domain={["dataMin - 1", "dataMax + 1"]}
+                  tick={renderWeightAxisTick}
+                  width={Y_AXIS_WIDTH}
+                  tickMargin={8}
+                  axisLine={false}
+                  tickLine={false}
+                  mirror={false}
+                  orientation="left"
+                  padding={{ top: 0, bottom: 0 }}
+                />
 
-    <Area
-      type="monotone"
-      dataKey="value"
-      stroke="#A1A5FD"
-      strokeWidth={1}
-      fillOpacity={1}
-      fill={`url(#gradient-${id})`}
-      dot={{
-        r: 4,
-        stroke: "#fff",
-        strokeWidth: 1,
-        fill: "#7069FA",
-      }}
-      activeDot={{
-        r: 5,
-        fill: "#7069FA",
-        stroke: "#fff",
-        strokeWidth: 1,
-      }}
-    />
-  </AreaChart>
-</ResponsiveContainer>
-            {tooltipState.visible && tooltipContent && (
-              <div
-                style={{
-                  position: "absolute",
-                  left: tooltipState.x,
-                  top: tooltipState.y,
-                  transform: "translate(-50%, -100%) translateY(-18px)",
-                  pointerEvents: "none",
-                  zIndex: 5,
-                }}
-              >
-                <div className="relative flex flex-col items-center rounded-[8px] bg-[#2E3142] px-[12px] py-[10px] shadow-md">
-                  {tooltipContent}
-                  <span className="absolute left-1/2 top-full h-[14px] w-[14px] -translate-x-1/2 -translate-y-[2px] rotate-45 bg-[#2E3142]" />
-                </div>
-              </div>
-            )}
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#A1A5FD"
+                  strokeWidth={1}
+                  fillOpacity={1}
+                  fill={`url(#gradient-${id})`}
+                  dot={renderDot}
+                  activeDot={{
+                    r: 5,
+                    fill: "#7069FA",
+                    stroke: "#fff",
+                    strokeWidth: 1,
+                  }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
