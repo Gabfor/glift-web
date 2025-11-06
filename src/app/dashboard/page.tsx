@@ -88,6 +88,33 @@ export default function DashboardPage() {
   const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<ExerciseDisplaySettings>({});
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
+  const [selectedExercise, setSelectedExercise] = useState("");
+
+  const exerciseOptions = useMemo(
+    () =>
+      trainingExercises.map((exercise) => ({
+        value: exercise.id,
+        label: exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL,
+      })),
+    [trainingExercises],
+  );
+
+  const filteredExercises = useMemo(
+    () =>
+      selectedExercise
+        ? trainingExercises.filter((exercise) => exercise.id === selectedExercise)
+        : trainingExercises,
+    [selectedExercise, trainingExercises],
+  );
+
+  useEffect(() => {
+    if (
+      selectedExercise &&
+      !trainingExercises.some((exercise) => exercise.id === selectedExercise)
+    ) {
+      setSelectedExercise("");
+    }
+  }, [selectedExercise, trainingExercises]);
 
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
@@ -116,6 +143,7 @@ export default function DashboardPage() {
     if (!user?.id) {
       setSelectedProgram("");
       setSelectedTraining("");
+      setSelectedExercise("");
       setExerciseDisplaySettings({});
       setShowStats(false);
       setHasLoadedPreferences(false);
@@ -144,6 +172,7 @@ export default function DashboardPage() {
 
         setSelectedProgram(preferences?.selected_program_id ?? "");
         setSelectedTraining(preferences?.selected_training_id ?? "");
+        setSelectedExercise("");
         setExerciseDisplaySettings(
           parseExerciseSettings(preferences?.exercise_settings),
         );
@@ -251,10 +280,21 @@ export default function DashboardPage() {
         </div>
 
         <DashboardProgramFilters
-          onProgramChange={setSelectedProgram}
-          onTrainingChange={setSelectedTraining}
+          onProgramChange={(programId) => {
+            setSelectedProgram(programId);
+            setSelectedTraining("");
+            setSelectedExercise("");
+          }}
+          onTrainingChange={(trainingId) => {
+            setSelectedTraining(trainingId);
+            setSelectedExercise("");
+          }}
+          onExerciseChange={setSelectedExercise}
           selectedProgramId={selectedProgram}
           selectedTrainingId={selectedTraining}
+          selectedExerciseId={selectedExercise}
+          exerciseOptions={exerciseOptions}
+          loadingExercises={isLoadingExercises}
           showStats={showStats}
           onShowStatsChange={setShowStats}
         />
@@ -277,9 +317,13 @@ export default function DashboardPage() {
               <p className="text-center text-[#5D6494] font-semibold">
                 Aucun exercice n&apos;a été trouvé pour cet entraînement.
               </p>
+            ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
+              <p className="text-center text-[#5D6494] font-semibold">
+                Aucun exercice ne correspond à votre sélection.
+              </p>
             ) : (
               <div className="space-y-[30px]">
-                {trainingExercises.map((exercise) => {
+                {filteredExercises.map((exercise) => {
                   const settings = getExerciseSettings(exercise.id);
                   return (
                     <DashboardExerciseBlock
