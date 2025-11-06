@@ -31,8 +31,12 @@ type TrainingRow = {
 type DashboardProgramFiltersProps = {
   onProgramChange?: (programId: string) => void;
   onTrainingChange?: (trainingId: string) => void;
+  onExerciseChange?: (exerciseId: string) => void;
   selectedProgramId?: string;
   selectedTrainingId?: string;
+  selectedExerciseId?: string;
+  exerciseOptions?: FilterOption[];
+  loadingExercises?: boolean;
   showStats?: boolean;
   onShowStatsChange?: (showStats: boolean) => void;
 };
@@ -40,8 +44,12 @@ type DashboardProgramFiltersProps = {
 export default function DashboardProgramFilters({
   onProgramChange,
   onTrainingChange,
+  onExerciseChange,
   selectedProgramId = "",
   selectedTrainingId = "",
+  selectedExerciseId = "",
+  exerciseOptions = [],
+  loadingExercises = false,
   showStats = false,
   onShowStatsChange,
 }: DashboardProgramFiltersProps) {
@@ -56,6 +64,7 @@ export default function DashboardProgramFilters({
 
   const selectedProgram = selectedProgramId;
   const selectedTraining = selectedTrainingId;
+  const selectedExercise = selectedExerciseId;
 
   useEffect(() => {
     let isMounted = true;
@@ -130,6 +139,9 @@ export default function DashboardProgramFilters({
       if (selectedTraining) {
         onTrainingChange?.("");
       }
+      if (selectedExercise) {
+        onExerciseChange?.("");
+      }
       return () => {
         isMounted = false;
       };
@@ -159,6 +171,9 @@ export default function DashboardProgramFilters({
         if (selectedTraining) {
           onTrainingChange?.("");
         }
+        if (selectedExercise) {
+          onExerciseChange?.("");
+        }
       } else {
         const trainings = data ?? [];
         const options = trainings.map((training) => ({
@@ -178,7 +193,14 @@ export default function DashboardProgramFilters({
     return () => {
       isMounted = false;
     };
-  }, [onTrainingChange, selectedProgram, selectedTraining, supabase]);
+  }, [
+    onExerciseChange,
+    onTrainingChange,
+    selectedExercise,
+    selectedProgram,
+    selectedTraining,
+    supabase,
+  ]);
 
   useEffect(() => {
     if (loadingPrograms) {
@@ -204,13 +226,32 @@ export default function DashboardProgramFilters({
     ) {
       onTrainingChange?.("");
     }
+    if (selectedExercise) {
+      onExerciseChange?.("");
+    }
   }, [
     hasFetchedTrainings,
     loadingTrainings,
+    onExerciseChange,
     onTrainingChange,
+    selectedExercise,
     selectedTraining,
     trainingOptions,
   ]);
+
+  useEffect(() => {
+    if (!selectedTraining && selectedExercise) {
+      onExerciseChange?.("");
+      return;
+    }
+
+    if (
+      selectedExercise &&
+      !exerciseOptions.some((option) => option.value === selectedExercise)
+    ) {
+      onExerciseChange?.("");
+    }
+  }, [exerciseOptions, onExerciseChange, selectedExercise, selectedTraining]);
 
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {
@@ -235,6 +276,22 @@ export default function DashboardProgramFilters({
   })();
 
   const isTrainingDisabled = selectedProgram === "";
+  const exercisePlaceholder = (() => {
+    if (!selectedTraining) {
+      return "Sélectionnez un exercice";
+    }
+
+    if (loadingExercises) {
+      return "Chargement des exercices...";
+    }
+
+    if (exerciseOptions.length === 0) {
+      return "Aucun exercice disponible";
+    }
+
+    return "Sélectionnez un exercice";
+  })();
+  const isExerciseDisabled = selectedTraining === "" || loadingExercises;
 
   return (
     <div className="mt-10 flex flex-wrap items-center gap-4">
@@ -247,6 +304,7 @@ export default function DashboardProgramFilters({
           onSelect={(value) => {
             onProgramChange?.(value);
             onTrainingChange?.("");
+            onExerciseChange?.("");
           }}
           className="min-w-[240px]"
         />
@@ -259,9 +317,23 @@ export default function DashboardProgramFilters({
             if (onTrainingChange) {
               onTrainingChange(value);
             }
+            onExerciseChange?.("");
           }}
           className="min-w-[240px]"
           disabled={isTrainingDisabled}
+        />
+        <DropdownFilter
+          label="Exercice"
+          placeholder={exercisePlaceholder}
+          options={exerciseOptions}
+          selected={selectedExercise}
+          onSelect={(value) => {
+            if (onExerciseChange) {
+              onExerciseChange(value);
+            }
+          }}
+          className="min-w-[240px]"
+          disabled={isExerciseDisabled}
         />
       </div>
       <button
