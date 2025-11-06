@@ -144,44 +144,40 @@ export default function DashboardExerciseBlock({
       return;
     }
 
-    const {
-      isTooltipActive,
-      activePayload,
-      activeCoordinate,
-      chartX,
-      chartY,
-      activeLabel,
-    } = state;
+    const { isTooltipActive, activePayload, activeCoordinate, activeLabel } = state;
 
     if (
       !isTooltipActive ||
       !activePayload?.length ||
       !activeCoordinate ||
-      typeof chartX !== "number" ||
-      typeof chartY !== "number"
+      typeof activeCoordinate.x !== "number" ||
+      typeof activeCoordinate.y !== "number"
     ) {
       hideTooltip();
       return;
     }
 
-    const distance = Math.sqrt(
-      Math.pow(chartX - activeCoordinate.x, 2) +
-        Math.pow(chartY - activeCoordinate.y, 2),
+    const svgElement = chartContainerRef.current.querySelector<SVGSVGElement>(
+      "svg.recharts-surface",
     );
 
-    const isHoveringDot = distance <= 12;
+    let tooltipX = activeCoordinate.x;
+    let tooltipY = activeCoordinate.y;
 
-    if (!isHoveringDot) {
-      hideTooltip();
-      return;
+    if (svgElement) {
+      const containerRect = chartContainerRef.current.getBoundingClientRect();
+      const svgRect = svgElement.getBoundingClientRect();
+
+      tooltipX += svgRect.left - containerRect.left;
+      tooltipY += svgRect.top - containerRect.top;
     }
 
     setTooltipState({
       visible: true,
       label: typeof activeLabel === "string" ? activeLabel : "",
       value: Number(activePayload?.[0]?.value ?? 0),
-      x: activeCoordinate.x,
-      y: activeCoordinate.y,
+      x: tooltipX,
+      y: tooltipY,
     });
   }, [hideTooltip]);
 
