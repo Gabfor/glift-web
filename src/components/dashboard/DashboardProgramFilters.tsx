@@ -274,8 +274,8 @@ export default function DashboardProgramFilters({
           className="flex items-center gap-2 opacity-0 pointer-events-none select-none whitespace-nowrap"
           aria-hidden
         >
-          <Image src={StatsGreenIcon} alt="" width={16} height={16} />
-          <span>Afficher les stats</span>
+          <Image src={StatsRedIcon} alt="" width={16} height={16} />
+          <span>Masquer les stats</span>
         </div>
         <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
           <Image
