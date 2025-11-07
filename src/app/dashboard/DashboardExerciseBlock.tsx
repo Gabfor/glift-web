@@ -139,52 +139,35 @@ export default function DashboardExerciseBlock({
     );
   }, []);
 
-  const handleMouseMove = useCallback((state: CategoricalChartState | undefined) => {
-    if (!chartContainerRef.current || !state) {
-      hideTooltip();
-      return;
-    }
+  const handleMouseMove = useCallback(
+    (state: CategoricalChartState | undefined) => {
+      if (!chartContainerRef.current || !state) {
+        hideTooltip();
+        return;
+      }
 
-    const {
-      isTooltipActive,
-      activePayload,
-      activeCoordinate,
-      chartX,
-      chartY,
-      activeLabel,
-    } = state;
+      const {
+        isTooltipActive,
+        activePayload,
+        activeCoordinate,
+        activeLabel,
+      } = state;
 
-    if (
-      !isTooltipActive ||
-      !activePayload?.length ||
-      !activeCoordinate ||
-      typeof chartX !== "number" ||
-      typeof chartY !== "number"
-    ) {
-      hideTooltip();
-      return;
-    }
+      if (!isTooltipActive || !activePayload?.length || !activeCoordinate) {
+        hideTooltip();
+        return;
+      }
 
-    const distance = Math.sqrt(
-      Math.pow(chartX - activeCoordinate.x, 2) +
-        Math.pow(chartY - activeCoordinate.y, 2),
-    );
-
-    const isHoveringDot = distance <= 12;
-
-    if (!isHoveringDot) {
-      hideTooltip();
-      return;
-    }
-
-    setTooltipState({
-      visible: true,
-      label: typeof activeLabel === "string" ? activeLabel : "",
-      value: Number(activePayload?.[0]?.value ?? 0),
-      x: activeCoordinate.x,
-      y: activeCoordinate.y,
-    });
-  }, [hideTooltip]);
+      setTooltipState({
+        visible: true,
+        label: typeof activeLabel === "string" ? activeLabel : "",
+        value: Number(activePayload?.[0]?.value ?? 0),
+        x: activeCoordinate.x,
+        y: activeCoordinate.y,
+      });
+    },
+    [hideTooltip],
+  );
 
   const tooltipContent = useMemo(() => {
     if (!tooltipState.visible) {
