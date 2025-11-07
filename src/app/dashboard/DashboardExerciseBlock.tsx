@@ -169,6 +169,17 @@ export default function DashboardExerciseBlock({
     [hideTooltip],
   );
 
+  const handleMouseEnter = useCallback(
+    (state: CategoricalChartState | undefined) => {
+      if (!state) {
+        return;
+      }
+
+      handleMouseMove(state);
+    },
+    [handleMouseMove],
+  );
+
   const tooltipContent = useMemo(() => {
     if (!tooltipState.visible) {
       return "";
@@ -304,6 +315,7 @@ export default function DashboardExerciseBlock({
                 <AreaChart
                   data={mockData}
                   margin={CHART_MARGIN}
+                  onMouseEnter={handleMouseEnter}
                   onMouseMove={handleMouseMove}
                   onMouseLeave={hideTooltip}
                 >
