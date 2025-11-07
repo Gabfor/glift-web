@@ -291,29 +291,40 @@ export default function DashboardPage() {
       setIsLoadingExercises(true);
       setFetchError(null);
 
-      const { data, error } = await supabase
-        .from("training_rows")
-        .select("id, exercice")
-        .eq("training_id", selectedTraining)
-        .eq("user_id", user.id)
-        .order("order", { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from("training_rows")
+          .select("id, exercice")
+          .eq("training_id", selectedTraining)
+          .eq("user_id", user.id)
+          .order("order", { ascending: true });
 
-      if (!isMounted) return;
+        if (!isMounted) return;
 
-      if (error) {
-        console.error("Erreur lors du chargement des exercices :", error.message);
+        if (error) {
+          console.error("Erreur lors du chargement des exercices :", error.message);
+          setTrainingExercises([]);
+          setFetchError("Une erreur est survenue lors du chargement des exercices.");
+        } else {
+          setTrainingExercises(
+            (data ?? []).map((row) => ({
+              id: String(row.id),
+              exercice: typeof row.exercice === "string" ? row.exercice : null,
+            }))
+          );
+        }
+      } catch (error) {
+        if (!isMounted) return;
+
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Erreur lors du chargement des exercices :", message);
         setTrainingExercises([]);
         setFetchError("Une erreur est survenue lors du chargement des exercices.");
-      } else {
-        setTrainingExercises(
-          (data ?? []).map((row) => ({
-            id: String(row.id),
-            exercice: typeof row.exercice === "string" ? row.exercice : null,
-          }))
-        );
+      } finally {
+        if (isMounted) {
+          setIsLoadingExercises(false);
+        }
       }
-
-      setIsLoadingExercises(false);
     };
 
     void fetchExercises();

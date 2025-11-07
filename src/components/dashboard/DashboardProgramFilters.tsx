@@ -102,43 +102,58 @@ export default function DashboardProgramFilters({
 
       setLoadingPrograms(true);
 
-      const { data, error } = await supabase
-        .from("programs")
-        .select("id, name, trainings ( id )")
-        .eq("user_id", user.id)
-        .order("position", { ascending: true })
-        .returns<ProgramRow[]>();
+      try {
+        const { data, error } = await supabase
+          .from("programs")
+          .select("id, name, trainings ( id )")
+          .eq("user_id", user.id)
+          .order("position", { ascending: true })
+          .returns<ProgramRow[]>();
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) {
+          return;
+        }
 
-      if (error) {
-        console.error("Erreur lors du chargement des programmes :", error.message);
+        if (error) {
+          console.error("Erreur lors du chargement des programmes :", error.message);
+          setProgramOptions([]);
+          if (selectedProgram) {
+            onProgramChange?.("");
+          }
+        } else {
+          const programs = data ?? [];
+          const options = programs
+            .filter((program) => {
+              const trainings = program.trainings ?? [];
+
+              return trainings.some(
+                (training) =>
+                  training?.id !== null && training?.id !== undefined,
+              );
+            })
+            .map((program) => ({
+              value: String(program.id),
+              label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
+            }));
+
+          setProgramOptions(options);
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Erreur lors du chargement des programmes :", message);
         setProgramOptions([]);
         if (selectedProgram) {
           onProgramChange?.("");
         }
-      } else {
-        const programs = data ?? [];
-        const options = programs
-          .filter((program) => {
-            const trainings = program.trainings ?? [];
-
-            return trainings.some(
-              (training) =>
-                training?.id !== null && training?.id !== undefined,
-            );
-          })
-          .map((program) => ({
-            value: String(program.id),
-            label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
-          }));
-
-        setProgramOptions(options);
+      } finally {
+        if (isMounted) {
+          setLoadingPrograms(false);
+        }
       }
-
-      setLoadingPrograms(false);
     };
 
     void fetchPrograms();
@@ -170,22 +185,46 @@ export default function DashboardProgramFilters({
       setLoadingTrainings(true);
       setHasFetchedTrainings(false);
 
-      const { data, error } = await supabase
-        .from("trainings")
-        .select("id, name")
-        .eq("program_id", selectedProgram)
-        .order("position", { ascending: true })
-        .returns<TrainingRow[]>();
+      try {
+        const { data, error } = await supabase
+          .from("trainings")
+          .select("id, name")
+          .eq("program_id", selectedProgram)
+          .order("position", { ascending: true })
+          .returns<TrainingRow[]>();
 
-      if (!isMounted) {
-        return;
-      }
+        if (!isMounted) {
+          return;
+        }
 
-      if (error) {
-        console.error(
-          "Erreur lors du chargement des entraînements :",
-          error.message,
-        );
+        if (error) {
+          console.error(
+            "Erreur lors du chargement des entraînements :",
+            error.message,
+          );
+          setTrainingOptions([]);
+          if (selectedTraining) {
+            onTrainingChange?.("");
+          }
+          if (selectedExercise) {
+            onExerciseChange?.("");
+          }
+        } else {
+          const trainings = data ?? [];
+          const options = trainings.map((training) => ({
+            value: String(training.id),
+            label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
+          }));
+
+          setTrainingOptions(options);
+        }
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Erreur lors du chargement des entraînements :", message);
         setTrainingOptions([]);
         if (selectedTraining) {
           onTrainingChange?.("");
@@ -193,18 +232,12 @@ export default function DashboardProgramFilters({
         if (selectedExercise) {
           onExerciseChange?.("");
         }
-      } else {
-        const trainings = data ?? [];
-        const options = trainings.map((training) => ({
-          value: String(training.id),
-          label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
-        }));
-
-        setTrainingOptions(options);
+      } finally {
+        if (isMounted) {
+          setHasFetchedTrainings(true);
+          setLoadingTrainings(false);
+        }
       }
-
-      setHasFetchedTrainings(true);
-      setLoadingTrainings(false);
     };
 
     void fetchTrainings();
