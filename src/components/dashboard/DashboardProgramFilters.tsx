@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
@@ -8,7 +8,7 @@ import DropdownFilter, {
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
-import { cn } from "@/lib/utils";
+import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 import StatsRedIcon from "/public/icons/stats_red.svg";
 import StatsGreenIcon from "/public/icons/stats_green.svg";
 
@@ -41,6 +41,8 @@ type DashboardProgramFiltersProps = {
   loadingExercises?: boolean;
   showStats?: boolean;
   onShowStatsChange?: (showStats: boolean) => void;
+  onProgramsLoadingChange?: (isLoading: boolean) => void;
+  onProgramOptionsChange?: (options: FilterOption[]) => void;
 };
 
 export default function DashboardProgramFilters({
@@ -54,13 +56,15 @@ export default function DashboardProgramFilters({
   loadingExercises = false,
   showStats = false,
   onShowStatsChange,
+  onProgramsLoadingChange,
+  onProgramOptionsChange,
 }: DashboardProgramFiltersProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
   const [programOptions, setProgramOptions] = useState<FilterOption[]>([]);
   const [trainingOptions, setTrainingOptions] = useState<FilterOption[]>([]);
-  const [loadingPrograms, setLoadingPrograms] = useState(false);
+  const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
   const [hasFetchedTrainings, setHasFetchedTrainings] = useState(false);
 
@@ -78,14 +82,30 @@ export default function DashboardProgramFilters({
         exerciseOptions.length === 0)
   );
 
+  const updateProgramOptions = useCallback(
+    (nextOptions: FilterOption[]) => {
+      setProgramOptions(nextOptions);
+      onProgramOptionsChange?.(nextOptions);
+    },
+    [onProgramOptionsChange],
+  );
+
+  const updateProgramsLoadingState = useCallback(
+    (isLoading: boolean) => {
+      setLoadingPrograms(isLoading);
+      onProgramsLoadingChange?.(isLoading);
+    },
+    [onProgramsLoadingChange],
+  );
+
   useEffect(() => {
     let isMounted = true;
 
     const fetchPrograms = async () => {
       if (!user?.id) {
         if (isMounted) {
-          setProgramOptions([]);
-          setLoadingPrograms(false);
+          updateProgramOptions([]);
+          updateProgramsLoadingState(false);
           if (selectedProgram) {
             onProgramChange?.("");
           }
@@ -93,7 +113,7 @@ export default function DashboardProgramFilters({
         return;
       }
 
-      setLoadingPrograms(true);
+      updateProgramsLoadingState(true);
 
       const { data, error } = await supabase
         .from("programs")
@@ -108,7 +128,7 @@ export default function DashboardProgramFilters({
 
       if (error) {
         console.error("Erreur lors du chargement des programmes :", error.message);
-        setProgramOptions([]);
+        updateProgramOptions([]);
         if (selectedProgram) {
           onProgramChange?.("");
         }
@@ -128,10 +148,10 @@ export default function DashboardProgramFilters({
             label: program.name?.trim() || FALLBACK_PROGRAM_LABEL,
           }));
 
-        setProgramOptions(options);
+        updateProgramOptions(options);
       }
 
-      setLoadingPrograms(false);
+      updateProgramsLoadingState(false);
     };
 
     void fetchPrograms();
@@ -139,7 +159,14 @@ export default function DashboardProgramFilters({
     return () => {
       isMounted = false;
     };
-  }, [onProgramChange, selectedProgram, supabase, user?.id]);
+  }, [
+    onProgramChange,
+    selectedProgram,
+    supabase,
+    updateProgramOptions,
+    updateProgramsLoadingState,
+    user?.id,
+  ]);
 
   useEffect(() => {
     let isMounted = true;
@@ -300,14 +327,12 @@ export default function DashboardProgramFilters({
   })();
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
 
+  if (showFiltersSkeleton) {
+    return <DashboardFiltersSkeleton className="mt-10" />;
+  }
+
   return (
-    <div
-      className={cn(
-        "mt-10 flex flex-wrap items-center gap-4 transition-opacity",
-        showFiltersSkeleton && "opacity-0 pointer-events-none",
-      )}
-      aria-hidden={showFiltersSkeleton}
-    >
+    <div className="mt-10 flex flex-wrap items-center gap-4">
       <div className="flex flex-wrap gap-4 grow">
         <DropdownFilter
           label="Programme"

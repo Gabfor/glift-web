@@ -135,6 +135,8 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
+  const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
+  const [hasProgramOptions, setHasProgramOptions] = useState(false);
 
   const exerciseOptions = useMemo(
     () =>
@@ -349,9 +351,13 @@ export default function DashboardPage() {
             loadingExercises={isLoadingExercises}
             showStats={showStats}
             onShowStatsChange={setShowStats}
+            onProgramsLoadingChange={setIsLoadingPrograms}
+            onProgramOptionsChange={(options) => {
+              setHasProgramOptions(options.length > 0);
+            }}
           />
 
-          {selectedProgram === "" && (
+          {!isLoadingPrograms && hasLoadedPreferences && !hasProgramOptions && (
             <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
           )}
 
