@@ -240,9 +240,9 @@ export default function DashboardExerciseBlock({
         </div>
 
         {/* Bloc droit : Graphique */}
-        <div className="h-[220px] w-full md:flex-1">
+        <div className="h-[220px] w-full md:flex-1 min-w-0">
           <div className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1}>
               <AreaChart data={mockData} margin={CHART_MARGIN}>
                 <defs>
                   <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
