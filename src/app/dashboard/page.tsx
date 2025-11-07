@@ -135,6 +135,7 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
+  const [areFiltersLoading, setAreFiltersLoading] = useState(true);
 
   const exerciseOptions = useMemo(
     () =>
@@ -281,6 +282,10 @@ export default function DashboardPage() {
       return;
     }
 
+    if (areFiltersLoading) {
+      return;
+    }
+
     let isMounted = true;
     const fetchExercises = async () => {
       setIsLoadingExercises(true);
@@ -315,7 +320,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [selectedTraining, supabase, user?.id]);
+  }, [areFiltersLoading, selectedTraining, supabase, user?.id]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
@@ -341,6 +346,7 @@ export default function DashboardPage() {
               setSelectedExercise("");
             }}
             onExerciseChange={setSelectedExercise}
+            onLoadingStateChange={setAreFiltersLoading}
             selectedProgramId={selectedProgram}
             selectedTrainingId={selectedTraining}
             selectedExerciseId={selectedExercise}
@@ -350,15 +356,15 @@ export default function DashboardPage() {
             onShowStatsChange={setShowStats}
           />
 
-          {selectedProgram === "" && (
+          {selectedProgram === "" && !areFiltersLoading && (
             <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
           )}
 
-          {selectedProgram !== "" && selectedTraining === "" && (
+          {selectedProgram !== "" && selectedTraining === "" && !areFiltersLoading && (
             <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun entraînement sélectionné.</p>
           )}
 
-          {selectedTraining !== "" && (
+          {selectedTraining !== "" && !areFiltersLoading && (
             <div className="mt-[30px]">
               {isLoadingExercises ? (
                 <DashboardExercisesSkeleton />
