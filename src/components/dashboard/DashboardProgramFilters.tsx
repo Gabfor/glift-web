@@ -5,8 +5,10 @@ import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
 } from "@/components/filters/DropdownFilter";
+import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import StatsRedIcon from "/public/icons/stats_red.svg";
 import StatsGreenIcon from "/public/icons/stats_green.svg";
 
@@ -65,6 +67,16 @@ export default function DashboardProgramFilters({
   const selectedProgram = selectedProgramId;
   const selectedTraining = selectedTrainingId;
   const selectedExercise = selectedExerciseId;
+
+  const showFiltersSkeleton = useMinimumVisibility(
+    (loadingPrograms && programOptions.length === 0) ||
+      (selectedProgram !== "" &&
+        loadingTrainings &&
+        trainingOptions.length === 0) ||
+      (selectedTraining !== "" &&
+        loadingExercises &&
+        exerciseOptions.length === 0)
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -247,6 +259,10 @@ export default function DashboardProgramFilters({
       onExerciseChange?.("");
     }
   }, [exerciseOptions, onExerciseChange, selectedExercise, selectedTraining]);
+
+  if (showFiltersSkeleton) {
+    return <DashboardFiltersSkeleton className="mt-10 animate-pulse" />;
+  }
 
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {

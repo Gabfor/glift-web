@@ -1,21 +1,12 @@
+import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
+
 const skeletonExercises = Array.from({ length: 3 });
-const skeletonFilters = Array.from({ length: 3 });
 
 export default function DashboardExercisesSkeleton() {
   return (
     <div className="space-y-[30px]">
       <div className="animate-pulse space-y-[30px]">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="flex flex-wrap gap-4 grow">
-            {skeletonFilters.map((_, index) => (
-              <div key={index} className="flex flex-col gap-2">
-                <div className="h-4 w-[120px] rounded bg-[#E6E8F5]" />
-                <div className="h-10 w-[240px] rounded-[5px] bg-[#E6E8F5]" />
-              </div>
-            ))}
-          </div>
-          <div className="h-10 w-[189px] rounded-[5px] bg-[#E6E8F5]" />
-        </div>
+        <DashboardFiltersSkeleton />
 
         {skeletonExercises.map((_, index) => (
           <div
