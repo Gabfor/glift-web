@@ -290,7 +290,7 @@ export default function DashboardProgramFilters({
   })();
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
 
-  const filtersLoading = loadingPrograms || loadingTrainings || loadingExercises;
+  const filtersLoading = loadingPrograms || loadingTrainings;
 
   useEffect(() => {
     onLoadingFiltersChange?.(filtersLoading);
