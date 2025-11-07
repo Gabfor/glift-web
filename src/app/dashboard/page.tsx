@@ -339,13 +339,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="relative">
-          {shouldShowSkeleton && (
-            <div className="mt-10">
-              <DashboardExercisesSkeleton />
-            </div>
-          )}
-
-          <div className={shouldShowSkeleton ? "hidden" : ""}>
+          <div
+            className={`transition-opacity duration-200 ${shouldShowSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
+            aria-hidden={shouldShowSkeleton}
+          >
             <DashboardProgramFilters
               onProgramChange={(programId) => {
                 setSelectedProgram(programId);
@@ -420,6 +417,14 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
+          {shouldShowSkeleton && (
+            <div className="absolute inset-0">
+              <div className="mt-10">
+                <DashboardExercisesSkeleton />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>
