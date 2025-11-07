@@ -5,10 +5,10 @@ import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
 } from "@/components/filters/DropdownFilter";
-import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import { cn } from "@/lib/utils";
 import StatsRedIcon from "/public/icons/stats_red.svg";
 import StatsGreenIcon from "/public/icons/stats_green.svg";
 
@@ -260,10 +260,6 @@ export default function DashboardProgramFilters({
     }
   }, [exerciseOptions, onExerciseChange, selectedExercise, selectedTraining]);
 
-  if (showFiltersSkeleton) {
-    return <DashboardFiltersSkeleton className="mt-10 animate-pulse" />;
-  }
-
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {
       return loadingPrograms
@@ -305,7 +301,13 @@ export default function DashboardProgramFilters({
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
 
   return (
-    <div className="mt-10 flex flex-wrap items-center gap-4">
+    <div
+      className={cn(
+        "mt-10 flex flex-wrap items-center gap-4 transition-opacity",
+        showFiltersSkeleton && "opacity-0 pointer-events-none",
+      )}
+      aria-hidden={showFiltersSkeleton}
+    >
       <div className="flex flex-wrap gap-4 grow">
         <DropdownFilter
           label="Programme"
