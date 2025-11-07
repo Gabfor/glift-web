@@ -328,6 +328,7 @@ export default function DashboardExerciseBlock({
       strokeWidth={1}
       fillOpacity={1}
       fill={`url(#gradient-${id})`}
+      isAnimationActive={false}
       dot={{
         r: 4,
         stroke: "#fff",
