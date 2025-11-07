@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabaseClient";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
 import type { Database } from "@/lib/supabase/types";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -135,6 +136,7 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
+  const showExercisesSkeleton = useMinimumVisibility(isLoadingExercises);
 
   const exerciseOptions = useMemo(
     () =>
@@ -360,7 +362,7 @@ export default function DashboardPage() {
 
           {selectedTraining !== "" && (
             <div className="mt-[30px]">
-              {isLoadingExercises ? (
+              {showExercisesSkeleton ? (
                 <DashboardExercisesSkeleton />
               ) : fetchError ? (
                 <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
