@@ -34,6 +34,7 @@ type DashboardProgramFiltersProps = {
   onProgramChange?: (programId: string) => void;
   onTrainingChange?: (trainingId: string) => void;
   onExerciseChange?: (exerciseId: string) => void;
+  onLoadingStateChange?: (isLoading: boolean) => void;
   selectedProgramId?: string;
   selectedTrainingId?: string;
   selectedExerciseId?: string;
@@ -47,6 +48,7 @@ export default function DashboardProgramFilters({
   onProgramChange,
   onTrainingChange,
   onExerciseChange,
+  onLoadingStateChange,
   selectedProgramId = "",
   selectedTrainingId = "",
   selectedExerciseId = "",
@@ -68,15 +70,20 @@ export default function DashboardProgramFilters({
   const selectedTraining = selectedTrainingId;
   const selectedExercise = selectedExerciseId;
 
-  const showFiltersSkeleton = useMinimumVisibility(
+  const isFetchingFilters =
     (loadingPrograms && programOptions.length === 0) ||
-      (selectedProgram !== "" &&
-        loadingTrainings &&
-        trainingOptions.length === 0) ||
-      (selectedTraining !== "" &&
-        loadingExercises &&
-        exerciseOptions.length === 0)
-  );
+    (selectedProgram !== "" &&
+      loadingTrainings &&
+      trainingOptions.length === 0) ||
+    (selectedTraining !== "" &&
+      loadingExercises &&
+      exerciseOptions.length === 0);
+
+  const showFiltersSkeleton = useMinimumVisibility(isFetchingFilters);
+
+  useEffect(() => {
+    onLoadingStateChange?.(showFiltersSkeleton);
+  }, [onLoadingStateChange, showFiltersSkeleton]);
 
   useEffect(() => {
     let isMounted = true;
