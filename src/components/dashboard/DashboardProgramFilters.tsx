@@ -7,8 +7,6 @@ import DropdownFilter, {
 } from "@/components/filters/DropdownFilter";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
-import useMinimumVisibility from "@/hooks/useMinimumVisibility";
-import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 import StatsRedIcon from "/public/icons/stats_red.svg";
 import StatsGreenIcon from "/public/icons/stats_green.svg";
 
@@ -43,6 +41,7 @@ type DashboardProgramFiltersProps = {
   onShowStatsChange?: (showStats: boolean) => void;
   onProgramsLoadingChange?: (isLoading: boolean) => void;
   onProgramOptionsChange?: (options: FilterOption[]) => void;
+  onFiltersLoadingChange?: (isLoading: boolean) => void;
 };
 
 export default function DashboardProgramFilters({
@@ -58,6 +57,7 @@ export default function DashboardProgramFilters({
   onShowStatsChange,
   onProgramsLoadingChange,
   onProgramOptionsChange,
+  onFiltersLoadingChange,
 }: DashboardProgramFiltersProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -72,15 +72,18 @@ export default function DashboardProgramFilters({
   const selectedTraining = selectedTrainingId;
   const selectedExercise = selectedExerciseId;
 
-  const showFiltersSkeleton = useMinimumVisibility(
+  const shouldShowFiltersSkeleton =
     (loadingPrograms && programOptions.length === 0) ||
-      (selectedProgram !== "" &&
-        loadingTrainings &&
-        trainingOptions.length === 0) ||
-      (selectedTraining !== "" &&
-        loadingExercises &&
-        exerciseOptions.length === 0)
-  );
+    (selectedProgram !== "" &&
+      loadingTrainings &&
+      trainingOptions.length === 0) ||
+    (selectedTraining !== "" &&
+      loadingExercises &&
+      exerciseOptions.length === 0);
+
+  useEffect(() => {
+    onFiltersLoadingChange?.(shouldShowFiltersSkeleton);
+  }, [onFiltersLoadingChange, shouldShowFiltersSkeleton]);
 
   const updateProgramOptions = useCallback(
     (nextOptions: FilterOption[]) => {
@@ -326,10 +329,6 @@ export default function DashboardProgramFilters({
     return "Sélectionnez un exercice";
   })();
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
-
-  if (showFiltersSkeleton) {
-    return <DashboardFiltersSkeleton className="mt-10" />;
-  }
 
   return (
     <div className="mt-10 flex flex-wrap items-center gap-4">
