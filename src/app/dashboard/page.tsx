@@ -285,6 +285,7 @@ export default function DashboardPage() {
     const fetchExercises = async () => {
       setIsLoadingExercises(true);
       setFetchError(null);
+      setTrainingExercises([]);
 
       const { data, error } = await supabase
         .from("training_rows")
