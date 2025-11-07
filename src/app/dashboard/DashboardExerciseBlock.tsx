@@ -13,7 +13,7 @@ import type { CategoricalChartState } from "recharts/types/chart/generateCategor
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
 import Tooltip from "@/components/Tooltip";
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -124,6 +124,7 @@ export default function DashboardExerciseBlock({
   onCurveChange,
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
   const [tooltipState, setTooltipState] = useState<{
     visible: boolean;
     label: string;
@@ -193,6 +194,42 @@ export default function DashboardExerciseBlock({
     const value = tooltipState.value;
     return label ? `${label} · ${value} kg` : `${value} kg`;
   }, [tooltipState]);
+
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const rect = container.getBoundingClientRect();
+    setChartSize({
+      width: Math.max(0, rect.width),
+      height: Math.max(0, rect.height),
+    });
+
+    if (typeof ResizeObserver === "undefined") {
+      return;
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) {
+        return;
+      }
+
+      const { width, height } = entry.contentRect;
+      setChartSize({
+        width: Math.max(0, width),
+        height: Math.max(0, height),
+      });
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div className="w-full bg-white border border-[#ECE9F1] rounded-[8px] shadow-glift overflow-hidden">
@@ -279,71 +316,73 @@ export default function DashboardExerciseBlock({
             ref={chartContainerRef}
             className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
           >
-<ResponsiveContainer width="100%" height="100%">
-  <AreaChart
-    data={mockData}
-    margin={CHART_MARGIN}
-    onMouseMove={handleMouseMove}
-    onMouseLeave={hideTooltip}
-  >
-    <defs>
-      <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
-        <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
-      </linearGradient>
-    </defs>
+            {chartSize.width > 0 && chartSize.height > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart
+                  data={mockData}
+                  margin={CHART_MARGIN}
+                  onMouseMove={handleMouseMove}
+                  onMouseLeave={hideTooltip}
+                >
+                  <defs>
+                    <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
+                      <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
 
-    <CartesianGrid
-      stroke="#ECE9F1"
-      strokeWidth={1}
-      strokeDasharray="0"
-      vertical={false}
-    />
+                  <CartesianGrid
+                    stroke="#ECE9F1"
+                    strokeWidth={1}
+                    strokeDasharray="0"
+                    vertical={false}
+                  />
 
-    <XAxis
-      dataKey="date"
-      tick={renderDateAxisTick}
-      tickMargin={18}
-      axisLine={false}
-      tickLine={false}
-      interval={0}
-    />
+                  <XAxis
+                    dataKey="date"
+                    tick={renderDateAxisTick}
+                    tickMargin={18}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={0}
+                  />
 
-    <YAxis
-      domain={["dataMin - 1", "dataMax + 1"]}
-      tick={renderWeightAxisTick}
-      width={Y_AXIS_WIDTH}
-      tickMargin={8}
-      axisLine={false}
-      tickLine={false}
-      mirror={false}
-      orientation="left"
-      padding={{ top: 0, bottom: 0 }}
-    />
+                  <YAxis
+                    domain={["dataMin - 1", "dataMax + 1"]}
+                    tick={renderWeightAxisTick}
+                    width={Y_AXIS_WIDTH}
+                    tickMargin={8}
+                    axisLine={false}
+                    tickLine={false}
+                    mirror={false}
+                    orientation="left"
+                    padding={{ top: 0, bottom: 0 }}
+                  />
 
-    <Area
-      type="monotone"
-      dataKey="value"
-      stroke="#A1A5FD"
-      strokeWidth={1}
-      fillOpacity={1}
-      fill={`url(#gradient-${id})`}
-      isAnimationActive={false}
-      dot={{
-        r: 4,
-        stroke: "#fff",
-        strokeWidth: 1,
-        fill: "#7069FA",
-      }}
-      activeDot={{
-        r: 5,
-        fill: "#7069FA",
-        stroke: "#fff",
-        strokeWidth: 1,
-      }}
-    />
-  </AreaChart>
-</ResponsiveContainer>
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#A1A5FD"
+                    strokeWidth={1}
+                    fillOpacity={1}
+                    fill={`url(#gradient-${id})`}
+                    isAnimationActive={false}
+                    dot={{
+                      r: 4,
+                      stroke: "#fff",
+                      strokeWidth: 1,
+                      fill: "#7069FA",
+                    }}
+                    activeDot={{
+                      r: 5,
+                      fill: "#7069FA",
+                      stroke: "#fff",
+                      strokeWidth: 1,
+                    }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : null}
             <Tooltip
               key={`${tooltipState.label}-${tooltipState.x}-${tooltipState.y}-${tooltipState.visible}`}
               content={tooltipContent}
