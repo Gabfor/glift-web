@@ -121,7 +121,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 );
 
 const TOOLTIP_VERTICAL_OFFSET = 5;
-const TOOLTIP_FIXED_VERTICAL_POSITION = CHART_MARGIN.top - TOOLTIP_VERTICAL_OFFSET;
+const TOOLTIP_SHOW_DELAY_MS = 1000;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -136,31 +136,75 @@ const DashboardExerciseChartTooltip = ({
 }: DashboardExerciseChartTooltipProps) => {
   const value = payload?.[0]?.value;
 
-  const isTooltipVisible =
+  const [shouldDisplayTooltip, setShouldDisplayTooltip] = useState(false);
+  const hoveredPointRef = useRef<{ x: number; y: number } | null>(null);
+  const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const isTooltipCandidateVisible =
     !!active &&
     !!payload?.length &&
     typeof label === "string" &&
-    typeof value === "number";
+    typeof value === "number" &&
+    typeof coordinate?.x === "number" &&
+    typeof coordinate?.y === "number";
 
-  const x = coordinate?.x;
+  useEffect(() => {
+    if (!isTooltipCandidateVisible) {
+      hoveredPointRef.current = null;
+      setShouldDisplayTooltip(false);
+
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
+      }
+
+      return;
+    }
+
+    const nextPoint = { x: coordinate.x, y: coordinate.y };
+    const previousPoint = hoveredPointRef.current;
+    const isSamePoint =
+      previousPoint?.x === nextPoint.x && previousPoint?.y === nextPoint.y;
+
+    if (!isSamePoint) {
+      hoveredPointRef.current = nextPoint;
+      setShouldDisplayTooltip(false);
+
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+      }
+
+      delayTimeoutRef.current = setTimeout(() => {
+        setShouldDisplayTooltip(true);
+        delayTimeoutRef.current = null;
+      }, TOOLTIP_SHOW_DELAY_MS);
+    }
+
+    return () => {
+      if (delayTimeoutRef.current) {
+        clearTimeout(delayTimeoutRef.current);
+        delayTimeoutRef.current = null;
+      }
+    };
+  }, [coordinate, isTooltipCandidateVisible]);
 
   useEffect(() => {
     if (!onPositionChange) {
       return;
     }
 
-    if (isTooltipVisible && typeof x === "number") {
+    if (shouldDisplayTooltip && hoveredPointRef.current) {
       onPositionChange({
-        x,
-        y: TOOLTIP_FIXED_VERTICAL_POSITION + TOOLTIP_VERTICAL_OFFSET,
+        x: hoveredPointRef.current.x,
+        y: hoveredPointRef.current.y - TOOLTIP_VERTICAL_OFFSET,
       });
       return;
     }
 
     onPositionChange(undefined);
-  }, [coordinate, isTooltipVisible, onPositionChange, x]);
+  }, [onPositionChange, shouldDisplayTooltip]);
 
-  if (!isTooltipVisible) {
+  if (!shouldDisplayTooltip || !isTooltipCandidateVisible) {
     return null;
   }
 
