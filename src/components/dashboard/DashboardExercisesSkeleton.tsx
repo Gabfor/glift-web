@@ -2,11 +2,13 @@ import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSke
 
 const skeletonExercises = Array.from({ length: 3 });
 
+type DashboardExercisesSkeletonProps = {
+  showFilters?: boolean;
+};
+
 export default function DashboardExercisesSkeleton({
   showFilters = true,
-}: {
-  showFilters?: boolean;
-}) {
+}: DashboardExercisesSkeletonProps) {
   return (
     <div className="space-y-[30px]">
       <div className="animate-pulse space-y-[30px]">

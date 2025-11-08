@@ -28,7 +28,7 @@ type TrainingRow = {
   name: string | null;
 };
 
-type DashboardProgramFiltersProps = {
+export interface DashboardProgramFiltersProps {
   onProgramChange?: (programId: string) => void;
   onTrainingChange?: (trainingId: string) => void;
   onExerciseChange?: (exerciseId: string) => void;
@@ -43,24 +43,27 @@ type DashboardProgramFiltersProps = {
   onProgramsLoadingChange?: (isLoading: boolean) => void;
   onProgramOptionsChange?: (options: FilterOption[]) => void;
   onFiltersLoadingChange?: (isLoading: boolean) => void;
-};
+}
 
-export default function DashboardProgramFilters({
-  onProgramChange,
-  onTrainingChange,
-  onExerciseChange,
-  selectedProgramId = "",
-  selectedTrainingId = "",
-  selectedExerciseId = "",
-  exerciseOptions = [],
-  loadingExercises = false,
-  hasFetchedExercises = false,
-  showStats = false,
-  onShowStatsChange,
-  onProgramsLoadingChange,
-  onProgramOptionsChange,
-  onFiltersLoadingChange,
-}: DashboardProgramFiltersProps) {
+export default function DashboardProgramFilters(
+  props: DashboardProgramFiltersProps,
+) {
+  const {
+    onProgramChange,
+    onTrainingChange,
+    onExerciseChange,
+    selectedProgramId = "",
+    selectedTrainingId = "",
+    selectedExerciseId = "",
+    exerciseOptions = [],
+    loadingExercises = false,
+    hasFetchedExercises = false,
+    showStats = false,
+    onShowStatsChange,
+    onProgramsLoadingChange,
+    onProgramOptionsChange,
+    onFiltersLoadingChange,
+  } = props;
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
