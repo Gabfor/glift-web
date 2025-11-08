@@ -142,6 +142,9 @@ const DashboardExerciseChartDot = ({
     return null;
   }
 
+  const { dataKey: _dataKey, ...restProps } = rest;
+  void _dataKey;
+
   const handleMouseEnter = (event: React.MouseEvent<SVGCircleElement>) => {
     onHoverChange?.({ x: cx, y: cy });
     onMouseEnter?.(event);
@@ -154,7 +157,7 @@ const DashboardExerciseChartDot = ({
 
   return (
     <circle
-      {...rest}
+      {...restProps}
       cx={cx}
       cy={cy}
       r={r}
@@ -416,7 +419,8 @@ export default function DashboardExerciseBlock({
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
                     dot={(props) => {
-                      const { key, ...dotProps } = props;
+                      const { key, dataKey: _dataKey, ...dotProps } = props;
+                      void _dataKey;
                       return (
                         <DashboardExerciseChartDot
                           key={key}
