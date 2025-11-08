@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
 } from "recharts";
-import type { DotProps as RechartsDotProps } from "recharts/types/shape/Dot";
+import type { Props as RechartsDotProps } from "recharts/types/shape/Dot";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
@@ -190,9 +190,10 @@ type DashboardExerciseTooltipState = {
   position: { x: number; y: number };
 };
 
-type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
-  onTooltipChange?: (tooltip: DashboardExerciseTooltipState | undefined) => void;
-};
+type DashboardExerciseChartTooltipProps =
+  Partial<TooltipContentProps<number, string>> & {
+    onTooltipChange?: (tooltip: DashboardExerciseTooltipState | undefined) => void;
+  };
 
 const DashboardExerciseChartTooltip = ({
   active,
