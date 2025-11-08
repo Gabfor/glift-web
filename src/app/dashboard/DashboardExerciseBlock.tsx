@@ -9,9 +9,9 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Tooltip as RechartsTooltip,
-  Dot,
 } from "recharts";
-import type { TooltipContentProps } from "recharts";
+import type { DotProps as RechartsDotProps } from "recharts/types/shape/Dot";
+import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
@@ -133,8 +133,6 @@ const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
 
-type RechartsDotProps = React.ComponentProps<typeof Dot>;
-
 type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
 
 type DashboardExerciseDotProps = RechartsDotProps & {
@@ -158,7 +156,7 @@ const DashboardExerciseDot = ({
       stroke="transparent"
       style={{ pointerEvents: "all" }}
     />
-    <Dot
+    <circle
       {...rest}
       cx={cx}
       cy={cy}
