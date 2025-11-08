@@ -265,11 +265,8 @@ export default function DashboardExerciseBlock({
     (chartState: CategoricalChartState | undefined) => {
       if (
         !chartState ||
-        !chartState.isTooltipActive ||
         !chartState.activePayload?.length ||
         typeof chartState.activeLabel !== "string" ||
-        typeof chartState.chartX !== "number" ||
-        typeof chartState.chartY !== "number" ||
         !chartState.activeCoordinate ||
         typeof chartState.activeCoordinate.x !== "number" ||
         typeof chartState.activeCoordinate.y !== "number"
@@ -281,16 +278,6 @@ export default function DashboardExerciseBlock({
       const value = chartState.activePayload[0]?.value;
 
       if (typeof value !== "number") {
-        setTooltipState(null);
-        return;
-      }
-
-      const distance = Math.hypot(
-        chartState.chartX - chartState.activeCoordinate.x,
-        chartState.chartY - chartState.activeCoordinate.y,
-      );
-
-      if (distance > CHART_DOT_INTERACTION_RADIUS) {
         setTooltipState(null);
         return;
       }
