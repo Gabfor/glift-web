@@ -149,16 +149,34 @@ const DashboardExerciseChartTooltip = ({
       return;
     }
 
-    if (isTooltipVisible && typeof x === "number" && typeof y === "number") {
-      onPositionChange({
-        x,
-        y,
-      });
-      return;
+    if (isTooltipVisible && typeof x === "number") {
+      let tooltipY: number | undefined;
+
+      if (typeof coordinate?.cy === "number") {
+        tooltipY = coordinate.cy;
+      } else if (
+        typeof coordinate?.yAxis?.scale === "function" &&
+        typeof value === "number"
+      ) {
+        const scaledY = coordinate.yAxis.scale(value);
+        if (typeof scaledY === "number" && Number.isFinite(scaledY)) {
+          tooltipY = scaledY;
+        }
+      } else if (typeof y === "number") {
+        tooltipY = y;
+      }
+
+      if (typeof tooltipY === "number") {
+        onPositionChange({
+          x,
+          y: tooltipY,
+        });
+        return;
+      }
     }
 
     onPositionChange(undefined);
-  }, [isTooltipVisible, onPositionChange, x, y]);
+  }, [coordinate, isTooltipVisible, onPositionChange, value, x, y]);
 
   if (!isTooltipVisible) {
     return null;
