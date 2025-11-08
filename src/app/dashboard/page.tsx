@@ -418,7 +418,7 @@ export default function DashboardPage() {
 
           {shouldShowFiltersSkeleton && (
             <div className="pointer-events-none absolute inset-0">
-              <div className="mt-10 animate-pulse">
+              <div className="animate-pulse">
                 <DashboardFiltersSkeleton />
               </div>
             </div>

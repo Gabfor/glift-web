@@ -364,7 +364,7 @@ export default function DashboardProgramFilters(
   const isExerciseDisabled = selectedTraining === "" || loadingExercises;
 
   return (
-    <div className="mt-10 flex flex-wrap items-center gap-4">
+    <div className="mt-[40px] flex flex-wrap items-center gap-4">
       <div className="flex flex-wrap gap-4 grow">
         <DropdownFilter
           label="Programme"
