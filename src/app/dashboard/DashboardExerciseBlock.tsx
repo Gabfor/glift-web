@@ -121,7 +121,6 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 );
 
 const TOOLTIP_VERTICAL_OFFSET = 5;
-const TOOLTIP_FIXED_VERTICAL_POSITION = CHART_MARGIN.top - TOOLTIP_VERTICAL_OFFSET;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -149,10 +148,12 @@ const DashboardExerciseChartTooltip = ({
       return;
     }
 
-    if (isTooltipVisible && typeof x === "number") {
+    const y = coordinate?.y;
+
+    if (isTooltipVisible && typeof x === "number" && typeof y === "number") {
       onPositionChange({
         x,
-        y: TOOLTIP_FIXED_VERTICAL_POSITION + TOOLTIP_VERTICAL_OFFSET,
+        y,
       });
       return;
     }
