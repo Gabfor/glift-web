@@ -87,10 +87,12 @@ export default function Tooltip({
     let top = 0;
     const left = triggerRect.left + window.scrollX + triggerRect.width / 2;
 
+    const verticalAdjustment = 5;
+
     if (placement === "top") {
-      top = triggerRect.top + window.scrollY - tooltipRect.height - offset;
+      top = triggerRect.top + window.scrollY - tooltipRect.height - offset - verticalAdjustment;
     } else {
-      top = triggerRect.bottom + window.scrollY + offset;
+      top = triggerRect.bottom + window.scrollY + offset - verticalAdjustment;
     }
 
     setCoords({ top, left });
