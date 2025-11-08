@@ -8,12 +8,12 @@ import {
   YAxis,
   ResponsiveContainer,
   CartesianGrid,
+  Tooltip as RechartsTooltip,
 } from "recharts";
-import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
+import type { TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import Tooltip from "@/components/Tooltip";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -48,6 +48,11 @@ const splitDateLabel = (label: string) => {
     day: day ?? "",
     month: rest.join(" ") ?? "",
   };
+};
+
+const formatTooltipLabel = (label: string) => {
+  const { day, month } = splitDateLabel(label);
+  return month ? `${day} ${month}` : day;
 };
 
 type AxisTickProps = {
@@ -115,6 +120,32 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
+const DashboardExerciseChartTooltip = ({
+  active,
+  payload,
+  label,
+}: TooltipContentProps<number, string>) => {
+  if (!active || !payload?.length || typeof label !== "string") {
+    return null;
+  }
+
+  const value = payload[0]?.value;
+
+  if (typeof value !== "number") {
+    return null;
+  }
+
+  return (
+    <div className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md">
+      <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
+        {formatTooltipLabel(label)}
+      </span>
+      <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
+      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[#2E3142]" />
+    </div>
+  );
+};
+
 export default function DashboardExerciseBlock({
   id,
   name,
@@ -125,69 +156,6 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
-  const [tooltipState, setTooltipState] = useState<{
-    visible: boolean;
-    label: string;
-    value: number;
-    x: number;
-    y: number;
-  }>({ visible: false, label: "", value: 0, x: 0, y: 0 });
-
-  const hideTooltip = useCallback(() => {
-    setTooltipState((prev) =>
-      prev.visible ? { ...prev, visible: false } : prev,
-    );
-  }, []);
-
-  const handleMouseMove = useCallback(
-    (state: CategoricalChartState | undefined) => {
-      if (!chartContainerRef.current || !state) {
-        hideTooltip();
-        return;
-      }
-
-      const {
-        isTooltipActive,
-        activePayload,
-        activeCoordinate,
-        activeLabel,
-      } = state;
-
-      if (!isTooltipActive || !activePayload?.length || !activeCoordinate) {
-        hideTooltip();
-        return;
-      }
-
-      setTooltipState({
-        visible: true,
-        label: typeof activeLabel === "string" ? activeLabel : "",
-        value: Number(activePayload?.[0]?.value ?? 0),
-        x: activeCoordinate.x,
-        y: activeCoordinate.y,
-      });
-    },
-    [hideTooltip],
-  );
-
-  const handleMouseEnter = useCallback(
-    (state: CategoricalChartState | undefined) => {
-      if (!state) {
-        return;
-      }
-
-      handleMouseMove(state);
-    },
-    [handleMouseMove],
-  );
-
-  const tooltipContent = useMemo(() => {
-    if (!tooltipState.visible) {
-      return "";
-    }
-    const label = tooltipState.label;
-    const value = tooltipState.value;
-    return label ? `${label} · ${value} kg` : `${value} kg`;
-  }, [tooltipState]);
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -318,9 +286,6 @@ export default function DashboardExerciseBlock({
                 <AreaChart
                   data={mockData}
                   margin={CHART_MARGIN}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={hideTooltip}
                 >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -378,30 +343,15 @@ export default function DashboardExerciseBlock({
                       strokeWidth: 1,
                     }}
                   />
+                  <RechartsTooltip
+                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
+                    content={<DashboardExerciseChartTooltip />}
+                    wrapperStyle={{ outline: "none", pointerEvents: "none" }}
+                    allowEscapeViewBox={{ x: true, y: true }}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : null}
-            <Tooltip
-              key={`${tooltipState.label}-${tooltipState.x}-${tooltipState.y}-${tooltipState.visible}`}
-              content={tooltipContent}
-              forceVisible={tooltipState.visible}
-              disableHover
-              delay={0}
-              offset={16}
-              asChild
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: tooltipState.x,
-                  top: tooltipState.y,
-                  width: 1,
-                  height: 1,
-                  pointerEvents: "none",
-                  transform: "translate(-50%, -50%)",
-                }}
-              />
-            </Tooltip>
           </div>
         </div>
       </div>
