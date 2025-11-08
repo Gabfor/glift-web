@@ -122,7 +122,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_VERTICAL_OFFSET_PX = 5;
+const TOOLTIP_OFFSET_FROM_POINT_PX = 5;
 const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
@@ -209,8 +209,11 @@ const DashboardExerciseChartTooltip = ({
     return null;
   }
 
+  const tooltipKey = `${coordinate.x}-${coordinate.y}`;
+
   return (
     <Tooltip
+      key={tooltipKey}
       content={
         <div className="flex flex-col items-center gap-[6px]">
           <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
@@ -225,16 +228,15 @@ const DashboardExerciseChartTooltip = ({
       asChild
       contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
       arrowClassName="bg-[#2E3142]"
-      offset={10}
+      offset={TOOLTIP_OFFSET_FROM_POINT_PX}
     >
       <div
         style={{
           position: "absolute",
-          top: coordinate.y - TOOLTIP_VERTICAL_OFFSET_PX,
+          top: coordinate.y,
           left: coordinate.x,
           width: 0,
           height: 0,
-          transform: "translate(-50%, -50%)",
           pointerEvents: "none",
         }}
       />
@@ -430,7 +432,7 @@ export default function DashboardExerciseBlock({
                   activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
                   />
                   <RechartsTooltip
-                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
+                    cursor={false}
                     content={<DashboardExerciseChartTooltip />}
                     wrapperStyle={{ pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
