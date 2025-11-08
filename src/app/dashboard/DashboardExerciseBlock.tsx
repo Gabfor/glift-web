@@ -203,10 +203,34 @@ const renderDashboardExerciseDot = (radius: number) => {
   return RenderDashboardExerciseDot;
 };
 
+const isWithinInteractionRadius = (
+  anchor: DotPosition | null,
+  coordinate: TooltipContentProps<number, string>["coordinate"],
+  radius: number,
+) => {
+  if (
+    !anchor ||
+    typeof anchor.x !== "number" ||
+    typeof anchor.y !== "number" ||
+    !coordinate ||
+    typeof coordinate.x !== "number" ||
+    typeof coordinate.y !== "number"
+  ) {
+    return false;
+  }
+
+  const deltaX = coordinate.x - anchor.x;
+  const deltaY = coordinate.y - anchor.y;
+  const distanceSquared = deltaX * deltaX + deltaY * deltaY;
+
+  return distanceSquared <= radius * radius;
+};
+
 const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
+  coordinate,
 }: Partial<TooltipContentProps<number, string>>) => {
   const value = payload?.[0]?.value;
   const dotPayload = payload?.[0]?.payload;
@@ -222,7 +246,12 @@ const DashboardExerciseChartTooltip = ({
     typeof label === "string" &&
     typeof value === "number" &&
     typeof anchorX === "number" &&
-    typeof anchorY === "number";
+    typeof anchorY === "number" &&
+    isWithinInteractionRadius(
+      dotPosition ?? null,
+      coordinate,
+      CHART_DOT_INTERACTION_RADIUS,
+    );
 
   if (!isVisible) {
     return null;
