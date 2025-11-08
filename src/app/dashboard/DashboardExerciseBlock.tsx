@@ -152,27 +152,32 @@ const DashboardExerciseDot = ({
   interactionRadius,
   radius,
   ...rest
-}: DashboardExerciseDotProps) => (
-  <g>
-    <circle
-      cx={cx}
-      cy={cy}
-      r={interactionRadius}
-      fill="transparent"
-      stroke="transparent"
-      style={{ pointerEvents: "all" }}
-    />
-    <circle
-      {...rest}
-      cx={cx}
-      cy={cy}
-      r={radius}
-      fill="#7069FA"
-      stroke="#fff"
-      strokeWidth={1}
-    />
-  </g>
-);
+}: DashboardExerciseDotProps) => {
+  const { dataKey: _dataKey, ...circleProps } = rest;
+  void _dataKey;
+
+  return (
+    <g>
+      <circle
+        cx={cx}
+        cy={cy}
+        r={interactionRadius}
+        fill="transparent"
+        stroke="transparent"
+        style={{ pointerEvents: "all" }}
+      />
+      <circle
+        {...circleProps}
+        cx={cx}
+        cy={cy}
+        r={radius}
+        fill="#7069FA"
+        stroke="#fff"
+        strokeWidth={1}
+      />
+    </g>
+  );
+};
 
 const renderDashboardExerciseDot = (radius: number) => {
   const RenderDashboardExerciseDot = ({
