@@ -197,19 +197,31 @@ const DashboardExerciseChartTooltip = ({
   coordinate,
 }: Partial<TooltipContentProps<number, string>>) => {
   const value = payload?.[0]?.value;
+  const anchorX =
+    typeof coordinate?.cx === "number"
+      ? coordinate.cx
+      : typeof coordinate?.x === "number"
+        ? coordinate.x
+        : null;
+  const anchorY =
+    typeof coordinate?.cy === "number"
+      ? coordinate.cy
+      : typeof coordinate?.y === "number"
+        ? coordinate.y
+        : null;
   const isVisible =
     !!active &&
     !!payload?.length &&
     typeof label === "string" &&
     typeof value === "number" &&
-    typeof coordinate?.x === "number" &&
-    typeof coordinate?.y === "number";
+    typeof anchorX === "number" &&
+    typeof anchorY === "number";
 
   if (!isVisible) {
     return null;
   }
 
-  const tooltipKey = `${coordinate.x}-${coordinate.y}`;
+  const tooltipKey = `${anchorX}-${anchorY}`;
 
   return (
     <Tooltip
@@ -229,12 +241,12 @@ const DashboardExerciseChartTooltip = ({
       contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
       arrowClassName="bg-[#2E3142]"
       offset={TOOLTIP_OFFSET_FROM_POINT_PX}
-    >
+      >
       <div
         style={{
           position: "absolute",
-          top: coordinate.y,
-          left: coordinate.x,
+          top: anchorY,
+          left: anchorX,
           width: 0,
           height: 0,
           pointerEvents: "none",
