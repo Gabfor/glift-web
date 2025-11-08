@@ -352,7 +352,7 @@ export default function DashboardProgramFilters(
     }
 
     if (loadingExercises) {
-      return "Chargement des exercices...";
+      return "Sélectionnez un exercice";
     }
 
     if (exerciseOptions.length === 0) {
