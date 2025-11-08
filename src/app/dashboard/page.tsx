@@ -162,13 +162,17 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
+    if (isLoadingExercises) {
+      return;
+    }
+
     if (
       selectedExercise &&
       !trainingExercises.some((exercise) => exercise.id === selectedExercise)
     ) {
       setSelectedExercise("");
     }
-  }, [selectedExercise, trainingExercises]);
+  }, [isLoadingExercises, selectedExercise, trainingExercises]);
 
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
