@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ShopCard from "@/components/shop/ShopCard";
 import ShopGridSkeleton from "@/components/shop/ShopGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
+import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
 type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
 type OfferQueryRow = Pick<
@@ -103,6 +104,11 @@ export default function ShopGrid({
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const showSkeleton = useMinimumVisibility(loading);
+  const previousQueryRef = useRef<{
+    sortBy: string;
+    currentPage: number;
+    filters: string[];
+  } | null>(null);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -119,6 +125,25 @@ export default function ShopGrid({
   };
 
   useEffect(() => {
+    const previousQuery = previousQueryRef.current;
+    const hasQueryChanged =
+      !previousQuery ||
+      previousQuery.sortBy !== sortBy ||
+      previousQuery.currentPage !== currentPage ||
+      haveStringArrayChanged(previousQuery.filters, filters);
+
+    if (!hasQueryChanged) {
+      return;
+    }
+
+    previousQueryRef.current = {
+      sortBy,
+      currentPage,
+      filters: [...filters],
+    };
+
+    let isActive = true;
+
     const fetchOffers = async () => {
       setLoading(true);
       const supabase = createClient();
@@ -167,6 +192,10 @@ export default function ShopGrid({
         .range(start, end)
         .returns<OfferQueryRow[]>();
 
+      if (!isActive) {
+        return;
+      }
+
       if (error) {
         console.error("Erreur Supabase :", error.message);
       } else {
@@ -187,7 +216,11 @@ export default function ShopGrid({
       setLoading(false);
     };
 
-    fetchOffers();
+    void fetchOffers();
+
+    return () => {
+      isActive = false;
+    };
   }, [sortBy, currentPage, filters]);
 
   const filteredOffers = offers
