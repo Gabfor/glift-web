@@ -11,11 +11,11 @@ import {
   Tooltip as RechartsTooltip,
 } from "recharts";
 import type { Props as RechartsDotProps } from "recharts/types/shape/Dot";
-import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -190,24 +190,22 @@ const renderDashboardExerciseDot = (radius: number) => {
   return RenderDashboardExerciseDot;
 };
 
-const DashboardExerciseChartTooltip = ({
-  active,
-  payload,
-  label,
-  coordinate,
-}: Partial<TooltipContentProps<number, string>>) => {
-  const value = payload?.[0]?.value;
-  const isVisible =
-    !!active &&
-    !!payload?.length &&
-    typeof label === "string" &&
-    typeof value === "number" &&
-    typeof coordinate?.x === "number" &&
-    typeof coordinate?.y === "number";
+type ChartTooltipState = {
+  label: string;
+  value: number;
+  coordinate: { x: number; y: number };
+};
 
-  if (!isVisible) {
+const DashboardExerciseChartTooltip = ({
+  tooltip,
+}: {
+  tooltip: ChartTooltipState | null;
+}) => {
+  if (!tooltip) {
     return null;
   }
+
+  const { label, value, coordinate } = tooltip;
 
   return (
     <Tooltip
@@ -252,6 +250,66 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [tooltipState, setTooltipState] = useState<ChartTooltipState | null>(null);
+
+  const dotRenderer = useMemo(
+    () => renderDashboardExerciseDot(CHART_DOT_RADIUS),
+    [],
+  );
+  const activeDotRenderer = useMemo(
+    () => renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS),
+    [],
+  );
+
+  const handleChartMouseMove = useCallback(
+    (chartState: CategoricalChartState | undefined) => {
+      if (
+        !chartState ||
+        !chartState.isTooltipActive ||
+        !chartState.activePayload?.length ||
+        typeof chartState.activeLabel !== "string" ||
+        typeof chartState.chartX !== "number" ||
+        typeof chartState.chartY !== "number" ||
+        !chartState.activeCoordinate ||
+        typeof chartState.activeCoordinate.x !== "number" ||
+        typeof chartState.activeCoordinate.y !== "number"
+      ) {
+        setTooltipState(null);
+        return;
+      }
+
+      const value = chartState.activePayload[0]?.value;
+
+      if (typeof value !== "number") {
+        setTooltipState(null);
+        return;
+      }
+
+      const distance = Math.hypot(
+        chartState.chartX - chartState.activeCoordinate.x,
+        chartState.chartY - chartState.activeCoordinate.y,
+      );
+
+      if (distance > CHART_DOT_INTERACTION_RADIUS) {
+        setTooltipState(null);
+        return;
+      }
+
+      setTooltipState({
+        label: chartState.activeLabel,
+        value,
+        coordinate: {
+          x: chartState.activeCoordinate.x,
+          y: chartState.activeCoordinate.y,
+        },
+      });
+    },
+    [],
+  );
+
+  const handleChartMouseLeave = useCallback(() => {
+    setTooltipState(null);
+  }, []);
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -382,6 +440,8 @@ export default function DashboardExerciseBlock({
                 <AreaChart
                   data={mockData}
                   margin={CHART_MARGIN}
+                  onMouseMove={handleChartMouseMove}
+                  onMouseLeave={handleChartMouseLeave}
                 >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -426,13 +486,13 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                  dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
-                  activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
+                    dot={dotRenderer}
+                    activeDot={tooltipState ? activeDotRenderer : false}
                   />
                   <RechartsTooltip
-                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
-                    content={<DashboardExerciseChartTooltip />}
-                    wrapperStyle={{ pointerEvents: "none" }}
+                    cursor={false}
+                    content={() => null}
+                    wrapperStyle={{ display: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
                     isAnimationActive={false}
                     offset={0}
@@ -440,6 +500,7 @@ export default function DashboardExerciseBlock({
                 </AreaChart>
               </ResponsiveContainer>
             ) : null}
+            <DashboardExerciseChartTooltip tooltip={tooltipState} />
           </div>
         </div>
       </div>
