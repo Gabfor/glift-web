@@ -10,7 +10,7 @@ import {
   CartesianGrid,
   Tooltip as RechartsTooltip,
 } from "recharts";
-import type { TooltipContentProps } from "recharts";
+import type { DotProps, TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -122,61 +122,69 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 
 const TOOLTIP_OFFSET = 5;
 
+type DashboardExerciseChartDotProps = DotProps & {
+  onHoverChange?: (position: { x: number; y: number } | undefined) => void;
+};
+
+const DashboardExerciseChartDot = ({
+  onHoverChange,
+  onMouseEnter,
+  onMouseLeave,
+  cx,
+  cy,
+  r = 4,
+  stroke = "#fff",
+  strokeWidth = 1,
+  fill = "#7069FA",
+  ...rest
+}: DashboardExerciseChartDotProps) => {
+  if (typeof cx !== "number" || typeof cy !== "number") {
+    return null;
+  }
+
+  const handleMouseEnter = (event: React.MouseEvent<SVGCircleElement>) => {
+    onHoverChange?.({ x: cx, y: cy });
+    onMouseEnter?.(event);
+  };
+
+  const handleMouseLeave = (event: React.MouseEvent<SVGCircleElement>) => {
+    onHoverChange?.(undefined);
+    onMouseLeave?.(event);
+  };
+
+  return (
+    <circle
+      {...rest}
+      cx={cx}
+      cy={cy}
+      r={r}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      fill={fill}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    />
+  );
+};
+
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
-  onPositionChange?: (position: { x: number; y: number } | undefined) => void;
+  isVisible: boolean;
 };
 
 const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
-  coordinate,
-  onPositionChange,
+  isVisible,
 }: DashboardExerciseChartTooltipProps) => {
   const value = payload?.[0]?.value;
 
   const isTooltipVisible =
     !!active &&
+    isVisible &&
     !!payload?.length &&
     typeof label === "string" &&
     typeof value === "number";
-
-  const x = coordinate?.x;
-  const y = coordinate?.y;
-
-  useEffect(() => {
-    if (!onPositionChange) {
-      return;
-    }
-
-    if (isTooltipVisible && typeof x === "number") {
-      let tooltipY: number | undefined;
-
-      if (typeof coordinate?.cy === "number") {
-        tooltipY = coordinate.cy;
-      } else if (
-        typeof coordinate?.yAxis?.scale === "function" &&
-        typeof value === "number"
-      ) {
-        const scaledY = coordinate.yAxis.scale(value);
-        if (typeof scaledY === "number" && Number.isFinite(scaledY)) {
-          tooltipY = scaledY;
-        }
-      } else if (typeof y === "number") {
-        tooltipY = y;
-      }
-
-      if (typeof tooltipY === "number") {
-        onPositionChange({
-          x,
-          y: tooltipY,
-        });
-        return;
-      }
-    }
-
-    onPositionChange(undefined);
-  }, [coordinate, isTooltipVisible, onPositionChange, value, x, y]);
 
   if (!isTooltipVisible) {
     return null;
@@ -210,7 +218,7 @@ export default function DashboardExerciseBlock({
     { x: number; y: number } | undefined
   >();
 
-  const handleTooltipPositionChange = useCallback(
+  const handleDotHoverChange = useCallback(
     (position: { x: number; y: number } | undefined) => {
       setTooltipPosition((previous) => {
         if (!previous && !position) {
@@ -231,6 +239,8 @@ export default function DashboardExerciseBlock({
     },
     []
   );
+
+  const isTooltipVisible = !!tooltipPosition;
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -405,12 +415,12 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                    dot={{
-                      r: 4,
-                      stroke: "#fff",
-                      strokeWidth: 1,
-                      fill: "#7069FA",
-                    }}
+                    dot={(props) => (
+                      <DashboardExerciseChartDot
+                        {...props}
+                        onHoverChange={handleDotHoverChange}
+                      />
+                    )}
                     activeDot={{
                       r: 5,
                       fill: "#7069FA",
@@ -419,15 +429,15 @@ export default function DashboardExerciseBlock({
                     }}
                   />
                   <RechartsTooltip
-                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
-                    content={(
-                      <DashboardExerciseChartTooltip
-                        onPositionChange={handleTooltipPositionChange}
-                      />
-                    )}
+                    cursor={
+                      isTooltipVisible
+                        ? { stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }
+                        : false
+                    }
+                    content={<DashboardExerciseChartTooltip isVisible={isTooltipVisible} />}
                     wrapperStyle={{ outline: "none", pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
-                    position={tooltipPosition}
+                    position={tooltipPosition ?? undefined}
                     offset={0}
                   />
                 </AreaChart>
