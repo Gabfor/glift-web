@@ -122,7 +122,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_OFFSET_FROM_POINT_PX = 5;
+const TOOLTIP_OFFSET_FROM_POINT_PX = 20;
 const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
