@@ -13,7 +13,13 @@ import {
 import type { TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -120,8 +126,8 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_VERTICAL_OFFSET = 5;
-const TOOLTIP_SHOW_DELAY_MS = 1000;
+const TOOLTIP_VERTICAL_OFFSET = 10;
+const TOOLTIP_SHOW_DELAY_MS = 500;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -188,7 +194,7 @@ const DashboardExerciseChartTooltip = ({
     };
   }, [coordinate, isTooltipCandidateVisible]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!onPositionChange) {
       return;
     }
@@ -196,7 +202,7 @@ const DashboardExerciseChartTooltip = ({
     if (shouldDisplayTooltip && hoveredPointRef.current) {
       onPositionChange({
         x: hoveredPointRef.current.x,
-        y: hoveredPointRef.current.y - TOOLTIP_VERTICAL_OFFSET,
+        y: hoveredPointRef.current.y,
       });
       return;
     }
@@ -453,6 +459,7 @@ export default function DashboardExerciseBlock({
                     )}
                     wrapperStyle={{ outline: "none", pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
+                    isAnimationActive={false}
                     position={
                       tooltipPosition
                         ? {
