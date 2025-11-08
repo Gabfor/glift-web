@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
+import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
 type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
 type ProgramQueryRow = Pick<
@@ -83,6 +84,11 @@ export default function StoreGrid({
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const showSkeleton = useMinimumVisibility(loading);
+  const previousQueryRef = useRef<{
+    sortBy: string;
+    currentPage: number;
+    filters: string[];
+  } | null>(null);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -106,6 +112,25 @@ export default function StoreGrid({
 
   // ➜ Fetch programs
   useEffect(() => {
+    const previousQuery = previousQueryRef.current;
+    const hasQueryChanged =
+      !previousQuery ||
+      previousQuery.sortBy !== sortBy ||
+      previousQuery.currentPage !== currentPage ||
+      haveStringArrayChanged(previousQuery.filters, filters);
+
+    if (!hasQueryChanged) {
+      return;
+    }
+
+    previousQueryRef.current = {
+      sortBy,
+      currentPage,
+      filters: [...filters],
+    };
+
+    let isActive = true;
+
     const fetchPrograms = async () => {
       setLoading(true);
       const supabase = createClient();
@@ -116,7 +141,7 @@ export default function StoreGrid({
       const order = getOrderForSortBy(sortBy);
 
       let query = supabase
-        .from('program_store')
+        .from("program_store")
         .select(`
           id,
           title,
@@ -135,7 +160,7 @@ export default function StoreGrid({
           downloads,
           created_at
         `)
-        .eq('status', 'ON');
+        .eq("status", "ON");
 
       const [
         genderFilter,
@@ -150,23 +175,27 @@ export default function StoreGrid({
       if (genderFilter) {
         query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
       }
-      if (goalFilter) query = query.eq('goal', goalFilter);
+      if (goalFilter) query = query.eq("goal", goalFilter);
       if (levelFilter) {
-        query = query.in('level', [levelFilter, 'Tous niveaux']);
+        query = query.in("level", [levelFilter, "Tous niveaux"]);
       }
-      if (locationFilter) query = query.eq('location', locationFilter);
+      if (locationFilter) query = query.eq("location", locationFilter);
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) {
-          query = query.lte('duration', maxDuration);
+          query = query.lte("duration", maxDuration);
         }
       }
-      if (partnerFilter) query = query.eq('partner_name', partnerFilter);
+      if (partnerFilter) query = query.eq("partner_name", partnerFilter);
 
       const { data, error } = await query
         .order(order.column, { ascending: order.ascending })
         .range(start, end)
         .returns<ProgramQueryRow[]>();
+
+      if (!isActive) {
+        return;
+      }
 
       if (error) {
         console.error("Erreur Supabase :", error.message);
@@ -178,7 +207,11 @@ export default function StoreGrid({
       setLoading(false);
     };
 
-    fetchPrograms();
+    void fetchPrograms();
+
+    return () => {
+      isActive = false;
+    };
   }, [sortBy, currentPage, filters]);
 
   return (
