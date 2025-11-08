@@ -1,3 +1,5 @@
+import clsx from "clsx";
+
 const skeletonFilters = Array.from({ length: 3 });
 
 export default function DashboardFiltersSkeleton({
@@ -6,9 +8,7 @@ export default function DashboardFiltersSkeleton({
   className?: string;
 }) {
   return (
-    <div
-      className={`mt-[40px] flex flex-wrap items-center gap-4 ${className ? className : ""}`}
-    >
+    <div className={clsx("flex flex-wrap items-center gap-4", className)}>
       <div className="flex flex-wrap gap-4 grow">
         {skeletonFilters.map((_, index) => (
           <div key={index} className="flex flex-col gap-2">
