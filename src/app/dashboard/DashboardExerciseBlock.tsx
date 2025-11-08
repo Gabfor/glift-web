@@ -127,7 +127,6 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_SHOW_DELAY_MS = 500;
 const TOOLTIP_VERTICAL_OFFSET_PX = 5;
 const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
@@ -212,7 +211,6 @@ const DashboardExerciseChartTooltip = ({
 
   const [shouldDisplayTooltip, setShouldDisplayTooltip] = useState(false);
   const hoveredPointRef = useRef<{ x: number; y: number } | null>(null);
-  const delayTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isTooltipCandidateVisible =
     !!active &&
@@ -226,12 +224,6 @@ const DashboardExerciseChartTooltip = ({
     if (!isTooltipCandidateVisible) {
       hoveredPointRef.current = null;
       setShouldDisplayTooltip(false);
-
-      if (delayTimeoutRef.current) {
-        clearTimeout(delayTimeoutRef.current);
-        delayTimeoutRef.current = null;
-      }
-
       onTooltipChange?.(undefined);
 
       return;
@@ -242,26 +234,13 @@ const DashboardExerciseChartTooltip = ({
     const isSamePoint =
       previousPoint?.x === nextPoint.x && previousPoint?.y === nextPoint.y;
 
+    hoveredPointRef.current = nextPoint;
+
     if (!isSamePoint) {
-      hoveredPointRef.current = nextPoint;
-      setShouldDisplayTooltip(false);
-
-      if (delayTimeoutRef.current) {
-        clearTimeout(delayTimeoutRef.current);
-      }
-
-      delayTimeoutRef.current = setTimeout(() => {
-        setShouldDisplayTooltip(true);
-        delayTimeoutRef.current = null;
-      }, TOOLTIP_SHOW_DELAY_MS);
+      onTooltipChange?.(undefined);
     }
 
-    return () => {
-      if (delayTimeoutRef.current) {
-        clearTimeout(delayTimeoutRef.current);
-        delayTimeoutRef.current = null;
-      }
-    };
+    setShouldDisplayTooltip(true);
   }, [coordinate, isTooltipCandidateVisible, onTooltipChange]);
 
   useEffect(() => {
