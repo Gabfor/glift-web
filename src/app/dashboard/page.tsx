@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
@@ -141,6 +141,13 @@ export default function DashboardPage() {
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
   const [areFiltersLoading, setAreFiltersLoading] = useState(false);
+
+  const handleProgramOptionsChange = useCallback(
+    (options: Array<{ value: string; label: string }>) => {
+      setHasProgramOptions(options.length > 0);
+    },
+    [],
+  );
 
   const exerciseOptions = useMemo(
     () =>
@@ -397,9 +404,7 @@ export default function DashboardPage() {
               showStats={showStats}
               onShowStatsChange={setShowStats}
               onProgramsLoadingChange={setIsLoadingPrograms}
-              onProgramOptionsChange={(options) => {
-                setHasProgramOptions(options.length > 0);
-              }}
+              onProgramOptionsChange={handleProgramOptionsChange}
               onFiltersLoadingChange={setAreFiltersLoading}
             />
           </div>
