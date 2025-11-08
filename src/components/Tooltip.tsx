@@ -24,6 +24,10 @@ export type TooltipProps = {
 type TooltipChildProps = {
   onMouseEnter?: React.MouseEventHandler<HTMLElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLElement>;
+  onPointerEnter?: React.PointerEventHandler<HTMLElement>;
+  onPointerLeave?: React.PointerEventHandler<HTMLElement>;
+  onPointerOver?: React.PointerEventHandler<HTMLElement>;
+  onPointerOut?: React.PointerEventHandler<HTMLElement>;
   onClick?: React.MouseEventHandler<HTMLElement>;
 };
 
@@ -92,8 +96,13 @@ export default function Tooltip({
     setReady(true);
   }, [offset, placement]);
 
-  const handleMouseEnter: React.MouseEventHandler<HTMLElement> = () => {
+  const handlePointerOver: React.PointerEventHandler<HTMLElement> = (event) => {
     if (disableHover) return;
+    if (triggerRef.current?.contains(event.relatedTarget as Node | null)) {
+      return;
+    }
+
+    clearDelayTimeout();
     timeoutRef.current = setTimeout(() => {
       setVisible(true);
     }, delay);
@@ -108,7 +117,12 @@ export default function Tooltip({
     setReady(false);
   }, [clearDelayTimeout]);
 
-  const handleMouseLeave: React.MouseEventHandler<HTMLElement> = () => {
+  const handlePointerOut: React.PointerEventHandler<HTMLElement> = (event) => {
+    const nextTarget = event.relatedTarget as Node | null;
+    if (nextTarget && triggerRef.current?.contains(nextTarget)) {
+      return;
+    }
+
     hideTooltip();
   };
 
@@ -184,12 +198,16 @@ export default function Tooltip({
 
     const childProps: TooltipChildProps & { ref: React.RefCallback<HTMLElement> } = {
       ref: mergedRef,
-      onMouseEnter: disableHover
-        ? child.props.onMouseEnter
-        : combineHandlers(child.props.onMouseEnter, handleMouseEnter),
-      onMouseLeave: disableHover
-        ? child.props.onMouseLeave
-        : combineHandlers(child.props.onMouseLeave, handleMouseLeave),
+      onMouseEnter: child.props.onMouseEnter,
+      onMouseLeave: child.props.onMouseLeave,
+      onPointerEnter: child.props.onPointerEnter,
+      onPointerLeave: child.props.onPointerLeave,
+      onPointerOver: disableHover
+        ? child.props.onPointerOver
+        : combineHandlers(child.props.onPointerOver, handlePointerOver),
+      onPointerOut: disableHover
+        ? child.props.onPointerOut
+        : combineHandlers(child.props.onPointerOut, handlePointerOut),
       onClick: combineHandlers(child.props.onClick, hideTooltip),
     };
 
@@ -205,8 +223,8 @@ export default function Tooltip({
     <>
       <div
         ref={setTriggerRef}
-        onMouseEnter={disableHover ? undefined : handleMouseEnter}
-        onMouseLeave={disableHover ? undefined : handleMouseLeave}
+        onPointerOver={disableHover ? undefined : handlePointerOver}
+        onPointerOut={disableHover ? undefined : handlePointerOut}
         onClick={hideTooltip}
         className="inline-flex items-center"
       >
