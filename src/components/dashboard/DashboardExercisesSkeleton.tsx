@@ -2,11 +2,15 @@ import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSke
 
 const skeletonExercises = Array.from({ length: 3 });
 
-export default function DashboardExercisesSkeleton() {
+export default function DashboardExercisesSkeleton({
+  showFilters = true,
+}: {
+  showFilters?: boolean;
+}) {
   return (
     <div className="space-y-[30px]">
       <div className="animate-pulse space-y-[30px]">
-        <DashboardFiltersSkeleton />
+        {showFilters && <DashboardFiltersSkeleton />}
 
         {skeletonExercises.map((_, index) => (
           <div

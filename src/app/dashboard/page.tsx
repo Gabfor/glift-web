@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
+import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
@@ -158,8 +159,9 @@ export default function DashboardPage() {
     [selectedExercise, trainingExercises],
   );
 
-  const shouldShowSkeleton = useMinimumVisibility(
-    areFiltersLoading || isLoadingExercises,
+  const shouldShowFiltersSkeleton = useMinimumVisibility(areFiltersLoading);
+  const shouldShowExercisesSkeleton = useMinimumVisibility(
+    !areFiltersLoading && isLoadingExercises,
   );
 
   useEffect(() => {
@@ -355,11 +357,10 @@ export default function DashboardPage() {
             votre progression par exercice et vous fixer des objectifs.
           </p>
         </div>
-
         <div className="relative">
           <div
-            className={`transition-opacity duration-200 ${shouldShowSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
-            aria-hidden={shouldShowSkeleton}
+            className={`transition-opacity duration-200 ${shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
+            aria-hidden={shouldShowFiltersSkeleton}
           >
             <DashboardProgramFilters
               onProgramChange={(programId) => {
@@ -386,69 +387,95 @@ export default function DashboardPage() {
               }}
               onFiltersLoadingChange={setAreFiltersLoading}
             />
+          </div>
 
+          {shouldShowFiltersSkeleton && (
+            <div className="pointer-events-none absolute inset-0">
+              <div className="mt-10 animate-pulse">
+                <DashboardFiltersSkeleton />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!shouldShowFiltersSkeleton && (
+          <>
             {!isLoadingPrograms && hasLoadedPreferences && !hasProgramOptions && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
             )}
 
-            {!isLoadingPrograms && hasLoadedPreferences && hasProgramOptions && selectedProgram === "" && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme sélectionné.</p>
-            )}
+            {!isLoadingPrograms &&
+              hasLoadedPreferences &&
+              hasProgramOptions &&
+              selectedProgram === "" && (
+                <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme sélectionné.</p>
+              )}
 
             {selectedProgram !== "" && selectedTraining === "" && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun entraînement sélectionné.</p>
             )}
 
-            {selectedTraining !== "" && (
-              <div className="mt-[30px]">
-                {fetchError ? (
-                  <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
-                ) : trainingExercises.length === 0 ? (
-                  <p className="text-center text-[#5D6494] font-semibold">
-                    Aucun exercice n&apos;a été trouvé pour cet entraînement.
-                  </p>
-                ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
-                  <p className="text-center text-[#5D6494] font-semibold">
-                    Aucun exercice ne correspond à votre sélection.
-                  </p>
-                ) : (
-                  <div className="space-y-[30px]">
-                    {filteredExercises.map((exercise) => {
-                      const settings = getExerciseSettings(exercise.id);
-                      return (
-                        <DashboardExerciseBlock
-                          key={exercise.id}
-                          id={exercise.id}
-                          name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                          sessionCount={settings.sessionCount}
-                          curveType={settings.curveType}
-                          onSessionChange={(nextValue) => {
-                            if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
-                              updateExerciseSettings(exercise.id, { sessionCount: nextValue as SessionValue });
-                            }
-                          }}
-                          onCurveChange={(nextValue) => {
-                            if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                              updateExerciseSettings(exercise.id, { curveType: nextValue as CurveOptionValue });
-                            }
-                          }}
-                        />
-                      );
-                    })}
+            <div className="relative">
+              <div
+                className={`transition-opacity duration-200 ${shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
+                aria-hidden={shouldShowExercisesSkeleton}
+              >
+                {selectedTraining !== "" && (
+                  <div className="mt-[30px]">
+                    {fetchError ? (
+                      <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
+                    ) : trainingExercises.length === 0 ? (
+                      <p className="text-center text-[#5D6494] font-semibold">
+                        Aucun exercice n&apos;a été trouvé pour cet entraînement.
+                      </p>
+                    ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
+                      <p className="text-center text-[#5D6494] font-semibold">
+                        Aucun exercice ne correspond à votre sélection.
+                      </p>
+                    ) : (
+                      <div className="space-y-[30px]">
+                        {filteredExercises.map((exercise) => {
+                          const settings = getExerciseSettings(exercise.id);
+                          return (
+                            <DashboardExerciseBlock
+                              key={exercise.id}
+                              id={exercise.id}
+                              name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                              sessionCount={settings.sessionCount}
+                              curveType={settings.curveType}
+                              onSessionChange={(nextValue) => {
+                                if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
+                                  updateExerciseSettings(exercise.id, {
+                                    sessionCount: nextValue as SessionValue,
+                                  });
+                                }
+                              }}
+                              onCurveChange={(nextValue) => {
+                                if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                                  updateExerciseSettings(exercise.id, {
+                                    curveType: nextValue as CurveOptionValue,
+                                  });
+                                }
+                              }}
+                            />
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-          </div>
 
-          {shouldShowSkeleton && (
-            <div className="absolute inset-0">
-              <div className="mt-10">
-                <DashboardExercisesSkeleton />
-              </div>
+              {shouldShowExercisesSkeleton && (
+                <div className="pointer-events-none absolute inset-0">
+                  <div className="mt-[30px]">
+                    <DashboardExercisesSkeleton showFilters={false} />
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </main>
   );
