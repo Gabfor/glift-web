@@ -144,7 +144,8 @@ export default function DashboardPage() {
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
   const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
-  const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<ExerciseDisplaySettings>({});
+  const [exerciseDisplaySettings, setExerciseDisplaySettings] =
+    useState<ExerciseDisplaySettings>({});
   const [defaultCurveValue, setDefaultCurveValue] =
     useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
   const [showStats, setShowStats] = useState(false);
@@ -187,22 +188,14 @@ export default function DashboardPage() {
   );
 
   useEffect(() => {
-    if (isLoadingExercises || !hasFetchedExercises) {
-      return;
-    }
-
+    if (isLoadingExercises || !hasFetchedExercises) return;
     if (
       selectedExercise &&
       !trainingExercises.some((exercise) => exercise.id === selectedExercise)
     ) {
       setSelectedExercise("");
     }
-  }, [
-    hasFetchedExercises,
-    isLoadingExercises,
-    selectedExercise,
-    trainingExercises,
-  ]);
+  }, [hasFetchedExercises, isLoadingExercises, selectedExercise, trainingExercises]);
 
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
@@ -212,7 +205,7 @@ export default function DashboardPage() {
 
   const updateExerciseSettings = (
     exerciseId: string,
-    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>
+    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>,
   ) => {
     setExerciseDisplaySettings((previous) => {
       const current = previous[exerciseId] ?? {
@@ -226,7 +219,6 @@ export default function DashboardPage() {
     });
   };
 
-  // Charger préférences utilisateur
   useEffect(() => {
     setHasLoadedProgramList(false);
     if (!user?.id) {
@@ -262,10 +254,6 @@ export default function DashboardPage() {
       if (!isMounted) return;
 
       if (userPreferencesResponse.error) {
-        console.error(
-          "Erreur lors du chargement des préférences utilisateur :",
-          userPreferencesResponse.error.message,
-        );
         setDefaultCurveValue(FALLBACK_CURVE_VALUE);
       } else {
         const rawCurve = userPreferencesResponse.data?.curve ?? null;
@@ -277,10 +265,6 @@ export default function DashboardPage() {
       const { data, error } = dashboardResponse;
 
       if (error) {
-        console.error(
-          "Erreur lors du chargement des préférences du tableau de bord :",
-          error.message,
-        );
         setSelectedProgram("");
         setSelectedTraining("");
         setSelectedExercise("");
@@ -289,7 +273,6 @@ export default function DashboardPage() {
         setAreFiltersLoading(false);
       } else {
         const preferences = data?.[0] as DashboardPreferencesRow | undefined;
-
         const nextSelectedProgram = preferences?.selected_program_id ?? "";
         const nextSelectedTraining = preferences?.selected_training_id ?? "";
         const parsedPreferences = parseExerciseSettings(preferences?.exercise_settings);
@@ -305,13 +288,8 @@ export default function DashboardPage() {
         setSelectedExercise(nextSelectedExercise);
         setExerciseDisplaySettings(parsedPreferences.settings);
         setShowStats(Boolean(preferences?.show_stats));
-
         setAreFiltersLoading(
-          Boolean(
-            nextSelectedProgram ||
-              nextSelectedTraining ||
-              nextSelectedExercise,
-          ),
+          Boolean(nextSelectedProgram || nextSelectedTraining || nextSelectedExercise),
         );
       }
 
@@ -324,10 +302,8 @@ export default function DashboardPage() {
     };
   }, [supabase, user?.id]);
 
-  // Sauvegarder préférences
   useEffect(() => {
     if (!user?.id || !hasLoadedPreferences) return;
-
     const persistPreferences = async () => {
       const payload: DashboardPreferencesInsert = {
         user_id: user.id,
@@ -341,16 +317,8 @@ export default function DashboardPage() {
         show_stats: showStats,
         updated_at: new Date().toISOString(),
       };
-
-      const { error } = await supabase
-        .from("dashboard_preferences")
-        .upsert(payload, { onConflict: "user_id" });
-
-      if (error) {
-        console.error("Erreur lors de l'enregistrement des préférences du tableau de bord :", error.message);
-      }
+      await supabase.from("dashboard_preferences").upsert(payload, { onConflict: "user_id" });
     };
-
     void persistPreferences();
   }, [
     exerciseDisplaySettings,
@@ -363,7 +331,6 @@ export default function DashboardPage() {
     user?.id,
   ]);
 
-  // Charger les exercices d’un entraînement
   useEffect(() => {
     if (!selectedTraining || !user?.id) {
       setTrainingExercises([]);
@@ -390,7 +357,6 @@ export default function DashboardPage() {
       if (!isMounted) return;
 
       if (error) {
-        console.error("Erreur lors du chargement des exercices :", error.message);
         setTrainingExercises([]);
         setFetchError("Une erreur est survenue lors du chargement des exercices.");
       } else {
@@ -398,7 +364,7 @@ export default function DashboardPage() {
           (data ?? []).map((row) => ({
             id: String(row.id),
             exercice: typeof row.exercice === "string" ? row.exercice : null,
-          }))
+          })),
         );
       }
 
@@ -423,9 +389,12 @@ export default function DashboardPage() {
             votre progression par exercice et vous fixer des objectifs.
           </p>
         </div>
+
         <div className="relative">
           <div
-            className={`transition-opacity duration-200 ${shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
+            className={`transition-opacity duration-200 ${
+              shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
+            }`}
             aria-hidden={shouldShowFiltersSkeleton}
           >
             <DashboardProgramFilters
@@ -438,9 +407,7 @@ export default function DashboardPage() {
                 setSelectedTraining(trainingId);
                 setSelectedExercise("");
               }}
-              onExerciseChange={(exerciseId) => {
-                setSelectedExercise(exerciseId);
-              }}
+              onExerciseChange={setSelectedExercise}
               selectedProgramId={selectedProgram}
               selectedTrainingId={selectedTraining}
               selectedExerciseId={selectedExercise}
@@ -466,78 +433,80 @@ export default function DashboardPage() {
         {!shouldShowFiltersSkeleton && (
           <>
             {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
+              <p className="mt-8 text-center text-[#5D6494] font-semibold">
+                Aucun programme trouvé.
+              </p>
             )}
 
-{hasLoadedPreferences && hasProgramOptions && !selectedProgram && (
-  <p className="mt-8 text-center text-[#5D6494] font-semibold">
-    Aucun programme sélectionné.
-  </p>
-)}
+            {hasLoadedPreferences && hasProgramOptions && !selectedProgram && (
+              <p className="mt-8 text-center text-[#5D6494] font-semibold">
+                Aucun programme sélectionné.
+              </p>
+            )}
 
             {selectedProgram !== "" && selectedTraining === "" && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun entraînement sélectionné.</p>
+              <p className="mt-8 text-center text-[#5D6494] font-semibold">
+                Aucun entraînement sélectionné.
+              </p>
             )}
 
-            <div className="relative">
-              <div
-                className={`transition-opacity duration-200 ${shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"}`}
-                aria-hidden={shouldShowExercisesSkeleton}
-              >
-                {selectedTraining !== "" && (
-                  <div className="mt-[30px]">
-                    {fetchError ? (
-                      <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
-                    ) : trainingExercises.length === 0 ? (
-                      <p className="text-center text-[#5D6494] font-semibold">
-                        Aucun exercice n&apos;a été trouvé pour cet entraînement.
-                      </p>
-                    ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
-                      <p className="text-center text-[#5D6494] font-semibold">
-                        Aucun exercice ne correspond à votre sélection.
-                      </p>
-                    ) : (
-                      <div className="space-y-[30px]">
-                        {filteredExercises.map((exercise) => {
-                          const settings = getExerciseSettings(exercise.id);
-                          return (
-                            <DashboardExerciseBlock
-                              key={exercise.id}
-                              id={exercise.id}
-                              name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                              sessionCount={settings.sessionCount}
-                              curveType={settings.curveType}
-                              onSessionChange={(nextValue) => {
-                                if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
-                                  updateExerciseSettings(exercise.id, {
-                                    sessionCount: nextValue as SessionValue,
-                                  });
-                                }
-                              }}
-                              onCurveChange={(nextValue) => {
-                                if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                                  updateExerciseSettings(exercise.id, {
-                                    curveType: nextValue as CurveOptionValue,
-                                  });
-                                }
-                              }}
-                            />
-                          );
-                        })}
-                      </div>
-                    )}
+            {selectedTraining !== "" && (
+              <div className="relative mt-[30px]">
+                <div
+                  className={`transition-opacity duration-200 ${
+                    shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
+                  }`}
+                  aria-hidden={shouldShowExercisesSkeleton}
+                >
+                  {fetchError ? (
+                    <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
+                  ) : trainingExercises.length === 0 ? (
+                    <p className="text-center text-[#5D6494] font-semibold">
+                      Aucun exercice n&apos;a été trouvé pour cet entraînement.
+                    </p>
+                  ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
+                    <p className="text-center text-[#5D6494] font-semibold">
+                      Aucun exercice ne correspond à votre sélection.
+                    </p>
+                  ) : (
+                    <div className="space-y-[30px]">
+                      {filteredExercises.map((exercise) => {
+                        const settings = getExerciseSettings(exercise.id);
+                        return (
+                          <DashboardExerciseBlock
+                            key={exercise.id}
+                            id={exercise.id}
+                            name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                            sessionCount={settings.sessionCount}
+                            curveType={settings.curveType}
+                            onSessionChange={(nextValue) => {
+                              if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  sessionCount: nextValue as SessionValue,
+                                });
+                              }
+                            }}
+                            onCurveChange={(nextValue) => {
+                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  curveType: nextValue as CurveOptionValue,
+                                });
+                              }
+                            }}
+                          />
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {shouldShowExercisesSkeleton && (
+                  <div className="pointer-events-none absolute inset-0">
+                    <DashboardExercisesSkeleton showFilters={false} />
                   </div>
                 )}
               </div>
-
-              {shouldShowExercisesSkeleton && (
-                <div className="pointer-events-none absolute inset-x-0 top-0">
-                  <div className="mt-[30px]">
-                    <DashboardExercisesSkeleton showFilters={false} />
-                  </div>
-                </div>
-              )}
-            </div>
+            )}
           </>
         )}
       </div>
