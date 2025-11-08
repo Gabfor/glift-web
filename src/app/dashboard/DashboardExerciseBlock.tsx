@@ -121,6 +121,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 );
 
 const TOOLTIP_VERTICAL_OFFSET = 5;
+const TOOLTIP_FIXED_VERTICAL_POSITION = CHART_MARGIN.top - TOOLTIP_VERTICAL_OFFSET;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -142,7 +143,6 @@ const DashboardExerciseChartTooltip = ({
     typeof value === "number";
 
   const x = coordinate?.x;
-  const y = coordinate?.y;
 
   useEffect(() => {
     if (!onPositionChange) {
@@ -150,33 +150,15 @@ const DashboardExerciseChartTooltip = ({
     }
 
     if (isTooltipVisible && typeof x === "number") {
-      let tooltipY: number | undefined;
-
-      if (typeof coordinate?.cy === "number") {
-        tooltipY = coordinate.cy;
-      } else if (
-        typeof coordinate?.yAxis?.scale === "function" &&
-        typeof value === "number"
-      ) {
-        const scaledY = coordinate.yAxis.scale(value);
-        if (typeof scaledY === "number" && Number.isFinite(scaledY)) {
-          tooltipY = scaledY;
-        }
-      } else if (typeof y === "number") {
-        tooltipY = y;
-      }
-
-      if (typeof tooltipY === "number") {
-        onPositionChange({
-          x,
-          y: tooltipY,
-        });
-        return;
-      }
+      onPositionChange({
+        x,
+        y: TOOLTIP_FIXED_VERTICAL_POSITION + TOOLTIP_VERTICAL_OFFSET,
+      });
+      return;
     }
 
     onPositionChange(undefined);
-  }, [coordinate, isTooltipVisible, onPositionChange, value, x, y]);
+  }, [coordinate, isTooltipVisible, onPositionChange, x]);
 
   if (!isTooltipVisible) {
     return null;
