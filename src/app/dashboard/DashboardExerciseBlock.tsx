@@ -120,8 +120,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_HEIGHT = 68;
-const TOOLTIP_VERTICAL_GAP = 12;
+const TOOLTIP_OFFSET = 5;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -153,7 +152,7 @@ const DashboardExerciseChartTooltip = ({
     if (isTooltipVisible && typeof x === "number" && typeof y === "number") {
       onPositionChange({
         x,
-        y: y - TOOLTIP_HEIGHT - TOOLTIP_VERTICAL_GAP,
+        y,
       });
       return;
     }
@@ -166,12 +165,15 @@ const DashboardExerciseChartTooltip = ({
   }
 
   return (
-    <div className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md">
+    <div
+      className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
+      style={{ transform: `translate(-50%, calc(-100% - ${TOOLTIP_OFFSET}px))` }}
+    >
       <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
         {formatTooltipLabel(label)}
       </span>
       <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
-      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[#2E3142]" />
+      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 rotate-45 bg-[#2E3142]" />
     </div>
   );
 };
