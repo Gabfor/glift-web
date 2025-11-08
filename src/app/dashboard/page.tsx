@@ -138,7 +138,6 @@ export default function DashboardPage() {
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
-  const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
   const [areFiltersLoading, setAreFiltersLoading] = useState(false);
   const [hasLoadedProgramList, setHasLoadedProgramList] = useState(false);
@@ -168,7 +167,9 @@ export default function DashboardPage() {
     [selectedExercise, trainingExercises],
   );
 
-  const shouldShowFiltersSkeleton = useMinimumVisibility(areFiltersLoading);
+  const shouldShowFiltersSkeleton = useMinimumVisibility(
+    areFiltersLoading || !hasLoadedPreferences,
+  );
   const shouldShowExercisesSkeleton = useMinimumVisibility(
     !areFiltersLoading && isLoadingExercises,
   );
@@ -410,7 +411,6 @@ export default function DashboardPage() {
               hasFetchedExercises={hasFetchedExercises}
               showStats={showStats}
               onShowStatsChange={setShowStats}
-              onProgramsLoadingChange={setIsLoadingPrograms}
               onProgramOptionsChange={handleProgramOptionsChange}
               onFiltersLoadingChange={setAreFiltersLoading}
             />
