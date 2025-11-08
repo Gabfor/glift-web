@@ -135,6 +135,8 @@ const CHART_DOT_INTERACTION_RADIUS = 14;
 
 type RechartsDotProps = React.ComponentProps<typeof Dot>;
 
+type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
+
 type DashboardExerciseDotProps = RechartsDotProps & {
   interactionRadius: number;
   radius: number;
@@ -167,6 +169,22 @@ const DashboardExerciseDot = ({
     />
   </g>
 );
+
+const renderDashboardExerciseDot = (radius: number) => {
+  const RenderDashboardExerciseDot = ({
+    key: dotKey,
+    ...restDotProps
+  }: RechartsDotRenderProps) => (
+    <DashboardExerciseDot
+      key={dotKey}
+      {...restDotProps}
+      interactionRadius={CHART_DOT_INTERACTION_RADIUS}
+      radius={radius}
+    />
+  );
+
+  return RenderDashboardExerciseDot;
+};
 
 type DashboardExerciseTooltipState = {
   label: string;
@@ -477,20 +495,8 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                    dot={(dotProps) => (
-                      <DashboardExerciseDot
-                        {...dotProps}
-                        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
-                        radius={CHART_DOT_RADIUS}
-                      />
-                    )}
-                    activeDot={(dotProps) => (
-                      <DashboardExerciseDot
-                        {...dotProps}
-                        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
-                        radius={CHART_ACTIVE_DOT_RADIUS}
-                      />
-                    )}
+                  dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
+                  activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
                   />
                   <RechartsTooltip
                     cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
