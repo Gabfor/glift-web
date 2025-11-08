@@ -69,23 +69,39 @@ export default function DashboardProgramFilters({
   const [loadingPrograms, setLoadingPrograms] = useState(true);
   const [loadingTrainings, setLoadingTrainings] = useState(false);
   const [hasFetchedTrainings, setHasFetchedTrainings] = useState(false);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   const selectedProgram = selectedProgramId;
   const selectedTraining = selectedTrainingId;
   const selectedExercise = selectedExerciseId;
 
+  const hasInitialSelections =
+    selectedProgram !== "" ||
+    selectedTraining !== "" ||
+    selectedExercise !== "";
+
   const shouldShowFiltersSkeleton =
-    (loadingPrograms && programOptions.length === 0) ||
-    (selectedProgram !== "" &&
-      loadingTrainings &&
-      trainingOptions.length === 0) ||
-    (selectedTraining !== "" &&
-      loadingExercises &&
-      exerciseOptions.length === 0);
+    !hasUserInteracted &&
+    hasInitialSelections &&
+    ((loadingPrograms && programOptions.length === 0) ||
+      (selectedProgram !== "" &&
+        loadingTrainings &&
+        trainingOptions.length === 0) ||
+      (selectedTraining !== "" &&
+        loadingExercises &&
+        exerciseOptions.length === 0));
 
   useEffect(() => {
     onFiltersLoadingChange?.(shouldShowFiltersSkeleton);
   }, [onFiltersLoadingChange, shouldShowFiltersSkeleton]);
+
+  useEffect(() => {
+    setHasUserInteracted(false);
+  }, [user?.id]);
+
+  const markUserInteraction = useCallback(() => {
+    setHasUserInteracted(true);
+  }, []);
 
   const updateProgramOptions = useCallback(
     (nextOptions: FilterOption[]) => {
@@ -353,6 +369,7 @@ export default function DashboardProgramFilters({
           options={programOptions}
           selected={selectedProgram}
           onSelect={(value) => {
+            markUserInteraction();
             onProgramChange?.(value);
             onTrainingChange?.("");
             onExerciseChange?.("");
@@ -365,6 +382,7 @@ export default function DashboardProgramFilters({
           options={trainingOptions}
           selected={selectedTraining}
           onSelect={(value) => {
+            markUserInteraction();
             if (onTrainingChange) {
               onTrainingChange(value);
             }
@@ -379,6 +397,7 @@ export default function DashboardProgramFilters({
           options={exerciseOptions}
           selected={selectedExercise}
           onSelect={(value) => {
+            markUserInteraction();
             if (onExerciseChange) {
               onExerciseChange(value);
             }
