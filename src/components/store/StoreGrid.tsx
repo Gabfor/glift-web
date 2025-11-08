@@ -85,6 +85,7 @@ export default function StoreGrid({
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const showSkeleton = useMinimumVisibility(loading);
+  const hasLoadedOnceRef = useRef(false);
   const previousQueryRef = useRef<{
     sortBy: string;
     currentPage: number;
@@ -120,7 +121,12 @@ export default function StoreGrid({
       previousQuery.currentPage !== currentPage ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
-    if (!hasQueryChanged) {
+    const shouldSkipFetch =
+      previousQuery !== null &&
+      !hasQueryChanged &&
+      hasLoadedOnceRef.current;
+
+    if (shouldSkipFetch) {
       return;
     }
 
@@ -206,6 +212,7 @@ export default function StoreGrid({
       }
 
       setHasLoadedOnce(true);
+      hasLoadedOnceRef.current = true;
       setLoading(false);
     };
 
