@@ -311,7 +311,10 @@ export default function DashboardExerciseBlock({
             className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
           >
             {chartSize.width > 0 && chartSize.height > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer
+                width={chartSize.width}
+                height={chartSize.height}
+              >
                 <AreaChart
                   data={mockData}
                   margin={CHART_MARGIN}
