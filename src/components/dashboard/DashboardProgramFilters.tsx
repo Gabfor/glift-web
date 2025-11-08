@@ -416,12 +416,15 @@ export default function DashboardProgramFilters(
         className="ml-auto self-end h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
         aria-pressed={showStats}
       >
-        <Image
-          src={showStats ? StatsRedIcon : StatsGreenIcon}
-          alt=""
-          width={16}
-          height={16}
-        />
+        <span className="relative size-4">
+          <Image
+            src={showStats ? StatsRedIcon : StatsGreenIcon}
+            alt=""
+            fill
+            sizes="16px"
+            className="object-contain"
+          />
+        </span>
         <span>{showStats ? "Masquer les stats" : "Afficher les stats"}</span>
       </button>
     </div>

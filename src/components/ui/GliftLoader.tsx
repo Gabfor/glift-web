@@ -20,7 +20,6 @@ export default function GliftLoader({ className }: GliftLoaderProps) {
           alt="Glift"
           width={150}
           height={57}
-          priority
           className="mb-6"
         />
         <div className="relative h-[3px] w-[100px] overflow-hidden rounded-full bg-gray-200">
