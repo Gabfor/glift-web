@@ -415,12 +415,16 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                    dot={(props) => (
-                      <DashboardExerciseChartDot
-                        {...props}
-                        onHoverChange={handleDotHoverChange}
-                      />
-                    )}
+                    dot={(props) => {
+                      const { key, ...dotProps } = props;
+                      return (
+                        <DashboardExerciseChartDot
+                          key={key}
+                          {...dotProps}
+                          onHoverChange={handleDotHoverChange}
+                        />
+                      );
+                    }}
                     activeDot={{
                       r: 5,
                       fill: "#7069FA",
