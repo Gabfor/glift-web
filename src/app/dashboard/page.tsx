@@ -20,7 +20,7 @@ const SESSION_OPTIONS = [
 type SessionValue = (typeof SESSION_OPTIONS)[number]["value"];
 
 const DEFAULT_SESSION_VALUE: SessionValue = SESSION_OPTIONS[2].value;
-const DEFAULT_CURVE_VALUE: CurveOptionValue = CURVE_OPTIONS[0].value;
+const FALLBACK_CURVE_VALUE: CurveOptionValue = CURVE_OPTIONS[0].value;
 
 type TrainingExercise = {
   id: string;
@@ -43,6 +43,16 @@ type DashboardPreferencesRow =
   Database["public"]["Tables"]["dashboard_preferences"]["Row"];
 type DashboardPreferencesInsert =
   Database["public"]["Tables"]["dashboard_preferences"]["Insert"];
+type PreferencesRow = Database["public"]["Tables"]["preferences"]["Row"];
+
+const CURVE_FROM_DB: Record<PreferencesRow["curve"], CurveOptionValue> = {
+  maximum_weight: "poids-maximum",
+  average_weight: "poids-moyen",
+  total_weight: "poids-total",
+  maximum_rep: "repetition-maximum",
+  average_rep: "repetition-moyenne",
+  total_rep: "repetitions-totales",
+};
 
 const isSessionValue = (value: unknown): value is SessionValue =>
   typeof value === "string" &&
@@ -135,6 +145,8 @@ export default function DashboardPage() {
   const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<ExerciseDisplaySettings>({});
+  const [defaultCurveValue, setDefaultCurveValue] =
+    useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
@@ -195,7 +207,7 @@ export default function DashboardPage() {
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
       sessionCount: DEFAULT_SESSION_VALUE,
-      curveType: DEFAULT_CURVE_VALUE,
+      curveType: defaultCurveValue,
     };
 
   const updateExerciseSettings = (
@@ -205,7 +217,7 @@ export default function DashboardPage() {
     setExerciseDisplaySettings((previous) => {
       const current = previous[exerciseId] ?? {
         sessionCount: DEFAULT_SESSION_VALUE,
-        curveType: DEFAULT_CURVE_VALUE,
+        curveType: defaultCurveValue,
       };
       return {
         ...previous,
@@ -226,23 +238,49 @@ export default function DashboardPage() {
       setHasLoadedPreferences(false);
       setAreFiltersLoading(false);
       setHasLoadedProgramList(false);
+      setDefaultCurveValue(FALLBACK_CURVE_VALUE);
       return;
     }
 
     let isMounted = true;
     const fetchPreferences = async () => {
       setHasLoadedPreferences(false);
-      const { data, error } = await supabase
-        .from("dashboard_preferences")
-        .select("*")
-        .eq("user_id", user.id)
-        .limit(1)
-        .returns<DashboardPreferencesRow[]>();
+      const [dashboardResponse, userPreferencesResponse] = await Promise.all([
+        supabase
+          .from("dashboard_preferences")
+          .select("*")
+          .eq("user_id", user.id)
+          .limit(1)
+          .returns<DashboardPreferencesRow[]>(),
+        supabase
+          .from("preferences")
+          .select("curve")
+          .eq("id", user.id)
+          .maybeSingle<Pick<PreferencesRow, "curve">>(),
+      ]);
 
       if (!isMounted) return;
 
+      if (userPreferencesResponse.error) {
+        console.error(
+          "Erreur lors du chargement des préférences utilisateur :",
+          userPreferencesResponse.error.message,
+        );
+        setDefaultCurveValue(FALLBACK_CURVE_VALUE);
+      } else {
+        const rawCurve = userPreferencesResponse.data?.curve ?? null;
+        setDefaultCurveValue(
+          rawCurve ? CURVE_FROM_DB[rawCurve] ?? FALLBACK_CURVE_VALUE : FALLBACK_CURVE_VALUE,
+        );
+      }
+
+      const { data, error } = dashboardResponse;
+
       if (error) {
-        console.error("Erreur lors du chargement des préférences du tableau de bord :", error.message);
+        console.error(
+          "Erreur lors du chargement des préférences du tableau de bord :",
+          error.message,
+        );
         setSelectedProgram("");
         setSelectedTraining("");
         setSelectedExercise("");
