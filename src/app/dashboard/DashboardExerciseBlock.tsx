@@ -12,7 +12,6 @@ import {
 } from "recharts";
 import type { Props as RechartsDotProps } from "recharts/types/shape/Dot";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
-import Tooltip from "@/components/Tooltip";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
@@ -123,6 +122,8 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 );
 
 const TOOLTIP_VERTICAL_OFFSET_PX = 5;
+const TOOLTIP_POPUP_OFFSET_PX = 10;
+const TOOLTIP_ARROW_OFFSET_PX = 6;
 const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
@@ -208,35 +209,24 @@ const DashboardExerciseChartTooltip = ({
   const { label, value, coordinate } = tooltip;
 
   return (
-    <Tooltip
-      content={
-        <div className="flex flex-col items-center gap-[6px]">
-          <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
-            {formatTooltipLabel(label)}
-          </span>
-          <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
-        </div>
-      }
-      placement="top"
-      forceVisible
-      disableHover
-      asChild
-      contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
-      arrowClassName="bg-[#2E3142]"
-      offset={10}
+    <div
+      className="pointer-events-none absolute flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
+      style={{
+        top: coordinate.y - TOOLTIP_VERTICAL_OFFSET_PX,
+        left: coordinate.x,
+        zIndex: 10,
+        transform: `translate(-50%, -100%) translateY(-${TOOLTIP_POPUP_OFFSET_PX}px)`,
+      }}
     >
+      <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
+        {formatTooltipLabel(label)}
+      </span>
+      <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
       <div
-        style={{
-          position: "absolute",
-          top: coordinate.y - TOOLTIP_VERTICAL_OFFSET_PX,
-          left: coordinate.x,
-          width: 0,
-          height: 0,
-          transform: "translate(-50%, -50%)",
-          pointerEvents: "none",
-        }}
+        className="absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-[#2E3142]"
+        style={{ bottom: -TOOLTIP_ARROW_OFFSET_PX }}
       />
-    </Tooltip>
+    </div>
   );
 };
 
@@ -275,9 +265,17 @@ export default function DashboardExerciseBlock({
         return;
       }
 
-      const value = chartState.activePayload[0]?.value;
+      const rawValue = chartState.activePayload[0]?.value;
+      const value =
+        typeof rawValue === "number"
+          ? rawValue
+          : typeof rawValue === "string"
+            ? Number(rawValue)
+            : Array.isArray(rawValue)
+              ? Number(rawValue[0])
+              : Number.NaN;
 
-      if (typeof value !== "number") {
+      if (!Number.isFinite(value)) {
         setTooltipState(null);
         return;
       }
