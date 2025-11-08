@@ -133,6 +133,7 @@ export interface Database {
           user_id: string;
           selected_program_id: Nullable<string>;
           selected_training_id: Nullable<string>;
+          selected_exercise_id: Nullable<string>;
           exercise_settings: Json;
           show_stats: boolean;
           updated_at: string;
@@ -141,6 +142,7 @@ export interface Database {
           user_id: string;
           selected_program_id?: Nullable<string>;
           selected_training_id?: Nullable<string>;
+          selected_exercise_id?: Nullable<string>;
           exercise_settings?: Json;
           show_stats?: boolean;
           updated_at?: string;
@@ -149,6 +151,7 @@ export interface Database {
           user_id?: string;
           selected_program_id?: Nullable<string>;
           selected_training_id?: Nullable<string>;
+          selected_exercise_id?: Nullable<string>;
           exercise_settings?: Json;
           show_stats?: boolean;
           updated_at?: string;
@@ -170,6 +173,12 @@ export interface Database {
             foreignKeyName: "dashboard_preferences_selected_training_id_fkey";
             columns: ["selected_training_id"];
             referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "dashboard_preferences_selected_exercise_id_fkey";
+            columns: ["selected_exercise_id"];
+            referencedRelation: "training_rows";
             referencedColumns: ["id"];
           },
         ];

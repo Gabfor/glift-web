@@ -232,7 +232,11 @@ export default function DashboardPage() {
         setSelectedProgram(preferences?.selected_program_id ?? "");
         setSelectedTraining(preferences?.selected_training_id ?? "");
         const parsedPreferences = parseExerciseSettings(preferences?.exercise_settings);
-        setSelectedExercise(parsedPreferences.selectedExerciseId);
+        const persistedExerciseId =
+          typeof preferences?.selected_exercise_id === "string"
+            ? preferences.selected_exercise_id
+            : "";
+        setSelectedExercise(persistedExerciseId || parsedPreferences.selectedExerciseId);
         setExerciseDisplaySettings(parsedPreferences.settings);
         setShowStats(Boolean(preferences?.show_stats));
       }
@@ -255,6 +259,7 @@ export default function DashboardPage() {
         user_id: user.id,
         selected_program_id: selectedProgram || null,
         selected_training_id: selectedTraining || null,
+        selected_exercise_id: selectedExercise || null,
         exercise_settings: buildExerciseSettingsPayload(
           exerciseDisplaySettings,
           selectedExercise,
