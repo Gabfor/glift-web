@@ -531,10 +531,8 @@ export default function DashboardPage() {
               </div>
 
               {shouldShowExercisesSkeleton && (
-                <div className="pointer-events-none absolute inset-0">
-                  <div className="mt-[30px]">
-                    <DashboardExercisesSkeleton showFilters={false} />
-                  </div>
+                <div className="pointer-events-none absolute inset-x-0 top-[30px]">
+                  <DashboardExercisesSkeleton showFilters={false} />
                 </div>
               )}
             </div>
