@@ -231,7 +231,8 @@ export default function DashboardPage() {
         .from("dashboard_preferences")
         .select("*")
         .eq("user_id", user.id)
-        .limit(1);
+        .limit(1)
+        .returns<DashboardPreferencesRow[]>();
 
       if (!isMounted) return;
 
@@ -394,7 +395,9 @@ export default function DashboardPage() {
                 setSelectedTraining(trainingId);
                 setSelectedExercise("");
               }}
-              onExerciseChange={setSelectedExercise}
+              onExerciseChange={(exerciseId) => {
+                setSelectedExercise(exerciseId);
+              }}
               selectedProgramId={selectedProgram}
               selectedTrainingId={selectedTraining}
               selectedExerciseId={selectedExercise}
