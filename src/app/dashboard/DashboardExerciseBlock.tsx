@@ -52,9 +52,123 @@ const splitDateLabel = (label: string) => {
   };
 };
 
-const formatTooltipLabel = (label: string) => {
-  const { day, month } = splitDateLabel(label);
-  return month ? `${day} ${month}` : day;
+const removeDiacritics = (value: string) =>
+  value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+const sanitizeMonthToken = (token: string) =>
+  removeDiacritics(token.trim()).toLowerCase().replace(/[^a-z]/g, "");
+
+const MONTH_LABEL_MAP: Record<string, number> = {
+  jan: 1,
+  janvier: 1,
+  janv: 1,
+  feb: 2,
+  fev: 2,
+  fevr: 2,
+  fevrier: 2,
+  mar: 3,
+  mars: 3,
+  apr: 4,
+  avr: 4,
+  avril: 4,
+  may: 5,
+  mai: 5,
+  jun: 6,
+  juin: 6,
+  jul: 7,
+  jui: 7,
+  juil: 7,
+  juillet: 7,
+  aug: 8,
+  aou: 8,
+  aout: 8,
+  sep: 9,
+  sept: 9,
+  septembre: 9,
+  oct: 10,
+  octobre: 10,
+  nov: 11,
+  novembre: 11,
+  dec: 12,
+  decembre: 12,
+};
+
+const resolveMonthIndex = (token: string): number | null => {
+  const sanitized = sanitizeMonthToken(token);
+  if (!sanitized) {
+    return null;
+  }
+
+  if (MONTH_LABEL_MAP[sanitized]) {
+    return MONTH_LABEL_MAP[sanitized];
+  }
+
+  const shortened = sanitized.slice(0, 3);
+  return shortened && MONTH_LABEL_MAP[shortened] ? MONTH_LABEL_MAP[shortened] : null;
+};
+
+const parseDateFromLabel = (value: unknown): Date | null => {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const dateFromNumber = new Date(value);
+    return Number.isNaN(dateFromNumber.getTime()) ? null : dateFromNumber;
+  }
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const directParse = new Date(trimmed);
+  if (!Number.isNaN(directParse.getTime())) {
+    return directParse;
+  }
+
+  const cleaned = trimmed.replace(/[,]/g, " ").replace(/\s+/g, " ").trim();
+  const parts = cleaned.split(" ");
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const dayPart = Number.parseInt(parts[0], 10);
+  if (Number.isNaN(dayPart)) {
+    return null;
+  }
+
+  const numericMonth = Number.parseInt(parts[1], 10);
+  const monthIndex = !Number.isNaN(numericMonth)
+    ? Math.min(Math.max(numericMonth, 1), 12)
+    : resolveMonthIndex(parts[1]);
+  if (monthIndex == null) {
+    return null;
+  }
+
+  const yearPart = parts.slice(2).find((part) => /^\d{4}$/.test(part));
+  const year = yearPart ? Number.parseInt(yearPart, 10) : new Date().getFullYear();
+
+  const candidate = new Date(year, monthIndex - 1, dayPart);
+  return Number.isNaN(candidate.getTime()) ? null : candidate;
+};
+
+const formatTooltipDate = (value: unknown): string => {
+  const parsedDate = parseDateFromLabel(value);
+
+  if (!parsedDate) {
+    return typeof value === "string" ? value : "";
+  }
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(parsedDate);
 };
 
 type AxisTickProps = {
@@ -258,16 +372,30 @@ const DashboardExerciseChartTooltip = ({
   }
 
   const tooltipKey = `${anchorX}-${anchorY}`;
+  const dotData =
+    dotPayload && typeof dotPayload === "object" && !Array.isArray(dotPayload)
+      ? (dotPayload as Record<string, unknown>)
+      : undefined;
+  const dateValue = dotData?.tooltipDate ?? dotData?.date ?? label;
+  const formattedDate = formatTooltipDate(dateValue);
+  const formattedWeight =
+    typeof value === "number"
+      ? `${value} kg`
+      : typeof value === "string"
+        ? value
+        : "";
 
   return (
     <Tooltip
       key={tooltipKey}
       content={
         <div className="flex flex-col items-center gap-[6px]">
-          <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
-            {formatTooltipLabel(label)}
+          <span className="text-[10px] font-medium leading-none text-[#ffffff]">
+            {formattedDate}
           </span>
-          <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
+          <span className="text-[12px] font-semibold leading-none text-[#ffffff]">
+            {formattedWeight}
+          </span>
         </div>
       }
       placement="top"
