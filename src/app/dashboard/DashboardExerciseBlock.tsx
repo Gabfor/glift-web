@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
   Tooltip as RechartsTooltip,
+  Dot,
 } from "recharts";
 import type { TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
@@ -127,6 +128,45 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 );
 
 const TOOLTIP_SHOW_DELAY_MS = 500;
+const TOOLTIP_VERTICAL_OFFSET_PX = 5;
+const CHART_DOT_RADIUS = 4;
+const CHART_ACTIVE_DOT_RADIUS = 5;
+const CHART_DOT_INTERACTION_RADIUS = 14;
+
+type RechartsDotProps = React.ComponentProps<typeof Dot>;
+
+type DashboardExerciseDotProps = RechartsDotProps & {
+  interactionRadius: number;
+  radius: number;
+};
+
+const DashboardExerciseDot = ({
+  cx = 0,
+  cy = 0,
+  interactionRadius,
+  radius,
+  ...rest
+}: DashboardExerciseDotProps) => (
+  <g>
+    <circle
+      cx={cx}
+      cy={cy}
+      r={interactionRadius}
+      fill="transparent"
+      stroke="transparent"
+      style={{ pointerEvents: "all" }}
+    />
+    <Dot
+      {...rest}
+      cx={cx}
+      cy={cy}
+      r={radius}
+      fill="#7069FA"
+      stroke="#fff"
+      strokeWidth={1}
+    />
+  </g>
+);
 
 type DashboardExerciseTooltipState = {
   label: string;
@@ -437,18 +477,20 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                    dot={{
-                      r: 4,
-                      stroke: "#fff",
-                      strokeWidth: 1,
-                      fill: "#7069FA",
-                    }}
-                    activeDot={{
-                      r: 5,
-                      fill: "#7069FA",
-                      stroke: "#fff",
-                      strokeWidth: 1,
-                    }}
+                    dot={(dotProps) => (
+                      <DashboardExerciseDot
+                        {...dotProps}
+                        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
+                        radius={CHART_DOT_RADIUS}
+                      />
+                    )}
+                    activeDot={(dotProps) => (
+                      <DashboardExerciseDot
+                        {...dotProps}
+                        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
+                        radius={CHART_ACTIVE_DOT_RADIUS}
+                      />
+                    )}
                   />
                   <RechartsTooltip
                     cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
@@ -486,7 +528,7 @@ export default function DashboardExerciseBlock({
                 <div
                   style={{
                     position: "absolute",
-                    top: tooltip.position.y,
+                    top: tooltip.position.y - TOOLTIP_VERTICAL_OFFSET_PX,
                     left: tooltip.position.x,
                     width: 0,
                     height: 0,
