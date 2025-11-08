@@ -9,16 +9,19 @@ import React, {
   useCallback,
 } from "react";
 import { createPortal } from "react-dom";
+import clsx from "clsx";
 
 export type TooltipProps = {
   children: ReactNode;
-  content: string;
+  content: ReactNode;
   placement?: "top" | "bottom";
   delay?: number;
   offset?: number;
   forceVisible?: boolean;
   disableHover?: boolean;
   asChild?: boolean;
+  contentClassName?: string;
+  arrowClassName?: string;
 };
 
 type TooltipChildProps = {
@@ -40,6 +43,8 @@ export default function Tooltip({
   forceVisible = false,
   disableHover = false,
   asChild = false,
+  contentClassName,
+  arrowClassName,
 }: TooltipProps) {
   const [visible, setVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -136,12 +141,20 @@ export default function Tooltip({
           transition: "opacity 0.1s ease",
         }}
       >
-        <div className="relative bg-[#2E3142] text-white text-[14px] font-medium px-3 h-[40px] flex items-center justify-center rounded-md shadow-md whitespace-nowrap">
+        <div
+          className={clsx(
+            "relative flex min-h-[40px] items-center justify-center rounded-md bg-[#2E3142] px-3 text-[14px] font-medium text-white shadow-md",
+            "whitespace-nowrap",
+            contentClassName,
+          )}
+        >
           {content}
           <div
-            className={`absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-[#2E3142] rotate-45 ${
-              placement === "top" ? "top-full mt-[-6px]" : "bottom-full mb-[-6px]"
-            }`}
+            className={clsx(
+              "absolute left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 bg-[#2E3142]",
+              placement === "top" ? "top-full mt-[-6px]" : "bottom-full mb-[-6px]",
+              arrowClassName,
+            )}
           />
         </div>
       </div>,
