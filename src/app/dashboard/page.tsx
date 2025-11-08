@@ -141,10 +141,12 @@ export default function DashboardPage() {
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
   const [areFiltersLoading, setAreFiltersLoading] = useState(false);
+  const [hasLoadedProgramList, setHasLoadedProgramList] = useState(false);
 
   const handleProgramOptionsChange = useCallback(
     (options: Array<{ value: string; label: string }>) => {
       setHasProgramOptions(options.length > 0);
+      setHasLoadedProgramList(true);
     },
     [],
   );
@@ -213,6 +215,7 @@ export default function DashboardPage() {
 
   // Charger préférences utilisateur
   useEffect(() => {
+    setHasLoadedProgramList(false);
     if (!user?.id) {
       setSelectedProgram("");
       setSelectedTraining("");
@@ -221,6 +224,7 @@ export default function DashboardPage() {
       setShowStats(false);
       setHasLoadedPreferences(false);
       setAreFiltersLoading(false);
+      setHasLoadedProgramList(false);
       return;
     }
 
@@ -423,7 +427,7 @@ export default function DashboardPage() {
 
         {!shouldShowFiltersSkeleton && (
           <>
-            {!isLoadingPrograms && hasLoadedPreferences && !hasProgramOptions && (
+            {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
             )}
 
