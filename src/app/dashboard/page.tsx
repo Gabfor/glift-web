@@ -140,7 +140,7 @@ export default function DashboardPage() {
   const [selectedExercise, setSelectedExercise] = useState("");
   const [isLoadingPrograms, setIsLoadingPrograms] = useState(true);
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
-  const [areFiltersLoading, setAreFiltersLoading] = useState(true);
+  const [areFiltersLoading, setAreFiltersLoading] = useState(false);
 
   const exerciseOptions = useMemo(
     () =>
@@ -213,6 +213,7 @@ export default function DashboardPage() {
       setExerciseDisplaySettings({});
       setShowStats(false);
       setHasLoadedPreferences(false);
+      setAreFiltersLoading(false);
       return;
     }
 
@@ -234,19 +235,33 @@ export default function DashboardPage() {
         setSelectedExercise("");
         setExerciseDisplaySettings({});
         setShowStats(false);
+        setAreFiltersLoading(false);
       } else {
         const preferences = data?.[0] as DashboardPreferencesRow | undefined;
 
-        setSelectedProgram(preferences?.selected_program_id ?? "");
-        setSelectedTraining(preferences?.selected_training_id ?? "");
+        const nextSelectedProgram = preferences?.selected_program_id ?? "";
+        const nextSelectedTraining = preferences?.selected_training_id ?? "";
         const parsedPreferences = parseExerciseSettings(preferences?.exercise_settings);
         const persistedExerciseId =
           typeof preferences?.selected_exercise_id === "string"
             ? preferences.selected_exercise_id
             : "";
-        setSelectedExercise(persistedExerciseId || parsedPreferences.selectedExerciseId);
+        const nextSelectedExercise =
+          persistedExerciseId || parsedPreferences.selectedExerciseId;
+
+        setSelectedProgram(nextSelectedProgram);
+        setSelectedTraining(nextSelectedTraining);
+        setSelectedExercise(nextSelectedExercise);
         setExerciseDisplaySettings(parsedPreferences.settings);
         setShowStats(Boolean(preferences?.show_stats));
+
+        setAreFiltersLoading(
+          Boolean(
+            nextSelectedProgram ||
+              nextSelectedTraining ||
+              nextSelectedExercise,
+          ),
+        );
       }
 
       setHasLoadedPreferences(true);
