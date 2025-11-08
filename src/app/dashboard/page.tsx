@@ -131,6 +131,7 @@ export default function DashboardPage() {
   const [selectedTraining, setSelectedTraining] = useState("");
   const [trainingExercises, setTrainingExercises] = useState<TrainingExercise[]>([]);
   const [isLoadingExercises, setIsLoadingExercises] = useState(false);
+  const [hasFetchedExercises, setHasFetchedExercises] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [exerciseDisplaySettings, setExerciseDisplaySettings] = useState<ExerciseDisplaySettings>({});
   const [showStats, setShowStats] = useState(false);
@@ -295,6 +296,7 @@ export default function DashboardPage() {
       setTrainingExercises([]);
       setIsLoadingExercises(false);
       setFetchError(null);
+      setHasFetchedExercises(false);
       return;
     }
 
@@ -303,6 +305,7 @@ export default function DashboardPage() {
       setIsLoadingExercises(true);
       setFetchError(null);
       setTrainingExercises([]);
+      setHasFetchedExercises(false);
 
       const { data, error } = await supabase
         .from("training_rows")
@@ -327,6 +330,7 @@ export default function DashboardPage() {
       }
 
       setIsLoadingExercises(false);
+      setHasFetchedExercises(true);
     };
 
     void fetchExercises();
@@ -368,6 +372,7 @@ export default function DashboardPage() {
               selectedExerciseId={selectedExercise}
               exerciseOptions={exerciseOptions}
               loadingExercises={isLoadingExercises}
+              hasFetchedExercises={hasFetchedExercises}
               showStats={showStats}
               onShowStatsChange={setShowStats}
               onProgramsLoadingChange={setIsLoadingPrograms}

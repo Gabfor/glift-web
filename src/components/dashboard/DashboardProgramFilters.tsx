@@ -37,6 +37,7 @@ type DashboardProgramFiltersProps = {
   selectedExerciseId?: string;
   exerciseOptions?: FilterOption[];
   loadingExercises?: boolean;
+  hasFetchedExercises?: boolean;
   showStats?: boolean;
   onShowStatsChange?: (showStats: boolean) => void;
   onProgramsLoadingChange?: (isLoading: boolean) => void;
@@ -53,6 +54,7 @@ export default function DashboardProgramFilters({
   selectedExerciseId = "",
   exerciseOptions = [],
   loadingExercises = false,
+  hasFetchedExercises = false,
   showStats = false,
   onShowStatsChange,
   onProgramsLoadingChange,
@@ -284,7 +286,7 @@ export default function DashboardProgramFilters({
       return;
     }
 
-    if (loadingExercises) {
+    if (!hasFetchedExercises) {
       return;
     }
 
@@ -296,7 +298,7 @@ export default function DashboardProgramFilters({
     }
   }, [
     exerciseOptions,
-    loadingExercises,
+    hasFetchedExercises,
     onExerciseChange,
     selectedExercise,
     selectedTraining,
