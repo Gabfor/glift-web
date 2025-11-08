@@ -7,7 +7,7 @@ export default function DashboardFiltersSkeleton({
 }) {
   return (
     <div
-      className={`flex flex-wrap items-end gap-4 ${className ? className : ""}`}
+      className={`flex flex-wrap items-center gap-4 ${className ? className : ""}`}
     >
       <div className="flex flex-wrap gap-4 grow">
         {skeletonFilters.map((_, index) => (
@@ -17,7 +17,7 @@ export default function DashboardFiltersSkeleton({
           </div>
         ))}
       </div>
-      <div className="h-10 w-[189px] rounded-[5px] bg-[#E6E8F5]" />
+      <div className="ml-auto self-end h-10 w-[189px] rounded-[5px] bg-[#E6E8F5]" />
     </div>
   );
 }
