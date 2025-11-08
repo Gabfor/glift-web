@@ -82,6 +82,7 @@ export default function StoreGrid({
 }) {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const showSkeleton = useMinimumVisibility(loading);
   const previousQueryRef = useRef<{
@@ -204,6 +205,7 @@ export default function StoreGrid({
         setPrograms(mappedPrograms);
       }
 
+      setHasLoadedOnce(true);
       setLoading(false);
     };
 
@@ -216,7 +218,7 @@ export default function StoreGrid({
 
   return (
     <>
-      {showSkeleton ? (
+      {showSkeleton && (!hasLoadedOnce || programs.length > 0) ? (
         <StoreGridSkeleton />
       ) : (
         <div className="relative mt-8">
