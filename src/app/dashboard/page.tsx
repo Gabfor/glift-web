@@ -431,12 +431,11 @@ export default function DashboardPage() {
               <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme trouvé.</p>
             )}
 
-            {!isLoadingPrograms &&
-              hasLoadedPreferences &&
-              hasProgramOptions &&
-              selectedProgram === "" && (
-                <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun programme sélectionné.</p>
-              )}
+{hasLoadedPreferences && hasProgramOptions && !selectedProgram && (
+  <p className="mt-8 text-center text-[#5D6494] font-semibold">
+    Aucun programme sélectionné.
+  </p>
+)}
 
             {selectedProgram !== "" && selectedTraining === "" && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">Aucun entraînement sélectionné.</p>
