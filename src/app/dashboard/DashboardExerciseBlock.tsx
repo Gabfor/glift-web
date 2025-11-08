@@ -133,9 +133,15 @@ const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
 
+type CircleCompatibleRechartsDotProps = Omit<
+  RechartsDotProps,
+  keyof React.SVGProps<SVGCircleElement>
+> &
+  React.SVGProps<SVGCircleElement>;
+
 type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
 
-type DashboardExerciseDotProps = RechartsDotProps & {
+type DashboardExerciseDotProps = CircleCompatibleRechartsDotProps & {
   interactionRadius: number;
   radius: number;
 };
@@ -175,7 +181,7 @@ const renderDashboardExerciseDot = (radius: number) => {
   }: RechartsDotRenderProps) => (
     <DashboardExerciseDot
       key={dotKey}
-      {...restDotProps}
+      {...(restDotProps as CircleCompatibleRechartsDotProps)}
       interactionRadius={CHART_DOT_INTERACTION_RADIUS}
       radius={radius}
     />
