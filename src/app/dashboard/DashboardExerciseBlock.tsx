@@ -144,6 +144,8 @@ type DashboardExerciseDotProps = CircleCompatibleRechartsDotProps & {
 
 type DotPosition = { x: number; y: number };
 
+const dotPositionMap = new WeakMap<Record<string, unknown>, DotPosition>();
+
 const DashboardExerciseDot = ({
   cx = 0,
   cy = 0,
@@ -155,7 +157,7 @@ const DashboardExerciseDot = ({
   void _dataKey;
 
   if (payload && typeof payload === "object" && !Array.isArray(payload)) {
-    (payload as Record<string, unknown>).__dotPosition = { x: cx, y: cy } satisfies DotPosition;
+    dotPositionMap.set(payload as Record<string, unknown>, { x: cx, y: cy });
   }
 
   return (
@@ -203,9 +205,11 @@ const DashboardExerciseChartTooltip = ({
   label,
 }: Partial<TooltipContentProps<number, string>>) => {
   const value = payload?.[0]?.value;
-  const dotPosition = payload?.[0]?.payload?.__dotPosition as
-    | DotPosition
-    | undefined;
+  const dotPayload = payload?.[0]?.payload;
+  const dotPosition =
+    dotPayload && typeof dotPayload === "object" && !Array.isArray(dotPayload)
+      ? dotPositionMap.get(dotPayload as Record<string, unknown>)
+      : undefined;
   const anchorX = typeof dotPosition?.x === "number" ? dotPosition.x : null;
   const anchorY = typeof dotPosition?.y === "number" ? dotPosition.y : null;
   const isVisible =
