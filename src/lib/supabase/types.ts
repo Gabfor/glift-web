@@ -537,7 +537,7 @@ export interface Database {
       };
       increment_downloads: {
         Args: {
-          store_program_id: number;
+          store_program_id: string;
         };
         Returns: null;
       };
