@@ -319,7 +319,7 @@ const renderDashboardExerciseDot = (radius: number) => {
 
 const isWithinInteractionRadius = (
   anchor: DotPosition | null,
-  coordinate: TooltipContentProps<number, string>["coordinate"],
+  coordinate: TooltipContentProps<number, string>["coordinate"] | null,
   radius: number,
 ) => {
   if (
@@ -363,7 +363,7 @@ const DashboardExerciseChartTooltip = ({
     typeof anchorY === "number" &&
     isWithinInteractionRadius(
       dotPosition ?? null,
-      coordinate,
+      coordinate ?? null,
       CHART_DOT_INTERACTION_RADIUS,
     );
 
