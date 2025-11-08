@@ -13,7 +13,7 @@ import {
 import type { TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -120,18 +120,48 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
+const TOOLTIP_HEIGHT = 68;
+const TOOLTIP_VERTICAL_GAP = 12;
+
+type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
+  onPositionChange?: (position: { x: number; y: number } | undefined) => void;
+};
+
 const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
-}: TooltipContentProps<number, string>) => {
-  if (!active || !payload?.length || typeof label !== "string") {
-    return null;
-  }
+  coordinate,
+  onPositionChange,
+}: DashboardExerciseChartTooltipProps) => {
+  const value = payload?.[0]?.value;
 
-  const value = payload[0]?.value;
+  const isTooltipVisible =
+    !!active &&
+    !!payload?.length &&
+    typeof label === "string" &&
+    typeof value === "number";
 
-  if (typeof value !== "number") {
+  const x = coordinate?.x;
+  const y = coordinate?.y;
+
+  useEffect(() => {
+    if (!onPositionChange) {
+      return;
+    }
+
+    if (isTooltipVisible && typeof x === "number" && typeof y === "number") {
+      onPositionChange({
+        x,
+        y: y - TOOLTIP_HEIGHT - TOOLTIP_VERTICAL_GAP,
+      });
+      return;
+    }
+
+    onPositionChange(undefined);
+  }, [isTooltipVisible, onPositionChange, x, y]);
+
+  if (!isTooltipVisible) {
     return null;
   }
 
@@ -156,6 +186,31 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState<
+    { x: number; y: number } | undefined
+  >();
+
+  const handleTooltipPositionChange = useCallback(
+    (position: { x: number; y: number } | undefined) => {
+      setTooltipPosition((previous) => {
+        if (!previous && !position) {
+          return previous;
+        }
+
+        if (
+          previous &&
+          position &&
+          previous.x === position.x &&
+          previous.y === position.y
+        ) {
+          return previous;
+        }
+
+        return position;
+      });
+    },
+    []
+  );
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -345,9 +400,15 @@ export default function DashboardExerciseBlock({
                   />
                   <RechartsTooltip
                     cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
-                    content={<DashboardExerciseChartTooltip />}
+                    content={(
+                      <DashboardExerciseChartTooltip
+                        onPositionChange={handleTooltipPositionChange}
+                      />
+                    )}
                     wrapperStyle={{ outline: "none", pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
+                    position={tooltipPosition}
+                    offset={0}
                   />
                 </AreaChart>
               </ResponsiveContainer>
