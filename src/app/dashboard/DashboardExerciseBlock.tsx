@@ -8,12 +8,11 @@ import {
   YAxis,
   ResponsiveContainer,
   CartesianGrid,
-  Tooltip as RechartsTooltip,
 } from "recharts";
-import type { TooltipContentProps } from "recharts";
+import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -120,31 +119,32 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const DashboardExerciseChartTooltip = ({
-  active,
-  payload,
-  label,
-}: TooltipContentProps<number, string>) => {
-  if (!active || !payload?.length || typeof label !== "string") {
-    return null;
-  }
-
-  const value = payload[0]?.value;
-
-  if (typeof value !== "number") {
-    return null;
-  }
-
-  return (
-    <div className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md">
-      <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
-        {formatTooltipLabel(label)}
-      </span>
-      <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
-      <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[#2E3142]" />
-    </div>
-  );
+type DashboardExerciseChartTooltipProps = {
+  label: string;
+  value: number;
 };
+
+const DashboardExerciseChartTooltip = ({
+  label,
+  value,
+}: DashboardExerciseChartTooltipProps) => (
+  <div className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md">
+    <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
+      {formatTooltipLabel(label)}
+    </span>
+    <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
+    <div className="absolute left-1/2 top-full h-2 w-2 -translate-x-1/2 -translate-y-1 rotate-45 bg-[#2E3142]" />
+  </div>
+);
+
+type HoveredPoint = {
+  x: number;
+  y: number;
+  value: number;
+  label: string;
+};
+
+const HOVER_DISTANCE_THRESHOLD = 12;
 
 export default function DashboardExerciseBlock({
   id,
@@ -156,6 +156,66 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [hoveredPoint, setHoveredPoint] = useState<HoveredPoint | null>(null);
+
+  const handleMouseLeave = useCallback(() => {
+    setHoveredPoint(null);
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (state: CategoricalChartState | undefined) => {
+      if (!state) {
+        setHoveredPoint(null);
+        return;
+      }
+
+      const {
+        isTooltipActive,
+        activePayload,
+        activeCoordinate,
+        activeLabel,
+        chartX,
+        chartY,
+      } = state;
+
+      if (
+        !isTooltipActive ||
+        !activePayload?.length ||
+        !activeCoordinate ||
+        typeof activeLabel !== "string" ||
+        typeof chartX !== "number" ||
+        typeof chartY !== "number"
+      ) {
+        setHoveredPoint(null);
+        return;
+      }
+
+      const value = activePayload[0]?.value;
+
+      if (typeof value !== "number") {
+        setHoveredPoint(null);
+        return;
+      }
+
+      const distance = Math.hypot(
+        chartX - activeCoordinate.x,
+        chartY - activeCoordinate.y,
+      );
+
+      if (distance > HOVER_DISTANCE_THRESHOLD) {
+        setHoveredPoint(null);
+        return;
+      }
+
+      setHoveredPoint({
+        x: activeCoordinate.x,
+        y: activeCoordinate.y,
+        value,
+        label: activeLabel,
+      });
+    },
+    [],
+  );
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -283,10 +343,14 @@ export default function DashboardExerciseBlock({
                 width={chartSize.width}
                 height={chartSize.height}
               >
-                <AreaChart
-                  data={mockData}
-                  margin={CHART_MARGIN}
-                >
+                  <AreaChart
+                    data={mockData}
+                    margin={CHART_MARGIN}
+                    onMouseMove={(state) =>
+                      handleMouseMove(state as CategoricalChartState | undefined)
+                    }
+                    onMouseLeave={handleMouseLeave}
+                  >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
@@ -343,14 +407,23 @@ export default function DashboardExerciseBlock({
                       strokeWidth: 1,
                     }}
                   />
-                  <RechartsTooltip
-                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
-                    content={<DashboardExerciseChartTooltip />}
-                    wrapperStyle={{ outline: "none", pointerEvents: "none" }}
-                    allowEscapeViewBox={{ x: true, y: true }}
-                  />
                 </AreaChart>
               </ResponsiveContainer>
+            ) : null}
+            {hoveredPoint ? (
+              <div
+                className="pointer-events-none absolute z-10"
+                style={{
+                  left: hoveredPoint.x + CHART_MARGIN.left,
+                  top: hoveredPoint.y + CHART_MARGIN.top,
+                  transform: "translate(-50%, calc(-100% - 12px))",
+                }}
+              >
+                <DashboardExerciseChartTooltip
+                  label={hoveredPoint.label}
+                  value={hoveredPoint.value}
+                />
+              </div>
             ) : null}
           </div>
         </div>
