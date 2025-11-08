@@ -138,8 +138,11 @@ type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
 type DashboardExerciseDotProps = CircleCompatibleRechartsDotProps & {
   dataKey?: string;
   interactionRadius: number;
+  payload?: RechartsDotProps["payload"];
   radius: number;
 };
+
+type DotPosition = { x: number; y: number };
 
 const DashboardExerciseDot = ({
   cx = 0,
@@ -148,8 +151,12 @@ const DashboardExerciseDot = ({
   radius,
   ...rest
 }: DashboardExerciseDotProps) => {
-  const { dataKey: _dataKey, ...circleProps } = rest;
+  const { dataKey: _dataKey, payload, ...circleProps } = rest;
   void _dataKey;
+
+  if (payload && typeof payload === "object" && !Array.isArray(payload)) {
+    (payload as Record<string, unknown>).__dotPosition = { x: cx, y: cy } satisfies DotPosition;
+  }
 
   return (
     <g>
@@ -194,21 +201,13 @@ const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
-  coordinate,
 }: Partial<TooltipContentProps<number, string>>) => {
   const value = payload?.[0]?.value;
-  const anchorX =
-    typeof coordinate?.cx === "number"
-      ? coordinate.cx
-      : typeof coordinate?.x === "number"
-        ? coordinate.x
-        : null;
-  const anchorY =
-    typeof coordinate?.cy === "number"
-      ? coordinate.cy
-      : typeof coordinate?.y === "number"
-        ? coordinate.y
-        : null;
+  const dotPosition = payload?.[0]?.payload?.__dotPosition as
+    | DotPosition
+    | undefined;
+  const anchorX = typeof dotPosition?.x === "number" ? dotPosition.x : null;
+  const anchorY = typeof dotPosition?.y === "number" ? dotPosition.y : null;
   const isVisible =
     !!active &&
     !!payload?.length &&
