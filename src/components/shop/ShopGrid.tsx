@@ -104,6 +104,7 @@ export default function ShopGrid({
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const showSkeleton = useMinimumVisibility(loading);
+  const hasLoadedOnceRef = useRef(false);
   const previousQueryRef = useRef<{
     sortBy: string;
     currentPage: number;
@@ -132,7 +133,12 @@ export default function ShopGrid({
       previousQuery.currentPage !== currentPage ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
-    if (!hasQueryChanged) {
+    const shouldSkipFetch =
+      previousQuery !== null &&
+      !hasQueryChanged &&
+      hasLoadedOnceRef.current;
+
+    if (shouldSkipFetch) {
       return;
     }
 
@@ -213,6 +219,7 @@ export default function ShopGrid({
         setOffers(normalized);
       }
 
+      hasLoadedOnceRef.current = true;
       setLoading(false);
     };
 
