@@ -127,18 +127,18 @@ const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
 
-type CircleCompatibleRechartsDotProps = Omit<
-  RechartsDotProps,
-  keyof React.SVGProps<SVGCircleElement>
-> &
-  React.SVGProps<SVGCircleElement>;
+type RechartsDotPayload = Record<string, unknown> | null | undefined;
 
-type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
-
-type DashboardExerciseDotProps = CircleCompatibleRechartsDotProps & {
+type ExtendedRechartsDotProps = Omit<RechartsDotProps, "payload" | "value"> & {
   dataKey?: string;
+  payload?: RechartsDotPayload;
+  value?: number | string | (number | string)[] | null | undefined;
+};
+
+type RechartsDotRenderProps = ExtendedRechartsDotProps & { key?: React.Key };
+
+type DashboardExerciseDotProps = ExtendedRechartsDotProps & {
   interactionRadius: number;
-  payload?: RechartsDotProps["payload"];
   radius: number;
 };
 
@@ -151,14 +151,18 @@ const DashboardExerciseDot = ({
   cy = 0,
   interactionRadius,
   radius,
+  dataKey: _dataKey,
+  payload,
   ...rest
 }: DashboardExerciseDotProps) => {
-  const { dataKey: _dataKey, payload, ...circleProps } = rest;
   void _dataKey;
 
   if (payload && typeof payload === "object" && !Array.isArray(payload)) {
     dotPositionMap.set(payload as Record<string, unknown>, { x: cx, y: cy });
   }
+
+  const { value: _value, ...circleProps } = rest;
+  void _value;
 
   return (
     <g>
@@ -171,7 +175,7 @@ const DashboardExerciseDot = ({
         style={{ pointerEvents: "all" }}
       />
       <circle
-        {...circleProps}
+        {...(circleProps as React.SVGProps<SVGCircleElement>)}
         cx={cx}
         cy={cy}
         r={radius}
@@ -190,7 +194,7 @@ const renderDashboardExerciseDot = (radius: number) => {
   }: RechartsDotRenderProps) => (
     <DashboardExerciseDot
       key={dotKey}
-      {...(restDotProps as CircleCompatibleRechartsDotProps)}
+      {...restDotProps}
       interactionRadius={CHART_DOT_INTERACTION_RADIUS}
       radius={radius}
     />
