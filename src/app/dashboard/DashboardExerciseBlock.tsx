@@ -142,6 +142,7 @@ type CircleCompatibleRechartsDotProps = Omit<
 type RechartsDotRenderProps = RechartsDotProps & { key?: React.Key };
 
 type DashboardExerciseDotProps = CircleCompatibleRechartsDotProps & {
+  dataKey?: string;
   interactionRadius: number;
   radius: number;
 };
