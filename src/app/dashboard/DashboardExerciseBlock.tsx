@@ -8,6 +8,7 @@ import {
   YAxis,
   ResponsiveContainer,
   CartesianGrid,
+  Tooltip,
 } from "recharts";
 import type { CategoricalChartState } from "recharts/types/chart/generateCategoricalChart";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
@@ -406,6 +407,10 @@ export default function DashboardExerciseBlock({
                       stroke: "#fff",
                       strokeWidth: 1,
                     }}
+                  />
+                  <Tooltip
+                    cursor={false}
+                    wrapperStyle={{ display: "none" }}
                   />
                 </AreaChart>
               </ResponsiveContainer>
