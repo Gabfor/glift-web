@@ -120,7 +120,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
   <WeightAxisTick {...props} />
 );
 
-const TOOLTIP_OFFSET = 5;
+const TOOLTIP_VERTICAL_OFFSET = 5;
 
 type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
   onPositionChange?: (position: { x: number; y: number } | undefined) => void;
@@ -185,7 +185,7 @@ const DashboardExerciseChartTooltip = ({
   return (
     <div
       className="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
-      style={{ transform: `translate(-50%, calc(-100% - ${TOOLTIP_OFFSET}px))` }}
+      style={{ transform: "translate(-50%, -100%)" }}
     >
       <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
         {formatTooltipLabel(label)}
@@ -427,7 +427,14 @@ export default function DashboardExerciseBlock({
                     )}
                     wrapperStyle={{ outline: "none", pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
-                    position={tooltipPosition}
+                    position={
+                      tooltipPosition
+                        ? {
+                            x: tooltipPosition.x,
+                            y: tooltipPosition.y - TOOLTIP_VERTICAL_OFFSET,
+                          }
+                        : undefined
+                    }
                     offset={0}
                   />
                 </AreaChart>
