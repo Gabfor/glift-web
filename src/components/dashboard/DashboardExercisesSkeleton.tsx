@@ -12,7 +12,7 @@ export default function DashboardExercisesSkeleton({
   return (
     <div className="space-y-[30px]">
       <div className="animate-pulse space-y-[30px]">
-        {showFilters && <DashboardFiltersSkeleton className="mt-[40px]" />}
+        {showFilters && <DashboardFiltersSkeleton className="mt-[30px]" />}
 
         {skeletonExercises.map((_, index) => (
           <div
