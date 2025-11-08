@@ -277,8 +277,14 @@ export default function DashboardProgramFilters({
   ]);
 
   useEffect(() => {
-    if (!selectedTraining && selectedExercise) {
-      onExerciseChange?.("");
+    if (!selectedTraining) {
+      if (selectedExercise) {
+        onExerciseChange?.("");
+      }
+      return;
+    }
+
+    if (loadingExercises) {
       return;
     }
 
@@ -288,7 +294,13 @@ export default function DashboardProgramFilters({
     ) {
       onExerciseChange?.("");
     }
-  }, [exerciseOptions, onExerciseChange, selectedExercise, selectedTraining]);
+  }, [
+    exerciseOptions,
+    loadingExercises,
+    onExerciseChange,
+    selectedExercise,
+    selectedTraining,
+  ]);
 
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {
