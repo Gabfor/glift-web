@@ -15,12 +15,7 @@ import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -195,30 +190,14 @@ const renderDashboardExerciseDot = (radius: number) => {
   return RenderDashboardExerciseDot;
 };
 
-type DashboardExerciseTooltipState = {
-  label: string;
-  value: number;
-  position: { x: number; y: number };
-};
-
-type DashboardExerciseChartTooltipProps =
-  Partial<TooltipContentProps<number, string>> & {
-    onTooltipChange?: (tooltip: DashboardExerciseTooltipState | undefined) => void;
-  };
-
 const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
   coordinate,
-  onTooltipChange,
-}: DashboardExerciseChartTooltipProps) => {
+}: Partial<TooltipContentProps<number, string>>) => {
   const value = payload?.[0]?.value;
-
-  const [shouldDisplayTooltip, setShouldDisplayTooltip] = useState(false);
-  const hoveredPointRef = useRef<{ x: number; y: number } | null>(null);
-
-  const isTooltipCandidateVisible =
+  const isVisible =
     !!active &&
     !!payload?.length &&
     typeof label === "string" &&
@@ -226,57 +205,41 @@ const DashboardExerciseChartTooltip = ({
     typeof coordinate?.x === "number" &&
     typeof coordinate?.y === "number";
 
-  useEffect(() => {
-    if (!isTooltipCandidateVisible) {
-      hoveredPointRef.current = null;
-      setShouldDisplayTooltip(false);
-      onTooltipChange?.(undefined);
-
-      return;
-    }
-
-    const nextPoint = { x: coordinate.x, y: coordinate.y };
-    const previousPoint = hoveredPointRef.current;
-    const isSamePoint =
-      previousPoint?.x === nextPoint.x && previousPoint?.y === nextPoint.y;
-
-    hoveredPointRef.current = nextPoint;
-
-    if (!isSamePoint) {
-      onTooltipChange?.(undefined);
-    }
-
-    setShouldDisplayTooltip(true);
-  }, [coordinate, isTooltipCandidateVisible, onTooltipChange]);
-
-  useEffect(() => {
-    if (!onTooltipChange) {
-      return;
-    }
-
-    if (
-      shouldDisplayTooltip &&
-      isTooltipCandidateVisible &&
-      typeof label === "string" &&
-      typeof value === "number" &&
-      hoveredPointRef.current
-    ) {
-      onTooltipChange({
-        label,
-        value,
-        position: hoveredPointRef.current,
-      });
-      return;
-    }
-
-    onTooltipChange(undefined);
-  }, [isTooltipCandidateVisible, label, onTooltipChange, shouldDisplayTooltip, value]);
-
-  if (!shouldDisplayTooltip || !isTooltipCandidateVisible) {
+  if (!isVisible) {
     return null;
   }
 
-  return null;
+  return (
+    <Tooltip
+      content={
+        <div className="flex flex-col items-center gap-[6px]">
+          <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
+            {formatTooltipLabel(label)}
+          </span>
+          <span className="text-[14px] font-bold leading-none">{`${value} kg`}</span>
+        </div>
+      }
+      placement="top"
+      forceVisible
+      disableHover
+      asChild
+      contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
+      arrowClassName="bg-[#2E3142]"
+      offset={10}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: coordinate.y - TOOLTIP_VERTICAL_OFFSET_PX,
+          left: coordinate.x,
+          width: 0,
+          height: 0,
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+        }}
+      />
+    </Tooltip>
+  );
 };
 
 export default function DashboardExerciseBlock({
@@ -289,28 +252,6 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
-  const [tooltip, setTooltip] = useState<DashboardExerciseTooltipState | undefined>();
-
-  const handleTooltipChange = useCallback((nextTooltip: DashboardExerciseTooltipState | undefined) => {
-    setTooltip((previous) => {
-      if (!previous && !nextTooltip) {
-        return previous;
-      }
-
-      if (
-        previous &&
-        nextTooltip &&
-        previous.position.x === nextTooltip.position.x &&
-        previous.position.y === nextTooltip.position.y &&
-        previous.label === nextTooltip.label &&
-        previous.value === nextTooltip.value
-      ) {
-        return previous;
-      }
-
-      return nextTooltip;
-    });
-  }, []);
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -490,49 +431,14 @@ export default function DashboardExerciseBlock({
                   />
                   <RechartsTooltip
                     cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
-                    content={(
-                      <DashboardExerciseChartTooltip
-                        onTooltipChange={handleTooltipChange}
-                      />
-                    )}
-                    wrapperStyle={{ display: "none" }}
+                    content={<DashboardExerciseChartTooltip />}
+                    wrapperStyle={{ pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
                     isAnimationActive={false}
                     offset={0}
                   />
                 </AreaChart>
               </ResponsiveContainer>
-            ) : null}
-            {tooltip ? (
-              <Tooltip
-                content={
-                  <div className="flex flex-col items-center gap-[6px]">
-                    <span className="text-[12px] font-semibold leading-none text-[#C4C8F5]">
-                      {formatTooltipLabel(tooltip.label)}
-                    </span>
-                    <span className="text-[14px] font-bold leading-none">{`${tooltip.value} kg`}</span>
-                  </div>
-                }
-                placement="top"
-                forceVisible
-                disableHover
-                asChild
-                contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
-                arrowClassName="bg-[#2E3142]"
-                offset={10}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    top: tooltip.position.y - TOOLTIP_VERTICAL_OFFSET_PX,
-                    left: tooltip.position.x,
-                    width: 0,
-                    height: 0,
-                    transform: "translate(-50%, -50%)",
-                    pointerEvents: "none",
-                  }}
-                />
-              </Tooltip>
             ) : null}
           </div>
         </div>
