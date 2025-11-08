@@ -176,7 +176,6 @@ export default function DashboardExerciseBlock({
         activeCoordinate,
         activeLabel,
         chartX,
-        chartY,
       } = state;
 
       if (
@@ -184,8 +183,7 @@ export default function DashboardExerciseBlock({
         !activePayload?.length ||
         !activeCoordinate ||
         typeof activeLabel !== "string" ||
-        typeof chartX !== "number" ||
-        typeof chartY !== "number"
+        typeof chartX !== "number"
       ) {
         setHoveredPoint(null);
         return;
@@ -198,12 +196,9 @@ export default function DashboardExerciseBlock({
         return;
       }
 
-      const distance = Math.hypot(
-        chartX - activeCoordinate.x,
-        chartY - activeCoordinate.y,
-      );
+      const horizontalDistance = Math.abs(chartX - activeCoordinate.x);
 
-      if (distance > HOVER_DISTANCE_THRESHOLD) {
+      if (horizontalDistance > HOVER_DISTANCE_THRESHOLD) {
         setHoveredPoint(null);
         return;
       }
