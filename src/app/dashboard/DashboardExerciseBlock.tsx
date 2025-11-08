@@ -13,7 +13,7 @@ import {
 import type { DotProps, TooltipContentProps } from "recharts";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -122,12 +122,7 @@ const renderWeightAxisTick = (props: WeightAxisTickProps) => (
 
 const TOOLTIP_OFFSET = 5;
 
-type DashboardExerciseChartDotProps = DotProps & {
-  onHoverChange?: (position: { x: number; y: number } | undefined) => void;
-};
-
 const DashboardExerciseChartDot = ({
-  onHoverChange,
   onMouseEnter,
   onMouseLeave,
   cx,
@@ -137,23 +132,13 @@ const DashboardExerciseChartDot = ({
   strokeWidth = 1,
   fill = "#7069FA",
   ...rest
-}: DashboardExerciseChartDotProps) => {
+}: DotProps) => {
   if (typeof cx !== "number" || typeof cy !== "number") {
     return null;
   }
 
   const { dataKey: _dataKey, ...restProps } = rest;
   void _dataKey;
-
-  const handleMouseEnter = (event: React.MouseEvent<SVGCircleElement>) => {
-    onHoverChange?.({ x: cx, y: cy });
-    onMouseEnter?.(event);
-  };
-
-  const handleMouseLeave = (event: React.MouseEvent<SVGCircleElement>) => {
-    onHoverChange?.(undefined);
-    onMouseLeave?.(event);
-  };
 
   return (
     <circle
@@ -164,27 +149,21 @@ const DashboardExerciseChartDot = ({
       stroke={stroke}
       strokeWidth={strokeWidth}
       fill={fill}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
     />
   );
-};
-
-type DashboardExerciseChartTooltipProps = TooltipContentProps<number, string> & {
-  isVisible: boolean;
 };
 
 const DashboardExerciseChartTooltip = ({
   active,
   payload,
   label,
-  isVisible,
-}: DashboardExerciseChartTooltipProps) => {
+}: TooltipContentProps<number, string>) => {
   const value = payload?.[0]?.value;
 
   const isTooltipVisible =
     !!active &&
-    isVisible &&
     !!payload?.length &&
     typeof label === "string" &&
     typeof value === "number";
@@ -217,34 +196,6 @@ export default function DashboardExerciseBlock({
 }: DashboardExerciseBlockProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
-  const [tooltipPosition, setTooltipPosition] = useState<
-    { x: number; y: number } | undefined
-  >();
-
-  const handleDotHoverChange = useCallback(
-    (position: { x: number; y: number } | undefined) => {
-      setTooltipPosition((previous) => {
-        if (!previous && !position) {
-          return previous;
-        }
-
-        if (
-          previous &&
-          position &&
-          previous.x === position.x &&
-          previous.y === position.y
-        ) {
-          return previous;
-        }
-
-        return position;
-      });
-    },
-    []
-  );
-
-  const isTooltipVisible = !!tooltipPosition;
-
   useEffect(() => {
     const container = chartContainerRef.current;
     if (!container) {
@@ -422,11 +373,7 @@ export default function DashboardExerciseBlock({
                       const { key, dataKey: _dataKey, ...dotProps } = props;
                       void _dataKey;
                       return (
-                        <DashboardExerciseChartDot
-                          key={key}
-                          {...dotProps}
-                          onHoverChange={handleDotHoverChange}
-                        />
+                        <DashboardExerciseChartDot key={key} {...dotProps} />
                       );
                     }}
                     activeDot={{
@@ -437,15 +384,10 @@ export default function DashboardExerciseBlock({
                     }}
                   />
                   <RechartsTooltip
-                    cursor={
-                      isTooltipVisible
-                        ? { stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }
-                        : false
-                    }
-                    content={<DashboardExerciseChartTooltip isVisible={isTooltipVisible} />}
+                    cursor={{ stroke: "#7069FA", strokeWidth: 1, strokeOpacity: 0.3 }}
+                    content={<DashboardExerciseChartTooltip />}
                     wrapperStyle={{ outline: "none", pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
-                    position={tooltipPosition ?? undefined}
                     offset={0}
                   />
                 </AreaChart>
