@@ -32,9 +32,9 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
   // 2. Obtenir le linked_program_id depuis program_store
   const { data: storeProgram, error: storeError } = await supabase
     .from("program_store")
-    .select("linked_program_id")
+    .select("linked_program_id, name_short")
     .eq("id", storeProgramId)
-    .single<Pick<ProgramStoreRow, "linked_program_id">>();
+    .single<Pick<ProgramStoreRow, "linked_program_id" | "name_short">>();
 
   if (storeError || !storeProgram?.linked_program_id) {
     console.error("Impossible de retrouver le linked_program_id :", storeError);
@@ -42,6 +42,7 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
   }
 
   const linkedProgramId = storeProgram.linked_program_id;
+  const shortName = storeProgram.name_short ?? null;
   console.log("✅ linked_program_id récupéré :", linkedProgramId);
 
   // 3. Récupérer le programme source dans programs_admin
@@ -81,14 +82,15 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
     const { data: insertedProgram, error: insertProgramError } = await supabase
     .from("programs")
     .insert([
-        {
-        name: programToCopy.name ?? "Programme copié",
+      {
+        name: shortName ?? programToCopy.name ?? "Programme copié",
+        name_short: shortName ?? programToCopy.name ?? "Programme copié",
         user_id: user.id,
         created_at: new Date().toISOString(),
         position: nextPosition,
         is_new: true,
         source_store_id: storeProgramId,
-        },
+      },
     ])
     .select()
     .single<InsertedProgramRow>();
