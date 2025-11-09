@@ -465,7 +465,7 @@ export default function DashboardPage() {
                 {DASHBOARD_STATS_CARDS.map((card) => (
                   <div
                     key={card.id}
-                    className="flex h-[165px] w-[270px] flex-col items-center justify-center gap-3 rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6 text-center"
+                    className="flex w-[270px] flex-col items-center justify-center gap-3 rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6 text-center"
                   >
                     <div className="flex h-7 w-7 items-center justify-center">
                       <Image
