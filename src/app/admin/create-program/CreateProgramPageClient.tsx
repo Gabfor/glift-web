@@ -112,7 +112,7 @@ export default function CreateProgramPageClient({
   const isFormValid = useMemo(
     () =>
       program.title.trim() !== "" &&
-      program.name_short.trim() !== "" &&
+      program.shortName.trim() !== "" &&
       program.level !== "" &&
       program.gender !== "" &&
       program.goal !== "" &&
@@ -190,16 +190,19 @@ export default function CreateProgramPageClient({
                   <div className="flex justify-between mb-[5px]">
                     <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
                     <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {program.name_short.length}/28
+                      {program.shortName.length}/28
                     </span>
                   </div>
                   <input
                   type="text"
                   maxLength={28}
                   placeholder="Titre court (28 caractères max)"
-                  value={program.name_short}
+                  value={program.shortName}
                   onChange={(e) =>
-                    setProgram({ ...program, name_short: e.target.value.slice(0, 28) })
+                    setProgram({
+                      ...program,
+                      shortName: e.target.value.slice(0, 28),
+                    })
                   }
                   className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
                              border border-[#D7D4DC] hover:border-[#C2BFC6]
