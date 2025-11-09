@@ -16,7 +16,6 @@ interface Training {
   id: string
   name: string
   app: boolean
-  dashboard: boolean
 }
 
 type Props = {
@@ -28,7 +27,7 @@ type Props = {
   onToggleVisibility: () => void
   showVisibility: boolean
   dragDisabled: boolean
-  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
+  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
   simulateDrag?: boolean
   isLoading?: boolean
 }
@@ -70,7 +69,7 @@ export default function SortableItem({
   };
 
   const handleVisibilityUpdate = async (
-    updates: Partial<{ app: boolean; dashboard: boolean }>
+    updates: Partial<{ app: boolean }>
   ) => {
     const { error } = await supabase
       .from('trainings')

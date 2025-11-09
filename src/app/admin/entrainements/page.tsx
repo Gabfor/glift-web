@@ -42,7 +42,12 @@ export default function AdminSingleProgramPage() {
   useEffect(() => {
     const init = async () => {
       if (!programIdFromUrl) {
-        setProgram({ id: "", name: "Nouveau programme", trainings: [] });
+        setProgram({
+          id: "",
+          name: "Nouveau programme",
+          dashboard: true,
+          trainings: [],
+        });
         return;
       }
 
@@ -62,7 +67,20 @@ export default function AdminSingleProgramPage() {
 
       if (trainingsError) return;
 
-      setProgram({ ...programData, trainings: trainings ?? [] });
+      const sanitizedTrainings = (trainings ?? []).map((training) => ({
+        id: training.id,
+        name: training.name,
+        app: Boolean(training.app),
+        program_id: training.program_id ?? programIdFromUrl,
+        position: training.position ?? 0,
+      }));
+
+      setProgram({
+        id: programData.id,
+        name: programData.name,
+        dashboard: true,
+        trainings: sanitizedTrainings,
+      });
       setOriginalName(programData.name);
     };
 
@@ -212,7 +230,6 @@ export default function AdminSingleProgramPage() {
       id: data.id,
       name: data.name,
       app: Boolean(data.app),
-      dashboard: Boolean(data.dashboard),
       program_id: data.program_id ?? program.id,
       position: data.position ?? 0,
     };
@@ -299,6 +316,7 @@ export default function AdminSingleProgramPage() {
               }}
               programId={program.id}
               isVisible={true}
+              dashboardVisible={program.dashboard !== false}
               onToggleVisibility={() => {}}
               onDelete={() => {}}
               isFirst={true}

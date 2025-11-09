@@ -130,7 +130,6 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
           position: training.position ?? null,
           columns_settings: training.columns_settings ?? null,
           app: training.app ?? true,
-          dashboard: training.dashboard ?? true,
         },
       ])
       .select()

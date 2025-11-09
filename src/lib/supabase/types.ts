@@ -405,7 +405,6 @@ export interface Database {
           position: Nullable<number>;
           columns_settings: Nullable<string>;
           app: boolean;
-          dashboard: boolean;
         };
         Insert: {
           id?: string;
@@ -415,7 +414,6 @@ export interface Database {
           position?: Nullable<number>;
           columns_settings?: Nullable<string>;
           app?: boolean;
-          dashboard?: boolean;
         };
         Update: {
           id?: string;
@@ -425,7 +423,6 @@ export interface Database {
           position?: Nullable<number>;
           columns_settings?: Nullable<string>;
           app?: boolean;
-          dashboard?: boolean;
         };
         Relationships: never[];
       };

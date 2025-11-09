@@ -28,7 +28,7 @@ export default function usePrograms() {
 
       let { data: programsData } = await supabase
         .from("programs")
-        .select(`id, name, position, trainings(id, name, program_id, position, app, dashboard)`)
+        .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
         .eq("user_id", user.id)
         .order("position", { ascending: true });
 
@@ -39,12 +39,17 @@ export default function usePrograms() {
           .select()
           .single();
         if (newProgram) {
-          programsData = [{ ...newProgram, trainings: [] }];
+          programsData = [{
+            ...newProgram,
+            dashboard: newProgram.dashboard ?? true,
+            trainings: [],
+          }];
         }
       }
 
       const existingPrograms = (programsData || []).map((p) => ({
         ...p,
+        dashboard: p.dashboard ?? true,
         trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
       }));
 
@@ -60,7 +65,11 @@ export default function usePrograms() {
             .single();
 
           if (newProgram) {
-            result.push({ ...newProgram, trainings: [] });
+            result.push({
+              ...newProgram,
+              dashboard: newProgram.dashboard ?? true,
+              trainings: [],
+            });
           }
         }
       } else {
@@ -324,7 +333,6 @@ export default function usePrograms() {
             program_id: data.program_id,
             position: data.position,
             app: data.app,
-            dashboard: data.dashboard,
           },
         ],
       };
@@ -345,6 +353,7 @@ export default function usePrograms() {
             id: newProgram.id,
             name: newProgram.name,
             position: newProgram.position,
+            dashboard: newProgram.dashboard ?? true,
             trainings: [],
           });
         }
@@ -574,7 +583,11 @@ export default function usePrograms() {
       }
 
       setPrograms(prev =>
-        prev.concat({ ...newProgram, trainings: [] })
+        prev.concat({
+          ...newProgram,
+          dashboard: newProgram.dashboard ?? true,
+          trainings: [],
+        })
       );
     }
     reorderTrainingsLocally(targetProgramId, newIds);
@@ -582,7 +595,7 @@ export default function usePrograms() {
 
   const handleUpdateTrainingVisibility = async (
     trainingId: string,
-    updates: Partial<{ app: boolean; dashboard: boolean }>
+    updates: Partial<{ app: boolean }>
   ) => {
     const { error } = await supabase
       .from("trainings")

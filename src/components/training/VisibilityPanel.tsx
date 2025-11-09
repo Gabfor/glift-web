@@ -7,13 +7,12 @@ interface Training {
   id: string
   name: string
   app: boolean
-  dashboard: boolean
 }
 
 interface VisibilityPanelProps {
   training: Training
   onClose: () => void
-  onUpdateVisibility: (updates: Partial<{ app: boolean; dashboard: boolean }>) => Promise<void>
+  onUpdateVisibility: (updates: Partial<{ app: boolean }>) => Promise<void>
 }
 
 export default function VisibilityPanel({ training, onClose, onUpdateVisibility }: VisibilityPanelProps) {
@@ -39,7 +38,7 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
         </button>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center">
         <span className="text-[16px] font-semibold text-[#5D6494]">Application mobile</span>
         <ToggleSwitch
           checked={!!training.app}
@@ -47,17 +46,6 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
             await onUpdateVisibility({ app: checked })
           }}
           ariaLabel="Basculer la visibilité sur l’application mobile"
-        />
-      </div>
-
-      <div className="flex justify-between items-center">
-        <span className="text-[16px] font-semibold text-[#5D6494]">Dashboard</span>
-        <ToggleSwitch
-          checked={!!training.dashboard}
-          onCheckedChange={async (checked) => {
-            await onUpdateVisibility({ dashboard: checked })
-          }}
-          ariaLabel="Basculer la visibilité sur le dashboard"
         />
       </div>
     </div>

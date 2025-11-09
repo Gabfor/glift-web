@@ -13,21 +13,16 @@ import StatsGreenIcon from "/public/icons/stats_green.svg";
 const FALLBACK_PROGRAM_LABEL = "Programme sans titre";
 const FALLBACK_TRAINING_LABEL = "Entraînement sans titre";
 
-type ProgramTrainingRow = {
-  id: string | number | null;
-  dashboard: boolean | null;
-};
-
 type ProgramRow = {
   id: string | number;
   name: string | null;
-  trainings: ProgramTrainingRow[] | null;
+  dashboard: boolean | null;
+  trainings: Array<{ id: string | number | null }> | null;
 };
 
 type TrainingRow = {
   id: string | number;
   name: string | null;
-  dashboard: boolean | null;
 };
 
 export interface DashboardProgramFiltersProps {
@@ -143,7 +138,7 @@ export default function DashboardProgramFilters(
 
       const { data, error } = await supabase
         .from("programs")
-        .select("id, name, trainings ( id, dashboard )")
+        .select("id, name, dashboard, trainings ( id )")
         .eq("user_id", user.id)
         .order("position", { ascending: true })
         .returns<ProgramRow[]>();
@@ -164,14 +159,14 @@ export default function DashboardProgramFilters(
           .filter((program) => {
             const trainings = program.trainings ?? [];
 
-            return trainings.some((training) =>
-              Boolean(
+            const hasTrainings = trainings.some(
+              (training) =>
                 training &&
-                  training.id !== null &&
-                  training.id !== undefined &&
-                  training.dashboard,
-              ),
+                training.id !== null &&
+                training.id !== undefined,
             );
+
+            return program.dashboard !== false && hasTrainings;
           })
           .map((program) => ({
             value: String(program.id),
@@ -222,7 +217,7 @@ export default function DashboardProgramFilters(
 
       const { data, error } = await supabase
         .from("trainings")
-        .select("id, name, dashboard")
+        .select("id, name")
         .eq("program_id", selectedProgram)
         .order("position", { ascending: true })
         .returns<TrainingRow[]>();
@@ -245,12 +240,10 @@ export default function DashboardProgramFilters(
         }
       } else {
         const trainings = data ?? [];
-        const options = trainings
-          .filter((training) => Boolean(training.dashboard))
-          .map((training) => ({
-            value: String(training.id),
-            label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
-          }));
+        const options = trainings.map((training) => ({
+          value: String(training.id),
+          label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
+        }));
 
         setTrainingOptions(options);
       }
