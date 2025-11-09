@@ -373,7 +373,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const redirectUrl = new URL("/entrainements", request.url).toString();
+  const redirectUrl = new URL("/dashboard", request.url).toString();
   const queryErrorDescription =
     url.searchParams.get("error_description") ?? undefined;
   const rawErrorCode = url.searchParams.get("error_code");

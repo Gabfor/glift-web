@@ -470,7 +470,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ✅ Succès : le frontend peut rediriger vers /entrainements
+    // ✅ Succès : le frontend peut rediriger vers /dashboard
     return NextResponse.json({
       success: true,
       requiresEmailConfirmation: emailNotConfirmed,

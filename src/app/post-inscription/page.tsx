@@ -25,7 +25,7 @@ export default function PostInscription() {
       <form
         id="authForm"
         method="POST"
-        action="/api/auth/login?returnTo=/entrainements"
+        action="/api/auth/login?returnTo=/dashboard"
         style={{ display: "none" }}
       >
         <input type="hidden" name="email" value={email} />
