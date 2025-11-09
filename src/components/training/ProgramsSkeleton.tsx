@@ -22,7 +22,7 @@ export default function ProgramsSkeleton() {
                 <div className="h-[25px] w-[25px] rounded bg-[#E6E8F5]" />
               </div>
             ))}
-            <div className="h-[60px] w-[270px] rounded-[6px] border-2 border-dashed border-[#E6E8F5]" />
+            <div className="h-[60px] w-[270px] rounded-[8px] border-2 border-dashed border-[#E6E8F5]" />
           </div>
         </div>
       ))}

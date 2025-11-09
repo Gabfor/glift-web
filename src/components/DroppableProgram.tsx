@@ -99,7 +99,7 @@ export default function DroppableProgram(props: Props) {
           })}
           <div className="ml-0">
             <button
-              className="border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[6px] w-[270px] h-[60px] transition border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
+              className="border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-[270px] h-[60px] transition border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               onClick={onAddTraining}
             >
               + Ajouter un entraînement
