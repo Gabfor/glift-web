@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
@@ -28,6 +29,33 @@ type TrainingExercise = {
 };
 
 const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
+
+const DASHBOARD_STATS_CARDS = [
+  {
+    id: "sessions",
+    icon: "/icons/dashboard-sessions.svg",
+    value: "37",
+    label: "Séances terminées",
+  },
+  {
+    id: "goals",
+    icon: "/icons/dashboard-goals.svg",
+    value: "8",
+    label: "Objectifs terminés",
+  },
+  {
+    id: "time",
+    icon: "/icons/dashboard-time.svg",
+    value: "45",
+    label: "Minutes d'entraînement",
+  },
+  {
+    id: "weight",
+    icon: "/icons/dashboard-weight.svg",
+    value: "650",
+    label: "Poids soulevé (kg)",
+  },
+] as const;
 
 type ExerciseDisplaySettings = Record<
   string,
@@ -432,6 +460,32 @@ export default function DashboardPage() {
 
         {!shouldShowFiltersSkeleton && (
           <>
+            {showStats && (
+              <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[30px]">
+                {DASHBOARD_STATS_CARDS.map((card) => (
+                  <div
+                    key={card.id}
+                    className="flex h-[165px] w-[270px] flex-col rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6"
+                  >
+                    <div className="h-7 w-7">
+                      <Image
+                        src={card.icon}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7"
+                      />
+                    </div>
+                    <p className="mt-4 text-[35px] font-bold leading-none text-[#3A416F]">
+                      {card.value}
+                    </p>
+                    <p className="mt-2 text-[14px] font-bold text-[#3A416F]">
+                      {card.label}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
             {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">
                 Aucun programme trouvé.
@@ -451,7 +505,7 @@ export default function DashboardPage() {
             )}
 
             {selectedTraining !== "" && (
-              <div className="relative mt-[30px]">
+              <div className={`relative ${showStats ? "" : "mt-[30px]"}`}>
                 <div
                   className={`transition-opacity duration-200 ${
                     shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
