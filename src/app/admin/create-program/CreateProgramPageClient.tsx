@@ -136,7 +136,7 @@ export default function CreateProgramPageClient({
 
         {!loading && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-row-dense gap-x-8 gap-y-6">
               {/* Sexe */}
               <div className="flex flex-col">
                 <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
