@@ -11,6 +11,23 @@ type ProgramWithTrainings = Program & {
   position?: number;
 };
 
+type TrainingRowRecord = {
+  training_id: string;
+  user_id: string;
+  order: number;
+  series: number;
+  repetitions: string[];
+  poids: string[];
+  repos: string;
+  effort: string[];
+  checked: boolean;
+  exercice: string;
+  materiel: string;
+  superset_id: string | null;
+  link: string | null;
+  note: string | null;
+};
+
 export default function usePrograms() {
   const [programs, setPrograms] = useState<ProgramWithTrainings[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -494,16 +511,72 @@ export default function usePrograms() {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData.user?.id;
 
-      const duplicatedTrainings = programToDuplicate.trainings.map((training: Training) => ({
-        ...training,
-        id: undefined,
-        program_id: newProgram.id,
-        user_id: userId,
-      }));
+      if (!userId) {
+        await fetchProgramsWithTrainings();
+        return;
+      }
 
-      await supabase
-        .from("trainings")
-        .insert(duplicatedTrainings);
+      const trainingIds = programToDuplicate.trainings.map((training: Training) => training.id);
+      const rowsByTraining = new Map<string, TrainingRowRecord[]>();
+
+      if (trainingIds.length > 0) {
+        const { data: trainingRows, error: trainingRowsError } = await supabase
+          .from("training_rows")
+          .select("*")
+          .in("training_id", trainingIds)
+          .order("order", { ascending: true });
+
+        if (!trainingRowsError && trainingRows) {
+          for (const row of trainingRows as TrainingRowRecord[]) {
+            if (!rowsByTraining.has(row.training_id)) {
+              rowsByTraining.set(row.training_id, []);
+            }
+            rowsByTraining.get(row.training_id)?.push(row);
+          }
+        }
+      }
+
+      for (const training of programToDuplicate.trainings) {
+        const { data: insertedTraining, error: trainingInsertError } = await supabase
+          .from("trainings")
+          .insert({
+            name: training.name,
+            program_id: newProgram.id,
+            user_id: userId,
+            position: training.position,
+            app: training.app ?? false,
+          })
+          .select()
+          .single();
+
+        if (trainingInsertError || !insertedTraining) {
+          continue;
+        }
+
+        const relatedRows = rowsByTraining.get(training.id) ?? [];
+        if (relatedRows.length === 0) {
+          continue;
+        }
+
+        const rowsToInsert = relatedRows.map((row, index) => ({
+          training_id: insertedTraining.id,
+          user_id: row.user_id,
+          order: index + 1,
+          series: row.series,
+          repetitions: row.repetitions,
+          poids: row.poids,
+          repos: row.repos,
+          effort: row.effort,
+          checked: row.checked,
+          exercice: row.exercice,
+          materiel: row.materiel,
+          superset_id: row.superset_id,
+          link: row.link,
+          note: row.note,
+        }));
+
+        await supabase.from("training_rows").insert(rowsToInsert);
+      }
     }
 
     await fetchProgramsWithTrainings();
