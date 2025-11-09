@@ -470,7 +470,7 @@ export default function DashboardExerciseBlock({
   return (
     <div className="w-full bg-white border border-[#D7D4DC] rounded-[8px] overflow-hidden">
       {/* HEADER */}
-      <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#F1EEF4]">
+      <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
         <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
         <div className="flex items-center gap-[30px]">
           <DashboardExerciseDropdown
