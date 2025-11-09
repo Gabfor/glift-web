@@ -11,7 +11,7 @@ interface Training {
 
 export default function DragPreviewItem({ training }: { training: Training }) {
   return (
-    <div className="w-[270px] h-[60px] bg-white border border-[#ECE9F1] rounded-[5px] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] shadow-[0px_1px_15px_rgba(0,0,0,0.08)] cursor-grabbing select-none">
+    <div className="w-[270px] h-[60px] bg-white border border-[#D7D4DC] rounded-[8px] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] shadow-[0px_1px_15px_rgba(0,0,0,0.05)] cursor-grabbing select-none">
       <div className="w-[25px] h-[25px] group relative">
         <Image
           src="/icons/drag.svg"
