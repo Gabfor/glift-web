@@ -443,14 +443,14 @@ export default function ProgramEditor({
           >
             <div className="relative w-full h-full">
               <Image
-                src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
+                src={isEyeVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
                 alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
                 fill
                 sizes="100%"
                 className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
               />
               <Image
-                src={isEyeVisible ? "/icons/eye_hover.svg" : "/icons/eye_closed_hover.svg"}
+                src={isEyeVisible ? "/icons/app_hover.svg" : "/icons/app_hidden_hover.svg"}
                 alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
                 fill
                 sizes="100%"
@@ -468,7 +468,7 @@ export default function ProgramEditor({
         >
           <div className="relative w-full h-full">
             <Image
-              src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
+              src={isEyeVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
               alt={isEyeVisible ? "Masquer" : "Afficher"}
               fill
               sizes="100%"
