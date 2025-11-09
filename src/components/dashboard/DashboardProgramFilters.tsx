@@ -334,6 +334,8 @@ export default function DashboardProgramFilters(
     return "Sélectionnez un programme";
   })();
 
+  const isProgramDisabled = programOptions.length === 0 && !loadingPrograms;
+
   const trainingPlaceholder = (() => {
     if (selectedProgram && loadingTrainings) {
       return "Sélectionnez un entraînement";
@@ -379,6 +381,7 @@ export default function DashboardProgramFilters(
             onExerciseChange?.("");
           }}
           className="min-w-[240px]"
+          disabled={isProgramDisabled}
         />
         <DropdownFilter
           label="Entraînement"
