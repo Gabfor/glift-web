@@ -20,7 +20,7 @@ export default function TarifsPage() {
       <section className="flex flex-col md:flex-row items-center justify-center gap-6 bg-[#FBFCFE] max-w-[1152px] mx-auto px-4 pb-[100px] grid-cols-1 md:grid-cols-2">
         
         {/* Starter */}
-        <div className="bg-white rounded-[12px] p-8 flex flex-col text-center shadow-glift hover:shadow-glift-hover transition-shadow duration-300 w-[466px] h-[577px]">
+        <div className="bg-white border border-[#D7D4DC] rounded-[12px] p-8 flex flex-col text-center hover:shadow-glift-hover transition-shadow duration-300 w-[466px] h-[577px]">
           <h2 className="uppercase text-[#3A416F] font-bold text-[20px] pt-[20px]">Starter</h2>
           <p className="text-[#2E3271] font-bold text-[40px] leading-tight pt-[15px] pb-[15px]">
             0,00 €<span className="text-[20px] font-semibold">/mois</span>
@@ -71,7 +71,7 @@ export default function TarifsPage() {
 
         {/* Premium */}
 {/* Premium */}
-<div className="relative bg-white rounded-[12px] p-8 flex flex-col text-center shadow-glift hover:shadow-glift-hover transition-shadow duration-300 w-[466px] h-[640px]">
+<div className="relative bg-white border border-[#D7D4DC] rounded-[12px] p-8 flex flex-col text-center hover:shadow-glift-hover transition-shadow duration-300 w-[466px] h-[640px]">
 
   {/* Badge en diagonale */}
   <div className="absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
