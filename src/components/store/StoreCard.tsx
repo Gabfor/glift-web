@@ -57,14 +57,14 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
       : [];
 
   return (
-    <div className="w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-all duration-300 transform hover:-translate-y-1">
+    <div className="w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
       {/* IMAGE PRINCIPALE */}
       <Image
         src={program.image}
         alt={program.image_alt || program.title}
         width={540}
         height={360}
-        className="w-full h-[180px] object-cover rounded-t-[5px]"
+        className="w-full h-[180px] object-cover rounded-t-[8px]"
         unoptimized
       />
 

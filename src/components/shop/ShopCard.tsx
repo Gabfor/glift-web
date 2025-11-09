@@ -103,7 +103,7 @@ export default function ShopCard({ offer }: Props) {
   }, [offer.end_date]);
 
   return (
-    <div className="relative w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-all duration-300 transform hover:-translate-y-1">
+    <div className="relative w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
       {offer.premium && (
         <div className="absolute top-0 right-0 overflow-hidden w-[110px] h-[110px] z-10">
           <div className="absolute bg-[#7069FA] text-white text-[14px] font-semibold uppercase rotate-45 w-[150px] text-center py-[2px] right-[-30px] top-[30px] shadow-md tracking-wider">
@@ -116,7 +116,7 @@ export default function ShopCard({ offer }: Props) {
         alt={offer.image_alt || offer.name}
         width={540}
         height={360}
-        className="w-full h-[180px] object-cover rounded-t-[5px]"
+        className="w-full h-[180px] object-cover rounded-t-[8px]"
         unoptimized
       />
 

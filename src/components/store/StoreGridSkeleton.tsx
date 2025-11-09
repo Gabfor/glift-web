@@ -6,7 +6,7 @@ export default function StoreGridSkeleton() {
       {skeletonItems.map((_, index) => (
         <div
           key={index}
-          className="w-full max-w-[270px] bg-white rounded-[5px] border border-[#ECE9F1] overflow-hidden flex flex-col shadow-glift animate-pulse"
+          className="w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col animate-pulse"
         >
           <div className="w-full h-[180px] bg-[#E6E8F5]" />
           <div className="flex justify-center -mt-8">
