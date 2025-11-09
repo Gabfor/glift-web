@@ -68,6 +68,8 @@ export default function ProgramEditor({
   const supabase = useSupabaseClient();
 
   const [isEyeVisible, setIsEyeVisible] = useState(isVisible);
+  const [isDashboardVisible, setIsDashboardVisible] = useState(true);
+  const [isUpdatingDashboardVisibility, setIsUpdatingDashboardVisibility] = useState(false);
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
   const [localName, setLocalName] = useState(name ?? "");
 
@@ -118,6 +120,19 @@ export default function ProgramEditor({
   }, [editingIndex, index, name]);
 
   useEffect(() => {
+    if (trainingsData.length === 0) {
+      setIsDashboardVisible(true);
+      return;
+    }
+
+    const anyVisibleOnDashboard = trainingsData.some(
+      (training) => training.dashboard !== false
+    );
+
+    setIsDashboardVisible(anyVisibleOnDashboard);
+  }, [trainingsData]);
+
+  useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
       if (event.data === `refresh-${programId}` || event.data === "refresh-all-programs") {
@@ -139,6 +154,61 @@ export default function ProgramEditor({
   const handleEyeClick = () => {
     setIsEyeVisible((prev) => !prev);
     onToggleVisibility();  // Gérer la visibilité dans le parent
+  };
+
+  const handleDashboardClick = async () => {
+    if (
+      trainingsData.length === 0 ||
+      isUpdatingDashboardVisibility ||
+      !programId ||
+      programId === "xxx"
+    ) {
+      return;
+    }
+
+    const newVisibility = !isDashboardVisible;
+    const previousDashboardStates = trainingsData.map((training) => ({
+      id: training.id,
+      dashboard: training.dashboard,
+    }));
+
+    setIsUpdatingDashboardVisibility(true);
+    setIsDashboardVisible(newVisibility);
+    setTrainingsData((prev) =>
+      prev.map((training) => ({
+        ...training,
+        dashboard: newVisibility,
+      }))
+    );
+
+    try {
+      const { error } = await supabase
+        .from(tableName)
+        .update({ dashboard: newVisibility })
+        .eq("program_id", programId);
+
+      if (error) {
+        throw error;
+      }
+
+      notifyTrainingChange(programId);
+    } catch (error) {
+      console.error(
+        "Erreur lors de la mise à jour de la visibilité dans le tableau de bord :",
+        error
+      );
+      setIsDashboardVisible(!newVisibility);
+      setTrainingsData((prev) =>
+        prev.map((training) => {
+          const previous = previousDashboardStates.find((t) => t.id === training.id);
+          return previous
+            ? { ...training, dashboard: previous.dashboard ?? null }
+            : training;
+        })
+      );
+    } finally {
+      setIsUpdatingDashboardVisibility(false);
+    }
   };
 
   // Fonction pour vérifier les entraînements associés
@@ -433,6 +503,91 @@ export default function ProgramEditor({
       {/* Icônes alignées à droite avec z-index pour passer au-dessus de la ligne */}
       {!adminMode && (
       <div className="flex items-center gap-3 absolute right-0 z-10 bg-[#FBFCFE] p-2">
+      {trainingsData.length > 0 ? (
+        <Tooltip
+          content={
+            isDashboardVisible
+              ? "Masquer dans le tableau de bord"
+              : "Afficher dans le tableau de bord"
+          }
+        >
+          <button
+            type="button"
+            className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${
+              isUpdatingDashboardVisibility ? "cursor-not-allowed opacity-50" : ""
+            }`}
+            onClick={handleDashboardClick}
+            aria-label={
+              isDashboardVisible
+                ? "Masquer dans le tableau de bord"
+                : "Afficher dans le tableau de bord"
+            }
+            disabled={isUpdatingDashboardVisibility}
+          >
+            <div className="relative w-full h-full">
+              <Image
+                src={
+                  isDashboardVisible
+                    ? "/icons/dashboard.svg"
+                    : "/icons/dashboard_hidden.svg"
+                }
+                alt={
+                  isDashboardVisible
+                    ? "Masquer dans le tableau de bord"
+                    : "Afficher dans le tableau de bord"
+                }
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+              />
+              <Image
+                src={
+                  isDashboardVisible
+                    ? "/icons/dashboard_hover.svg"
+                    : "/icons/dashboard_hidden_hover.svg"
+                }
+                alt={
+                  isDashboardVisible
+                    ? "Masquer dans le tableau de bord"
+                    : "Afficher dans le tableau de bord"
+                }
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+              />
+            </div>
+          </button>
+        </Tooltip>
+      ) : (
+        <button
+          type="button"
+          className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+          disabled
+          aria-label={
+            isDashboardVisible
+              ? "Masquer dans le tableau de bord"
+              : "Afficher dans le tableau de bord"
+          }
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src={
+                isDashboardVisible
+                  ? "/icons/dashboard.svg"
+                  : "/icons/dashboard_hidden.svg"
+              }
+              alt={
+                isDashboardVisible
+                  ? "Masquer dans le tableau de bord"
+                  : "Afficher dans le tableau de bord"
+              }
+              fill
+              sizes="100%"
+              className="absolute top-0 left-0 w-full h-full opacity-100"
+            />
+          </div>
+        </button>
+      )}
       {trainingsData.length > 0 ? (
         <Tooltip content={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
           <button
