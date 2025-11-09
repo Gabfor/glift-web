@@ -58,7 +58,7 @@ export default function DropdownField({
 
   const buttonClassName = clsx(
     width,
-    "h-[45px] rounded-[5px] px-[15px]",
+    "h-[45px] rounded-[8px] px-[15px]",
     "text-[16px] font-semibold bg-white text-[#3A416F]",
     "border transition-all duration-150",
     "focus:outline-none",

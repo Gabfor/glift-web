@@ -5,7 +5,7 @@ import Image from 'next/image'
 export default function IncompleteAlert() {
   return (
     <div className="w-[564px] max-w-full mt-4 mb-[30px]">
-      <div className="relative bg-[#F4F5FE] rounded-[5px] px-5 py-2.5 text-left">
+      <div className="relative bg-[#F4F5FE] rounded-[8px] px-5 py-2.5 text-left">
         <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A1A5FD]" />
         <h3 className="text-[#7069FA] font-bold text-[12px]">Complétez votre profil</h3>
         <p className="text-[#A1A5FD] font-semibold text-[12px] leading-relaxed">

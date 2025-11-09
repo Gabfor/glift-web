@@ -6,7 +6,7 @@ export default function MesInformationsFormSkeleton() {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="w-[564px] max-w-full mt-4 mb-[30px]">
-        <div className="h-[96px] rounded-[5px] bg-[#F4F5FE] animate-pulse" />
+        <div className="h-[96px] rounded-[8px] bg-[#F4F5FE] animate-pulse" />
       </div>
 
       <div className="w-[368px] max-w-full flex flex-col items-center mb-[30px]">
