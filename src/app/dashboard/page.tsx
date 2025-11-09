@@ -41,19 +41,19 @@ const DASHBOARD_STATS_CARDS = [
     id: "goals",
     icon: "/icons/dashboard-goals.svg",
     value: "8",
-    label: "Objectifs terminés",
+    label: "Objectifs atteints",
   },
   {
     id: "time",
     icon: "/icons/dashboard-time.svg",
     value: "45",
-    label: "Minutes d'entraînement",
+    label: "Minutes en moyenne",
   },
   {
     id: "weight",
     icon: "/icons/dashboard-weight.svg",
     value: "650",
-    label: "Poids soulevé (kg)",
+    label: "Kg soulevés",
   },
 ] as const;
 
