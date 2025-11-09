@@ -102,10 +102,10 @@ export default function SortableItem({
     >
       <div
         className={cn(
-          "w-[270px] h-[60px] bg-white border border-[#ECE9F1] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
+          "w-[270px] h-[60px] bg-white border border-[#D7D4DC] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
           showVisibility
-            ? "rounded-t-[5px] rounded-b-none"
-            : "rounded-[5px] hover:shadow-[0px_1px_15px_rgba(0,0,0,0.05)]"
+            ? "rounded-t-[8px] rounded-b-none"
+            : "rounded-[8px]"
         )}
         onClick={() => onClick(training.id)}
       >

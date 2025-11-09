@@ -18,7 +18,7 @@ interface VisibilityPanelProps {
 
 export default function VisibilityPanel({ training, onClose, onUpdateVisibility }: VisibilityPanelProps) {
   return (
-    <div className="bg-white p-4 border mt-[-1px] w-[270px] rounded-b-[5px] rounded-t-none">
+    <div className="bg-white p-4 border border-[#D7D4DC] mt-[-1px] w-[270px] rounded-b-[8px] rounded-t-none">
       <div className="flex justify-between items-center mb-4">
         <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité</div>
         <button onClick={onClose} className="relative w-[24px] h-[24px]">
