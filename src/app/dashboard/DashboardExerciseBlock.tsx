@@ -501,7 +501,7 @@ export default function DashboardExerciseBlock({
           <div className="flex flex-col justify-center h-[90px] w-full">
             <p className="text-[40px] font-bold text-[#2E3271] leading-none">25 kg</p>
             <p className="text-[#3A416F] font-bold text-[14px] mt-2">Record personnel</p>
-            <p className="text-[#C2BFC6] text-[12px] mt-1">01 Février 2026</p>
+            <p className="text-[#C2BFC6] font-semibold text-[12px] mt-1">01 Février 2026</p>
           </div>
 
           {/* Objectif */}
