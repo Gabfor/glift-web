@@ -380,9 +380,9 @@ export default function DashboardProgramFilters(
             onTrainingChange?.("");
             onExerciseChange?.("");
           }}
-          className="min-w-[240px] max-w-[300px] w-full"
+          className="min-w-[240px] max-w-[270px] w-full"
           disabled={isProgramDisabled}
-          maxWidth={300}
+          maxWidth={270}
         />
         <DropdownFilter
           label="Entraînement"
@@ -396,9 +396,9 @@ export default function DashboardProgramFilters(
             }
             onExerciseChange?.("");
           }}
-          className="min-w-[240px] max-w-[300px] w-full"
+          className="min-w-[240px] max-w-[270px] w-full"
           disabled={isTrainingDisabled}
-          maxWidth={300}
+          maxWidth={270}
         />
         <DropdownFilter
           label="Exercice"
@@ -411,10 +411,10 @@ export default function DashboardProgramFilters(
               onExerciseChange(value);
             }
           }}
-          className="min-w-[240px] max-w-[300px] w-full"
+          className="min-w-[240px] max-w-[270px] w-full"
           disabled={isExerciseDisabled}
           sortOptions={false}
-          maxWidth={300}
+          maxWidth={270}
         />
       </div>
       <button
