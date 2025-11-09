@@ -290,6 +290,7 @@ export interface Database {
           id: string;
           image: Nullable<string>;
           title: string;
+          name_short: Nullable<string>;
           partner_image: Nullable<string>;
           partner_link: Nullable<string>;
           level: Nullable<string>;
@@ -316,6 +317,7 @@ export interface Database {
           id?: string;
           image?: Nullable<string>;
           title: string;
+          name_short?: Nullable<string>;
           partner_image?: Nullable<string>;
           partner_link?: Nullable<string>;
           level?: Nullable<string>;
@@ -342,6 +344,7 @@ export interface Database {
           id?: string;
           image?: Nullable<string>;
           title?: string;
+          name_short?: Nullable<string>;
           partner_image?: Nullable<string>;
           partner_link?: Nullable<string>;
           level?: Nullable<string>;
@@ -515,7 +518,18 @@ export interface Database {
       };
       training_rows: GenericTable;
       trainings: GenericTable;
-      programs: GenericTable;
+      programs: {
+        Row: GenericRecord & {
+          name_short: Nullable<string>;
+        };
+        Insert: GenericRecord & {
+          name_short?: Nullable<string>;
+        };
+        Update: GenericRecord & {
+          name_short?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
     };
     Views: Record<string, never>;
     Functions: {

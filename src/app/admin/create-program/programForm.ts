@@ -6,6 +6,7 @@ export type ProgramUpdate = Database["public"]["Tables"]["program_store"]["Updat
 
 export type ProgramFormState = {
   title: string;
+  name_short: string;
   level: string;
   gender: string;
   duration: string;
@@ -26,6 +27,7 @@ export type ProgramFormState = {
 
 export const emptyProgram: ProgramFormState = {
   title: "",
+  name_short: "",
   level: "",
   gender: "",
   duration: "",
@@ -46,6 +48,7 @@ export const emptyProgram: ProgramFormState = {
 
 export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
   title: row.title,
+  name_short: row.name_short ?? "",
   level: row.level ?? "",
   gender: row.gender ?? "",
   duration: row.duration ?? "",
@@ -68,6 +71,7 @@ export const buildProgramPayload = (
   form: ProgramFormState,
 ): ProgramInsert & ProgramUpdate => ({
   title: form.title,
+  name_short: form.name_short || null,
   level: form.level || null,
   gender: form.gender || null,
   duration: form.duration || null,
