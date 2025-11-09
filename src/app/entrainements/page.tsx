@@ -322,6 +322,7 @@ export default function EntrainementsPage() {
                     onCancel={() => setEditingIndex(null)}
                     programId={program.id}
                     isVisible={visibility[program.id] !== false}
+                    dashboardVisible={program.dashboard !== false}
                     onToggleVisibility={() => {
                       setVisibility((prev) => ({
                         ...prev,

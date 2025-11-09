@@ -9,7 +9,6 @@ interface Training {
   id: string
   name: string
   app: boolean
-  dashboard: boolean
 }
 
 export type LoadingTrainingState = { id: string; type: "open" | "add" } | null;
@@ -32,7 +31,7 @@ interface Props {
   setOpenVisibilityIds: React.Dispatch<React.SetStateAction<string[]>>
   showVisibilityTrainingId?: string | null
   setShowVisibilityTrainingId?: (id: string | null) => void
-  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
+  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
   loadingTraining?: LoadingTrainingState
 }
 

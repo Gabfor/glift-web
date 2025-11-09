@@ -6,7 +6,6 @@ interface Training {
   id: string;
   name: string;
   app: boolean;
-  dashboard: boolean;
 }
 
 export default function DragPreviewItem({ training }: { training: Training }) {

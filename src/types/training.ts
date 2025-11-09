@@ -18,7 +18,6 @@ export interface Training {
   id: string;
   name: string;
   app: boolean;
-  dashboard: boolean;
   program_id: string;
   position: number;
 }
@@ -26,6 +25,7 @@ export interface Training {
 export interface Program {
   id: string;
   name: string;
+  dashboard: boolean;
   trainings: Training[];
 }
 

@@ -20,6 +20,8 @@ interface ProgramEditorProps {
   programId: string;
   isVisible: boolean;
   onToggleVisibility: () => void;
+  dashboardVisible: boolean;
+  onDashboardVisibilityChange?: (visible: boolean) => void;
   isFirst: boolean;
   isLastActive: boolean;
   onMoveUp: () => void;
@@ -38,7 +40,6 @@ type ProgramTrainingSummary = {
   program_id: string;
   position: number | null;
   app: boolean | null;
-  dashboard: boolean | null;
 };
 
 export default function ProgramEditor({
@@ -53,6 +54,8 @@ export default function ProgramEditor({
   programId,
   isVisible,
   onToggleVisibility,
+  dashboardVisible,
+  onDashboardVisibilityChange,
   isFirst,
   isLastActive,
   onMoveUp,
@@ -67,8 +70,10 @@ export default function ProgramEditor({
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = useSupabaseClient();
 
-  const [isEyeVisible, setIsEyeVisible] = useState(isVisible);
-  const [isDashboardVisible, setIsDashboardVisible] = useState(true);
+  const [isAppVisible, setIsAppVisible] = useState(isVisible);
+  const [isDashboardVisible, setIsDashboardVisible] = useState(
+    dashboardVisible,
+  );
   const [isUpdatingDashboardVisibility, setIsUpdatingDashboardVisibility] = useState(false);
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
   const [localName, setLocalName] = useState(name ?? "");
@@ -81,7 +86,7 @@ export default function ProgramEditor({
 
     const { data, error } = await supabase
       .from(tableName)
-      .select("id, name, program_id, position, app, dashboard")
+      .select("id, name, program_id, position, app")
       .eq("program_id", programId);
 
     if (error) {
@@ -96,7 +101,6 @@ export default function ProgramEditor({
         program_id: row.program_id ?? programId,
         position: row.position ?? null,
         app: row.app ?? null,
-        dashboard: row.dashboard ?? null,
       })
     );
 
@@ -120,17 +124,8 @@ export default function ProgramEditor({
   }, [editingIndex, index, name]);
 
   useEffect(() => {
-    if (trainingsData.length === 0) {
-      setIsDashboardVisible(true);
-      return;
-    }
-
-    const anyVisibleOnDashboard = trainingsData.some(
-      (training) => training.dashboard !== false
-    );
-
-    setIsDashboardVisible(anyVisibleOnDashboard);
-  }, [trainingsData]);
+    setIsDashboardVisible(dashboardVisible);
+  }, [dashboardVisible]);
 
   useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
@@ -150,9 +145,9 @@ export default function ProgramEditor({
     }
   };
 
-  // Fonction pour basculer l'œil
-  const handleEyeClick = () => {
-    setIsEyeVisible((prev) => !prev);
+  // Fonction pour basculer l'icône de l'app
+  const handleAppClick = () => {
+    setIsAppVisible((prev) => !prev);
     onToggleVisibility();  // Gérer la visibilité dans le parent
   };
 
@@ -167,45 +162,29 @@ export default function ProgramEditor({
     }
 
     const newVisibility = !isDashboardVisible;
-    const previousDashboardStates = trainingsData.map((training) => ({
-      id: training.id,
-      dashboard: training.dashboard,
-    }));
 
     setIsUpdatingDashboardVisibility(true);
     setIsDashboardVisible(newVisibility);
-    setTrainingsData((prev) =>
-      prev.map((training) => ({
-        ...training,
-        dashboard: newVisibility,
-      }))
-    );
 
     try {
       const { error } = await supabase
-        .from(tableName)
+        .from(programsTableName)
         .update({ dashboard: newVisibility })
-        .eq("program_id", programId);
+        .eq("id", programId);
 
       if (error) {
         throw error;
       }
 
+      onDashboardVisibilityChange?.(newVisibility);
       notifyTrainingChange(programId);
+      notifyTrainingChange("all-programs");
     } catch (error) {
       console.error(
         "Erreur lors de la mise à jour de la visibilité dans le tableau de bord :",
         error
       );
       setIsDashboardVisible(!newVisibility);
-      setTrainingsData((prev) =>
-        prev.map((training) => {
-          const previous = previousDashboardStates.find((t) => t.id === training.id);
-          return previous
-            ? { ...training, dashboard: previous.dashboard ?? null }
-            : training;
-        })
-      );
     } finally {
       setIsUpdatingDashboardVisibility(false);
     }
@@ -504,6 +483,50 @@ export default function ProgramEditor({
       {!adminMode && (
       <div className="flex items-center gap-3 absolute right-0 z-10 bg-[#FBFCFE] p-2">
       {trainingsData.length > 0 ? (
+        <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
+          <button
+            type="button"
+            className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
+            onClick={handleAppClick}
+            aria-label={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+          >
+            <div className="relative w-full h-full">
+              <Image
+                src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
+                alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+              />
+              <Image
+                src={isAppVisible ? "/icons/app_hover.svg" : "/icons/app_hidden_hover.svg"}
+                alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+              />
+            </div>
+          </button>
+        </Tooltip>
+      ) : (
+        <button
+          type="button"
+          className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+          disabled
+          aria-label={isAppVisible ? "Masquer" : "Afficher"}
+        >
+          <div className="relative w-full h-full">
+            <Image
+              src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
+              alt={isAppVisible ? "Masquer" : "Afficher"}
+              fill
+              sizes="100%"
+              className="absolute top-0 left-0 w-full h-full opacity-100"
+            />
+          </div>
+        </button>
+      )}
+      {trainingsData.length > 0 ? (
         <Tooltip
           content={
             isDashboardVisible
@@ -581,50 +604,6 @@ export default function ProgramEditor({
                   ? "Masquer dans le tableau de bord"
                   : "Afficher dans le tableau de bord"
               }
-              fill
-              sizes="100%"
-              className="absolute top-0 left-0 w-full h-full opacity-100"
-            />
-          </div>
-        </button>
-      )}
-      {trainingsData.length > 0 ? (
-        <Tooltip content={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
-          <button
-            type="button"
-            className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
-            onClick={handleEyeClick}
-            aria-label={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-          >
-            <div className="relative w-full h-full">
-              <Image
-                src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
-                alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-              />
-              <Image
-                src={isEyeVisible ? "/icons/eye_hover.svg" : "/icons/eye_closed_hover.svg"}
-                alt={isEyeVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
-              />
-            </div>
-          </button>
-        </Tooltip>
-      ) : (
-        <button
-          type="button"
-          className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-          disabled
-          aria-label={isEyeVisible ? "Masquer" : "Afficher"}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={isEyeVisible ? "/icons/eye.svg" : "/icons/eye_closed.svg"}
-              alt={isEyeVisible ? "Masquer" : "Afficher"}
               fill
               sizes="100%"
               className="absolute top-0 left-0 w-full h-full opacity-100"
