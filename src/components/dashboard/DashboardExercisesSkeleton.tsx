@@ -17,7 +17,7 @@ export default function DashboardExercisesSkeleton({
         {skeletonExercises.map((_, index) => (
           <div
             key={index}
-            className="w-full rounded-[5px] border border-[#ECE9F1] bg-white shadow-glift"
+            className="w-full rounded-[5px] border border-[#D7D4DC] bg-white"
           >
             <div className="flex h-[60px] items-center justify-between px-[30px]">
               <div className="h-4 w-[220px] rounded bg-[#E6E8F5]" />
