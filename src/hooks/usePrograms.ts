@@ -16,73 +16,79 @@ export default function usePrograms() {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = useSupabaseClient();
 
-  const fetchProgramsWithTrainings = useCallback(async () => {
-    setIsLoading(true);
-
-    try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      if (userError || !user?.id) {
-        setPrograms([]);
-        return;
+  const fetchProgramsWithTrainings = useCallback(
+    async (options?: { showLoading?: boolean }) => {
+      const shouldShowLoading = options?.showLoading ?? true;
+      if (shouldShowLoading) {
+        setIsLoading(true);
       }
 
-      let { data: programsData } = await supabase
-        .from("programs")
-        .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
-        .eq("user_id", user.id)
-        .order("position", { ascending: true });
-
-      if (!programsData || programsData.length === 0) {
-        const { data: newProgram } = await supabase
-          .from("programs")
-          .insert({ name: DEFAULT_PROGRAM_NAME, user_id: user.id })
-          .select()
-          .single();
-        if (newProgram) {
-          programsData = [{
-            ...newProgram,
-            dashboard: newProgram.dashboard ?? true,
-            trainings: [],
-          }];
+      try {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user?.id) {
+          setPrograms([]);
+          return;
         }
-      }
 
-      const existingPrograms = (programsData || []).map((p) => ({
-        ...p,
-        dashboard: p.dashboard ?? true,
-        trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
-      }));
+        let { data: programsData } = await supabase
+          .from("programs")
+          .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
+          .eq("user_id", user.id)
+          .order("position", { ascending: true });
 
-      let result = [...existingPrograms];
-      const hasEmpty = result.some(p => p.trainings.length === 0);
-      if (!hasEmpty) {
-        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
-        if (refreshedUser?.id) {
+        if (!programsData || programsData.length === 0) {
           const { data: newProgram } = await supabase
             .from("programs")
-            .insert({ name: DEFAULT_PROGRAM_NAME, user_id: refreshedUser.id })
+            .insert({ name: DEFAULT_PROGRAM_NAME, user_id: user.id })
             .select()
             .single();
-
           if (newProgram) {
-            result.push({
+            programsData = [{
               ...newProgram,
               dashboard: newProgram.dashboard ?? true,
               trainings: [],
-            });
+            }];
           }
         }
-      } else {
-        const nonEmpty = result.filter(p => p.trainings.length > 0);
-        const emptyPrograms = result.filter(p => p.trainings.length === 0);
-        result = [...nonEmpty, ...emptyPrograms];
-      }
 
-      setPrograms(result);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [supabase]);
+        const existingPrograms = (programsData || []).map((p) => ({
+          ...p,
+          dashboard: p.dashboard ?? true,
+          trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
+        }));
+
+        let result = [...existingPrograms];
+        const hasEmpty = result.some(p => p.trainings.length === 0);
+        if (!hasEmpty) {
+          const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+          if (refreshedUser?.id) {
+            const { data: newProgram } = await supabase
+              .from("programs")
+              .insert({ name: DEFAULT_PROGRAM_NAME, user_id: refreshedUser.id })
+              .select()
+              .single();
+
+            if (newProgram) {
+              result.push({
+                ...newProgram,
+                dashboard: newProgram.dashboard ?? true,
+                trainings: [],
+              });
+            }
+          }
+        } else {
+          const nonEmpty = result.filter(p => p.trainings.length > 0);
+          const emptyPrograms = result.filter(p => p.trainings.length === 0);
+          result = [...nonEmpty, ...emptyPrograms];
+        }
+
+        setPrograms(result);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [supabase]
+  );
 
   useEffect(() => {
     fetchProgramsWithTrainings();

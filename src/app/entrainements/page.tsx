@@ -91,7 +91,7 @@ export default function EntrainementsPage() {
     channel.onmessage = (event) => {
       if (event.data === "refresh-all-programs") {
         console.log("🟣 refresh-all-programs reçu");
-        fetchProgramsWithTrainings();
+        fetchProgramsWithTrainings({ showLoading: false });
       }
     };
     return () => channel.close();
