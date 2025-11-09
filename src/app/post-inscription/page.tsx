@@ -1,36 +1,44 @@
 "use client";
+
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+
 import GliftLoader from "@/components/ui/GliftLoader";
+import { useUser } from "@/context/UserContext";
 
 export default function PostInscription() {
   const params = useSearchParams();
-  const email = params?.get("email") || "";
-  const password = params?.get("password") || "";
+  const router = useRouter();
+  const { isAuthenticated, isLoading } = useUser();
 
-  console.log("Auto-login with", email, password);
+  const email = params?.get("email")?.trim() ?? "";
 
   useEffect(() => {
-    const form = document.getElementById("authForm") as HTMLFormElement;
-    if (form) {
-      setTimeout(() => {
-        form.submit();
-      }, 3000); // ⏱️ délai de 3 secondes
+    if (typeof window === "undefined") {
+      return;
     }
-  }, []);  
 
-  return (
-    <>
-      <GliftLoader />
-      <form
-        id="authForm"
-        method="POST"
-        action="/api/auth/login?returnTo=/dashboard"
-        style={{ display: "none" }}
-      >
-        <input type="hidden" name="email" value={email} />
-        <input type="hidden" name="password" value={password} />
-      </form>
-    </>
-  );
+    const sanitizedUrl = `${window.location.pathname}${window.location.hash}`;
+    window.history.replaceState(null, "", sanitizedUrl);
+  }, []);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+
+    const destination = isAuthenticated
+      ? "/dashboard"
+      : `/connexion${email ? `?email=${encodeURIComponent(email)}` : ""}`;
+
+    const timer = window.setTimeout(() => {
+      router.replace(destination);
+    }, 3000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [email, isAuthenticated, isLoading, router]);
+
+  return <GliftLoader />;
 }
