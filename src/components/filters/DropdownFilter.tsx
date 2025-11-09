@@ -20,6 +20,7 @@ type DropdownFilterProps = {
   className?: string;
   disabled?: boolean;
   sortOptions?: boolean;
+  maxWidth?: number;
 };
 
 export default function DropdownFilter({
@@ -31,6 +32,7 @@ export default function DropdownFilter({
   className,
   disabled = false,
   sortOptions = true,
+  maxWidth,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -78,16 +80,20 @@ export default function DropdownFilter({
         labelsToMeasure.add(selectedLabel);
       }
 
-      let maxWidth = 0;
+      let maxMeasuredWidth = 0;
 
       labelsToMeasure.forEach((label) => {
         measurementTextRef.current!.textContent = label;
         const { width } = measurementRef.current!.getBoundingClientRect();
-        maxWidth = Math.max(maxWidth, Math.ceil(width));
+        maxMeasuredWidth = Math.max(maxMeasuredWidth, Math.ceil(width));
       });
 
       const iconSpacing = hasIcons ? 30 : 0;
-      setCalculatedWidth(maxWidth + iconSpacing);
+      const widthLimit =
+        typeof maxWidth === "number" ? maxWidth : Number.POSITIVE_INFINITY;
+      const widthWithIcons = maxMeasuredWidth + iconSpacing;
+      const finalWidth = Math.max(0, Math.min(widthWithIcons, widthLimit));
+      setCalculatedWidth(finalWidth);
 
       // Reset to the currently displayed label so the hidden element reflects the UI state
       measurementTextRef.current.textContent = isPlaceholder ? placeholder : selectedLabel;
@@ -99,7 +105,14 @@ export default function DropdownFilter({
     return () => {
       window.removeEventListener("resize", updateWidth);
     };
-  }, [hasIcons, isPlaceholder, placeholder, preparedOptions, selectedLabel]);
+  }, [
+    hasIcons,
+    isPlaceholder,
+    maxWidth,
+    placeholder,
+    preparedOptions,
+    selectedLabel,
+  ]);
 
   useEffect(() => {
     if (!open) {
@@ -226,12 +239,19 @@ export default function DropdownFilter({
           font-semibold
           transition
         `}
-        style={calculatedWidth ? { minWidth: calculatedWidth } : undefined}
+        style={{
+          ...(calculatedWidth
+            ? { minWidth: calculatedWidth }
+            : undefined),
+          ...(typeof maxWidth === "number" ? { maxWidth } : undefined),
+        }}
       >
         <span
-          className={`${labelColorClass} flex items-center whitespace-nowrap text-left flex-1`}
+          className={`${labelColorClass} flex min-w-0 items-center text-left flex-1`}
         >
-          <span className="whitespace-nowrap">{selectedLabel}</span>
+          <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+            {selectedLabel}
+          </span>
           {selectedOption?.iconSrc && (
             <Image
               src={selectedOption.iconSrc}
@@ -276,8 +296,10 @@ export default function DropdownFilter({
                     : "text-[#5D6494] hover:text-[#3A416F]"
                 }`}
               >
-                <span className="flex items-center">
-                  <span>{option.label}</span>
+                <span className="flex min-w-0 items-center">
+                  <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {option.label}
+                  </span>
                   {option.iconSrc && (
                     <Image
                       src={option.iconSrc}
