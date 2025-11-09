@@ -276,7 +276,18 @@ export default function usePrograms() {
 
     const updatedPrograms = [...programs];
     const updatedName = result?.name?.trim() || safeName;
-    updatedPrograms[index] = { id: result.id, name: updatedName, trainings: updatedPrograms[index]?.trainings || [] };
+    const previousProgram = updatedPrograms[index];
+    if (!previousProgram) {
+      return null;
+    }
+
+    updatedPrograms[index] = {
+      ...previousProgram,
+      id: result?.id ?? previousProgram.id,
+      name: updatedName,
+      dashboard: result?.dashboard ?? previousProgram.dashboard ?? true,
+      trainings: previousProgram.trainings ?? [],
+    };
 
     setPrograms(updatedPrograms);
     return updatedPrograms[index];
