@@ -461,13 +461,13 @@ export default function DashboardPage() {
         {!shouldShowFiltersSkeleton && (
           <>
             {showStats && (
-              <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[30px]">
+              <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[24px]">
                 {DASHBOARD_STATS_CARDS.map((card) => (
                   <div
                     key={card.id}
-                    className="flex h-[165px] w-[270px] flex-col rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6"
+                    className="flex h-[165px] w-[270px] flex-col items-center justify-center gap-3 rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6 text-center"
                   >
-                    <div className="h-7 w-7">
+                    <div className="flex h-7 w-7 items-center justify-center">
                       <Image
                         src={card.icon}
                         alt=""
@@ -476,10 +476,10 @@ export default function DashboardPage() {
                         className="h-7 w-7"
                       />
                     </div>
-                    <p className="mt-4 text-[35px] font-bold leading-none text-[#3A416F]">
+                    <p className="text-[35px] font-bold leading-none text-[#3A416F]">
                       {card.value}
                     </p>
-                    <p className="mt-2 text-[14px] font-bold text-[#3A416F]">
+                    <p className="text-[14px] font-bold text-[#3A416F]">
                       {card.label}
                     </p>
                   </div>
