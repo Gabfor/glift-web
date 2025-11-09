@@ -1,6 +1,7 @@
-import { SupabaseClient } from "@supabase/supabase-js";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+import type { Database } from "@/lib/supabase/types";
 
 type SessionTokens = {
   access_token: string;
@@ -19,8 +20,27 @@ type ProvisionalSessionError = {
   code?: "grace_period_expired" | "invalid_credentials" | "server_error";
 };
 
+type ProfilePreview = Pick<
+  Database["public"]["Tables"]["profiles"]["Row"],
+  "email_verified" | "grace_expires_at"
+>;
+
 const GRACE_PERIOD_DAYS = 3;
 const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
+
+const parseTimestamp = (value: string | null | undefined) => {
+  if (!value) {
+    return null;
+  }
+
+  const timestamp = Date.parse(value);
+
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return timestamp;
+};
 
 const extractSessionTokens = (session: {
   access_token?: string;
@@ -36,24 +56,51 @@ const extractSessionTokens = (session: {
   return { access_token: accessToken, refresh_token: refreshToken };
 };
 
-const isWithinGracePeriod = (createdAt: string | null | undefined) => {
-  if (!createdAt) {
-    return false;
-  }
-
-  const createdTimestamp = Date.parse(createdAt);
-
-  if (Number.isNaN(createdTimestamp)) {
-    return false;
-  }
-
+const isWithinGracePeriod = (
+  createdAt: string | null | undefined,
+  graceExpiresAt?: string | null,
+) => {
   const now = Date.now();
+
+  const graceExpirationTimestamp = parseTimestamp(graceExpiresAt);
+
+  if (graceExpirationTimestamp !== null) {
+    return now <= graceExpirationTimestamp;
+  }
+
+  const createdTimestamp = parseTimestamp(createdAt);
+
+  if (createdTimestamp === null) {
+    return false;
+  }
 
   return now - createdTimestamp <= GRACE_PERIOD_MS;
 };
 
+const fetchProfilePreview = async (
+  adminClient: SupabaseClient<Database>,
+  userId: string,
+): Promise<ProfilePreview | null> => {
+  const { data, error } = await adminClient
+    .from("profiles")
+    .select("email_verified, grace_expires_at")
+    .eq("id", userId)
+    .maybeSingle<ProfilePreview>();
+
+  if (error) {
+    console.warn(
+      "createProvisionalSession() unable to load profile information",
+      error,
+    );
+
+    return null;
+  }
+
+  return data ?? null;
+};
+
 export async function createProvisionalSession(
-  adminClient: SupabaseClient,
+  adminClient: SupabaseClient<Database>,
   {
     email,
     password,
@@ -97,7 +144,19 @@ export async function createProvisionalSession(
           } satisfies ProvisionalSessionError;
         }
 
-        if (!isWithinGracePeriod(provisionalUser.created_at)) {
+        let profile: ProfilePreview | null = null;
+
+        if (provisionalUser.id) {
+          profile = await fetchProfilePreview(adminClient, provisionalUser.id);
+        }
+
+        if (
+          !profile?.email_verified &&
+          !isWithinGracePeriod(
+            provisionalUser.created_at ?? null,
+            profile?.grace_expires_at ?? null,
+          )
+        ) {
           return {
             error:
               "Votre période d'accès temporaire est expirée. Veuillez confirmer votre email pour continuer.",
@@ -142,6 +201,10 @@ export async function createProvisionalSession(
         const userId =
           otpData.session.user?.id ?? provisionalUser?.id ?? null;
 
+        if (!profile && userId) {
+          profile = await fetchProfilePreview(adminClient, userId);
+        }
+
         if (emailVerified && userId) {
           const resetSuccess = await resetEmailConfirmation(adminClient, userId);
 
@@ -152,12 +215,19 @@ export async function createProvisionalSession(
             );
           } else {
             emailVerified = false;
+            if (profile) {
+              profile = { ...profile, email_verified: false };
+            }
           }
         }
 
+        const resolvedEmailVerified = profile
+          ? Boolean(profile.email_verified)
+          : emailVerified;
+
         return {
           sessionTokens: sessionTokensFromOtp,
-          emailVerified,
+          emailVerified: resolvedEmailVerified,
           userId,
         } satisfies ProvisionalSessionSuccess;
       }
@@ -187,7 +257,13 @@ export async function createProvisionalSession(
     const userId = user?.id ?? null;
     const isEmailConfirmed = Boolean(user?.email_confirmed_at);
 
-    if (isEmailConfirmed) {
+    let profile: ProfilePreview | null = null;
+
+    if (!isEmailConfirmed && userId) {
+      profile = await fetchProfilePreview(adminClient, userId);
+    }
+
+    if (isEmailConfirmed || profile?.email_verified) {
       return {
         sessionTokens,
         emailVerified: true,
@@ -195,7 +271,12 @@ export async function createProvisionalSession(
       } satisfies ProvisionalSessionSuccess;
     }
 
-    if (!isWithinGracePeriod(user?.created_at)) {
+    if (
+      !isWithinGracePeriod(
+        user?.created_at ?? null,
+        profile?.grace_expires_at ?? null,
+      )
+    ) {
       return {
         error:
           "Votre période d'accès temporaire est expirée. Veuillez confirmer votre email pour continuer.",
