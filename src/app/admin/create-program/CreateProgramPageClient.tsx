@@ -136,7 +136,7 @@ export default function CreateProgramPageClient({
 
         {!loading && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-row-dense gap-x-8 gap-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-row-dense gap-x-8 gap-y-4">
               {/* Sexe */}
               <div className="flex flex-col">
                 <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
@@ -166,27 +166,24 @@ export default function CreateProgramPageClient({
                 </div>
 
                 {/* Titre */}
-                <div className="flex flex-col">
+                <div className="flex flex-col md:col-span-2">
                   <div className="flex justify-between mb-[5px]">
                     <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
                     <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
                       {program.title.length}/52
                     </span>
                   </div>
-                <input
-                  type="text"
-                  placeholder="Titre du programme"
-                  value={program.title}
-                  onChange={(e) => setProgram({ ...program, title: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
+                  <input
+                    type="text"
+                    placeholder="Titre du programme"
+                    value={program.title}
+                    onChange={(e) => setProgram({ ...program, title: e.target.value })}
+                    className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150"
+                  />
+                </div>
 
                 {/* Titre raccourci */}
-                <div className="flex flex-col">
+                <div className="flex flex-col md:col-span-2">
                   <div className="flex justify-between mb-[5px]">
                     <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
                     <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
@@ -194,20 +191,17 @@ export default function CreateProgramPageClient({
                     </span>
                   </div>
                   <input
-                  type="text"
-                  maxLength={28}
-                  placeholder="Titre court (28 caractères max)"
-                  value={program.shortName}
-                  onChange={(e) =>
-                    setProgram({
-                      ...program,
-                      shortName: e.target.value.slice(0, 28),
-                    })
-                  }
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
+                    type="text"
+                    maxLength={28}
+                    placeholder="Titre court (28 caractères max)"
+                    value={program.shortName}
+                    onChange={(e) =>
+                      setProgram({
+                        ...program,
+                        shortName: e.target.value.slice(0, 28),
+                      })
+                    }
+                    className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150"
                   />
                 </div>
 
@@ -246,7 +240,7 @@ export default function CreateProgramPageClient({
               </div>
 
               {/* Images partenaire + alt */}
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-4">
                 <div className="flex flex-col">
                 <div className="flex justify-between mb-[5px]">
                   <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
