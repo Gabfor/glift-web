@@ -137,7 +137,7 @@ export default function ConnexionPage() {
           await supabase.auth.setSession(data.session);
         }
         setShowTransitionLoader(true);
-        router.push(sanitizedNextParam ?? "/entrainements");
+        router.push(sanitizedNextParam ?? "/dashboard");
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
         setError({
@@ -170,7 +170,7 @@ export default function ConnexionPage() {
             });
 
             setShowTransitionLoader(true);
-            router.push(sanitizedNextParam ?? "/entrainements");
+            router.push(sanitizedNextParam ?? "/dashboard");
             router.refresh();
             return;
           }
