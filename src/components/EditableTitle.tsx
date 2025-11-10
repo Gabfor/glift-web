@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Tooltip from "@/components/Tooltip";
 
 type Props = {
@@ -33,6 +33,10 @@ function EditableTitle({
       inputRef.current.focus();
     }
   }, [loading, editing]);
+
+  const handleEnterEditMode = useCallback(() => {
+    setEditing(true);
+  }, [setEditing]);
 
   const handleClear = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -108,7 +112,7 @@ function EditableTitle({
         </div>
       ) : (
         <div
-          onClick={() => setEditing(true)}
+          onClick={handleEnterEditMode}
           className="group flex justify-center items-center gap-2 cursor-pointer w-fit mx-auto hover:text-[#3A416F] transition"
         >
           <p className="text-[30px] sm:text-[30px] font-bold text-[#2E3271] group-hover:text-[#3A416F]">
@@ -116,7 +120,7 @@ function EditableTitle({
           </p>
 
           <Tooltip content="Editer">
-            <div className="relative w-5 h-5">
+            <div className="relative w-5 h-5" onClick={handleEnterEditMode}>
               <Image
                 src="/icons/edit.svg"
                 alt="modifier"
