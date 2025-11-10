@@ -516,6 +516,135 @@ export interface Database {
         };
         Relationships: never[];
       };
+      training_session_exercises: {
+        Row: {
+          id: string;
+          session_id: string;
+          training_row_id: Nullable<string>;
+          exercise_name: string;
+          position: Nullable<number>;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_id: string;
+          training_row_id?: Nullable<string>;
+          exercise_name: string;
+          position?: Nullable<number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_id?: string;
+          training_row_id?: Nullable<string>;
+          exercise_name?: string;
+          position?: Nullable<number>;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_session_exercises_session_id_fkey";
+            columns: ["session_id"];
+            referencedRelation: "training_sessions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_session_exercises_training_row_id_fkey";
+            columns: ["training_row_id"];
+            referencedRelation: "training_rows";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_session_sets: {
+        Row: {
+          id: string;
+          session_exercise_id: string;
+          set_number: number;
+          repetitions: number;
+          weights: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          session_exercise_id: string;
+          set_number: number;
+          repetitions: number;
+          weights?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          session_exercise_id?: string;
+          set_number?: number;
+          repetitions?: number;
+          weights?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_session_sets_session_exercise_id_fkey";
+            columns: ["session_exercise_id"];
+            referencedRelation: "training_session_exercises";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      training_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          program_id: Nullable<string>;
+          training_id: Nullable<string>;
+          performed_at: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          program_id?: Nullable<string>;
+          training_id?: Nullable<string>;
+          performed_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          program_id?: Nullable<string>;
+          training_id?: Nullable<string>;
+          performed_at?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "training_sessions_program_id_fkey";
+            columns: ["program_id"];
+            referencedRelation: "programs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_sessions_training_id_fkey";
+            columns: ["training_id"];
+            referencedRelation: "trainings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "training_sessions_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       training_rows: GenericTable;
       trainings: GenericTable;
       programs: {
