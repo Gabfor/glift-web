@@ -11,9 +11,19 @@ using public.training_session_exercises tse
 where tss.session_exercise_id = tse.id
   and tse.session_id in (select id from target_sessions);
 
+with target_sessions as (
+  select id
+  from public.training_sessions
+  where user_id = '136e5f62-088e-48c8-abdf-ff3922c01910'
+)
 delete from public.training_session_exercises tse
 where tse.session_id in (select id from target_sessions);
 
+with target_sessions as (
+  select id
+  from public.training_sessions
+  where user_id = '136e5f62-088e-48c8-abdf-ff3922c01910'
+)
 delete from public.training_sessions ts
 where ts.id in (select id from target_sessions);
 
