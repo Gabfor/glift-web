@@ -48,50 +48,86 @@ alter table public.training_sessions enable row level security;
 alter table public.training_session_exercises enable row level security;
 alter table public.training_session_sets enable row level security;
 
-create policy if not exists "Users can manage their training sessions"
-  on public.training_sessions
-  for all
-  using (auth.uid() = user_id)
-  with check (auth.uid() = user_id);
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'training_sessions'
+      and policyname = 'Users can manage their training sessions'
+  ) then
+    create policy "Users can manage their training sessions"
+      on public.training_sessions
+      for all
+      using (auth.uid() = user_id)
+      with check (auth.uid() = user_id);
+  end if;
+end
+$$;
 
-create policy if not exists "Users can manage their session exercises"
-  on public.training_session_exercises
-  for all
-  using (
-    exists (
-      select 1
-      from public.training_sessions s
-      where s.id = session_id
-        and s.user_id = auth.uid()
-    )
-  )
-  with check (
-    exists (
-      select 1
-      from public.training_sessions s
-      where s.id = session_id
-        and s.user_id = auth.uid()
-    )
-  );
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'training_session_exercises'
+      and policyname = 'Users can manage their session exercises'
+  ) then
+    create policy "Users can manage their session exercises"
+      on public.training_session_exercises
+      for all
+      using (
+        exists (
+          select 1
+          from public.training_sessions s
+          where s.id = session_id
+            and s.user_id = auth.uid()
+        )
+      )
+      with check (
+        exists (
+          select 1
+          from public.training_sessions s
+          where s.id = session_id
+            and s.user_id = auth.uid()
+        )
+      );
+  end if;
+end
+$$;
 
-create policy if not exists "Users can manage their session sets"
-  on public.training_session_sets
-  for all
-  using (
-    exists (
-      select 1
-      from public.training_session_exercises e
-      join public.training_sessions s on s.id = e.session_id
-      where e.id = session_exercise_id
-        and s.user_id = auth.uid()
-    )
-  )
-  with check (
-    exists (
-      select 1
-      from public.training_session_exercises e
-      join public.training_sessions s on s.id = e.session_id
-      where e.id = session_exercise_id
-        and s.user_id = auth.uid()
-    )
-  );
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_policies
+    where schemaname = 'public'
+      and tablename = 'training_session_sets'
+      and policyname = 'Users can manage their session sets'
+  ) then
+    create policy "Users can manage their session sets"
+      on public.training_session_sets
+      for all
+      using (
+        exists (
+          select 1
+          from public.training_session_exercises e
+          join public.training_sessions s on s.id = e.session_id
+          where e.id = session_exercise_id
+            and s.user_id = auth.uid()
+        )
+      )
+      with check (
+        exists (
+          select 1
+          from public.training_session_exercises e
+          join public.training_sessions s on s.id = e.session_id
+          where e.id = session_exercise_id
+            and s.user_id = auth.uid()
+        )
+      );
+  end if;
+end
+$$;
