@@ -14,35 +14,148 @@ import type { Props as RechartsDotProps } from "recharts/types/shape/Dot";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
-import { CURVE_OPTIONS } from "@/constants/curveOptions";
-import React, { useEffect, useRef, useState } from "react";
+import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
+import { useUser } from "@/context/UserContext";
+import { createClient } from "@/lib/supabaseClient";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 interface DashboardExerciseBlockProps {
   id: string;
   name: string;
   sessionCount: string;
-  curveType: string;
+  curveType: CurveOptionValue;
   onSessionChange: (value: string) => void;
   onCurveChange: (value: string) => void;
 }
 
-const mockData = [
-  { date: "02 Nov", value: 21 },
-  { date: "09 Nov", value: 21 },
-  { date: "16 Nov", value: 22 },
-  { date: "23 Nov", value: 22 },
-  { date: "30 Nov", value: 22 },
-  { date: "07 Déc", value: 23 },
-  { date: "14 Déc", value: 23 },
-  { date: "21 Déc", value: 23 },
-  { date: "28 Déc", value: 22 },
-  { date: "04 Jan", value: 22 },
-  { date: "11 Jan", value: 22 },
-  { date: "18 Jan", value: 23 },
-  { date: "25 Jan", value: 24 },
-  { date: "01 Fév", value: 25 },
-  { date: "08 Fév", value: 25 },
-];
+type SessionSet = {
+  repetitions: number | null;
+  weights: number[];
+};
+
+type RawSession = {
+  performedAt: string;
+  sets: SessionSet[];
+};
+
+type ChartPoint = {
+  date: string;
+  tooltipDate: string;
+  unit: string;
+  value: number;
+};
+
+type AggregatedSessionMetrics = {
+  averageWeight: number | null;
+  maxWeight: number | null;
+  totalWeight: number;
+  averageReps: number | null;
+  maxReps: number | null;
+  totalReps: number;
+};
+
+const CURVE_UNIT_MAP: Record<CurveOptionValue, string> = {
+  "poids-moyen": "kg",
+  "poids-maximum": "kg",
+  "poids-total": "kg",
+  "repetition-moyenne": "rép.",
+  "repetition-maximum": "rép.",
+  "repetitions-totales": "rép.",
+};
+
+const parseSessionCount = (value: string): number => {
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+};
+
+const roundValue = (value: number): number => Math.round(value * 100) / 100;
+
+const formatChartLabel = (date: Date): string => {
+  const formatter = new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+  });
+  const formatted = formatter
+    .format(date)
+    .replace(/\u00A0/g, " ")
+    .trim();
+  const [day, month = ""] = formatted.split(" ");
+  const normalizedMonth = month
+    ? month.charAt(0).toUpperCase() + month.slice(1)
+    : month;
+  return [day, normalizedMonth].filter(Boolean).join(" ");
+};
+
+const aggregateSessionMetrics = (session: RawSession): AggregatedSessionMetrics => {
+  let totalWeight = 0;
+  let weightSumForAverage = 0;
+  let weightCountForAverage = 0;
+  let maxWeight: number | null = null;
+
+  let totalReps = 0;
+  let repSumForAverage = 0;
+  let repCountForAverage = 0;
+  let maxReps: number | null = null;
+
+  session.sets.forEach((set) => {
+    const weights = set.weights;
+    const repetitions =
+      typeof set.repetitions === "number" && Number.isFinite(set.repetitions)
+        ? set.repetitions
+        : null;
+
+    if (weights.length > 0) {
+      const setTotalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+      const setAverageWeight = setTotalWeight / weights.length;
+      totalWeight += setTotalWeight;
+      weightSumForAverage += setAverageWeight;
+      weightCountForAverage += 1;
+      maxWeight = maxWeight === null ? setAverageWeight : Math.max(maxWeight, setAverageWeight);
+    }
+
+    const effectiveRepetitions =
+      repetitions ?? (weights.length > 0 ? weights.length : null);
+
+    if (typeof effectiveRepetitions === "number" && Number.isFinite(effectiveRepetitions)) {
+      totalReps += effectiveRepetitions;
+      repSumForAverage += effectiveRepetitions;
+      repCountForAverage += 1;
+      maxReps =
+        maxReps === null ? effectiveRepetitions : Math.max(maxReps, effectiveRepetitions);
+    }
+  });
+
+  return {
+    averageWeight: weightCountForAverage > 0 ? weightSumForAverage / weightCountForAverage : null,
+    maxWeight,
+    totalWeight,
+    averageReps: repCountForAverage > 0 ? repSumForAverage / repCountForAverage : null,
+    maxReps,
+    totalReps,
+  };
+};
+
+const getValueForCurve = (
+  metrics: AggregatedSessionMetrics,
+  curveType: CurveOptionValue,
+): number | null => {
+  switch (curveType) {
+    case "poids-moyen":
+      return metrics.averageWeight;
+    case "poids-maximum":
+      return metrics.maxWeight;
+    case "poids-total":
+      return metrics.totalWeight;
+    case "repetition-moyenne":
+      return metrics.averageReps;
+    case "repetition-maximum":
+      return metrics.maxReps;
+    case "repetitions-totales":
+      return metrics.totalReps;
+    default:
+      return null;
+  }
+};
 
 const splitDateLabel = (label: string) => {
   const [day, ...rest] = label.split(" ");
@@ -208,7 +321,7 @@ const DateAxisTick = ({ x, y, payload }: AxisTickProps) => {
 
 const renderDateAxisTick = (props: AxisTickProps) => <DateAxisTick {...props} />;
 
-type WeightAxisTickProps = {
+type ValueAxisTickProps = {
   x: number;
   y: number;
   payload: { value: number };
@@ -218,23 +331,32 @@ const Y_AXIS_TICK_OFFSET = 10;
 const Y_AXIS_WIDTH = 52;
 const CHART_MARGIN = { top: 20, right: 20, bottom: 20, left: Y_AXIS_WIDTH };
 
-const WeightAxisTick = ({ x, y, payload }: WeightAxisTickProps) => (
-  <text
-    x={x - Y_AXIS_TICK_OFFSET}
-    y={y}
-    fill="#3A416F"
-    fontSize={12}
-    fontWeight={700}
-    textAnchor="end"
-    dominantBaseline="middle"
-  >
-    {`${payload?.value ?? 0} kg`}
-  </text>
-);
+const ValueAxisTick = ({ x, y, payload, unit }: ValueAxisTickProps & { unit: string }) => {
+  const numericValue = typeof payload?.value === "number" ? payload.value : 0;
+  const formattedValue = numericValue.toLocaleString("fr-FR", {
+    maximumFractionDigits: 2,
+  });
 
-const renderWeightAxisTick = (props: WeightAxisTickProps) => (
-  <WeightAxisTick {...props} />
-);
+  return (
+    <text
+      x={x - Y_AXIS_TICK_OFFSET}
+      y={y}
+      fill="#3A416F"
+      fontSize={12}
+      fontWeight={700}
+      textAnchor="end"
+      dominantBaseline="middle"
+    >
+      {`${formattedValue}${unit ? ` ${unit}` : ""}`}
+    </text>
+  );
+};
+
+const createValueAxisTickRenderer = (unit: string) => {
+  const TickComponent = (props: ValueAxisTickProps) => <ValueAxisTick {...props} unit={unit} />;
+  TickComponent.displayName = "DashboardValueAxisTick";
+  return TickComponent;
+};
 
 const TOOLTIP_OFFSET_FROM_POINT_PX = 20;
 const CHART_DOT_RADIUS = 4;
@@ -377,10 +499,11 @@ const DashboardExerciseChartTooltip = ({
       ? (dotPayload as Record<string, unknown>)
       : undefined;
   const dateValue = dotData?.tooltipDate ?? dotData?.date ?? label;
+  const unit = typeof dotData?.unit === "string" ? (dotData.unit as string) : "";
   const formattedDate = formatTooltipDate(dateValue);
-  const formattedWeight =
+  const formattedMetric =
     typeof value === "number"
-      ? `${value} kg`
+      ? `${value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}${unit ? ` ${unit}` : ""}`
       : typeof value === "string"
         ? value
         : "";
@@ -394,7 +517,7 @@ const DashboardExerciseChartTooltip = ({
             {formattedDate}
           </span>
           <span className="text-[12px] font-semibold leading-none text-[#ffffff]">
-            {formattedWeight}
+            {formattedMetric}
           </span>
         </div>
       }
@@ -428,8 +551,20 @@ export default function DashboardExerciseBlock({
   onSessionChange,
   onCurveChange,
 }: DashboardExerciseBlockProps) {
+  const { user } = useUser();
+  const supabase = useMemo(() => createClient(), []);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
+  const [chartData, setChartData] = useState<ChartPoint[]>([]);
+
+  const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
+  const renderValueAxisTick = useMemo(
+    () => createValueAxisTickRenderer(currentUnit),
+    [currentUnit],
+  );
 
   useEffect(() => {
     const container = chartContainerRef.current;
@@ -466,6 +601,149 @@ export default function DashboardExerciseBlock({
       observer.disconnect();
     };
   }, []);
+
+  useEffect(() => {
+    const userId = user?.id ?? null;
+    const sessionLimit = parseSessionCount(sessionCount);
+
+    if (!userId || sessionLimit === 0) {
+      setRawSessions([]);
+      setFetchError(null);
+      setIsLoadingData(false);
+      return;
+    }
+
+    let isActive = true;
+
+    const fetchSessions = async () => {
+      setIsLoadingData(true);
+      setFetchError(null);
+
+      const { data, error } = await supabase
+        .from("training_session_exercises")
+        .select(
+          `
+            id,
+            training_row_id,
+            session:training_sessions!inner (
+              performed_at,
+              user_id
+            ),
+            sets:training_session_sets (
+              repetitions,
+              weights
+            )
+          `,
+        )
+        .eq("training_row_id", id)
+        .eq("training_sessions.user_id", userId)
+        .order("performed_at", { referencedTable: "training_sessions", ascending: false })
+        .limit(sessionLimit);
+
+      if (!isActive) {
+        return;
+      }
+
+      if (error) {
+        setFetchError("Une erreur est survenue lors du chargement des données.");
+        setRawSessions([]);
+      } else {
+        const normalizedSessions = (data ?? [])
+          .map((row) => {
+            const performedAtRaw =
+              row.session && typeof row.session === "object"
+                ? (row.session as { performed_at?: string | null }).performed_at
+                : null;
+
+            if (!performedAtRaw || typeof performedAtRaw !== "string") {
+              return null;
+            }
+
+            const sets = Array.isArray(row.sets)
+              ? row.sets.map((set) => {
+                  const repetitions =
+                    typeof set?.repetitions === "number" && Number.isFinite(set.repetitions)
+                      ? set.repetitions
+                      : null;
+                  const weights = Array.isArray(set?.weights)
+                    ? set.weights
+                        .map((value) => {
+                          if (typeof value === "number") {
+                            return Number.isFinite(value) ? value : null;
+                          }
+                          if (typeof value === "string") {
+                            const parsed = Number.parseFloat(value);
+                            return Number.isFinite(parsed) ? parsed : null;
+                          }
+                          return null;
+                        })
+                        .filter((value): value is number => value != null)
+                    : [];
+
+                  return {
+                    repetitions,
+                    weights,
+                  } satisfies SessionSet;
+                })
+              : [];
+
+            return {
+              performedAt: performedAtRaw,
+              sets,
+            } satisfies RawSession;
+          })
+          .filter((session): session is RawSession => session !== null);
+
+        setRawSessions(normalizedSessions);
+      }
+
+      setIsLoadingData(false);
+    };
+
+    void fetchSessions();
+
+    return () => {
+      isActive = false;
+    };
+  }, [id, sessionCount, supabase, user?.id]);
+
+  useEffect(() => {
+    if (!rawSessions.length) {
+      setChartData([]);
+      return;
+    }
+
+    const sortedSessions = [...rawSessions].sort((a, b) => {
+      const dateA = new Date(a.performedAt).getTime();
+      const dateB = new Date(b.performedAt).getTime();
+      return dateA - dateB;
+    });
+
+    const computedChartData = sortedSessions
+      .map((session) => {
+        const parsedDate = new Date(session.performedAt);
+        if (Number.isNaN(parsedDate.getTime())) {
+          return null;
+        }
+
+        const metrics = aggregateSessionMetrics(session);
+        const rawValue = getValueForCurve(metrics, curveType);
+
+        if (rawValue == null || !Number.isFinite(rawValue)) {
+          return null;
+        }
+
+        return {
+          date: formatChartLabel(parsedDate),
+          tooltipDate: parsedDate.toISOString(),
+          unit: currentUnit,
+          value: roundValue(rawValue),
+        } satisfies ChartPoint;
+      })
+      .filter((point): point is ChartPoint => point !== null);
+
+    setChartData(computedChartData);
+  }, [curveType, currentUnit, rawSessions]);
 
   return (
     <div className="w-full bg-white border border-[#D7D4DC] rounded-[8px] overflow-hidden">
@@ -552,13 +830,13 @@ export default function DashboardExerciseBlock({
             ref={chartContainerRef}
             className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
           >
-            {chartSize.width > 0 && chartSize.height > 0 ? (
+            {chartSize.width > 0 && chartSize.height > 0 && chartData.length > 0 ? (
               <ResponsiveContainer
                 width={chartSize.width}
                 height={chartSize.height}
               >
                 <AreaChart
-                  data={mockData}
+                  data={chartData}
                   margin={CHART_MARGIN}
                 >
                   <defs>
@@ -586,7 +864,7 @@ export default function DashboardExerciseBlock({
 
                   <YAxis
                     domain={["dataMin - 1", "dataMax + 1"]}
-                    tick={renderWeightAxisTick}
+                    tick={renderValueAxisTick}
                     width={Y_AXIS_WIDTH}
                     tickMargin={8}
                     axisLine={false}
@@ -604,8 +882,8 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                  dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
-                  activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
+                    dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
+                    activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
                   />
                   <RechartsTooltip
                     cursor={false}
@@ -617,6 +895,27 @@ export default function DashboardExerciseBlock({
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            ) : null}
+            {isLoadingData ? (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <p className="text-[13px] font-semibold text-[#5D6494]">
+                  Chargement des données…
+                </p>
+              </div>
+            ) : null}
+            {!isLoadingData && fetchError ? (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 text-center">
+                <p className="text-[13px] font-semibold text-[#E53E3E]">
+                  {fetchError}
+                </p>
+              </div>
+            ) : null}
+            {!isLoadingData && !fetchError && chartData.length === 0 ? (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 text-center">
+                <p className="text-[13px] font-semibold text-[#5D6494]">
+                  Aucune donnée disponible pour le moment.
+                </p>
+              </div>
             ) : null}
           </div>
         </div>
