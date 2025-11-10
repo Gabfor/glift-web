@@ -301,7 +301,7 @@ export default function ProgramEditor({
                 className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
                 aria-label="Effacer le nom"
               >
-                <Tooltip content="Effacer">
+                <Tooltip content="Effacer" asChild>
                   <div className="relative w-[25px] h-[25px] flex items-center justify-center">
                     <Image
                       src="/icons/cross_reset.svg"
