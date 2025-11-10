@@ -145,6 +145,16 @@ export default function ProgramEditor({
     }
   };
 
+  const handleStartEditClick = useCallback(() => {
+    const trimmedName = (name ?? "").trim();
+    if (!trimmedName || trimmedName === DEFAULT_PROGRAM_NAME) {
+      setLocalName("");
+    } else {
+      setLocalName(trimmedName);
+    }
+    onStartEdit(index);
+  }, [index, name, onStartEdit, setLocalName]);
+
   // Fonction pour basculer l'icône de l'app
   const handleAppClick = () => {
     setIsAppVisible((prev) => !prev);
@@ -298,34 +308,29 @@ export default function ProgramEditor({
         ) : (
         <div
           className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
-          onClick={() => {
-            const trimmedName = (name ?? "").trim();
-            if (!trimmedName || trimmedName === DEFAULT_PROGRAM_NAME) {
-              setLocalName("");
-            } else {
-              setLocalName(trimmedName);
-            }
-            onStartEdit(index);
-          }}
+          onClick={handleStartEditClick}
         >
           <span>{name || DEFAULT_PROGRAM_NAME}</span>
           <Tooltip content="Editer">
-          <div className="relative ml-1 w-[15px] h-[15px]">
-            <Image
-              src="/icons/edit_program.svg"
-              alt="Modifier"
-              fill
-              sizes="100%"
-              className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
-            />
-            <Image
-              src="/icons/edit_program_hover.svg"
-              alt="Modifier"
-              fill
-              sizes="100%"
-              className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
-            />
-          </div>
+            <div
+              className="relative ml-1 w-[15px] h-[15px]"
+              onClick={handleStartEditClick}
+            >
+              <Image
+                src="/icons/edit_program.svg"
+                alt="Modifier"
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
+              />
+              <Image
+                src="/icons/edit_program_hover.svg"
+                alt="Modifier"
+                fill
+                sizes="100%"
+                className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
+              />
+            </div>
           </Tooltip>
         </div>
         )}
