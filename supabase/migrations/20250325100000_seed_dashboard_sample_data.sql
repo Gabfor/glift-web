@@ -74,8 +74,7 @@ insert into public.programs (
   dashboard,
   position
 ) values
-  ('4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53', '136e5f62-088e-48c8-abdf-ff3922c01910', 'Force Hypertrophie 8 semaines', true, 0),
-  ('7b8ae897-f5f3-4ca5-8891-35b6118cb07a', '136e5f62-088e-48c8-abdf-ff3922c01910', 'Conditioning Métabolique', true, 1);
+  ('18151b49-20c6-4220-bd33-4b6643202372', '136e5f62-088e-48c8-abdf-ff3922c01910', 'Prise de masse', true, 0);
 
 insert into public.trainings (
   id,
@@ -85,9 +84,8 @@ insert into public.trainings (
   position,
   app
 ) values
-  ('d9ddba0b-1552-4aeb-b94f-05d4953ea055', '136e5f62-088e-48c8-abdf-ff3922c01910', '4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53', 'Séance Haut du corps', 0, false),
-  ('4a7c2f2b-28ff-4d06-b79f-a54d9334374f', '136e5f62-088e-48c8-abdf-ff3922c01910', '4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53', 'Séance Bas du corps', 1, false),
-  ('1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4', '136e5f62-088e-48c8-abdf-ff3922c01910', '7b8ae897-f5f3-4ca5-8891-35b6118cb07a', 'Metcon 30 minutes', 0, true);
+  ('9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', '18151b49-20c6-4220-bd33-4b6643202372', 'Biceps & Triceps', 0, false),
+  ('0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', '18151b49-20c6-4220-bd33-4b6643202372', 'Pectoraux', 1, false);
 
 -- Exercices associés aux entraînements
 insert into public.training_rows (
@@ -107,14 +105,17 @@ insert into public.training_rows (
   link,
   note
 ) values
-  ('2f1c8e3b-995f-4c30-8e7d-bec470f04ec7', 'd9ddba0b-1552-4aeb-b94f-05d4953ea055', '136e5f62-088e-48c8-abdf-ff3922c01910', 1, 4, ARRAY['6','6','6','6'], ARRAY['92.5','95','97.5','100'], '150', ARRAY['7','7','8','9'], false, 'Back Squat', 'Barre olympique', null, 'https://youtu.be/squat-demo', 'Accent sur la vitesse concentrique.'),
-  ('63a5fd4d-564b-47d0-95db-90b8b9d5a2d8', 'd9ddba0b-1552-4aeb-b94f-05d4953ea055', '136e5f62-088e-48c8-abdf-ff3922c01910', 2, 4, ARRAY['8','8','8','8'], ARRAY['70','72.5','75','77.5'], '120', ARRAY['6','7','7','8'], false, 'Développé couché', 'Barre + rack', null, 'https://youtu.be/bench-demo', 'Pieds bien ancrés.'),
-  ('f4b59ce8-5ecc-4fc4-bdb1-90df298108e7', 'd9ddba0b-1552-4aeb-b94f-05d4953ea055', '136e5f62-088e-48c8-abdf-ff3922c01910', 3, 3, ARRAY['10','10','10'], ARRAY['32','34','36'], '90', ARRAY['5','6','6'], false, 'Rowing unilatéral haltère', 'Banc incliné + haltère', null, null, 'Maintenir le dos gainé.'),
-  ('c2a7d042-bf53-4f58-a2e2-45763f4eaef7', '4a7c2f2b-28ff-4d06-b79f-a54d9334374f', '136e5f62-088e-48c8-abdf-ff3922c01910', 1, 4, ARRAY['5','5','5','5'], ARRAY['110','115','120','122.5'], '180', ARRAY['7','8','8','9'], false, 'Soulevé de terre', 'Barre olympique', null, 'https://youtu.be/deadlift-demo', 'Pré-activer les ischios.'),
-  ('f8984d54-8679-4c55-ac20-0da7a5636cee', '4a7c2f2b-28ff-4d06-b79f-a54d9334374f', '136e5f62-088e-48c8-abdf-ff3922c01910', 2, 3, ARRAY['10','10','10'], ARRAY['18','18','18'], '75', ARRAY['6','6','6'], false, 'Fentes marchées', 'Haltères', null, null, 'Grande amplitude.'),
-  ('3949fb40-2e85-498c-a3a1-2f9d3609105f', '4a7c2f2b-28ff-4d06-b79f-a54d9334374f', '136e5f62-088e-48c8-abdf-ff3922c01910', 3, 3, ARRAY['12','12','12'], ARRAY['40','42','44'], '60', ARRAY['6','7','7'], false, 'Hip Thrust', 'Barre + banc', null, null, 'Poussée explosive.'),
-  ('f6e33e4d-7a9d-45c1-84d3-f96f2b8f2a0d', '1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4', '136e5f62-088e-48c8-abdf-ff3922c01910', 1, 5, ARRAY['60','60','60','60','60'], ARRAY['0','0','0','0','0'], '0', ARRAY['8','8','8','8','8'], false, 'Circuit rameur + burpees', 'Rameur + poids du corps', null, null, 'Maintenir le rythme.'),
-  ('8fd8bb89-3c5f-4401-bca5-0251f4728561', '1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4', '136e5f62-088e-48c8-abdf-ff3922c01910', 2, 4, ARRAY['45','45','45','45'], ARRAY['16','16','16','16'], '45', ARRAY['7','7','8','8'], false, 'Battle rope', 'Cordes ondulatoires', null, null, 'Intervalles 40"/20".');
+  ('52fef4d1-c665-469c-b78c-1f484f83837a', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 1, 4, ARRAY['12','12','11','10'], ARRAY['20','22','25','28'], '90', ARRAY['7','7','8','8'], false, 'Curl debout', 'Haltères', null, null, 'Conserver les coudes fixes.'),
+  ('ef89d65d-bba9-4d2b-a6c7-1a53954483a8', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 2, 4, ARRAY['12','12','11','10'], ARRAY['10','12','13','15'], '75', ARRAY['7','7','8','8'], false, 'Kick back', 'Haltères', null, null, 'Allonger l''avant-bras au maximum.'),
+  ('ee10006e-06a7-4e44-b00b-740d32497fe8', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 3, 4, ARRAY['12','12','11','10'], ARRAY['15','16','18','20'], '90', ARRAY['7','8','8','8'], false, 'Curl alterné assis', 'Haltères', null, null, 'Montées contrôlées, descente lente.'),
+  ('a29be77d-85bf-47c1-bf28-8257f6eafd88', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 4, 4, ARRAY['15','15','13','12'], ARRAY['0','0','0','0'], '90', ARRAY['7','8','8','9'], false, 'Dips', 'Poids du corps', null, null, 'Verrouiller les épaules.'),
+  ('dbd2dc1d-7c76-4641-9c6f-2bd6a64f4700', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 5, 4, ARRAY['10','10','9','8'], ARRAY['15','17','18','20'], '75', ARRAY['7','7','8','9'], false, 'Curl pupitre', 'Banc pupitre + haltères', null, null, 'Garder les biceps sous tension.'),
+  ('0f0798d0-1066-4f3f-9119-41db0938bcb3', '9bf4f72b-9512-4c77-a408-8e142c784a46', '136e5f62-088e-48c8-abdf-ff3922c01910', 6, 4, ARRAY['12','12','11','10'], ARRAY['25','28','32','35'], '90', ARRAY['7','8','8','8'], false, 'Extension poulie haute', 'Poulie haute', null, null, 'Contrôler le retour de la charge.'),
+  ('7f526fdf-1ab3-4a2f-a341-25f146419e55', '0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', 1, 4, ARRAY['12','11','10','10'], ARRAY['40','45','50','55'], '120', ARRAY['7','8','8','9'], false, 'Développé couché', 'Barre + rack', null, null, 'Pieds vissés dans le sol.'),
+  ('0d76460b-846a-47b1-9b5e-a5cb42a79207', '0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', 2, 4, ARRAY['12','12','11','10'], ARRAY['15','17','18','20'], '90', ARRAY['7','7','8','8'], false, 'Développé incliné', 'Haltères', null, null, 'Inclinaison à 30 degrés.'),
+  ('ce1ad3b9-d837-4da2-b3b0-f82d88f26ad7', '0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', 3, 4, ARRAY['12','12','11','10'], ARRAY['15','17','18','20'], '90', ARRAY['7','7','8','8'], false, 'Développé décliné', 'Haltères', null, null, 'Guidage serré pour les triceps.'),
+  ('7d1fef0f-c913-4636-8174-c2d9a21f2b99', '0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', 4, 4, ARRAY['15','15','14','12'], ARRAY['10','12','13','15'], '75', ARRAY['7','8','8','9'], false, 'Écartés couchés', 'Haltères', null, null, 'Ouverture contrôlée des bras.'),
+  ('b56237ab-7f35-4f16-aee7-b4e8df3884a9', '0238811d-e5a5-4878-84ba-08bab6d9b796', '136e5f62-088e-48c8-abdf-ff3922c01910', 5, 4, ARRAY['10','10','9','8'], ARRAY['20','22','23','25'], '90', ARRAY['7','7','8','8'], false, 'Pull over é', 'Haltère', null, null, 'Accent sur l''étirement du grand dorsal.');
 
 -- Sessions d'entraînement réelles pour alimenter les graphiques
 
@@ -122,8 +123,8 @@ with session_source as (
   select
     gen_random_uuid() as session_id,
     '136e5f62-088e-48c8-abdf-ff3922c01910'::uuid as user_id,
-    '4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53'::uuid as program_id,
-    'd9ddba0b-1552-4aeb-b94f-05d4953ea055'::uuid as training_id,
+    '18151b49-20c6-4220-bd33-4b6643202372'::uuid as program_id,
+    '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid as training_id,
     gs as session_index,
     ('2024-10-07T18:30:00Z'::timestamptz + (gs - 1) * interval '7 days') as performed_at
   from generate_series(1, 15) as gs
@@ -131,19 +132,10 @@ with session_source as (
   select
     gen_random_uuid() as session_id,
     '136e5f62-088e-48c8-abdf-ff3922c01910'::uuid as user_id,
-    '4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53'::uuid as program_id,
-    '4a7c2f2b-28ff-4d06-b79f-a54d9334374f'::uuid as training_id,
+    '18151b49-20c6-4220-bd33-4b6643202372'::uuid as program_id,
+    '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid as training_id,
     gs as session_index,
-    ('2024-10-10T17:55:00Z'::timestamptz + (gs - 1) * interval '7 days') as performed_at
-  from generate_series(1, 15) as gs
-  union all
-  select
-    gen_random_uuid() as session_id,
-    '136e5f62-088e-48c8-abdf-ff3922c01910'::uuid as user_id,
-    '7b8ae897-f5f3-4ca5-8891-35b6118cb07a'::uuid as program_id,
-    '1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4'::uuid as training_id,
-    gs as session_index,
-    ('2024-10-12T10:30:00Z'::timestamptz + (gs - 1) * interval '7 days') as performed_at
+    ('2024-10-10T17:45:00Z'::timestamptz + (gs - 1) * interval '7 days') as performed_at
   from generate_series(1, 15) as gs
 ),
 inserted_sessions as (
@@ -180,14 +172,17 @@ session_data as (
 exercise_metadata as (
   select *
   from (values
-    ('2f1c8e3b-995f-4c30-8e7d-bec470f04ec7'::uuid, 'd9ddba0b-1552-4aeb-b94f-05d4953ea055'::uuid, 4, 5, 1, 92.5::numeric, 2.5::numeric, 1.25::numeric),
-    ('63a5fd4d-564b-47d0-95db-90b8b9d5a2d8'::uuid, 'd9ddba0b-1552-4aeb-b94f-05d4953ea055'::uuid, 4, 6, 1, 72.5::numeric, 1.25::numeric, 0.5::numeric),
-    ('f4b59ce8-5ecc-4fc4-bdb1-90df298108e7'::uuid, 'd9ddba0b-1552-4aeb-b94f-05d4953ea055'::uuid, 3, 10, 1, 32::numeric, 0.5::numeric, 0.5::numeric),
-    ('c2a7d042-bf53-4f58-a2e2-45763f4eaef7'::uuid, '4a7c2f2b-28ff-4d06-b79f-a54d9334374f'::uuid, 4, 4, 1, 115::numeric, 3::numeric, 1.5::numeric),
-    ('f8984d54-8679-4c55-ac20-0da7a5636cee'::uuid, '4a7c2f2b-28ff-4d06-b79f-a54d9334374f'::uuid, 3, 10, 2, 18::numeric, 0.5::numeric, 0.25::numeric),
-    ('3949fb40-2e85-498c-a3a1-2f9d3609105f'::uuid, '4a7c2f2b-28ff-4d06-b79f-a54d9334374f'::uuid, 3, 12, 1, 40::numeric, 1::numeric, 0.5::numeric),
-    ('f6e33e4d-7a9d-45c1-84d3-f96f2b8f2a0d'::uuid, '1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4'::uuid, 3, 55, 5, 0::numeric, 0::numeric, 0::numeric),
-    ('8fd8bb89-3c5f-4401-bca5-0251f4728561'::uuid, '1c964b4d-e6f4-4c6a-a674-5b2f0f3f5df4'::uuid, 4, 22, 3, 0::numeric, 0::numeric, 0::numeric)
+    ('52fef4d1-c665-469c-b78c-1f484f83837a'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 11, 1, 20::numeric, 0::numeric, 2.5::numeric),
+    ('ef89d65d-bba9-4d2b-a6c7-1a53954483a8'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 11, 1, 10::numeric, 0::numeric, 1.5::numeric),
+    ('ee10006e-06a7-4e44-b00b-740d32497fe8'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 11, 1, 15::numeric, 0::numeric, 1.5::numeric),
+    ('a29be77d-85bf-47c1-bf28-8257f6eafd88'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 13, 2, 0::numeric, 0::numeric, 0::numeric),
+    ('dbd2dc1d-7c76-4641-9c6f-2bd6a64f4700'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 9, 1, 15::numeric, 0::numeric, 1.5::numeric),
+    ('0f0798d0-1066-4f3f-9119-41db0938bcb3'::uuid, '9bf4f72b-9512-4c77-a408-8e142c784a46'::uuid, 4, 11, 1, 25::numeric, 0::numeric, 3.3::numeric),
+    ('7f526fdf-1ab3-4a2f-a341-25f146419e55'::uuid, '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid, 4, 11, 1, 40::numeric, 0::numeric, 5::numeric),
+    ('0d76460b-846a-47b1-9b5e-a5cb42a79207'::uuid, '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid, 4, 11, 1, 15::numeric, 0::numeric, 1.7::numeric),
+    ('ce1ad3b9-d837-4da2-b3b0-f82d88f26ad7'::uuid, '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid, 4, 11, 1, 15::numeric, 0::numeric, 1.7::numeric),
+    ('7d1fef0f-c913-4636-8174-c2d9a21f2b99'::uuid, '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid, 4, 13, 2, 10::numeric, 0::numeric, 1.7::numeric),
+    ('b56237ab-7f35-4f16-aee7-b4e8df3884a9'::uuid, '0238811d-e5a5-4878-84ba-08bab6d9b796'::uuid, 4, 9, 1, 20::numeric, 0::numeric, 1.7::numeric)
   ) as t(training_row_id, training_id, set_count, base_reps, rep_spread, base_weight, session_increment, set_increment)
 ),
 exercise_templates as (
@@ -272,10 +267,10 @@ insert into public.dashboard_preferences as dp (
   updated_at
 ) values (
   '136e5f62-088e-48c8-abdf-ff3922c01910',
-  '4d1c58f3-0d34-4ec0-848d-b07f6d1d4b53',
-  'd9ddba0b-1552-4aeb-b94f-05d4953ea055',
-  '2f1c8e3b-995f-4c30-8e7d-bec470f04ec7',
-  '{"selectedExerciseId":"2f1c8e3b-995f-4c30-8e7d-bec470f04ec7","exercises":{"2f1c8e3b-995f-4c30-8e7d-bec470f04ec7":{"sessionCount":"15","curveType":"poids-maximum"},"63a5fd4d-564b-47d0-95db-90b8b9d5a2d8":{"sessionCount":"15","curveType":"poids-total"}}}'::jsonb,
+  '18151b49-20c6-4220-bd33-4b6643202372',
+  '9bf4f72b-9512-4c77-a408-8e142c784a46',
+  '52fef4d1-c665-469c-b78c-1f484f83837a',
+  '{"selectedExerciseId":"52fef4d1-c665-469c-b78c-1f484f83837a","exercises":{"52fef4d1-c665-469c-b78c-1f484f83837a":{"sessionCount":"15","curveType":"poids-maximum"},"7f526fdf-1ab3-4a2f-a341-25f146419e55":{"sessionCount":"15","curveType":"poids-total"}}}'::jsonb,
   true,
   now()
 )
