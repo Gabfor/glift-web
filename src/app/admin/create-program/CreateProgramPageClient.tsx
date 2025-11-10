@@ -125,6 +125,11 @@ export default function CreateProgramPageClient({
     [program]
   );
 
+  const inputClass =
+    "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
+  const textareaClass =
+    "min-h-[143px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
+
   return (
     <>
       {showLoader && <GliftLoader />}
@@ -136,23 +141,145 @@ export default function CreateProgramPageClient({
 
         {!loading && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 md:grid-flow-row-dense gap-x-8 gap-y-6">
-              {/* Sexe */}
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
-                <AdminDropdown
-                  label=""
-                  placeholder="Sélectionnez le sexe"
-                  selected={program.gender}
-                  onSelect={(value) => setProgram({ ...program, gender: value })}
-                  options={[
-                    { value: "Tous", label: "Tous" },
-                    { value: "Homme", label: "Homme" },
-                    { value: "Femme", label: "Femme" },
-                  ]}
-                />
+            <div className="grid grid-cols-1 gap-y-10 md:grid-cols-2 md:gap-x-8 md:gap-y-0">
+              <div className="flex flex-col gap-6">
+                {/* Sexe */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez le sexe"
+                    selected={program.gender}
+                    onSelect={(value) => setProgram({ ...program, gender: value })}
+                    options={[
+                      { value: "Tous", label: "Tous" },
+                      { value: "Homme", label: "Homme" },
+                      { value: "Femme", label: "Femme" },
+                    ]}
+                  />
+                </div>
+
+                {/* Titre */}
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                      {program.title.length}/52
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Titre du programme"
+                    value={program.title}
+                    onChange={(e) => setProgram({ ...program, title: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Titre raccourci */}
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                      {program.shortName.length}/28
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    maxLength={28}
+                    placeholder="Titre court (28 caractères max)"
+                    value={program.shortName}
+                    onChange={(e) =>
+                      setProgram({
+                        ...program,
+                        shortName: e.target.value.slice(0, 28),
+                      })
+                    }
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="flex flex-col">
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                      {program.description.length}/120
+                    </span>
+                  </div>
+                  <textarea
+                    placeholder="Description du programme"
+                    value={program.description}
+                    onChange={(e) => setProgram({ ...program, description: e.target.value })}
+                    className={textareaClass}
+                  />
+                </div>
+
+                {/* Nom du partenaire */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nom du partenaire</label>
+                  <input
+                    type="text"
+                    placeholder="Nom du partenaire"
+                    value={program.partner_name}
+                    onChange={(e) => setProgram({ ...program, partner_name: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Lien partenaire */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien partenaire</label>
+                  <input
+                    type="text"
+                    placeholder="Lien du partenaire"
+                    value={program.partner_link}
+                    onChange={(e) => setProgram({ ...program, partner_link: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Lien "En savoir plus" */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien “En savoir plus”</label>
+                  <input
+                    type="text"
+                    placeholder="Lien vers la fiche"
+                    value={program.link}
+                    onChange={(e) => setProgram({ ...program, link: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Nombre de séances */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
+                  <input
+                    type="number"
+                    placeholder="Nombre de séances"
+                    value={program.sessions || ""}
+                    onChange={(e) => setProgram({ ...program, sessions: Number(e.target.value) })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Lieu */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez le lieu"
+                    selected={program.location}
+                    onSelect={(value) => setProgram({ ...program, location: value })}
+                    options={[
+                      { value: "Salle", label: "Salle" },
+                      { value: "Domicile", label: "Domicile" },
+                    ]}
+                  />
+                </div>
               </div>
 
+              <div className="flex flex-col gap-6">
                 {/* Image principale */}
                 <div className="flex flex-col">
                   <div className="flex justify-between mb-[5px]">
@@ -165,98 +292,31 @@ export default function CreateProgramPageClient({
                   />
                 </div>
 
-                {/* Titre */}
+                {/* Alt image principale */}
                 <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {program.title.length}/52
-                    </span>
-                  </div>
-                <input
-                  type="text"
-                  placeholder="Titre du programme"
-                  value={program.title}
-                  onChange={(e) => setProgram({ ...program, title: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-                {/* Titre raccourci */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {program.shortName.length}/28
-                    </span>
-                  </div>
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image principale</label>
                   <input
-                  type="text"
-                  maxLength={28}
-                  placeholder="Titre court (28 caractères max)"
-                  value={program.shortName}
-                  onChange={(e) =>
-                    setProgram({
-                      ...program,
-                      shortName: e.target.value.slice(0, 28),
-                    })
-                  }
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
+                    type="text"
+                    placeholder="Alt de l’image principale"
+                    value={program.image_alt}
+                    onChange={(e) => setProgram({ ...program, image_alt: e.target.value })}
+                    className={inputClass}
                   />
                 </div>
 
-              {/* Alt image principale */}
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image principale</label>
-                <input
-                  type="text"
-                  placeholder="Alt de l’image principale"
-                  value={program.image_alt}
-                  onChange={(e) => setProgram({ ...program, image_alt: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="flex flex-col">
-              <div className="flex justify-between mb-[5px]">
-                <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
-                <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                  {program.description.length}/120
-                </span>
-              </div>
-                <textarea
-                  placeholder="Description du programme"
-                  value={program.description}
-                  onChange={(e) => setProgram({ ...program, description: e.target.value })}
-                  className="min-h-[143px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              {/* Images partenaire + alt */}
-              <div className="flex flex-col gap-6">
+                {/* Image du partenaire */}
                 <div className="flex flex-col">
-                <div className="flex justify-between mb-[5px]">
-                  <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
-                  <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">70px x 70px</span>
-                </div>
+                  <div className="flex justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
+                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">70px x 70px</span>
+                  </div>
                   <ImageUploader
                     value={program.partner_image}
                     onChange={(url) => setProgram({ ...program, partner_image: url })}
                   />
                 </div>
+
+                {/* Alt image partenaire */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image partenaire</label>
                   <input
@@ -264,172 +324,97 @@ export default function CreateProgramPageClient({
                     placeholder="Alt de l’image du partenaire"
                     value={program.partner_image_alt}
                     onChange={(e) => setProgram({ ...program, partner_image_alt: e.target.value })}
-                    className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                               border border-[#D7D4DC] hover:border-[#C2BFC6]
-                               focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                               transition-all duration-150"
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Niveau */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez le niveau"
+                    selected={program.level}
+                    onSelect={(value) => setProgram({ ...program, level: value })}
+                    options={[
+                      { value: "Tous niveaux", label: "Tous niveaux" },
+                      { value: "Débutant", label: "Débutant" },
+                      { value: "Intermédiaire", label: "Intermédiaire" },
+                      { value: "Confirmé", label: "Confirmé" },
+                    ]}
+                  />
+                </div>
+
+                {/* Durée */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée</label>
+                  <input
+                    type="text"
+                    placeholder="Durée moyenne"
+                    value={program.duration}
+                    onChange={(e) => setProgram({ ...program, duration: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Id du programme lié */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id du programme lié</label>
+                  <input
+                    type="text"
+                    placeholder="Id du programme lié"
+                    value={program.linked_program_id}
+                    onChange={(e) => setProgram({ ...program, linked_program_id: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Objectif */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez l'objectif"
+                    selected={program.goal}
+                    onSelect={(value) => setProgram({ ...program, goal: value })}
+                    options={[
+                      { value: "Prendre du muscle", label: "Prendre du muscle" },
+                      { value: "Gagner en force", label: "Gagner en force" },
+                      { value: "Perdre du poids", label: "Perdre du poids" },
+                      { value: "Rester en forme", label: "Rester en forme" },
+                      { value: "Remise en forme", label: "Remise en forme" },
+                      { value: "Endurance musculaire", label: "Endurance musculaire" },
+                      { value: "Performance sportive", label: "Performance sportive" },
+                    ]}
+                  />
+                </div>
+
+                {/* Statut */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez le statut"
+                    selected={program.status}
+                    onSelect={(value) => setProgram({ ...program, status: value })}
+                    options={[
+                      { value: "ON", label: "ON" },
+                      { value: "OFF", label: "OFF" },
+                    ]}
                   />
                 </div>
               </div>
-
-              {/* Liens */}
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien partenaire</label>
-                <input
-                  type="text"
-                  placeholder="Lien du partenaire"
-                  value={program.partner_link}
-                  onChange={(e) => setProgram({ ...program, partner_link: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien “En savoir plus”</label>
-                <input
-                  type="text"
-                  placeholder="Lien vers la fiche"
-                  value={program.link}
-                  onChange={(e) => setProgram({ ...program, link: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              {/* Autres champs en grid... */}
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id du programme lié</label>
-                <input
-                  type="text"
-                  placeholder="Id du programme lié"
-                  value={program.linked_program_id}
-                  onChange={(e) => setProgram({ ...program, linked_program_id: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nom du partenaire</label>
-                <input
-                  type="text"
-                  placeholder="Nom du partenaire"
-                  value={program.partner_name}
-                  onChange={(e) => setProgram({ ...program, partner_name: e.target.value })}
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                             border border-[#D7D4DC] hover:border-[#C2BFC6]
-                             focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                             transition-all duration-150"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                <AdminDropdown
-                  label=""
-                  placeholder="Sélectionnez le statut"
-                  selected={program.status}
-                  onSelect={(value) => setProgram({ ...program, status: value })}
-                  options={[
-                    { value: "ON", label: "ON" },
-                    { value: "OFF", label: "OFF" },
-                  ]}
-                />
-              </div>
-
-            <div className="flex flex-col">
-              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
-              <AdminDropdown
-                label=""
-                placeholder="Sélectionnez le niveau"
-                selected={program.level}
-                onSelect={(value) => setProgram({ ...program, level: value })}
-                options={[
-                  { value: "Tous niveaux", label: "Tous niveaux" },
-                  { value: "Débutant", label: "Débutant" },
-                  { value: "Intermédiaire", label: "Intermédiaire" },
-                  { value: "Confirmé", label: "Confirmé" },
-                ]}
-              />
             </div>
-
-            <div className="flex flex-col">
-              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
-              <AdminDropdown
-                label=""
-                placeholder="Sélectionnez le lieu"
-                selected={program.location}
-                onSelect={(value) => setProgram({ ...program, location: value })}
-                options={[
-                  { value: "Salle", label: "Salle" },
-                  { value: "Domicile", label: "Domicile" },
-                ]}
-              />
+            <div className="mt-10 flex flex-col items-center">
+              <CTAButton
+                onClick={handleSave}
+                disabled={!isFormValid}
+                variant={isFormValid ? "active" : "inactive"}
+                className="font-semibold"
+              >
+                {programId ? "Mettre à jour" : "Créer la carte"}
+              </CTAButton>
             </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
-                <input
-                  type="number"
-                  placeholder="Nombre de séances"
-                  value={program.sessions || ""}
-                  onChange={(e) => setProgram({ ...program, sessions: Number(e.target.value) })}
-                className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                           border border-[#D7D4DC] hover:border-[#C2BFC6]
-                           focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                           transition-all duration-150"
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée</label>
-              <input
-                type="text"
-                placeholder="Durée moyenne"
-                value={program.duration}
-                onChange={(e) => setProgram({ ...program, duration: e.target.value })}
-                className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                           border border-[#D7D4DC] hover:border-[#C2BFC6]
-                           focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                           transition-all duration-150"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
-              <AdminDropdown
-                label=""
-                placeholder="Sélectionnez l'objectif"
-                selected={program.goal}
-                onSelect={(value) => setProgram({ ...program, goal: value })}
-                options={[
-                  { value: "Prendre du muscle", label: "Prendre du muscle" },
-                  { value: "Gagner en force", label: "Gagner en force" },
-                  { value: "Perdre du poids", label: "Perdre du poids" },
-                  { value: "Rester en forme", label: "Rester en forme" },
-                  { value: "Remise en forme", label: "Remise en forme" },
-                  { value: "Endurance musculaire", label: "Endurance musculaire" },
-                  { value: "Performance sportive", label: "Performance sportive" },
-                ]}
-              />
-            </div> 
-          </div>
-          <div className="mt-10 flex flex-col items-center">
-            <CTAButton
-              onClick={handleSave}
-              disabled={!isFormValid}
-              variant={isFormValid ? "active" : "inactive"}
-              className="font-semibold"
-            >
-              {programId ? "Mettre à jour" : "Créer la carte"}
-            </CTAButton>
-          </div>
           </>
         )}
         </div>
