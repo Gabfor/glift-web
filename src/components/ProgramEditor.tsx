@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent,
+} from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Tooltip from "@/components/Tooltip";
 import { TrashHoverIcon, TrashIcon } from "./icons/TrashIcons";
@@ -273,36 +279,47 @@ export default function ProgramEditor({
               className="h-[34px] max-w-[250px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-[40px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
             />
             {localName.length > 0 && (
-            <button
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                setLocalName("");
-                onChangeName(index, "");
-                requestAnimationFrame(() => inputRef.current?.focus());
-              }}
-              className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
-              aria-label="Effacer le nom"
-            >
-              <Tooltip content="Effacer">
-                <div className="relative w-[25px] h-[25px] flex items-center justify-center">
-                  <Image
-                    src="/icons/cross_reset.svg"
-                    alt="Effacer"
-                    fill
-                    sizes="100%"
-                    className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-                  />
-                  <Image
-                    src="/icons/cross_reset_hover.svg"
-                    alt="Effacer"
-                    fill
-                    sizes="100%"
-                    className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
-                  />
-                </div>
-              </Tooltip>
-            </button>
+              <button
+                type="button"
+                onMouseDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
+                onClick={() => {
+                  setLocalName("");
+                  onChangeName(index, "");
+                  requestAnimationFrame(() => {
+                    const input = inputRef.current;
+                    if (!input) return;
+                    input.focus();
+                  });
+                }}
+                className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
+                aria-label="Effacer le nom"
+              >
+                <Tooltip content="Effacer">
+                  <div className="relative w-[25px] h-[25px] flex items-center justify-center">
+                    <Image
+                      src="/icons/cross_reset.svg"
+                      alt="Effacer"
+                      fill
+                      sizes="100%"
+                      className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                    />
+                    <Image
+                      src="/icons/cross_reset_hover.svg"
+                      alt="Effacer"
+                      fill
+                      sizes="100%"
+                      className="absolute inset-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    />
+                  </div>
+                </Tooltip>
+              </button>
             )}
           </div>
         ) : (

@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useRef } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type MouseEvent,
+  type PointerEvent,
+} from "react";
 import Tooltip from "@/components/Tooltip";
 
 type Props = {
@@ -38,14 +44,20 @@ function EditableTitle({
     setEditing(true);
   }, [setEditing]);
 
-  const handleClear = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const preventLosingFocus = (
+    event: MouseEvent<HTMLButtonElement> | PointerEvent<HTMLButtonElement>,
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+  };
 
+  const handleClear = () => {
     setProgramName(""); // vide le champ
-    setTimeout(() => {
-      inputRef.current?.focus(); // focus reste actif
-    }, 0);
+    requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (!input) return;
+      input.focus(); // focus reste actif
+    });
   };
 
   // Nouvelle fonction pour tronquer
@@ -84,7 +96,8 @@ function EditableTitle({
           {programName && (
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
+              onMouseDown={preventLosingFocus}
+              onPointerDown={preventLosingFocus}
               onClick={handleClear}
               className="absolute right-2 top-0 bottom-0 flex items-center p-1"
               aria-label="Effacer le nom"
