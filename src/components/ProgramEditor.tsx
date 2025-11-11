@@ -6,6 +6,7 @@ import {
   useEffect,
   useRef,
   useState,
+  type MouseEvent,
   type PointerEvent,
 } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -75,6 +76,7 @@ export default function ProgramEditor({
 }: ProgramEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = useSupabaseClient();
+  const pointerDownHandledRef = useRef(false);
 
   const [isAppVisible, setIsAppVisible] = useState(isVisible);
   const [isDashboardVisible, setIsDashboardVisible] = useState(
@@ -83,6 +85,44 @@ export default function ProgramEditor({
   const [isUpdatingDashboardVisibility, setIsUpdatingDashboardVisibility] = useState(false);
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
   const [localName, setLocalName] = useState(name ?? "");
+
+  const handleClearName = useCallback(() => {
+    setLocalName("");
+    onChangeName(index, "");
+    requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (!input) return;
+      input.focus();
+    });
+  }, [index, onChangeName]);
+
+  const handlePointerDownClear = (event: PointerEvent<HTMLButtonElement>) => {
+    pointerDownHandledRef.current = true;
+    event.preventDefault();
+    event.stopPropagation();
+    handleClearName();
+  };
+
+  const resetPointerHandled = () => {
+    pointerDownHandledRef.current = false;
+  };
+
+  const handleMouseDownClear = (event: MouseEvent<HTMLButtonElement>) => {
+    if (!pointerDownHandledRef.current) {
+      handleClearName();
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleKeyboardClear = (event: MouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    handleClearName();
+  };
 
   const fetchTrainingsData = useCallback(async () => {
     if (!programId || programId === "xxx") {
@@ -281,23 +321,11 @@ export default function ProgramEditor({
             {localName.length > 0 && (
               <button
                 type="button"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onClick={() => {
-                  setLocalName("");
-                  onChangeName(index, "");
-                  requestAnimationFrame(() => {
-                    const input = inputRef.current;
-                    if (!input) return;
-                    input.focus();
-                  });
-                }}
+                onPointerDown={handlePointerDownClear}
+                onPointerUp={resetPointerHandled}
+                onPointerCancel={resetPointerHandled}
+                onMouseDown={handleMouseDownClear}
+                onClick={handleKeyboardClear}
                 className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
                 aria-label="Effacer le nom"
               >
