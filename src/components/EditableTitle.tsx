@@ -51,14 +51,20 @@ function EditableTitle({
     event.stopPropagation();
   };
 
-  const handleClear = () => {
-    setProgramName(""); // vide le champ
+  const handleClear = useCallback(() => {
+    setEditing(true);
+    setIsEditing(true);
+    setProgramName("");
     requestAnimationFrame(() => {
       const input = inputRef.current;
-      if (!input) return;
-      input.focus(); // focus reste actif
+      if (!input) {
+        return;
+      }
+
+      input.focus({ preventScroll: true });
+      input.setSelectionRange?.(0, 0);
     });
-  };
+  }, [setEditing, setIsEditing, setProgramName]);
 
   // Nouvelle fonction pour tronquer
   const getDisplayName = (name: string) => {
