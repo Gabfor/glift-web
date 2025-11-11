@@ -1,5 +1,6 @@
 'use client'
 
+import clsx from 'clsx'
 import SuccessMsg from './SuccessMsg'
 import type { ReactNode } from 'react'
 
@@ -13,6 +14,8 @@ type Props = {
   success?: string
   error?: string
   endAdornment?: ReactNode
+  placeholder?: string
+  inputClassName?: string
 }
 
 export default function TextField({
@@ -25,6 +28,8 @@ export default function TextField({
   success,
   error,
   endAdornment,
+  placeholder,
+  inputClassName = 'rounded-[8px]',
 }: Props) {
   const showError = !!error
   const showSuccess = !!success && !showError
@@ -41,18 +46,19 @@ export default function TextField({
           onChange={onChange ? (e) => onChange(e.target.value) : undefined}
           onFocus={() => onFocus?.()}
           onBlur={() => onBlur?.()}
-          className={`
-            h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[8px]
-            ${disabled ? 'bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]'}
-            transition-all duration-150
-            border
-            ${showError
+          className={clsx(
+            'h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px]',
+            inputClassName,
+            disabled ? 'bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]',
+            'transition-all duration-150',
+            'border',
+            showError
               ? 'border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
               : showSuccess
               ? 'border-[#00D591]'
-              : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'}
-          `}
-          placeholder={label}
+              : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]',
+          )}
+          placeholder={placeholder ?? label}
         />
 
         {endAdornment && (

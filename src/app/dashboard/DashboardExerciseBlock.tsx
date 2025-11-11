@@ -1021,7 +1021,7 @@ export default function DashboardExerciseBlock({
         open={isGoalModalOpen}
         title="Objectif"
         onClose={handleCloseGoalModal}
-        footerWrapperClassName="mt-[30px]"
+        footerWrapperClassName="mt-[5px]"
         footer={
           <div className="flex justify-center gap-4">
             <button
@@ -1044,7 +1044,7 @@ export default function DashboardExerciseBlock({
           className="w-full"
         />
 
-        <div className="mt-[25px] flex flex-col items-center gap-[20px]">
+        <div className="mt-[25px] flex flex-col items-center gap-0">
           <DropdownField
             label="Type d'objectif"
             selected={selectedGoalType}
@@ -1058,6 +1058,7 @@ export default function DashboardExerciseBlock({
             clearable={false}
             containerClassName="w-full max-w-[368px]"
             width="w-full"
+            buttonRoundedClassName="rounded-[5px]"
           />
 
           <div className="w-full max-w-[368px]">
@@ -1065,6 +1066,8 @@ export default function DashboardExerciseBlock({
               label="Objectif à atteindre"
               value={goalTarget}
               onChange={setGoalTarget}
+              placeholder="Renseignez votre objectif"
+              inputClassName="rounded-[5px]"
             />
           </div>
         </div>
