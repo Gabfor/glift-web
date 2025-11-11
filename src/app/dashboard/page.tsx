@@ -415,7 +415,7 @@ export default function DashboardPage() {
     [],
   );
   const weightFormatter = useMemo(
-    () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }),
+    () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }),
     [],
   );
 
@@ -423,7 +423,7 @@ export default function DashboardPage() {
     const formatInteger = (input: number) =>
       integerFormatter.format(Math.max(0, Math.round(input)));
     const formatWeight = (input: number) =>
-      weightFormatter.format(Math.max(0, input));
+      weightFormatter.format(Math.max(0, Math.round(input)));
 
     return STATS_CARD_METADATA.map((metadata) => {
       switch (metadata.id) {
@@ -454,7 +454,7 @@ export default function DashboardPage() {
             ...metadata,
             value: stats.totalWeight,
             format: formatWeight,
-            precision: 1,
+            precision: 0,
           } satisfies StatsCard;
       }
     });
