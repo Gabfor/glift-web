@@ -11,8 +11,49 @@ type HiddenValues = {
   effort: string[];
 };
 
+const createEmptyHiddenValues = (): HiddenValues => ({
+  repetitions: [],
+  poids: [],
+  effort: [],
+});
+
 export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row[]>>) {
-  const hiddenValuesRef = useRef(new WeakMap<Row, HiddenValues>());
+  const hiddenValuesByRowRef = useRef(new WeakMap<Row, HiddenValues>());
+  const hiddenValuesByIdRef = useRef(new Map<string, HiddenValues>());
+
+  const getHiddenValues = useCallback(
+    (row: Row): HiddenValues => {
+      if (row.id) {
+        let values = hiddenValuesByIdRef.current.get(row.id);
+        if (!values) {
+          values = createEmptyHiddenValues();
+          hiddenValuesByIdRef.current.set(row.id, values);
+        }
+        return values;
+      }
+
+      let values = hiddenValuesByRowRef.current.get(row);
+      if (!values) {
+        values = createEmptyHiddenValues();
+        hiddenValuesByRowRef.current.set(row, values);
+      }
+      return values;
+    },
+    []
+  );
+
+  const transferHiddenValues = useCallback((previousRow: Row, nextRow: Row) => {
+    if (previousRow.id) {
+      // Nothing to transfer: values are associated with the persistent id.
+      return;
+    }
+
+    const existingValues = hiddenValuesByRowRef.current.get(previousRow);
+    if (existingValues) {
+      hiddenValuesByRowRef.current.delete(previousRow);
+      hiddenValuesByRowRef.current.set(nextRow, existingValues);
+    }
+  }, []);
 
   const handleIncrementSeries = useCallback(
     (index: number) => {
@@ -27,11 +68,7 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        let hiddenValues = hiddenValuesRef.current.get(currentRow);
-        if (!hiddenValues) {
-          hiddenValues = { repetitions: [], poids: [], effort: [] };
-          hiddenValuesRef.current.set(currentRow, hiddenValues);
-        }
+        const hiddenValues = getHiddenValues(currentRow);
 
         const restoredRep = hiddenValues.repetitions.pop();
         const restoredPoids = hiddenValues.poids.pop();
@@ -48,13 +85,12 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
         const newRows = [...previousRows];
         newRows[index] = updatedRow;
 
-        hiddenValuesRef.current.delete(currentRow);
-        hiddenValuesRef.current.set(updatedRow, hiddenValues);
+        transferHiddenValues(currentRow, updatedRow);
 
         return newRows;
       });
     },
-    [setRows]
+    [getHiddenValues, setRows, transferHiddenValues]
   );
 
   const handleDecrementSeries = useCallback(
@@ -70,11 +106,7 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        let hiddenValues = hiddenValuesRef.current.get(currentRow);
-        if (!hiddenValues) {
-          hiddenValues = { repetitions: [], poids: [], effort: [] };
-          hiddenValuesRef.current.set(currentRow, hiddenValues);
-        }
+        const hiddenValues = getHiddenValues(currentRow);
 
         const removedRep = currentRow.repetitions[currentRow.repetitions.length - 1] ?? "";
         const removedPoids = currentRow.poids[currentRow.poids.length - 1] ?? "";
@@ -96,13 +128,12 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
         const newRows = [...previousRows];
         newRows[index] = updatedRow;
 
-        hiddenValuesRef.current.delete(currentRow);
-        hiddenValuesRef.current.set(updatedRow, hiddenValues);
+        transferHiddenValues(currentRow, updatedRow);
 
         return newRows;
       });
     },
-    [setRows]
+    [getHiddenValues, setRows, transferHiddenValues]
   );
 
   return { handleIncrementSeries, handleDecrementSeries };
