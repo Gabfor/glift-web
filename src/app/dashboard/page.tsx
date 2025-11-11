@@ -119,8 +119,20 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
       }
     };
 
+    const targetValue = clampAndRound(value);
+
     if (isLoading) {
       stopAnimation();
+
+      if (targetValue === 0) {
+        setDisplayValue(0);
+        stableValueRef.current = 0;
+
+        return () => {
+          stopInterval();
+          stopAnimation();
+        };
+      }
 
       const randomRange = Math.max(stableValueRef.current * 1.2, 100);
       intervalRef.current = setInterval(() => {
@@ -136,8 +148,17 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
 
     stopInterval();
 
+    if (targetValue === 0) {
+      stopAnimation();
+      setDisplayValue(0);
+      stableValueRef.current = 0;
+
+      return () => {
+        stopAnimation();
+      };
+    }
+
     const startValue = displayValueRef.current;
-    const targetValue = clampAndRound(value);
 
     if (startValue === targetValue) {
       setDisplayValue(targetValue);
