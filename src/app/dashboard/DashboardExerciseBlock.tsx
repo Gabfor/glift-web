@@ -19,6 +19,15 @@ import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+type DashboardExerciseGoal = {
+  progressPercentage?: number | null;
+  iconSrc?: string | null;
+  ringColor?: string | null;
+  description?: string | null;
+  actionLabel?: string | null;
+  actionHref?: string | null;
+};
+
 interface DashboardExerciseBlockProps {
   id: string;
   name: string;
@@ -26,6 +35,7 @@ interface DashboardExerciseBlockProps {
   curveType: CurveOptionValue;
   onSessionChange: (value: string) => void;
   onCurveChange: (value: string) => void;
+  goal?: DashboardExerciseGoal | null;
 }
 
 type SessionSet = {
@@ -363,6 +373,24 @@ const CHART_DOT_RADIUS = 4;
 const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
 
+const DEFAULT_GOAL_ICON_SRC = "/icons/trophy.svg";
+const DEFAULT_GOAL_RING_COLOR = "#7069FA";
+const DEFAULT_GOAL_BASE_RING_COLOR = "#E9E7F3";
+const EMPTY_GOAL_ICON_SRC = "/icons/trophy_grey.svg";
+const EMPTY_GOAL_RING_COLOR = "#ECE9F1";
+const EMPTY_GOAL_DESCRIPTION = "Aucun objectif pour le moment.";
+const EMPTY_GOAL_ACTION_LABEL = "Définir mon objectif.";
+const DEFAULT_GOAL_ACTION_LABEL = "Voir mon objectif.";
+
+const sanitizeString = (value: unknown): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+};
+
 type RechartsDotPayload = Record<string, unknown> | null | undefined;
 
 type ExtendedRechartsDotProps = Omit<RechartsDotProps, "payload" | "value"> & {
@@ -550,6 +578,7 @@ export default function DashboardExerciseBlock({
   curveType,
   onSessionChange,
   onCurveChange,
+  goal,
 }: DashboardExerciseBlockProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -559,6 +588,31 @@ export default function DashboardExerciseBlock({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
+
+  const rawGoalProgress = goal?.progressPercentage;
+  const goalProgress =
+    typeof rawGoalProgress === "number" && Number.isFinite(rawGoalProgress)
+      ? Math.min(Math.max(rawGoalProgress, 0), 100)
+      : null;
+  const hasGoal = goalProgress !== null;
+  const formattedGoalProgress = hasGoal
+    ? goalProgress.toLocaleString("fr-FR", {
+        maximumFractionDigits: goalProgress % 1 === 0 ? 0 : 2,
+      })
+    : "";
+  const goalDescriptionOverride = hasGoal ? sanitizeString(goal?.description) : null;
+  const goalIconSrc = hasGoal
+    ? sanitizeString(goal?.iconSrc) ?? DEFAULT_GOAL_ICON_SRC
+    : EMPTY_GOAL_ICON_SRC;
+  const goalRingColor = hasGoal
+    ? sanitizeString(goal?.ringColor) ?? DEFAULT_GOAL_RING_COLOR
+    : EMPTY_GOAL_RING_COLOR;
+  const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
+  const goalActionLabel = hasGoal
+    ? sanitizeString(goal?.actionLabel) ?? DEFAULT_GOAL_ACTION_LABEL
+    : EMPTY_GOAL_ACTION_LABEL;
+  const goalActionHref = sanitizeString(goal?.actionHref);
+  const goalIconAlt = hasGoal ? "Objectif" : "Aucun objectif";
 
   const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
   const renderValueAxisTick = useMemo(
@@ -787,25 +841,25 @@ export default function DashboardExerciseBlock({
             <div className="relative w-[70px] h-[70px] flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <path
-                  className="text-[#E9E7F3]"
-                  stroke="currentColor"
+                  stroke={goalBaseRingColor}
                   strokeWidth="3"
                   fill="none"
                   d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
                 />
-                <path
-                  className="text-[#7069FA]"
-                  stroke="currentColor"
-                  strokeWidth="3"
-                  strokeDasharray="74, 100"
-                  fill="none"
-                  d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
-                />
+                {hasGoal ? (
+                  <path
+                    stroke={goalRingColor}
+                    strokeWidth="3"
+                    strokeDasharray={`${goalProgress}, 100`}
+                    fill="none"
+                    d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                ) : null}
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
                 <Image
-                  src="/icons/trophy.svg"
-                  alt="Objectif"
+                  src={goalIconSrc}
+                  alt={goalIconAlt}
                   width={24}
                   height={24}
                   className="w-6 h-6"
@@ -814,12 +868,35 @@ export default function DashboardExerciseBlock({
             </div>
             <div className="flex flex-col justify-center items-start text-left">
               <p className="text-[#5D6494] font-semibold text-left">
-                Vous avez atteint{" "}
-                <span className="text-[#7069FA] font-bold">74 %</span> de votre objectif.
+                {hasGoal ? (
+                  goalDescriptionOverride ? (
+                    goalDescriptionOverride
+                  ) : (
+                    <>
+                      Vous avez atteint{" "}
+                      <span className="text-[#7069FA] font-bold">{formattedGoalProgress} %</span>{" "}
+                      de votre objectif.
+                    </>
+                  )
+                ) : (
+                  EMPTY_GOAL_DESCRIPTION
+                )}
               </p>
-              <button className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]">
-                Voir mon objectif.
-              </button>
+              {goalActionHref ? (
+                <a
+                  href={goalActionHref}
+                  className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
+                >
+                  {goalActionLabel}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
+                >
+                  {goalActionLabel}
+                </button>
+              )}
             </div>
           </div>
         </div>
