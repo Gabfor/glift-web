@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSortable } from "@dnd-kit/sortable";
 import { Row } from "@/types/training";
 import { getEffortBgColor } from "@/utils/effortColors";
@@ -85,6 +85,10 @@ export default function TrainingRow({
         transitionDuration: "360ms",
         transitionTimingFunction: transitionTiming,
       };
+
+  const handleDoubleClickSelect = useCallback((event: React.MouseEvent<HTMLInputElement>) => {
+    event.currentTarget.select();
+  }, []);
 
   const sortableStyle: React.CSSProperties = {
     transform: transform
@@ -171,6 +175,7 @@ export default function TrainingRow({
                 return updated;
               });
             }}
+            onDoubleClick={handleDoubleClickSelect}
             className="w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate"
             placeholder="Nom de l’exercice"
             style={{ backgroundColor: "transparent" }}
@@ -193,6 +198,7 @@ export default function TrainingRow({
                 return updated;
               });
             }}
+            onDoubleClick={handleDoubleClickSelect}
             className="w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate"
             style={{ backgroundColor: "transparent", lineHeight: "40px" }}
             placeholder="Matériel"
@@ -259,6 +265,7 @@ export default function TrainingRow({
                   return updated;
                 });
               }}
+              onDoubleClick={handleDoubleClickSelect}
             />
           ))}
         </div>
@@ -290,6 +297,7 @@ export default function TrainingRow({
                   return updated;
                 });
               }}
+              onDoubleClick={handleDoubleClickSelect}
             />
           ))}
         </div>
@@ -311,6 +319,7 @@ export default function TrainingRow({
                 return updated;
               });
             }}
+            onDoubleClick={handleDoubleClickSelect}
             style={{ backgroundColor: "transparent" }}
           />
         </td>
