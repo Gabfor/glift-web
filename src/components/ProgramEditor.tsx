@@ -74,6 +74,7 @@ export default function ProgramEditor({
   isNew = false,
 }: ProgramEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const ignoreBlurRef = useRef(false);
   const supabase = useSupabaseClient();
 
   const [isAppVisible, setIsAppVisible] = useState(isVisible);
@@ -150,6 +151,19 @@ export default function ProgramEditor({
       onCancel();
     }
   };
+
+  const handleInputBlur = useCallback(() => {
+    if (ignoreBlurRef.current) {
+      ignoreBlurRef.current = false;
+      requestAnimationFrame(() => {
+        const input = inputRef.current;
+        input?.focus();
+      });
+      return;
+    }
+
+    onSubmit(index);
+  }, [index, onSubmit]);
 
   const handleStartEditClick = useCallback(() => {
     const trimmedName = (name ?? "").trim();
@@ -268,7 +282,7 @@ export default function ProgramEditor({
                 setLocalName(value);
                 onChangeName(index, value);
               }}
-              onBlur={() => onSubmit(index)}
+              onBlur={handleInputBlur}
               onKeyDown={handleKeyDown}
               onFocus={() => {
                 if (localName.trim() === DEFAULT_PROGRAM_NAME) {
@@ -290,6 +304,7 @@ export default function ProgramEditor({
                   event.stopPropagation();
                 }}
                 onClick={() => {
+                  ignoreBlurRef.current = true;
                   setLocalName("");
                   onChangeName(index, "");
                   requestAnimationFrame(() => {
