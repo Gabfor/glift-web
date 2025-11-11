@@ -268,7 +268,13 @@ export default function ProgramEditor({
                 setLocalName(value);
                 onChangeName(index, value);
               }}
-              onBlur={() => onSubmit(index)}
+              onBlur={(event) => {
+                const relatedTarget = event.relatedTarget as HTMLElement | null;
+                if (relatedTarget?.getAttribute("aria-label") === "Effacer le nom") {
+                  return;
+                }
+                onSubmit(index);
+              }}
               onKeyDown={handleKeyDown}
               onFocus={() => {
                 if (localName.trim() === DEFAULT_PROGRAM_NAME) {
@@ -281,9 +287,9 @@ export default function ProgramEditor({
             {localName.length > 0 && (
               <button
                 type="button"
-                onMouseDown={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                 }}
                 onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
                   event.preventDefault();
@@ -292,11 +298,7 @@ export default function ProgramEditor({
                 onClick={() => {
                   setLocalName("");
                   onChangeName(index, "");
-                  requestAnimationFrame(() => {
-                    const input = inputRef.current;
-                    if (!input) return;
-                    input.focus();
-                  });
+                  requestAnimationFrame(() => inputRef.current?.focus());
                 }}
                 className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
                 aria-label="Effacer le nom"
