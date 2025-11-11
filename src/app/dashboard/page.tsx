@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
@@ -55,7 +55,135 @@ const STATS_CARD_METADATA = [
 
 type StatsCardMetadata = (typeof STATS_CARD_METADATA)[number];
 
-type StatsCard = StatsCardMetadata & { value: string };
+type StatsCard = StatsCardMetadata & {
+  value: number;
+  format: (value: number) => string;
+  precision: number;
+};
+
+type StatsValueProps = {
+  value: number;
+  format: (value: number) => string;
+  precision: number;
+  isLoading: boolean;
+};
+
+const easeOutCubic = (progress: number) => 1 - Math.pow(1 - progress, 3);
+
+const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) => {
+  const clampAndRound = useCallback(
+    (input: number) => {
+      if (!Number.isFinite(input)) {
+        return 0;
+      }
+
+      const positiveValue = Math.max(0, input);
+      if (precision <= 0) {
+        return Math.round(positiveValue);
+      }
+
+      const factor = 10 ** precision;
+      return Math.round(positiveValue * factor) / factor;
+    },
+    [precision],
+  );
+
+  const [displayValue, setDisplayValue] = useState(() => clampAndRound(value));
+  const displayValueRef = useRef(displayValue);
+  const stableValueRef = useRef(clampAndRound(value));
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const animationFrameRef = useRef<number>();
+
+  useEffect(() => {
+    displayValueRef.current = displayValue;
+  }, [displayValue]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      stableValueRef.current = clampAndRound(value);
+    }
+  }, [clampAndRound, isLoading, value]);
+
+  useEffect(() => {
+    const stopInterval = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
+    const stopAnimation = () => {
+      if (animationFrameRef.current != null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = undefined;
+      }
+    };
+
+    if (isLoading) {
+      stopAnimation();
+
+      const randomRange = Math.max(stableValueRef.current * 1.2, 100);
+      intervalRef.current = setInterval(() => {
+        const randomValue = clampAndRound(Math.random() * randomRange);
+        setDisplayValue(randomValue);
+      }, 100);
+
+      return () => {
+        stopInterval();
+        stopAnimation();
+      };
+    }
+
+    stopInterval();
+
+    const startValue = displayValueRef.current;
+    const targetValue = clampAndRound(value);
+
+    if (startValue === targetValue) {
+      setDisplayValue(targetValue);
+      return () => {
+        stopAnimation();
+      };
+    }
+
+    const duration = 600;
+    const startTimestamp = performance.now();
+
+    const animate = (timestamp: number) => {
+      const elapsed = timestamp - startTimestamp;
+      const progress = Math.min(1, elapsed / duration);
+      const eased = easeOutCubic(progress);
+      const nextValue = clampAndRound(
+        startValue + (targetValue - startValue) * eased,
+      );
+      setDisplayValue(nextValue);
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        animationFrameRef.current = undefined;
+        stableValueRef.current = targetValue;
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    return () => {
+      stopAnimation();
+    };
+  }, [clampAndRound, isLoading, value]);
+
+  useEffect(() => () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    if (animationFrameRef.current != null) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+  }, []);
+
+  return <span aria-live="polite">{format(displayValue)}</span>;
+};
 
 type DashboardStats = {
   sessionsCompleted: number;
@@ -261,47 +389,61 @@ export default function DashboardPage() {
     [selectedExercise, trainingExercises],
   );
 
+  const integerFormatter = useMemo(
+    () => new Intl.NumberFormat("fr-FR"),
+    [],
+  );
+  const weightFormatter = useMemo(
+    () => new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }),
+    [],
+  );
+
   const statsCards = useMemo<StatsCard[]>(() => {
-    const formatInteger = (value: number) =>
-      new Intl.NumberFormat("fr-FR").format(Math.max(0, Math.round(value)));
-    const formatWeight = (value: number) =>
-      new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-        Math.max(0, value),
-      );
+    const formatInteger = (input: number) =>
+      integerFormatter.format(Math.max(0, Math.round(input)));
+    const formatWeight = (input: number) =>
+      weightFormatter.format(Math.max(0, input));
 
     return STATS_CARD_METADATA.map((metadata) => {
       switch (metadata.id) {
         case "sessions":
           return {
             ...metadata,
-            value: isLoadingStats ? "..." : formatInteger(stats.sessionsCompleted),
+            value: stats.sessionsCompleted,
+            format: formatInteger,
+            precision: 0,
           } satisfies StatsCard;
         case "goals":
           return {
             ...metadata,
-            value: isLoadingStats ? "..." : formatInteger(stats.goalsAchieved),
+            value: stats.goalsAchieved,
+            format: formatInteger,
+            precision: 0,
           } satisfies StatsCard;
         case "time":
           return {
             ...metadata,
-            value: isLoadingStats
-              ? "..."
-              : formatInteger(stats.averageDurationMinutes),
+            value: stats.averageDurationMinutes,
+            format: formatInteger,
+            precision: 0,
           } satisfies StatsCard;
         case "weight":
         default:
           return {
             ...metadata,
-            value: isLoadingStats ? "..." : formatWeight(stats.totalWeight),
+            value: stats.totalWeight,
+            format: formatWeight,
+            precision: 1,
           } satisfies StatsCard;
       }
     });
   }, [
-    isLoadingStats,
+    integerFormatter,
     stats.averageDurationMinutes,
     stats.goalsAchieved,
     stats.sessionsCompleted,
     stats.totalWeight,
+    weightFormatter,
   ]);
 
   const shouldShowFiltersSkeleton = useMinimumVisibility(
@@ -682,7 +824,12 @@ export default function DashboardPage() {
                       />
                     </div>
                     <p className="text-[35px] font-bold leading-none text-[#3A416F]">
-                      {card.value}
+                      <StatsValue
+                        value={card.value}
+                        format={card.format}
+                        precision={card.precision}
+                        isLoading={isLoadingStats}
+                      />
                     </p>
                     <p className="text-[14px] font-bold text-[#3A416F]">
                       {card.label}
