@@ -33,6 +33,7 @@ function EditableTitle({
   setIsEditing,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const pointerDownHandledRef = useRef(false);
 
   useEffect(() => {
     if (!loading && editing && inputRef.current) {
@@ -44,20 +45,41 @@ function EditableTitle({
     setEditing(true);
   }, [setEditing]);
 
-  const preventLosingFocus = (
-    event: MouseEvent<HTMLButtonElement> | PointerEvent<HTMLButtonElement>,
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-  };
-
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setProgramName(""); // vide le champ
     requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
       input.focus(); // focus reste actif
     });
+  }, [setProgramName]);
+
+  const handlePointerDownClear = (event: PointerEvent<HTMLButtonElement>) => {
+    pointerDownHandledRef.current = true;
+    event.preventDefault();
+    event.stopPropagation();
+    handleClear();
+  };
+
+  const resetPointerHandled = () => {
+    pointerDownHandledRef.current = false;
+  };
+
+  const handleMouseDownClear = (event: MouseEvent<HTMLButtonElement>) => {
+    if (!pointerDownHandledRef.current) {
+      handleClear();
+    }
+    event.preventDefault();
+    event.stopPropagation();
+  };
+
+  const handleKeyboardClear = (event: MouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    handleClear();
   };
 
   // Nouvelle fonction pour tronquer
@@ -96,9 +118,11 @@ function EditableTitle({
           {programName && (
             <button
               type="button"
-              onMouseDown={preventLosingFocus}
-              onPointerDown={preventLosingFocus}
-              onClick={handleClear}
+              onPointerDown={handlePointerDownClear}
+              onPointerUp={resetPointerHandled}
+              onPointerCancel={resetPointerHandled}
+              onMouseDown={handleMouseDownClear}
+              onClick={handleKeyboardClear}
               className="absolute right-2 top-0 bottom-0 flex items-center p-1"
               aria-label="Effacer le nom"
             >
