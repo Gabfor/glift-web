@@ -594,7 +594,7 @@ export default function DashboardExerciseBlock({
   const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
-  const [selectedGoalType, setSelectedGoalType] = useState<string>(CURVE_OPTIONS[0]?.value ?? "");
+  const [selectedGoalType, setSelectedGoalType] = useState<string>("");
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
   const [goalTarget, setGoalTarget] = useState("");
 
@@ -1032,7 +1032,7 @@ export default function DashboardExerciseBlock({
               Annuler
             </button>
             <CTAButton type="button" onClick={handleCloseGoalModal}>
-              Modifier
+              {hasGoal ? "Modifier" : "Enregistrer"}
             </CTAButton>
           </div>
         }
