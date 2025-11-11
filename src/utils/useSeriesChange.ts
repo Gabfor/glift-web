@@ -1,31 +1,92 @@
+import { useCallback, useRef } from "react";
 import { Row } from "@/types/training";
 
-export function useSeriesChange(rows: Row[], setRows: React.Dispatch<React.SetStateAction<Row[]>>) {
-  const handleIncrementSeries = (index: number) => {
-    const newRows = [...rows];
-    const row = newRows[index];
+const MAX_SERIES = 6;
+const MIN_SERIES = 1;
+const DEFAULT_EFFORT_VALUE = "parfait";
 
-    if (row.series < 6) {
-      row.series += 1;
-      row.repetitions.push("");            // Nouvelle case vide
-      row.poids.push("");                  // Nouvelle case vide
-      row.effort.push("parfait");          // Valeur par défaut
-      setRows(newRows);
-    }
-  };
+type HiddenValues = {
+  repetitions: string[];
+  poids: string[];
+  effort: string[];
+};
 
-  const handleDecrementSeries = (index: number) => {
-    const newRows = [...rows];
-    const row = newRows[index];
+export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row[]>>) {
+  const hiddenValuesRef = useRef(new WeakMap<Row, HiddenValues>());
 
-    if (row.series > 1) {
-      row.series -= 1;
-      row.repetitions.pop();               // Retire la dernière case
-      row.poids.pop();                     // Retire la dernière case
-      row.effort.pop();                    // Retire la dernière case
-      setRows(newRows);
-    }
-  };
+  const handleIncrementSeries = useCallback(
+    (index: number) => {
+      setRows((previousRows) => {
+        if (index < 0 || index >= previousRows.length) {
+          return previousRows;
+        }
+
+        const newRows = [...previousRows];
+        const row = newRows[index];
+
+        if (!row || row.series >= MAX_SERIES) {
+          return previousRows;
+        }
+
+        let hiddenValues = hiddenValuesRef.current.get(row);
+        if (!hiddenValues) {
+          hiddenValues = { repetitions: [], poids: [], effort: [] };
+          hiddenValuesRef.current.set(row, hiddenValues);
+        }
+
+        const restoredRep = hiddenValues.repetitions.pop();
+        const restoredPoids = hiddenValues.poids.pop();
+        const restoredEffort = hiddenValues.effort.pop();
+
+        row.series += 1;
+        row.repetitions = [...row.repetitions, restoredRep ?? ""];
+        row.poids = [...row.poids, restoredPoids ?? ""];
+        row.effort = [...row.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE];
+
+        return newRows;
+      });
+    },
+    [setRows]
+  );
+
+  const handleDecrementSeries = useCallback(
+    (index: number) => {
+      setRows((previousRows) => {
+        if (index < 0 || index >= previousRows.length) {
+          return previousRows;
+        }
+
+        const newRows = [...previousRows];
+        const row = newRows[index];
+
+        if (!row || row.series <= MIN_SERIES) {
+          return previousRows;
+        }
+
+        let hiddenValues = hiddenValuesRef.current.get(row);
+        if (!hiddenValues) {
+          hiddenValues = { repetitions: [], poids: [], effort: [] };
+          hiddenValuesRef.current.set(row, hiddenValues);
+        }
+
+        const removedRep = row.repetitions[row.repetitions.length - 1] ?? "";
+        const removedPoids = row.poids[row.poids.length - 1] ?? "";
+        const removedEffort = row.effort[row.effort.length - 1] ?? DEFAULT_EFFORT_VALUE;
+
+        hiddenValues.repetitions.push(removedRep);
+        hiddenValues.poids.push(removedPoids);
+        hiddenValues.effort.push(removedEffort);
+
+        row.series -= 1;
+        row.repetitions = row.repetitions.slice(0, -1);
+        row.poids = row.poids.slice(0, -1);
+        row.effort = row.effort.slice(0, -1);
+
+        return newRows;
+      });
+    },
+    [setRows]
+  );
 
   return { handleIncrementSeries, handleDecrementSeries };
 }
