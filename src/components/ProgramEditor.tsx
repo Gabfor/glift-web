@@ -1,13 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type PointerEvent,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import Tooltip from "@/components/Tooltip";
 import { TrashHoverIcon, TrashIcon } from "./icons/TrashIcons";
@@ -285,12 +279,7 @@ export default function ProgramEditor({
                   event.preventDefault();
                   event.stopPropagation();
                 }}
-                onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
                 onTouchStart={(event) => {
-                  event.preventDefault();
                   event.stopPropagation();
                 }}
                 onClick={() => {
