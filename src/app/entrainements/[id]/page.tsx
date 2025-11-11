@@ -98,7 +98,7 @@ export default function AdminEntrainementDetailPage() {
   const handleEffortChange = useEffortChange(rows, setRows);
   const handleIconHover = useIconHover(rows, setRows);
   const handleCheckboxChange = useCheckboxChange(rows, setRows, setSelectedRowIds);
-  const { handleIncrementSeries, handleDecrementSeries } = useSeriesChange(rows, setRows);
+  const { handleIncrementSeries, handleDecrementSeries } = useSeriesChange(setRows);
   const { showLinkModal, setShowLinkModal, selectedLinkRowIndex, setSelectedLinkRowIndex, showNoteModal, setShowNoteModal, selectedNoteRowIndex, setSelectedNoteRowIndex, handleSaveNote, handleSaveLink } = useTrainingModals(rows, setRows, selectedRowIds, setSelectedRowIds);
 
   const [icon, setIcon] = useState("/icons/plus.svg");
