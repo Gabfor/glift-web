@@ -7,6 +7,7 @@ import {
   useRef,
   type MouseEvent,
   type PointerEvent,
+  type TouchEvent,
 } from "react";
 import Tooltip from "@/components/Tooltip";
 
@@ -45,7 +46,10 @@ function EditableTitle({
   }, [setEditing]);
 
   const preventLosingFocus = (
-    event: MouseEvent<HTMLButtonElement> | PointerEvent<HTMLButtonElement>,
+    event:
+      | MouseEvent<HTMLButtonElement>
+      | PointerEvent<HTMLButtonElement>
+      | TouchEvent<HTMLButtonElement>,
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -53,10 +57,13 @@ function EditableTitle({
 
   const handleClear = () => {
     setProgramName(""); // vide le champ
+    setEditing(true);
+    setIsEditing(true);
     requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
-      input.focus(); // focus reste actif
+      input.focus({ preventScroll: true }); // focus reste actif
+      input.setSelectionRange(input.value.length, input.value.length);
     });
   };
 
@@ -98,6 +105,7 @@ function EditableTitle({
               type="button"
               onMouseDown={preventLosingFocus}
               onPointerDown={preventLosingFocus}
+              onTouchStart={preventLosingFocus}
               onClick={handleClear}
               className="absolute right-2 top-0 bottom-0 flex items-center p-1"
               aria-label="Effacer le nom"

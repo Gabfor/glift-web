@@ -289,14 +289,22 @@ export default function ProgramEditor({
                   event.preventDefault();
                   event.stopPropagation();
                 }}
+                onTouchStart={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
                 onClick={() => {
                   setLocalName("");
                   onChangeName(index, "");
                   requestAnimationFrame(() => {
                     const input = inputRef.current;
-                    if (!input) return;
-                    input.focus();
+                    if (!input) {
+                      return;
+                    }
+                    input.focus({ preventScroll: true });
+                    input.setSelectionRange(input.value.length, input.value.length);
                   });
+                  onStartEdit(index);
                 }}
                 className="absolute right-2 top-[60%] -translate-y-1/2 p-1"
                 aria-label="Effacer le nom"
