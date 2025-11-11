@@ -21,27 +21,35 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        const newRows = [...previousRows];
-        const row = newRows[index];
+        const currentRow = previousRows[index];
 
-        if (!row || row.series >= MAX_SERIES) {
+        if (!currentRow || currentRow.series >= MAX_SERIES) {
           return previousRows;
         }
 
-        let hiddenValues = hiddenValuesRef.current.get(row);
+        let hiddenValues = hiddenValuesRef.current.get(currentRow);
         if (!hiddenValues) {
           hiddenValues = { repetitions: [], poids: [], effort: [] };
-          hiddenValuesRef.current.set(row, hiddenValues);
+          hiddenValuesRef.current.set(currentRow, hiddenValues);
         }
 
         const restoredRep = hiddenValues.repetitions.pop();
         const restoredPoids = hiddenValues.poids.pop();
         const restoredEffort = hiddenValues.effort.pop();
 
-        row.series += 1;
-        row.repetitions = [...row.repetitions, restoredRep ?? ""];
-        row.poids = [...row.poids, restoredPoids ?? ""];
-        row.effort = [...row.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE];
+        const updatedRow: Row = {
+          ...currentRow,
+          series: currentRow.series + 1,
+          repetitions: [...currentRow.repetitions, restoredRep ?? ""],
+          poids: [...currentRow.poids, restoredPoids ?? ""],
+          effort: [...currentRow.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE],
+        };
+
+        const newRows = [...previousRows];
+        newRows[index] = updatedRow;
+
+        hiddenValuesRef.current.delete(currentRow);
+        hiddenValuesRef.current.set(updatedRow, hiddenValues);
 
         return newRows;
       });
@@ -56,31 +64,40 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        const newRows = [...previousRows];
-        const row = newRows[index];
+        const currentRow = previousRows[index];
 
-        if (!row || row.series <= MIN_SERIES) {
+        if (!currentRow || currentRow.series <= MIN_SERIES) {
           return previousRows;
         }
 
-        let hiddenValues = hiddenValuesRef.current.get(row);
+        let hiddenValues = hiddenValuesRef.current.get(currentRow);
         if (!hiddenValues) {
           hiddenValues = { repetitions: [], poids: [], effort: [] };
-          hiddenValuesRef.current.set(row, hiddenValues);
+          hiddenValuesRef.current.set(currentRow, hiddenValues);
         }
 
-        const removedRep = row.repetitions[row.repetitions.length - 1] ?? "";
-        const removedPoids = row.poids[row.poids.length - 1] ?? "";
-        const removedEffort = row.effort[row.effort.length - 1] ?? DEFAULT_EFFORT_VALUE;
+        const removedRep = currentRow.repetitions[currentRow.repetitions.length - 1] ?? "";
+        const removedPoids = currentRow.poids[currentRow.poids.length - 1] ?? "";
+        const removedEffort =
+          currentRow.effort[currentRow.effort.length - 1] ?? DEFAULT_EFFORT_VALUE;
 
         hiddenValues.repetitions.push(removedRep);
         hiddenValues.poids.push(removedPoids);
         hiddenValues.effort.push(removedEffort);
 
-        row.series -= 1;
-        row.repetitions = row.repetitions.slice(0, -1);
-        row.poids = row.poids.slice(0, -1);
-        row.effort = row.effort.slice(0, -1);
+        const updatedRow: Row = {
+          ...currentRow,
+          series: currentRow.series - 1,
+          repetitions: currentRow.repetitions.slice(0, -1),
+          poids: currentRow.poids.slice(0, -1),
+          effort: currentRow.effort.slice(0, -1),
+        };
+
+        const newRows = [...previousRows];
+        newRows[index] = updatedRow;
+
+        hiddenValuesRef.current.delete(currentRow);
+        hiddenValuesRef.current.set(updatedRow, hiddenValues);
 
         return newRows;
       });
