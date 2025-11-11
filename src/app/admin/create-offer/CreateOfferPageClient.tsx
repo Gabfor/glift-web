@@ -73,11 +73,11 @@ export default function CreateOfferPageClient({
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const showLoader = useMinimumVisibility(loading);
+  const shouldRefreshOnShowRef = useRef(Boolean(offerId) && !initialOffer);
 
-  const fetchOffer = useCallback(
+  const performOfferRefresh = useCallback(
     async (id: string) => {
       setErrorMessage(null);
-      setLoading(true);
       const normalizedId = normalizeOfferId(id);
 
       if (normalizedId === null) {
@@ -105,17 +105,42 @@ export default function CreateOfferPageClient({
         if (data) {
           setOffer(mapOfferRowToForm(data));
         }
-        setLoading(false);
       } catch (unknownError) {
         setErrorMessage(
           unknownError instanceof Error
             ? unknownError.message
             : "Une erreur inattendue est survenue.",
         );
+      } finally {
         setLoading(false);
       }
     },
     [supabase],
+  );
+
+  const handleLoaderShow = useCallback(() => {
+    if (!shouldRefreshOnShowRef.current || !offerId) {
+      return;
+    }
+
+    shouldRefreshOnShowRef.current = false;
+    void performOfferRefresh(offerId);
+  }, [offerId, performOfferRefresh]);
+
+  const requestOfferRefresh = useCallback(
+    (id: string | null) => {
+      if (!id) {
+        shouldRefreshOnShowRef.current = false;
+        return;
+      }
+
+      shouldRefreshOnShowRef.current = true;
+      setLoading(true);
+      if (showLoader) {
+        handleLoaderShow();
+      }
+    },
+    [handleLoaderShow, showLoader],
   );
 
   useEffect(() => {
@@ -123,20 +148,23 @@ export default function CreateOfferPageClient({
       setOffer(initialOffer);
       setErrorMessage(null);
       setLoading(false);
+      shouldRefreshOnShowRef.current = false;
       return;
     }
 
     if (offerId) {
-      void fetchOffer(offerId);
+      requestOfferRefresh(offerId);
       return;
     }
 
     setOffer(emptyOffer);
     setErrorMessage(null);
     setLoading(false);
-  }, [initialOffer, offerId, fetchOffer]);
+    shouldRefreshOnShowRef.current = false;
+  }, [initialOffer, offerId, requestOfferRefresh]);
 
   const handleSave = async () => {
+    shouldRefreshOnShowRef.current = false;
     setLoading(true);
 
     const offerPayload = buildOfferPayload(offer);
@@ -206,7 +234,7 @@ export default function CreateOfferPageClient({
 
   return (
     <>
-      {showLoader && <GliftLoader />}
+      {showLoader && <GliftLoader onShow={handleLoaderShow} />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import CTAButton from "@/components/CTAButton";
@@ -76,6 +76,10 @@ export default function ConnexionPage() {
   const [showResetSuccess, setShowResetSuccess] = useState(
     resetStatus === "success"
   );
+
+  const handleTransitionLoaderShow = useCallback(() => {
+    router.refresh();
+  }, [router]);
 
   useEffect(() => {
     if (resetStatus === "success") {
@@ -222,7 +226,7 @@ export default function ConnexionPage() {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      {showLoader ? <GliftLoader /> : null}
+      {showLoader ? <GliftLoader onShow={handleTransitionLoaderShow} /> : null}
       <div className="w-full max-w-[564px] flex flex-col items-center">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
           Connexion
