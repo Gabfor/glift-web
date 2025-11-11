@@ -12,8 +12,13 @@ import {
 } from "recharts";
 import type { Props as RechartsDotProps } from "recharts/types/shape/Dot";
 import type { TooltipContentProps } from "recharts/types/component/Tooltip";
+import CTAButton from "@/components/CTAButton";
+import DropdownField from "@/components/account/fields/DropdownField";
 import DashboardExerciseDropdown from "@/components/dashboard/DashboardExerciseDropdown";
 import Tooltip from "@/components/Tooltip";
+import Modal from "@/components/ui/Modal";
+import ModalMessage from "@/components/ui/ModalMessage";
+import TextField from "@/components/account/fields/TextField";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
@@ -588,6 +593,15 @@ export default function DashboardExerciseBlock({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
+  const [selectedGoalType, setSelectedGoalType] = useState<string>(CURVE_OPTIONS[0]?.value ?? "");
+  const [goalTypeTouched, setGoalTypeTouched] = useState(false);
+  const [goalTarget, setGoalTarget] = useState("");
+
+  const handleCloseGoalModal = () => {
+    setIsGoalModalOpen(false);
+    setGoalTypeTouched(false);
+  };
 
   const rawGoalProgress = goal?.progressPercentage;
   const goalProgress =
@@ -893,6 +907,7 @@ export default function DashboardExerciseBlock({
                 <button
                   type="button"
                   className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
+                  onClick={() => setIsGoalModalOpen(true)}
                 >
                   {goalActionLabel}
                 </button>
@@ -1002,6 +1017,58 @@ export default function DashboardExerciseBlock({
           outline: none;
         }
       `}</style>
+      <Modal
+        open={isGoalModalOpen}
+        title="Objectif"
+        onClose={handleCloseGoalModal}
+        footerWrapperClassName="mt-[30px]"
+        footer={
+          <div className="flex justify-center gap-4">
+            <button
+              type="button"
+              className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]"
+              onClick={handleCloseGoalModal}
+            >
+              Annuler
+            </button>
+            <CTAButton type="button" onClick={handleCloseGoalModal}>
+              Modifier
+            </CTAButton>
+          </div>
+        }
+      >
+        <ModalMessage
+          variant="info"
+          title="Conseil"
+          description="Un objectif doit être réalisable. N’hésitez pas à diviser un objectif ambitieux en plusieurs sous-objectifs."
+          className="w-full"
+        />
+
+        <div className="mt-[25px] flex flex-col items-center gap-[20px]">
+          <DropdownField
+            label="Type d'objectif"
+            selected={selectedGoalType}
+            onSelect={(value) => {
+              setSelectedGoalType(value);
+            }}
+            options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
+            placeholder="Sélectionnez un type d'objectif"
+            touched={goalTypeTouched}
+            setTouched={setGoalTypeTouched}
+            clearable={false}
+            containerClassName="w-full max-w-[368px]"
+            width="w-full"
+          />
+
+          <div className="w-full max-w-[368px]">
+            <TextField
+              label="Objectif à atteindre"
+              value={goalTarget}
+              onChange={setGoalTarget}
+            />
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
