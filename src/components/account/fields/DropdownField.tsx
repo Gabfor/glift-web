@@ -36,6 +36,10 @@ export type DropdownFieldProps = {
    * Optional callback fired after the field has been cleared.
    */
   onClear?: () => void
+  /**
+   * Optional class to override the dropdown button border radius. Defaults to 8px radius.
+   */
+  buttonRoundedClassName?: string
 }
 
 export default function DropdownField({
@@ -52,13 +56,15 @@ export default function DropdownField({
   clearable = true,
   clearLabel = "Effacer",
   onClear,
+  buttonRoundedClassName = "rounded-[8px]",
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
 
   const buttonClassName = clsx(
     width,
-    "h-[45px] rounded-[8px] px-[15px]",
+    "h-[45px] px-[15px]",
+    buttonRoundedClassName,
     "text-[16px] font-semibold bg-white text-[#3A416F]",
     "border transition-all duration-150",
     "focus:outline-none",
