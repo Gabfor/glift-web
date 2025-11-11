@@ -1,12 +1,25 @@
 "use client";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface GliftLoaderProps {
   className?: string;
+  onShow?: () => void;
 }
 
-export default function GliftLoader({ className }: GliftLoaderProps) {
+export default function GliftLoader({ className, onShow }: GliftLoaderProps) {
+  const hasTriggeredShowRef = useRef(false);
+
+  useEffect(() => {
+    if (!onShow || hasTriggeredShowRef.current) {
+      return;
+    }
+
+    hasTriggeredShowRef.current = true;
+    onShow();
+  }, [onShow]);
+
   return (
     <div
       className={cn(

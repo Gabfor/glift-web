@@ -275,7 +275,10 @@ export default function ResetPasswordPage() {
   };
 
   const showLoader = useMinimumVisibility(stage === "verify" || stage === "done");
-  const loader = showLoader ? <GliftLoader /> : null;
+  const handleLoaderShow = useCallback(() => {
+    router.refresh();
+  }, [router]);
+  const loader = showLoader ? <GliftLoader onShow={handleLoaderShow} /> : null;
 
   return (
     <>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
@@ -35,49 +35,80 @@ export default function CreateProgramPageClient({
     () => Boolean(programId) && !initialProgram,
   );
   const showLoader = useMinimumVisibility(loading);
+  const shouldRefreshOnShowRef = useRef(Boolean(programId) && !initialProgram);
 
-  const fetchProgram = useCallback(
+  const performProgramRefresh = useCallback(
     async (id: string) => {
-      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("program_store")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle<ProgramRow>();
 
-      const { data, error } = await supabase
-        .from("program_store")
-        .select("*")
-        .eq("id", id)
-        .maybeSingle<ProgramRow>();
+        if (error) {
+          console.error("Erreur lors de la récupération :", error);
+          setLoading(false);
+          return;
+        }
 
-      if (error) {
-        console.error("Erreur lors de la récupération :", error);
+        if (data) {
+          setProgram(mapProgramRowToForm(data));
+        }
+      } catch (unknownError) {
+        console.error("Erreur inattendue lors du chargement du programme", unknownError);
+      } finally {
         setLoading(false);
+      }
+    },
+    [supabase],
+  );
+
+  const handleLoaderShow = useCallback(() => {
+    if (!shouldRefreshOnShowRef.current || !programId) {
+      return;
+    }
+
+    shouldRefreshOnShowRef.current = false;
+    void performProgramRefresh(programId);
+  }, [performProgramRefresh, programId]);
+
+  const requestProgramRefresh = useCallback(
+    (id: string | null) => {
+      if (!id) {
+        shouldRefreshOnShowRef.current = false;
         return;
       }
 
-      if (data) {
-        setProgram(mapProgramRowToForm(data));
+      shouldRefreshOnShowRef.current = true;
+      setLoading(true);
+      if (showLoader) {
+        handleLoaderShow();
       }
-
-      setLoading(false);
     },
-    [supabase],
+    [handleLoaderShow, showLoader],
   );
 
   useEffect(() => {
     if (initialProgram) {
       setProgram(initialProgram);
       setLoading(false);
+      shouldRefreshOnShowRef.current = false;
       return;
     }
 
     if (programId) {
-      void fetchProgram(programId);
+      requestProgramRefresh(programId);
       return;
     }
 
     setProgram(emptyProgram);
     setLoading(false);
-  }, [initialProgram, programId, fetchProgram]);
+    shouldRefreshOnShowRef.current = false;
+  }, [initialProgram, programId, requestProgramRefresh]);
 
   const handleSave = async () => {
+    shouldRefreshOnShowRef.current = false;
     const payload = buildProgramPayload(program);
 
     if (programId) {
@@ -132,7 +163,7 @@ export default function CreateProgramPageClient({
 
   return (
     <>
-      {showLoader && <GliftLoader />}
+      {showLoader && <GliftLoader onShow={handleLoaderShow} />}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
         <div className="w-full max-w-3xl px-4 sm:px-0">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
