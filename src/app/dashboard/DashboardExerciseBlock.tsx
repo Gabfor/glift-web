@@ -421,6 +421,7 @@ const CHART_ACTIVE_DOT_RADIUS = 5;
 const CHART_DOT_INTERACTION_RADIUS = 14;
 
 const DEFAULT_GOAL_ICON_SRC = "/icons/trophy.svg";
+const COMPLETED_GOAL_ICON_SRC = "/icons/trophy_gold.svg";
 const DEFAULT_GOAL_RING_COLOR = "#7069FA";
 const DEFAULT_GOAL_BASE_RING_COLOR = "#E9E7F3";
 const EMPTY_GOAL_ICON_SRC = "/icons/trophy_grey.svg";
@@ -656,22 +657,31 @@ export default function DashboardExerciseBlock({
     return typeof matchingRecord?.value === "number" ? matchingRecord.value : 0;
   }, [normalizedGoal, records]);
 
-  const goalProgress =
+  const rawGoalProgress =
     normalizedGoal && normalizedGoal.target > 0
-      ? Math.min(Math.max((goalRecordValue / normalizedGoal.target) * 100, 0), 100)
+      ? (goalRecordValue / normalizedGoal.target) * 100
       : null;
+  const goalProgress =
+    rawGoalProgress !== null ? Math.min(Math.max(rawGoalProgress, 0), 100) : null;
 
   const hasGoal = normalizedGoal !== null;
-  const formattedGoalProgress = hasGoal
-    ? goalProgress?.toLocaleString("fr-FR", {
-        maximumFractionDigits: goalProgress % 1 === 0 ? 0 : 2,
-      }) ?? "0"
-    : "";
-  const goalIconSrc = hasGoal ? DEFAULT_GOAL_ICON_SRC : EMPTY_GOAL_ICON_SRC;
+  const roundedGoalProgress = hasGoal ? Math.round(goalProgress ?? 0) : null;
+  const formattedGoalProgress =
+    roundedGoalProgress !== null ? roundedGoalProgress.toLocaleString("fr-FR") : "";
+  const hasReachedGoal = rawGoalProgress !== null ? rawGoalProgress >= 100 : false;
+  const goalIconSrc = hasGoal
+    ? hasReachedGoal
+      ? COMPLETED_GOAL_ICON_SRC
+      : DEFAULT_GOAL_ICON_SRC
+    : EMPTY_GOAL_ICON_SRC;
   const goalRingColor = hasGoal ? DEFAULT_GOAL_RING_COLOR : EMPTY_GOAL_RING_COLOR;
   const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
   const goalActionLabel = hasGoal ? EDIT_GOAL_ACTION_LABEL : EMPTY_GOAL_ACTION_LABEL;
   const goalIconAlt = hasGoal ? "Objectif" : "Aucun objectif";
+  const goalProgressTextColorClass = hasReachedGoal ? "text-[#00D591]" : "text-[#7069FA]";
+  const goalActionTextColorClass = hasReachedGoal
+    ? "text-[#00D591] hover:text-[#00D591]"
+    : "text-[#7069FA] hover:text-[#6660E4]";
 
   const handleOpenGoalModal = () => {
     setSelectedGoalType(normalizedGoal?.type ?? "");
@@ -1121,7 +1131,9 @@ export default function DashboardExerciseBlock({
                 {hasGoal ? (
                   <>
                     Vous avez atteint{" "}
-                    <span className="text-[#7069FA] font-bold">{formattedGoalProgress} %</span>{" "}
+                    <span className={`${goalProgressTextColorClass} font-bold`}>
+                      {formattedGoalProgress} %
+                    </span>{" "}
                     de votre objectif.
                   </>
                 ) : (
@@ -1130,7 +1142,7 @@ export default function DashboardExerciseBlock({
               </p>
               <button
                 type="button"
-                className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
+                className={`${goalActionTextColorClass} text-[15px] font-semibold mt-1`}
                 onClick={handleOpenGoalModal}
               >
                 {goalActionLabel}
