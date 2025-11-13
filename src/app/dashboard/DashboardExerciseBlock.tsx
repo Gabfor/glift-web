@@ -23,11 +23,7 @@ import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
-type ExerciseGoalSetting = {
-  type: CurveOptionValue;
-  target: number;
-};
+import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 
 interface DashboardExerciseBlockProps {
   id: string;
@@ -38,8 +34,8 @@ interface DashboardExerciseBlockProps {
   onSessionChange: (value: string) => void;
   onCurveChange: (value: string) => void;
   onRecordTypeChange: (value: CurveOptionValue) => void;
-  goal?: ExerciseGoalSetting | null;
-  onGoalChange: (goal: ExerciseGoalSetting | null) => void;
+  goal?: DashboardExerciseGoal | null;
+  onGoalChange: (goal: DashboardExerciseGoal | null) => void;
 }
 
 type SessionSet = {
@@ -648,7 +644,7 @@ export default function DashboardExerciseBlock({
     return {
       type: goal.type,
       target: goal.target,
-    } satisfies ExerciseGoalSetting;
+    } satisfies DashboardExerciseGoal;
   }, [goal]);
 
   const goalRecordValue = useMemo(() => {

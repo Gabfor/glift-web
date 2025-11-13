@@ -9,6 +9,7 @@ import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
+import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 import type { Database } from "@/lib/supabase/types";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
@@ -258,16 +259,11 @@ const parseNumericValue = (value: unknown): number | null => {
   return null;
 };
 
-type ExerciseGoalSetting = {
-  type: CurveOptionValue;
-  target: number;
-};
-
 type ExerciseDisplaySetting = {
   sessionCount: SessionValue;
   curveType: CurveOptionValue;
   recordCurveType: CurveOptionValue;
-  goal: ExerciseGoalSetting | null;
+  goal: DashboardExerciseGoal | null;
 };
 
 type ExerciseDisplaySettings = Record<string, ExerciseDisplaySetting>;
@@ -303,7 +299,7 @@ const isCurveValue = (value: unknown): value is CurveOptionValue =>
 const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
   const empty: ParsedExercisePreferences = { settings: {}, selectedExerciseId: "" };
 
-  const parseGoalSetting = (input: unknown): ExerciseGoalSetting | null => {
+  const parseGoalSetting = (input: unknown): DashboardExerciseGoal | null => {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       return null;
     }
@@ -318,7 +314,7 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
       return null;
     }
 
-    return { type, target: parsedTarget } satisfies ExerciseGoalSetting;
+    return { type, target: parsedTarget } satisfies DashboardExerciseGoal;
   };
 
   const parseSettingsRecord = (input: unknown): ExerciseDisplaySettings => {
@@ -555,7 +551,7 @@ export default function DashboardPage() {
       sessionCount: SessionValue;
       curveType: CurveOptionValue;
       recordCurveType: CurveOptionValue;
-      goal: ExerciseGoalSetting | null;
+      goal: DashboardExerciseGoal | null;
     }>,
   ) => {
     setExerciseDisplaySettings((previous) => {
@@ -1005,7 +1001,7 @@ export default function DashboardPage() {
                                 });
                               }
                             }}
-                            onGoalChange={(nextGoal) => {
+                            onGoalChange={(nextGoal: DashboardExerciseGoal | null) => {
                               updateExerciseSettings(exercise.id, {
                                 goal: nextGoal,
                               });
