@@ -119,6 +119,64 @@ const formatChartLabel = (date: Date): string => {
   return [day, normalizedMonth].filter(Boolean).join(" ");
 };
 
+const MIN_MOCK_SESSION_COUNT = 5;
+
+const createSeededRandom = (seed: string) => {
+  let hash = 0;
+  const normalizedSeed = seed || "fallback";
+
+  for (let index = 0; index < normalizedSeed.length; index += 1) {
+    hash = (hash << 5) - hash + normalizedSeed.charCodeAt(index);
+    hash |= 0;
+  }
+
+  return () => {
+    hash = (hash * 1664525 + 1013904223) | 0;
+    return ((hash >>> 0) % 1_000_000) / 1_000_000;
+  };
+};
+
+const clampMockCount = (count: number) => (count > 0 ? count : MIN_MOCK_SESSION_COUNT);
+
+const generateMockSessions = (seed: string, sessionLimit: number): RawSession[] => {
+  const targetCount = clampMockCount(Math.max(sessionLimit, MIN_MOCK_SESSION_COUNT));
+  const random = createSeededRandom(seed);
+  const today = new Date();
+  const sessions: RawSession[] = [];
+
+  for (let index = 0; index < targetCount; index += 1) {
+    const offsetBase = (targetCount - index) * 2;
+    const offsetJitter = Math.floor(random() * 3);
+    const performedAt = new Date(today);
+    performedAt.setDate(today.getDate() - offsetBase - offsetJitter);
+
+    const intensityTrend = (index / targetCount) * 8;
+    const baseWeight = 30 + random() * 40 + intensityTrend;
+    const baseReps = 6 + Math.round(random() * 6);
+    const setCount = 3;
+
+    const sets: SessionSet[] = Array.from({ length: setCount }, (_unused, setIndex) => {
+      const repVariation = Math.round((random() - 0.5) * 2);
+      const weightVariation = (random() - 0.5) * 4;
+      const computedWeight = Math.max(10, baseWeight + setIndex * 1.5 + weightVariation);
+
+      return {
+        repetitions: Math.max(1, baseReps + repVariation),
+        weights: [Math.round(computedWeight * 10) / 10],
+      } satisfies SessionSet;
+    });
+
+    sessions.push({
+      performedAt: performedAt.toISOString(),
+      sets,
+    });
+  }
+
+  return sessions.sort(
+    (a, b) => new Date(a.performedAt).getTime() - new Date(b.performedAt).getTime(),
+  );
+};
+
 const aggregateSessionMetrics = (session: RawSession): AggregatedSessionMetrics => {
   let totalWeight = 0;
   let weightSumForAverage = 0;
@@ -650,6 +708,11 @@ export default function DashboardExerciseBlock({
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
   const [goalTarget, setGoalTarget] = useState("");
 
+  const fallbackSessions = useMemo(
+    () => generateMockSessions(id, parseSessionCount(sessionCount)),
+    [id, sessionCount],
+  );
+
   const handleCloseGoalModal = () => {
     setIsGoalModalOpen(false);
     setGoalTypeTouched(false);
@@ -727,7 +790,7 @@ export default function DashboardExerciseBlock({
     const sessionLimit = parseSessionCount(sessionCount);
 
     if (!userId || sessionLimit === 0) {
-      setRawSessions([]);
+      setRawSessions(fallbackSessions);
       setFetchError(null);
       setIsLoadingData(false);
       return;
@@ -814,7 +877,11 @@ export default function DashboardExerciseBlock({
           })
           .filter((session): session is RawSession => session !== null);
 
-        setRawSessions(normalizedSessions);
+        if (normalizedSessions.length === 0) {
+          setRawSessions(fallbackSessions);
+        } else {
+          setRawSessions(normalizedSessions);
+        }
       }
 
       setIsLoadingData(false);
@@ -825,7 +892,7 @@ export default function DashboardExerciseBlock({
     return () => {
       isActive = false;
     };
-  }, [id, sessionCount, supabase, user?.id]);
+  }, [fallbackSessions, id, sessionCount, supabase, user?.id]);
 
   useEffect(() => {
     if (!rawSessions.length) {
