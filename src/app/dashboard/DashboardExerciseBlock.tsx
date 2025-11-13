@@ -967,7 +967,7 @@ export default function DashboardExerciseBlock({
               <button
                 type="button"
                 aria-label="Voir le record précédent"
-                className="group flex h-[34px] w-[34px] items-center justify-center"
+                className="group flex items-center justify-center"
                 onClick={() => handleRecordNavigation("prev")}
               >
                 <Image
@@ -985,7 +985,7 @@ export default function DashboardExerciseBlock({
                   className="hidden group-hover:block"
                 />
               </button>
-              <div className="flex flex-1 flex-col items-center text-center">
+              <div className="flex flex-col items-start text-left">
                 <div className="flex items-baseline gap-2">
                   <p className="text-[40px] font-bold text-[#3A416F] leading-none">{formattedRecordValue}</p>
                   <span className="text-[20px] font-bold text-[#3A416F] leading-none">{recordUnitLabel}</span>
@@ -996,7 +996,7 @@ export default function DashboardExerciseBlock({
               <button
                 type="button"
                 aria-label="Voir le record suivant"
-                className="group flex h-[34px] w-[34px] items-center justify-center"
+                className="group flex items-center justify-center"
                 onClick={() => handleRecordNavigation("next")}
               >
                 <Image
