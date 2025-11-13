@@ -266,18 +266,20 @@ cross join lateral (
       else greatest(
         0::numeric,
         round(
-          et.base_weight
-          + (sd.session_index - 1) * et.session_increment
-          + (gs.set_number - 1) * et.set_increment
-          + sin(((sd.session_index + gs.set_number)::double precision) / 1.7)
-            * greatest(et.session_increment, 1)
-            * 2
-          + case
-              when sd.session_index % 5 = 0 then -3 * greatest(et.session_increment, 1)
-              when sd.session_index % 5 = 1 then 1.5 * greatest(et.session_increment, 1)
-              when sd.session_index % 5 = 4 then -1 * greatest(et.session_increment, 1)
-              else 0
-            end,
+          (
+            et.base_weight
+            + (sd.session_index - 1) * et.session_increment
+            + (gs.set_number - 1) * et.set_increment
+            + sin(((sd.session_index + gs.set_number)::double precision) / 1.7)
+              * greatest(et.session_increment, 1)
+              * 2
+            + case
+                when sd.session_index % 5 = 0 then -3 * greatest(et.session_increment, 1)
+                when sd.session_index % 5 = 1 then 1.5 * greatest(et.session_increment, 1)
+                when sd.session_index % 5 = 4 then -1 * greatest(et.session_increment, 1)
+                else 0
+              end
+          )::numeric,
           1
         )
       )
