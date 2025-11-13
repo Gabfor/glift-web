@@ -258,10 +258,16 @@ const parseNumericValue = (value: unknown): number | null => {
   return null;
 };
 
+type ExerciseGoalSetting = {
+  type: CurveOptionValue;
+  target: number;
+};
+
 type ExerciseDisplaySetting = {
   sessionCount: SessionValue;
   curveType: CurveOptionValue;
   recordCurveType: CurveOptionValue;
+  goal: ExerciseGoalSetting | null;
 };
 
 type ExerciseDisplaySettings = Record<string, ExerciseDisplaySetting>;
@@ -297,6 +303,24 @@ const isCurveValue = (value: unknown): value is CurveOptionValue =>
 const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
   const empty: ParsedExercisePreferences = { settings: {}, selectedExerciseId: "" };
 
+  const parseGoalSetting = (input: unknown): ExerciseGoalSetting | null => {
+    if (!input || typeof input !== "object" || Array.isArray(input)) {
+      return null;
+    }
+
+    const { type, target } = input as { type?: unknown; target?: unknown };
+    if (!isCurveValue(type)) {
+      return null;
+    }
+
+    const parsedTarget = parseNumericValue(target);
+    if (parsedTarget == null || parsedTarget <= 0) {
+      return null;
+    }
+
+    return { type, target: parsedTarget } satisfies ExerciseGoalSetting;
+  };
+
   const parseSettingsRecord = (input: unknown): ExerciseDisplaySettings => {
     if (!input || typeof input !== "object" || Array.isArray(input)) {
       return {};
@@ -309,10 +333,11 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
         return accumulator;
       }
 
-      const { sessionCount, curveType, recordCurveType } = rawSettings as {
+      const { sessionCount, curveType, recordCurveType, goal } = rawSettings as {
         sessionCount?: unknown;
         curveType?: unknown;
         recordCurveType?: unknown;
+        goal?: unknown;
       };
 
       if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
@@ -323,12 +348,15 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
         ? recordCurveType
         : curveType;
 
+      const parsedGoal = parseGoalSetting(goal);
+
       return {
         ...accumulator,
         [exerciseId]: {
           sessionCount,
           curveType,
           recordCurveType: parsedRecordCurveType,
+          goal: parsedGoal,
         },
       };
     }, {});
@@ -370,7 +398,7 @@ const buildExerciseSettingsPayload = (
 ) => {
   const normalizedSettings = Object.entries(settings).reduce<ExerciseDisplaySettings>(
     (accumulator, [exerciseId, exerciseSettings]) => {
-      const { sessionCount, curveType, recordCurveType } = exerciseSettings;
+      const { sessionCount, curveType, recordCurveType, goal } = exerciseSettings;
 
       return {
         ...accumulator,
@@ -378,6 +406,7 @@ const buildExerciseSettingsPayload = (
           sessionCount,
           curveType,
           recordCurveType,
+          goal: goal ?? null,
         },
       };
     },
@@ -517,6 +546,7 @@ export default function DashboardPage() {
       sessionCount: DEFAULT_SESSION_VALUE,
       curveType: defaultCurveValue,
       recordCurveType: defaultCurveValue,
+      goal: null,
     };
 
   const updateExerciseSettings = (
@@ -525,6 +555,7 @@ export default function DashboardPage() {
       sessionCount: SessionValue;
       curveType: CurveOptionValue;
       recordCurveType: CurveOptionValue;
+      goal: ExerciseGoalSetting | null;
     }>,
   ) => {
     setExerciseDisplaySettings((previous) => {
@@ -532,10 +563,21 @@ export default function DashboardPage() {
         sessionCount: DEFAULT_SESSION_VALUE,
         curveType: defaultCurveValue,
         recordCurveType: defaultCurveValue,
+        goal: null,
       };
+      const { goal, ...restPartial } = partial;
+      const nextSettings = { ...current, ...restPartial } as ExerciseDisplaySetting;
+      if (goal !== undefined) {
+        nextSettings.goal = goal;
+      }
+
+      if (nextSettings.goal === undefined) {
+        nextSettings.goal = current.goal ?? null;
+      }
+
       return {
         ...previous,
-        [exerciseId]: { ...current, ...partial },
+        [exerciseId]: nextSettings,
       };
     });
   };
@@ -941,6 +983,7 @@ export default function DashboardPage() {
                             sessionCount={settings.sessionCount}
                             curveType={settings.curveType}
                             recordType={settings.recordCurveType}
+                            goal={settings.goal}
                             onSessionChange={(nextValue: string) => {
                               if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
@@ -961,6 +1004,11 @@ export default function DashboardPage() {
                                   recordCurveType: nextValue as CurveOptionValue,
                                 });
                               }
+                            }}
+                            onGoalChange={(nextGoal) => {
+                              updateExerciseSettings(exercise.id, {
+                                goal: nextGoal,
+                              });
                             }}
                           />
                         );
