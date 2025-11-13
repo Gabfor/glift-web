@@ -24,13 +24,9 @@ import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-type DashboardExerciseGoal = {
-  progressPercentage?: number | null;
-  iconSrc?: string | null;
-  ringColor?: string | null;
-  description?: string | null;
-  actionLabel?: string | null;
-  actionHref?: string | null;
+type ExerciseGoalSetting = {
+  type: CurveOptionValue;
+  target: number;
 };
 
 interface DashboardExerciseBlockProps {
@@ -42,7 +38,8 @@ interface DashboardExerciseBlockProps {
   onSessionChange: (value: string) => void;
   onCurveChange: (value: string) => void;
   onRecordTypeChange: (value: CurveOptionValue) => void;
-  goal?: DashboardExerciseGoal | null;
+  goal?: ExerciseGoalSetting | null;
+  onGoalChange: (goal: ExerciseGoalSetting | null) => void;
 }
 
 type SessionSet = {
@@ -434,16 +431,7 @@ const EMPTY_GOAL_ICON_SRC = "/icons/trophy_grey.svg";
 const EMPTY_GOAL_RING_COLOR = "#ECE9F1";
 const EMPTY_GOAL_DESCRIPTION = "Aucun objectif pour le moment.";
 const EMPTY_GOAL_ACTION_LABEL = "Définir mon objectif.";
-const DEFAULT_GOAL_ACTION_LABEL = "Voir mon objectif.";
-
-const sanitizeString = (value: unknown): string | null => {
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const trimmed = value.trim();
-  return trimmed ? trimmed : null;
-};
+const EDIT_GOAL_ACTION_LABEL = "Modifier mon objectif.";
 
 type RechartsDotPayload = Record<string, unknown> | null | undefined;
 
@@ -635,6 +623,7 @@ export default function DashboardExerciseBlock({
   onCurveChange,
   onRecordTypeChange,
   goal,
+  onGoalChange,
 }: DashboardExerciseBlockProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -649,36 +638,94 @@ export default function DashboardExerciseBlock({
   const [selectedGoalType, setSelectedGoalType] = useState<string>("");
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
   const [goalTarget, setGoalTarget] = useState("");
+  const [goalTargetError, setGoalTargetError] = useState<string | null>(null);
+
+  const normalizedGoal = useMemo(() => {
+    if (!goal || !Number.isFinite(goal.target) || goal.target <= 0) {
+      return null;
+    }
+
+    return {
+      type: goal.type,
+      target: goal.target,
+    } satisfies ExerciseGoalSetting;
+  }, [goal]);
+
+  const goalRecordValue = useMemo(() => {
+    if (!normalizedGoal) {
+      return 0;
+    }
+
+    const matchingRecord = records.find((record) => record.curveType === normalizedGoal.type);
+    return typeof matchingRecord?.value === "number" ? matchingRecord.value : 0;
+  }, [normalizedGoal, records]);
+
+  const goalProgress =
+    normalizedGoal && normalizedGoal.target > 0
+      ? Math.min(Math.max((goalRecordValue / normalizedGoal.target) * 100, 0), 100)
+      : null;
+
+  const hasGoal = normalizedGoal !== null;
+  const formattedGoalProgress = hasGoal
+    ? goalProgress?.toLocaleString("fr-FR", {
+        maximumFractionDigits: goalProgress % 1 === 0 ? 0 : 2,
+      }) ?? "0"
+    : "";
+  const goalIconSrc = hasGoal ? DEFAULT_GOAL_ICON_SRC : EMPTY_GOAL_ICON_SRC;
+  const goalRingColor = hasGoal ? DEFAULT_GOAL_RING_COLOR : EMPTY_GOAL_RING_COLOR;
+  const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
+  const goalActionLabel = hasGoal ? EDIT_GOAL_ACTION_LABEL : EMPTY_GOAL_ACTION_LABEL;
+  const goalIconAlt = hasGoal ? "Objectif" : "Aucun objectif";
+
+  const handleOpenGoalModal = () => {
+    setSelectedGoalType(normalizedGoal?.type ?? "");
+    setGoalTarget(normalizedGoal ? String(normalizedGoal.target) : "");
+    setGoalTargetError(null);
+    setGoalTypeTouched(false);
+    setIsGoalModalOpen(true);
+  };
 
   const handleCloseGoalModal = () => {
     setIsGoalModalOpen(false);
     setGoalTypeTouched(false);
+    setGoalTargetError(null);
   };
 
-  const rawGoalProgress = goal?.progressPercentage;
-  const goalProgress =
-    typeof rawGoalProgress === "number" && Number.isFinite(rawGoalProgress)
-      ? Math.min(Math.max(rawGoalProgress, 0), 100)
-      : null;
-  const hasGoal = goalProgress !== null;
-  const formattedGoalProgress = hasGoal
-    ? goalProgress.toLocaleString("fr-FR", {
-        maximumFractionDigits: goalProgress % 1 === 0 ? 0 : 2,
-      })
-    : "";
-  const goalDescriptionOverride = hasGoal ? sanitizeString(goal?.description) : null;
-  const goalIconSrc = hasGoal
-    ? sanitizeString(goal?.iconSrc) ?? DEFAULT_GOAL_ICON_SRC
-    : EMPTY_GOAL_ICON_SRC;
-  const goalRingColor = hasGoal
-    ? sanitizeString(goal?.ringColor) ?? DEFAULT_GOAL_RING_COLOR
-    : EMPTY_GOAL_RING_COLOR;
-  const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
-  const goalActionLabel = hasGoal
-    ? sanitizeString(goal?.actionLabel) ?? DEFAULT_GOAL_ACTION_LABEL
-    : EMPTY_GOAL_ACTION_LABEL;
-  const goalActionHref = sanitizeString(goal?.actionHref);
-  const goalIconAlt = hasGoal ? "Objectif" : "Aucun objectif";
+  const handleGoalTargetChange = (value: string) => {
+    setGoalTarget(value);
+    if (goalTargetError) {
+      setGoalTargetError(null);
+    }
+  };
+
+  const handleSaveGoal = () => {
+    setGoalTypeTouched(true);
+    const goalTypeIsValid = CURVE_OPTIONS.some((option) => option.value === selectedGoalType);
+    if (!goalTypeIsValid) {
+      return;
+    }
+
+    const parsedTarget = Number.parseFloat(goalTarget.replace(/,/g, "."));
+    if (!Number.isFinite(parsedTarget) || parsedTarget <= 0) {
+      setGoalTargetError("Renseignez une valeur positive.");
+      return;
+    }
+
+    onGoalChange({
+      type: selectedGoalType as CurveOptionValue,
+      target: parsedTarget,
+    });
+    handleCloseGoalModal();
+  };
+
+  useEffect(() => {
+    if (isGoalModalOpen) {
+      return;
+    }
+
+    setSelectedGoalType(normalizedGoal?.type ?? "");
+    setGoalTarget(normalizedGoal ? String(normalizedGoal.target) : "");
+  }, [isGoalModalOpen, normalizedGoal]);
 
   const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
   const renderValueAxisTick = useMemo(
@@ -1076,35 +1123,22 @@ export default function DashboardExerciseBlock({
             <div className="flex flex-col justify-center items-start text-left">
               <p className="text-[#5D6494] font-semibold text-left">
                 {hasGoal ? (
-                  goalDescriptionOverride ? (
-                    goalDescriptionOverride
-                  ) : (
-                    <>
-                      Vous avez atteint{" "}
-                      <span className="text-[#7069FA] font-bold">{formattedGoalProgress} %</span>{" "}
-                      de votre objectif.
-                    </>
-                  )
+                  <>
+                    Vous avez atteint{" "}
+                    <span className="text-[#7069FA] font-bold">{formattedGoalProgress} %</span>{" "}
+                    de votre objectif.
+                  </>
                 ) : (
                   EMPTY_GOAL_DESCRIPTION
                 )}
               </p>
-              {goalActionHref ? (
-                <a
-                  href={goalActionHref}
-                  className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
-                >
-                  {goalActionLabel}
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
-                  onClick={() => setIsGoalModalOpen(true)}
-                >
-                  {goalActionLabel}
-                </button>
-              )}
+              <button
+                type="button"
+                className="text-[#7069FA] text-[15px] font-semibold mt-1 hover:text-[#6660E4]"
+                onClick={handleOpenGoalModal}
+              >
+                {goalActionLabel}
+              </button>
             </div>
           </div>
         </div>
@@ -1224,7 +1258,7 @@ export default function DashboardExerciseBlock({
             >
               Annuler
             </button>
-            <CTAButton type="button" onClick={handleCloseGoalModal}>
+            <CTAButton type="button" onClick={handleSaveGoal}>
               {hasGoal ? "Modifier" : "Enregistrer"}
             </CTAButton>
           </div>
@@ -1258,9 +1292,10 @@ export default function DashboardExerciseBlock({
             <TextField
               label="Objectif à atteindre"
               value={goalTarget}
-              onChange={setGoalTarget}
+              onChange={handleGoalTargetChange}
               placeholder="Renseignez votre objectif"
               inputClassName="rounded-[5px]"
+              error={goalTargetError ?? undefined}
             />
           </div>
         </div>
