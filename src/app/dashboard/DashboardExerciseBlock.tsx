@@ -889,7 +889,8 @@ export default function DashboardExerciseBlock({
 
         const roundedMetricValue = roundValue(rawMetricValue);
         const currentRecord = bestRecordsMap[value];
-        if (currentRecord.value === null || roundedMetricValue > currentRecord.value) {
+        const currentRecordValue = currentRecord.value;
+        if (currentRecordValue == null || roundedMetricValue > currentRecordValue) {
           bestRecordsMap[value] = {
             ...currentRecord,
             value: roundedMetricValue,
@@ -908,10 +909,10 @@ export default function DashboardExerciseBlock({
 
   const currentRecord = records[currentRecordIndex] ?? null;
   const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
-  const hasRecordValue = typeof currentRecord?.value === "number";
-  const formattedRecordValue = hasRecordValue
-    ? currentRecord.value.toLocaleString("fr-FR", {
-        maximumFractionDigits: currentRecord.value % 1 === 0 ? 0 : 2,
+  const recordNumericValue = typeof currentRecord?.value === "number" ? currentRecord.value : null;
+  const formattedRecordValue = recordNumericValue !== null
+    ? recordNumericValue.toLocaleString("fr-FR", {
+        maximumFractionDigits: recordNumericValue % 1 === 0 ? 0 : 2,
       })
     : "--";
   const recordDateLabel = currentRecord ? formatRecordDate(currentRecord.date) : "Aucune donnée";
