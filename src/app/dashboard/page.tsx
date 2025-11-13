@@ -1036,9 +1036,7 @@ export default function DashboardPage() {
                                 goal: nextGoal,
                               });
                             }}
-                            onGoalCompletionChange={(isCompleted: boolean) => {
-                              handleGoalCompletionChange(exercise.id, isCompleted);
-                            }}
+                            onGoalCompletionChange={handleGoalCompletionChange}
                           />
                         );
                       })}

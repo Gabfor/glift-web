@@ -36,7 +36,7 @@ export interface DashboardExerciseBlockProps {
   onRecordTypeChange: (value: CurveOptionValue) => void;
   goal?: DashboardExerciseGoal | null;
   onGoalChange: (goal: DashboardExerciseGoal | null) => void;
-  onGoalCompletionChange?: (completed: boolean) => void;
+  onGoalCompletionChange?: (exerciseId: string, completed: boolean) => void;
 }
 
 type SessionSet = {
@@ -691,14 +691,14 @@ export default function DashboardExerciseBlock({
     : "text-[#7069FA] hover:text-[#6660E4]";
 
   useEffect(() => {
-    onGoalCompletionChange?.(hasGoal && hasReachedGoal);
-  }, [hasGoal, hasReachedGoal, onGoalCompletionChange]);
+    onGoalCompletionChange?.(id, hasGoal && hasReachedGoal);
+  }, [hasGoal, hasReachedGoal, id, onGoalCompletionChange]);
 
   useEffect(
     () => () => {
-      onGoalCompletionChange?.(false);
+      onGoalCompletionChange?.(id, false);
     },
-    [onGoalCompletionChange],
+    [id, onGoalCompletionChange],
   );
 
   const handleOpenGoalModal = () => {
