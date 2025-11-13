@@ -29,7 +29,7 @@ export default function TextField({
   error,
   endAdornment,
   placeholder,
-  inputClassName = 'rounded-[8px]',
+  inputClassName = 'rounded-[5px]',
 }: Props) {
   const showError = !!error
   const showSuccess = !!success && !showError
