@@ -1150,7 +1150,7 @@ export default function DashboardExerciseBlock({
                   <>
                     Vous avez atteint{" "}
                     <span className={`${goalProgressTextColorClass} font-bold`}>
-                      {formattedGoalProgress} %
+                      {formattedGoalProgress}%
                     </span>{" "}
                     de votre objectif.
                   </>
