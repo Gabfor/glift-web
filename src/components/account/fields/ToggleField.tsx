@@ -93,7 +93,7 @@ export default function ToggleField({
               className={`
                 ${itemClassName || 'w-[53px] h-[45px]'}
                 inline-flex items-center justify-center
-                rounded-[8px] border bg-white
+                rounded-[5px] border bg-white
                 text-[16px] font-semibold
                 ${textColor}
                 ${baseBorder}
