@@ -831,7 +831,6 @@ export default function DashboardExerciseBlock({
     if (!rawSessions.length) {
       setChartData([]);
       setRecords(createInitialRecords());
-      setCurrentRecordIndex(0);
       return;
     }
 
