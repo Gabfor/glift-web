@@ -973,15 +973,15 @@ export default function DashboardExerciseBlock({
                 <Image
                   src="/icons/big_arrow_left.svg"
                   alt="Précédent"
-                  width={34}
-                  height={34}
+                  width={7}
+                  height={10}
                   className="block group-hover:hidden"
                 />
                 <Image
                   src="/icons/big_arrow_left_hover.svg"
                   alt="Précédent"
-                  width={34}
-                  height={34}
+                  width={7}
+                  height={10}
                   className="hidden group-hover:block"
                 />
               </button>
@@ -1002,15 +1002,15 @@ export default function DashboardExerciseBlock({
                 <Image
                   src="/icons/big_arrow_right.svg"
                   alt="Suivant"
-                  width={34}
-                  height={34}
+                  width={7}
+                  height={10}
                   className="block group-hover:hidden"
                 />
                 <Image
                   src="/icons/big_arrow_right_hover.svg"
                   alt="Suivant"
-                  width={34}
-                  height={34}
+                  width={7}
+                  height={10}
                   className="hidden group-hover:block"
                 />
               </button>
