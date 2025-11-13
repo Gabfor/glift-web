@@ -38,8 +38,10 @@ interface DashboardExerciseBlockProps {
   name: string;
   sessionCount: string;
   curveType: CurveOptionValue;
+  recordType: CurveOptionValue;
   onSessionChange: (value: string) => void;
   onCurveChange: (value: string) => void;
+  onRecordTypeChange: (value: CurveOptionValue) => void;
   goal?: DashboardExerciseGoal | null;
 }
 
@@ -628,8 +630,10 @@ export default function DashboardExerciseBlock({
   name,
   sessionCount,
   curveType,
+  recordType,
   onSessionChange,
   onCurveChange,
+  onRecordTypeChange,
   goal,
 }: DashboardExerciseBlockProps) {
   const { user } = useUser();
@@ -641,7 +645,6 @@ export default function DashboardExerciseBlock({
   const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [records, setRecords] = useState<ExerciseRecord[]>(() => createInitialRecords());
-  const [currentRecordIndex, setCurrentRecordIndex] = useState(0);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [selectedGoalType, setSelectedGoalType] = useState<string>("");
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
@@ -902,10 +905,32 @@ export default function DashboardExerciseBlock({
 
     const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
-    setCurrentRecordIndex((prev) =>
-      computedRecords.length ? Math.min(prev, computedRecords.length - 1) : 0,
-    );
   }, [curveType, currentUnit, rawSessions]);
+
+  useEffect(() => {
+    if (!records.length) {
+      return;
+    }
+
+    const hasMatchingRecord = records.some((record) => record.curveType === recordType);
+    if (hasMatchingRecord) {
+      return;
+    }
+
+    const fallbackRecord = records[0];
+    if (fallbackRecord && fallbackRecord.curveType !== recordType) {
+      onRecordTypeChange(fallbackRecord.curveType);
+    }
+  }, [onRecordTypeChange, recordType, records]);
+
+  const currentRecordIndex = useMemo(() => {
+    if (!records.length) {
+      return 0;
+    }
+
+    const index = records.findIndex((record) => record.curveType === recordType);
+    return index === -1 ? 0 : index;
+  }, [recordType, records]);
 
   const currentRecord = records[currentRecordIndex] ?? null;
   const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
@@ -919,16 +944,17 @@ export default function DashboardExerciseBlock({
   const recordTypeLabel = currentRecord?.label ?? "";
 
   const handleRecordNavigation = (direction: "prev" | "next") => {
-    setCurrentRecordIndex((prevIndex) => {
-      const total = records.length;
-      if (!total) {
-        return 0;
-      }
-      if (direction === "next") {
-        return (prevIndex + 1) % total;
-      }
-      return (prevIndex - 1 + total) % total;
-    });
+    const total = records.length;
+    if (!total) {
+      return;
+    }
+
+    const delta = direction === "next" ? 1 : -1;
+    const nextIndex = (currentRecordIndex + delta + total) % total;
+    const nextRecord = records[nextIndex];
+    if (nextRecord) {
+      onRecordTypeChange(nextRecord.curveType);
+    }
   };
 
   return (

@@ -258,10 +258,13 @@ const parseNumericValue = (value: unknown): number | null => {
   return null;
 };
 
-type ExerciseDisplaySettings = Record<
-  string,
-  { sessionCount: SessionValue; curveType: CurveOptionValue }
->;
+type ExerciseDisplaySetting = {
+  sessionCount: SessionValue;
+  curveType: CurveOptionValue;
+  recordCurveType: CurveOptionValue;
+};
+
+type ExerciseDisplaySettings = Record<string, ExerciseDisplaySetting>;
 
 type ParsedExercisePreferences = {
   settings: ExerciseDisplaySettings;
@@ -306,20 +309,26 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
         return accumulator;
       }
 
-      const { sessionCount, curveType } = rawSettings as {
+      const { sessionCount, curveType, recordCurveType } = rawSettings as {
         sessionCount?: unknown;
         curveType?: unknown;
+        recordCurveType?: unknown;
       };
 
       if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
         return accumulator;
       }
 
+      const parsedRecordCurveType = isCurveValue(recordCurveType)
+        ? recordCurveType
+        : curveType;
+
       return {
         ...accumulator,
         [exerciseId]: {
           sessionCount,
           curveType,
+          recordCurveType: parsedRecordCurveType,
         },
       };
     }, {});
@@ -358,10 +367,28 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
 const buildExerciseSettingsPayload = (
   settings: ExerciseDisplaySettings,
   selectedExerciseId: string,
-) => ({
-  selectedExerciseId: selectedExerciseId || null,
-  exercises: settings,
-});
+) => {
+  const normalizedSettings = Object.entries(settings).reduce<ExerciseDisplaySettings>(
+    (accumulator, [exerciseId, exerciseSettings]) => {
+      const { sessionCount, curveType, recordCurveType } = exerciseSettings;
+
+      return {
+        ...accumulator,
+        [exerciseId]: {
+          sessionCount,
+          curveType,
+          recordCurveType,
+        },
+      };
+    },
+    {},
+  );
+
+  return {
+    selectedExerciseId: selectedExerciseId || null,
+    exercises: normalizedSettings,
+  };
+};
 
 export default function DashboardPage() {
   const { user } = useUser();
@@ -489,16 +516,22 @@ export default function DashboardPage() {
     exerciseDisplaySettings[exerciseId] ?? {
       sessionCount: DEFAULT_SESSION_VALUE,
       curveType: defaultCurveValue,
+      recordCurveType: defaultCurveValue,
     };
 
   const updateExerciseSettings = (
     exerciseId: string,
-    partial: Partial<{ sessionCount: SessionValue; curveType: CurveOptionValue }>,
+    partial: Partial<{
+      sessionCount: SessionValue;
+      curveType: CurveOptionValue;
+      recordCurveType: CurveOptionValue;
+    }>,
   ) => {
     setExerciseDisplaySettings((previous) => {
       const current = previous[exerciseId] ?? {
         sessionCount: DEFAULT_SESSION_VALUE,
         curveType: defaultCurveValue,
+        recordCurveType: defaultCurveValue,
       };
       return {
         ...previous,
@@ -907,6 +940,7 @@ export default function DashboardPage() {
                             name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
                             sessionCount={settings.sessionCount}
                             curveType={settings.curveType}
+                            recordType={settings.recordCurveType}
                             onSessionChange={(nextValue) => {
                               if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
@@ -918,6 +952,13 @@ export default function DashboardPage() {
                               if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
                                   curveType: nextValue as CurveOptionValue,
+                                });
+                              }
+                            }}
+                            onRecordTypeChange={(nextValue) => {
+                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  recordCurveType: nextValue as CurveOptionValue,
                                 });
                               }
                             }}
