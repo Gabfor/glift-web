@@ -941,21 +941,21 @@ export default function DashboardPage() {
                             sessionCount={settings.sessionCount}
                             curveType={settings.curveType}
                             recordType={settings.recordCurveType}
-                            onSessionChange={(nextValue) => {
+                            onSessionChange={(nextValue: string) => {
                               if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
                                   sessionCount: nextValue as SessionValue,
                                 });
                               }
                             }}
-                            onCurveChange={(nextValue) => {
+                            onCurveChange={(nextValue: string) => {
                               if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
                                   curveType: nextValue as CurveOptionValue,
                                 });
                               }
                             }}
-                            onRecordTypeChange={(nextValue) => {
+                            onRecordTypeChange={(nextValue: string) => {
                               if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
                                 updateExerciseSettings(exercise.id, {
                                   recordCurveType: nextValue as CurveOptionValue,
