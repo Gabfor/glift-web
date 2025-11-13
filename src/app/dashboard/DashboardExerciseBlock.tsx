@@ -1115,8 +1115,8 @@ export default function DashboardExerciseBlock({
           </div>
 
           {/* Objectif */}
-          <div className="flex items-center gap-4 h-[90px] w-full">
-            <div className="relative w-[90px] h-[90px] flex-shrink-0">
+          <div className="flex items-center gap-4 h-[80px] w-full">
+            <div className="relative w-[80px] h-[80px] flex-shrink-0">
               <svg viewBox="0 0 36 36" className="w-full h-full">
                 <path
                   stroke={goalBaseRingColor}
