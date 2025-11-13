@@ -25,7 +25,7 @@ import { createClient } from "@/lib/supabaseClient";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 
-interface DashboardExerciseBlockProps {
+export interface DashboardExerciseBlockProps {
   id: string;
   name: string;
   sessionCount: string;
