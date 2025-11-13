@@ -437,6 +437,12 @@ export default function DashboardPage() {
   const [hasLoadedProgramList, setHasLoadedProgramList] = useState(false);
   const [stats, setStats] = useState<DashboardStats>(() => createEmptyStats());
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [goalCompletionMap, setGoalCompletionMap] = useState<Record<string, boolean>>({});
+
+  const completedGoalsCount = useMemo(
+    () => Object.values(goalCompletionMap).filter(Boolean).length,
+    [goalCompletionMap],
+  );
 
   const handleProgramOptionsChange = useCallback(
     (options: Array<{ value: string; label: string }>) => {
@@ -445,6 +451,25 @@ export default function DashboardPage() {
     },
     [],
   );
+
+  const handleGoalCompletionChange = useCallback((exerciseId: string, isCompleted: boolean) => {
+    setGoalCompletionMap((previous) => {
+      const currentValue = previous[exerciseId] ?? false;
+      if (currentValue === isCompleted) {
+        return previous;
+      }
+
+      const nextState = { ...previous };
+
+      if (isCompleted) {
+        nextState[exerciseId] = true;
+        return nextState;
+      }
+
+      delete nextState[exerciseId];
+      return nextState;
+    });
+  }, []);
 
   const exerciseOptions = useMemo(
     () =>
@@ -462,6 +487,10 @@ export default function DashboardPage() {
         : trainingExercises,
     [selectedExercise, trainingExercises],
   );
+
+  useEffect(() => {
+    setGoalCompletionMap({});
+  }, [selectedTraining]);
 
   const integerFormatter = useMemo(
     () => new Intl.NumberFormat("fr-FR"),
@@ -490,7 +519,7 @@ export default function DashboardPage() {
         case "goals":
           return {
             ...metadata,
-            value: stats.goalsAchieved,
+            value: stats.goalsAchieved + completedGoalsCount,
             format: formatInteger,
             precision: 0,
           } satisfies StatsCard;
@@ -515,6 +544,7 @@ export default function DashboardPage() {
     integerFormatter,
     stats.averageDurationMinutes,
     stats.goalsAchieved,
+    completedGoalsCount,
     stats.sessionsCompleted,
     stats.totalWeight,
     weightFormatter,
@@ -1005,6 +1035,9 @@ export default function DashboardPage() {
                               updateExerciseSettings(exercise.id, {
                                 goal: nextGoal,
                               });
+                            }}
+                            onGoalCompletionChange={(isCompleted: boolean) => {
+                              handleGoalCompletionChange(exercise.id, isCompleted);
                             }}
                           />
                         );
