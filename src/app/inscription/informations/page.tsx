@@ -365,6 +365,7 @@ const InformationsPage = () => {
             touched={touched.mainGoal}
             setTouched={(value) => value && markTouched("mainGoal")}
             success={mainGoalSuccess}
+            buttonRoundedClassName="rounded-[5px]"
           />
         </FieldRow>
 
