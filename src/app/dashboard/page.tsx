@@ -92,7 +92,7 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
   const displayValueRef = useRef(displayValue);
   const stableValueRef = useRef(clampAndRound(value));
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const animationFrameRef = useRef<number>();
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     displayValueRef.current = displayValue;
@@ -115,7 +115,7 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
     const stopAnimation = () => {
       if (animationFrameRef.current != null) {
         cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = undefined;
+        animationFrameRef.current = null;
       }
     };
 
@@ -182,7 +182,7 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
       if (progress < 1) {
         animationFrameRef.current = requestAnimationFrame(animate);
       } else {
-        animationFrameRef.current = undefined;
+        animationFrameRef.current = null;
         stableValueRef.current = targetValue;
       }
     };
@@ -200,6 +200,7 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
     }
     if (animationFrameRef.current != null) {
       cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
   }, []);
 
