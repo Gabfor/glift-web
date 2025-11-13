@@ -1084,7 +1084,7 @@ export default function DashboardExerciseBlock({
         </div>
 
         {/* Bloc droit : Graphique */}
-        <div className="h-[290px] w-full md:flex-1">
+        <div className="h-[240px] w-full md:flex-1">
           <div
             ref={chartContainerRef}
             className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
