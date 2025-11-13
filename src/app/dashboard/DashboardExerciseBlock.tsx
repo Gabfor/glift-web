@@ -36,6 +36,7 @@ interface DashboardExerciseBlockProps {
   onRecordTypeChange: (value: CurveOptionValue) => void;
   goal?: DashboardExerciseGoal | null;
   onGoalChange: (goal: DashboardExerciseGoal | null) => void;
+  onGoalCompletionChange?: (completed: boolean) => void;
 }
 
 type SessionSet = {
@@ -423,6 +424,7 @@ const CHART_DOT_INTERACTION_RADIUS = 14;
 const DEFAULT_GOAL_ICON_SRC = "/icons/trophy.svg";
 const COMPLETED_GOAL_ICON_SRC = "/icons/trophy_gold.svg";
 const DEFAULT_GOAL_RING_COLOR = "#7069FA";
+const COMPLETED_GOAL_RING_COLOR = "#00D591";
 const DEFAULT_GOAL_BASE_RING_COLOR = "#E9E7F3";
 const EMPTY_GOAL_ICON_SRC = "/icons/trophy_grey.svg";
 const EMPTY_GOAL_RING_COLOR = "#ECE9F1";
@@ -621,6 +623,7 @@ export default function DashboardExerciseBlock({
   onRecordTypeChange,
   goal,
   onGoalChange,
+  onGoalCompletionChange,
 }: DashboardExerciseBlockProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -674,7 +677,11 @@ export default function DashboardExerciseBlock({
       ? COMPLETED_GOAL_ICON_SRC
       : DEFAULT_GOAL_ICON_SRC
     : EMPTY_GOAL_ICON_SRC;
-  const goalRingColor = hasGoal ? DEFAULT_GOAL_RING_COLOR : EMPTY_GOAL_RING_COLOR;
+  const goalRingColor = hasGoal
+    ? hasReachedGoal
+      ? COMPLETED_GOAL_RING_COLOR
+      : DEFAULT_GOAL_RING_COLOR
+    : EMPTY_GOAL_RING_COLOR;
   const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
   const goalActionLabel = hasGoal ? EDIT_GOAL_ACTION_LABEL : EMPTY_GOAL_ACTION_LABEL;
   const goalIconAlt = hasGoal ? "Objectif" : "Aucun objectif";
@@ -682,6 +689,17 @@ export default function DashboardExerciseBlock({
   const goalActionTextColorClass = hasReachedGoal
     ? "text-[#00D591] hover:text-[#00D591]"
     : "text-[#7069FA] hover:text-[#6660E4]";
+
+  useEffect(() => {
+    onGoalCompletionChange?.(hasGoal && hasReachedGoal);
+  }, [hasGoal, hasReachedGoal, onGoalCompletionChange]);
+
+  useEffect(
+    () => () => {
+      onGoalCompletionChange?.(false);
+    },
+    [onGoalCompletionChange],
+  );
 
   const handleOpenGoalModal = () => {
     setSelectedGoalType(normalizedGoal?.type ?? "");
