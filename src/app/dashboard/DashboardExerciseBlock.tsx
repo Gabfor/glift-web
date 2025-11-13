@@ -60,6 +60,13 @@ type ChartPoint = {
   value: number;
 };
 
+type ExerciseRecord = {
+  curveType: CurveOptionValue;
+  label: string;
+  value: number | null;
+  date: Date | null;
+};
+
 type AggregatedSessionMetrics = {
   averageWeight: number | null;
   maxWeight: number | null;
@@ -76,6 +83,15 @@ const CURVE_UNIT_MAP: Record<CurveOptionValue, string> = {
   "repetition-moyenne": "rép.",
   "repetition-maximum": "rép.",
   "repetitions-totales": "rép.",
+};
+
+const CURVE_DISPLAY_UNIT_MAP: Record<CurveOptionValue, string> = {
+  "poids-moyen": "Kg",
+  "poids-maximum": "Kg",
+  "poids-total": "Kg",
+  "repetition-moyenne": "Rép.",
+  "repetition-maximum": "Rép.",
+  "repetitions-totales": "Rép.",
 };
 
 const parseSessionCount = (value: string): number => {
@@ -179,6 +195,37 @@ const splitDateLabel = (label: string) => {
     month: rest.join(" ") ?? "",
   };
 };
+
+const formatRecordDate = (value: Date | null): string => {
+  if (!value || Number.isNaN(value.getTime())) {
+    return "Aucune donnée";
+  }
+
+  const formatter = new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+
+  const parts = formatter.formatToParts(value);
+  const day = parts.find((part) => part.type === "day")?.value ?? "";
+  const monthRaw = parts.find((part) => part.type === "month")?.value ?? "";
+  const year = parts.find((part) => part.type === "year")?.value ?? "";
+
+  const normalizedMonth = monthRaw
+    ? monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1)
+    : monthRaw;
+
+  return [day, normalizedMonth, year].filter(Boolean).join(" ");
+};
+
+const createInitialRecords = (): ExerciseRecord[] =>
+  CURVE_OPTIONS.map((option) => ({
+    curveType: option.value,
+    label: option.label,
+    value: null,
+    date: null,
+  }));
 
 const removeDiacritics = (value: string) =>
   value.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -593,6 +640,8 @@ export default function DashboardExerciseBlock({
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [rawSessions, setRawSessions] = useState<RawSession[]>([]);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
+  const [records, setRecords] = useState<ExerciseRecord[]>(() => createInitialRecords());
+  const [currentRecordIndex, setCurrentRecordIndex] = useState(0);
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false);
   const [selectedGoalType, setSelectedGoalType] = useState<string>("");
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
@@ -778,6 +827,8 @@ export default function DashboardExerciseBlock({
   useEffect(() => {
     if (!rawSessions.length) {
       setChartData([]);
+      setRecords(createInitialRecords());
+      setCurrentRecordIndex(0);
       return;
     }
 
@@ -811,7 +862,73 @@ export default function DashboardExerciseBlock({
       .filter((point): point is ChartPoint => point !== null);
 
     setChartData(computedChartData);
+
+    const bestRecordsMap = CURVE_OPTIONS.reduce(
+      (acc, option) => {
+        acc[option.value] = {
+          curveType: option.value,
+          label: option.label,
+          value: null,
+          date: null,
+        } satisfies ExerciseRecord;
+        return acc;
+      },
+      {} as Record<CurveOptionValue, ExerciseRecord>,
+    );
+
+    sortedSessions.forEach((session) => {
+      const parsedDate = new Date(session.performedAt);
+      const hasValidDate = !Number.isNaN(parsedDate.getTime());
+      const metrics = aggregateSessionMetrics(session);
+
+      CURVE_OPTIONS.forEach(({ value }) => {
+        const rawMetricValue = getValueForCurve(metrics, value);
+        if (rawMetricValue == null || !Number.isFinite(rawMetricValue)) {
+          return;
+        }
+
+        const roundedMetricValue = roundValue(rawMetricValue);
+        const currentRecord = bestRecordsMap[value];
+        if (currentRecord.value === null || roundedMetricValue > currentRecord.value) {
+          bestRecordsMap[value] = {
+            ...currentRecord,
+            value: roundedMetricValue,
+            date: hasValidDate ? parsedDate : currentRecord.date,
+          } satisfies ExerciseRecord;
+        }
+      });
+    });
+
+    const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
+    setRecords(computedRecords);
+    setCurrentRecordIndex((prev) =>
+      computedRecords.length ? Math.min(prev, computedRecords.length - 1) : 0,
+    );
   }, [curveType, currentUnit, rawSessions]);
+
+  const currentRecord = records[currentRecordIndex] ?? null;
+  const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
+  const hasRecordValue = typeof currentRecord?.value === "number";
+  const formattedRecordValue = hasRecordValue
+    ? currentRecord.value.toLocaleString("fr-FR", {
+        maximumFractionDigits: currentRecord.value % 1 === 0 ? 0 : 2,
+      })
+    : "--";
+  const recordDateLabel = currentRecord ? formatRecordDate(currentRecord.date) : "Aucune donnée";
+  const recordTypeLabel = currentRecord?.label ?? "";
+
+  const handleRecordNavigation = (direction: "prev" | "next") => {
+    setCurrentRecordIndex((prevIndex) => {
+      const total = records.length;
+      if (!total) {
+        return 0;
+      }
+      if (direction === "next") {
+        return (prevIndex + 1) % total;
+      }
+      return (prevIndex - 1 + total) % total;
+    });
+  };
 
   return (
     <div className="w-full bg-white border border-[#D7D4DC] rounded-[8px] overflow-hidden">
@@ -844,10 +961,60 @@ export default function DashboardExerciseBlock({
       <div className="flex flex-col md:flex-row gap-[20px] md:gap-[30px] px-[30px] py-[25px]">
         {/* Bloc gauche */}
         <div className="flex flex-col gap-[30px] justify-center h-full md:w-[430px] flex-shrink-0">
-          <div className="flex flex-col justify-center h-[90px] w-full">
-            <p className="text-[40px] font-bold text-[#2E3271] leading-none">25 kg</p>
-            <p className="text-[#3A416F] font-bold text-[14px] mt-2">Record personnel</p>
-            <p className="text-[#C2BFC6] font-semibold text-[12px] mt-1">01 Février 2026</p>
+          <div className="flex flex-col justify-center h-[120px] w-full">
+            <p className="text-[12px] font-bold text-[#D7D4DC] uppercase">VOS RECORDS SUR CET EXERCICE</p>
+            <div className="mt-3 flex items-center gap-[20px]">
+              <button
+                type="button"
+                aria-label="Voir le record précédent"
+                className="group flex h-[34px] w-[34px] items-center justify-center"
+                onClick={() => handleRecordNavigation("prev")}
+              >
+                <Image
+                  src="/icons/big_arrow_left.svg"
+                  alt="Précédent"
+                  width={34}
+                  height={34}
+                  className="block group-hover:hidden"
+                />
+                <Image
+                  src="/icons/big_arrow_left_hover.svg"
+                  alt="Précédent"
+                  width={34}
+                  height={34}
+                  className="hidden group-hover:block"
+                />
+              </button>
+              <div className="flex flex-1 flex-col items-center text-center">
+                <div className="flex items-baseline gap-2">
+                  <p className="text-[40px] font-bold text-[#3A416F] leading-none">{formattedRecordValue}</p>
+                  <span className="text-[20px] font-bold text-[#3A416F] leading-none">{recordUnitLabel}</span>
+                </div>
+                <p className="text-[#3A416F] font-bold text-[14px] mt-2">{recordTypeLabel}</p>
+                <p className="text-[#C2BFC6] font-semibold text-[12px] mt-1">{recordDateLabel}</p>
+              </div>
+              <button
+                type="button"
+                aria-label="Voir le record suivant"
+                className="group flex h-[34px] w-[34px] items-center justify-center"
+                onClick={() => handleRecordNavigation("next")}
+              >
+                <Image
+                  src="/icons/big_arrow_right.svg"
+                  alt="Suivant"
+                  width={34}
+                  height={34}
+                  className="block group-hover:hidden"
+                />
+                <Image
+                  src="/icons/big_arrow_right_hover.svg"
+                  alt="Suivant"
+                  width={34}
+                  height={34}
+                  className="hidden group-hover:block"
+                />
+              </button>
+            </div>
           </div>
 
           {/* Objectif */}
