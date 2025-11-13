@@ -39,7 +39,14 @@ export default function ShopCard({ offer }: Props) {
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [showPremiumModal, setShowPremiumModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
-  const [countdown, setCountdown] = useState("");
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
+    if (!offer.end_date || !offer.end_date.includes("-")) {
+      return null;
+    }
+
+    const parsedEndDate = new Date(offer.end_date).getTime();
+    return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
+  });
   const { user, isPremiumUser } = useUser() || {};
   const isAuthenticated = !!user;
 
@@ -82,24 +89,44 @@ export default function ShopCard({ offer }: Props) {
     return date.toLocaleDateString("fr-FR");
   };
 
-  useEffect(() => {
-    const updateCountdown = () => {
-      const now = new Date().getTime();
-      const end = new Date(offer.end_date).getTime();
-      const diff = end - now;
+  const formatCountdown = (ms: number) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${hours}h ${pad(minutes)}m ${pad(seconds)}s`;
+  };
 
-      if (diff > 0 && diff < 24 * 60 * 60 * 1000) {
-        const hours = Math.floor(diff / (1000 * 60 * 60));
-        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-        const pad = (n: number) => String(n).padStart(2, "0");
-        setCountdown(`${hours}h ${pad(minutes)}m ${pad(seconds)}s`);
+  useEffect(() => {
+    if (!offer.end_date || !offer.end_date.includes("-")) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const end = new Date(offer.end_date).getTime();
+    if (Number.isNaN(end)) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const updateCountdown = () => {
+      const diff = end - Date.now();
+      setTimeRemaining(Math.max(diff, 0));
+      if (diff <= 0 && interval) {
+        clearInterval(interval);
       }
     };
 
-    const interval = setInterval(updateCountdown, 1000);
     updateCountdown();
-    return () => clearInterval(interval);
+    interval = setInterval(updateCountdown, 1000);
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
   }, [offer.end_date]);
 
   return (
@@ -222,17 +249,38 @@ export default function ShopCard({ offer }: Props) {
             );
           }
 
-          const now = new Date().getTime();
           const end = new Date(offer.end_date).getTime();
-          const diffMs = end - now;
-          const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+          if (Number.isNaN(end)) {
+            return (
+              <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
+                <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
+                Date d&apos;expiration invalide
+              </div>
+            );
+          }
 
-          if (diffMs < 24 * 60 * 60 * 1000) {
+          const diffMs =
+            typeof timeRemaining === "number" ? timeRemaining : end - Date.now();
+          const dayMs = 24 * 60 * 60 * 1000;
+          const diffDays = Math.ceil(diffMs / dayMs);
+
+          if (diffMs <= 0) {
+            return (
+              <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
+                <Image src="/icons/check_offer_cross.svg" alt="expired" width={20} height={20} />
+                Offre expirée
+              </div>
+            );
+          }
+
+          if (diffMs < dayMs) {
             return (
               <div className="text-[14px] font-semibold mb-[10px] text-left flex items-center gap-1 text-[#5D6494]">
                 <Image src="/icons/check_end_very_soon.svg" alt="ending very soon" width={20} height={20} />
                 L’offre expire dans :
-                <span className="ml-auto text-[#EF4F4E] font-bold">{countdown}</span>
+                <span className="ml-auto text-[#EF4F4E] font-bold">
+                  {formatCountdown(diffMs)}
+                </span>
               </div>
             );
           }
