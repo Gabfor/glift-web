@@ -15,6 +15,7 @@ import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import { isWithinGracePeriod } from "@/lib/auth/gracePeriod";
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -137,6 +138,55 @@ export default function ConnexionPage() {
       });
 
       if (!error) {
+        let hasExpiredGracePeriod = false;
+
+        if (data?.user?.id) {
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from("profiles")
+              .select("email_verified, grace_expires_at")
+              .eq("id", data.user.id)
+              .maybeSingle();
+
+            if (profileError && profileError.code !== "PGRST116") {
+              console.error(
+                "Erreur lors du chargement du profil pour le contrôle de la période de grâce",
+                profileError,
+              );
+            }
+
+            const isProfileEmailVerified = profileData
+              ? Boolean(profileData.email_verified)
+              : Boolean(data.user.email_confirmed_at);
+
+            if (
+              !isProfileEmailVerified &&
+              !isWithinGracePeriod(
+                data.user.created_at ?? null,
+                profileData?.grace_expires_at ?? null,
+              )
+            ) {
+              hasExpiredGracePeriod = true;
+            }
+          } catch (profileLookupError) {
+            console.error(
+              "Erreur inattendue lors du contrôle de la période de grâce",
+              profileLookupError,
+            );
+          }
+        }
+
+        if (hasExpiredGracePeriod) {
+          await supabase.auth.signOut();
+          setError({
+            type: "email-not-confirmed",
+            title: "Email non vérifiée",
+            description:
+              "Le délai de 72 heures pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer.",
+          });
+          return;
+        }
+
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
