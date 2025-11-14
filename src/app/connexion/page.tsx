@@ -180,9 +180,9 @@ export default function ConnexionPage() {
           await supabase.auth.signOut();
           setError({
             type: "email-not-confirmed",
-            title: "Email non vérifiée",
+            title: "Email non vérifié",
             description:
-              "Le délai de 72 heures pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer.",
+              "Le délai de 72 heures pour valider votre email est écoulé et ce compte sera bientôt supprimé. Vous pouvez nous contacter si vous pensez que c'est une erreur.",
           });
           return;
         }
@@ -229,15 +229,15 @@ export default function ConnexionPage() {
             return;
           }
 
-          const description =
-            result.code === "grace_period_expired"
-              ? "Le délai de 72 heures pour utiliser votre compte sans validation d'email est écoulé. Merci de confirmer votre adresse pour continuer."
-              : result.error ??
-                "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.";
+          const isGracePeriodExpired = result.code === "grace_period_expired";
+          const description = isGracePeriodExpired
+            ? "Le délai de 72 heures pour valider votre email est écoulé et ce compte sera bientôt supprimé. Vous pouvez nous contacter si vous pensez que c'est une erreur."
+            : result.error ??
+              "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.";
 
           setError({
             type: "email-not-confirmed",
-            title: "Email non vérifiée",
+            title: isGracePeriodExpired ? "Email non vérifié" : "Email non vérifiée",
             description,
           });
         } catch (fallbackError) {
