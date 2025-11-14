@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import { isWithinGracePeriod } from "@/lib/auth/gracePeriod";
 import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
 import type { Database } from "@/lib/supabase/types";
 
@@ -25,22 +26,6 @@ type ProfilePreview = Pick<
   "email_verified" | "grace_expires_at"
 >;
 
-const GRACE_PERIOD_DAYS = 3;
-const GRACE_PERIOD_MS = GRACE_PERIOD_DAYS * 24 * 60 * 60 * 1000;
-
-const parseTimestamp = (value: string | null | undefined) => {
-  if (!value) {
-    return null;
-  }
-
-  const timestamp = Date.parse(value);
-
-  if (Number.isNaN(timestamp)) {
-    return null;
-  }
-
-  return timestamp;
-};
 
 const extractSessionTokens = (session: {
   access_token?: string;
@@ -54,27 +39,6 @@ const extractSessionTokens = (session: {
   }
 
   return { access_token: accessToken, refresh_token: refreshToken };
-};
-
-const isWithinGracePeriod = (
-  createdAt: string | null | undefined,
-  graceExpiresAt?: string | null,
-) => {
-  const now = Date.now();
-
-  const graceExpirationTimestamp = parseTimestamp(graceExpiresAt);
-
-  if (graceExpirationTimestamp !== null) {
-    return now <= graceExpirationTimestamp;
-  }
-
-  const createdTimestamp = parseTimestamp(createdAt);
-
-  if (createdTimestamp === null) {
-    return false;
-  }
-
-  return now - createdTimestamp <= GRACE_PERIOD_MS;
 };
 
 const fetchProfilePreview = async (
