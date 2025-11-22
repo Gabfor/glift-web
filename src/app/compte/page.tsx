@@ -84,7 +84,7 @@ export default function ComptePage() {
           Mettez à jour votre profil, modifiez vos informations ou votre abonnement.
         </p>
 
-        <div className="w-[760px] space-y-[30px]">
+        <div className="w-full max-w-[760px] space-y-[30px]">
           <Accordion type="multiple" className="space-y-[30px]" value={openSections} onValueChange={setOpenSections}>
             <MesInformationsSection user={user} />
             <MotDePasseSection />
