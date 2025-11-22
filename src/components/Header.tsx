@@ -21,6 +21,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [remainingVerificationHours, setRemainingVerificationHours] =
@@ -50,6 +51,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setDropdownOpen(false);
+        setIsMobileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -63,6 +65,38 @@ export default function Header({ disconnected = false }: HeaderProps) {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return undefined;
+    }
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", closeOnEscape);
+
+    return () => {
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [isMobileMenuOpen]);
 
   useEffect(() => {
     if (!shouldShowEmailVerificationBanner) {
@@ -137,6 +171,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
     }
 
     setDropdownOpen(false);
+    setIsMobileMenuOpen(false);
   };
 
   const remainingHoursForBanner =
@@ -160,7 +195,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
             : "bg-[var(--color-surface-primary)]"
         }`}
       >
-      <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
+      <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between px-4 md:px-0 relative">
         {/* Logo */}
         <div className="w-[147px] flex items-center">
           <Link
@@ -317,7 +352,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
         </nav>
 
         {/* User Zone */}
-        <div className="relative ml-[18px]" ref={dropdownRef}>
+        <div className="relative ml-[18px] flex items-center gap-3" ref={dropdownRef}>
             {showAuthenticatedUI ? (
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -374,6 +409,30 @@ export default function Header({ disconnected = false }: HeaderProps) {
             </div>
           )}
 
+          <button
+            type="button"
+            className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-full border border-[var(--color-surface-subtle)] bg-white text-[var(--color-text-body)] hover:text-[var(--color-text-heading)]"
+            aria-label="Ouvrir le menu"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+          >
+            <span
+              className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${
+                isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
+              }`}
+            />
+            <span
+              className={`block h-[2px] w-[18px] rounded-full bg-current my-[6px] transition-opacity duration-200 ${
+                isMobileMenuOpen ? "opacity-0" : "opacity-100"
+              }`}
+            />
+            <span
+              className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${
+                isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
+              }`}
+            />
+          </button>
+
             {dropdownOpen && showAuthenticatedUI && (
               <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[var(--shadow-card-hover)] py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
@@ -415,6 +474,144 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 </button>
             </div>
           )}
+        </div>
+      </div>
+
+      {isMobileMenuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
+      )}
+
+      <div
+        className={`md:hidden fixed top-[72px] left-0 w-full z-50 transition-transform duration-300 ${
+          isMobileMenuOpen ? "translate-y-0" : "-translate-y-[120%]"
+        }`}
+      >
+        <div className="mx-4 rounded-[12px] bg-white shadow-[var(--shadow-card-hover)] border border-[var(--color-surface-subtle)] p-5 space-y-4">
+          <nav className="flex flex-col gap-3 text-[16px] text-[var(--color-text-heading)] font-semibold">
+            {showAuthenticatedUI ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Tableau de bord
+                </Link>
+                <Link
+                  href="/entrainements"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Entraînements
+                </Link>
+                <Link
+                  href="/store"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Store
+                </Link>
+                <Link
+                  href="/shop"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Shop
+                </Link>
+                <Link
+                  href="/blog"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/aide"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Aide
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Concept
+                </Link>
+                <Link
+                  href="/apps"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Apps
+                </Link>
+                <Link
+                  href="/tarifs"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Tarifs
+                </Link>
+                <Link
+                  href="/store"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Store
+                </Link>
+                <Link
+                  href="/shop"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Shop
+                </Link>
+                <Link
+                  href="/blog"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/aide"
+                  className="hover:text-[var(--color-brand-primary)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Aide
+                </Link>
+              </>
+            )}
+          </nav>
+
+          <div className="flex flex-col gap-3">
+            {showAuthenticatedUI ? (
+              <button
+                className="flex items-center justify-between rounded-[10px] border border-[var(--color-surface-subtle)] bg-[var(--color-surface-highlight)] px-4 py-3 text-[15px] font-semibold text-[var(--color-text-heading)]"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                {userDisplayName}
+                <span className="text-[13px] text-[var(--color-text-body)]">Profil</span>
+              </button>
+            ) : (
+              <>
+                <Link
+                  href="/connexion"
+                  className="text-[var(--color-text-heading)] text-[16px] font-semibold text-center border border-[var(--color-surface-subtle)] rounded-full h-[44px] flex items-center justify-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Connexion
+                </Link>
+                <CTAButton href="/tarifs" className="w-full" disableAutoLoading>
+                  Inscription
+                </CTAButton>
+              </>
+            )}
+          </div>
         </div>
       </div>
       </header>
