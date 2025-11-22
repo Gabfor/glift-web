@@ -147,7 +147,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   return (
     <>
       {shouldShowEmailVerificationBanner && (
-        <div className="fixed top-0 left-0 w-full h-[36px] bg-[#7069FA] flex items-center justify-center px-4 text-center z-[60]">
+        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
             {verificationCountdownMessage}
           </p>
@@ -156,8 +156,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
       <header
         className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
           isSticky
-            ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
-            : "bg-[#FBFCFE]"
+            ? "bg-white shadow-[var(--shadow-card-hover)]"
+            : "bg-[var(--color-surface-primary)]"
         }`}
       >
       <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between md:px-0 relative">
@@ -178,15 +178,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
         </div>
 
         {/* Menu centré */}
-        <nav className="hidden md:flex gap-6 text-[16px] text-[#5D6494] font-semibold h-[44px] items-center absolute left-1/2 transform -translate-x-1/2">
+        <nav className="hidden md:flex gap-6 text-[16px] text-[var(--color-text-body)] font-semibold h-[44px] items-center absolute left-1/2 transform -translate-x-1/2">
           {showAuthenticatedUI ? (
             <>
               <Link
                 href="/dashboard"
                 className={
                   pathname === "/dashboard"
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Tableau de bord
@@ -195,8 +195,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/entrainements"
                 className={
                   pathname?.startsWith("/entrainements")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Entraînements
@@ -205,8 +205,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/store"
                 className={
                   pathname?.startsWith("/store")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Store
@@ -215,8 +215,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/shop"
                 className={
                   pathname?.startsWith("/shop")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Shop
@@ -225,8 +225,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/blog"
                 className={
                   pathname?.startsWith("/blog")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Blog
@@ -235,8 +235,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/aide"
                 className={
                   pathname?.startsWith("/aide")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Aide
@@ -247,7 +247,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
               <Link
                 href="/"
                 className={
-                  pathname === "/" ? "text-[#7069FA]" : "hover:text-[#3A416F]"
+                  pathname === "/" ? "text-[var(--color-brand-primary)]" : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Concept
@@ -256,8 +256,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/apps"
                 className={
                   pathname === "/apps"
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Apps
@@ -266,8 +266,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/tarifs"
                 className={
                   pathname === "/tarifs"
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Tarifs
@@ -276,8 +276,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/store"
                 className={
                   pathname?.startsWith("/store")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Store
@@ -286,8 +286,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/shop"
                 className={
                   pathname?.startsWith("/shop")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Shop
@@ -296,8 +296,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/blog"
                 className={
                   pathname?.startsWith("/blog")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Blog
@@ -306,8 +306,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 href="/aide"
                 className={
                   pathname?.startsWith("/aide")
-                    ? "text-[#7069FA]"
-                    : "hover:text-[#3A416F]"
+                    ? "text-[var(--color-brand-primary)]"
+                    : "hover:text-[var(--color-text-heading)]"
                 }
               >
                 Aide
@@ -318,16 +318,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
         {/* User Zone */}
         <div className="relative ml-[18px]" ref={dropdownRef}>
-          {showAuthenticatedUI ? (
-            <button
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
-            >
-              <div
-                className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${
-                  hasAvatar ? "bg-transparent" : "bg-[#7069FA]"
-                }`}
+            {showAuthenticatedUI ? (
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="group flex items-center gap-2 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
               >
+                <div
+                  className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${
+                    hasAvatar ? "bg-transparent" : "bg-[var(--color-brand-primary)]"
+                  }`}
+                >
                 {hasAvatar ? (
                   <Image
                     src={rawAvatarUrl}
@@ -364,7 +364,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
             <div className="flex items-center gap-4 text-sm font-medium">
               <Link
                 href="/connexion"
-                className="text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
+                className="text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
               >
                 Connexion
               </Link>
@@ -374,45 +374,45 @@ export default function Header({ disconnected = false }: HeaderProps) {
             </div>
           )}
 
-          {dropdownOpen && showAuthenticatedUI && (
-            <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
-              <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
-              <Link
-                href="/compte#mes-informations"
-                onClick={(event) =>
-                  handleAccountLinkClick(event, "mes-informations")
-                }
-                className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
-              >
-                Mes informations
-              </Link>
-              <Link
-                href="/compte#mon-abonnement"
-                onClick={(event) =>
-                  handleAccountLinkClick(event, "mon-abonnement")
-                }
-                className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
-              >
-                Mon abonnement
-              </Link>
-              <Link
-                href="/compte#mes-preferences"
-                onClick={(event) =>
-                  handleAccountLinkClick(event, "mes-preferences")
-                }
-                className="block text-[16px] text-[#5D6494] hover:text-[#3A416F] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FAFAFF]"
-              >
-                Mes préférences
-              </Link>
-              <button
-                onClick={() => {
-                  setDropdownOpen(false);
-                  router.push("/deconnexion");
-                }}
-                className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
-              >
-                Déconnexion
-              </button>
+            {dropdownOpen && showAuthenticatedUI && (
+              <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[var(--shadow-card-hover)] py-2 z-50 border border-[var(--color-surface-subtle)]">
+                <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
+                <Link
+                  href="/compte#mes-informations"
+                  onClick={(event) =>
+                    handleAccountLinkClick(event, "mes-informations")
+                  }
+                  className="block text-[16px] text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[var(--color-surface-highlight)]"
+                >
+                  Mes informations
+                </Link>
+                <Link
+                  href="/compte#mon-abonnement"
+                  onClick={(event) =>
+                    handleAccountLinkClick(event, "mon-abonnement")
+                  }
+                  className="block text-[16px] text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[var(--color-surface-highlight)]"
+                >
+                  Mon abonnement
+                </Link>
+                <Link
+                  href="/compte#mes-preferences"
+                  onClick={(event) =>
+                    handleAccountLinkClick(event, "mes-preferences")
+                  }
+                  className="block text-[16px] text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[var(--color-surface-highlight)]"
+                >
+                  Mes préférences
+                </Link>
+                <button
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    router.push("/deconnexion");
+                  }}
+                  className="block w-[158px] text-left text-[16px] text-[var(--color-accent-danger)] hover:text-[var(--color-accent-danger-hover)] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[var(--color-danger-surface)]"
+                >
+                  Déconnexion
+                </button>
             </div>
           )}
         </div>

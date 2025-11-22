@@ -1,0 +1,36 @@
+{
+  "colors": {
+    "surfacePrimary": "#FBFCFE",
+    "surfaceRaised": "#FFFFFF",
+    "surfaceMuted": "#F2F1F6",
+    "surfaceSubtle": "#ECE9F1",
+    "surfaceHighlight": "#FAFAFF",
+    "dangerSurface": "#FFF1F1",
+    "borderSoft": "#D7D4DC",
+    "borderStrong": "#DCD9E1",
+    "textStrong": "#202121",
+    "textHeading": "#3A416F",
+    "textBody": "#5D6494",
+    "brandPrimary": "#7069FA",
+    "brandPrimaryHover": "#6660E4",
+    "brandStrong": "#2E3271",
+    "brandStrongHover": "#1F224E",
+    "accentSuccess": "#00D591",
+    "accentDanger": "#EF4F4E",
+    "accentDangerHover": "#BA2524",
+    "focusRing": "#A1A5FD"
+  },
+  "radii": {
+    "sm": "5px",
+    "md": "12px",
+    "pill": "9999px"
+  },
+  "shadows": {
+    "card": "0px 3px 6px rgba(93, 100, 148, 0.15)",
+    "cardHover": "0px 5px 21px rgba(93, 100, 148, 0.15)"
+  },
+  "layout": {
+    "maxContentWidth": "1152px",
+    "buttonHeight": "44px"
+  }
+}

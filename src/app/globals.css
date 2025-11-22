@@ -12,19 +12,36 @@
 }
 
 html, body {
-  @apply bg-[#FBFCFE] text-[#202121] font-sans antialiased;
+  background-color: var(--color-surface-primary);
+  color: var(--color-text-strong);
+  @apply font-sans antialiased;
 }
 
 a {
   @apply transition-colors duration-200;
 }
 
+
 .btn-primary {
-  @apply bg-[#2E3271] text-white font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition hover:bg-[#1f224e];
+  @apply font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition;
+  background-color: var(--color-brand-strong);
+  color: #fff;
 }
 
 .btn-outline {
-  @apply border-2 border-[#2E3271] text-[#2E3271] font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition hover:bg-[#2E3271] hover:text-white;
+  @apply border-2 font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition;
+  border-color: var(--color-brand-strong);
+  color: var(--color-brand-strong);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-brand-strong-hover);
+  color: #fff;
+}
+
+.btn-outline:hover {
+  background-color: var(--color-brand-strong);
+  color: #fff;
 }
 
 .line-clamp-2 {
@@ -35,11 +52,11 @@ a {
 }
 
 .shadow-glift {
-  box-shadow: 0px 3px 6px rgba(93, 100, 148, 0.15);
+  box-shadow: var(--shadow-card);
 }
 
 .shadow-glift-hover:hover {
-  box-shadow: 0px 5px 21px rgba(93, 100, 148, 0.15);
+  box-shadow: var(--shadow-card-hover);
 }
 
 html {
@@ -70,13 +87,13 @@ body[style*="overflow: hidden"] {
 }
 
 input.training-input::placeholder {
-  color: #D7D4DC;        /* Couleur du placeholder */
+  color: var(--color-border-soft);        /* Couleur du placeholder */
   font-size: 14px;       /* Taille de la police du placeholder */
   font-weight: 600;      /* Poids de la police (font-semibold) */
 }
 
 input.training-input {
-  color: #5D6494;            /* Couleur du texte (exemple : couleur bleue foncée) */
+  color: var(--color-text-body);            /* Couleur du texte (exemple : couleur bleue foncée) */
   font-size: 14px;           /* Taille de la police du texte */
   font-weight: 600;          /* Poids de la police (font-semibold) */
 }
@@ -112,7 +129,7 @@ input[type="number"] {
 /* Centrer le texte uniquement dans le champ "Séries" */
 input.training-input-series {
   text-align: center; /* Centre le texte à l'intérieur du champ Séries */
-  color: #5D6494;            /* Couleur du texte (exemple : couleur bleue foncée) */
+  color: var(--color-text-body);            /* Couleur du texte (exemple : couleur bleue foncée) */
   font-size: 14px;           /* Taille de la police du texte */
   font-weight: 600;          /* Poids de la police (font-semibold) */
 }
@@ -176,6 +193,7 @@ body[style*="pointer-events: none"] {
   height: 0;
 }
 
+
 .slider {
   position: absolute;
   cursor: pointer;
@@ -183,16 +201,16 @@ body[style*="pointer-events: none"] {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ECE9F1;
-  border: 1px solid #DCD9E1;
+  background-color: var(--color-surface-subtle);
+  border: 1px solid var(--color-border-strong);
   transition: 0.4s;
   border-radius: 34px;
   box-sizing: border-box;
 }
 
 input:checked + .slider {
-  border-color: #7069FA;
-  background-color: #A1A5FD;
+  border-color: var(--color-brand-primary);
+  background-color: var(--color-focus-ring);
 }
 
 .slider:before {
@@ -203,7 +221,7 @@ input:checked + .slider {
   left: 2px;
   bottom: 1px;
   background-color: white;
-  border: 1px solid #ECE9F1;
+  border: 1px solid var(--color-surface-subtle);
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
   transition: 0.4s;
   border-radius: 50%;
@@ -217,16 +235,31 @@ input:checked + .slider:before {
   z-index: 9999 !important;
 }
 
-.input-admin {
-  @apply h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-  border border-[#D7D4DC] hover:border-[#C2BFC6]
-  focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-  transition-all duration-150;
-}
+  .input-admin {
+    @apply h-[45px] w-full text-[16px] font-semibold px-[15px] rounded-[5px] bg-white border focus:border-transparent focus:outline-none focus:ring-2 transition-all duration-150;
+    color: var(--color-text-body);
+    border-color: var(--color-border-soft);
+    box-shadow: inset 0 0 0 1px transparent;
+    caret-color: var(--color-brand-primary);
+  }
+
+  .input-admin::placeholder {
+    color: var(--color-border-soft);
+    font-weight: 600;
+  }
+
+  .input-admin:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .input-admin:focus {
+    box-shadow: 0 0 0 2px var(--color-focus-ring);
+    border-color: transparent;
+  }
 
 .scrollable-dropdown {
   scrollbar-width: thin;
-  scrollbar-color: #D7D4DC transparent; /* gouttière claire sur Firefox */
+  scrollbar-color: var(--color-border-soft) transparent; /* gouttière claire sur Firefox */
 }
 
 /* Chrome & WebKit */
@@ -239,7 +272,7 @@ input:checked + .slider:before {
 }
 
 .scrollable-dropdown::-webkit-scrollbar-thumb {
-  background-color: #D7D4DC; /* barre grise douce */
+  background-color: var(--color-border-soft); /* barre grise douce */
   border-radius: 4px;
 }
 
@@ -252,6 +285,32 @@ input:checked + .slider:before {
 
 @layer base {
   :root {
+    --color-surface-primary: #fbfcfe;
+    --color-surface-raised: #ffffff;
+    --color-surface-muted: #f2f1f6;
+    --color-surface-subtle: #ece9f1;
+    --color-surface-highlight: #fafaff;
+    --color-danger-surface: #fff1f1;
+    --color-border-soft: #d7d4dc;
+    --color-border-strong: #dcd9e1;
+    --color-text-strong: #202121;
+    --color-text-heading: #3a416f;
+    --color-text-body: #5d6494;
+    --color-brand-primary: #7069fa;
+    --color-brand-primary-hover: #6660e4;
+    --color-brand-strong: #2e3271;
+    --color-brand-strong-hover: #1f224e;
+    --color-accent-success: #00d591;
+    --color-accent-danger: #ef4f4e;
+    --color-accent-danger-hover: #ba2524;
+    --color-focus-ring: #a1a5fd;
+    --shadow-card: 0px 3px 6px rgba(93, 100, 148, 0.15);
+    --shadow-card-hover: 0px 5px 21px rgba(93, 100, 148, 0.15);
+    --radius-sm: 5px;
+    --radius-md: 12px;
+    --radius-pill: 9999px;
+    --layout-max-width: 1152px;
+    --layout-button-height: 44px;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -313,6 +372,7 @@ input:checked + .slider:before {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--color-surface-primary);
+    color: var(--color-text-strong);
   }
 }

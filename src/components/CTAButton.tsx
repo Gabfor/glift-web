@@ -144,11 +144,11 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       "inline-flex items-center justify-center gap-2 h-[44px] px-[15px] rounded-full font-semibold text-[16px] whitespace-nowrap",
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
-        "bg-[#7069FA] text-white hover:bg-[#6660E4] focus-visible:ring-[#7069FA]",
+        "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]",
       resolvedVariant === "inactive" &&
-        "bg-[#F2F1F6] text-[#D7D4DC] hover:bg-[#ECE9F1] focus-visible:ring-[#D7D4DC]",
+        "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&
-        "bg-[#EF4F4E] text-white hover:bg-[#BA2524] focus-visible:ring-[#EF4F4E]",
+        "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       isDisabledOrLoading && "cursor-not-allowed opacity-100",
       className
     );
