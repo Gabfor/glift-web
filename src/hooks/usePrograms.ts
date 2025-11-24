@@ -47,11 +47,38 @@ export default function usePrograms() {
           return;
         }
 
-        let { data: programsData } = await supabase
+        let programsData;
+
+        // Try fetching with dashboard column
+        const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
           .from("programs")
-          .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
+          .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app, dashboard)`)
           .eq("user_id", user.id)
           .order("position", { ascending: true });
+
+        if (errorWithDashboard) {
+          console.warn("Failed to fetch with dashboard column, falling back to legacy query:", errorWithDashboard);
+          // Fallback: fetch without dashboard column on trainings
+          const { data: dataWithoutDashboard, error: errorWithoutDashboard } = await supabase
+            .from("programs")
+            .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
+            .eq("user_id", user.id)
+            .order("position", { ascending: true });
+
+          if (errorWithoutDashboard) {
+            console.error("Error fetching programs (fallback):", errorWithoutDashboard);
+            setPrograms([]);
+            return;
+          }
+
+          // Add default dashboard value
+          programsData = dataWithoutDashboard?.map(p => ({
+            ...p,
+            trainings: p.trainings.map((t: any) => ({ ...t, dashboard: true })) // Default to visible
+          }));
+        } else {
+          programsData = dataWithDashboard;
+        }
 
         if (!programsData || programsData.length === 0) {
           const { data: newProgram } = await supabase
@@ -71,7 +98,7 @@ export default function usePrograms() {
         const existingPrograms = (programsData || []).map((p) => ({
           ...p,
           dashboard: p.dashboard ?? true,
-          trainings: (p.trainings || []).sort((a, b) => a.position - b.position),
+          trainings: (p.trainings || []).sort((a: any, b: any) => a.position - b.position),
         }));
 
         let result = [...existingPrograms];
@@ -99,7 +126,7 @@ export default function usePrograms() {
           result = [...nonEmpty, ...emptyPrograms];
         }
 
-        setPrograms(result);
+        setPrograms(result as ProgramWithTrainings[]);
       } finally {
         setIsLoading(false);
       }
@@ -367,6 +394,7 @@ export default function usePrograms() {
             program_id: data.program_id,
             position: data.position,
             app: data.app,
+            dashboard: false,
           },
         ],
       };
@@ -685,7 +713,7 @@ export default function usePrograms() {
 
   const handleUpdateTrainingVisibility = async (
     trainingId: string,
-    updates: Partial<{ app: boolean }>
+    updates: Partial<{ app: boolean; dashboard: boolean }>
   ) => {
     const { error } = await supabase
       .from("trainings")
@@ -713,13 +741,13 @@ export default function usePrograms() {
       prev.map((program) =>
         program.id === programId
           ? {
-              ...program,
-              trainings: orderedIds
-                .map((id) =>
-                  program.trainings.find((t: typeof program.trainings[number]) => t.id === id)
-                )
-                .filter((t): t is typeof program.trainings[number] => !!t),
-            }
+            ...program,
+            trainings: orderedIds
+              .map((id) =>
+                program.trainings.find((t: typeof program.trainings[number]) => t.id === id)
+              )
+              .filter((t): t is typeof program.trainings[number] => !!t),
+          }
           : program
       )
     );
