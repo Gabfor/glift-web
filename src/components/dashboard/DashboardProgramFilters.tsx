@@ -23,6 +23,7 @@ type ProgramRow = {
 type TrainingRow = {
   id: string | number;
   name: string | null;
+  dashboard: boolean | null;
 };
 
 export interface DashboardProgramFiltersProps {
@@ -217,7 +218,7 @@ export default function DashboardProgramFilters(
 
       const { data, error } = await supabase
         .from("trainings")
-        .select("id, name")
+        .select("id, name, dashboard")
         .eq("program_id", selectedProgram)
         .order("position", { ascending: true })
         .returns<TrainingRow[]>();
@@ -240,10 +241,12 @@ export default function DashboardProgramFilters(
         }
       } else {
         const trainings = data ?? [];
-        const options = trainings.map((training) => ({
-          value: String(training.id),
-          label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
-        }));
+        const options = trainings
+          .filter((training) => training.dashboard !== false)
+          .map((training) => ({
+            value: String(training.id),
+            label: training.name?.trim() || FALLBACK_TRAINING_LABEL,
+          }));
 
         setTrainingOptions(options);
       }

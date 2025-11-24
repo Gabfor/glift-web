@@ -18,6 +18,7 @@ export interface Training {
   id: string;
   name: string;
   app: boolean;
+  dashboard: boolean;
   program_id: string;
   position: number;
 }
