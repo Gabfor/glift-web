@@ -1,26 +1,37 @@
+import { Dispatch, SetStateAction } from "react";
+
 import { Row } from "@/types/training";
 
-export function useEffortChange(rows: Row[], setRows: (rows: Row[]) => void) {
+export function useEffortChange(setRows: Dispatch<SetStateAction<Row[]>>) {
   const handleEffortChange = (rowIndex: number, subIndex: number, direction: "up" | "down") => {
-    const newRows = [...rows];
-    const currentEffort = newRows[rowIndex].effort[subIndex];
-    let newEffort = currentEffort;
+    setRows((previousRows) => {
+      const newRows = [...previousRows];
+      const currentEffort = newRows[rowIndex]?.effort[subIndex];
 
-    if (currentEffort === "trop facile" && direction === "up") return;
-    if (currentEffort === "trop dur" && direction === "down") return;
+      if (!currentEffort) return previousRows;
 
-    if (direction === "up") {
-      newEffort = currentEffort === "parfait" ? "trop facile" : "parfait";
-    }
+      let newEffort = currentEffort;
 
-    if (direction === "down") {
-      newEffort = currentEffort === "parfait" ? "trop dur" : "parfait";
-    }
+      if (currentEffort === "trop facile" && direction === "up") return previousRows;
+      if (currentEffort === "trop dur" && direction === "down") return previousRows;
 
-    if (currentEffort !== newEffort) {
-      newRows[rowIndex].effort[subIndex] = newEffort;
-      setRows([...newRows]);
-    }
+      if (direction === "up") {
+        newEffort = currentEffort === "parfait" ? "trop facile" : "parfait";
+      }
+
+      if (direction === "down") {
+        newEffort = currentEffort === "parfait" ? "trop dur" : "parfait";
+      }
+
+      if (currentEffort === newEffort) return previousRows;
+
+      newRows[rowIndex] = {
+        ...newRows[rowIndex],
+        effort: newRows[rowIndex].effort.map((value, idx) => (idx === subIndex ? newEffort : value)),
+      };
+
+      return newRows;
+    });
   };
 
   return handleEffortChange;

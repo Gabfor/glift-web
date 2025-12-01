@@ -95,7 +95,7 @@ export default function AdminEntrainementDetailPage() {
   // ✅ Custom hooks
   const { programName, setProgramName, loading: programNameLoading, handleBlur } = useProgramName(trainingId, setEditing);
   const { handleGroupSuperset } = useSuperset(rows, setRows, selectedRowIds, setSelectedRowIds, setHoveredSuperset);
-  const handleEffortChange = useEffortChange(rows, setRows);
+  const handleEffortChange = useEffortChange(setRows);
   const handleIconHover = useIconHover(rows, setRows);
   const handleCheckboxChange = useCheckboxChange(rows, setRows, setSelectedRowIds);
   const { handleIncrementSeries, handleDecrementSeries } = useSeriesChange(setRows);
