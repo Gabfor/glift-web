@@ -52,7 +52,7 @@ export default function usePrograms() {
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
           .from("programs")
-          .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app, dashboard)`)
+          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard)`)
           .eq("user_id", user.id)
           .order("position", { ascending: true });
 
@@ -74,7 +74,8 @@ export default function usePrograms() {
           // Add default dashboard value
           programsData = dataWithoutDashboard?.map(p => ({
             ...p,
-            trainings: p.trainings.map((t: any) => ({ ...t, dashboard: true })) // Default to visible
+            trainings: p.trainings.map((t: any) => ({ ...t, dashboard: true })), // Default to visible
+            app: true,
           }));
         } else {
           programsData = dataWithDashboard;
@@ -90,6 +91,7 @@ export default function usePrograms() {
             programsData = [{
               ...newProgram,
               dashboard: newProgram.dashboard ?? true,
+              app: newProgram.app ?? true,
               trainings: [],
             }];
           }
@@ -98,6 +100,7 @@ export default function usePrograms() {
         const existingPrograms = (programsData || []).map((p) => ({
           ...p,
           dashboard: p.dashboard ?? true,
+          app: p.app ?? true,
           trainings: (p.trainings || []).sort((a: any, b: any) => a.position - b.position),
         }));
 
@@ -116,6 +119,7 @@ export default function usePrograms() {
               result.push({
                 ...newProgram,
                 dashboard: newProgram.dashboard ?? true,
+                app: newProgram.app ?? true,
                 trainings: [],
               });
             }
@@ -313,6 +317,7 @@ export default function usePrograms() {
       id: result?.id ?? previousProgram.id,
       name: updatedName,
       dashboard: result?.dashboard ?? previousProgram.dashboard ?? true,
+      app: result?.app ?? previousProgram.app ?? true,
       trainings: previousProgram.trainings ?? [],
     };
 
@@ -416,6 +421,7 @@ export default function usePrograms() {
             name: newProgram.name,
             position: newProgram.position,
             dashboard: newProgram.dashboard ?? true,
+            app: newProgram.app ?? true,
             trainings: [],
           });
         }
@@ -704,6 +710,7 @@ export default function usePrograms() {
         prev.concat({
           ...newProgram,
           dashboard: newProgram.dashboard ?? true,
+          app: newProgram.app ?? true,
           trainings: [],
         })
       );

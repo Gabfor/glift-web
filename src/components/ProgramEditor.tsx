@@ -34,7 +34,7 @@ interface ProgramEditorProps {
   onMoveUp: () => void;
   onMoveDown: () => void;
   onDuplicate: () => void;
-  zIndex?: number; 
+  zIndex?: number;
   tableName: "trainings" | "trainings_admin";
   programsTableName: string;
   adminMode?: boolean;
@@ -174,6 +174,10 @@ export default function ProgramEditor({
   }, [dashboardVisible]);
 
   useEffect(() => {
+    setIsAppVisible(isVisible);
+  }, [isVisible]);
+
+  useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
       if (event.data === `refresh-${programId}` || event.data === "refresh-all-programs") {
@@ -202,9 +206,36 @@ export default function ProgramEditor({
   }, [index, name, onStartEdit, setLocalName]);
 
   // Fonction pour basculer l'icône de l'app
-  const handleAppClick = () => {
-    setIsAppVisible((prev) => !prev);
-    onToggleVisibility();  // Gérer la visibilité dans le parent
+  const handleAppClick = async () => {
+    if (
+      trainingsData.length === 0 ||
+      !programId ||
+      programId === "xxx"
+    ) {
+      return;
+    }
+
+    const newVisibility = !isAppVisible;
+    setIsAppVisible(newVisibility);
+
+    try {
+      const { error } = await supabase
+        .from(programsTableName)
+        .update({ app: newVisibility })
+        .eq("id", programId);
+
+      if (error) {
+        throw error;
+      }
+
+      onToggleVisibility?.();
+      notifyTrainingChange(programId);
+      notifyTrainingChange("all-programs");
+    } catch (error) {
+      console.warn("Update failed (likely missing column):", error);
+      setIsAppVisible(!newVisibility);
+      alert("Impossible de modifier la visibilité : assurez-vous que la colonne 'app' existe dans la table 'programs'.");
+    }
   };
 
   const handleDashboardClick = async () => {
@@ -293,8 +324,8 @@ export default function ProgramEditor({
 
   return (
     <div
-    className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-2"
-    style={{ zIndex }}
+      className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-2"
+      style={{ zIndex }}
     >
       {/* Conteneur du nom du programme centré avec z-index pour passer au-dessus de la ligne */}
       <div className="flex-1 flex justify-center items-center relative z-10">
@@ -351,113 +382,206 @@ export default function ProgramEditor({
             )}
           </div>
         ) : (
-        <div
-          className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
-          onClick={handleStartEditClick}
-        >
-          <span>{name || DEFAULT_PROGRAM_NAME}</span>
-          <Tooltip content="Editer">
-            <div
-              className="relative ml-1 w-[15px] h-[15px]"
-              onClick={handleStartEditClick}
-            >
-              <Image
-                src="/icons/edit_program.svg"
-                alt="Modifier"
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
-              />
-              <Image
-                src="/icons/edit_program_hover.svg"
-                alt="Modifier"
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
-              />
-            </div>
-          </Tooltip>
-        </div>
+          <div
+            className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
+            onClick={handleStartEditClick}
+          >
+            <span>{name || DEFAULT_PROGRAM_NAME}</span>
+            <Tooltip content="Editer">
+              <div
+                className="relative ml-1 w-[15px] h-[15px]"
+                onClick={handleStartEditClick}
+              >
+                <Image
+                  src="/icons/edit_program.svg"
+                  alt="Modifier"
+                  fill
+                  sizes="100%"
+                  className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
+                />
+                <Image
+                  src="/icons/edit_program_hover.svg"
+                  alt="Modifier"
+                  fill
+                  sizes="100%"
+                  className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
+                />
+              </div>
+            </Tooltip>
+          </div>
         )}
       </div>
 
       {/* Icônes alignées à gauche avec z-index pour passer au-dessus de la ligne */}
       {!adminMode && (
-      <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] p-2">
-        {trainingsData.length > 0 ? (
-          <>
-            <Tooltip content="Descendre">
+        <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] p-2">
+          {trainingsData.length > 0 ? (
+            <>
+              <Tooltip content="Descendre">
+                <button
+                  type="button"
+                  className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isLastActive ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={onMoveDown}
+                  disabled={isLastActive}
+                  aria-label="Descendre"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/move_down.svg"
+                      alt="Descendre"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                    />
+                    <Image
+                      src="/icons/move_down_hover.svg"
+                      alt="Descendre"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
+
+              <Tooltip content="Monter">
+                <button
+                  type="button"
+                  className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isFirst ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={onMoveUp}
+                  disabled={isFirst}
+                  aria-label="Monter"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/move_up.svg"
+                      alt="Monter"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                    />
+                    <Image
+                      src="/icons/move_up_hover.svg"
+                      alt="Monter"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
+
+              <Tooltip content="Dupliquer">
+                <button
+                  type="button"
+                  className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
+                  onClick={onDuplicate}
+                  aria-label="Dupliquer"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/duplicate.svg"
+                      alt="Dupliquer"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                    />
+                    <Image
+                      src="/icons/duplicate_hover.svg"
+                      alt="Dupliquer"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
+
+              {isNew && (
+                <span className="ml-2 text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center">
+                  NOUVEAU
+                </span>
+              )}
+            </>
+          ) : (
+            <>
               <button
                 type="button"
-                className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isLastActive ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={onMoveDown}
-                disabled={isLastActive}
-                aria-label="Descendre"
+                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label="Descendre désactivée"
               >
                 <div className="relative w-full h-full">
                   <Image
                     src="/icons/move_down.svg"
-                    alt="Descendre"
+                    alt="Descendre désactivée"
                     fill
                     sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-                  />
-                  <Image
-                    src="/icons/move_down_hover.svg"
-                    alt="Descendre"
-                    fill
-                    sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    className="absolute top-0 left-0 w-full h-full opacity-100"
                   />
                 </div>
               </button>
-            </Tooltip>
 
-            <Tooltip content="Monter">
               <button
                 type="button"
-                className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isFirst ? 'opacity-50 cursor-not-allowed' : ''}`}
-                onClick={onMoveUp}
-                disabled={isFirst}
-                aria-label="Monter"
+                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label="Monter désactivée"
               >
                 <div className="relative w-full h-full">
                   <Image
                     src="/icons/move_up.svg"
-                    alt="Monter"
+                    alt="Monter désactivée"
                     fill
                     sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-                  />
-                  <Image
-                    src="/icons/move_up_hover.svg"
-                    alt="Monter"
-                    fill
-                    sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                    className="absolute top-0 left-0 w-full h-full opacity-100"
                   />
                 </div>
               </button>
-            </Tooltip>
 
-            <Tooltip content="Dupliquer">
               <button
                 type="button"
-                className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
-                onClick={onDuplicate}
-                aria-label="Dupliquer"
+                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label="Dupliquer désactivée"
               >
                 <div className="relative w-full h-full">
                   <Image
                     src="/icons/duplicate.svg"
-                    alt="Dupliquer"
+                    alt="Dupliquer désactivée"
+                    fill
+                    sizes="100%"
+                    className="absolute top-0 left-0 w-full h-full opacity-100"
+                  />
+                </div>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Icônes alignées à droite avec z-index pour passer au-dessus de la ligne */}
+      {!adminMode && (
+        <div className="flex items-center gap-3 absolute right-0 z-10 bg-[#FBFCFE] p-2">
+          {trainingsData.length > 0 ? (
+            <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
+              <button
+                type="button"
+                className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
+                onClick={handleAppClick}
+                aria-label={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
+                    alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
                     fill
                     sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
                   />
                   <Image
-                    src="/icons/duplicate_hover.svg"
-                    alt="Dupliquer"
+                    src={isAppVisible ? "/icons/app_hover.svg" : "/icons/app_hidden_hover.svg"}
+                    alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
                     fill
                     sizes="100%"
                     className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
@@ -465,229 +589,135 @@ export default function ProgramEditor({
                 </div>
               </button>
             </Tooltip>
-
-            {isNew && (
-              <span className="ml-2 text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center">
-                NOUVEAU
-              </span>
-            )}
-          </>
-        ) : (
-          <>
+          ) : (
             <button
               type="button"
               className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
               disabled
-              aria-label="Descendre désactivée"
+              aria-label={isAppVisible ? "Masquer" : "Afficher"}
             >
               <div className="relative w-full h-full">
                 <Image
-                  src="/icons/move_down.svg"
-                  alt="Descendre désactivée"
+                  src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
+                  alt={isAppVisible ? "Masquer" : "Afficher"}
                   fill
                   sizes="100%"
                   className="absolute top-0 left-0 w-full h-full opacity-100"
                 />
               </div>
             </button>
-
-            <button
-              type="button"
-              className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-              disabled
-              aria-label="Monter désactivée"
-            >
-              <div className="relative w-full h-full">
-                <Image
-                  src="/icons/move_up.svg"
-                  alt="Monter désactivée"
-                  fill
-                  sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-100"
-                />
-              </div>
-            </button>
-
-            <button
-              type="button"
-              className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-              disabled
-              aria-label="Dupliquer désactivée"
-            >
-              <div className="relative w-full h-full">
-                <Image
-                  src="/icons/duplicate.svg"
-                  alt="Dupliquer désactivée"
-                  fill
-                  sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-100"
-                />
-              </div>
-            </button>
-          </>
-        )}
-      </div>
-      )}
-
-      {/* Icônes alignées à droite avec z-index pour passer au-dessus de la ligne */}
-      {!adminMode && (
-      <div className="flex items-center gap-3 absolute right-0 z-10 bg-[#FBFCFE] p-2">
-      {trainingsData.length > 0 ? (
-        <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
-          <button
-            type="button"
-            className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
-            onClick={handleAppClick}
-            aria-label={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-          >
-            <div className="relative w-full h-full">
-              <Image
-                src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
-                alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-              />
-              <Image
-                src={isAppVisible ? "/icons/app_hover.svg" : "/icons/app_hidden_hover.svg"}
-                alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
-              />
-            </div>
-          </button>
-        </Tooltip>
-      ) : (
-        <button
-          type="button"
-          className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-          disabled
-          aria-label={isAppVisible ? "Masquer" : "Afficher"}
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
-              alt={isAppVisible ? "Masquer" : "Afficher"}
-              fill
-              sizes="100%"
-              className="absolute top-0 left-0 w-full h-full opacity-100"
-            />
-          </div>
-        </button>
-      )}
-      {trainingsData.length > 0 ? (
-        <Tooltip
-          content={
-            isDashboardVisible
-              ? "Masquer dans le tableau de bord"
-              : "Afficher dans le tableau de bord"
-          }
-        >
-          <button
-            type="button"
-            className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${
-              isUpdatingDashboardVisibility ? "cursor-not-allowed opacity-50" : ""
-            }`}
-            onClick={handleDashboardClick}
-            aria-label={
-              isDashboardVisible
-                ? "Masquer dans le tableau de bord"
-                : "Afficher dans le tableau de bord"
-            }
-            disabled={isUpdatingDashboardVisibility}
-          >
-            <div className="relative w-full h-full">
-              <Image
-                src={
-                  isDashboardVisible
-                    ? "/icons/dashboard.svg"
-                    : "/icons/dashboard_hidden.svg"
-                }
-                alt={
-                  isDashboardVisible
-                    ? "Masquer dans le tableau de bord"
-                    : "Afficher dans le tableau de bord"
-                }
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
-              />
-              <Image
-                src={
-                  isDashboardVisible
-                    ? "/icons/dashboard_hover.svg"
-                    : "/icons/dashboard_hidden_hover.svg"
-                }
-                alt={
-                  isDashboardVisible
-                    ? "Masquer dans le tableau de bord"
-                    : "Afficher dans le tableau de bord"
-                }
-                fill
-                sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
-              />
-            </div>
-          </button>
-        </Tooltip>
-      ) : (
-        <button
-          type="button"
-          className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-          disabled
-          aria-label={
-            isDashboardVisible
-              ? "Masquer dans le tableau de bord"
-              : "Afficher dans le tableau de bord"
-          }
-        >
-          <div className="relative w-full h-full">
-            <Image
-              src={
-                isDashboardVisible
-                  ? "/icons/dashboard.svg"
-                  : "/icons/dashboard_hidden.svg"
-              }
-              alt={
+          )}
+          {trainingsData.length > 0 ? (
+            <Tooltip
+              content={
                 isDashboardVisible
                   ? "Masquer dans le tableau de bord"
                   : "Afficher dans le tableau de bord"
               }
-              fill
-              sizes="100%"
-              className="absolute top-0 left-0 w-full h-full opacity-100"
-            />
-          </div>
-        </button>
-      )}
-      {trainingsData.length > 0 ? (
-        <Tooltip content="Supprimer">
-          <button
-            type="button"
-            className="relative w-[20px] h-[20px] transition duration-300 ease-in-out"
-            onClick={() => handleDeleteClick(programId)}
-            aria-label="Supprimer"
-          >
-            <div className="relative w-full h-full">
-              <TrashIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0" />
-              <TrashHoverIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100" />
-            </div>
-          </button>
-        </Tooltip>
-      ) : (
-        <button
-          type="button"
-          className="relative w-[20px] h-[20px] opacity-50 cursor-not-allowed"
-          disabled
-          aria-label="Supprimer désactivé"
-        >
-          <div className="relative w-full h-full">
-            <TrashIcon className="absolute top-0 left-0 h-full w-full opacity-100" />
-          </div>
-        </button>
-      )}
-      </div>
+            >
+              <button
+                type="button"
+                className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isUpdatingDashboardVisibility ? "cursor-not-allowed opacity-50" : ""
+                  }`}
+                onClick={handleDashboardClick}
+                aria-label={
+                  isDashboardVisible
+                    ? "Masquer dans le tableau de bord"
+                    : "Afficher dans le tableau de bord"
+                }
+                disabled={isUpdatingDashboardVisibility}
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={
+                      isDashboardVisible
+                        ? "/icons/dashboard.svg"
+                        : "/icons/dashboard_hidden.svg"
+                    }
+                    alt={
+                      isDashboardVisible
+                        ? "Masquer dans le tableau de bord"
+                        : "Afficher dans le tableau de bord"
+                    }
+                    fill
+                    sizes="100%"
+                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+                  />
+                  <Image
+                    src={
+                      isDashboardVisible
+                        ? "/icons/dashboard_hover.svg"
+                        : "/icons/dashboard_hidden_hover.svg"
+                    }
+                    alt={
+                      isDashboardVisible
+                        ? "Masquer dans le tableau de bord"
+                        : "Afficher dans le tableau de bord"
+                    }
+                    fill
+                    sizes="100%"
+                    className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+                  />
+                </div>
+              </button>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+              disabled
+              aria-label={
+                isDashboardVisible
+                  ? "Masquer dans le tableau de bord"
+                  : "Afficher dans le tableau de bord"
+              }
+            >
+              <div className="relative w-full h-full">
+                <Image
+                  src={
+                    isDashboardVisible
+                      ? "/icons/dashboard.svg"
+                      : "/icons/dashboard_hidden.svg"
+                  }
+                  alt={
+                    isDashboardVisible
+                      ? "Masquer dans le tableau de bord"
+                      : "Afficher dans le tableau de bord"
+                  }
+                  fill
+                  sizes="100%"
+                  className="absolute top-0 left-0 w-full h-full opacity-100"
+                />
+              </div>
+            </button>
+          )}
+          {trainingsData.length > 0 ? (
+            <Tooltip content="Supprimer">
+              <button
+                type="button"
+                className="relative w-[20px] h-[20px] transition duration-300 ease-in-out"
+                onClick={() => handleDeleteClick(programId)}
+                aria-label="Supprimer"
+              >
+                <div className="relative w-full h-full">
+                  <TrashIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0" />
+                  <TrashHoverIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100" />
+                </div>
+              </button>
+            </Tooltip>
+          ) : (
+            <button
+              type="button"
+              className="relative w-[20px] h-[20px] opacity-50 cursor-not-allowed"
+              disabled
+              aria-label="Supprimer désactivé"
+            >
+              <div className="relative w-full h-full">
+                <TrashIcon className="absolute top-0 left-0 h-full w-full opacity-100" />
+              </div>
+            </button>
+          )}
+        </div>
       )}
       {/* Nouvelle div pour la ligne sous la barre, z-index 0 pour être en dessous */}
       <div className="absolute bottom-6 left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>

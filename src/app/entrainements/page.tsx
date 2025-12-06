@@ -54,7 +54,6 @@ export default function EntrainementsPage() {
   } = usePrograms();
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [visibility, setVisibility] = useState<Record<string, boolean>>({});
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
   const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
 
@@ -321,14 +320,9 @@ export default function EntrainementsPage() {
                     onStartEdit={setEditingIndex}
                     onCancel={() => setEditingIndex(null)}
                     programId={program.id}
-                    isVisible={visibility[program.id] !== false}
+                    isVisible={program.app !== false}
                     dashboardVisible={program.dashboard !== false}
-                    onToggleVisibility={() => {
-                      setVisibility((prev) => ({
-                        ...prev,
-                        [program.id]: !prev[program.id],
-                      }));
-                    }}
+                    onToggleVisibility={() => { }}
                     onDelete={() => {
                       if (programs.length <= 1) return;
                       setShowProgramDeleteModal(true);
