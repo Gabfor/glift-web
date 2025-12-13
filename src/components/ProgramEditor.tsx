@@ -617,7 +617,7 @@ export default function ProgramEditor({
             >
               <button
                 type="button"
-                className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isUpdatingDashboardVisibility ? "cursor-not-allowed opacity-50" : ""
+                className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${isUpdatingDashboardVisibility ? "opacity-50" : ""
                   }`}
                 onClick={handleDashboardClick}
                 aria-label={
