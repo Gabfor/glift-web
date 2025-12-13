@@ -249,14 +249,28 @@ export default function ProgramEditor({
     }
 
     const newVisibility = !isDashboardVisible;
+    const shouldDisableApp = !isDashboardVisible;
+    const previousAppVisibility = isAppVisible;
+    const previousDashboardVisibility = isDashboardVisible;
 
     setIsUpdatingDashboardVisibility(true);
     setIsDashboardVisible(newVisibility);
+    if (shouldDisableApp) {
+      setIsAppVisible(false);
+    }
 
     try {
+      const updates: { dashboard: boolean; app?: boolean } = {
+        dashboard: newVisibility,
+      };
+
+      if (shouldDisableApp) {
+        updates.app = false;
+      }
+
       const { error } = await supabase
         .from(programsTableName)
-        .update({ dashboard: newVisibility })
+        .update(updates)
         .eq("id", programId);
 
       if (error) {
@@ -271,7 +285,8 @@ export default function ProgramEditor({
         "Erreur lors de la mise à jour de la visibilité dans le tableau de bord :",
         error
       );
-      setIsDashboardVisible(!newVisibility);
+      setIsDashboardVisible(previousDashboardVisibility);
+      setIsAppVisible(previousAppVisibility);
     } finally {
       setIsUpdatingDashboardVisibility(false);
     }
