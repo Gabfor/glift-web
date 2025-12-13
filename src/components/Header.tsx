@@ -191,7 +191,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
       <header
         className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
           isSticky
-            ? "bg-white shadow-[var(--shadow-card-hover)]"
+            ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
             : "bg-[var(--color-surface-primary)]"
         }`}
       >
