@@ -11,6 +11,12 @@ type ProgramWithTrainings = Program & {
   position?: number;
 };
 
+type ProgramWithTrainingsAndFlags = ProgramWithTrainings & {
+  app?: boolean | null;
+  dashboard?: boolean | null;
+  trainings: Training[];
+};
+
 type TrainingRowRecord = {
   training_id: string;
   user_id: string;
@@ -47,7 +53,7 @@ export default function usePrograms() {
           return;
         }
 
-        let programsData;
+        let programsData: ProgramWithTrainingsAndFlags[] | null | undefined;
 
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
@@ -72,11 +78,16 @@ export default function usePrograms() {
           }
 
           // Add default dashboard value
-          programsData = dataWithoutDashboard?.map(p => ({
-            ...p,
-            trainings: p.trainings.map((t: any) => ({ ...t, dashboard: true })), // Default to visible
-            app: true,
-          }));
+          programsData = dataWithoutDashboard?.map(
+            (program): ProgramWithTrainingsAndFlags => ({
+              ...program,
+              trainings: (program.trainings || []).map((training) => ({
+                ...training,
+                dashboard: true,
+              })), // Default to visible
+              app: true,
+            }),
+          );
         } else {
           programsData = dataWithDashboard;
         }
@@ -97,12 +108,15 @@ export default function usePrograms() {
           }
         }
 
-        const existingPrograms = (programsData || []).map((p) => ({
-          ...p,
-          dashboard: p.dashboard ?? true,
-          app: p.app ?? true,
-          trainings: (p.trainings || []).sort((a: any, b: any) => a.position - b.position),
-        }));
+          const existingPrograms = (programsData || []).map((program) => ({
+            ...program,
+            dashboard: program.dashboard ?? true,
+            app: program.app ?? true,
+            trainings: (program.trainings || []).sort(
+              (firstTraining, secondTraining) =>
+                (firstTraining.position ?? 0) - (secondTraining.position ?? 0),
+            ),
+          }));
 
         let result = [...existingPrograms];
         const hasEmpty = result.some(p => p.trainings.length === 0);

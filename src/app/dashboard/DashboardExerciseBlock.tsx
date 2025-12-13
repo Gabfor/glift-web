@@ -53,7 +53,7 @@ type ChartPoint = {
   date: string;
   tooltipDate: string;
   unit: string;
-  value: number;
+  value: number | null;
 };
 
 type ExerciseRecord = {
@@ -228,6 +228,34 @@ const removeDiacritics = (value: string) =>
 
 const sanitizeMonthToken = (token: string) =>
   removeDiacritics(token.trim()).toLowerCase().replace(/[^a-z]/g, "");
+
+const ZERO_WIDTH_SPACE = "\u200B";
+
+const createPlaceholderChartPoint = (index: number): ChartPoint => ({
+  date: ZERO_WIDTH_SPACE.repeat(index + 1),
+  tooltipDate: "",
+  unit: "",
+  value: null,
+});
+
+const padChartData = (data: ChartPoint[], targetLength: number): ChartPoint[] => {
+  if (targetLength <= data.length || targetLength <= 0) {
+    return data;
+  }
+
+  const paddingNeeded = targetLength - data.length;
+  const leftPadding = Math.floor(paddingNeeded / 2);
+  const rightPadding = paddingNeeded - leftPadding;
+
+  const leftPlaceholders = Array.from({ length: leftPadding }, (_, index) =>
+    createPlaceholderChartPoint(index),
+  );
+  const rightPlaceholders = Array.from({ length: rightPadding }, (_, index) =>
+    createPlaceholderChartPoint(leftPadding + index),
+  );
+
+  return [...leftPlaceholders, ...data, ...rightPlaceholders];
+};
 
 const MONTH_LABEL_MAP: Record<string, number> = {
   jan: 1,
@@ -495,14 +523,18 @@ const DashboardExerciseDot = ({
 const renderDashboardExerciseDot = (radius: number) => {
   const RenderDashboardExerciseDot = ({
     key: dotKey,
+    value,
     ...restDotProps
   }: RechartsDotRenderProps) => (
-    <DashboardExerciseDot
-      key={dotKey}
-      {...restDotProps}
-      interactionRadius={CHART_DOT_INTERACTION_RADIUS}
-      radius={radius}
-    />
+    typeof value === "number" && Number.isFinite(value) ? (
+      <DashboardExerciseDot
+        key={dotKey}
+        {...restDotProps}
+        value={value}
+        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
+        radius={radius}
+      />
+    ) : null
   );
 
   return RenderDashboardExerciseDot;
@@ -934,7 +966,16 @@ export default function DashboardExerciseBlock({
       })
       .filter((point): point is ChartPoint => point !== null);
 
-    setChartData(computedChartData);
+    const sessionLimit = parseSessionCount(sessionCount);
+    const paddedChartData =
+      computedChartData.length === 0
+        ? []
+        : padChartData(
+            computedChartData,
+            sessionLimit > 0 ? sessionLimit : computedChartData.length,
+          );
+
+    setChartData(paddedChartData);
 
     const bestRecordsMap = CURVE_OPTIONS.reduce(
       (acc, option) => {
@@ -975,7 +1016,7 @@ export default function DashboardExerciseBlock({
 
     const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
-  }, [curveType, currentUnit, rawSessions]);
+    }, [curveType, currentUnit, rawSessions, sessionCount]);
 
   useEffect(() => {
     if (!records.length) {
@@ -1227,6 +1268,7 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
+                    connectNulls
                     dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
                     activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
                   />
