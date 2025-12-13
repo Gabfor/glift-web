@@ -526,15 +526,24 @@ const renderDashboardExerciseDot = (radius: number) => {
     value,
     ...restDotProps
   }: RechartsDotRenderProps) => (
-    typeof value === "number" && Number.isFinite(value) ? (
-      <DashboardExerciseDot
-        key={dotKey}
-        {...restDotProps}
-        value={value}
-        interactionRadius={CHART_DOT_INTERACTION_RADIUS}
-        radius={radius}
-      />
-    ) : null
+    (() => {
+      const numericValue =
+        typeof value === "number"
+          ? value
+          : typeof value === "string"
+            ? Number.parseFloat(value)
+            : null;
+
+      return Number.isFinite(numericValue) ? (
+        <DashboardExerciseDot
+          key={dotKey}
+          {...restDotProps}
+        value={numericValue ?? undefined}
+          interactionRadius={CHART_DOT_INTERACTION_RADIUS}
+          radius={radius}
+        />
+      ) : null;
+    })()
   );
 
   return RenderDashboardExerciseDot;
