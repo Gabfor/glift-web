@@ -47,7 +47,11 @@ export default function usePrograms() {
           return;
         }
 
-        let programsData;
+        type TrainingWithOptionalDashboard = Omit<Training, "dashboard"> & {
+          dashboard?: boolean;
+        };
+
+        let programsData: ProgramWithTrainings[] | null | undefined;
 
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
@@ -72,9 +76,14 @@ export default function usePrograms() {
           }
 
           // Add default dashboard value
-          programsData = dataWithoutDashboard?.map(p => ({
-            ...p,
-            trainings: p.trainings.map((t: any) => ({ ...t, dashboard: true })) // Default to visible
+          programsData = dataWithoutDashboard?.map((program) => ({
+            ...program,
+            trainings: program.trainings.map(
+              (training: TrainingWithOptionalDashboard) => ({
+                ...training,
+                dashboard: training.dashboard ?? true,
+              })
+            ), // Default to visible
           }));
         } else {
           programsData = dataWithDashboard;
@@ -95,10 +104,15 @@ export default function usePrograms() {
           }
         }
 
-        const existingPrograms = (programsData || []).map((p) => ({
-          ...p,
-          dashboard: p.dashboard ?? true,
-          trainings: (p.trainings || []).sort((a: any, b: any) => a.position - b.position),
+        const existingPrograms = (programsData || []).map((program) => ({
+          ...program,
+          dashboard: program.dashboard ?? true,
+          trainings: (program.trainings || [])
+            .map((training) => ({
+              ...training,
+              dashboard: training.dashboard ?? true,
+            }))
+            .sort((a: Training, b: Training) => a.position - b.position),
         }));
 
         let result = [...existingPrograms];

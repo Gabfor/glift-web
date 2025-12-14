@@ -37,7 +37,7 @@ export default function ConnexionPage() {
   const [loading, setLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showTransitionLoader, setShowTransitionLoader] = useState(false);
-  const showLoader = useMinimumVisibility(showTransitionLoader);
+  const showLoader = useMinimumVisibility(showTransitionLoader || loading);
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -276,7 +276,11 @@ export default function ConnexionPage() {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-      {showLoader ? <GliftLoader onShow={handleTransitionLoaderShow} /> : null}
+      {showLoader ? (
+        <GliftLoader
+          onShow={showTransitionLoader ? handleTransitionLoaderShow : undefined}
+        />
+      ) : null}
       <div className="w-full max-w-[564px] flex flex-col items-center">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
           Connexion
