@@ -189,252 +189,246 @@ export default function Header({ disconnected = false }: HeaderProps) {
         </div>
       )}
       <header
-        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${
-          isSticky
+        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${isSticky
             ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
             : "bg-[var(--color-surface-primary)]"
-        }`}
+          }`}
       >
-      <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between px-4 md:px-0 relative">
-        {/* Logo */}
-        <div className="w-[147px] flex items-center">
-          <Link
-            href={showAuthenticatedUI ? "/dashboard" : "/"}
-            className="flex items-center"
-          >
-            <Image
-              src="/logo_beta.svg"
-              alt="Logo Glift"
-              width={147}
-              height={35}
-              priority
-            />
-          </Link>
-        </div>
+        <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between px-4 md:px-0 relative">
+          {/* Logo */}
+          <div className="w-[147px] flex items-center">
+            <Link
+              href={showAuthenticatedUI ? "/dashboard" : "/"}
+              className="flex items-center"
+            >
+              <Image
+                src="/logo_beta.svg"
+                alt="Logo Glift"
+                width={147}
+                height={35}
+                priority
+              />
+            </Link>
+          </div>
 
-        {/* Menu centré */}
-        <nav className="hidden md:flex gap-6 text-[16px] text-[var(--color-text-body)] font-semibold h-[44px] items-center absolute left-1/2 transform -translate-x-1/2">
-          {showAuthenticatedUI ? (
-            <>
-              <Link
-                href="/dashboard"
-                className={
-                  pathname === "/dashboard"
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Tableau de bord
-              </Link>
-              <Link
-                href="/entrainements"
-                className={
-                  pathname?.startsWith("/entrainements")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Entraînements
-              </Link>
-              <Link
-                href="/store"
-                className={
-                  pathname?.startsWith("/store")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Store
-              </Link>
-              <Link
-                href="/shop"
-                className={
-                  pathname?.startsWith("/shop")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Shop
-              </Link>
-              <Link
-                href="/blog"
-                className={
-                  pathname?.startsWith("/blog")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Blog
-              </Link>
-              <Link
-                href="/aide"
-                className={
-                  pathname?.startsWith("/aide")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Aide
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/"
-                className={
-                  pathname === "/" ? "text-[var(--color-brand-primary)]" : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Concept
-              </Link>
-              <Link
-                href="/apps"
-                className={
-                  pathname === "/apps"
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Apps
-              </Link>
-              <Link
-                href="/tarifs"
-                className={
-                  pathname === "/tarifs"
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Tarifs
-              </Link>
-              <Link
-                href="/store"
-                className={
-                  pathname?.startsWith("/store")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Store
-              </Link>
-              <Link
-                href="/shop"
-                className={
-                  pathname?.startsWith("/shop")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Shop
-              </Link>
-              <Link
-                href="/blog"
-                className={
-                  pathname?.startsWith("/blog")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Blog
-              </Link>
-              <Link
-                href="/aide"
-                className={
-                  pathname?.startsWith("/aide")
-                    ? "text-[var(--color-brand-primary)]"
-                    : "hover:text-[var(--color-text-heading)]"
-                }
-              >
-                Aide
-              </Link>
-            </>
-          )}
-        </nav>
+          {/* Menu centré */}
+          <nav className="hidden md:flex gap-6 text-[16px] text-[var(--color-text-body)] font-semibold h-[44px] items-center absolute left-1/2 transform -translate-x-1/2">
+            {showAuthenticatedUI ? (
+              <>
+                <Link
+                  href="/dashboard"
+                  className={
+                    pathname === "/dashboard"
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Tableau de bord
+                </Link>
+                <Link
+                  href="/entrainements"
+                  className={
+                    pathname?.startsWith("/entrainements")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Entraînements
+                </Link>
+                <Link
+                  href="/store"
+                  className={
+                    pathname?.startsWith("/store")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Store
+                </Link>
+                <Link
+                  href="/shop"
+                  className={
+                    pathname?.startsWith("/shop")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Shop
+                </Link>
+                <Link
+                  href="/blog"
+                  className={
+                    pathname?.startsWith("/blog")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/aide"
+                  className={
+                    pathname?.startsWith("/aide")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Aide
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/"
+                  className={
+                    pathname === "/" ? "text-[var(--color-brand-primary)]" : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Concept
+                </Link>
+                <Link
+                  href="/apps"
+                  className={
+                    pathname === "/apps"
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Apps
+                </Link>
+                <Link
+                  href="/tarifs"
+                  className={
+                    pathname === "/tarifs"
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Tarifs
+                </Link>
+                <Link
+                  href="/store"
+                  className={
+                    pathname?.startsWith("/store")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Store
+                </Link>
+                <Link
+                  href="/shop"
+                  className={
+                    pathname?.startsWith("/shop")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Shop
+                </Link>
+                <Link
+                  href="/blog"
+                  className={
+                    pathname?.startsWith("/blog")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/aide"
+                  className={
+                    pathname?.startsWith("/aide")
+                      ? "text-[var(--color-brand-primary)]"
+                      : "hover:text-[var(--color-text-heading)]"
+                  }
+                >
+                  Aide
+                </Link>
+              </>
+            )}
+          </nav>
 
-        {/* User Zone */}
-        <div className="relative ml-[18px] flex items-center gap-3" ref={dropdownRef}>
+          {/* User Zone */}
+          <div className="relative ml-[18px] flex items-center gap-3" ref={dropdownRef}>
             {showAuthenticatedUI ? (
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="group flex items-center gap-2 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
               >
                 <div
-                  className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${
-                    hasAvatar ? "bg-transparent" : "bg-[var(--color-brand-primary)]"
-                  }`}
+                  className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${hasAvatar ? "bg-transparent" : "bg-[var(--color-brand-primary)]"
+                    }`}
                 >
-                {hasAvatar ? (
+                  {hasAvatar ? (
+                    <Image
+                      src={rawAvatarUrl}
+                      alt={`Avatar de ${userDisplayName}`}
+                      width={44}
+                      height={44}
+                      className="w-full h-full object-cover rounded-full border-0 outline-none"
+                    />
+                  ) : (
+                    userInitial
+                  )}
+                </div>
+                {userDisplayName}
+                <span
+                  className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
+                    }`}
+                >
                   <Image
-                    src={rawAvatarUrl}
-                    alt={`Avatar de ${userDisplayName}`}
-                    width={44}
-                    height={44}
-                    className="w-full h-full object-cover rounded-full border-0 outline-none"
+                    src="/icons/chevron_down.svg"
+                    alt="Chevron"
+                    fill
+                    className="object-contain transition-opacity duration-150 group-hover:opacity-0"
                   />
-                ) : (
-                  userInitial
-                )}
+                  <Image
+                    src="/icons/chevron_down_hover.svg"
+                    alt="Chevron hover"
+                    fill
+                    className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+                  />
+                </span>
+              </button>
+            ) : (
+              <div className="flex items-center gap-4 text-sm font-medium">
+                <Link
+                  href="/connexion"
+                  className="text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
+                >
+                  Connexion
+                </Link>
+                <CTAButton href="/tarifs" disableAutoLoading>
+                  Inscription
+                </CTAButton>
               </div>
-              {userDisplayName}
-              <span
-                className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${
-                  dropdownOpen ? "rotate-180" : ""
-                }`}
-              >
-                <Image
-                  src="/icons/chevron_down.svg"
-                  alt="Chevron"
-                  fill
-                  className="object-contain transition-opacity duration-150 group-hover:opacity-0"
-                />
-                <Image
-                  src="/icons/chevron_down_hover.svg"
-                  alt="Chevron hover"
-                  fill
-                  className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
-                />
-              </span>
-            </button>
-          ) : (
-            <div className="flex items-center gap-4 text-sm font-medium">
-              <Link
-                href="/connexion"
-                className="text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
-              >
-                Connexion
-              </Link>
-              <CTAButton href="/tarifs" disableAutoLoading>
-                Inscription
-              </CTAButton>
-            </div>
-          )}
+            )}
 
-          <button
-            type="button"
-            className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-full border border-[var(--color-surface-subtle)] bg-white text-[var(--color-text-body)] hover:text-[var(--color-text-heading)]"
-            aria-label="Ouvrir le menu"
-            aria-expanded={isMobileMenuOpen}
-            onClick={() => setIsMobileMenuOpen((current) => !current)}
-          >
-            <span
-              className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${
-                isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-[18px] rounded-full bg-current my-[6px] transition-opacity duration-200 ${
-                isMobileMenuOpen ? "opacity-0" : "opacity-100"
-              }`}
-            />
-            <span
-              className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${
-                isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
-              }`}
-            />
-          </button>
+            <button
+              type="button"
+              className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-full border border-[var(--color-surface-subtle)] bg-white text-[var(--color-text-body)] hover:text-[var(--color-text-heading)]"
+              aria-label="Ouvrir le menu"
+              aria-expanded={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen((current) => !current)}
+            >
+              <span
+                className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
+                  }`}
+              />
+              <span
+                className={`block h-[2px] w-[18px] rounded-full bg-current my-[6px] transition-opacity duration-200 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                  }`}
+              />
+              <span
+                className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
+                  }`}
+              />
+            </button>
 
             {dropdownOpen && showAuthenticatedUI && (
-              <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[var(--shadow-card-hover)] py-2 z-50 border border-[var(--color-surface-subtle)]">
+              <div className="absolute top-full right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[var(--shadow-card-hover)] py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
                 <Link
                   href="/compte#mes-informations"
@@ -472,148 +466,147 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 >
                   Déconnexion
                 </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {isMobileMenuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
-      )}
-
-      <div
-        className={`md:hidden fixed top-[72px] left-0 w-full z-50 transition-transform duration-300 ${
-          isMobileMenuOpen ? "translate-y-0" : "-translate-y-[120%]"
-        }`}
-      >
-        <div className="mx-4 rounded-[12px] bg-white shadow-[var(--shadow-card-hover)] border border-[var(--color-surface-subtle)] p-5 space-y-4">
-          <nav className="flex flex-col gap-3 text-[16px] text-[var(--color-text-heading)] font-semibold">
-            {showAuthenticatedUI ? (
-              <>
-                <Link
-                  href="/dashboard"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Tableau de bord
-                </Link>
-                <Link
-                  href="/entrainements"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Entraînements
-                </Link>
-                <Link
-                  href="/store"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Store
-                </Link>
-                <Link
-                  href="/shop"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Shop
-                </Link>
-                <Link
-                  href="/blog"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/aide"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Aide
-                </Link>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Concept
-                </Link>
-                <Link
-                  href="/apps"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Apps
-                </Link>
-                <Link
-                  href="/tarifs"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Tarifs
-                </Link>
-                <Link
-                  href="/store"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Store
-                </Link>
-                <Link
-                  href="/shop"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Shop
-                </Link>
-                <Link
-                  href="/blog"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Blog
-                </Link>
-                <Link
-                  href="/aide"
-                  className="hover:text-[var(--color-brand-primary)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Aide
-                </Link>
-              </>
-            )}
-          </nav>
-
-          <div className="flex flex-col gap-3">
-            {showAuthenticatedUI ? (
-              <button
-                className="flex items-center justify-between rounded-[10px] border border-[var(--color-surface-subtle)] bg-[var(--color-surface-highlight)] px-4 py-3 text-[15px] font-semibold text-[var(--color-text-heading)]"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                {userDisplayName}
-                <span className="text-[13px] text-[var(--color-text-body)]">Profil</span>
-              </button>
-            ) : (
-              <>
-                <Link
-                  href="/connexion"
-                  className="text-[var(--color-text-heading)] text-[16px] font-semibold text-center border border-[var(--color-surface-subtle)] rounded-full h-[44px] flex items-center justify-center"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  Connexion
-                </Link>
-                <CTAButton href="/tarifs" className="w-full" disableAutoLoading>
-                  Inscription
-                </CTAButton>
-              </>
+              </div>
             )}
           </div>
         </div>
-      </div>
+
+        {isMobileMenuOpen && (
+          <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
+        )}
+
+        <div
+          className={`md:hidden fixed top-[72px] left-0 w-full z-50 transition-transform duration-300 ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-[120%]"
+            }`}
+        >
+          <div className="mx-4 rounded-[12px] bg-white shadow-[var(--shadow-card-hover)] border border-[var(--color-surface-subtle)] p-5 space-y-4">
+            <nav className="flex flex-col gap-3 text-[16px] text-[var(--color-text-heading)] font-semibold">
+              {showAuthenticatedUI ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Tableau de bord
+                  </Link>
+                  <Link
+                    href="/entrainements"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Entraînements
+                  </Link>
+                  <Link
+                    href="/store"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Store
+                  </Link>
+                  <Link
+                    href="/shop"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Shop
+                  </Link>
+                  <Link
+                    href="/blog"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Blog
+                  </Link>
+                  <Link
+                    href="/aide"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Aide
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Concept
+                  </Link>
+                  <Link
+                    href="/apps"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Apps
+                  </Link>
+                  <Link
+                    href="/tarifs"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Tarifs
+                  </Link>
+                  <Link
+                    href="/store"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Store
+                  </Link>
+                  <Link
+                    href="/shop"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Shop
+                  </Link>
+                  <Link
+                    href="/blog"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Blog
+                  </Link>
+                  <Link
+                    href="/aide"
+                    className="hover:text-[var(--color-brand-primary)]"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Aide
+                  </Link>
+                </>
+              )}
+            </nav>
+
+            <div className="flex flex-col gap-3">
+              {showAuthenticatedUI ? (
+                <button
+                  className="flex items-center justify-between rounded-[10px] border border-[var(--color-surface-subtle)] bg-[var(--color-surface-highlight)] px-4 py-3 text-[15px] font-semibold text-[var(--color-text-heading)]"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  {userDisplayName}
+                  <span className="text-[13px] text-[var(--color-text-body)]">Profil</span>
+                </button>
+              ) : (
+                <>
+                  <Link
+                    href="/connexion"
+                    className="text-[var(--color-text-heading)] text-[16px] font-semibold text-center border border-[var(--color-surface-subtle)] rounded-full h-[44px] flex items-center justify-center"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Connexion
+                  </Link>
+                  <CTAButton href="/tarifs" className="w-full" disableAutoLoading>
+                    Inscription
+                  </CTAButton>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
     </>
   );
