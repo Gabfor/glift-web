@@ -98,6 +98,7 @@ export interface Database {
           show_effort: boolean;
           show_materiel: boolean;
           show_repos: boolean;
+          show_link: boolean;
         };
         Insert: {
           id: string;
