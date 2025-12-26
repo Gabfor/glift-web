@@ -96,6 +96,7 @@ export interface Database {
           newsletter_store: boolean;
           survey: boolean;
           show_effort: boolean;
+          show_materiel: boolean;
         };
         Insert: {
           id: string;
@@ -112,6 +113,7 @@ export interface Database {
           newsletter_store?: boolean;
           survey?: boolean;
           show_effort?: boolean;
+          show_materiel?: boolean;
         };
         Update: {
           id?: string;
@@ -128,6 +130,7 @@ export interface Database {
           newsletter_store?: boolean;
           survey?: boolean;
           show_effort?: boolean;
+          show_materiel?: boolean;
         };
         Relationships: never[];
       };

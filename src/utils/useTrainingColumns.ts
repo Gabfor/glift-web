@@ -57,23 +57,33 @@ export function useTrainingColumns(trainingId: string | undefined) {
         try {
           const visibleTogglableNames: string[] = JSON.parse(data.columns_settings);
 
-          // Fetch global preferences for show_effort
+          // Fetch global preferences for show_effort and show_materiel
           let showEffort = true;
+          let showMateriel = true;
+
           if (user?.id) {
             const { data: prefData } = await supabase
               .from('preferences')
-              .select('show_effort')
+              .select('show_effort, show_materiel')
               .eq('id', user.id)
               .maybeSingle();
 
-            if (prefData && prefData.show_effort !== undefined && prefData.show_effort !== null) {
-              showEffort = prefData.show_effort;
+            if (prefData) {
+              if (prefData.show_effort !== undefined && prefData.show_effort !== null) {
+                showEffort = prefData.show_effort;
+              }
+              if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
+                showMateriel = prefData.show_materiel;
+              }
             }
           }
 
           const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
             if (col.name === 'effort') {
               return { ...col, visible: showEffort };
+            }
+            if (col.name === 'materiel') {
+              return { ...col, visible: showMateriel };
             }
             return {
               ...col,
@@ -89,20 +99,30 @@ export function useTrainingColumns(trainingId: string | undefined) {
       } else {
         // Default case, also check preferences
         let showEffort = true;
+        let showMateriel = true;
+
         if (user?.id) {
           const { data: prefData } = await supabase
             .from('preferences')
-            .select('show_effort')
+            .select('show_effort, show_materiel')
             .eq('id', user.id)
             .maybeSingle();
 
-          if (prefData && prefData.show_effort !== undefined && prefData.show_effort !== null) {
-            showEffort = prefData.show_effort;
+          if (prefData) {
+            if (prefData.show_effort !== undefined && prefData.show_effort !== null) {
+              showEffort = prefData.show_effort;
+            }
+            if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
+              showMateriel = prefData.show_materiel;
+            }
           }
         }
         const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
           if (col.name === 'effort') {
             return { ...col, visible: showEffort };
+          }
+          if (col.name === 'materiel') {
+            return { ...col, visible: showMateriel };
           }
           return { ...col, visible: true }; // Default visible
         });
@@ -137,15 +157,26 @@ export function useTrainingColumns(trainingId: string | undefined) {
       console.error("❌ Erreur sauvegarde columns_settings:", error);
     }
 
-    // Also update global preferences if effort changed
-    // We check if 'effort' is in the visible list passed to this function
+    // Also update global preferences if effort or materiel changed
+    // We check if 'effort' or 'materiel' is in the visible list passed to this function
     const effortColumn = currentColumns.find(c => c.name === 'effort');
-    if (effortColumn && user?.id) {
-      // We always upsert/update the preference to match the current state
-      await supabase
-        .from('preferences')
-        .update({ show_effort: effortColumn.visible })
-        .eq('id', user.id);
+    const materielColumn = currentColumns.find(c => c.name === 'materiel');
+
+    if (user?.id) {
+      const updates: any = {};
+      if (effortColumn) {
+        updates.show_effort = effortColumn.visible;
+      }
+      if (materielColumn) {
+        updates.show_materiel = materielColumn.visible;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await supabase
+          .from('preferences')
+          .update(updates)
+          .eq('id', user.id);
+      }
     }
   };
 
