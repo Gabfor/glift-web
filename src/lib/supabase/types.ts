@@ -85,46 +85,49 @@ export interface Database {
           id: string;
           weight_unit: "kg" | "lb";
           curve:
-            | "maximum_weight"
-            | "average_weight"
-            | "total_weight"
-            | "maximum_rep"
-            | "average_rep"
-            | "total_rep";
+          | "maximum_weight"
+          | "average_weight"
+          | "total_weight"
+          | "maximum_rep"
+          | "average_rep"
+          | "total_rep";
           newsletter: boolean;
           newsletter_shop: boolean;
           newsletter_store: boolean;
           survey: boolean;
+          show_effort: boolean;
         };
         Insert: {
           id: string;
           weight_unit?: "kg" | "lb";
           curve?:
-            | "maximum_weight"
-            | "average_weight"
-            | "total_weight"
-            | "maximum_rep"
-            | "average_rep"
-            | "total_rep";
+          | "maximum_weight"
+          | "average_weight"
+          | "total_weight"
+          | "maximum_rep"
+          | "average_rep"
+          | "total_rep";
           newsletter?: boolean;
           newsletter_shop?: boolean;
           newsletter_store?: boolean;
           survey?: boolean;
+          show_effort?: boolean;
         };
         Update: {
           id?: string;
           weight_unit?: "kg" | "lb";
           curve?:
-            | "maximum_weight"
-            | "average_weight"
-            | "total_weight"
-            | "maximum_rep"
-            | "average_rep"
-            | "total_rep";
+          | "maximum_weight"
+          | "average_weight"
+          | "total_weight"
+          | "maximum_rep"
+          | "average_rep"
+          | "total_rep";
           newsletter?: boolean;
           newsletter_shop?: boolean;
           newsletter_store?: boolean;
           survey?: boolean;
+          show_effort?: boolean;
         };
         Relationships: never[];
       };

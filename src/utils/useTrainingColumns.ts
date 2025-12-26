@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 
 export type ColumnSetting = {
   name: string;
@@ -25,6 +26,7 @@ const TOGGLABLE_COLUMNS: ColumnSetting[] = [
 
 export function useTrainingColumns(trainingId: string | undefined) {
   const supabase = useSupabaseClient();
+  const { user } = useUser();
   const pathname = usePathname();
   const isAdmin = (pathname ?? "").includes("/admin");
   const tableName = isAdmin ? "trainings_admin" : "trainings";
@@ -55,10 +57,29 @@ export function useTrainingColumns(trainingId: string | undefined) {
         try {
           const visibleTogglableNames: string[] = JSON.parse(data.columns_settings);
 
-          const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => ({
-            ...col,
-            visible: visibleTogglableNames.includes(col.name),
-          }));
+          // Fetch global preferences for show_effort
+          let showEffort = true;
+          if (user?.id) {
+            const { data: prefData } = await supabase
+              .from('preferences')
+              .select('show_effort')
+              .eq('id', user.id)
+              .maybeSingle();
+
+            if (prefData && prefData.show_effort !== undefined && prefData.show_effort !== null) {
+              showEffort = prefData.show_effort;
+            }
+          }
+
+          const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
+            if (col.name === 'effort') {
+              return { ...col, visible: showEffort };
+            }
+            return {
+              ...col,
+              visible: visibleTogglableNames.includes(col.name),
+            };
+          });
 
           setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
         } catch (err) {
@@ -66,14 +87,33 @@ export function useTrainingColumns(trainingId: string | undefined) {
           setColumnsState([...FIXED_COLUMNS, ...TOGGLABLE_COLUMNS]);
         }
       } else {
-        setColumnsState([...FIXED_COLUMNS, ...TOGGLABLE_COLUMNS]);
+        // Default case, also check preferences
+        let showEffort = true;
+        if (user?.id) {
+          const { data: prefData } = await supabase
+            .from('preferences')
+            .select('show_effort')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (prefData && prefData.show_effort !== undefined && prefData.show_effort !== null) {
+            showEffort = prefData.show_effort;
+          }
+        }
+        const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
+          if (col.name === 'effort') {
+            return { ...col, visible: showEffort };
+          }
+          return { ...col, visible: true }; // Default visible
+        });
+        setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
       }
 
       setLoading(false);
     };
 
     fetchColumnsSettings();
-  }, [trainingId, supabase, tableName]);
+  }, [trainingId, supabase, tableName, user?.id]);
 
   const saveColumnsInSupabase = async (currentColumns: ColumnSetting[]) => {
     if (!trainingId) return;
@@ -95,6 +135,17 @@ export function useTrainingColumns(trainingId: string | undefined) {
 
     if (error) {
       console.error("❌ Erreur sauvegarde columns_settings:", error);
+    }
+
+    // Also update global preferences if effort changed
+    // We check if 'effort' is in the visible list passed to this function
+    const effortColumn = currentColumns.find(c => c.name === 'effort');
+    if (effortColumn && user?.id) {
+      // We always upsert/update the preference to match the current state
+      await supabase
+        .from('preferences')
+        .update({ show_effort: effortColumn.visible })
+        .eq('id', user.id);
     }
   };
 

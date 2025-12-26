@@ -85,12 +85,14 @@ type CommunicationKey = (typeof COMMUNICATION_FIELDS)[number]["key"]
 type PreferencesState = {
   weightUnit: WeightUnit
   defaultCurve: CurveOptionValue
+  showEffort: boolean
   communications: Record<CommunicationKey, boolean>
 }
 
 const createInitialState = (): PreferencesState => ({
   weightUnit: WEIGHT_UNIT_OPTIONS[0],
   defaultCurve: CURVE_OPTIONS[0].value,
+  showEffort: true,
   communications: COMMUNICATION_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = false
@@ -127,6 +129,7 @@ const createStateFromPreferences = (
   return {
     weightUnit: WEIGHT_UNIT_FROM_DB[row.weight_unit] ?? base.weightUnit,
     defaultCurve: CURVE_FROM_DB[row.curve] ?? base.defaultCurve,
+    showEffort: row.show_effort ?? base.showEffort,
     communications,
   }
 }
@@ -171,6 +174,7 @@ export default function PreferencesSection() {
     initialStateRef.current.defaultCurve,
   )
   const [curveTouched, setCurveTouched] = useState(false)
+  const [showEffort, setShowEffort] = useState(initialStateRef.current.showEffort)
   const [communications, setCommunications] = useState<Record<CommunicationKey, boolean>>(
     () => ({ ...initialStateRef.current.communications }),
   )
@@ -192,7 +196,7 @@ export default function PreferencesSection() {
       const { data, error } = await supabase
         .from("preferences")
         .select(
-          "id, weight_unit, curve, newsletter, newsletter_shop, newsletter_store, survey",
+          "id, weight_unit, curve, show_effort, newsletter, newsletter_shop, newsletter_store, survey",
         )
         .eq("id", user.id)
         .maybeSingle()
@@ -209,11 +213,13 @@ export default function PreferencesSection() {
       initialStateRef.current = {
         weightUnit: nextState.weightUnit,
         defaultCurve: nextState.defaultCurve,
+        showEffort: nextState.showEffort,
         communications: { ...nextState.communications },
       }
 
       setWeightUnit(nextState.weightUnit)
       setDefaultCurve(nextState.defaultCurve)
+      setShowEffort(nextState.showEffort)
       setCommunications({ ...nextState.communications })
       setWeightTouched(false)
       setCurveTouched(false)
@@ -231,6 +237,7 @@ export default function PreferencesSection() {
   const hasChanges =
     weightUnit !== initialStateRef.current.weightUnit ||
     defaultCurve !== initialStateRef.current.defaultCurve ||
+    showEffort !== initialStateRef.current.showEffort ||
     COMMUNICATION_FIELDS.some(
       (field) => communications[field.key] !== initialStateRef.current.communications[field.key],
     )
@@ -248,6 +255,7 @@ export default function PreferencesSection() {
         id: user.id,
         weight_unit: WEIGHT_UNIT_TO_DB[weightUnit],
         curve: CURVE_TO_DB[defaultCurve],
+        show_effort: showEffort,
         newsletter: communications.newsletterGlift,
         newsletter_shop: communications.shop,
         newsletter_store: communications.store,
@@ -267,6 +275,7 @@ export default function PreferencesSection() {
       initialStateRef.current = {
         weightUnit,
         defaultCurve,
+        showEffort,
         communications: { ...communications },
       }
       setWeightTouched(false)
@@ -354,6 +363,21 @@ export default function PreferencesSection() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className="flex w-[368px] justify-between items-center py-2 translate-x-[-2px]">
+              <div className="flex flex-col">
+                <span className="text-[16px] font-bold text-[#3A416F] leading-tight">Afficher la colonne Effort</span>
+                <span className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">Afficher la colonne Effort dans les tableaux d'exercices</span>
+              </div>
+              <ToggleSwitch
+                checked={showEffort}
+                onCheckedChange={(checked) => {
+                  setShowEffort(checked)
+                  setShowSuccessMessage(false)
+                }}
+                ariaLabel="Afficher ou masquer la colonne Effort"
+              />
             </div>
           </div>
         </div>
