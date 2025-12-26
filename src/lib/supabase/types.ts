@@ -97,6 +97,7 @@ export interface Database {
           survey: boolean;
           show_effort: boolean;
           show_materiel: boolean;
+          show_repos: boolean;
         };
         Insert: {
           id: string;
@@ -114,6 +115,7 @@ export interface Database {
           survey?: boolean;
           show_effort?: boolean;
           show_materiel?: boolean;
+          show_repos?: boolean;
         };
         Update: {
           id?: string;
@@ -131,6 +133,7 @@ export interface Database {
           survey?: boolean;
           show_effort?: boolean;
           show_materiel?: boolean;
+          show_repos?: boolean;
         };
         Relationships: never[];
       };

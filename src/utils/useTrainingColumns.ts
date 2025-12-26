@@ -60,11 +60,12 @@ export function useTrainingColumns(trainingId: string | undefined) {
           // Fetch global preferences for show_effort and show_materiel
           let showEffort = true;
           let showMateriel = true;
+          let showRepos = true;
 
           if (user?.id) {
             const { data: prefData } = await supabase
               .from('preferences')
-              .select('show_effort, show_materiel')
+              .select('show_effort, show_materiel, show_repos')
               .eq('id', user.id)
               .maybeSingle();
 
@@ -75,6 +76,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
               if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
                 showMateriel = prefData.show_materiel;
               }
+              if (prefData.show_repos !== undefined && prefData.show_repos !== null) {
+                showRepos = prefData.show_repos;
+              }
             }
           }
 
@@ -84,6 +88,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
             }
             if (col.name === 'materiel') {
               return { ...col, visible: showMateriel };
+            }
+            if (col.name === 'repos') {
+              return { ...col, visible: showRepos };
             }
             return {
               ...col,
@@ -100,11 +107,12 @@ export function useTrainingColumns(trainingId: string | undefined) {
         // Default case, also check preferences
         let showEffort = true;
         let showMateriel = true;
+        let showRepos = true;
 
         if (user?.id) {
           const { data: prefData } = await supabase
             .from('preferences')
-            .select('show_effort, show_materiel')
+            .select('show_effort, show_materiel, show_repos')
             .eq('id', user.id)
             .maybeSingle();
 
@@ -115,6 +123,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
             if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
               showMateriel = prefData.show_materiel;
             }
+            if (prefData.show_repos !== undefined && prefData.show_repos !== null) {
+              showRepos = prefData.show_repos;
+            }
           }
         }
         const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
@@ -123,6 +134,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
           }
           if (col.name === 'materiel') {
             return { ...col, visible: showMateriel };
+          }
+          if (col.name === 'repos') {
+            return { ...col, visible: showRepos };
           }
           return { ...col, visible: true }; // Default visible
         });
@@ -161,6 +175,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
     // We check if 'effort' or 'materiel' is in the visible list passed to this function
     const effortColumn = currentColumns.find(c => c.name === 'effort');
     const materielColumn = currentColumns.find(c => c.name === 'materiel');
+    const reposColumn = currentColumns.find(c => c.name === 'repos');
 
     if (user?.id) {
       const updates: any = {};
@@ -169,6 +184,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
       }
       if (materielColumn) {
         updates.show_materiel = materielColumn.visible;
+      }
+      if (reposColumn) {
+        updates.show_repos = reposColumn.visible;
       }
 
       if (Object.keys(updates).length > 0) {

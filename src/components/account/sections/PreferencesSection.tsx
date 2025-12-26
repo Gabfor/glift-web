@@ -87,6 +87,7 @@ type PreferencesState = {
   defaultCurve: CurveOptionValue
   showEffort: boolean
   showMateriel: boolean
+  showRepos: boolean
   communications: Record<CommunicationKey, boolean>
 }
 
@@ -95,6 +96,7 @@ const createInitialState = (): PreferencesState => ({
   defaultCurve: CURVE_OPTIONS[0].value,
   showEffort: true,
   showMateriel: true,
+  showRepos: true,
   communications: COMMUNICATION_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = false
@@ -133,6 +135,7 @@ const createStateFromPreferences = (
     defaultCurve: CURVE_FROM_DB[row.curve] ?? base.defaultCurve,
     showEffort: row.show_effort ?? base.showEffort,
     showMateriel: row.show_materiel ?? base.showMateriel,
+    showRepos: row.show_repos ?? base.showRepos,
     communications,
   }
 }
@@ -179,6 +182,7 @@ export default function PreferencesSection() {
   const [curveTouched, setCurveTouched] = useState(false)
   const [showEffort, setShowEffort] = useState(initialStateRef.current.showEffort)
   const [showMateriel, setShowMateriel] = useState(initialStateRef.current.showMateriel)
+  const [showRepos, setShowRepos] = useState(initialStateRef.current.showRepos)
   const [communications, setCommunications] = useState<Record<CommunicationKey, boolean>>(
     () => ({ ...initialStateRef.current.communications }),
   )
@@ -200,7 +204,7 @@ export default function PreferencesSection() {
       const { data, error } = await supabase
         .from("preferences")
         .select(
-          "id, weight_unit, curve, show_effort, show_materiel, newsletter, newsletter_shop, newsletter_store, survey",
+          "id, weight_unit, curve, show_effort, show_materiel, show_repos, newsletter, newsletter_shop, newsletter_store, survey",
         )
         .eq("id", user.id)
         .maybeSingle()
@@ -210,7 +214,7 @@ export default function PreferencesSection() {
       }
 
       if (error && error.code !== "PGRST116") {
-        console.error("Erreur lors du chargement des préférences", error)
+        // console.error("Erreur lors du chargement des préférences", error)
       }
 
       const nextState = createStateFromPreferences(data ?? null)
@@ -219,6 +223,7 @@ export default function PreferencesSection() {
         defaultCurve: nextState.defaultCurve,
         showEffort: nextState.showEffort,
         showMateriel: nextState.showMateriel,
+        showRepos: nextState.showRepos,
         communications: { ...nextState.communications },
       }
 
@@ -226,6 +231,7 @@ export default function PreferencesSection() {
       setDefaultCurve(nextState.defaultCurve)
       setShowEffort(nextState.showEffort)
       setShowMateriel(nextState.showMateriel)
+      setShowRepos(nextState.showRepos)
       setCommunications({ ...nextState.communications })
       setWeightTouched(false)
       setCurveTouched(false)
@@ -245,6 +251,7 @@ export default function PreferencesSection() {
     defaultCurve !== initialStateRef.current.defaultCurve ||
     showEffort !== initialStateRef.current.showEffort ||
     showMateriel !== initialStateRef.current.showMateriel ||
+    showRepos !== initialStateRef.current.showRepos ||
     COMMUNICATION_FIELDS.some(
       (field) => communications[field.key] !== initialStateRef.current.communications[field.key],
     )
@@ -264,6 +271,7 @@ export default function PreferencesSection() {
         curve: CURVE_TO_DB[defaultCurve],
         show_effort: showEffort,
         show_materiel: showMateriel,
+        show_repos: showRepos,
         newsletter: communications.newsletterGlift,
         newsletter_shop: communications.shop,
         newsletter_store: communications.store,
@@ -285,6 +293,7 @@ export default function PreferencesSection() {
         defaultCurve,
         showEffort,
         showMateriel,
+        showRepos,
         communications: { ...communications },
       }
       setWeightTouched(false)
@@ -401,6 +410,21 @@ export default function PreferencesSection() {
                   setShowSuccessMessage(false)
                 }}
                 ariaLabel="Afficher ou masquer la colonne Matériel"
+              />
+            </div>
+
+            <div className="flex w-[368px] justify-between items-center py-2 translate-x-[-2px]">
+              <div className="flex flex-col">
+                <span className="text-[16px] font-bold text-[#3A416F] leading-tight">Afficher la colonne Repos</span>
+                <span className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">Afficher la colonne Repos dans les tableaux d'exercices</span>
+              </div>
+              <ToggleSwitch
+                checked={showRepos}
+                onCheckedChange={(checked) => {
+                  setShowRepos(checked)
+                  setShowSuccessMessage(false)
+                }}
+                ariaLabel="Afficher ou masquer la colonne Repos"
               />
             </div>
           </div>
