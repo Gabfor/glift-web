@@ -75,16 +75,16 @@ export default function TrainingRow({
   const transitionTiming = "cubic-bezier(0.22, 1, 0.36, 1)";
   const transitionStyles: React.CSSProperties = isDragging
     ? {
-        transition: undefined,
-        transitionProperty: undefined,
-        transitionDuration: undefined,
-        transitionTimingFunction: undefined,
-      }
+      transition: undefined,
+      transitionProperty: undefined,
+      transitionDuration: undefined,
+      transitionTimingFunction: undefined,
+    }
     : {
-        transitionProperty: "transform",
-        transitionDuration: "360ms",
-        transitionTimingFunction: transitionTiming,
-      };
+      transitionProperty: "transform",
+      transitionDuration: "360ms",
+      transitionTimingFunction: transitionTiming,
+    };
 
   const handleDoubleClickSelect = useCallback((event: React.MouseEvent<HTMLInputElement>) => {
     event.currentTarget.select();
@@ -249,12 +249,12 @@ export default function TrainingRow({
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
-                  row.effort[subIndex] !== "parfait"
+                  isVisible("effort") && row.effort[subIndex] !== "parfait"
                     ? getEffortBgColor(row.effort[subIndex])
                     : row.checked
-                    ? "#F4F5FE"
-                    : "transparent",
-                color: getEffortTextColor(row.effort[subIndex]),
+                      ? "#F4F5FE"
+                      : "transparent",
+                color: isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "inherit",
               }}
               value={rep || ""}
               placeholder="0"
@@ -281,12 +281,12 @@ export default function TrainingRow({
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
-                  row.effort[subIndex] !== "parfait"
+                  isVisible("effort") && row.effort[subIndex] !== "parfait"
                     ? getEffortBgColor(row.effort[subIndex])
                     : row.checked
-                    ? "#F4F5FE"
-                    : "transparent",
-                color: getEffortTextColor(row.effort[subIndex]),
+                      ? "#F4F5FE"
+                      : "transparent",
+                color: isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "inherit",
               }}
               value={weight || ""}
               placeholder="0"
@@ -336,8 +336,8 @@ export default function TrainingRow({
                       eff === "trop facile"
                         ? "/icons/smiley_easy.svg"
                         : eff === "trop dur"
-                        ? "/icons/smiley_hard.svg"
-                        : "/icons/smiley_perfect.svg"
+                          ? "/icons/smiley_hard.svg"
+                          : "/icons/smiley_perfect.svg"
                     }
                     alt="Effort"
                     className="w-6 h-6"

@@ -99,6 +99,7 @@ export interface Database {
           show_materiel: boolean;
           show_repos: boolean;
           show_link: boolean;
+          show_notes: boolean;
         };
         Insert: {
           id: string;
