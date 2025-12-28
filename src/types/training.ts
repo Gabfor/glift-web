@@ -26,6 +26,7 @@ export interface Training {
 export interface Program {
   id: string;
   name: string;
+  app: boolean;
   dashboard: boolean;
   trainings: Training[];
 }

@@ -52,7 +52,7 @@ export default function usePrograms() {
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
           .from("programs")
-          .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app, dashboard)`)
+          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard)`)
           .eq("user_id", user.id)
           .order("position", { ascending: true });
 
@@ -61,7 +61,7 @@ export default function usePrograms() {
           // Fallback: fetch without dashboard column on trainings
           const { data: dataWithoutDashboard, error: errorWithoutDashboard } = await supabase
             .from("programs")
-            .select(`id, name, position, dashboard, trainings(id, name, program_id, position, app)`)
+            .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app)`)
             .eq("user_id", user.id)
             .order("position", { ascending: true });
 
@@ -90,6 +90,7 @@ export default function usePrograms() {
             programsData = [{
               ...newProgram,
               dashboard: newProgram.dashboard ?? true,
+              app: newProgram.app ?? true,
               trainings: [],
             }];
           }
@@ -116,6 +117,7 @@ export default function usePrograms() {
               result.push({
                 ...newProgram,
                 dashboard: newProgram.dashboard ?? true,
+                app: newProgram.app ?? true,
                 trainings: [],
               });
             }
@@ -416,6 +418,7 @@ export default function usePrograms() {
             name: newProgram.name,
             position: newProgram.position,
             dashboard: newProgram.dashboard ?? true,
+            app: newProgram.app ?? true,
             trainings: [],
           });
         }
@@ -704,6 +707,7 @@ export default function usePrograms() {
         prev.concat({
           ...newProgram,
           dashboard: newProgram.dashboard ?? true,
+          app: newProgram.app ?? true,
           trainings: [],
         })
       );
