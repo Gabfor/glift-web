@@ -4,11 +4,9 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
-import DownloadAuthModal from "@/components/DownloadAuthModal";
-import PremiumOnlyModal from "@/components/PremiumOnlyModal";
 import OfferCodeModal from "@/components/OfferCodeModal";
 import CTAButton from "@/components/CTAButton";
-import { useUser } from "@/context/UserContext";
+
 
 type OfferId = Database["public"]["Tables"]["offer_shop"]["Row"]["id"];
 
@@ -28,7 +26,7 @@ type Props = {
     shop_link?: string;
     shop_website?: string;
     shipping?: string;
-    premium?: boolean;
+
     modal?: string;
     condition?: string;
   };
@@ -37,8 +35,8 @@ type Props = {
 export default function ShopCard({ offer }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [showPremiumModal, setShowPremiumModal] = useState(false);
-  const [lockedHover, setLockedHover] = useState(false);
+  // const [showPremiumModal, setShowPremiumModal] = useState(false); // Removed
+  // const [lockedHover, setLockedHover] = useState(false); // Removed
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!offer.end_date || !offer.end_date.includes("-")) {
       return null;
@@ -47,22 +45,10 @@ export default function ShopCard({ offer }: Props) {
     const parsedEndDate = new Date(offer.end_date).getTime();
     return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
   });
-  const { user, isPremiumUser } = useUser() || {};
-  const isAuthenticated = !!user;
-
   const supabase = createClient();
 
   const handleClick = async () => {
-    if (offer.premium) {
-      if (!isAuthenticated) {
-        setShowModal(true);
-        return;
-      }
-      if (!isPremiumUser) {
-        setShowPremiumModal(true);
-        return;
-      }
-    }
+
 
     try {
       await supabase.rpc("increment_offer_click", { offer_id: offer.id });
@@ -131,13 +117,7 @@ export default function ShopCard({ offer }: Props) {
 
   return (
     <div className="relative w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
-      {offer.premium && (
-        <div className="absolute top-0 right-0 overflow-hidden w-[110px] h-[110px] z-10">
-          <div className="absolute bg-[#7069FA] text-white text-[14px] font-semibold uppercase rotate-45 w-[150px] text-center py-[2px] right-[-30px] top-[30px] shadow-md tracking-wider">
-            PREMIUM
-          </div>
-        </div>
-      )}
+
       <Image
         src={offer.image || "/placeholder.jpg"}
         alt={offer.image_alt || offer.name}
@@ -346,66 +326,16 @@ export default function ShopCard({ offer }: Props) {
             );
           })()}
         </div>
-          
-        {offer.premium ? (
-          !isAuthenticated ? (
-            <CTAButton
-              onClick={() => setShowModal(true)}
-              onMouseEnter={() => setLockedHover(true)}
-              onMouseLeave={() => setLockedHover(false)}
-              variant="inactive"
-              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Image
-                  src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-                  alt=""
-                  width={15}
-                  height={15}
-                />
-                Profiter de cette offre
-              </span>
-            </CTAButton>
-          ) : !isPremiumUser ? (
-            <CTAButton
-              onClick={() => setShowPremiumModal(true)}
-              onMouseEnter={() => setLockedHover(true)}
-              onMouseLeave={() => setLockedHover(false)}
-              variant="inactive"
-              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Image
-                  src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-                  alt=""
-                  width={15}
-                  height={15}
-                />
-                Profiter de cette offre
-              </span>
-            </CTAButton>
-          ) : (
-            // Authentifié + premium → bouton actif
-            <CTAButton
-              onClick={handleClick}
-              className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
-            >
-              Profiter de cette offre
-            </CTAButton>
-          )
-        ) : (
-          // Offres non premium → toujours accessibles
-          <CTAButton
-            onClick={handleClick}
-            className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
-          >
-            Profiter de cette offre
-          </CTAButton>
-        )}
+
+        <CTAButton
+          onClick={handleClick}
+          className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
+        >
+          Profiter de cette offre
+        </CTAButton>
       </div>
 
-      <DownloadAuthModal show={showModal} onClose={() => setShowModal(false)} />
-      <PremiumOnlyModal show={showPremiumModal} onClose={() => setShowPremiumModal(false)} />
+
       {showCodeModal && (
         <OfferCodeModal
           name={offer.name}

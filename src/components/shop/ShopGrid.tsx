@@ -12,23 +12,23 @@ type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
 type OfferQueryRow = Pick<
   OfferRow,
   |
-    "id"
-    | "name"
-    | "start_date"
-    | "end_date"
-    | "type"
-    | "code"
-    | "image"
-    | "image_alt"
-    | "brand_image"
-    | "brand_image_alt"
-    | "shop"
-    | "shop_website"
-    | "shop_link"
-    | "shipping"
-    | "premium"
-    | "modal"
-    | "condition"
+  "id"
+  | "name"
+  | "start_date"
+  | "end_date"
+  | "type"
+  | "code"
+  | "image"
+  | "image_alt"
+  | "brand_image"
+  | "brand_image_alt"
+  | "shop"
+  | "shop_website"
+  | "shop_link"
+  | "shipping"
+  | "premium"
+  | "modal"
+  | "condition"
 >;
 
 type OfferId = OfferRow["id"];
@@ -48,7 +48,6 @@ type Offer = {
   shop_website?: string;
   shop_link?: string;
   shipping?: string;
-  premium: boolean;
   modal?: string;
   condition?: string;
 };
@@ -87,7 +86,6 @@ const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
   shop_website: row.shop_website ?? "",
   shop_link: row.shop_link ?? "",
   shipping: row.shipping ?? "",
-  premium: Boolean(row.premium),
   modal: row.modal ?? "",
   condition: row.condition ?? "",
 });
@@ -176,7 +174,6 @@ export default function ShopGrid({
           shop_website,
           shop_link,
           shipping,
-          premium,
           modal,
           condition
         `)
