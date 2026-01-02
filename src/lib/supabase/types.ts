@@ -323,6 +323,7 @@ export interface Database {
           created_by: Nullable<string>;
           is_active: boolean;
           updated_at: Nullable<string>;
+          plan: "starter" | "premium";
         };
         Insert: {
           id?: string;
@@ -350,6 +351,7 @@ export interface Database {
           created_by?: Nullable<string>;
           is_active?: boolean;
           updated_at?: Nullable<string>;
+          plan?: "starter" | "premium";
         };
         Update: {
           id?: string;
@@ -377,6 +379,7 @@ export interface Database {
           created_by?: Nullable<string>;
           is_active?: boolean;
           updated_at?: Nullable<string>;
+          plan?: "starter" | "premium";
         };
         Relationships: never[];
       };

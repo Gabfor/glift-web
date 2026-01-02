@@ -22,7 +22,9 @@ export type ProgramFormState = {
   partner_name: string;
   status: string;
   goal: string;
+
   location: string;
+  plan: "starter" | "premium";
 };
 
 export const emptyProgram: ProgramFormState = {
@@ -43,7 +45,9 @@ export const emptyProgram: ProgramFormState = {
   partner_name: "",
   status: "ON",
   goal: "",
+
   location: "",
+  plan: "starter",
 };
 
 export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
@@ -64,7 +68,9 @@ export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
   partner_name: row.partner_name ?? "",
   status: row.status ?? "ON",
   goal: row.goal ?? "",
+
   location: row.location ?? "",
+  plan: row.plan ?? "starter",
 });
 
 export const buildProgramPayload = (
@@ -87,5 +93,7 @@ export const buildProgramPayload = (
   partner_name: form.partner_name || null,
   status: form.status,
   goal: form.goal || null,
+
   location: form.location || null,
+  plan: form.plan,
 });
