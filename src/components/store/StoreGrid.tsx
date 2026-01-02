@@ -94,6 +94,8 @@ export default function StoreGrid({
     sortBy: string;
     currentPage: number;
     filters: string[];
+    isAuthenticated: boolean;
+    subscriptionPlan: string | null;
   } | null>(null);
 
   const getOrderForSortBy = (sortBy: string) => {
@@ -134,6 +136,8 @@ export default function StoreGrid({
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
       previousQuery.currentPage !== currentPage ||
+      previousQuery.isAuthenticated !== isAuthenticated ||
+      previousQuery.subscriptionPlan !== subscriptionPlan ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
     const shouldSkipFetch =
@@ -149,6 +153,8 @@ export default function StoreGrid({
       sortBy,
       currentPage,
       filters: [...filters],
+      isAuthenticated,
+      subscriptionPlan,
     };
 
     let isActive = true;
@@ -191,7 +197,7 @@ export default function StoreGrid({
         levelFilter,
         locationFilter,
         durationFilter,
-        partnerFilter,
+        availabilityFilter,
       ] = filters;
 
       // Apply filters if active
@@ -209,7 +215,24 @@ export default function StoreGrid({
           query = query.lte("duration", maxDuration);
         }
       }
-      if (partnerFilter) query = query.eq("partner_name", partnerFilter);
+      if (availabilityFilter) {
+        if (availabilityFilter === "Oui") {
+          if (!isAuthenticated) {
+            query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+          } else if (subscriptionPlan === 'basic') {
+            query = query.eq('plan', 'starter');
+          }
+        } else if (availabilityFilter === "Non") {
+          if (isAuthenticated) {
+            if (subscriptionPlan === 'basic') {
+              query = query.eq('plan', 'premium');
+            } else {
+              // Premium user -> everything is available -> "Non" yields nothing
+              query = query.eq('id', '00000000-0000-0000-0000-000000000000');
+            }
+          }
+        }
+      }
 
       const { data, error } = await query
         .order(order.column, { ascending: order.ascending })
@@ -237,7 +260,7 @@ export default function StoreGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters]);
+  }, [sortBy, currentPage, filters, subscriptionPlan, isAuthenticated]);
 
   return (
     <>

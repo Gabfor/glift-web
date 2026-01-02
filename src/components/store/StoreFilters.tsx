@@ -120,11 +120,7 @@ const matchesFilters = (
     }
   }
 
-  if (skipIndex !== 5 && partnerFilter) {
-    if (!program.partner || program.partner.trim().toLowerCase() !== partnerFilter.trim().toLowerCase()) {
-      return false;
-    }
-  }
+
 
   return true;
 };
@@ -199,7 +195,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
       const { data, error } = await supabase
         .from("program_store")
-        .select("gender, goal, level, location, partner_name, duration")
+        .select("gender, goal, level, location, duration")
         .eq("status", "ON");
 
       if (error) {
@@ -223,97 +219,138 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     };
   }, []);
 
-  const { genderOptions, goalOptions, levelOptions, locationOptions, durationOptions, partnerOptions } =
-    useMemo(() => {
-      const genderValues = new Set<string>();
-      const goalValues = new Set<string>();
-      const levelValues = new Set<string>();
-      const locationValues = new Set<string>();
-      const partnerValues = new Set<string>();
-      const durationValues: number[] = [];
+  const {
+    genderOptions,
+    goalOptions,
+    levelOptions,
+    locationOptions,
+    durationOptions,
+    allGenderOptions,
+    allGoalOptions,
+    allLevelOptions,
+    allLocationOptions,
+    allDurationOptions,
+  } = useMemo(() => {
+    const genderValues = new Set<string>();
+    const goalValues = new Set<string>();
+    const levelValues = new Set<string>();
+    const locationValues = new Set<string>();
+    const durationValues: number[] = [];
 
-      programs.forEach((program) => {
-        if (matchesFilters(program, selectedFilters, 0) && program.gender) {
-          genderValues.add(program.gender);
-        }
+    // Global values for width calculation
+    const allGenderValues = new Set<string>();
+    const allGoalValues = new Set<string>();
+    const allLevelValues = new Set<string>();
+    const allLocationValues = new Set<string>();
+    const allDurationValues: number[] = [];
 
-        if (matchesFilters(program, selectedFilters, 1) && program.goal) {
-          goalValues.add(program.goal);
-        }
+    programs.forEach((program) => {
+      // Collect ALL possible values
+      if (program.gender) allGenderValues.add(program.gender);
+      if (program.goal) allGoalValues.add(program.goal);
+      if (program.level) allLevelValues.add(program.level);
+      if (program.location) allLocationValues.add(program.location);
+      if (program.duration) allDurationValues.push(program.duration);
 
-        if (matchesFilters(program, selectedFilters, 2) && program.level) {
-          levelValues.add(program.level);
-        }
+      // Collect FILTERED values
+      if (matchesFilters(program, selectedFilters, 0) && program.gender) {
+        genderValues.add(program.gender);
+      }
 
-        if (matchesFilters(program, selectedFilters, 3) && program.location) {
-          locationValues.add(program.location);
-        }
+      if (matchesFilters(program, selectedFilters, 1) && program.goal) {
+        goalValues.add(program.goal);
+      }
 
-        if (matchesFilters(program, selectedFilters, 4) && program.duration) {
-          durationValues.push(program.duration);
-        }
+      if (matchesFilters(program, selectedFilters, 2) && program.level) {
+        levelValues.add(program.level);
+      }
 
-        if (matchesFilters(program, selectedFilters, 5) && program.partner) {
-          partnerValues.add(program.partner);
-        }
-      });
+      if (matchesFilters(program, selectedFilters, 3) && program.location) {
+        locationValues.add(program.location);
+      }
 
-      ensureFilterSelection(genderValues, selectedFilters[0] ?? "");
-      ensureFilterSelection(goalValues, selectedFilters[1] ?? "");
-      ensureFilterSelection(levelValues, selectedFilters[2] ?? "");
-      ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
-      ensureFilterSelection(partnerValues, selectedFilters[5] ?? "");
+      if (matchesFilters(program, selectedFilters, 4) && program.duration) {
+        durationValues.push(program.duration);
+      }
+    });
 
-      const locationFallback = () => {
-        if (locationValues.size > 0) {
-          return toStringOptions(locationValues);
-        }
+    ensureFilterSelection(genderValues, selectedFilters[0] ?? "");
+    ensureFilterSelection(goalValues, selectedFilters[1] ?? "");
+    ensureFilterSelection(levelValues, selectedFilters[2] ?? "");
+    ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
 
-        const defaultLocations = new Set(["Salle", "Domicile"]);
-        ensureFilterSelection(defaultLocations, selectedFilters[3] ?? "");
-        return toStringOptions(defaultLocations);
-      };
+    const locationFallback = (values: Set<string>, selection: string) => {
+      if (values.size > 0) {
+        return toStringOptions(values);
+      }
+      const defaultLocations = new Set(["Salle", "Domicile"]);
+      ensureFilterSelection(defaultLocations, selection);
+      return toStringOptions(defaultLocations);
+    };
 
-      return {
-        genderOptions: toStringOptions(genderValues, ["tous"]),
-        goalOptions: toStringOptions(goalValues),
-        levelOptions: toStringOptions(levelValues, ["tous niveaux"]),
-        locationOptions: locationFallback(),
-        durationOptions: buildDurationOptions(durationValues, selectedFilters[4] ?? ""),
-        partnerOptions: toStringOptions(partnerValues),
-      };
-    }, [programs, selectedFilters]);
+    // For all locations, we don't force selection, just return options
+    const allLocationFallback = () => {
+      if (allLocationValues.size > 0) return toStringOptions(allLocationValues);
+      return toStringOptions(new Set(["Salle", "Domicile"]));
+    };
+
+    return {
+      genderOptions: toStringOptions(genderValues, ["tous"]),
+      goalOptions: toStringOptions(goalValues),
+      levelOptions: toStringOptions(levelValues, ["tous niveaux"]),
+      locationOptions: locationFallback(locationValues, selectedFilters[3] ?? ""),
+      durationOptions: buildDurationOptions(durationValues, selectedFilters[4] ?? ""),
+
+      allGenderOptions: toStringOptions(allGenderValues, ["tous"]),
+      allGoalOptions: toStringOptions(allGoalValues),
+      allLevelOptions: toStringOptions(allLevelValues, ["tous niveaux"]),
+      allLocationOptions: allLocationFallback(),
+      allDurationOptions: buildDurationOptions(allDurationValues, ""),
+    };
+  }, [programs, selectedFilters]);
 
   const filterOptions: FilterGroup[] = [
     {
       label: "Sexe",
       placeholder: "Tous",
       options: genderOptions,
+      allOptions: allGenderOptions,
     },
     {
       label: "Objectif",
       placeholder: "Tous les objectifs",
       options: goalOptions,
+      allOptions: allGoalOptions,
     },
     {
       label: "Niveau",
       placeholder: "Tous les niveaux",
       options: levelOptions,
+      allOptions: allLevelOptions,
     },
     {
       label: "Lieu",
       placeholder: "Tous les lieux",
       options: locationOptions,
+      allOptions: allLocationOptions,
     },
     {
       label: "Durée max.",
       placeholder: "Toutes les durées",
       options: durationOptions,
+      allOptions: allDurationOptions,
     },
     {
-      label: "Partenaire",
-      placeholder: "Tous les partenaires",
-      options: partnerOptions,
+      label: "Disponible",
+      placeholder: "Tous",
+      options: [
+        { value: "Oui", label: "Oui" },
+        { value: "Non", label: "Non" },
+      ],
+      allOptions: [
+        { value: "Oui", label: "Oui" },
+        { value: "Non", label: "Non" },
+      ],
     },
   ];
 

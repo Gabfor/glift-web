@@ -21,6 +21,7 @@ type DropdownFilterProps = {
   disabled?: boolean;
   sortOptions?: boolean;
   maxWidth?: number;
+  allOptions?: FilterOption[];
 };
 
 export default function DropdownFilter({
@@ -33,11 +34,13 @@ export default function DropdownFilter({
   disabled = false,
   sortOptions = true,
   maxWidth,
+  allOptions = [],
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const measurementRef = useRef<HTMLButtonElement>(null);
+  const headerMeasurementRef = useRef<HTMLDivElement>(null);
   const measurementTextRef = useRef<HTMLSpanElement>(null);
   const [calculatedWidth, setCalculatedWidth] = useState<number>();
 
@@ -74,6 +77,7 @@ export default function DropdownFilter({
       const labelsToMeasure = new Set<string>([
         placeholder,
         ...preparedOptions.map((option) => option.label),
+        ...allOptions.map((option) => option.label),
       ]);
 
       if (!isPlaceholder) {
@@ -87,6 +91,11 @@ export default function DropdownFilter({
         const { width } = measurementRef.current!.getBoundingClientRect();
         maxMeasuredWidth = Math.max(maxMeasuredWidth, Math.ceil(width));
       });
+
+      if (headerMeasurementRef.current) {
+        const { width: headerWidth } = headerMeasurementRef.current.getBoundingClientRect();
+        maxMeasuredWidth = Math.max(maxMeasuredWidth, Math.ceil(headerWidth));
+      }
 
       const iconSpacing = hasIcons ? 30 : 0;
       const widthLimit =
@@ -106,6 +115,7 @@ export default function DropdownFilter({
       window.removeEventListener("resize", updateWidth);
     };
   }, [
+    allOptions,
     hasIcons,
     isPlaceholder,
     maxWidth,
@@ -181,6 +191,14 @@ export default function DropdownFilter({
             Effacer
           </button>
         )}
+      </div>
+      <div
+        ref={headerMeasurementRef}
+        className="absolute opacity-0 pointer-events-none -z-10 flex items-center gap-[10px]"
+        aria-hidden
+      >
+        <span className="text-[16px] font-bold">{label}</span>
+        <span className="text-[12px] font-semibold">Effacer</span>
       </div>
       <button
         type="button"
@@ -290,11 +308,10 @@ export default function DropdownFilter({
                   setOpen(false);
                   buttonRef.current?.blur();
                 }}
-                className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
-                  selected === option.value
-                    ? "text-[#7069FA]"
-                    : "text-[#5D6494] hover:text-[#3A416F]"
-                }`}
+                className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${selected === option.value
+                  ? "text-[#7069FA]"
+                  : "text-[#5D6494] hover:text-[#3A416F]"
+                  }`}
               >
                 <span className="flex min-w-0 items-center">
                   <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">

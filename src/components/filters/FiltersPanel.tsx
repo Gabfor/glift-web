@@ -19,6 +19,7 @@ export type FilterGroup = {
   label: string;
   placeholder: string;
   options: FilterOption[];
+  allOptions?: FilterOption[];
 };
 
 type FiltersPanelProps = {
@@ -94,10 +95,9 @@ export default function FiltersPanel({
               h-10
               min-w-[153px]
               border
-              ${
-                openSortMenu
-                  ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
-                  : "border-[#D7D4DC]"
+              ${openSortMenu
+                ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+                : "border-[#D7D4DC]"
               }
               rounded-[5px]
               px-3
@@ -180,6 +180,7 @@ export default function FiltersPanel({
               label={filter.label}
               placeholder={filter.placeholder}
               options={filter.options}
+              allOptions={filter.allOptions}
               selected={selectedFilters[index] ?? ""}
               onSelect={(value) => onFilterChange(index, value)}
             />
