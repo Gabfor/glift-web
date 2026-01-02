@@ -29,6 +29,7 @@ type ProgramQueryRow = Pick<
   | "downloads"
   | "created_at"
   | "partner_name"
+  | "plan"
 >;
 
 type Program = {
@@ -49,6 +50,7 @@ type Program = {
   goal: string;
   gender: string;
   partner_name: string;
+  plan: "starter" | "premium";
 };
 
 const mapProgramRowToCard = (row: ProgramQueryRow): Program => ({
@@ -69,6 +71,7 @@ const mapProgramRowToCard = (row: ProgramQueryRow): Program => ({
   goal: row.goal ?? "",
   gender: row.gender ?? "",
   partner_name: row.partner_name ?? "",
+  plan: row.plan ?? "starter",
 });
 
 export default function StoreGrid({
@@ -177,7 +180,8 @@ export default function StoreGrid({
           partner_link,
           link,
           downloads,
-          created_at
+          created_at,
+          plan
         `)
         .eq("status", "ON");
 
