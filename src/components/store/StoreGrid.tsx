@@ -12,23 +12,23 @@ type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
 type ProgramQueryRow = Pick<
   ProgramRow,
   |
-    "id"
-    | "title"
-    | "level"
-    | "goal"
-    | "gender"
-    | "sessions"
-    | "duration"
-    | "description"
-    | "image"
-    | "image_alt"
-    | "partner_image"
-    | "partner_image_alt"
-    | "partner_link"
-    | "link"
-    | "downloads"
-    | "created_at"
-    | "partner_name"
+  "id"
+  | "title"
+  | "level"
+  | "goal"
+  | "gender"
+  | "sessions"
+  | "duration"
+  | "description"
+  | "image"
+  | "image_alt"
+  | "partner_image"
+  | "partner_image_alt"
+  | "partner_link"
+  | "link"
+  | "downloads"
+  | "created_at"
+  | "partner_name"
 >;
 
 type Program = {
@@ -84,6 +84,7 @@ export default function StoreGrid({
   const [loading, setLoading] = useState(true);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [subscriptionPlan, setSubscriptionPlan] = useState<string | null>(null);
   const showSkeleton = useMinimumVisibility(loading);
   const hasLoadedOnceRef = useRef(false);
   const previousQueryRef = useRef<{
@@ -103,14 +104,25 @@ export default function StoreGrid({
         return { column: "created_at", ascending: false };
     }
   };
-
   // ➜ Auth check once on load
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       setIsAuthenticated(!!user);
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("subscription_plan")
+          .eq("id", user.id)
+          .single();
+        if (data) {
+          setSubscriptionPlan(data.subscription_plan);
+        }
+      }
     });
   }, []);
+  /* ... */
+
 
   // ➜ Fetch programs
   useEffect(() => {
@@ -241,6 +253,7 @@ export default function StoreGrid({
                 key={program.id}
                 program={program}
                 isAuthenticated={isAuthenticated}
+                subscriptionPlan={subscriptionPlan}
               />
             ))}
           </div>

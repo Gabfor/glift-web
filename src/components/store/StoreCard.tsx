@@ -7,6 +7,9 @@ import { useState } from "react";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import CTAButton from "@/components/CTAButton";
 
+import { createClient } from "@/lib/supabaseClient";
+import { useEffect } from "react";
+
 type Props = {
   program: {
     id: string;
@@ -24,16 +27,79 @@ type Props = {
     gender: string;
   };
   isAuthenticated: boolean;
+  subscriptionPlan: string | null;
 };
 
-export default function StoreCard({ program, isAuthenticated }: Props) {
+export default function StoreCard({ program, isAuthenticated, subscriptionPlan }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
+  const [isRestricted, setIsRestricted] = useState(false);
+  const [checkingEligibility, setCheckingEligibility] = useState(false);
+
+  useEffect(() => {
+    const checkEligibility = async () => {
+      if (!isAuthenticated || !subscriptionPlan) return;
+
+      if (subscriptionPlan === 'basic') {
+        const sessions = parseInt(program.sessions);
+
+        // Rule 1: > 1 Session
+        if (sessions > 1) {
+          setIsRestricted(true);
+          return;
+        }
+
+        // Rule 2: 1 Session > 10 Exercises
+        if (sessions === 1) {
+          setCheckingEligibility(true);
+          const supabase = createClient();
+
+          try {
+            // 1. Get linked program ID
+            const { data: storeData } = await supabase
+              .from('program_store')
+              .select('linked_program_id')
+              .eq('id', program.id)
+              .single();
+
+            if (storeData?.linked_program_id) {
+              // 2. Get trainings (should be 1)
+              const { data: trainings } = await supabase
+                .from('trainings_admin')
+                .select('id')
+                .eq('program_id', storeData.linked_program_id);
+
+              if (trainings && trainings.length > 0) {
+                const trainingIds = trainings.map(t => t.id);
+                // 3. Count exercises
+                const { count } = await supabase
+                  .from('training_rows_admin')
+                  .select('*', { count: 'exact', head: true })
+                  .in('training_id', trainingIds);
+
+                if (count && count > 10) {
+                  setIsRestricted(true);
+                }
+              }
+            }
+          } catch (e) {
+            console.error(e);
+          } finally {
+            setCheckingEligibility(false);
+          }
+        }
+      } else {
+        setIsRestricted(false);
+      }
+    };
+
+    checkEligibility();
+  }, [isAuthenticated, subscriptionPlan, program]);
 
   const handleDownload = async () => {
-    if (!isAuthenticated || loading) return;
+    if (!isAuthenticated || loading || isRestricted || checkingEligibility) return;
     setLoading(true);
     const newProgramId = await downloadProgram(program.id);
     setLoading(false);
@@ -47,14 +113,14 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
   const genderIcons =
     program.gender === "Tous"
       ? [
-          { src: "/icons/homme.svg", label: "homme" },
-          { src: "/icons/femme.svg", label: "femme" },
-        ]
+        { src: "/icons/homme.svg", label: "homme" },
+        { src: "/icons/femme.svg", label: "femme" },
+      ]
       : program.gender === "Homme"
-      ? [{ src: "/icons/homme.svg", label: "homme" }]
-      : program.gender === "Femme"
-      ? [{ src: "/icons/femme.svg", label: "femme" }]
-      : [];
+        ? [{ src: "/icons/homme.svg", label: "homme" }]
+        : program.gender === "Femme"
+          ? [{ src: "/icons/femme.svg", label: "femme" }]
+          : [];
 
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
@@ -143,16 +209,27 @@ export default function StoreCard({ program, isAuthenticated }: Props) {
 
         {/* BOUTON TÉLÉCHARGER */}
         {isAuthenticated ? (
-          <CTAButton
-            onClick={handleDownload}
-            loading={loading}
-            className="mx-auto text-[16px] font-semibold"
-          >
-            <span className="inline-flex items-center gap-2">
+          checkingEligibility ? (
+            <div className="mx-auto w-full h-[40px] flex items-center justify-center bg-[#F2F1F6] rounded-[25px] text-[#D7D4DC] font-semibold text-[16px]">
+              Calcul...
+            </div>
+          ) : isRestricted ? (
+            <div className="mx-auto w-full h-[40px] flex items-center justify-center gap-2 bg-[#F2F1F6] rounded-[25px] text-[#D7D4DC] font-semibold text-[16px] cursor-not-allowed select-none">
+              <Image src="/icons/locked.svg" alt="Cadenas" width={15} height={15} />
               Télécharger
-              <Image src="/icons/download.svg" alt="" width={20} height={20} />
-            </span>
-          </CTAButton>
+            </div>
+          ) : (
+            <CTAButton
+              onClick={handleDownload}
+              loading={loading}
+              className="mx-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
+            >
+              <span className="inline-flex items-center gap-2">
+                Télécharger
+                <Image src="/icons/download.svg" alt="" width={20} height={20} />
+              </span>
+            </CTAButton>
+          )
         ) : (
           <CTAButton
             onClick={() => setShowModal(true)}
