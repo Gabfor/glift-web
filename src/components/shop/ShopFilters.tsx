@@ -164,7 +164,7 @@ export default function ShopFilters({
   onFiltersChange,
 }: Props) {
   const sortOptions: SortOption[] = [
-    { value: "popularity", label: "Pertinence" },
+    { value: "relevance", label: "Pertinence" },
     { value: "newest", label: "Nouveauté" },
     { value: "expiration", label: "Expiration" },
   ];

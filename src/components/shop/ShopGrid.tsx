@@ -29,6 +29,7 @@ type OfferQueryRow = Pick<
   | "premium"
   | "modal"
   | "condition"
+  | "gender"
 >;
 
 type OfferId = OfferRow["id"];
@@ -50,6 +51,7 @@ type Offer = {
   shipping?: string;
   modal?: string;
   condition?: string;
+  gender?: string;
 };
 
 const parseOfferTypes = (value: unknown): string[] => {
@@ -86,8 +88,10 @@ const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
   shop_website: row.shop_website ?? "",
   shop_link: row.shop_link ?? "",
   shipping: row.shipping ?? "",
+
   modal: row.modal ?? "",
   condition: row.condition ?? "",
+  gender: row.gender ?? "",
 });
 
 export default function ShopGrid({
@@ -109,17 +113,42 @@ export default function ShopGrid({
     filters: string[];
   } | null>(null);
 
+  const [userProfile, setUserProfile] = useState<{
+    gender: string | null;
+    main_goal: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("gender, main_goal")
+          .eq("id", user.id)
+          .single();
+
+        if (data) {
+          setUserProfile(data);
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
-      case "popularity":
-        return { column: "downloads", ascending: false };
+      case "relevance":
+        return { column: "", ascending: false }; // Client-side sort
       case "oldest":
-        return { column: "created_at", ascending: true };
+        return { column: "start_date", ascending: true };
       case "expiration":
-        return { column: "", ascending: true };
+        return { column: "", ascending: true }; // Client-side sort (or mixed)
       case "newest":
       default:
-        return { column: "created_at", ascending: false };
+        return { column: "start_date", ascending: false };
     }
   };
 
@@ -175,7 +204,10 @@ export default function ShopGrid({
           shop_link,
           shipping,
           modal,
-          condition
+          shipping,
+          modal,
+          condition,
+          gender
         `)
         .eq("status", "ON");
 
@@ -185,15 +217,21 @@ export default function ShopGrid({
       if (filters[2]) query = query.ilike("sport", filters[2]);
       if (filters[3]) query = query.eq("shop", filters[3]);
 
-      // ➜ Appliquer tri Supabase sauf pour "expiration"
+      // ➜ Appliquer tri Supabase sauf pour "expiration" et "relevance"
       let finalQuery = query;
       if (order.column) {
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
 
-      const { data, error } = await finalQuery
-        .range(start, end)
-        .returns<OfferQueryRow[]>();
+      // If Relevance, fetch ALL matching items to sort client-side
+      // Otherwise paginate server-side
+      const isClientSideSort = sortBy === "relevance";
+
+      if (!isClientSideSort) {
+        finalQuery = finalQuery.range(start, end);
+      }
+
+      const { data, error } = await finalQuery.returns<OfferQueryRow[]>();
 
       if (!isActive) {
         return;
@@ -202,7 +240,7 @@ export default function ShopGrid({
       if (error) {
         console.error("Erreur Supabase :", error.message);
       } else {
-        const normalized = (data ?? []).map(mapOfferRowToOffer);
+        let normalized = (data ?? []).map(mapOfferRowToOffer);
 
         if (sortBy === "expiration") {
           normalized.sort((a, b) => {
@@ -211,6 +249,49 @@ export default function ShopGrid({
             if (!b.end_date) return -1;
             return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
           });
+        }
+
+        if (sortBy === "relevance") {
+          normalized.sort((a, b) => {
+            let scoreA = 0;
+            let scoreB = 0;
+
+            const goal = userProfile?.main_goal?.toLowerCase();
+            const gender = userProfile?.gender?.toLowerCase();
+
+            // Goal match (+5)
+            if (goal && a.type.some((t) => t.toLowerCase() === goal)) {
+              scoreA += 5;
+            }
+            if (goal && b.type.some((t) => t.toLowerCase() === goal)) {
+              scoreB += 5;
+            }
+
+            // Gender match (+2)
+            if (gender) {
+              const offerGenderA = a.gender?.toLowerCase();
+              const isWildcardA = offerGenderA && (offerGenderA === "tous" || offerGenderA === "mixte" || offerGenderA === "unisexe");
+
+              if (isWildcardA || (offerGenderA && offerGenderA === gender)) {
+                scoreA += 2;
+              }
+
+              const offerGenderB = b.gender?.toLowerCase();
+              const isWildcardB = offerGenderB && (offerGenderB === "tous" || offerGenderB === "mixte" || offerGenderB === "unisexe");
+
+              if (isWildcardB || (offerGenderB && offerGenderB === gender)) {
+                scoreB += 2;
+              }
+            }
+
+            return scoreB - scoreA;
+          });
+
+          // Apply pagination client-side
+          // But wait, the component expects 'offers' to be the partial list?
+          // The current code sets 'offers' state.
+          // If I return only slice, pagination works.
+          normalized = normalized.slice(start, end + 1);
         }
 
         setOffers(normalized);
