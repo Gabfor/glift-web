@@ -661,11 +661,14 @@ export default function CreateOfferPageClient({
                       placeholder="Sélectionnez un pays"
                       selected={offer.pays}
                       onSelect={(value) => setOffer({ ...offer, pays: value })}
-                      options={COUNTRIES.map((c) => ({
-                        value: c,
-                        label: c,
-                        iconSrc: getCountryFlagIcon(c),
-                      }))}
+                      options={[
+                        { value: "Tous", label: "Tous", iconSrc: "/flags/europe.svg" },
+                        ...COUNTRIES.map((c) => ({
+                          value: c,
+                          label: c,
+                          iconSrc: getCountryFlagIcon(c),
+                        })),
+                      ]}
                     />
                   </div>
 
