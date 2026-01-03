@@ -16,7 +16,7 @@ type OfferInsert = Database["public"]["Tables"]["offer_shop"]["Insert"];
 type OfferId = OfferRow["id"];
 type OfferListRow = Pick<
   OfferRow,
-  "id" | "name" | "created_at" | "start_date" | "end_date" | "shop" | "code" | "status" | "click_count"
+  "id" | "name" | "created_at" | "start_date" | "end_date" | "shop" | "code" | "status" | "click_count" | "boost"
 >;
 
 type Offer = {
@@ -29,6 +29,7 @@ type Offer = {
   code: string;
   status: string;
   click_count: number;
+  boost: boolean;
 };
 
 const mapOfferRowToListItem = (row: OfferListRow): Offer => ({
@@ -41,6 +42,7 @@ const mapOfferRowToListItem = (row: OfferListRow): Offer => ({
   code: row.code ?? "",
   status: row.status,
   click_count: row.click_count,
+  boost: String(row.boost) === "true",
 });
 
 type SortableColumn =
@@ -73,7 +75,7 @@ export default function OfferShopPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("offer_shop")
-      .select(`id, name, created_at, start_date, end_date, shop, code, status, click_count`)
+      .select(`id, name, created_at, start_date, end_date, shop, code, status, click_count, boost`)
       .order(sortBy, { ascending: sortDirection === "asc" })
       .returns<OfferListRow[]>();
 
@@ -297,7 +299,14 @@ export default function OfferShopPage() {
                           ? new Date(offer.end_date).toLocaleDateString("fr-FR")
                           : "Aucune"}
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">{offer.name}</td>
+                      <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
+                        <div className="flex items-center gap-[5px]">
+                          {offer.boost && (
+                            <Image src="/icons/boost.svg" alt="Boosted" width={20} height={20} className="shrink-0" />
+                          )}
+                          <span className="truncate">{offer.name}</span>
+                        </div>
+                      </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{offer.code}</td>
                       <td className="px-4 font-semibold text-[#5D6494]">{offer.shop}</td>
                       <td className="px-4 font-semibold text-[#5D6494] text-center">{offer.click_count ?? 0}</td>
