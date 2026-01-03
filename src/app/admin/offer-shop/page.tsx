@@ -9,6 +9,7 @@ import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import Tooltip from "@/components/Tooltip";
 import SearchBar from "@/components/SearchBar";
+import { getCountryFlagIcon } from "@/components/account/constants";
 import type { Database } from "@/lib/supabase/types";
 
 type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
@@ -16,7 +17,7 @@ type OfferInsert = Database["public"]["Tables"]["offer_shop"]["Insert"];
 type OfferId = OfferRow["id"];
 type OfferListRow = Pick<
   OfferRow,
-  "id" | "name" | "created_at" | "start_date" | "end_date" | "shop" | "code" | "status" | "click_count" | "boost"
+  "id" | "name" | "created_at" | "start_date" | "end_date" | "code" | "status" | "click_count" | "boost" | "gender" | "pays"
 >;
 
 type Offer = {
@@ -25,11 +26,12 @@ type Offer = {
   created_at: string;
   start_date: string;
   end_date: string;
-  shop: string;
   code: string;
   status: string;
   click_count: number;
   boost: boolean;
+  gender: string | null;
+  pays: string | null;
 };
 
 const mapOfferRowToListItem = (row: OfferListRow): Offer => ({
@@ -38,11 +40,12 @@ const mapOfferRowToListItem = (row: OfferListRow): Offer => ({
   created_at: row.created_at ?? "",
   start_date: row.start_date ?? "",
   end_date: row.end_date ?? "",
-  shop: row.shop ?? "",
   code: row.code ?? "",
   status: row.status,
   click_count: row.click_count,
   boost: String(row.boost) === "true",
+  gender: row.gender,
+  pays: row.pays,
 });
 
 type SortableColumn =
@@ -52,8 +55,9 @@ type SortableColumn =
   | "end_date"
   | "name"
   | "code"
-  | "shop"
-  | "click_count";
+  | "click_count"
+  | "gender"
+  | "pays";
 
 export default function OfferShopPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -75,7 +79,7 @@ export default function OfferShopPage() {
     setLoading(true);
     const { data, error } = await supabase
       .from("offer_shop")
-      .select(`id, name, created_at, start_date, end_date, shop, code, status, click_count, boost`)
+      .select(`id, name, created_at, start_date, end_date, code, status, click_count, boost, gender, pays`)
       .order(sortBy, { ascending: sortDirection === "asc" })
       .returns<OfferListRow[]>();
 
@@ -118,8 +122,7 @@ export default function OfferShopPage() {
   const selectedStatus = selectedOffer?.status ?? null;
 
   const filteredOffers = offers.filter(offer =>
-    offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    offer.shop?.toLowerCase().includes(searchTerm.toLowerCase())
+    offer.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async () => {
@@ -216,6 +219,19 @@ export default function OfferShopPage() {
     );
   };
 
+  const getGenderIcon = (gender: string | null) => {
+    if (gender === "Homme") return "/icons/homme.svg";
+    if (gender === "Femme") return "/icons/femme.svg";
+    if (gender === "Tous") return "/icons/mixte.svg";
+    return null;
+  };
+
+  const getPaysIcon = (pays: string | null) => {
+    if (!pays) return null;
+    if (pays === "Tous") return "/flags/europe.svg";
+    return getCountryFlagIcon(pays);
+  };
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
       <div className="w-full max-w-6xl">
@@ -276,13 +292,17 @@ export default function OfferShopPage() {
                   {renderHeaderCell("Fin", "end_date", "w-[94px] px-3")}
                   {renderHeaderCell("Nom de l'offre", "name", "px-3")}
                   {renderHeaderCell("Code", "code", "w-[100px] px-3")}
-                  {renderHeaderCell("Boutique", "shop", "w-[78px] px-3")}
+                  {renderHeaderCell("Sexe", "gender", "w-[60px] px-3")}
+                  {renderHeaderCell("Pays", "pays", "w-[60px] px-3")}
                   {renderHeaderCell("Utilisation", "click_count", "w-[85px] px-3")}
                 </tr>
               </thead>
               <tbody>
                 {filteredOffers.map(offer => {
                   const isSelected = selectedIds.includes(offer.id);
+                  const genderIcon = getGenderIcon(offer.gender);
+                  const paysIcon = getPaysIcon(offer.pays);
+
                   return (
                     <tr key={offer.id} className="border-b border-[#ECE9F1] h-[60px]">
                       <td className="px-4">
@@ -308,7 +328,20 @@ export default function OfferShopPage() {
                         </div>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{offer.code}</td>
-                      <td className="px-4 font-semibold text-[#5D6494]">{offer.shop}</td>
+                      <td className="px-4">
+                        {genderIcon && (
+                          <div className="flex items-center justify-center">
+                            <Image src={genderIcon} alt={offer.gender || ""} width={20} height={20} />
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4">
+                        {paysIcon && (
+                          <div className="flex items-center justify-center">
+                            <Image src={paysIcon} alt={offer.pays || ""} width={20} height={15} className="object-contain" />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-4 font-semibold text-[#5D6494] text-center">{offer.click_count ?? 0}</td>
                     </tr>
                   );
