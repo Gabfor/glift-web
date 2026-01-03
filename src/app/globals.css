@@ -23,13 +23,13 @@ a {
 
 
 .btn-primary {
-  @apply font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition;
+  @apply font-semibold rounded-full h-[44px] px-[30px] flex items-center justify-center gap-2 transition;
   background-color: var(--color-brand-strong);
   color: #fff;
 }
 
 .btn-outline {
-  @apply border-2 font-semibold rounded-full h-[44px] px-5 flex items-center justify-center gap-2 transition;
+  @apply border-2 font-semibold rounded-full h-[44px] px-[30px] flex items-center justify-center gap-2 transition;
   border-color: var(--color-brand-strong);
   color: var(--color-brand-strong);
 }

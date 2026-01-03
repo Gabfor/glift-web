@@ -141,14 +141,14 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
     const resolvedVariant = isDisabledOrLoading ? "inactive" : variant;
 
     const baseClasses = clsx(
-      "inline-flex items-center justify-center gap-2 h-[44px] px-[15px] rounded-full font-semibold text-[16px] whitespace-nowrap",
+      "inline-flex items-center justify-center gap-2 h-[44px] px-[30px] rounded-full font-semibold text-[16px] whitespace-nowrap",
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
-        "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]",
+      "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]",
       resolvedVariant === "inactive" &&
-        "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] focus-visible:ring-[var(--color-border-soft)]",
+      "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&
-        "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
+      "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       isDisabledOrLoading && "cursor-not-allowed opacity-100",
       className
     );
