@@ -267,23 +267,30 @@ export default function AdminDropdown({
       className={`flex flex-col relative transition-all duration-300 ${className}`}
       ref={menuRef}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
-        {clearable && !isShowingPlaceholder && (
-          <button
-            type="button"
-            onClick={handleClear}
-            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
-          >
-            {clearLabel}
-          </button>
-        )}
-      </div>
+      {(label || (clearable && !isShowingPlaceholder)) && (
+        <div className="flex items-center justify-between">
+          <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
+          {clearable && !isShowingPlaceholder && (
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+            >
+              {clearLabel}
+            </button>
+          )}
+        </div>
+      )}
 
       <button
         type="button"
         ref={buttonRef}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={() => {
+          if (open) {
+            buttonRef.current?.blur();
+          }
+          setOpen((prev) => !prev);
+        }}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         className={`
@@ -301,22 +308,21 @@ export default function AdminDropdown({
           ${success ? "border-[#00D591]" : defaultBorder}
           ${buttonClassName}
         `}
-        >
+      >
         <span
-          className={`pr-[10px] ${
-            isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          }`}
+          className={`pr-[10px] ${isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
+            }`}
         >
           {allowTyping && typedValue !== ""
             ? typedValue
             : isShowingPlaceholder
               ? placeholder
               : renderOptionContent(
-                  selectedOption ?? {
-                    value: selected,
-                    label: selectedLabel,
-                  },
-                )}
+                selectedOption ?? {
+                  value: selected,
+                  label: selectedLabel,
+                },
+              )}
         </span>
         <Image
           src={isShowingPlaceholder ? ChevronGreyIcon : ChevronIcon}
@@ -333,7 +339,7 @@ export default function AdminDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 mt-[60px] w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] scrollable-dropdown max-h-[180px] overflow-y-auto">
+        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] scrollable-dropdown max-h-[180px] overflow-y-auto">
           <div className="flex flex-col">
             {sortedOptions.map((option) => (
               <button
@@ -354,10 +360,9 @@ export default function AdminDropdown({
                   rounded-[5px]
                   hover:bg-[#FAFAFF]
                   transition-colors duration-150
-                  ${
-                    selected === option.value
-                      ? "text-[#7069FA]"
-                      : "text-[#5D6494] hover:text-[#3A416F]"
+                  ${selected === option.value
+                    ? "text-[#7069FA]"
+                    : "text-[#5D6494] hover:text-[#3A416F]"
                   }
                 `}
               >

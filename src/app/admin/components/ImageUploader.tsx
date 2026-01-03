@@ -23,7 +23,7 @@ export default function ImageUploader({ value, onChange }: Props) {
       // Nom de fichier unique
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
-      
+
       // Chemin dans le bucket
       const filePath = `programmes/${fileName}`;
 
@@ -66,7 +66,7 @@ export default function ImageUploader({ value, onChange }: Props) {
       <div
         onClick={handleClick}
         className="h-[45px] w-full px-[15px] rounded-[5px] bg-white cursor-pointer
-                   border-2 border-dashed border-[#D7D4DC]
+                   border border-dashed border-[#D7D4DC]
                    hover:border-[#C2BFC6]
                    focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#A1A5FD]
                    transition-all duration-150 flex items-center justify-between"

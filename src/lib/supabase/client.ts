@@ -6,6 +6,9 @@ import type { CookieOptions } from "@supabase/ssr/dist/module/types";
 import { parse, serialize } from "cookie";
 
 import type { Database } from "./types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+let clientSingleton: SupabaseClient<Database> | undefined;
 
 const readCookie = (name: string) => {
   if (typeof document === "undefined") {
@@ -67,6 +70,8 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
 });
 
 export const createClientComponentClient = () => {
+  if (clientSingleton) return clientSingleton;
+
   const client = createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -94,5 +99,8 @@ export const createClientComponentClient = () => {
     }
   }) as typeof originalGetUser;
 
+
+
+  clientSingleton = client;
   return client;
 };

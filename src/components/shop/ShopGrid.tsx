@@ -26,7 +26,6 @@ type OfferQueryRow = Pick<
   | "shop_website"
   | "shop_link"
   | "shipping"
-  | "premium"
   | "modal"
   | "condition"
   | "gender"

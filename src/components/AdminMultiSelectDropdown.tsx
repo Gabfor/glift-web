@@ -35,7 +35,7 @@ export default function AdminMultiSelectDropdown({
   const selectedArray: string[] = Array.isArray(selected)
     ? selected
     : typeof selected === "string"
-    ? (() => {
+      ? (() => {
         try {
           const parsed = JSON.parse(selected);
           return Array.isArray(parsed) ? parsed : [];
@@ -43,7 +43,7 @@ export default function AdminMultiSelectDropdown({
           return [];
         }
       })()
-    : [];
+      : [];
 
   const isPlaceholder = selectedArray.length === 0;
 
@@ -87,17 +87,21 @@ export default function AdminMultiSelectDropdown({
 
   return (
     <div className={`flex flex-col relative transition-all duration-300 ${className}`} ref={menuRef}>
-      <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
+      {label && <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>}
       <button
         ref={buttonRef}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (open) {
+            buttonRef.current?.blur();
+          }
+          setOpen(!open);
+        }}
         className={`
           h-[45px] w-full
           border
-          ${
-            open
-              ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
-              : "border-[#D7D4DC]"
+          ${open
+            ? "border-transparent focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+            : "border-[#D7D4DC]"
           }
           rounded-[5px]
           px-[15px]
@@ -111,9 +115,8 @@ export default function AdminMultiSelectDropdown({
         `}
       >
         <span
-          className={`pr-[10px] text-left flex-1 truncate ${
-            isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
-          }`}
+          className={`pr-[10px] text-left flex-1 truncate ${isPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
+            }`}
         >
           {isPlaceholder ? placeholder : selectedLabels}
         </span>
@@ -133,7 +136,7 @@ export default function AdminMultiSelectDropdown({
       {open && (
         <div
           className="
-            absolute left-0 mt-[80px]
+            absolute left-0 top-full mt-1
             w-full
             bg-white
             rounded-[5px]

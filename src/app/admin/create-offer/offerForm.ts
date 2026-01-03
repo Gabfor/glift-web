@@ -20,9 +20,11 @@ type OfferFormState = {
   shipping: string;
   modal: string;
   status: string;
-  premium: boolean;
-  sport: string;
+  sport: string[];
   condition: string;
+  boost: string;
+  image_mobile: string;
+  pays: string;
 };
 
 const emptyOffer: OfferFormState = {
@@ -42,9 +44,11 @@ const emptyOffer: OfferFormState = {
   shipping: "",
   modal: "",
   status: "ON",
-  premium: false,
-  sport: "",
+  sport: [],
   condition: "",
+  boost: "NON",
+  image_mobile: "",
+  pays: "",
 };
 
 const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
@@ -66,9 +70,13 @@ const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
   shipping: row.shipping ?? "",
   modal: row.modal ?? "",
   status: row.status,
-  premium: Boolean(row.premium),
-  sport: row.sport ?? "",
+  sport: Array.isArray(row.sport)
+    ? row.sport.filter((value): value is string => typeof value === "string")
+    : [],
   condition: row.condition ?? "",
+  boost: String(row.boost) === "true" ? "OUI" : "NON",
+  image_mobile: row.image_mobile ?? "",
+  pays: row.pays ?? "",
 });
 
 const buildOfferPayload = (form: OfferFormState): OfferInsert => {
@@ -92,9 +100,11 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
     shipping: normalizedShipping ? normalizedShipping.replace(",", ".") : null,
     modal: form.modal || null,
     status: form.status,
-    premium: form.premium,
-    sport: form.sport || null,
+    sport: form.sport.length > 0 ? form.sport : null,
     condition: form.condition || null,
+    boost: form.boost === "OUI",
+    image_mobile: form.image_mobile || null,
+    pays: form.pays || null,
   };
 };
 

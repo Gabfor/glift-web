@@ -237,12 +237,14 @@ export interface Database {
           shipping: Nullable<string>;
           modal: Nullable<string>;
           status: string;
-          premium: boolean;
           created_at: Nullable<string>;
           updated_at: Nullable<string>;
           click_count: number;
-          sport: Nullable<string>;
+          sport: Nullable<string[]>;
           condition: Nullable<string>;
+          boost: Nullable<boolean>;
+          image_mobile: Nullable<string>;
+          pays: Nullable<string>;
         };
         Insert: {
           id?: string;
@@ -262,12 +264,14 @@ export interface Database {
           shipping?: Nullable<string>;
           modal?: Nullable<string>;
           status?: string;
-          premium?: boolean;
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
           click_count?: number;
-          sport?: Nullable<string>;
+          sport?: Nullable<string[]>;
           condition?: Nullable<string>;
+          boost?: Nullable<boolean>;
+          image_mobile?: Nullable<string>;
+          pays?: Nullable<string>;
         };
         Update: {
           id?: string;
@@ -287,12 +291,14 @@ export interface Database {
           shipping?: Nullable<string>;
           modal?: Nullable<string>;
           status?: string;
-          premium?: boolean;
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
           click_count?: number;
-          sport?: Nullable<string>;
+          sport?: Nullable<string[]>;
           condition?: Nullable<string>;
+          boost?: Nullable<boolean>;
+          image_mobile?: Nullable<string>;
+          pays?: Nullable<string>;
         };
         Relationships: never[];
       };
