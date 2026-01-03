@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabaseClient";
 import ProgramStoreActionsBar from "@/app/admin/components/ProgramStoreActionsBar";
 import ChevronIcon from "/public/icons/chevron.svg";
@@ -320,12 +321,12 @@ export default function OfferShopPage() {
                           : "Aucune"}
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
-                        <div className="flex items-center gap-[5px]">
+                        <Link href={`/admin/create-offer?id=${offer.id}`} className="flex items-center gap-[5px] hover:text-[#2E3271] transition-colors">
                           {offer.boost && (
                             <Image src="/icons/boost.svg" alt="Boosted" width={20} height={20} className="shrink-0" />
                           )}
                           <span className="truncate">{offer.name}</span>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{offer.code}</td>
                       <td className="px-4">
