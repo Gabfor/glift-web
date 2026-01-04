@@ -236,7 +236,6 @@ export default function StoreGrid({
 
       const { data, error } = await query
         .order(order.column, { ascending: order.ascending })
-        .range(start, end)
         .returns<ProgramQueryRow[]>();
 
       if (!isActive) {
@@ -247,7 +246,7 @@ export default function StoreGrid({
         console.error("Erreur Supabase :", error.message);
       } else {
         const mappedPrograms = (data ?? []).map(mapProgramRowToCard);
-        setPrograms(mappedPrograms);
+        setPrograms(mappedPrograms.slice(start, end + 1));
       }
 
       setHasLoadedOnce(true);
