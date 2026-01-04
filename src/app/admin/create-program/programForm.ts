@@ -15,6 +15,7 @@ export type ProgramFormState = {
   link: string;
   image: string;
   image_alt: string;
+  image_mobile: string;
   partner_image: string;
   partner_image_alt: string;
   partner_link: string;
@@ -38,6 +39,7 @@ export const emptyProgram: ProgramFormState = {
   link: "",
   image: "",
   image_alt: "",
+  image_mobile: "",
   partner_image: "",
   partner_image_alt: "",
   partner_link: "",
@@ -61,6 +63,7 @@ export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
   link: row.link ?? "",
   image: row.image ?? "",
   image_alt: row.image_alt ?? "",
+  image_mobile: (row as any).image_mobile ?? "",
   partner_image: row.partner_image ?? "",
   partner_image_alt: row.partner_image_alt ?? "",
   partner_link: row.partner_link ?? "",
@@ -86,6 +89,7 @@ export const buildProgramPayload = (
   link: form.link || null,
   image: form.image || null,
   image_alt: form.image_alt || null,
+  image_mobile: form.image_mobile || null,
   partner_image: form.partner_image || null,
   partner_image_alt: form.partner_image_alt || null,
   partner_link: form.partner_link || null,
@@ -96,4 +100,4 @@ export const buildProgramPayload = (
 
   location: form.location || null,
   plan: form.plan,
-});
+} as any);

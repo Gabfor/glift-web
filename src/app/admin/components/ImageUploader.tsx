@@ -7,9 +7,10 @@ import { createClient } from "@/lib/supabaseClient";
 type Props = {
   value: string;
   onChange: (url: string) => void;
+  placeholder?: string;
 };
 
-export default function ImageUploader({ value, onChange }: Props) {
+export default function ImageUploader({ value, onChange, placeholder }: Props) {
   const [loading, setLoading] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -72,7 +73,7 @@ export default function ImageUploader({ value, onChange }: Props) {
                    transition-all duration-150 flex items-center justify-between"
       >
         <span className="text-[16px] font-semibold text-[#D7D4DC]">
-          {loading ? "Upload en cours..." : "Importer un fichier"}
+          {loading ? "Upload en cours..." : (placeholder || "Importer un fichier")}
         </span>
         <Image
           src={value ? "/icons/success.svg" : "/icons/upload.svg"}
