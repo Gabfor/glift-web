@@ -144,7 +144,10 @@ export default function FiltersPanel({
                       setOpenSortMenu(false);
                       buttonRef.current?.blur();
                     }}
-                    className="text-left text-[16px] text-[#5D6494] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] hover:text-[#3A416F] transition-colors duration-150"
+                    className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${option.value === sortBy
+                        ? "text-[#7069FA]"
+                        : "text-[#5D6494] hover:text-[#3A416F]"
+                      }`}
                   >
                     {option.label}
                   </button>
