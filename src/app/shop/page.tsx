@@ -13,7 +13,7 @@ const ShopBannerSlider = dynamic(() => import("@/components/ShopBannerSliderClie
 });
 
 export default function ShopPage() {
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("relevance");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
@@ -68,7 +68,7 @@ export default function ShopPage() {
             setFilters(newFilters);
             setCurrentPage(1);
           }}
-      />
+        />
         <ShopGrid sortBy={sortBy} currentPage={currentPage} filters={filters} />
         {!loadingCount && (
           <Pagination

@@ -29,6 +29,7 @@ type OfferQueryRow = Pick<
   | "modal"
   | "condition"
   | "gender"
+  | "boost"
 >;
 
 type OfferId = OfferRow["id"];
@@ -51,6 +52,7 @@ type Offer = {
   modal?: string;
   condition?: string;
   gender?: string;
+  boost?: boolean;
 };
 
 const parseOfferTypes = (value: unknown): string[] => {
@@ -91,6 +93,7 @@ const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
   modal: row.modal ?? "",
   condition: row.condition ?? "",
   gender: row.gender ?? "",
+  boost: row.boost ?? false,
 });
 
 export default function ShopGrid({
@@ -115,6 +118,7 @@ export default function ShopGrid({
   const [userProfile, setUserProfile] = useState<{
     gender: string | null;
     main_goal: string | null;
+    supplements: string | null;
   } | null>(null);
 
   useEffect(() => {
@@ -125,7 +129,7 @@ export default function ShopGrid({
       if (user) {
         const { data } = await supabase
           .from("profiles")
-          .select("gender, main_goal")
+          .select("gender, main_goal, supplements")
           .eq("id", user.id)
           .single();
 
@@ -203,10 +207,9 @@ export default function ShopGrid({
           shop_link,
           shipping,
           modal,
-          shipping,
-          modal,
           condition,
-          gender
+          gender,
+          boost
         `)
         .eq("status", "ON");
 
@@ -255,35 +258,76 @@ export default function ShopGrid({
             let scoreA = 0;
             let scoreB = 0;
 
-            const goal = userProfile?.main_goal?.toLowerCase();
             const gender = userProfile?.gender?.toLowerCase();
+            const supplements = userProfile?.supplements; // "Oui" or "Non" typically, or null
 
-            // Goal match (+5)
-            if (goal && a.type.some((t) => t.toLowerCase() === goal)) {
-              scoreA += 5;
-            }
-            if (goal && b.type.some((t) => t.toLowerCase() === goal)) {
-              scoreB += 5;
-            }
-
-            // Gender match (+2)
+            // 1. Gender Rules
             if (gender) {
-              const offerGenderA = a.gender?.toLowerCase();
-              const isWildcardA = offerGenderA && (offerGenderA === "tous" || offerGenderA === "mixte" || offerGenderA === "unisexe");
+              const checkGenderScore = (offerGender: string | undefined): number => {
+                const g = offerGender?.toLowerCase();
+                const isWildcard = g === "tous" || g === "mixte" || g === "unisexe";
 
-              if (isWildcardA || (offerGenderA && offerGenderA === gender)) {
-                scoreA += 2;
-              }
+                if (gender === "homme") {
+                  if (g === "homme" || isWildcard) return 5;
+                  if (g === "femme") return -5;
+                } else if (gender === "femme") {
+                  if (g === "femme" || isWildcard) return 5;
+                  if (g === "homme") return -5;
+                } else if (gender === "non binaire" || gender === "non-binaire") {
+                  if (isWildcard) return 3;
+                }
+                return 0;
+              };
 
-              const offerGenderB = b.gender?.toLowerCase();
-              const isWildcardB = offerGenderB && (offerGenderB === "tous" || offerGenderB === "mixte" || offerGenderB === "unisexe");
-
-              if (isWildcardB || (offerGenderB && offerGenderB === gender)) {
-                scoreB += 2;
-              }
+              scoreA += checkGenderScore(a.gender);
+              scoreB += checkGenderScore(b.gender);
             }
 
-            return scoreB - scoreA;
+            // 2. Supplements Rule
+            const isSupplement = (types: string[]) => types.some(t => t.toLowerCase().includes("complément"));
+
+            if (supplements === "Oui") {
+              if (isSupplement(a.type)) scoreA += 5;
+              if (isSupplement(b.type)) scoreB += 5;
+            } else if (supplements === "Non") {
+              if (isSupplement(a.type)) scoreA -= 5;
+              if (isSupplement(b.type)) scoreB -= 5;
+            }
+
+            // 3. Boost Rule
+            if (a.boost) scoreA += 5;
+            if (b.boost) scoreB += 5;
+
+            // 4. Expiration Rule
+            const getExpirationScore = (endDateStr: string): number => {
+              if (!endDateStr) return 0;
+              const now = new Date().getTime();
+              const end = new Date(endDateStr).getTime();
+              const diffHours = (end - now) / (1000 * 60 * 60);
+
+              if (diffHours <= 24 && diffHours > 0) return 2;
+              if (diffHours > 24 && diffHours <= 72) return 1;
+              return 0;
+            };
+
+            scoreA += getExpirationScore(a.end_date);
+            scoreB += getExpirationScore(b.end_date);
+
+            if (scoreA !== scoreB) {
+              return scoreB - scoreA;
+            }
+
+            // Tie-breaker 1: Expiration Date (Ascending - ends soonest first)
+            // Use a far future date if no end date
+            const dateA = a.end_date ? new Date(a.end_date).getTime() : 8640000000000;
+            const dateB = b.end_date ? new Date(b.end_date).getTime() : 8640000000000;
+
+            if (dateA !== dateB) {
+              return dateA - dateB;
+            }
+
+            // Tie-breaker 2: Name (Alphabetical)
+            return a.name.localeCompare(b.name);
           });
         }
 
