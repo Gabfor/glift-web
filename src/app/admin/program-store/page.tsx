@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ProgramStoreActionsBar from "@/app/admin/components/ProgramStoreActionsBar";
@@ -17,17 +18,17 @@ type ProgramInsert = Database["public"]["Tables"]["program_store"]["Insert"];
 type ProgramListRow = Pick<
   ProgramRow,
   |
-    "id"
-    | "title"
-    | "created_at"
-    | "status"
-    | "partner_name"
-    | "gender"
-    | "level"
-    | "duration"
-    | "sessions"
-    | "downloads"
-    | "actifs"
+  "id"
+  | "title"
+  | "created_at"
+  | "status"
+  | "partner_name"
+  | "gender"
+  | "level"
+  | "duration"
+  | "sessions"
+  | "downloads"
+  | "actifs"
 >;
 
 type Program = {
@@ -395,11 +396,10 @@ export default function ProgramStorePage() {
                       </td>
                       <td className="px-4">
                         <span
-                          className={`inline-flex items-center justify-center rounded-full ${
-                            program.status === "ON"
-                              ? "bg-[#DCFAF1] text-[#00D591]"
-                              : "bg-[#FEF7D0] text-[#DCBC04]"
-                          }`}
+                          className={`inline-flex items-center justify-center rounded-full ${program.status === "ON"
+                            ? "bg-[#DCFAF1] text-[#00D591]"
+                            : "bg-[#FEF7D0] text-[#DCBC04]"
+                            }`}
                           style={{
                             width: "40px",
                             height: "20px",
@@ -415,7 +415,12 @@ export default function ProgramStorePage() {
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{program.gender}</td>
                       <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
-                        {program.title}
+                        <Link
+                          href={`/admin/create-program?id=${program.id}`}
+                          className="hover:text-[#2E3271] transition-colors"
+                        >
+                          {program.title}
+                        </Link>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{program.level}</td>
                       <td className="px-4 font-semibold text-[#5D6494] text-center">{program.sessions}</td>
