@@ -144,7 +144,7 @@ export default function ShopGrid({
       case "oldest":
         return { column: "start_date", ascending: true };
       case "expiration":
-        return { column: "", ascending: true }; // Client-side sort (or mixed)
+        return { column: "", ascending: true }; // Client-side sort
       case "newest":
       default:
         return { column: "start_date", ascending: false };
@@ -222,9 +222,9 @@ export default function ShopGrid({
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
 
-      // If Relevance, fetch ALL matching items to sort client-side
+      // If Relevance or Expiration, fetch ALL matching items to sort client-side
       // Otherwise paginate server-side
-      const isClientSideSort = sortBy === "relevance";
+      const isClientSideSort = sortBy === "relevance" || sortBy === "expiration";
 
       if (!isClientSideSort) {
         finalQuery = finalQuery.range(start, end);
@@ -285,11 +285,10 @@ export default function ShopGrid({
 
             return scoreB - scoreA;
           });
+        }
 
-          // Apply pagination client-side
-          // But wait, the component expects 'offers' to be the partial list?
-          // The current code sets 'offers' state.
-          // If I return only slice, pagination works.
+        if (isClientSideSort) {
+          // Apply pagination client-side for relevance and expiration
           normalized = normalized.slice(start, end + 1);
         }
 
