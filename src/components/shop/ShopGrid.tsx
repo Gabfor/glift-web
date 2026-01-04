@@ -8,6 +8,7 @@ import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
+
 type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
 type OfferQueryRow = Pick<
   OfferRow,
@@ -113,6 +114,7 @@ export default function ShopGrid({
     sortBy: string;
     currentPage: number;
     filters: string[];
+    userProfile: typeof userProfile;
   } | null>(null);
 
   const [userProfile, setUserProfile] = useState<{
@@ -161,7 +163,8 @@ export default function ShopGrid({
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
       previousQuery.currentPage !== currentPage ||
-      haveStringArrayChanged(previousQuery.filters, filters);
+      haveStringArrayChanged(previousQuery.filters, filters) ||
+      previousQuery.userProfile !== userProfile;
 
     const shouldSkipFetch =
       previousQuery !== null &&
@@ -176,6 +179,7 @@ export default function ShopGrid({
       sortBy,
       currentPage,
       filters: [...filters],
+      userProfile,
     };
 
     let isActive = true;
@@ -254,14 +258,14 @@ export default function ShopGrid({
         }
 
         if (sortBy === "relevance") {
-          normalized.sort((a, b) => {
-            let scoreA = 0;
-            let scoreB = 0;
-
+          // Pre-calculate scores for logging and sorting
+          const scored = normalized.map((offer) => {
+            let score = 0;
             const gender = userProfile?.gender?.toLowerCase();
-            const supplements = userProfile?.supplements; // "Oui" or "Non" typically, or null
+            const supplements = userProfile?.supplements;
 
             // 1. Gender Rules
+            let genderScore = 0;
             if (gender) {
               const checkGenderScore = (offerGender: string | undefined): number => {
                 const g = offerGender?.toLowerCase();
@@ -278,57 +282,78 @@ export default function ShopGrid({
                 }
                 return 0;
               };
-
-              scoreA += checkGenderScore(a.gender);
-              scoreB += checkGenderScore(b.gender);
+              genderScore = checkGenderScore(offer.gender);
+              score += genderScore;
             }
 
             // 2. Supplements Rule
+            let suppScore = 0;
             const isSupplement = (types: string[]) => types.some(t => t.toLowerCase().includes("complément"));
-
-            if (supplements === "Oui") {
-              if (isSupplement(a.type)) scoreA += 5;
-              if (isSupplement(b.type)) scoreB += 5;
-            } else if (supplements === "Non") {
-              if (isSupplement(a.type)) scoreA -= 5;
-              if (isSupplement(b.type)) scoreB -= 5;
+            if (supplements === "Oui" && isSupplement(offer.type)) {
+              suppScore = 5;
+              score += 5;
+            } else if (supplements === "Non" && isSupplement(offer.type)) {
+              suppScore = -5;
+              score += -5;
             }
 
             // 3. Boost Rule
-            if (a.boost) scoreA += 5;
-            if (b.boost) scoreB += 5;
+            let boostScore = 0;
+            // Handle string "false" from DB which evaluates to true in JS if (offer.boost)
+            const isBoosted = String(offer.boost).toLowerCase() === "true" || offer.boost === true;
+
+            if (isBoosted) {
+              boostScore = 5;
+              score += 5;
+            }
 
             // 4. Expiration Rule
+            let expScore = 0;
+            let diffHoursLabel = "N/A";
+
             const getExpirationScore = (endDateStr: string): number => {
               if (!endDateStr) return 0;
               const now = new Date().getTime();
-              const end = new Date(endDateStr).getTime();
+              // Force Local Time parsing to match Mobile (Dart)
+              // new Date("YYYY-MM-DD") is UTC, but new Date(y,m,d) or "YYYY-MM-DDT00:00:00" is Local
+              const end = new Date(`${endDateStr}T00:00:00`).getTime();
               const diffHours = (end - now) / (1000 * 60 * 60);
+              diffHoursLabel = diffHours.toFixed(2);
 
               if (diffHours <= 24 && diffHours > 0) return 2;
               if (diffHours > 24 && diffHours <= 72) return 1;
               return 0;
             };
 
-            scoreA += getExpirationScore(a.end_date);
-            scoreB += getExpirationScore(b.end_date);
+            expScore = getExpirationScore(offer.end_date);
+            score += expScore;
 
-            if (scoreA !== scoreB) {
-              return scoreB - scoreA;
+            return {
+              offer,
+              score,
+              details: { genderScore, suppScore, boostScore, expScore, diffHours: diffHoursLabel }
+            };
+          });
+
+          // Sort based on pre-calculated scores
+          scored.sort((a, b) => {
+            if (a.score !== b.score) {
+              return b.score - a.score;
             }
 
             // Tie-breaker 1: Expiration Date (Ascending - ends soonest first)
-            // Use a far future date if no end date
-            const dateA = a.end_date ? new Date(a.end_date).getTime() : 8640000000000;
-            const dateB = b.end_date ? new Date(b.end_date).getTime() : 8640000000000;
+            const dateA = a.offer.end_date ? new Date(`${a.offer.end_date}T00:00:00`).getTime() : 8640000000000;
+            const dateB = b.offer.end_date ? new Date(`${b.offer.end_date}T00:00:00`).getTime() : 8640000000000;
 
             if (dateA !== dateB) {
               return dateA - dateB;
             }
 
             // Tie-breaker 2: Name (Alphabetical)
-            return a.name.localeCompare(b.name);
+            return a.offer.name.localeCompare(b.offer.name);
           });
+
+          normalized = scored.map(s => s.offer);
         }
 
         if (isClientSideSort) {
@@ -348,7 +373,7 @@ export default function ShopGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters]);
+  }, [sortBy, currentPage, filters, userProfile]);
 
   const filteredOffers = offers
     .filter((offer) => Boolean(offer.image))
