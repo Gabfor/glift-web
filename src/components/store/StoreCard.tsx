@@ -175,8 +175,8 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
               className="mx-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
             >
               <span className="inline-flex items-center gap-2">
-                Télécharger
                 <Image src="/icons/download.svg" alt="" width={20} height={20} />
+                Télécharger
               </span>
             </CTAButton>
           )
