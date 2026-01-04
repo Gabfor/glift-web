@@ -280,14 +280,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     ensureFilterSelection(levelValues, selectedFilters[2] ?? "");
     ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
 
-    const locationFallback = (values: Set<string>, selection: string) => {
-      if (values.size > 0) {
-        return toStringOptions(values);
-      }
-      const defaultLocations = new Set(["Salle", "Domicile"]);
-      ensureFilterSelection(defaultLocations, selection);
-      return toStringOptions(defaultLocations);
-    };
+    ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
 
     // For all locations, we don't force selection, just return options
     const allLocationFallback = () => {
@@ -299,7 +292,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       genderOptions: toStringOptions(genderValues, ["tous"]),
       goalOptions: toStringOptions(goalValues),
       levelOptions: toStringOptions(levelValues, ["tous niveaux"]),
-      locationOptions: locationFallback(locationValues, selectedFilters[3] ?? ""),
+      locationOptions: toStringOptions(locationValues),
       durationOptions: buildDurationOptions(durationValues, selectedFilters[4] ?? ""),
 
       allGenderOptions: toStringOptions(allGenderValues, ["tous"]),

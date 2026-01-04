@@ -230,7 +230,7 @@ export default function ShopGrid({
       if (filters[0]) {
         query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
       }
-      if (filters[2]) query = query.ilike("sport", filters[2]);
+      if (filters[2]) query = query.filter("sport", "cs", JSON.stringify([filters[2]]));
       if (filters[3]) query = query.eq("shop", filters[3]);
 
       // ➜ Appliquer tri Supabase sauf pour "expiration" et "relevance"

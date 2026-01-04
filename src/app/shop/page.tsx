@@ -32,14 +32,17 @@ export default function ShopPage() {
       if (filters[0]) {
         query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
       }
-      if (filters[1]) query = query.ilike("type", `%${filters[1]}%`);
-      if (filters[2]) query = query.ilike("sport", filters[2]);
+      if (filters[1]) query = query.filter("type", "cs", JSON.stringify([filters[1]]));
+      if (filters[2]) query = query.filter("sport", "cs", JSON.stringify([filters[2]]));
       if (filters[3]) query = query.eq("shop", filters[3]);
 
       const { count, error } = await query;
 
       if (error) {
-        console.error("Erreur lors du comptage des programmes :", error.message);
+        console.error(
+          "Erreur lors du comptage des programmes :",
+          JSON.stringify(error, null, 2)
+        );
         setTotalPrograms(0);
       } else {
         setTotalPrograms(count || 0);

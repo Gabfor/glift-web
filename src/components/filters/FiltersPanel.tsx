@@ -145,8 +145,8 @@ export default function FiltersPanel({
                       buttonRef.current?.blur();
                     }}
                     className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${option.value === sortBy
-                        ? "text-[#7069FA]"
-                        : "text-[#5D6494] hover:text-[#3A416F]"
+                      ? "text-[#7069FA]"
+                      : "text-[#5D6494] hover:text-[#3A416F]"
                       }`}
                   >
                     {option.label}
@@ -186,6 +186,7 @@ export default function FiltersPanel({
               allOptions={filter.allOptions}
               selected={selectedFilters[index] ?? ""}
               onSelect={(value) => onFilterChange(index, value)}
+              disabled={filter.options.length === 0}
             />
           ))}
         </div>
