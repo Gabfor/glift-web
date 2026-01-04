@@ -408,14 +408,16 @@ export default function CreateProgramPageClient({
                       placeholder="Sélectionnez l'objectif"
                       selected={program.goal}
                       onSelect={(value) => setProgram({ ...program, goal: value })}
+                      sortStrategy="none"
                       options={[
-                        { value: "Prendre du muscle", label: "Prendre du muscle" },
-                        { value: "Gagner en force", label: "Gagner en force" },
-                        { value: "Perdre du poids", label: "Perdre du poids" },
-                        { value: "Rester en forme", label: "Rester en forme" },
-                        { value: "Remise en forme", label: "Remise en forme" },
-                        { value: "Endurance musculaire", label: "Endurance musculaire" },
+                        { value: "Prise de muscle", label: "Prise de muscle" },
+                        { value: "Perte de graisse", label: "Perte de graisse" },
+                        { value: "Gain de force", label: "Gain de force" },
                         { value: "Performance sportive", label: "Performance sportive" },
+                        { value: "Confiance & bien-être", label: "Confiance & bien-être" },
+                        { value: "Prévention des blessures", label: "Prévention des blessures" },
+                        { value: "Santé & longévité", label: "Santé & longévité" },
+                        { value: "Routine & discipline", label: "Routine & discipline" },
                       ]}
                     />
                   </div>
