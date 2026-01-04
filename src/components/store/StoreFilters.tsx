@@ -21,6 +21,7 @@ type ProgramStoreField = {
   location?: string | null;
   partner_name?: string | null;
   duration?: number | string | null;
+  plan?: string | null;
 };
 
 type NormalizedProgramStoreField = {
@@ -30,6 +31,7 @@ type NormalizedProgramStoreField = {
   location: string | null;
   partner: string | null;
   duration: number | null;
+  plan: "starter" | "premium" | null;
 };
 
 const normalizeString = (value: unknown): string | null => {
@@ -60,6 +62,7 @@ const normalizeProgram = (
   location: normalizeString(program.location),
   partner: normalizeString(program.partner_name),
   duration: normalizeDuration(program.duration),
+  plan: (program.plan as "starter" | "premium") || "starter",
 });
 
 const isUniversalValue = (value: string | null, universal: string) =>
@@ -187,6 +190,31 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
   const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
   const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", ""]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userProfile, setUserProfile] = useState<{
+    subscription_plan: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("subscription_plan")
+          .eq("id", user.id)
+          .single();
+
+        if (data) {
+          setUserProfile(data);
+        }
+      }
+    };
+    fetchProfile();
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -196,7 +224,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
       const { data, error } = await supabase
         .from("program_store")
-        .select("gender, goal, level, location, duration")
+        .select("gender, goal, level, location, duration, plan")
         .eq("status", "ON");
 
       if (error) {
@@ -231,12 +259,28 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     allLevelOptions,
     allLocationOptions,
     allDurationOptions,
+    availabilityOptions,
+    allAvailabilityOptions,
   } = useMemo(() => {
     const genderValues = new Set<string>();
     const goalValues = new Set<string>();
     const levelValues = new Set<string>();
     const locationValues = new Set<string>();
     const durationValues: number[] = [];
+    const availabilityValues = new Set<string>();
+
+    const checkAvailability = (program: NormalizedProgramStoreField) => {
+      if (!isAuthenticated) return false;
+      if (userProfile?.subscription_plan === "premium") return true;
+      // Basic plan
+      return program.plan === "starter";
+    };
+
+    const isAvailableMatch = (program: NormalizedProgramStoreField, filterValue: string) => {
+      if (!filterValue) return true;
+      const isAvailable = checkAvailability(program);
+      return filterValue === "Oui" ? isAvailable : !isAvailable;
+    };
 
     // Global values for width calculation
     const allGenderValues = new Set<string>();
@@ -244,6 +288,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     const allLevelValues = new Set<string>();
     const allLocationValues = new Set<string>();
     const allDurationValues: number[] = [];
+    const allAvailabilityValues = new Set<string>(["Oui", "Non"]);
 
     programs.forEach((program) => {
       // Collect ALL possible values
@@ -253,25 +298,58 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       if (program.location) allLocationValues.add(program.location);
       if (program.duration) allDurationValues.push(program.duration);
 
-      // Collect FILTERED values
-      if (matchesFilters(program, selectedFilters, 0) && program.gender) {
-        genderValues.add(program.gender);
+      // Match common filters logic (replicated partly here or we rely on matchesFilters?) 
+      // We need to use matchesFilters but inject the check for availability options
+      // CAUTION: matchesFilters defined outside doesn't know about userAuth.
+      // We need to implement availability check here inside the loop.
+
+      // Re-implement matchesFilters roughly or pass current availability:
+
+      let matches = true;
+      // Index 0: Gender
+      if (selectedFilters[0] && program.gender &&
+        program.gender.trim().toLowerCase() !== selectedFilters[0].trim().toLowerCase() &&
+        !isUniversalValue(program.gender, "Tous")) matches = false;
+
+      // Index 1: Goal
+      if (matches && selectedFilters[1] && program.goal &&
+        program.goal.trim().toLowerCase() !== selectedFilters[1].trim().toLowerCase()) matches = false;
+
+      // Index 2: Level
+      if (matches && selectedFilters[2] && program.level &&
+        program.level.trim().toLowerCase() !== selectedFilters[2].trim().toLowerCase() &&
+        !isUniversalValue(program.level, "Tous niveaux")) matches = false;
+
+      // Index 3: Location
+      if (matches && selectedFilters[3] && program.location &&
+        program.location.trim().toLowerCase() !== selectedFilters[3].trim().toLowerCase()) matches = false;
+
+      // Index 4: Duration
+      if (matches && selectedFilters[4]) {
+        const max = Number.parseInt(selectedFilters[4], 10);
+        if (!Number.isNaN(max) && program.duration && program.duration > max) matches = false;
       }
 
-      if (matchesFilters(program, selectedFilters, 1) && program.goal) {
-        goalValues.add(program.goal);
+      if (matches) {
+        // Check availability for option generation (if we are NOT filtering by availability OR if we allow it)
+        // Actually, we want to know: "Given other filters, what availabilities are present?"
+        // So we skip index 5 check for availabilityValues.
+
+        const isAvail = checkAvailability(program);
+        availabilityValues.add(isAvail ? "Oui" : "Non");
       }
 
-      if (matchesFilters(program, selectedFilters, 2) && program.level) {
-        levelValues.add(program.level);
+      // Now for other options, we MUST respect availability filter
+      if (matches && selectedFilters[5] && !isAvailableMatch(program, selectedFilters[5])) {
+        matches = false;
       }
 
-      if (matchesFilters(program, selectedFilters, 3) && program.location) {
-        locationValues.add(program.location);
-      }
-
-      if (matchesFilters(program, selectedFilters, 4) && program.duration) {
-        durationValues.push(program.duration);
+      if (matches) {
+        if (program.gender) genderValues.add(program.gender);
+        if (program.goal) goalValues.add(program.goal);
+        if (program.level) levelValues.add(program.level);
+        if (program.location) locationValues.add(program.location);
+        if (program.duration) durationValues.push(program.duration);
       }
     });
 
@@ -279,8 +357,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     ensureFilterSelection(goalValues, selectedFilters[1] ?? "");
     ensureFilterSelection(levelValues, selectedFilters[2] ?? "");
     ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
-
-    ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
+    ensureFilterSelection(availabilityValues, selectedFilters[5] ?? "");
 
     // For all locations, we don't force selection, just return options
     const allLocationFallback = () => {
@@ -300,8 +377,10 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       allLevelOptions: toStringOptions(allLevelValues, ["tous niveaux"]),
       allLocationOptions: allLocationFallback(),
       allDurationOptions: buildDurationOptions(allDurationValues, ""),
+      availabilityOptions: toStringOptions(availabilityValues),
+      allAvailabilityOptions: toStringOptions(allAvailabilityValues),
     };
-  }, [programs, selectedFilters]);
+  }, [programs, selectedFilters, isAuthenticated, userProfile]);
 
   const filterOptions: FilterGroup[] = [
     {
@@ -334,18 +413,16 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       options: durationOptions,
       allOptions: allDurationOptions,
     },
-    {
-      label: "Disponible",
-      placeholder: "Tous",
-      options: [
-        { value: "Oui", label: "Oui" },
-        { value: "Non", label: "Non" },
-      ],
-      allOptions: [
-        { value: "Oui", label: "Oui" },
-        { value: "Non", label: "Non" },
-      ],
-    },
+    ...(userProfile?.subscription_plan !== "premium"
+      ? [
+        {
+          label: "Disponible",
+          placeholder: "Tous",
+          options: availabilityOptions,
+          allOptions: allAvailabilityOptions,
+        },
+      ]
+      : []),
   ];
 
   const handleFilterChange = (index: number, value: string) => {
