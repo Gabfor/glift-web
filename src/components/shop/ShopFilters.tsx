@@ -18,7 +18,7 @@ type OfferShopField = {
   gender?: string | string[] | null;
   shop?: string | string[] | null;
   type?: string | string[] | null;
-  sport?: string | null;
+  sport?: string | string[] | null;
 };
 
 type NormalizedOfferShopField = {
@@ -69,6 +69,17 @@ const normalizeToArray = (value: unknown): string[] => {
 };
 
 const normalizeSport = (value: unknown): string | null => {
+  if (Array.isArray(value)) {
+    // If it's an array, take the first element or join them? 
+    // For filters, usually we want distinct values. 
+    // If the DB has ["Boxe", "MMA"], ideally we'd want both.
+    // But existing logic treats sport as a single string. 
+    // Let's just take the first one for now to match strict typing or join.
+    // Actually, looking at usages, it seems we just want a string.
+    // If it returns multiple, we might need a different approach.
+    // Safe fallback:
+    return value.length > 0 && typeof value[0] === 'string' ? value[0] : null;
+  }
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
@@ -165,6 +176,7 @@ export default function ShopFilters({
 }: Props) {
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
+    { value: "popularity", label: "Popularité" },
     { value: "newest", label: "Nouveauté" },
     { value: "expiration", label: "Expiration" },
   ];

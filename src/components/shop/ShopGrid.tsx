@@ -31,6 +31,8 @@ type OfferQueryRow = Pick<
   | "condition"
   | "gender"
   | "boost"
+  | "click_count"
+  | "created_at"
 >;
 
 type OfferId = OfferRow["id"];
@@ -54,6 +56,8 @@ type Offer = {
   condition?: string;
   gender?: string;
   boost?: boolean;
+  click_count?: number;
+  created_at?: string;
 };
 
 const parseOfferTypes = (value: unknown): string[] => {
@@ -95,6 +99,8 @@ const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
   condition: row.condition ?? "",
   gender: row.gender ?? "",
   boost: row.boost ?? false,
+  click_count: row.click_count ?? 0,
+  created_at: row.created_at ?? "",
 });
 
 export default function ShopGrid({
@@ -147,6 +153,8 @@ export default function ShopGrid({
     switch (sortBy) {
       case "relevance":
         return { column: "", ascending: false }; // Client-side sort
+      case "popularity":
+        return { column: "click_count", ascending: false }; // Server-side sort main, but needs multiple
       case "oldest":
         return { column: "start_date", ascending: true };
       case "expiration":
@@ -213,7 +221,9 @@ export default function ShopGrid({
           modal,
           condition,
           gender,
-          boost
+          boost,
+          click_count,
+          created_at
         `)
         .eq("status", "ON");
 
@@ -225,7 +235,12 @@ export default function ShopGrid({
 
       // ➜ Appliquer tri Supabase sauf pour "expiration" et "relevance"
       let finalQuery = query;
-      if (order.column) {
+      if (sortBy === "popularity") {
+        finalQuery = finalQuery
+          .order("click_count", { ascending: false })
+          .order("created_at", { ascending: false })
+          .order("name", { ascending: true });
+      } else if (order.column) {
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
 
