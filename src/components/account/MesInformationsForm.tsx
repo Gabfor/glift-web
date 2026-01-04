@@ -163,9 +163,8 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
       {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
       <div
-        className={`w-[368px] flex flex-col items-center mb-[30px]${
-          hasTopMessage ? "" : " mt-[30px]"
-        }`}
+        className={`w-[368px] flex flex-col items-center mb-[30px]${hasTopMessage ? "" : " mt-[30px]"
+          }`}
       >
         <ProfilePictureBlock
           imageUrl={avatarDisplayUrl}
@@ -342,6 +341,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
               }
             }}
             success={successMessages.mainGoal}
+            sortStrategy="none"
           />
         </div>
       </MissingField>

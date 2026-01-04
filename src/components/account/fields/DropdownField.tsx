@@ -40,6 +40,10 @@ export type DropdownFieldProps = {
    * Optional class to override the dropdown button border radius. Defaults to 5px radius.
    */
   buttonRoundedClassName?: string
+  /**
+   * Strategy for sorting options. Defaults to "label".
+   */
+  sortStrategy?: "label" | "month" | "year-desc" | "none"
 }
 
 export default function DropdownField({
@@ -57,6 +61,7 @@ export default function DropdownField({
   clearLabel = "Effacer",
   onClear,
   buttonRoundedClassName = "rounded-[5px]",
+  sortStrategy,
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
@@ -112,6 +117,7 @@ export default function DropdownField({
           }}
           options={options}
           buttonClassName={buttonClassName}
+          sortStrategy={sortStrategy}
         />
       </div>
 

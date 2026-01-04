@@ -179,6 +179,7 @@ const buildDurationOptions = (durations: number[], selected: string) => {
 
 export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: Props) {
   const sortOptions: SortOption[] = [
+    { value: "relevance", label: "Pertinence" },
     { value: "popularity", label: "Popularité" },
     { value: "newest", label: "Nouveauté" },
     { value: "oldest", label: "Ancienneté" },

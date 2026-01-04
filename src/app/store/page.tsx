@@ -8,7 +8,7 @@ import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
 
 export default function StorePage() {
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("relevance");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);

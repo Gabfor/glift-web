@@ -22,10 +22,14 @@ export const getCountryFlagIcon = (country: string) => {
 export const EXPERIENCE_OPTIONS = ['0', '1', '2', '3', '4', '5+'] as const
 
 export const MAIN_GOALS = [
-  'Perte de poids',
-  'Prise de muscle',
-  'Remise en forme',
-  'Performance',
+  "Prise de muscle",
+  "Perte de graisse",
+  "Gain de force",
+  "Performance sportive",
+  "Confiance & bien-être",
+  "Prévention des blessures",
+  "Santé & longévité",
+  "Routine & discipline",
 ] as const
 
 export const TRAINING_PLACES = ['Salle', 'Domicile', 'Les deux'] as const
