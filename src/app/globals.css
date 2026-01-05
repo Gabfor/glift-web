@@ -375,4 +375,9 @@ input:checked + .slider:before {
     background-color: var(--color-surface-primary);
     color: var(--color-text-strong);
   }
+
+  /* Override global du curseur not-allowed */
+  [disabled], .disabled, [aria-disabled="true"], [style*="cursor: not-allowed"] {
+    cursor: default !important;
+  }
 }
