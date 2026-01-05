@@ -48,8 +48,8 @@ const UserContext = createContext<UserContextType>({
   isRecoverySession: false,
   isEmailVerified: null,
   gracePeriodExpiresAt: null,
-  refreshUser: async () => {},
-  updateUserMetadata: () => {},
+  refreshUser: async () => { },
+  updateUserMetadata: () => { },
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -114,8 +114,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     });
   }, [sessionUser]);
 
-  const fetchUser = useCallback(async () => {
-    setIsLoading(true);
+  const fetchUser = useCallback(async (background = false) => {
+    if (!background) {
+      setIsLoading(true);
+    }
     try {
       const {
         data: { user },
@@ -168,8 +170,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         setIsPremiumUser(
           planFromSubscription === "premium" ||
-            planFromMetadata === "premium" ||
-            metadataPremiumFlag
+          planFromMetadata === "premium" ||
+          metadataPremiumFlag
         );
 
         if (profileData && typeof profileData.email_verified === "boolean") {
@@ -206,7 +208,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   useEffect(() => {
-    void fetchUser();
+    void fetchUser(!!sessionUser);
 
     const authClient = supabase.auth;
 

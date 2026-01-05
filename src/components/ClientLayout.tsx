@@ -10,18 +10,21 @@ import AuthDebug from "@/components/AuthDebug";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
+import { Session } from "@supabase/supabase-js";
+
 interface ClientLayoutProps {
   children: React.ReactNode;
   disconnected?: boolean;
+  initialSession: Session | null;
 }
 
-export default function ClientLayout({ children, disconnected = false }: ClientLayoutProps) {
+export default function ClientLayout({ children, disconnected = false, initialSession }: ClientLayoutProps) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
   const isComptePage = pathname?.startsWith("/compte");
 
   return (
-    <SupabaseProvider>
+    <SupabaseProvider initialSession={initialSession}>
       <UserProvider>
         <ClientLayoutContent
           disconnected={disconnected}

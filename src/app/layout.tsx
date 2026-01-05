@@ -20,16 +20,24 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+import { createClient } from "@/lib/supabase/server";
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const supabase = await createClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
   return (
     <html lang="fr">
       <body className={quicksand.className}>
         <UnlockScroll />
-        <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
+        <ClientLayoutWrapper initialSession={session}>{children}</ClientLayoutWrapper>
       </body>
     </html>
   );
