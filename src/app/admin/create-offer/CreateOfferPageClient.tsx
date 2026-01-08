@@ -686,6 +686,7 @@ export default function CreateOfferPageClient({
                       }
                       options={[
                         { value: "Boxe", label: "Boxe" },
+                        { value: "Football", label: "Football" },
                         { value: "Musculation", label: "Musculation" },
                         { value: "Running", label: "Running" },
                         { value: "Yoga", label: "Yoga" },
