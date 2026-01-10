@@ -25,6 +25,7 @@ interface DashboardRecordCardProps {
     iconSrc: string;
     onFavoriteToggle?: () => void;
     onCancelGoal?: () => void;
+    isActive?: boolean;
 }
 
 export default function DashboardRecordCard({
@@ -38,6 +39,7 @@ export default function DashboardRecordCard({
     iconSrc,
     onFavoriteToggle,
     onCancelGoal,
+    isActive = true,
 }: DashboardRecordCardProps) {
     const [isHeartHovered, setIsHeartHovered] = useState(false);
 
@@ -81,19 +83,19 @@ export default function DashboardRecordCard({
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                 {hasGoal && goalProgress !== null ? (
                     <>
-                        <span className={`text-[24px] font-bold leading-none ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
+                        <span className={`text-[24px] font-bold leading-none transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
                             {Math.round(goalProgress)}%
                         </span>
-                        <span className="text-[10px] font-bold text-[#5D6494] leading-tight mt-1 max-w-[60px]">
+                        <span className="text-[10px] font-bold text-[#5D6494] leading-tight mt-1 max-w-[60px] transition-all duration-200">
                             de l&apos;objectif atteint
                         </span>
                     </>
                 ) : (
                     <>
-                        <span className="text-[24px] font-bold text-[#D7D4DC] leading-none">
+                        <span className="text-[24px] font-bold text-[#D7D4DC] leading-none transition-all duration-200">
                             0%
                         </span>
-                        <span className="text-[10px] font-bold text-[#D7D4DC] leading-tight mt-1 max-w-[90px]">
+                        <span className="text-[10px] font-bold text-[#D7D4DC] leading-tight mt-1 max-w-[90px] transition-all duration-200">
                             Aucun objectif défini
                         </span>
                     </>
@@ -124,7 +126,7 @@ export default function DashboardRecordCard({
     }, [dateLabel]);
 
     return (
-        <div className="flex h-full w-full flex-col items-center justify-between rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-sm select-none">
+        <div className="flex h-full w-full flex-col items-center justify-between rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-sm select-none transition-all duration-200 ease-in-out">
 
 
             {/* Re-structuring header based on Mock 2 interpretation if I can? 
@@ -139,7 +141,7 @@ export default function DashboardRecordCard({
 
                     {/* Heart Top Right */}
                     <button
-                        className="text-[#EF4F4E]"
+                        className="text-[#EF4F4E] transition-transform duration-200"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (onFavoriteToggle) onFavoriteToggle();
@@ -152,31 +154,32 @@ export default function DashboardRecordCard({
                             alt="Favori"
                             width={18}
                             height={18}
+                            className="transition-opacity duration-200"
                         />
                     </button>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {/* Date Box */}
-                    <div className="flex flex-col items-center justify-center rounded-[12px] border border-[#ECE9F1] w-[40px] h-[40px] px-0 py-0 min-w-0">
-                        <span className="text-[13px] font-bold text-[#3A416F] leading-none text-center">
+                    <div className="flex flex-col items-center justify-center rounded-[12px] border border-[#ECE9F1] w-[40px] h-[40px] px-0 py-0 min-w-0 transition-all duration-200">
+                        <span className="text-[13px] font-bold text-[#3A416F] leading-none text-center transition-all duration-200">
                             {dayStr}
                         </span>
-                        <span className="text-[10px] font-semibold text-[#C2BFC6] leading-none mt-1 text-center">
+                        <span className="text-[10px] font-semibold text-[#C2BFC6] leading-none mt-1 text-center transition-all duration-200">
                             {monthStr}
                         </span>
                     </div>
 
                     {/* Value & Type */}
                     <div className="flex flex-col">
-                        <span className="text-[22px] font-bold text-[#3A416F] leading-none">{valueLabel}</span>
-                        <span className="text-[11px] font-semibold text-[#3A416F]">{typeLabel}</span>
+                        <span className="text-[22px] font-bold text-[#3A416F] leading-none transition-all duration-200">{valueLabel}</span>
+                        <span className={`transition-all duration-200 ${isActive ? 'text-[11px]' : 'text-[9px]'} font-semibold text-[#3A416F]`}>{typeLabel}</span>
                     </div>
                 </div>
             </div>
 
             {/* Center Circle */}
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center transition-all duration-200">
                 <GoalCircle />
             </div>
 
@@ -186,7 +189,7 @@ export default function DashboardRecordCard({
                     e.stopPropagation();
                     onActionClick();
                 }}
-                className="group flex items-center justify-center gap-1 rounded-full border border-[#7069FA] px-5 py-3 text-[12px] font-bold text-[#7069FA] transition-colors hover:bg-[#7069FA] hover:text-white w-full"
+                className={`group flex items-center justify-center gap-1 rounded-full border border-[#7069FA] px-5 py-3 transition-all duration-200 ${isActive ? 'text-[12px]' : 'text-[10px]'} font-bold text-[#7069FA] hover:bg-[#7069FA] hover:text-white w-full`}
             >
                 <span>{hasGoal ? "Voir mon objectif" : "Définir un objectif"}</span>
                 <Image

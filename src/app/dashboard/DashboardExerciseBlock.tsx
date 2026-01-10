@@ -643,6 +643,33 @@ export default function DashboardExerciseBlock({
   const [goalTargetError, setGoalTargetError] = useState<string | null>(null);
   const [favoriteRecordTypes, setFavoriteRecordTypes] = useState<Set<string>>(new Set());
 
+  // Load favorites from local storage
+  // Load favorites from local storage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(`glift_favorite_records_${id}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        const favoriteSet = new Set<string>(parsed);
+        setFavoriteRecordTypes(favoriteSet);
+
+        // If we have a favorite, switch to it immediately!
+        // This runs on mount (or id change), effectively "on load".
+        // Use the first valid favorite found in CURVE_OPTIONS order to be deterministic.
+        if (!hasPrioritizedRef.current && favoriteSet.size > 0) {
+          const prioritized = CURVE_OPTIONS.find(o => favoriteSet.has(o.value));
+          if (prioritized && prioritized.value !== recordType) {
+            // Mark as prioritized so we don't do it again
+            hasPrioritizedRef.current = true;
+            onRecordTypeChange(prioritized.value);
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load favorites", e);
+    }
+  }, [id, onRecordTypeChange, recordType]); // recordType dependency needed to avoid redundant switch if already correct
+
   const toggleFavorite = (type: string) => {
     setFavoriteRecordTypes(prev => {
       const next = new Set(prev);
@@ -651,6 +678,13 @@ export default function DashboardExerciseBlock({
       } else {
         next.add(type);
       }
+
+      try {
+        localStorage.setItem(`glift_favorite_records_${id}`, JSON.stringify(Array.from(next)));
+      } catch (e) {
+        console.error("Failed to save favorites", e);
+      }
+
       return next;
     });
   };
@@ -987,26 +1021,29 @@ export default function DashboardExerciseBlock({
         }
       });
     });
-
-    const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
   }, [curveType, currentUnit, rawSessions]);
+
+  // Ref to track if we've already prioritized the favorite on load
+  const hasPrioritizedRef = useRef(false);
 
   useEffect(() => {
     if (!records.length) {
       return;
     }
 
+    // 2. Standard fallback: check if current selection is valid
     const hasMatchingRecord = records.some((record) => record.curveType === recordType);
     if (hasMatchingRecord) {
       return;
     }
 
+    // 3. Fallback to first if invalid
     const fallbackRecord = records[0];
     if (fallbackRecord && fallbackRecord.curveType !== recordType) {
       onRecordTypeChange(fallbackRecord.curveType);
     }
-  }, [onRecordTypeChange, recordType, records]);
+  }, [onRecordTypeChange, recordType, records, favoriteRecordTypes]);
 
   const currentRecordIndex = useMemo(() => {
     if (!records.length) {
@@ -1119,7 +1156,17 @@ export default function DashboardExerciseBlock({
             />
             <DashboardExerciseDropdown
               value={curveType}
-              onChange={onCurveChange}
+              onChange={(newCurve) => {
+                // Update graph
+                onCurveChange(newCurve);
+
+                // Update card ONLY if the current record is NOT a favorite
+                // We check if the *currently displayed* record type is favorited.
+                // If it is favorite, we don't want to switch it away.
+                if (!favoriteRecordTypes.has(recordType)) {
+                  onRecordTypeChange(newCurve);
+                }
+              }}
               options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
               iconSrc="/icons/courbe.svg"
               iconHoverSrc="/icons/courbe_hover.svg"
@@ -1236,7 +1283,34 @@ export default function DashboardExerciseBlock({
             onIndexChange={(index) => {
               const record = records[index];
               if (record && record.curveType !== recordType) {
+                // Update active record card
                 onRecordTypeChange(record.curveType);
+
+                // Update chart ONLY if the NEW record is NOT a favorite
+                // (or should it be if the OLD wasn't? User logic implies if "favorite" is involved, don't sync)
+                // Interpretation: "Si je l'a met en favorite... si je change la carte... la courbe ne bouge pas"
+                // This means if I arrive on a Favorite card (or leave one?), the Sync is broken.
+                // Let's assume: If the TARGET card is a favorite, we shouldn't auto-update the chart to it?
+                // Or: If the CURRENT card was favorite?
+                // Re-reading: "La seule façon qu'une carte... arrête de bouger est si je l'a met en favorite. Dans ce cas le changement de courbe n'a plus d'impact... et si je change la carte, la courbe ne bouge pas non plus".
+                // This strongly implies that being on a Favorite card disables the bidirectional link.
+
+                // Case 1: Active card is Favorite. User swipes to another. 
+                // Does curve update? "La courbe ne bouge pas non plus".
+                // So if we *were* on a favorite, or if we *arrive* on a favorite?
+                // "Si je la met en favorite" -> referring to the specific card "Max Poids".
+                // If I swipe *to* "Max Poids" (Favorite), does chart update?
+                // If I swipe *from* "Max Poids" (Favorite), does chart update?
+
+                // Let's implement: If the NEW card is a favorite, DON'T sync.
+                // AND: If the OLD card was a favorite? (User didn't specify, but implies isolation).
+                // Let's stick to the simplest interpretation that fits: 
+                // If the selected record is a favorite, do NOT sync the chart.
+                // If the selected record is NOT a favorite, sync the chart.
+
+                if (!favoriteRecordTypes.has(record.curveType)) {
+                  onCurveChange(record.curveType);
+                }
               }
             }}
           />

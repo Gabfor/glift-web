@@ -24,11 +24,39 @@ export default function RecordsCarousel({
 }: RecordsCarouselProps) {
     const [index, setIndex] = useState(controlledGoToSlide ?? 0);
 
+    const targetRef = React.useRef(controlledGoToSlide);
+
     useEffect(() => {
-        if (controlledGoToSlide !== undefined) {
-            setIndex(controlledGoToSlide);
-        }
-    }, [controlledGoToSlide]);
+        if (controlledGoToSlide === undefined) return;
+
+        // Check if target changed to trigger immediate first step
+        const isNewTarget = targetRef.current !== controlledGoToSlide;
+        targetRef.current = controlledGoToSlide;
+
+        const total = slides.length;
+        if (total === 0) return;
+
+        // Calculate shortest path distance
+        let diff = controlledGoToSlide - index;
+        if (diff > total / 2) diff -= total;
+        if (diff < -total / 2) diff += total;
+
+        if (diff === 0) return;
+
+        // Step one by one towards target
+        const direction = diff > 0 ? 1 : -1;
+        const nextIndex = (index + direction + total) % total;
+
+        // If new target, start immediately (0ms). 
+        // Otherwise wait for previous transition (150ms).
+        const delay = isNewTarget ? 0 : 150;
+
+        const timeout = setTimeout(() => {
+            setIndex(nextIndex);
+        }, delay);
+
+        return () => clearTimeout(timeout);
+    }, [controlledGoToSlide, index, slides.length]);
 
     const getSlideStyles = (i: number) => {
         const total = slides.length;
@@ -46,28 +74,20 @@ export default function RecordsCarousel({
 
         // Dimensions
         // Container: 270px. Card: 220px.
-        // Active: Scale 1 (339px h). Centered in 270px.
-        // Prev/Next: Scale ~0.88 (299px h). Aligned to edges.
+        // Active: 220px x 339px.
+        // Prev/Next: Scale 0.882 -> 194px x 299px.
 
-        // Scale 0.882 results in height 299px from 339px.
-        const scale = type === "active" ? 1 : 0.882;
+        const width = type === "active" ? "220px" : "194px";
+        const height = type === "active" ? "339px" : "299px";
         const opacity = 1;
         const zIndex = type === "active" ? 10 : 5;
         const isVisible = type !== "hidden";
 
         // Positioning
         // Base setup: left: 50%, x: -50% (Centers the card)
-        // Active: No extra offset.
-        // Prev: Needs to move Left. 
-        //   Target: Left edge at 0px.
-        //   Card Width Scaled: 220 * 0.882 = 194px.
-        //   Card Center relative to Container Left: 194 / 2 = 97px.
-        //   Container Center: 135px.
-        //   Offset needed: 97 - 135 = -38px.
-        // Next: Needs to move Right.
-        //   Target: Right edge at 270px.
-        //   Card Center relative to Container Left: 270 - 97 = 173px.
-        //   Offset needed: 173 - 135 = +38px.
+
+        // Prev: -38px offset.
+        // Next: +38px offset.
 
         let xOffset = 0;
         if (type === "prev") xOffset = -38;
@@ -77,9 +97,8 @@ export default function RecordsCarousel({
             left: "50%",
             x: `calc(-50% + ${xOffset}px)`,
             y: "-50%",
-            width: "220px",
-            height: "339px",
-            scale,
+            width,
+            height,
             opacity: isVisible ? opacity : 0,
             zIndex,
             display: isVisible ? "block" : "none",
@@ -97,10 +116,17 @@ export default function RecordsCarousel({
             <div className="record-carousel-container relative w-full h-full">
                 {slides.map((slide, i) => {
                     const styles = getSlideStyles(i);
+                    const isActive = i === index;
+
+                    // Clone the content to inject isActive prop if it's a valid element
+                    const contentWithProps = React.isValidElement(slide.content)
+                        ? React.cloneElement(slide.content as React.ReactElement<any>, { isActive })
+                        : slide.content;
+
                     return (
                         <motion.div
                             key={slide.key}
-                            className="absolute top-1/2 origin-center cursor-pointer will-change-transform rounded-[24px]"
+                            className="absolute top-1/2 origin-center cursor-pointer rounded-[24px] overflow-hidden"
                             initial={false}
                             animate={{
                                 left: styles.left,
@@ -108,15 +134,14 @@ export default function RecordsCarousel({
                                 y: styles.y,
                                 width: styles.width,
                                 height: styles.height,
-                                scale: styles.scale,
                                 opacity: styles.opacity,
                                 zIndex: styles.zIndex,
                                 display: styles.display,
                             }}
                             transition={{
-                                type: "spring",
-                                stiffness: 300,
-                                damping: 30,
+                                type: "tween",
+                                duration: 0.15,
+                                ease: "easeInOut",
                             }}
                             onClick={() => {
                                 setIndex(i);
@@ -124,7 +149,7 @@ export default function RecordsCarousel({
                                 slide.onClick?.();
                             }}
                         >
-                            {slide.content}
+                            {contentWithProps}
                         </motion.div>
                     );
                 })}
