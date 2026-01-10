@@ -1021,6 +1021,8 @@ export default function DashboardExerciseBlock({
         }
       });
     });
+
+    const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
   }, [curveType, currentUnit, rawSessions]);
 
@@ -1164,7 +1166,7 @@ export default function DashboardExerciseBlock({
                 // We check if the *currently displayed* record type is favorited.
                 // If it is favorite, we don't want to switch it away.
                 if (!favoriteRecordTypes.has(recordType)) {
-                  onRecordTypeChange(newCurve);
+                  onRecordTypeChange(newCurve as CurveOptionValue);
                 }
               }}
               options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
@@ -1262,8 +1264,8 @@ export default function DashboardExerciseBlock({
             ) : null}
             {!isLoadingData && !fetchError && chartData.length === 0 ? (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 text-center">
-                <p className="text-[13px] font-semibold text-[#5D6494]">
-                  Aucune donnée disponible pour le moment.
+                <p className="text-[14px] font-semibold text-[#C2BFC6]">
+                  Aucune donnée disponible
                 </p>
               </div>
             ) : null}
