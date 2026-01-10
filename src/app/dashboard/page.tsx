@@ -34,23 +34,23 @@ const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
 const STATS_CARD_METADATA = [
   {
     id: "sessions",
-    icon: "/icons/dashboard-sessions.svg",
+    icon: "/icons/stat_seance.svg",
     label: "Séances terminées",
   },
   {
-    id: "goals",
-    icon: "/icons/dashboard-goals.svg",
-    label: "Objectifs atteints",
-  },
-  {
     id: "time",
-    icon: "/icons/dashboard-time.svg",
+    icon: "/icons/stat_temps.svg",
     label: "Minutes en moyenne",
   },
   {
     id: "weight",
-    icon: "/icons/dashboard-weight.svg",
-    label: "Kg soulevés",
+    icon: "/icons/stat_poids.svg",
+    label: "Kg soulevés en moyenne",
+  },
+  {
+    id: "reps",
+    icon: "/icons/stat_rep.svg",
+    label: "Répétitions en moyenne",
   },
 ] as const;
 
@@ -58,6 +58,7 @@ type StatsCardMetadata = (typeof STATS_CARD_METADATA)[number];
 
 type StatsCard = StatsCardMetadata & {
   value: number;
+  previousValue: number;
   format: (value: number) => string;
   precision: number;
 };
@@ -208,18 +209,23 @@ const StatsValue = ({ value, format, precision, isLoading }: StatsValueProps) =>
   return <span aria-live="polite">{format(displayValue)}</span>;
 };
 
+type StatMetric = {
+  current: number;
+  previous: number;
+};
+
 type DashboardStats = {
-  sessionsCompleted: number;
-  goalsAchieved: number;
-  averageDurationMinutes: number;
-  totalWeight: number;
+  sessions: StatMetric;
+  time: StatMetric;
+  weight: StatMetric;
+  reps: StatMetric;
 };
 
 const createEmptyStats = (): DashboardStats => ({
-  sessionsCompleted: 0,
-  goalsAchieved: 0,
-  averageDurationMinutes: 0,
-  totalWeight: 0,
+  sessions: { current: 0, previous: 0 },
+  time: { current: 0, previous: 0 },
+  weight: { current: 0, previous: 0 },
+  reps: { current: 0, previous: 0 },
 });
 
 const MIN_FAKE_DURATION_MINUTES = 30;
@@ -437,6 +443,7 @@ export default function DashboardPage() {
   const [hasLoadedProgramList, setHasLoadedProgramList] = useState(false);
   const [stats, setStats] = useState<DashboardStats>(() => createEmptyStats());
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [showTrends, setShowTrends] = useState(false);
   const [goalCompletionMap, setGoalCompletionMap] = useState<Record<string, boolean>>({});
 
   const completedGoalsCount = useMemo(
@@ -512,41 +519,41 @@ export default function DashboardPage() {
         case "sessions":
           return {
             ...metadata,
-            value: stats.sessionsCompleted,
-            format: formatInteger,
-            precision: 0,
-          } satisfies StatsCard;
-        case "goals":
-          return {
-            ...metadata,
-            value: stats.goalsAchieved + completedGoalsCount,
+            value: stats.sessions.current,
+            previousValue: stats.sessions.previous,
             format: formatInteger,
             precision: 0,
           } satisfies StatsCard;
         case "time":
           return {
             ...metadata,
-            value: stats.averageDurationMinutes,
+            value: stats.time.current,
+            previousValue: stats.time.previous,
             format: formatInteger,
             precision: 0,
           } satisfies StatsCard;
         case "weight":
+          return {
+            ...metadata,
+            value: stats.weight.current,
+            previousValue: stats.weight.previous,
+            format: formatInteger,
+            precision: 0, // Using integer for weight based on user request "28" not "28.5" although mock had comma? Mock says "28" and "+1,8". Let's stick to integer for main value as per mock "28".
+          } satisfies StatsCard;
+        case "reps":
         default:
           return {
             ...metadata,
-            value: stats.totalWeight,
-            format: formatWeight,
+            value: stats.reps.current,
+            previousValue: stats.reps.previous,
+            format: formatInteger,
             precision: 0,
           } satisfies StatsCard;
       }
     });
   }, [
     integerFormatter,
-    stats.averageDurationMinutes,
-    stats.goalsAchieved,
-    completedGoalsCount,
-    stats.sessionsCompleted,
-    stats.totalWeight,
+    stats,
     weightFormatter,
   ]);
 
@@ -738,7 +745,11 @@ export default function DashboardPage() {
           `
             session_id,
             session:training_sessions!inner (
-              performed_at
+              performed_at,
+              program:programs (
+                id,
+                dashboard
+              )
             ),
             sets:training_session_sets (
               repetitions,
@@ -760,26 +771,80 @@ export default function DashboardPage() {
 
       type SessionExerciseRow = {
         session_id: string | null;
-        session: { performed_at?: string | null } | null;
+        session: {
+          performed_at?: string | null;
+          program?: { id?: string | null; dashboard?: boolean | null } | null;
+        } | null;
         sets: Array<{ repetitions?: unknown; weights?: unknown }> | null;
       };
 
       const rows = (data ?? []) as SessionExerciseRow[];
 
-      const sessionsMap = new Map<string, string>();
-      let totalWeight = 0;
+      // Metrics accumulators for Current (Last 7 days) and Previous (7-14 days ago)
+      let currentSessions = new Set<string>();
+      let previousSessions = new Set<string>();
+
+      let currentDurationSum = 0;
+      let previousDurationSum = 0;
+
+      let currentWeightSum = 0;
+      let currentWeightCount = 0;
+      let previousWeightSum = 0;
+      let previousWeightCount = 0;
+
+      let currentRepSum = 0;
+      let currentRepCount = 0;
+      let previousRepSum = 0;
+      let previousRepCount = 0;
+
+      const now = new Date();
+      const day7 = new Date();
+      day7.setDate(now.getDate() - 7);
+      const day14 = new Date();
+      day14.setDate(now.getDate() - 14);
+
+      // Map to store calculated durations per session to avoid re-calculating
+      const sessionDurations = new Map<string, number>();
 
       for (const row of rows) {
-        const sessionId = typeof row.session_id === "string" ? row.session_id : null;
-        const performedAt =
-          row.session && typeof row.session === "object" && typeof row.session.performed_at === "string"
-            ? row.session.performed_at
-            : "";
-
-        if (sessionId) {
-          sessionsMap.set(sessionId, performedAt);
+        // Filter by visible program
+        const programDashboard = row.session?.program?.dashboard;
+        if (programDashboard === false) {
+          continue;
         }
 
+        const sessionId = typeof row.session_id === "string" ? row.session_id : null;
+        const performedAtStr =
+          row.session && typeof row.session === "object" && typeof row.session.performed_at === "string"
+            ? row.session.performed_at
+            : null;
+
+        if (!sessionId || !performedAtStr) continue;
+
+        const performedAt = new Date(performedAtStr);
+        const isCurrent = performedAt >= day7 && performedAt <= now;
+        const isPrevious = performedAt >= day14 && performedAt < day7;
+
+        if (!isCurrent && !isPrevious) continue;
+
+        // Process Session & Duration
+        if (isCurrent) {
+          if (!currentSessions.has(sessionId)) {
+            currentSessions.add(sessionId);
+            const duration = createDeterministicDuration(sessionId, performedAtStr);
+            sessionDurations.set(sessionId, duration);
+            currentDurationSum += duration;
+          }
+        } else {
+          if (!previousSessions.has(sessionId)) {
+            previousSessions.add(sessionId);
+            const duration = createDeterministicDuration(sessionId, performedAtStr);
+            sessionDurations.set(sessionId, duration);
+            previousDurationSum += duration;
+          }
+        }
+
+        // Process Sets (Weight & Reps)
         const sets = Array.isArray(row.sets) ? row.sets : [];
         for (const set of sets) {
           const repetitions =
@@ -791,34 +856,64 @@ export default function DashboardPage() {
             .map((weight) => parseNumericValue(weight))
             .filter((weight): weight is number => weight != null);
 
-          if (numericWeights.length === 0) {
-            continue;
+          // We consider valid sets those with at least one weight or rep count
+          // If weights are present, usage average of weights in that set
+          // If not, we skip weight tracking for this set but might track reps
+
+          if (repetitions !== null) {
+            if (isCurrent) {
+              currentRepSum += repetitions;
+              currentRepCount += 1;
+            } else {
+              previousRepSum += repetitions;
+              previousRepCount += 1;
+            }
           }
 
-          if (numericWeights.length === 1) {
-            const repCount = repetitions ?? 1;
-            totalWeight += numericWeights[0] * repCount;
-          } else {
-            totalWeight += numericWeights.reduce((sum, weight) => sum + weight, 0);
+          if (numericWeights.length > 0) {
+            const avgSetWeight = numericWeights.reduce((a, b) => a + b, 0) / numericWeights.length;
+            if (isCurrent) {
+              currentWeightSum += avgSetWeight;
+              currentWeightCount += 1;
+            } else {
+              previousWeightSum += avgSetWeight;
+              previousWeightCount += 1;
+            }
           }
         }
       }
 
-      const sessionCount = sessionsMap.size;
-      const durations = Array.from(sessionsMap.entries()).map(([sessionId, performedAt]) =>
-        createDeterministicDuration(sessionId, performedAt),
-      );
-      const averageDuration =
-        durations.length === 0
-          ? 0
-          : Math.round(durations.reduce((sum, duration) => sum + duration, 0) / durations.length);
+      const usedProgramIds = new Set<string>();
+      for (const row of rows) {
+        const p = row.session?.program;
+        if (p && p.dashboard !== false && p.id) {
+          usedProgramIds.add(p.id);
+        }
+      }
 
       setStats({
-        sessionsCompleted: sessionCount,
-        goalsAchieved: 0,
-        averageDurationMinutes: averageDuration,
-        totalWeight,
-      });
+        sessions: {
+          current: currentSessions.size,
+          previous: previousSessions.size
+        },
+        time: {
+          current: currentSessions.size > 0 ? currentDurationSum / currentSessions.size : 0,
+          previous: previousSessions.size > 0 ? previousDurationSum / previousSessions.size : 0
+        },
+        weight: {
+          current: currentWeightCount > 0 ? currentWeightSum / currentWeightCount : 0,
+          previous: previousWeightCount > 0 ? previousWeightSum / previousWeightCount : 0
+        },
+        reps: {
+          current: currentRepCount > 0 ? currentRepSum / currentRepCount : 0,
+          previous: previousRepCount > 0 ? previousRepSum / previousRepCount : 0
+        },
+        // DEBUG: Add program IDs to stats object (needs type update or just quick hack for display)
+        // Let's use a temporary state or just console.log? 
+        // User asked to "give" the ID. 
+        // I will add a temporary field to stats for display.
+        debugProgramIds: Array.from(usedProgramIds)
+      } as any);
       setIsLoadingStats(false);
     };
 
@@ -828,6 +923,17 @@ export default function DashboardPage() {
       isMounted = false;
     };
   }, [showStats, supabase, user?.id]);
+
+  useEffect(() => {
+    if (isLoadingStats) {
+      setShowTrends(false);
+    } else {
+      const timer = setTimeout(() => {
+        setShowTrends(true);
+      }, 650);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadingStats]);
 
   useEffect(() => {
     if (!selectedTraining || !user?.id) {
@@ -890,9 +996,8 @@ export default function DashboardPage() {
 
         <div className="relative">
           <div
-            className={`transition-opacity duration-200 ${
-              shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
-            }`}
+            className={`transition-opacity duration-200 ${shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
+              }`}
             aria-hidden={shouldShowFiltersSkeleton}
           >
             <DashboardProgramFilters
@@ -932,33 +1037,118 @@ export default function DashboardPage() {
           <>
             {showStats && (
               <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[24px]">
-                {statsCards.map((card) => (
-                  <div
-                    key={card.id}
-                    className="flex w-[270px] flex-col items-center justify-center gap-3 rounded-[20px] border border-[#D7D4DC] bg-white px-6 py-6 text-center"
-                  >
-                    <div className="flex h-7 w-7 items-center justify-center">
-                      <Image
-                        src={card.icon}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="h-7 w-7"
-                      />
+                {statsCards.map((card) => {
+                  const diff = card.value - card.previousValue;
+                  const absDiff = Math.abs(diff);
+                  const isPositive = diff > 0;
+                  const isNegative = diff < 0; // Strictly negative
+                  // For stats: More is better -> Green. Less is bad -> Red. 
+                  // Exception: If user wants specific duration handling? Assuming more is better.
+
+                  // Icons
+                  // arrow_green_up.svg
+                  // arrow_red_down.svg
+                  // arrow_red_up.svg (Used when increase is bad? Or just red?)
+                  // arrow_green_down.svg (Used when decrease is good?)
+
+                  // Standard interpretation: 
+                  // Increase: Green Up
+                  // Decrease: Red Down
+                  // What if 'arrow_red_up' was requested? Maybe for something where increase is bad? 
+                  // Or maybe just if current < previous, show red down. If current > previous show green up.
+
+                  // Let's implement:
+                  // ID 'time' -> 48 min. 
+                  // ID 'sessions' -> 37.
+
+                  let arrowIcon = "/icons/Arrow_green_up.svg";
+                  let diffColor = "text-[#00D591]"; // Green
+
+                  if (diff > 0) {
+                    arrowIcon = "/icons/Arrow_green_up.svg";
+                    diffColor = "text-[#00D591]";
+                  } else if (diff < 0) {
+                    arrowIcon = "/icons/Arrow_red_down.svg";
+                    diffColor = "text-[#EF4F4E]";
+                  } else {
+                    // No change -> Maybe green up or neutral? keeping green as default 'neutral' isn't great.
+                    // If 0, maybe no arrow? Or green +0?
+                    arrowIcon = "/icons/Arrow_green_up.svg";
+                  }
+
+                  // Formatting diff. If precision 0, default to 1 decimal for diff if it's small? 
+                  // The user mock has "+1,8". My values are integers. 
+                  // If I have integers in stats, diff is integer. 
+                  // Ideally I should track floats for averages.
+                  // But setStats uses Math.round. 
+                  // Let's stick to integers for main value. Diff will be integer.
+
+                  const diffFormatter = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
+                  const formattedDiff = diffFormatter.format(Math.abs(diff));
+
+                  return (
+                    <div
+                      key={card.id}
+                      className="flex w-[270px] flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5"
+                    >
+                      <div className="flex w-full items-center justify-start gap-3">
+                        <div className="flex items-center justify-center">
+                          <Image
+                            src={card.icon}
+                            alt=""
+                            width={28}
+                            height={28}
+                            className="h-[28px] w-[28px]"
+                          />
+                        </div>
+
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-[30px] font-bold leading-none text-[#3A416F]">
+                            <StatsValue
+                              value={card.value}
+                              format={card.format}
+                              precision={card.precision}
+                              isLoading={isLoadingStats}
+                            />
+                          </span>
+                          {Math.abs(diff) >= 0.1 && (
+                            <div className={`flex items-center gap-1 mb-1 transition-opacity duration-700 ${diffColor} ${showTrends ? "opacity-100" : "opacity-0"}`}>
+                              <Image
+                                src={arrowIcon}
+                                alt=""
+                                width={12}
+                                height={12}
+                                className="h-3 w-3"
+                              />
+                              <span className="text-[10px] font-semibold">
+                                {diff > 0 ? "+" : ""}{formattedDiff}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-0.5">
+                        <p className="text-[12px] font-bold text-[#3A416F]">
+                          {card.label}
+                        </p>
+                        <p className="text-[10px] font-semibold text-[#5D6494]">
+                          7 derniers jours
+                        </p>
+                        <p className="text-[10px] font-semibold text-[#C2BFC6]">
+                          VS les 7 derniers jours
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-[35px] font-bold leading-none text-[#3A416F]">
-                      <StatsValue
-                        value={card.value}
-                        format={card.format}
-                        precision={card.precision}
-                        isLoading={isLoadingStats}
-                      />
-                    </p>
-                    <p className="text-[14px] font-bold text-[#3A416F]">
-                      {card.label}
-                    </p>
+                  );
+                })}
+                {/* DEBUG DISPLAY */}
+                {(stats as any).debugProgramIds && ((stats as any).debugProgramIds as string[]).length > 0 && (
+                  <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600 w-full basis-full">
+                    <p className="font-bold">Programmes inclus dans les stats :</p>
+                    <p>{((stats as any).debugProgramIds as string[]).join(", ")}</p>
                   </div>
-                ))}
+                )}
               </div>
             )}
             {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
@@ -982,9 +1172,8 @@ export default function DashboardPage() {
             {selectedTraining !== "" && (
               <div className={`relative ${showStats ? "" : "mt-[30px]"}`}>
                 <div
-                  className={`transition-opacity duration-200 ${
-                    shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
-                  }`}
+                  className={`transition-opacity duration-200 ${shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
+                    }`}
                   aria-hidden={shouldShowExercisesSkeleton}
                 >
                   {fetchError ? (
