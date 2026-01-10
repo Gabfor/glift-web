@@ -809,7 +809,15 @@ export default function DashboardPage() {
       for (const row of rows) {
         // Filter by visible program
         const programDashboard = row.session?.program?.dashboard;
-        if (programDashboard === false) {
+        const programId = row.session?.program?.id;
+
+        // 1. If global stats (no selection), exclude hidden programs
+        if (!selectedProgram && programDashboard === false) {
+          continue;
+        }
+
+        // 2. If a specific program is selected, exclude all others
+        if (selectedProgram && programId !== selectedProgram) {
           continue;
         }
 
@@ -922,7 +930,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [showStats, supabase, user?.id]);
+  }, [showStats, supabase, user?.id, selectedProgram]);
 
   useEffect(() => {
     if (isLoadingStats) {
