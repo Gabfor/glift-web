@@ -445,6 +445,28 @@ export default function DashboardPage() {
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [showTrends, setShowTrends] = useState(false);
   const [goalCompletionMap, setGoalCompletionMap] = useState<Record<string, boolean>>({});
+  const [hasLoadedDisplaySettings, setHasLoadedDisplaySettings] = useState(false);
+
+  // Load display settings from LocalStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("glift_dashboard_exercise_settings");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setExerciseDisplaySettings((prev) => ({ ...prev, ...parsed }));
+      } catch (e) {
+        console.error("Failed to parse saved settings", e);
+      }
+    }
+    setHasLoadedDisplaySettings(true);
+  }, []);
+
+  // Save display settings to LocalStorage
+  useEffect(() => {
+    if (hasLoadedDisplaySettings) {
+      localStorage.setItem("glift_dashboard_exercise_settings", JSON.stringify(exerciseDisplaySettings));
+    }
+  }, [exerciseDisplaySettings, hasLoadedDisplaySettings]);
 
   const completedGoalsCount = useMemo(
     () => Object.values(goalCompletionMap).filter(Boolean).length,

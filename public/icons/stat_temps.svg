@@ -1,8 +1,8 @@
 <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect width="28" height="28" rx="8" fill="#E6E6FF" fill-opacity="0.3"/>
-<rect x="10.3008" y="4" width="7.2" height="2.4" rx="1" fill="#A1A5FD"/>
-<rect x="15.1016" y="4.80005" width="7.2" height="2.4" rx="1" transform="rotate(90 15.1016 4.80005)" fill="#A1A5FD"/>
-<rect x="16.7012" y="11.4899" width="5.6" height="2.4" rx="1" transform="rotate(-50 16.7012 11.4899)" fill="#A1A5FD"/>
-<circle cx="13.9" cy="15.6001" r="8.4" fill="#E6E6FF"/>
-<rect x="12.6992" y="16" width="6.4" height="2.13333" rx="1" transform="rotate(-90 12.6992 16)" fill="#A1A5FD"/>
+<rect x="10.8418" y="6" width="5.76" height="1.92" rx="0.96" fill="#A1A5FD"/>
+<rect x="14.6816" y="6.64014" width="5.76" height="1.92" rx="0.96" transform="rotate(90 14.6816 6.64014)" fill="#A1A5FD"/>
+<rect x="15.9609" y="11.9919" width="4.48" height="1.92" rx="0.96" transform="rotate(-50 15.9609 11.9919)" fill="#A1A5FD"/>
+<ellipse cx="13.72" cy="15.2801" rx="6.72" ry="6.72" fill="#E6E6FF"/>
+<rect x="12.7578" y="15.6" width="5.12" height="1.70667" rx="0.853333" transform="rotate(-90 12.7578 15.6)" fill="#A1A5FD"/>
 </svg>

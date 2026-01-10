@@ -22,6 +22,8 @@ import TextField from "@/components/account/fields/TextField";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
+import DashboardRecordCard from "@/components/dashboard/DashboardRecordCard";
+import RecordsCarousel from "@/components/dashboard/RecordsCarousel";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 
@@ -597,7 +599,7 @@ const DashboardExerciseChartTooltip = ({
       contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
       arrowClassName="bg-[#2E3142]"
       offset={TOOLTIP_OFFSET_FROM_POINT_PX}
-      >
+    >
       <div
         style={{
           position: "absolute",
@@ -639,6 +641,19 @@ export default function DashboardExerciseBlock({
   const [goalTypeTouched, setGoalTypeTouched] = useState(false);
   const [goalTarget, setGoalTarget] = useState("");
   const [goalTargetError, setGoalTargetError] = useState<string | null>(null);
+  const [favoriteRecordTypes, setFavoriteRecordTypes] = useState<Set<string>>(new Set());
+
+  const toggleFavorite = (type: string) => {
+    setFavoriteRecordTypes(prev => {
+      const next = new Set(prev);
+      if (next.has(type)) {
+        next.delete(type);
+      } else {
+        next.add(type);
+      }
+      return next;
+    });
+  };
 
   const normalizedGoal = useMemo(() => {
     if (!goal || !Number.isFinite(goal.target) || goal.target <= 0) {
@@ -852,30 +867,30 @@ export default function DashboardExerciseBlock({
 
             const sets = Array.isArray(row.sets)
               ? row.sets.map((set) => {
-                  const repetitions =
-                    typeof set?.repetitions === "number" && Number.isFinite(set.repetitions)
-                      ? set.repetitions
-                      : null;
-                  const weights = Array.isArray(set?.weights)
-                    ? set.weights
-                        .map((value) => {
-                          if (typeof value === "number") {
-                            return Number.isFinite(value) ? value : null;
-                          }
-                          if (typeof value === "string") {
-                            const parsed = Number.parseFloat(value);
-                            return Number.isFinite(parsed) ? parsed : null;
-                          }
-                          return null;
-                        })
-                        .filter((value): value is number => value != null)
-                    : [];
+                const repetitions =
+                  typeof set?.repetitions === "number" && Number.isFinite(set.repetitions)
+                    ? set.repetitions
+                    : null;
+                const weights = Array.isArray(set?.weights)
+                  ? set.weights
+                    .map((value) => {
+                      if (typeof value === "number") {
+                        return Number.isFinite(value) ? value : null;
+                      }
+                      if (typeof value === "string") {
+                        const parsed = Number.parseFloat(value);
+                        return Number.isFinite(parsed) ? parsed : null;
+                      }
+                      return null;
+                    })
+                    .filter((value): value is number => value != null)
+                  : [];
 
-                  return {
-                    repetitions,
-                    weights,
-                  } satisfies SessionSet;
-                })
+                return {
+                  repetitions,
+                  weights,
+                } satisfies SessionSet;
+              })
               : [];
 
             return {
@@ -1007,8 +1022,8 @@ export default function DashboardExerciseBlock({
   const recordNumericValue = typeof currentRecord?.value === "number" ? currentRecord.value : null;
   const formattedRecordValue = recordNumericValue !== null
     ? recordNumericValue.toLocaleString("fr-FR", {
-        maximumFractionDigits: recordNumericValue % 1 === 0 ? 0 : 2,
-      })
+      maximumFractionDigits: recordNumericValue % 1 === 0 ? 0 : 2,
+    })
     : "--";
   const recordDateLabel = currentRecord ? formatRecordDate(currentRecord.date) : "Aucune donnée";
   const recordTypeLabel = currentRecord?.label ?? "";
@@ -1027,153 +1042,96 @@ export default function DashboardExerciseBlock({
     }
   };
 
+  const slides = useMemo(() => {
+    return records.map((record, index) => {
+      // Determine if this record matches the current goal
+      const isGoalType = normalizedGoal?.type === record.curveType;
+
+      // Calculate goal progress for this specific record type if it matches the goal
+      let cardGoalProgress: number | null = null;
+      if (isGoalType && normalizedGoal && normalizedGoal.target > 0) {
+        const val = typeof record.value === "number" ? record.value : 0;
+        cardGoalProgress = Math.min((val / normalizedGoal.target) * 100, 100); // Capped at 100 for display? Or allow >100? Rounding handled in Card.
+        // Actually the card handles visualization. Let's pass raw % or capped?
+        // The card code does `Math.round(goalProgress)`.
+        cardGoalProgress = (val / normalizedGoal.target) * 100;
+      }
+
+      // If there is NO goal set at all, we might want to allow setting one for this type?
+      // The card has "Définir un objectif".
+      // If we execute that, we should probably set the "Goal Type" to this record's type.
+
+      return {
+        key: record.curveType,
+        content: (
+          <DashboardRecordCard
+            dateLabel={formatRecordDate(record.date)}
+            valueLabel={
+              typeof record.value === "number"
+                ? record.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " " + (CURVE_DISPLAY_UNIT_MAP[record.curveType] || "")
+                : "--"
+            }
+            typeLabel={record.label}
+            goalProgress={cardGoalProgress}
+            hasGoal={isGoalType && !!normalizedGoal}
+            iconSrc={record.curveType.includes("poids") ? "/icons/record_poids.svg" : "/icons/record_reps.svg"}
+            isFavorite={favoriteRecordTypes.has(record.curveType)}
+            onFavoriteToggle={() => toggleFavorite(record.curveType)}
+            onCancelGoal={() => onGoalChange(null)}
+            onActionClick={() => {
+              if (isGoalType && !!normalizedGoal) {
+                // View/Edit existing goal
+                handleOpenGoalModal();
+              } else {
+                // Set new goal for this type
+                setSelectedGoalType(record.curveType);
+                setGoalTarget("");
+                setIsGoalModalOpen(true);
+              }
+            }}
+          />
+        ),
+      };
+    });
+  }, [records, normalizedGoal, CURVE_DISPLAY_UNIT_MAP, formatRecordDate, favoriteRecordTypes]);
+
+  // Need to verify CURVE_DISPLAY_UNIT_MAP validity in this scope (it was defined outside component)
+  // formatRecordDate also defined outside.
+
   return (
-    <div className="w-full bg-white border border-[#D7D4DC] rounded-[8px] overflow-hidden">
-      {/* HEADER */}
-      <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
-        <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
-        <div className="flex items-center gap-[30px]">
-          <DashboardExerciseDropdown
-            value={sessionCount}
-            onChange={onSessionChange}
-            options={[
-              { value: "5", label: "5 dernières séances" },
-              { value: "10", label: "10 dernières séances" },
-              { value: "15", label: "15 dernières séances" },
-            ]}
-            iconSrc="/icons/tableau.svg"
-            iconHoverSrc="/icons/tableau_hover.svg"
-          />
-          <DashboardExerciseDropdown
-            value={curveType}
-            onChange={onCurveChange}
-            options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
-            iconSrc="/icons/courbe.svg"
-            iconHoverSrc="/icons/courbe_hover.svg"
-          />
-        </div>
-      </div>
-
-      {/* CONTENU */}
-      <div className="flex flex-col md:flex-row gap-[20px] md:gap-[30px] px-[30px] py-[25px]">
-        {/* Bloc gauche */}
-        <div className="flex flex-col gap-[30px] justify-center h-full md:w-[430px] flex-shrink-0">
-          <div className="flex flex-col justify-center h-[120px] w-full">
-            <p className="text-[12px] font-bold text-[#D7D4DC] uppercase">VOS RECORDS SUR CET EXERCICE</p>
-            <div className="mt-3 flex items-center gap-[20px]">
-              <button
-                type="button"
-                aria-label="Voir le record précédent"
-                className="group flex items-center justify-center"
-                onClick={() => handleRecordNavigation("prev")}
-              >
-                <Image
-                  src="/icons/big_arrow_left.svg"
-                  alt="Précédent"
-                  width={7}
-                  height={10}
-                  className="block group-hover:hidden"
-                />
-                <Image
-                  src="/icons/big_arrow_left_hover.svg"
-                  alt="Précédent"
-                  width={7}
-                  height={10}
-                  className="hidden group-hover:block"
-                />
-              </button>
-              <div className="flex flex-col items-start text-left">
-                <div className="flex items-baseline gap-2">
-                  <p className="text-[40px] font-bold text-[#3A416F] leading-none">{formattedRecordValue}</p>
-                  <span className="text-[20px] font-bold text-[#3A416F] leading-none">{recordUnitLabel}</span>
-                </div>
-                <p className="text-[#3A416F] font-bold text-[14px] mt-2">{recordTypeLabel}</p>
-                <p className="text-[#C2BFC6] font-semibold text-[12px] mt-1">{recordDateLabel}</p>
-              </div>
-              <button
-                type="button"
-                aria-label="Voir le record suivant"
-                className="group flex items-center justify-center"
-                onClick={() => handleRecordNavigation("next")}
-              >
-                <Image
-                  src="/icons/big_arrow_right.svg"
-                  alt="Suivant"
-                  width={7}
-                  height={10}
-                  className="block group-hover:hidden"
-                />
-                <Image
-                  src="/icons/big_arrow_right_hover.svg"
-                  alt="Suivant"
-                  width={7}
-                  height={10}
-                  className="hidden group-hover:block"
-                />
-              </button>
-            </div>
-          </div>
-
-          {/* Objectif */}
-          <div className="flex items-center gap-4 h-[80px] w-full">
-            <div className="relative w-[80px] h-[80px] flex-shrink-0">
-              <svg viewBox="0 0 36 36" className="w-full h-full">
-                <path
-                  stroke={goalBaseRingColor}
-                  strokeWidth="3"
-                  fill="none"
-                  d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                {hasGoal ? (
-                  <path
-                    stroke={goalRingColor}
-                    strokeWidth="3"
-                    strokeDasharray={`${goalProgress}, 100`}
-                    fill="none"
-                    d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
-                  />
-                ) : null}
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Image
-                  src={goalIconSrc}
-                  alt={goalIconAlt}
-                  width={24}
-                  height={24}
-                  className="w-6 h-6"
-                />
-              </div>
-            </div>
-            <div className="flex flex-col justify-center items-start text-left">
-              <p className="text-[#5D6494] font-semibold text-left">
-                {hasGoal ? (
-                  <>
-                    Vous avez atteint{" "}
-                    <span className={`${goalProgressTextColorClass} font-bold`}>
-                      {formattedGoalProgress}%
-                    </span>{" "}
-                    de votre objectif.
-                  </>
-                ) : (
-                  EMPTY_GOAL_DESCRIPTION
-                )}
-              </p>
-              <button
-                type="button"
-                className={`${goalActionTextColorClass} text-[15px] font-semibold mt-1`}
-                onClick={handleOpenGoalModal}
-              >
-                {goalActionLabel}
-              </button>
-            </div>
+    <div className="w-full flex flex-col xl:flex-row gap-[24px]">
+      {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
+      <div className="flex-1 xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-sm h-[339px]">
+        {/* Header inside Zone 1 */}
+        <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
+          <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
+          <div className="flex items-center gap-[20px]">
+            <DashboardExerciseDropdown
+              value={sessionCount}
+              onChange={onSessionChange}
+              options={[
+                { value: "5", label: "5 dernières séances" },
+                { value: "10", label: "10 dernières séances" },
+                { value: "15", label: "15 dernières séances" },
+              ]}
+              iconSrc="/icons/tableau.svg"
+              iconHoverSrc="/icons/tableau_hover.svg"
+            />
+            <DashboardExerciseDropdown
+              value={curveType}
+              onChange={onCurveChange}
+              options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
+              iconSrc="/icons/courbe.svg"
+              iconHoverSrc="/icons/courbe_hover.svg"
+            />
           </div>
         </div>
 
-        {/* Bloc droit : Graphique */}
-        <div className="h-[240px] w-full md:flex-1">
+        {/* Graph Content */}
+        <div className="w-full flex-1 p-[20px]">
           <div
             ref={chartContainerRef}
-            className="dashboard-exercise-chart relative h-full w-full rounded-[16px] bg-white"
+            className="dashboard-exercise-chart relative h-full w-full"
           >
             {chartSize.width > 0 && chartSize.height > 0 && chartData.length > 0 ? (
               <ResponsiveContainer
@@ -1265,11 +1223,37 @@ export default function DashboardExerciseBlock({
           </div>
         </div>
       </div>
+
+      {/* ZONE 2: Records Carousel (approx 25% width or flex: 1) */}
+      <div className="w-full xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
+        {/* The carousel container needs to be relative/isolated */}
+        {records.length > 0 ? (
+          <RecordsCarousel
+            slides={slides}
+            offsetRadius={2}
+            showNavigation={false}
+            goToSlide={currentRecordIndex}
+            onIndexChange={(index) => {
+              const record = records[index];
+              if (record && record.curveType !== recordType) {
+                onRecordTypeChange(record.curveType);
+              }
+            }}
+          />
+        ) : (
+          <div className="w-full h-full bg-white rounded-[20px] border border-[#D7D4DC] flex items-center justify-center text-center p-4">
+            <p className="text-[#5D6494] text-sm font-semibold">Aucun record disponible</p>
+          </div>
+        )}
+      </div>
+
       <style jsx global>{`
         .dashboard-exercise-chart .recharts-surface:focus {
           outline: none;
         }
       `}</style>
+
+      {/* GOAL MODAL */}
       <Modal
         open={isGoalModalOpen}
         title="Objectif"
