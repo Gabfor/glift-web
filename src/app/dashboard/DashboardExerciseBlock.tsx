@@ -386,10 +386,15 @@ type ValueAxisTickProps = {
 };
 
 const Y_AXIS_TICK_OFFSET = 10;
+const Y_AXIS_GRID_GAP = 20;
 const Y_AXIS_WIDTH = 52;
-const CHART_MARGIN = { top: 20, right: 20, bottom: 20, left: Y_AXIS_WIDTH };
 
-const ValueAxisTick = ({ x, y, payload, unit }: ValueAxisTickProps & { unit: string }) => {
+const ValueAxisTick = ({
+  y,
+  payload,
+  unit,
+  axisWidth,
+}: ValueAxisTickProps & { unit: string; axisWidth: number }) => {
   const numericValue = typeof payload?.value === "number" ? payload.value : 0;
   const formattedValue = numericValue.toLocaleString("fr-FR", {
     maximumFractionDigits: 2,
@@ -397,12 +402,12 @@ const ValueAxisTick = ({ x, y, payload, unit }: ValueAxisTickProps & { unit: str
 
   return (
     <text
-      x={10} // Fixed start position: 20px padding + 10px offset = 30px from left (align with title)
+      x={axisWidth - Y_AXIS_GRID_GAP}
       y={y}
       fill="#3A416F"
       fontSize={12}
       fontWeight={700}
-      textAnchor="start" // Align text to start
+      textAnchor="end"
       dominantBaseline="middle"
     >
       {`${formattedValue}${unit ? ` ${unit}` : ""}`}
@@ -410,8 +415,10 @@ const ValueAxisTick = ({ x, y, payload, unit }: ValueAxisTickProps & { unit: str
   );
 };
 
-const createValueAxisTickRenderer = (unit: string) => {
-  const TickComponent = (props: ValueAxisTickProps) => <ValueAxisTick {...props} unit={unit} />;
+const createValueAxisTickRenderer = (unit: string, axisWidth: number) => {
+  const TickComponent = (props: ValueAxisTickProps) => (
+    <ValueAxisTick {...props} unit={unit} axisWidth={axisWidth} />
+  );
   TickComponent.displayName = "DashboardValueAxisTick";
   return TickComponent;
 };
@@ -809,9 +816,30 @@ export default function DashboardExerciseBlock({
   }, [isGoalModalOpen, normalizedGoal]);
 
   const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
+  const yAxisWidth = useMemo(() => {
+    if (typeof window === "undefined") {
+      return Y_AXIS_WIDTH;
+    }
+
+    if (chartAxisData.ticks.length === 0) {
+      return Y_AXIS_WIDTH;
+    }
+
+    const font = "700 12px Quicksand, sans-serif";
+    const maxTickValue = Math.max(...chartAxisData.ticks);
+    const formattedValue = maxTickValue.toLocaleString("fr-FR", {
+      maximumFractionDigits: 2,
+    });
+    const label = `${formattedValue}${currentUnit ? ` ${currentUnit}` : ""}`;
+
+    const textWidth = measureTextWidth(label, font);
+
+    // 10px (start offset) + textWidth + 20px (gap between text end and grid)
+    return Y_AXIS_TICK_OFFSET + textWidth + Y_AXIS_GRID_GAP;
+  }, [chartAxisData, currentUnit]);
   const renderValueAxisTick = useMemo(
-    () => createValueAxisTickRenderer(currentUnit),
-    [currentUnit],
+    () => createValueAxisTickRenderer(currentUnit, yAxisWidth),
+    [currentUnit, yAxisWidth],
   );
 
   useEffect(() => {
@@ -1166,32 +1194,6 @@ export default function DashboardExerciseBlock({
       ticks,
     };
   }, [chartData]);
-
-  const yAxisWidth = useMemo(() => {
-    if (typeof window === "undefined") {
-      return Y_AXIS_WIDTH;
-    }
-
-    if (chartAxisData.ticks.length === 0) {
-      return Y_AXIS_WIDTH;
-    }
-
-    const font = "700 12px Quicksand, sans-serif";
-    const maxTickValue = Math.max(...chartAxisData.ticks);
-    const formattedValue = maxTickValue.toLocaleString("fr-FR", {
-      maximumFractionDigits: 2,
-    });
-    const label = `${formattedValue}${currentUnit ? ` ${currentUnit}` : ""}`;
-
-    // Add some padding (margin left/right around text in axis)
-    // 20px is requested margin, plus we need space for text.
-    // Let's assume the text is right aligned, we need width = textWidth + a bit of padding.
-    const textWidth = measureTextWidth(label, font);
-
-    // Padding logic: 
-    // 10px (start offset) + textWidth + 20px (gap between text end and grid)
-    return 10 + textWidth + 20;
-  }, [chartAxisData, currentUnit]);
 
   const chartMargin = useMemo(() => ({
     top: 20,
