@@ -23,7 +23,7 @@ type CTAElement = HTMLButtonElement | HTMLAnchorElement;
 type BaseProps = {
   children: ReactNode;
   href?: string;
-  variant?: "active" | "inactive" | "danger";
+  variant?: "active" | "inactive" | "danger" | "secondary";
   loading?: boolean;
   loadingText?: string;
   keepWidthWhileLoading?: boolean;
@@ -149,6 +149,8 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&
       "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
+      resolvedVariant === "secondary" &&
+      "border border-[#3A416F] bg-transparent text-[#3A416F] hover:bg-[#3A416F] hover:text-white focus-visible:ring-[#3A416F]",
       isDisabledOrLoading && "cursor-not-allowed opacity-100",
       className
     );

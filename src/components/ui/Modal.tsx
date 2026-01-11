@@ -97,7 +97,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={labelId}
         className={clsx(
-          "relative z-10 w-[564px] max-w-[92vw] rounded-[5px] bg-white p-8 shadow-lg",
+          "relative z-10 w-[564px] max-w-[92vw] rounded-[20px] bg-white p-8 shadow-lg",
           contentClassName
         )}
       >

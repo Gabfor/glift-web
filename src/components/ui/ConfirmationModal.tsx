@@ -23,7 +23,7 @@ interface ConfirmationModalProps {
   confirmButtonProps?: Omit<CTAButtonProps, "children" | "onClick" | "variant"> & {
     className?: string
   }
-  cancelButtonProps?: Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children" | "onClick"> & {
+  cancelButtonProps?: Omit<CTAButtonProps, "children" | "onClick" | "variant"> & {
     className?: string
   }
   actionsClassName?: string
@@ -80,19 +80,18 @@ export default function ConfirmationModal({
       closeDisabled={isLoading}
       footer={
         <div className={clsx("flex justify-center gap-4", actionsClassName)}>
-          <button
-            type="button"
+          <CTAButton
+            variant="secondary"
             onClick={handleCancel}
-            aria-disabled={cancelDisabled}
+            disabled={cancelDisabled}
             className={clsx(
-              "px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]",
-              cancelDisabled && "pointer-events-none",
+              "min-w-[136px]",
               cancelClassName
             )}
             {...restCancelButtonProps}
           >
             {cancelLabel}
-          </button>
+          </CTAButton>
 
           <CTAButton
             type="button"

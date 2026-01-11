@@ -173,8 +173,8 @@ export default function ForgotPasswordModal({
       if (resetError) {
         const status =
           typeof resetError === "object" &&
-          resetError !== null &&
-          "status" in resetError
+            resetError !== null &&
+            "status" in resetError
             ? (resetError as { status?: number }).status
             : undefined
 
@@ -217,14 +217,14 @@ export default function ForgotPasswordModal({
       footerWrapperClassName="mt-[30px]"
       footer={
         <div className="flex justify-center gap-4">
-          <button
+          <CTAButton
+            variant="secondary"
             type="button"
             onClick={handleClose}
-            className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F] disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
           >
             Annuler
-          </button>
+          </CTAButton>
           <CTAButton
             type="submit"
             form="forgot-password-form"

@@ -35,12 +35,12 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
               Supprimer
             </button>
           ) : (
-            <button
+            <CTAButton
+              variant="secondary"
               onClick={onCancel}
-              className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]"
             >
               Annuler
-            </button>
+            </CTAButton>
           )}
           <CTAButton onClick={() => onSave(note.trim())}>
             Enregistrer

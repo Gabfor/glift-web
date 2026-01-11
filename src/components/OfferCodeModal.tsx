@@ -74,12 +74,12 @@ export default function OfferModal({
       footerWrapperClassName="order-6 w-full"
       footer={
         <div className="flex justify-center gap-3">
-          <button
+          <CTAButton
+            variant="secondary"
             onClick={onCancel}
-            className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]"
           >
             Annuler
-          </button>
+          </CTAButton>
           <CTAButton
             onClick={() => {
               onConfirm();
@@ -151,8 +151,8 @@ export default function OfferModal({
                       copied
                         ? "/icons/check.svg"
                         : hoveredCopy
-                        ? "/icons/copy_hover.svg"
-                        : "/icons/copy.svg"
+                          ? "/icons/copy_hover.svg"
+                          : "/icons/copy.svg"
                     }
                     alt="Copier"
                     width={20}

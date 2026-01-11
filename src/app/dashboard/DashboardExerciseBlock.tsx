@@ -1558,13 +1558,13 @@ export default function DashboardExerciseBlock({
         footerWrapperClassName="mt-[5px]"
         footer={
           <div className="flex justify-center gap-4">
-            <button
+            <CTAButton
               type="button"
-              className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]"
+              variant="secondary"
               onClick={handleCloseGoalModal}
             >
               Annuler
-            </button>
+            </CTAButton>
             <CTAButton type="button" onClick={handleSaveGoal}>
               {hasGoal ? "Modifier" : "Enregistrer"}
             </CTAButton>

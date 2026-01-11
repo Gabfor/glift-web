@@ -18,12 +18,12 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
       onClose={onClose}
       footer={
         <div className="flex justify-center gap-4">
-          <button
+          <CTAButton
+            variant="secondary"
             onClick={onClose}
-            className="px-4 py-2 font-semibold text-[#5D6494] hover:text-[#3A416F]"
           >
             Annuler
-          </button>
+          </CTAButton>
           <CTAButton
             onClick={() => {
               onClose();
