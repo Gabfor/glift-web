@@ -1165,8 +1165,8 @@ export default function DashboardPage() {
                   // But setStats uses Math.round. 
                   // Let's stick to integers for main value. Diff will be integer.
 
-                  const diffFormatter = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 0, maximumFractionDigits: 1 });
-                  const formattedDiff = diffFormatter.format(Math.abs(diff));
+                  const diffFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+                  const formattedDiff = diffFormatter.format(Math.round(Math.abs(diff)));
 
                   return (
                     <div
@@ -1193,7 +1193,7 @@ export default function DashboardPage() {
                               isLoading={isLoadingStats}
                             />
                           </span>
-                          {Math.abs(diff) >= 0.1 && (
+                          {Math.round(Math.abs(diff)) >= 1 && (
                             <div className={`flex items-center gap-1 mb-1 transition-opacity duration-700 ${diffColor} ${showTrends ? "opacity-100" : "opacity-0"}`}>
                               <Image
                                 src={arrowIcon}
