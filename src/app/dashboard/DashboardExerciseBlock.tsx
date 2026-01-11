@@ -99,20 +99,15 @@ const parseSessionCount = (value: string): number => {
 
 const roundValue = (value: number): number => Math.round(value * 100) / 100;
 
+const MONTH_SHORT_LABELS = [
+  "Jan", "Fév", "Mar", "Avr", "Mai", "Juin",
+  "Juil", "Août", "Sep", "Oct", "Nov", "Déc"
+];
+
 const formatChartLabel = (date: Date): string => {
-  const formatter = new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-  });
-  const formatted = formatter
-    .format(date)
-    .replace(/\u00A0/g, " ")
-    .trim();
-  const [day, month = ""] = formatted.split(" ");
-  const normalizedMonth = month
-    ? month.charAt(0).toUpperCase() + month.slice(1)
-    : month;
-  return [day, normalizedMonth].filter(Boolean).join(" ");
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = MONTH_SHORT_LABELS[date.getMonth()];
+  return `${day} ${month}`;
 };
 
 const aggregateSessionMetrics = (session: RawSession): AggregatedSessionMetrics => {
@@ -199,22 +194,11 @@ const formatRecordDate = (value: Date | null): string => {
     return "Aucune donnée";
   }
 
-  const formatter = new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
+  const day = value.getDate().toString().padStart(2, "0");
+  const month = MONTH_SHORT_LABELS[value.getMonth()];
+  const year = value.getFullYear();
 
-  const parts = formatter.formatToParts(value);
-  const day = parts.find((part) => part.type === "day")?.value ?? "";
-  const monthRaw = parts.find((part) => part.type === "month")?.value ?? "";
-  const year = parts.find((part) => part.type === "year")?.value ?? "";
-
-  const normalizedMonth = monthRaw
-    ? monthRaw.charAt(0).toUpperCase() + monthRaw.slice(1)
-    : monthRaw;
-
-  return [day, normalizedMonth, year].filter(Boolean).join(" ");
+  return `${day} ${month} ${year}`;
 };
 
 const createInitialRecords = (): ExerciseRecord[] =>
@@ -337,11 +321,11 @@ const formatTooltipDate = (value: unknown): string => {
     return typeof value === "string" ? value : "";
   }
 
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(parsedDate);
+  const day = parsedDate.getDate().toString().padStart(2, "0");
+  const month = MONTH_SHORT_LABELS[parsedDate.getMonth()];
+  const year = parsedDate.getFullYear();
+
+  return `${day} ${month} ${year}`;
 };
 
 type AxisTickProps = {
@@ -642,6 +626,7 @@ export default function DashboardExerciseBlock({
   const [goalTarget, setGoalTarget] = useState("");
   const [goalTargetError, setGoalTargetError] = useState<string | null>(null);
   const [favoriteRecordTypes, setFavoriteRecordTypes] = useState<Set<string>>(new Set());
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Load favorites from local storage
   // Load favorites from local storage
@@ -842,6 +827,30 @@ export default function DashboardExerciseBlock({
     };
   }, []);
 
+  // Realtime subscription to update data when a new session is added
+  useEffect(() => {
+    const channel = supabase
+      .channel(`exercise-updates-${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "training_session_exercises",
+          filter: `training_row_id=eq.${id}`,
+        },
+        () => {
+          // Increment trigger to force re-fetch
+          setRefreshTrigger((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, supabase]);
+
   useEffect(() => {
     const userId = user?.id ?? null;
     const sessionLimit = parseSessionCount(sessionCount);
@@ -945,7 +954,7 @@ export default function DashboardExerciseBlock({
     return () => {
       isActive = false;
     };
-  }, [id, sessionCount, supabase, user?.id]);
+  }, [id, sessionCount, supabase, user?.id, refreshTrigger]);
 
   useEffect(() => {
     if (!rawSessions.length) {

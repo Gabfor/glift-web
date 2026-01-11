@@ -446,6 +446,7 @@ export default function DashboardPage() {
   const [showTrends, setShowTrends] = useState(false);
   const [goalCompletionMap, setGoalCompletionMap] = useState<Record<string, boolean>>({});
   const [hasLoadedDisplaySettings, setHasLoadedDisplaySettings] = useState(false);
+  const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
 
   // Load display settings from LocalStorage
   useEffect(() => {
@@ -720,6 +721,32 @@ export default function DashboardPage() {
     };
   }, [supabase, user?.id]);
 
+  // Realtime subscription for global stats
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Listen to changes in training_sessions to update stats
+    const channel = supabase
+      .channel(`dashboard-stats-updates-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "training_sessions",
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          setStatsRefreshTrigger((prev) => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [supabase, user?.id]);
+
   useEffect(() => {
     if (!user?.id || !hasLoadedPreferences) return;
     const persistPreferences = async () => {
@@ -768,9 +795,13 @@ export default function DashboardPage() {
             session_id,
             session:training_sessions!inner (
               performed_at,
+              program_id,
               program:programs (
                 id,
                 dashboard
+              ),
+              training:trainings (
+                program_id
               )
             ),
             sets:training_session_sets (
@@ -795,7 +826,9 @@ export default function DashboardPage() {
         session_id: string | null;
         session: {
           performed_at?: string | null;
+          program_id?: string | null;
           program?: { id?: string | null; dashboard?: boolean | null } | null;
+          training?: { program_id?: string | null } | null;
         } | null;
         sets: Array<{ repetitions?: unknown; weights?: unknown }> | null;
       };
@@ -825,13 +858,24 @@ export default function DashboardPage() {
       const day14 = new Date();
       day14.setDate(now.getDate() - 14);
 
+      console.log("Dashboard fetchStats: Date ranges:", { now, day7, day14 });
+
       // Map to store calculated durations per session to avoid re-calculating
       const sessionDurations = new Map<string, number>();
 
       for (const row of rows) {
         // Filter by visible program
         const programDashboard = row.session?.program?.dashboard;
-        const programId = row.session?.program?.id;
+        let programId = row.session?.program?.id;
+
+        if (!programId && row.session?.program_id) {
+          programId = row.session.program_id;
+        }
+
+        // Secondary Fallback: use program_id from training if link to program is missing on session
+        if (!programId && row.session?.training?.program_id) {
+          programId = row.session.training.program_id;
+        }
 
         // 1. If global stats (no selection), exclude hidden programs
         if (!selectedProgram && programDashboard === false) {
@@ -839,7 +883,12 @@ export default function DashboardPage() {
         }
 
         // 2. If a specific program is selected, exclude all others
-        if (selectedProgram && programId !== selectedProgram) {
+        // Ensure both IDs are treated as strings for comparison
+        if (selectedProgram && String(programId) !== String(selectedProgram)) {
+          console.log(`Skipping: Not selected program. RowId=${programId}, Selected=${selectedProgram}`);
+          console.log("Debug Session Object:", JSON.stringify(row.session, null, 2));
+          // Log the raw row to be absolutely sure
+          console.log("Debug Full Row:", JSON.stringify(row, null, 2));
           continue;
         }
 
@@ -852,7 +901,10 @@ export default function DashboardPage() {
         if (!sessionId || !performedAtStr) continue;
 
         const performedAt = new Date(performedAtStr);
-        const isCurrent = performedAt >= day7 && performedAt <= now;
+        // Relax date check to effectively remove strict upper bound in case of clock skew
+        // If it's in the future, we still count it as 'Current' usually, or we should.
+        // Let's just say isCurrent = performedAt >= day7.
+        const isCurrent = performedAt >= day7;
         const isPrevious = performedAt >= day14 && performedAt < day7;
 
         if (!isCurrent && !isPrevious) continue;
@@ -952,7 +1004,7 @@ export default function DashboardPage() {
     return () => {
       isMounted = false;
     };
-  }, [showStats, supabase, user?.id, selectedProgram]);
+  }, [showStats, supabase, user?.id, selectedProgram, statsRefreshTrigger]);
 
   useEffect(() => {
     if (isLoadingStats) {
