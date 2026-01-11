@@ -93,6 +93,8 @@ export default function RecordsCarousel({
         if (type === "prev") xOffset = -38;
         if (type === "next") xOffset = 38;
 
+        const boxShadow = type === "active" ? "-12px 0px 20px -18px rgba(93, 100, 148, 0.15), 12px 0px 20px -18px rgba(93, 100, 148, 0.15)" : "none";
+
         return {
             left: "50%",
             x: `calc(-50% + ${xOffset}px)`,
@@ -102,6 +104,7 @@ export default function RecordsCarousel({
             opacity: isVisible ? opacity : 0,
             zIndex,
             display: isVisible ? "block" : "none",
+            boxShadow,
         };
     };
 
@@ -126,7 +129,7 @@ export default function RecordsCarousel({
                     return (
                         <motion.div
                             key={slide.key}
-                            className="absolute top-1/2 origin-center cursor-pointer rounded-[24px] overflow-hidden"
+                            className="absolute top-1/2 origin-center cursor-pointer rounded-[24px]"
                             initial={false}
                             animate={{
                                 left: styles.left,
@@ -137,14 +140,34 @@ export default function RecordsCarousel({
                                 opacity: styles.opacity,
                                 zIndex: styles.zIndex,
                                 display: styles.display,
+                                boxShadow: styles.boxShadow,
                             }}
                             transition={{
                                 type: "tween",
                                 duration: 0.15,
                                 ease: "easeInOut",
                             }}
-                            onClick={() => {
-                                setIndex(i);
+                            onClick={(e) => {
+                                // Smart Navigation: Active card overlaps side cards.
+                                // If user clicks the edge of the active card, interpret as interaction with side card.
+                                if (isActive) {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const x = e.clientX - rect.left;
+                                    const w = rect.width;
+                                    const total = slides.length;
+
+                                    if (x < w * 0.25) {
+                                        const prev = (i - 1 + total) % total;
+                                        if (onIndexChange) onIndexChange(prev);
+                                        return;
+                                    } else if (x > w * 0.75) {
+                                        const next = (i + 1) % total;
+                                        if (onIndexChange) onIndexChange(next);
+                                        return;
+                                    }
+                                    return; // Center click on active card does nothing navigation-wise
+                                }
+
                                 if (onIndexChange) onIndexChange(i);
                                 slide.onClick?.();
                             }}
