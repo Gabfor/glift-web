@@ -1163,7 +1163,7 @@ export default function DashboardExerciseBlock({
     };
   }, [chartData]);
 
-  const yAxisWidth = useMemo(() => {
+  const unused_yAxisWidth = useMemo(() => {
     if (typeof window === "undefined") {
       return Y_AXIS_WIDTH;
     }
@@ -1172,29 +1172,54 @@ export default function DashboardExerciseBlock({
       return Y_AXIS_WIDTH;
     }
 
-    const font = "700 12px Quicksand, sans-serif";
     const maxTickValue = Math.max(...chartAxisData.ticks);
     const formattedValue = maxTickValue.toLocaleString("fr-FR", {
       maximumFractionDigits: 2,
     });
+    const font = "700 12px Quicksand, sans-serif";
     const label = `${formattedValue}${currentUnit ? ` ${currentUnit}` : ""}`;
 
-    // Add some padding (margin left/right around text in axis)
-    // 20px is requested margin, plus we need space for text.
-    // Let's assume the text is right aligned, we need width = textWidth + a bit of padding.
-    const textWidth = measureTextWidth(label, font);
+    // Measure exact width in browser
+    const measuredWidth = measureTextWidth(label, font);
+    // Fallback if 0 (SSR or error): use heuristic 6px/char
+    const textWidth = measuredWidth > 0 ? measuredWidth : label.length * 6;
 
-    // Padding logic: 
-    // 10px (start offset) + textWidth + 20px (gap between text end and grid)
-    return 10 + textWidth + 20;
+    // 10px (start offset) + text width + 6px (visually comfortable gap)
+    const finalWidth = 10 + textWidth + 6;
+
+    console.log('[DashboardChartDebug] yAxisWidth calculation (v6 Reduced Gap):', {
+      maxTickValue,
+      label,
+      measuredWidth,
+      finalWidth
+    });
+
+    return finalWidth;
+  }, [chartAxisData, currentUnit]);
+
+  const yAxisWidth = useMemo(() => {
+    // 1. Calculate max text width
+    let maxLabelWidth = 0;
+    const font = "700 12px Quicksand, sans-serif";
+    chartAxisData.ticks.forEach(tick => {
+      const formatted = tick.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+      const label = `${formatted}${currentUnit ? ` ${currentUnit}` : ""}`;
+      const w = measureTextWidth(label, font);
+      if (w > maxLabelWidth) maxLabelWidth = w;
+    });
+    // Fallback
+    if (maxLabelWidth === 0) maxLabelWidth = 40;
+
+    // 2. Return total width: 30px (Left Pad) + maxLabelWidth + 20px (Gap)
+    return 30 + maxLabelWidth + 20;
   }, [chartAxisData, currentUnit]);
 
   const chartMargin = useMemo(() => ({
-    top: 20,
+    top: 40,
     right: 20,
     bottom: 15,
-    left: yAxisWidth
-  }), [yAxisWidth]);
+    left: 0
+  }), []);
 
   const currentRecord = records[currentRecordIndex] ?? null;
   const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
@@ -1237,9 +1262,6 @@ export default function DashboardExerciseBlock({
       }
 
       // If there is NO goal set at all, we might want to allow setting one for this type?
-      // The card has "Définir un objectif".
-      // If we execute that, we should probably set the "Goal Type" to this record's type.
-
       return {
         key: record.curveType,
         content: (
@@ -1274,8 +1296,19 @@ export default function DashboardExerciseBlock({
     });
   }, [records, normalizedGoal, CURVE_DISPLAY_UNIT_MAP, formatRecordDate, favoriteRecordTypes]);
 
-  // Need to verify CURVE_DISPLAY_UNIT_MAP validity in this scope (it was defined outside component)
-  // formatRecordDate also defined outside.
+
+
+  // Helper to calculate position for custom Y-axis
+  const getTopPositionPercentage = (value: number) => {
+    const min = chartAxisData.domain[0] as number;
+    const max = chartAxisData.domain[1] as number;
+    if (max === min) return 50; // default middle if flat
+    // Recharts Y-axis goes from bottom (min) to top (max)
+    // determine percentage of value in range
+    const percent = (value - min) / (max - min);
+    // In CSS top, 0% is top (max value), 100% is bottom (min value)
+    return (1 - percent) * 100;
+  };
 
   return (
     <div className="w-full flex flex-col xl:flex-row gap-[24px]">
@@ -1305,12 +1338,23 @@ export default function DashboardExerciseBlock({
 
                 // Update card ONLY if the current record is NOT a favorite
                 // We check if the *currently displayed* record type is favorited.
-                // If it is favorite, we don't want to switch it away.
-                if (!favoriteRecordTypes.has(recordType)) {
-                  onRecordTypeChange(newCurve as CurveOptionValue);
+                const activeRecordKey = records[currentRecordIndex]?.curveType;
+                if (!favoriteRecordTypes.has(activeRecordKey)) {
+                  // Find the index of the newly selected curve type
+                  const newIndex = records.findIndex(r => r.curveType === newCurve);
+                  if (newIndex !== -1) {
+                    onRecordTypeChange(newCurve as CurveOptionValue);
+                  }
                 }
               }}
-              options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
+              options={
+                records.length > 0
+                  ? records.map(r => ({
+                    value: r.curveType,
+                    label: r.label
+                  }))
+                  : []
+              }
               iconSrc="/icons/courbe.svg"
               iconHoverSrc="/icons/courbe_hover.svg"
               selectedValueClassName="hidden"
@@ -1318,25 +1362,23 @@ export default function DashboardExerciseBlock({
           </div>
         </div>
 
-        {/* Graph Content */}
-        <div className="w-full flex-1 p-[20px]">
-          <div
-            ref={chartContainerRef}
-            className="dashboard-exercise-chart relative h-full w-full"
-          >
-            {chartSize.width > 0 && chartSize.height > 0 && chartData.length > 0 ? (
-              <ResponsiveContainer
-                width={chartSize.width}
-                height={chartSize.height}
-              >
+        {/* Content: Flex Row for Y-Axis + Chart */}
+        <div className="flex-1 flex flex-row pr-[10px] pb-[10px] relative">
+          {/* Custom Y-Axis Column */}
+
+
+          {/* Chart Area */}
+          <div className="flex-1 relative h-full overflow-hidden">
+            {!isLoadingData && !fetchError && chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={chartData}
                   margin={chartMargin}
                 >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#A1A5FD" stopOpacity={0.5} />
-                      <stop offset="100%" stopColor="#A1A5FD" stopOpacity={0} />
+                      <stop offset="5%" stopColor="#A1A5FD" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#A1A5FD" stopOpacity={0} />
                     </linearGradient>
                   </defs>
 
@@ -1357,17 +1399,26 @@ export default function DashboardExerciseBlock({
                   />
 
                   <YAxis
+                    hide={false}
                     domain={chartAxisData.domain}
                     ticks={chartAxisData.ticks}
-                    tick={renderValueAxisTick}
                     width={yAxisWidth}
-                    tickMargin={8}
                     axisLine={false}
                     tickLine={false}
-                    mirror={false}
-                    orientation="left"
-                    padding={{ top: 0, bottom: 0 }}
                     interval={0}
+                    tick={({ x, y, payload }: any) => (
+                      <text
+                        x={30} // Fixed start position
+                        y={y}
+                        fill="#3A416F"
+                        fontSize={12}
+                        fontWeight={700}
+                        textAnchor="start"
+                        dominantBaseline="middle"
+                      >
+                        {payload.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + (currentUnit ? ` ${currentUnit}` : "")}
+                      </text>
+                    )}
                   />
 
                   <Area
@@ -1383,7 +1434,7 @@ export default function DashboardExerciseBlock({
                   />
                   <RechartsTooltip
                     cursor={false}
-                    content={<DashboardExerciseChartTooltip />}
+                    content={DashboardExerciseChartTooltip}
                     wrapperStyle={{ pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
                     isAnimationActive={false}
