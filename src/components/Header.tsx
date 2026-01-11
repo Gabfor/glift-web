@@ -430,7 +430,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
             </button>
 
             {dropdownOpen && showAuthenticatedUI && (
-              <div className="absolute top-full right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[var(--shadow-card-hover)] py-2 z-50 border border-[var(--color-surface-subtle)]">
+              <div className="absolute top-full right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
                 <Link
                   href="/compte#mes-informations"
