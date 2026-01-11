@@ -1269,6 +1269,7 @@ export default function DashboardExerciseBlock({
               ]}
               iconSrc="/icons/tableau.svg"
               iconHoverSrc="/icons/tableau_hover.svg"
+              selectedValueClassName="hidden"
             />
             <DashboardExerciseDropdown
               value={curveType}
@@ -1286,6 +1287,7 @@ export default function DashboardExerciseBlock({
               options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
               iconSrc="/icons/courbe.svg"
               iconHoverSrc="/icons/courbe_hover.svg"
+              selectedValueClassName="hidden"
             />
           </div>
         </div>
