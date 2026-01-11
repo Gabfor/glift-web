@@ -104,6 +104,20 @@ const MONTH_SHORT_LABELS = [
   "Juil", "Août", "Sep", "Oct", "Nov", "Déc"
 ];
 
+const measureTextWidth = (text: string, font: string): number => {
+  if (typeof document === "undefined") {
+    return 0;
+  }
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  if (!context) {
+    return 0;
+  }
+  context.font = font;
+  const metrics = context.measureText(text);
+  return metrics.width;
+};
+
 const formatChartLabel = (date: Date): string => {
   const day = date.getDate().toString().padStart(2, "0");
   const month = MONTH_SHORT_LABELS[date.getMonth()];
@@ -383,12 +397,12 @@ const ValueAxisTick = ({ x, y, payload, unit }: ValueAxisTickProps & { unit: str
 
   return (
     <text
-      x={x - Y_AXIS_TICK_OFFSET}
+      x={10} // Fixed start position: 20px padding + 10px offset = 30px from left (align with title)
       y={y}
       fill="#3A416F"
       fontSize={12}
       fontWeight={700}
-      textAnchor="end"
+      textAnchor="start" // Align text to start
       dominantBaseline="middle"
     >
       {`${formattedValue}${unit ? ` ${unit}` : ""}`}
@@ -1065,6 +1079,97 @@ export default function DashboardExerciseBlock({
     return index === -1 ? 0 : index;
   }, [recordType, records]);
 
+  const chartAxisData = useMemo(() => {
+    const desiredGridLines = 5;
+    const values = chartData.map((d) => d.value);
+
+    // If no data, return default suitable values
+    if (values.length === 0) {
+      return {
+        domain: [0, 100],
+        ticks: [0, 25, 50, 75, 100]
+      };
+    }
+
+    let minV = Math.min(...values);
+    let maxV = Math.max(...values);
+
+    const minFloor = Math.floor(minV);
+    const maxCeil = Math.ceil(maxV);
+    let range = maxCeil - minFloor;
+
+    // Ensure small range doesn't break calculation
+    if (range === 0) range = 5;
+
+    let rawInterval = range / (desiredGridLines - 1);
+    if (rawInterval < 1) rawInterval = 1;
+    let interval = Math.ceil(rawInterval);
+
+    // Initial snapping logic to match mobile
+    let snappedMin = Math.floor(minFloor / interval) * interval;
+    if (minV - snappedMin < interval * 0.2) {
+      snappedMin -= interval;
+    }
+    const realMinY = Math.max(0, snappedMin);
+
+    // Recalculate interval for fixed grid lines covering the needed range
+    const neededRange = maxV - realMinY;
+    rawInterval = neededRange / (desiredGridLines - 1);
+    if (rawInterval < 1) rawInterval = 1;
+    interval = Math.ceil(rawInterval);
+
+    // Enforce multiples of 5
+    if (interval >= 5) {
+      interval = Math.ceil(interval / 5) * 5;
+    }
+
+    const chartMaxY = realMinY + interval * (desiredGridLines - 1);
+
+    // Generate ticks
+    const ticks: number[] = [];
+    for (let i = 0; i < desiredGridLines; i++) {
+      ticks.push(realMinY + i * interval);
+    }
+
+    return {
+      domain: [realMinY, chartMaxY],
+      ticks,
+    };
+  }, [chartData]);
+
+  const yAxisWidth = useMemo(() => {
+    if (typeof window === "undefined") {
+      return Y_AXIS_WIDTH;
+    }
+
+    if (chartAxisData.ticks.length === 0) {
+      return Y_AXIS_WIDTH;
+    }
+
+    const font = "700 12px Quicksand, sans-serif";
+    const maxTickValue = Math.max(...chartAxisData.ticks);
+    const formattedValue = maxTickValue.toLocaleString("fr-FR", {
+      maximumFractionDigits: 2,
+    });
+    const label = `${formattedValue}${currentUnit ? ` ${currentUnit}` : ""}`;
+
+    // Add some padding (margin left/right around text in axis)
+    // 20px is requested margin, plus we need space for text.
+    // Let's assume the text is right aligned, we need width = textWidth + a bit of padding.
+    const textWidth = measureTextWidth(label, font);
+
+    // Padding logic: 
+    // 10px (start offset) + textWidth + 20px (gap between text end and grid)
+    return 10 + textWidth + 20;
+  }, [chartAxisData, currentUnit]);
+
+  const chartMargin = useMemo(() => ({
+    top: 20,
+    right: 20,
+    bottom: 15,
+    left: yAxisWidth
+  }), [yAxisWidth]);
+
   const currentRecord = records[currentRecordIndex] ?? null;
   const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
   const recordNumericValue = typeof currentRecord?.value === "number" ? currentRecord.value : null;
@@ -1198,7 +1303,7 @@ export default function DashboardExerciseBlock({
               >
                 <AreaChart
                   data={chartData}
-                  margin={CHART_MARGIN}
+                  margin={chartMargin}
                 >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -1224,15 +1329,17 @@ export default function DashboardExerciseBlock({
                   />
 
                   <YAxis
-                    domain={["dataMin - 1", "dataMax + 1"]}
+                    domain={chartAxisData.domain}
+                    ticks={chartAxisData.ticks}
                     tick={renderValueAxisTick}
-                    width={Y_AXIS_WIDTH}
+                    width={yAxisWidth}
                     tickMargin={8}
                     axisLine={false}
                     tickLine={false}
                     mirror={false}
                     orientation="left"
                     padding={{ top: 0, bottom: 0 }}
+                    interval={0}
                   />
 
                   <Area
