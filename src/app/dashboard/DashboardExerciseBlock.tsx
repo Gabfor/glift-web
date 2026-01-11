@@ -55,7 +55,7 @@ type ChartPoint = {
   date: string;
   tooltipDate: string;
   unit: string;
-  value: number;
+  value: number | null;
 };
 
 type ExerciseRecord = {
@@ -461,6 +461,11 @@ const DashboardExerciseDot = ({
   ...rest
 }: DashboardExerciseDotProps) => {
   void _dataKey;
+
+
+  if (payload && (payload as any).value === null) {
+    return null;
+  }
 
   if (payload && typeof payload === "object" && !Array.isArray(payload)) {
     dotPositionMap.set(payload as Record<string, unknown>, { x: cx, y: cy });
@@ -1004,9 +1009,28 @@ export default function DashboardExerciseBlock({
           value: roundValue(rawValue),
         } satisfies ChartPoint;
       })
-      .filter((point): point is ChartPoint => point !== null);
+      .filter((point) => point !== null) as ChartPoint[];
 
-    setChartData(computedChartData);
+    // Padding logic to center points
+    const limit = parseSessionCount(sessionCount);
+    const missing = Math.max(0, limit - computedChartData.length);
+    const padBefore = Math.floor(missing / 2);
+    const padAfter = missing - padBefore;
+
+    const emptyPoint: ChartPoint = {
+      date: "",
+      tooltipDate: "",
+      unit: "",
+      value: null,
+    };
+
+    const paddedData = [
+      ...Array(padBefore).fill(emptyPoint),
+      ...computedChartData,
+      ...Array(padAfter).fill(emptyPoint),
+    ];
+
+    setChartData(paddedData);
 
     const bestRecordsMap = CURVE_OPTIONS.reduce(
       (acc, option) => {
@@ -1081,7 +1105,9 @@ export default function DashboardExerciseBlock({
 
   const chartAxisData = useMemo(() => {
     const desiredGridLines = 5;
-    const values = chartData.map((d) => d.value);
+    const values = chartData
+      .map((d) => d.value)
+      .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
 
     // If no data, return default suitable values
     if (values.length === 0) {
