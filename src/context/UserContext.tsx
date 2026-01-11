@@ -276,7 +276,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         latestAuthEventRef.current = event;
 
-        void fetchUser();
+        void fetchUser(true);
       },
     );
 
