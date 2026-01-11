@@ -1318,47 +1318,51 @@ export default function DashboardExerciseBlock({
         <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
           <h2 className="text-[16px] font-bold text-[#2E3271]">{name}</h2>
           <div className="flex items-center gap-[20px]">
-            <DashboardExerciseDropdown
-              value={sessionCount}
-              onChange={onSessionChange}
-              options={[
-                { value: "5", label: "5 dernières séances" },
-                { value: "10", label: "10 dernières séances" },
-                { value: "15", label: "15 dernières séances" },
-              ]}
-              iconSrc="/icons/tableau.svg"
-              iconHoverSrc="/icons/tableau_hover.svg"
-              selectedValueClassName="hidden"
-            />
-            <DashboardExerciseDropdown
-              value={curveType}
-              onChange={(newCurve) => {
-                // Update graph
-                onCurveChange(newCurve);
+            <Tooltip content="Nombre de séances">
+              <DashboardExerciseDropdown
+                value={sessionCount}
+                onChange={onSessionChange}
+                options={[
+                  { value: "5", label: "5 dernières séances" },
+                  { value: "10", label: "10 dernières séances" },
+                  { value: "15", label: "15 dernières séances" },
+                ]}
+                iconSrc="/icons/tableau.svg"
+                iconHoverSrc="/icons/tableau_hover.svg"
+                selectedValueClassName="hidden"
+              />
+            </Tooltip>
+            <Tooltip content="Type de courbe">
+              <DashboardExerciseDropdown
+                value={curveType}
+                onChange={(newCurve) => {
+                  // Update graph
+                  onCurveChange(newCurve);
 
-                // Update card ONLY if the current record is NOT a favorite
-                // We check if the *currently displayed* record type is favorited.
-                const activeRecordKey = records[currentRecordIndex]?.curveType;
-                if (!favoriteRecordTypes.has(activeRecordKey)) {
-                  // Find the index of the newly selected curve type
-                  const newIndex = records.findIndex(r => r.curveType === newCurve);
-                  if (newIndex !== -1) {
-                    onRecordTypeChange(newCurve as CurveOptionValue);
+                  // Update card ONLY if the current record is NOT a favorite
+                  // We check if the *currently displayed* record type is favorited.
+                  const activeRecordKey = records[currentRecordIndex]?.curveType;
+                  if (!favoriteRecordTypes.has(activeRecordKey)) {
+                    // Find the index of the newly selected curve type
+                    const newIndex = records.findIndex(r => r.curveType === newCurve);
+                    if (newIndex !== -1) {
+                      onRecordTypeChange(newCurve as CurveOptionValue);
+                    }
                   }
+                }}
+                options={
+                  records.length > 0
+                    ? records.map(r => ({
+                      value: r.curveType,
+                      label: r.label
+                    }))
+                    : []
                 }
-              }}
-              options={
-                records.length > 0
-                  ? records.map(r => ({
-                    value: r.curveType,
-                    label: r.label
-                  }))
-                  : []
-              }
-              iconSrc="/icons/courbe.svg"
-              iconHoverSrc="/icons/courbe_hover.svg"
-              selectedValueClassName="hidden"
-            />
+                iconSrc="/icons/courbe.svg"
+                iconHoverSrc="/icons/courbe_hover.svg"
+                selectedValueClassName="hidden"
+              />
+            </Tooltip>
           </div>
         </div>
 

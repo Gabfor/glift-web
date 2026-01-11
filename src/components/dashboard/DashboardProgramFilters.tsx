@@ -386,6 +386,7 @@ export default function DashboardProgramFilters(
           className="min-w-[240px] max-w-[270px] w-full"
           disabled={isProgramDisabled}
           maxWidth={270}
+          sortOptions={false}
         />
         <DropdownFilter
           label="Entraînement"
@@ -402,6 +403,7 @@ export default function DashboardProgramFilters(
           className="min-w-[240px] max-w-[270px] w-full"
           disabled={isTrainingDisabled}
           maxWidth={270}
+          sortOptions={false}
         />
         <DropdownFilter
           label="Exercice"
