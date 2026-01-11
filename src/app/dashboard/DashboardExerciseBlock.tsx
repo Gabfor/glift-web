@@ -1449,13 +1449,13 @@ export default function DashboardExerciseBlock({
                 </AreaChart>
               </ResponsiveContainer>
             ) : null}
+
             {isLoadingData ? (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                <p className="text-[13px] font-semibold text-[#5D6494]">
-                  Chargement des données…
-                </p>
+              <div className="absolute inset-0 p-4 animate-pulse pointer-events-none">
+                <div className="w-full h-full bg-[#F0F1FB] rounded-[10px]" />
               </div>
             ) : null}
+
             {!isLoadingData && fetchError ? (
               <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-4 text-center">
                 <p className="text-[13px] font-semibold text-[#E53E3E]">
@@ -1476,8 +1476,28 @@ export default function DashboardExerciseBlock({
 
       {/* ZONE 2: Records Carousel (approx 25% width or flex: 1) */}
       <div className="w-full xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
-        {/* The carousel container needs to be relative/isolated */}
-        {records.length > 0 ? (
+        {isLoadingData ? (
+          <div className="w-[220px] h-[339px] rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-sm animate-pulse flex flex-col justify-between">
+            <div className="w-full flex flex-col gap-4">
+              <div className="flex justify-between">
+                <div className="h-[18px] w-[18px] bg-[#F0F1FB] rounded-full" />
+                <div className="h-[18px] w-[18px] bg-[#F0F1FB] rounded-full" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="h-[40px] w-[40px] bg-[#F0F1FB] rounded-[12px]" />
+                <div className="space-y-2">
+                  <div className="h-[22px] w-[60px] bg-[#F0F1FB] rounded" />
+                  <div className="h-[11px] w-[80px] bg-[#F0F1FB] rounded" />
+                </div>
+              </div>
+            </div>
+            <div className="w-[134px] h-[134px] rounded-full border-[10px] border-[#F0F1FB] mx-auto" />
+            <div className="space-y-2 w-full">
+              <div className="h-[40px] w-full bg-[#F0F1FB] rounded-full" />
+              <div className="h-[15px] w-[100px] bg-[#F0F1FB] rounded mx-auto" />
+            </div>
+          </div>
+        ) : records.length > 0 ? (
           <RecordsCarousel
             slides={slides}
             offsetRadius={2}
