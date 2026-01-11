@@ -815,6 +815,66 @@ export default function DashboardExerciseBlock({
     setGoalTarget(normalizedGoal ? String(normalizedGoal.target) : "");
   }, [isGoalModalOpen, normalizedGoal]);
 
+  const chartAxisData = useMemo(() => {
+    const desiredGridLines = 5;
+    const values = chartData
+      .map((d) => d.value)
+      .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
+
+    // If no data, return default suitable values
+    if (values.length === 0) {
+      return {
+        domain: [0, 100],
+        ticks: [0, 25, 50, 75, 100]
+      };
+    }
+
+    let minV = Math.min(...values);
+    let maxV = Math.max(...values);
+
+    const minFloor = Math.floor(minV);
+    const maxCeil = Math.ceil(maxV);
+    let range = maxCeil - minFloor;
+
+    // Ensure small range doesn't break calculation
+    if (range === 0) range = 5;
+
+    let rawInterval = range / (desiredGridLines - 1);
+    if (rawInterval < 1) rawInterval = 1;
+    let interval = Math.ceil(rawInterval);
+
+    // Initial snapping logic to match mobile
+    let snappedMin = Math.floor(minFloor / interval) * interval;
+    if (minV - snappedMin < interval * 0.2) {
+      snappedMin -= interval;
+    }
+    const realMinY = Math.max(0, snappedMin);
+
+    // Recalculate interval for fixed grid lines covering the needed range
+    const neededRange = maxV - realMinY;
+    rawInterval = neededRange / (desiredGridLines - 1);
+    if (rawInterval < 1) rawInterval = 1;
+    interval = Math.ceil(rawInterval);
+
+    // Enforce multiples of 5
+    if (interval >= 5) {
+      interval = Math.ceil(interval / 5) * 5;
+    }
+
+    const chartMaxY = realMinY + interval * (desiredGridLines - 1);
+
+    // Generate ticks
+    const ticks: number[] = [];
+    for (let i = 0; i < desiredGridLines; i++) {
+      ticks.push(realMinY + i * interval);
+    }
+
+    return {
+      domain: [realMinY, chartMaxY],
+      ticks,
+    };
+  }, [chartData]);
+
   const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
   const yAxisWidth = useMemo(() => {
     if (typeof window === "undefined") {
@@ -1134,66 +1194,6 @@ export default function DashboardExerciseBlock({
     const index = records.findIndex((record) => record.curveType === recordType);
     return index === -1 ? 0 : index;
   }, [recordType, records]);
-
-  const chartAxisData = useMemo(() => {
-    const desiredGridLines = 5;
-    const values = chartData
-      .map((d) => d.value)
-      .filter((v): v is number => typeof v === "number" && Number.isFinite(v));
-
-    // If no data, return default suitable values
-    if (values.length === 0) {
-      return {
-        domain: [0, 100],
-        ticks: [0, 25, 50, 75, 100]
-      };
-    }
-
-    let minV = Math.min(...values);
-    let maxV = Math.max(...values);
-
-    const minFloor = Math.floor(minV);
-    const maxCeil = Math.ceil(maxV);
-    let range = maxCeil - minFloor;
-
-    // Ensure small range doesn't break calculation
-    if (range === 0) range = 5;
-
-    let rawInterval = range / (desiredGridLines - 1);
-    if (rawInterval < 1) rawInterval = 1;
-    let interval = Math.ceil(rawInterval);
-
-    // Initial snapping logic to match mobile
-    let snappedMin = Math.floor(minFloor / interval) * interval;
-    if (minV - snappedMin < interval * 0.2) {
-      snappedMin -= interval;
-    }
-    const realMinY = Math.max(0, snappedMin);
-
-    // Recalculate interval for fixed grid lines covering the needed range
-    const neededRange = maxV - realMinY;
-    rawInterval = neededRange / (desiredGridLines - 1);
-    if (rawInterval < 1) rawInterval = 1;
-    interval = Math.ceil(rawInterval);
-
-    // Enforce multiples of 5
-    if (interval >= 5) {
-      interval = Math.ceil(interval / 5) * 5;
-    }
-
-    const chartMaxY = realMinY + interval * (desiredGridLines - 1);
-
-    // Generate ticks
-    const ticks: number[] = [];
-    for (let i = 0; i < desiredGridLines; i++) {
-      ticks.push(realMinY + i * interval);
-    }
-
-    return {
-      domain: [realMinY, chartMaxY],
-      ticks,
-    };
-  }, [chartData]);
 
   const chartMargin = useMemo(() => ({
     top: 20,
