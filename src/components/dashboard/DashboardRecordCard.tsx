@@ -81,12 +81,19 @@ export default function DashboardRecordCard({
                 )}
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <Image
+                    src={goalIconSrc}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="mb-1"
+                />
                 {hasGoal && goalProgress !== null ? (
                     <>
                         <span className={`text-[24px] font-bold leading-none transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
                             {Math.round(goalProgress)}%
                         </span>
-                        <span className="text-[10px] font-bold text-[#5D6494] leading-tight mt-1 max-w-[60px] transition-all duration-200">
+                        <span className={`text-[10px] font-bold leading-tight mt-1 max-w-[60px] transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
                             de l&apos;objectif atteint
                         </span>
                     </>
