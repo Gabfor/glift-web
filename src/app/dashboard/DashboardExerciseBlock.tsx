@@ -792,6 +792,10 @@ export default function DashboardExerciseBlock({
       type: selectedGoalType as CurveOptionValue,
       target: parsedTarget,
     });
+
+    // Switch to the record card corresponding to the new goal type
+    onRecordTypeChange(selectedGoalType as CurveOptionValue);
+
     handleCloseGoalModal();
   };
 
