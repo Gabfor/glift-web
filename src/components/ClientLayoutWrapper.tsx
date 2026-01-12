@@ -1,5 +1,7 @@
 "use client";
 
+import { useLayoutEffect } from "react";
+
 import { usePathname } from "next/navigation";
 import ClientLayout from "@/components/ClientLayout";
 
@@ -21,6 +23,15 @@ export default function ClientLayoutWrapper({
   const isOnboardingAccountStep = pathname === "/inscription";
 
   const shouldUsePublicHeader = Boolean(isAuthPage || isOnboardingAccountStep);
+
+  useLayoutEffect(() => {
+    // Disable default browser scroll restoration
+    if (typeof window !== "undefined" && "scrollRestoration" in history) {
+      history.scrollRestoration = "manual";
+    }
+    // Force scroll to top immediately
+    window.scrollTo(0, 0);
+  }, []);
 
   return (
     <ClientLayout disconnected={shouldUsePublicHeader} initialSession={initialSession}>{children}</ClientLayout>

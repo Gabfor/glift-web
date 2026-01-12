@@ -1,9 +1,4 @@
 <svg width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="12.5" cy="12.5" r="10" fill="#ECE9F1"/>
-<circle cx="5.75" cy="12.75" r="1.25" fill="white"/>
-<circle cx="19.25" cy="12.75" r="1.25" fill="white"/>
-<circle cx="7.75" cy="8.25" r="1.25" fill="white"/>
-<circle cx="12.25" cy="5.75" r="1.25" fill="white"/>
-<circle cx="12.25" cy="15.75" r="2.25" fill="#D7D4DC"/>
-<rect x="16.292" y="6.63184" width="2" height="10.849" rx="1" transform="rotate(29.1912 16.292 6.63184)" fill="#D7D4DC"/>
+<path d="M3.5 15.0487L5.89898 12.0231L8.54419 15.0487L11.4063 8.53235L14.5053 15.8765L17.8651 6.5L20.3 11.0146" stroke="#D7D4DC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="19.9004" cy="15.7" r="2" fill="#ECE9F1"/>
 </svg>

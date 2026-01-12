@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
@@ -23,6 +23,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
+  const [allowTransition, setAllowTransition] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [remainingVerificationHours, setRemainingVerificationHours] =
     useState<number | null>(null);
@@ -58,12 +59,24 @@ export default function Header({ disconnected = false }: HeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const handleScroll = () => {
       setIsSticky(window.scrollY > 0);
     };
+
+    // Initial check
+    handleScroll();
+
+    // Enable transition after initial render
+    const timer = setTimeout(() => {
+      setAllowTransition(true);
+    }, 100);
+
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer);
+    };
   }, []);
 
   useEffect(() => {
@@ -189,7 +202,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
         </div>
       )}
       <header
-        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 transition-all duration-300 ${isSticky
+        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
           : "bg-[var(--color-surface-primary)]"
           }`}

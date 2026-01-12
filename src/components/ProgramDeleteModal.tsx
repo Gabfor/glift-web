@@ -18,7 +18,12 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
         <div className="flex justify-center gap-4">
           <CTAButton
             variant="secondary"
-            onClick={onCancel}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onCancel();
+            }}
+            type="button"
           >
             Annuler
           </CTAButton>

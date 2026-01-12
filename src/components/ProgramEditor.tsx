@@ -268,50 +268,7 @@ export default function ProgramEditor({
     }
   };
 
-  // Fonction pour vérifier les entraînements associés
-  // Fonction pour supprimer un programme depuis Supabase
-  const handleDelete = async (programId: string) => {
-    try {
-      // Suppression des entraînements associés au programme
-      const { data: trainingsData, error: trainingsError } = await supabase
-        .from(tableName)
-        .delete()
-        .eq("program_id", programId);
 
-      if (trainingsError) {
-        throw new Error(trainingsError.message);
-      }
-
-      console.log("Entraînements supprimés avec succès", trainingsData);
-
-      // Suppression du programme après avoir supprimé les entraînements
-      const { data, error } = await supabase
-        .from(programsTableName)
-        .delete()
-        .eq("id", programId);
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      console.log("Programme supprimé avec succès", data);
-      onDelete();  // Appeler la fonction onDelete (optionnel, si tu veux mettre à jour l'état local après suppression)
-    } catch (error) {
-      console.error("Erreur lors de la suppression du programme et des entraînements", error);
-    }
-  };
-
-  // Fonction qui désactive la suppression si le programme n'a pas d'entraînements associés
-  const handleDeleteClick = async (programId: string) => {
-    // Si le programme n'a pas d'entraînements associés, on empêche la suppression
-    if (trainingsData.length === 0) {
-      alert("Ce programme n'a pas d'entraînements associés et ne peut pas être supprimé.");
-      return;
-    }
-
-    // Si le programme a des entraînements associés, procéder à la suppression
-    await handleDelete(programId);
-  };
 
   return (
     <div
@@ -687,7 +644,7 @@ export default function ProgramEditor({
               <button
                 type="button"
                 className="relative w-[20px] h-[20px] transition duration-300 ease-in-out"
-                onClick={() => handleDeleteClick(programId)}
+                onClick={onDelete}
                 aria-label="Supprimer"
               >
                 <div className="relative w-full h-full">
