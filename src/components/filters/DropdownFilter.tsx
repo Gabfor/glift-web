@@ -39,10 +39,13 @@ export default function DropdownFilter({
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const measurementRef = useRef<HTMLButtonElement>(null);
   const headerMeasurementRef = useRef<HTMLDivElement>(null);
   const measurementTextRef = useRef<HTMLSpanElement>(null);
   const [calculatedWidth, setCalculatedWidth] = useState<number>();
+  const [showTopGradient, setShowTopGradient] = useState(false);
+  const [showBottomGradient, setShowBottomGradient] = useState(false);
 
   const preparedOptions = useMemo(() => {
     const clonedOptions = [...options];
@@ -154,6 +157,18 @@ export default function DropdownFilter({
       setOpen(false);
     }
   }, [disabled, open]);
+
+  useEffect(() => {
+    if (open && listRef.current) {
+      const target = listRef.current;
+      const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+      const isAtTop = target.scrollTop < 1;
+      const hasScroll = target.scrollHeight > target.clientHeight;
+
+      setShowBottomGradient(hasScroll && !isAtBottom);
+      setShowTopGradient(hasScroll && !isAtTop);
+    }
+  }, [open, preparedOptions]);
 
   const buttonStateClasses = (() => {
     if (disabled) {
@@ -296,9 +311,26 @@ export default function DropdownFilter({
 
       {open && (
         <div
-          className="absolute left-0 mt-20 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 mt-20 w-full bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden"
         >
-          <div className="flex flex-col">
+          {/* Top Gradient */}
+          <div
+            className={`absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"
+              }`}
+          />
+          <div
+            className="flex flex-col overflow-y-auto max-h-[216px] py-2 scrollable-dropdown"
+            ref={listRef}
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+              const isAtTop = target.scrollTop < 1;
+              const hasScroll = target.scrollHeight > target.clientHeight;
+
+              setShowBottomGradient(hasScroll && !isAtBottom);
+              setShowTopGradient(hasScroll && !isAtTop);
+            }}
+          >
             {preparedOptions.map((option) => (
               <button
                 key={option.value}
@@ -330,6 +362,11 @@ export default function DropdownFilter({
               </button>
             ))}
           </div>
+          {/* Bottom Gradient */}
+          <div
+            className={`absolute bottom-0 left-0 right-0 h-[40px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showBottomGradient ? "opacity-100" : "opacity-0"
+              }`}
+          />
         </div>
       )}
     </div>

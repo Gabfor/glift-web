@@ -361,7 +361,7 @@ export default function AdminDropdown({
           />
           <div
             ref={menuRef}
-            className="overflow-y-auto max-h-[180px] scrollable-dropdown py-2"
+            className="overflow-y-auto max-h-[216px] scrollable-dropdown py-2"
             onScroll={(e) => {
               const target = e.currentTarget;
               const isAtBottom =
