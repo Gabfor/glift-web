@@ -39,6 +39,7 @@ export interface DashboardExerciseBlockProps {
   goal?: DashboardExerciseGoal | null;
   onGoalChange: (goal: DashboardExerciseGoal | null) => void;
   onGoalCompletionChange?: (exerciseId: string, completed: boolean) => void;
+  weightUnit?: "kg" | "lb";
 }
 
 type SessionSet = {
@@ -74,23 +75,7 @@ type AggregatedSessionMetrics = {
   totalReps: number;
 };
 
-const CURVE_UNIT_MAP: Record<CurveOptionValue, string> = {
-  "poids-moyen": "kg",
-  "poids-maximum": "kg",
-  "poids-total": "kg",
-  "repetition-moyenne": "rép.",
-  "repetition-maximum": "rép.",
-  "repetitions-totales": "rép.",
-};
 
-const CURVE_DISPLAY_UNIT_MAP: Record<CurveOptionValue, string> = {
-  "poids-moyen": "Kg",
-  "poids-maximum": "Kg",
-  "poids-total": "Kg",
-  "repetition-moyenne": "Rép.",
-  "repetition-maximum": "Rép.",
-  "repetitions-totales": "Rép.",
-};
 
 const parseSessionCount = (value: string): number => {
   const parsed = Number.parseInt(value, 10);
@@ -629,6 +614,7 @@ export default function DashboardExerciseBlock({
   goal,
   onGoalChange,
   onGoalCompletionChange,
+  weightUnit = "kg",
 }: DashboardExerciseBlockProps) {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -804,7 +790,8 @@ export default function DashboardExerciseBlock({
     setGoalTarget(normalizedGoal ? String(normalizedGoal.target) : "");
   }, [isGoalModalOpen, normalizedGoal]);
 
-  const currentUnit = CURVE_UNIT_MAP[curveType] ?? "";
+  /* const currentUnit = CURVE_UNIT_MAP[curveType] ?? ""; */
+  const currentUnit = curveType.includes("poids") ? weightUnit : "rép.";
   const renderValueAxisTick = useMemo(
     () => createValueAxisTickRenderer(currentUnit),
     [currentUnit],
@@ -998,6 +985,17 @@ export default function DashboardExerciseBlock({
         const metrics = aggregateSessionMetrics(session);
         const rawValue = getValueForCurve(metrics, curveType);
 
+        // Convert to lbs if needed AND if the curve is weight-based
+        // User requested NO value conversion.
+        /*
+        const isWeightCurve = curveType.includes("poids");
+        let finalValue = rawValue;
+
+        if (isWeightCurve && weightUnit === "lb" && finalValue != null) {
+          finalValue = finalValue * 2.20462;
+        }
+        */
+
         if (rawValue == null || !Number.isFinite(rawValue)) {
           return null;
         }
@@ -1056,6 +1054,15 @@ export default function DashboardExerciseBlock({
           return;
         }
 
+        // User requested NO value conversion.
+        /*
+        const isWeightCurve = value.includes("poids");
+        let finalMetricValue = rawMetricValue;
+        if (isWeightCurve && weightUnit === "lb") {
+          finalMetricValue = finalMetricValue * 2.20462;
+        }
+        */
+
         const roundedMetricValue = roundValue(rawMetricValue);
         const currentRecord = bestRecordsMap[value];
         const currentRecordValue = currentRecord.value;
@@ -1071,7 +1078,7 @@ export default function DashboardExerciseBlock({
 
     const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
-  }, [curveType, currentUnit, rawSessions]);
+  }, [curveType, currentUnit, rawSessions, weightUnit]);
 
   // Ref to track if we've already prioritized the favorite on load
   const hasPrioritizedRef = useRef(false);
@@ -1222,7 +1229,7 @@ export default function DashboardExerciseBlock({
   }), []);
 
   const currentRecord = records[currentRecordIndex] ?? null;
-  const recordUnitLabel = currentRecord ? CURVE_DISPLAY_UNIT_MAP[currentRecord.curveType] : "";
+  const recordUnitLabel = currentRecord ? (currentRecord.curveType.includes("poids") ? (weightUnit === "kg" ? "Kg" : "Lb") : "Rép.") : "";
   const recordNumericValue = typeof currentRecord?.value === "number" ? currentRecord.value : null;
   const formattedRecordValue = recordNumericValue !== null
     ? recordNumericValue.toLocaleString("fr-FR", {
@@ -1269,7 +1276,7 @@ export default function DashboardExerciseBlock({
             dateLabel={formatRecordDate(record.date)}
             valueLabel={
               typeof record.value === "number"
-                ? record.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " " + (CURVE_DISPLAY_UNIT_MAP[record.curveType] || "")
+                ? record.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 }) + " " + (record.curveType.includes("poids") ? (weightUnit === "kg" ? "Kg" : "Lb") : "Rép.")
                 : "--"
             }
             typeLabel={record.label}
@@ -1294,7 +1301,7 @@ export default function DashboardExerciseBlock({
         ),
       };
     });
-  }, [records, normalizedGoal, CURVE_DISPLAY_UNIT_MAP, formatRecordDate, favoriteRecordTypes]);
+  }, [records, normalizedGoal, formatRecordDate, favoriteRecordTypes, weightUnit]);
 
 
 

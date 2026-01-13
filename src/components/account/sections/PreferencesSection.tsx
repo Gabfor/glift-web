@@ -190,6 +190,13 @@ export default function PreferencesSection() {
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+  const successMessageRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (showSuccessMessage && successMessageRef.current) {
+      successMessageRef.current.scrollIntoView({ behavior: "smooth", block: "center" })
+    }
+  }, [showSuccessMessage])
 
   useEffect(() => {
     let isActive = true
@@ -316,7 +323,7 @@ export default function PreferencesSection() {
         }}
       >
         {showSuccessMessage ? (
-          <div className="mt-[14px] mb-[16px] flex w-full justify-center">
+          <div ref={successMessageRef} className="mt-[14px] mb-[16px] flex w-full justify-center">
             <ModalMessage
               variant="success"
               title="Préférences mises à jour"

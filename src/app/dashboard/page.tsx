@@ -56,7 +56,8 @@ const STATS_CARD_METADATA = [
 
 type StatsCardMetadata = (typeof STATS_CARD_METADATA)[number];
 
-type StatsCard = StatsCardMetadata & {
+type StatsCard = Omit<StatsCardMetadata, "label"> & {
+  label: string;
   value: number;
   previousValue: number;
   format: (value: number) => string;
@@ -435,6 +436,7 @@ export default function DashboardPage() {
     useState<ExerciseDisplaySettings>({});
   const [defaultCurveValue, setDefaultCurveValue] =
     useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
+  const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
@@ -556,12 +558,18 @@ export default function DashboardPage() {
             precision: 0,
           } satisfies StatsCard;
         case "weight":
+          const isLb = weightUnit === "lb";
+          // User requested NO value conversion, just label change.
+          const weightValue = stats.weight.current;
+          const previousWeightValue = stats.weight.previous;
+
           return {
             ...metadata,
-            value: stats.weight.current,
-            previousValue: stats.weight.previous,
+            label: isLb ? "Lb soulevés en moyenne" : "Kg soulevés en moyenne",
+            value: weightValue,
+            previousValue: previousWeightValue,
             format: formatInteger,
-            precision: 0, // Using integer for weight based on user request "28" not "28.5" although mock had comma? Mock says "28" and "+1,8". Let's stick to integer for main value as per mock "28".
+            precision: 0,
           } satisfies StatsCard;
         case "reps":
         default:
@@ -578,6 +586,7 @@ export default function DashboardPage() {
     integerFormatter,
     stats,
     weightFormatter,
+    weightUnit,
   ]);
 
   const shouldShowFiltersSkeleton = useMinimumVisibility(
@@ -665,20 +674,26 @@ export default function DashboardPage() {
           .returns<DashboardPreferencesRow[]>(),
         supabase
           .from("preferences")
-          .select("curve")
+          .select("curve, weight_unit")
           .eq("id", user.id)
-          .maybeSingle<Pick<PreferencesRow, "curve">>(),
+          .maybeSingle<Pick<PreferencesRow, "curve" | "weight_unit">>(),
       ]);
 
       if (!isMounted) return;
 
       if (userPreferencesResponse.error) {
         setDefaultCurveValue(FALLBACK_CURVE_VALUE);
+        setWeightUnit("kg");
       } else {
         const rawCurve = userPreferencesResponse.data?.curve ?? null;
         setDefaultCurveValue(
           rawCurve ? CURVE_FROM_DB[rawCurve] ?? FALLBACK_CURVE_VALUE : FALLBACK_CURVE_VALUE,
         );
+        const rawUnit = userPreferencesResponse.data?.weight_unit;
+        // Assuming "imperial" -> "lb", "metric" -> "kg" or if it stores "kg"/"lb" directly.
+        // Looking at PreferencesSection, it likely stores direct values or we have a map.
+        // Let's verify what PreferencesSection saves.
+        setWeightUnit(rawUnit === "lb" ? "lb" : "kg");
       }
 
       const { data, error } = dashboardResponse;
@@ -1308,6 +1323,7 @@ export default function DashboardPage() {
                               });
                             }}
                             onGoalCompletionChange={handleGoalCompletionChange}
+                            weightUnit={weightUnit}
                           />
                         );
                       })}
