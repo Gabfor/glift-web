@@ -55,6 +55,8 @@ export default function AdminDropdown({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [typedValue, setTypedValue] = useState("");
+  const [showBottomGradient, setShowBottomGradient] = useState(false);
+  const [showTopGradient, setShowTopGradient] = useState(false);
 
   const sortedOptions = useMemo(() => {
     if (sortStrategy === "none") {
@@ -205,6 +207,18 @@ export default function AdminDropdown({
     setTypedValue("");
   }, [allowTyping, selected]);
 
+  useEffect(() => {
+    if (open && menuRef.current) {
+      const target = menuRef.current;
+      const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+      const isAtTop = target.scrollTop < 1;
+      const hasScroll = target.scrollHeight > target.clientHeight;
+
+      setShowBottomGradient(hasScroll && !isAtBottom);
+      setShowTopGradient(hasScroll && !isAtTop);
+    }
+  }, [open, sortedOptions]);
+
   const handleBlur = () => {
     if (!allowTyping) {
       return;
@@ -339,18 +353,44 @@ export default function AdminDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] scrollable-dropdown max-h-[180px] overflow-y-auto">
-          <div className="flex flex-col">
-            {sortedOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onSelect(option.value);
-                  setOpen(false);
-                  buttonRef.current?.blur();
-                }}
-                className={`
+        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden">
+          {/* Top Gradient */}
+          <div
+            className={`absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"
+              }`}
+          />
+          <div
+            ref={menuRef}
+            className="overflow-y-auto max-h-[180px] scrollable-dropdown py-2"
+            onScroll={(e) => {
+              const target = e.currentTarget;
+              const isAtBottom =
+                Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+              const isAtTop = target.scrollTop < 1;
+              const hasScroll = target.scrollHeight > target.clientHeight;
+
+              const shouldShowBottom = hasScroll && !isAtBottom;
+              const shouldShowTop = hasScroll && !isAtTop;
+
+              if (shouldShowBottom !== showBottomGradient) {
+                setShowBottomGradient(shouldShowBottom);
+              }
+              if (shouldShowTop !== showTopGradient) {
+                setShowTopGradient(shouldShowTop);
+              }
+            }}
+          >
+            <div className="flex flex-col">
+              {sortedOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onSelect(option.value);
+                    setOpen(false);
+                    buttonRef.current?.blur();
+                  }}
+                  className={`
                   text-left
                   text-[16px]
                   font-semibold
@@ -361,15 +401,21 @@ export default function AdminDropdown({
                   hover:bg-[#FAFAFF]
                   transition-colors duration-150
                   ${selected === option.value
-                    ? "text-[#7069FA]"
-                    : "text-[#5D6494] hover:text-[#3A416F]"
-                  }
+                      ? "text-[#7069FA]"
+                      : "text-[#5D6494] hover:text-[#3A416F]"
+                    }
                 `}
-              >
-                {renderOptionContent(option)}
-              </button>
-            ))}
+                >
+                  {renderOptionContent(option)}
+                </button>
+              ))}
+            </div>
           </div>
+          {/* Bottom Gradient */}
+          <div
+            className={`absolute bottom-0 left-0 right-0 h-[40px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showBottomGradient ? "opacity-100" : "opacity-0"
+              }`}
+          />
         </div>
       )}
     </div>
