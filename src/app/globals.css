@@ -219,7 +219,8 @@ input:checked + .slider {
   height: 22px;
   width: 22px;
   left: 2px;
-  bottom: 1px;
+  top: 50%;
+  transform: translateY(-50%);
   background-color: white;
   border: 1px solid var(--color-surface-subtle);
   box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.2);
@@ -228,7 +229,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(18px);
+  transform: translate(18px, -50%);
 }
 
 .radix-popover-content-inline {

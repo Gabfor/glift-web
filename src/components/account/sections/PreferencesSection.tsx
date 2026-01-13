@@ -78,7 +78,7 @@ const COMMUNICATION_FIELDS = [
 ] as const
 
 const CURVE_TOOLTIP_MESSAGE =
-  "Ce réglage détermine la courbe affichée par défaut dans vos graphiques et vos tableaux de bord."
+  "Ce réglage détermine le type de courbe affichée par défaut dans votre tableau de bord."
 
 type CommunicationKey = (typeof COMMUNICATION_FIELDS)[number]["key"]
 
@@ -143,7 +143,7 @@ const createStateFromPreferences = (
 type CommunicationField = (typeof COMMUNICATION_FIELDS)[number]
 
 type PreferenceToggleRowProps = {
-  field: CommunicationField
+  field: { title: string; description: string }
   checked: boolean
   onCheckedChange: (checked: boolean) => void
 }
@@ -176,6 +176,7 @@ export default function PreferencesSection() {
 
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(initialStateRef.current.weightUnit)
   const [weightTouched, setWeightTouched] = useState(false)
+  const [sessionCount, setSessionCount] = useState<string>("15")
   const [defaultCurve, setDefaultCurve] = useState<CurveOptionValue>(
     initialStateRef.current.defaultCurve,
   )
@@ -204,7 +205,7 @@ export default function PreferencesSection() {
       const { data, error } = await supabase
         .from("preferences")
         .select(
-          "id, weight_unit, curve, show_effort, show_materiel, show_repos, newsletter, newsletter_shop, newsletter_store, survey",
+          "id, weight_unit, curve, show_effort, show_materiel, show_repos, show_link, show_notes, newsletter, newsletter_shop, newsletter_store, survey",
         )
         .eq("id", user.id)
         .maybeSingle()
@@ -330,8 +331,8 @@ export default function PreferencesSection() {
             Réglages de la plateforme
           </h3>
 
-          <div className="flex flex-col items-center gap-0">
-            <div className="flex w-[368px] justify-start">
+          <div className="flex flex-col gap-2">
+            <div className="w-full max-w-[368px]">
               <ToggleField
                 label="Unités de poids"
                 value={weightUnit}
@@ -349,7 +350,41 @@ export default function PreferencesSection() {
               />
             </div>
 
-            <div className="flex w-[368px] justify-start">
+            <div className="w-full max-w-[368px]">
+              <div className="relative w-full">
+                <DropdownField
+                  label="Nombre de séances par défaut"
+                  placeholder="Sélectionnez un nombre"
+                  selected={sessionCount}
+                  onSelect={(value) => {
+                    setSessionCount(value)
+                    setShowSuccessMessage(false)
+                  }}
+                  options={[
+                    { value: "5", label: "5 dernières séances" },
+                    { value: "10", label: "10 dernières séances" },
+                    { value: "15", label: "15 dernières séances" },
+                    { value: "20", label: "20 dernières séances" },
+                  ]}
+                  touched={false}
+                  setTouched={() => { }}
+                  clearable={false}
+                  width="w-full"
+                />
+                <div
+                  className="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 z-20"
+                >
+                  <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+                    <InfoTooltipAdornment
+                      message="Ce réglage détermine le nombre de séances affichées par défaut dans votre tableau de bord."
+                      ariaLabel="Plus d’informations sur le nombre de séances par défaut"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full max-w-[368px]">
               <div className="relative w-full">
                 <DropdownField
                   label="Type de courbe par défaut"
@@ -367,7 +402,7 @@ export default function PreferencesSection() {
                   touched={curveTouched}
                   setTouched={(isTouched) => setCurveTouched(isTouched)}
                   clearable={false}
-                  width="w-[368px]"
+                  width="w-full"
                 />
 
                 <div
@@ -383,54 +418,48 @@ export default function PreferencesSection() {
               </div>
             </div>
 
-            <div className="flex w-[368px] justify-between items-center py-2 translate-x-[-2px]">
-              <div className="flex flex-col">
-                <span className="text-[16px] font-bold text-[#3A416F] leading-tight">Afficher la colonne Effort</span>
-                <span className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">Afficher la colonne Effort dans les tableaux d'exercices</span>
-              </div>
-              <ToggleSwitch
+            <div className="flex flex-col gap-[21px] mt-2">
+
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Effort",
+                  description: "Afficher la colonne Effort dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                }}
                 checked={showEffort}
                 onCheckedChange={(checked) => {
                   setShowEffort(checked)
                   setShowSuccessMessage(false)
                 }}
-                ariaLabel="Afficher ou masquer la colonne Effort"
               />
-            </div>
 
-            <div className="flex w-[368px] justify-between items-center py-2 translate-x-[-2px]">
-              <div className="flex flex-col">
-                <span className="text-[16px] font-bold text-[#3A416F] leading-tight">Afficher la colonne Matériel</span>
-                <span className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">Afficher la colonne Matériel dans les tableaux d'exercices</span>
-              </div>
-              <ToggleSwitch
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Matériel",
+                  description: "Afficher la colonne Matériel dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                }}
                 checked={showMateriel}
                 onCheckedChange={(checked) => {
                   setShowMateriel(checked)
                   setShowSuccessMessage(false)
                 }}
-                ariaLabel="Afficher ou masquer la colonne Matériel"
               />
-            </div>
 
-            <div className="flex w-[368px] justify-between items-center py-2 translate-x-[-2px]">
-              <div className="flex flex-col">
-                <span className="text-[16px] font-bold text-[#3A416F] leading-tight">Afficher la colonne Repos</span>
-                <span className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">Afficher la colonne Repos dans les tableaux d'exercices</span>
-              </div>
-              <ToggleSwitch
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Repos",
+                  description: "Afficher la colonne Repos dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                }}
                 checked={showRepos}
                 onCheckedChange={(checked) => {
                   setShowRepos(checked)
                   setShowSuccessMessage(false)
                 }}
-                ariaLabel="Afficher ou masquer la colonne Repos"
               />
             </div>
           </div>
         </div>
 
-        <div className="mt-[5px] flex w-full text-left flex-col gap-[21px]">
+        <div className="mt-[50px] flex w-full text-left flex-col gap-[21px]">
           <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
             Réglages de vos communications
           </h3>
