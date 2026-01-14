@@ -254,7 +254,7 @@ export default function TrainingRow({
                     : row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "inherit",
+                color: getEffortTextColor(row.effort[subIndex]),
               }}
               value={rep || ""}
               placeholder="0"
@@ -286,7 +286,7 @@ export default function TrainingRow({
                     : row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "inherit",
+                color: getEffortTextColor(row.effort[subIndex]),
               }}
               value={weight || ""}
               placeholder="0"
