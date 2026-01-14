@@ -100,6 +100,7 @@ export interface Database {
           show_repos: boolean;
           show_link: boolean;
           show_notes: boolean;
+          default_session_count: number | null;
         };
         Insert: {
           id: string;
@@ -118,6 +119,7 @@ export interface Database {
           show_effort?: boolean;
           show_materiel?: boolean;
           show_repos?: boolean;
+          default_session_count?: number | null;
         };
         Update: {
           id?: string;
@@ -136,6 +138,7 @@ export interface Database {
           show_effort?: boolean;
           show_materiel?: boolean;
           show_repos?: boolean;
+          default_session_count?: number | null;
         };
         Relationships: never[];
       };

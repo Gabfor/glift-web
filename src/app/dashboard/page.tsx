@@ -436,6 +436,7 @@ export default function DashboardPage() {
     useState<ExerciseDisplaySettings>({});
   const [defaultCurveValue, setDefaultCurveValue] =
     useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
+  const [defaultSessionCount, setDefaultSessionCount] = useState<SessionValue>(DEFAULT_SESSION_VALUE);
   const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
   const [showStats, setShowStats] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
@@ -608,7 +609,7 @@ export default function DashboardPage() {
 
   const getExerciseSettings = (exerciseId: string) =>
     exerciseDisplaySettings[exerciseId] ?? {
-      sessionCount: DEFAULT_SESSION_VALUE,
+      sessionCount: defaultSessionCount,
       curveType: defaultCurveValue,
       recordCurveType: defaultCurveValue,
       goal: null,
@@ -625,7 +626,7 @@ export default function DashboardPage() {
   ) => {
     setExerciseDisplaySettings((previous) => {
       const current = previous[exerciseId] ?? {
-        sessionCount: DEFAULT_SESSION_VALUE,
+        sessionCount: defaultSessionCount,
         curveType: defaultCurveValue,
         recordCurveType: defaultCurveValue,
         goal: null,
@@ -674,9 +675,9 @@ export default function DashboardPage() {
           .returns<DashboardPreferencesRow[]>(),
         supabase
           .from("preferences")
-          .select("curve, weight_unit")
+          .select("curve, weight_unit, default_session_count")
           .eq("id", user.id)
-          .maybeSingle<Pick<PreferencesRow, "curve" | "weight_unit">>(),
+          .maybeSingle<Pick<PreferencesRow, "curve" | "weight_unit" | "default_session_count">>(),
       ]);
 
       if (!isMounted) return;
@@ -694,6 +695,13 @@ export default function DashboardPage() {
         // Looking at PreferencesSection, it likely stores direct values or we have a map.
         // Let's verify what PreferencesSection saves.
         setWeightUnit(rawUnit === "lb" ? "lb" : "kg");
+        const rawSessionCount = userPreferencesResponse.data?.default_session_count;
+        if (rawSessionCount) {
+          const stringVal = String(rawSessionCount);
+          if (SESSION_OPTIONS.some((o) => o.value === stringVal)) {
+            setDefaultSessionCount(stringVal as SessionValue);
+          }
+        }
       }
 
       const { data, error } = dashboardResponse;

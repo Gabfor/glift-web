@@ -17,21 +17,22 @@ import {
   type CurveOptionValue,
 } from "@/constants/curveOptions"
 
-const WEIGHT_UNIT_OPTIONS = ["Métrique (kg)", "Impérial (lb)"] as const
+const WEIGHT_UNIT_OPTIONS = ["Kg", "Lb"] as const
 type WeightUnit = (typeof WEIGHT_UNIT_OPTIONS)[number]
 
 type PreferencesRow = Database["public"]["Tables"]["preferences"]["Row"]
 type PreferencesInsert = Database["public"]["Tables"]["preferences"]["Insert"]
 
 const WEIGHT_UNIT_TO_DB: Record<WeightUnit, PreferencesRow["weight_unit"]> = {
-  "Métrique (kg)": "kg",
-  "Impérial (lb)": "lb",
+  "Kg": "kg",
+  "Lb": "lb",
 }
 
 const WEIGHT_UNIT_FROM_DB: Record<PreferencesRow["weight_unit"], WeightUnit> = {
-  kg: "Métrique (kg)",
-  lb: "Impérial (lb)",
+  kg: "Kg",
+  lb: "Lb",
 }
+
 
 const CURVE_TO_DB: Record<CurveOptionValue, PreferencesRow["curve"]> = {
   "poids-maximum": "maximum_weight",
@@ -89,6 +90,7 @@ type PreferencesState = {
   showEffort: boolean
   showMateriel: boolean
   showRepos: boolean
+  sessionCount: string
   communications: Record<CommunicationKey, boolean>
 }
 
@@ -98,6 +100,7 @@ const createInitialState = (): PreferencesState => ({
   showEffort: true,
   showMateriel: true,
   showRepos: true,
+  sessionCount: "15",
   communications: COMMUNICATION_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = false
@@ -137,6 +140,7 @@ const createStateFromPreferences = (
     showEffort: row.show_effort ?? base.showEffort,
     showMateriel: row.show_materiel ?? base.showMateriel,
     showRepos: row.show_repos ?? base.showRepos,
+    sessionCount: row.default_session_count ? String(row.default_session_count) : base.sessionCount,
     communications,
   }
 }
@@ -213,7 +217,7 @@ export default function PreferencesSection() {
       const { data, error } = await supabase
         .from("preferences")
         .select(
-          "id, weight_unit, curve, show_effort, show_materiel, show_repos, show_link, show_notes, newsletter, newsletter_shop, newsletter_store, survey",
+          "id, weight_unit, curve, show_effort, show_materiel, show_repos, show_link, show_notes, newsletter, newsletter_shop, newsletter_store, survey, default_session_count",
         )
         .eq("id", user.id)
         .maybeSingle()
@@ -233,6 +237,7 @@ export default function PreferencesSection() {
         showEffort: nextState.showEffort,
         showMateriel: nextState.showMateriel,
         showRepos: nextState.showRepos,
+        sessionCount: nextState.sessionCount,
         communications: { ...nextState.communications },
       }
 
@@ -241,6 +246,7 @@ export default function PreferencesSection() {
       setShowEffort(nextState.showEffort)
       setShowMateriel(nextState.showMateriel)
       setShowRepos(nextState.showRepos)
+      setSessionCount(nextState.sessionCount)
       setCommunications({ ...nextState.communications })
       setWeightTouched(false)
       setCurveTouched(false)
@@ -261,6 +267,7 @@ export default function PreferencesSection() {
     showEffort !== initialStateRef.current.showEffort ||
     showMateriel !== initialStateRef.current.showMateriel ||
     showRepos !== initialStateRef.current.showRepos ||
+    sessionCount !== initialStateRef.current.sessionCount ||
     COMMUNICATION_FIELDS.some(
       (field) => communications[field.key] !== initialStateRef.current.communications[field.key],
     )
@@ -285,6 +292,7 @@ export default function PreferencesSection() {
         newsletter_shop: communications.shop,
         newsletter_store: communications.store,
         survey: communications.surveys,
+        default_session_count: sessionCount ? parseInt(sessionCount) : null,
       }
 
       const { error } = await supabase
@@ -292,7 +300,7 @@ export default function PreferencesSection() {
         .upsert(payload, { onConflict: "id" })
 
       if (error) {
-        console.error("Erreur lors de la mise à jour des préférences", error)
+        console.error("Erreur lors de la mise à jour des préférences", JSON.stringify(error, null, 2))
         setIsSubmitting(false)
         return
       }
@@ -303,6 +311,7 @@ export default function PreferencesSection() {
         showEffort,
         showMateriel,
         showRepos,
+        sessionCount,
         communications: { ...communications },
       }
       setWeightTouched(false)
@@ -377,12 +386,12 @@ export default function PreferencesSection() {
                       { value: "5", label: "5 dernières séances" },
                       { value: "10", label: "10 dernières séances" },
                       { value: "15", label: "15 dernières séances" },
-                      { value: "20", label: "20 dernières séances" },
                     ]}
                     touched={false}
                     setTouched={() => { }}
                     clearable={false}
                     width="w-full"
+                    sortStrategy="none"
                   />
                   <div
                     className="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 z-20"
