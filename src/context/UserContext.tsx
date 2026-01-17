@@ -58,16 +58,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const sessionUser = (session?.user as CustomUser) ?? null;
 
   const [user, setUser] = useState<CustomUser | null>(() => sessionUser);
-  const [isPremiumUser, setIsPremiumUser] = useState(() => {
-    if (!sessionUser) {
-      return false;
-    }
-
-    const metadataPremiumFlag = Boolean(sessionUser.user_metadata?.is_premium);
-    const planFromMetadata = sessionUser.user_metadata?.subscription_plan;
-
-    return metadataPremiumFlag || planFromMetadata === "premium";
-  });
+  /* 
+   * SIMPLIFICATION (Antigravity):
+   * Initialisation à false pour éviter d'utiliser les métadonnées potentiellement obsolètes.
+   * La vraie valeur sera chargée via fetchUser -> profiles table.
+   */
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
   const [isLoading, setIsLoading] = useState(() => !sessionUser);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(() => {
@@ -99,16 +95,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       return sessionUser;
     });
 
-    setIsPremiumUser((current) => {
-      if (current) {
-        return current;
-      }
-
-      const metadataPremiumFlag = Boolean(sessionUser.user_metadata?.is_premium);
-      const planFromMetadata = sessionUser.user_metadata?.subscription_plan;
-
-      return metadataPremiumFlag || planFromMetadata === "premium";
-    });
+    // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
+    // On attend que fetchUser récupère la donnée fraîche de la table profiles
 
     setIsEmailVerified((current) => {
       if (current === true) {
@@ -143,41 +131,24 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         const customUser = user as CustomUser;
         setUser(customUser);
 
-        const [subscriptionResult, profileResult] = await Promise.all([
-          supabase
-            .from("user_subscriptions")
-            .select("plan")
-            .eq("user_id", customUser.id)
-            .maybeSingle(),
-          supabase
-            .from("profiles")
-            .select("email_verified, grace_expires_at")
-            .eq("id", customUser.id)
-            .maybeSingle(),
-        ]);
-
-        const { data: subscriptionData, error: subscriptionError } =
-          subscriptionResult;
-
-        if (subscriptionError && subscriptionError.code !== "PGRST116") {
-          throw subscriptionError;
-        }
-
-        const { data: profileData, error: profileError } = profileResult;
+        /* 
+         * SIMPLIFICATION (Antigravity):
+         * On ne récupère plus user_subscriptions.
+         * On récupère subscription_plan directement depuis la table profiles.
+         */
+        const { data: profileData, error: profileError } = await supabase
+          .from("profiles")
+          .select("email_verified, grace_expires_at, subscription_plan")
+          .eq("id", customUser.id)
+          .maybeSingle();
 
         if (profileError && profileError.code !== "PGRST116") {
           throw profileError;
         }
 
-        const planFromSubscription = subscriptionData?.plan;
-        const planFromMetadata = customUser.user_metadata?.subscription_plan;
-        const metadataPremiumFlag = Boolean(customUser.user_metadata?.is_premium);
-
-        setIsPremiumUser(
-          planFromSubscription === "premium" ||
-          planFromMetadata === "premium" ||
-          metadataPremiumFlag
-        );
+        // Source de vérité unique : table profiles
+        const planFromProfile = profileData?.subscription_plan;
+        setIsPremiumUser(planFromProfile === "premium");
 
         if (profileData && typeof profileData.email_verified === "boolean") {
           setIsEmailVerified(profileData.email_verified);

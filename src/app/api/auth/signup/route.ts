@@ -46,8 +46,8 @@ export async function POST(req: NextRequest) {
         emailRedirectTo,
         data: {
           name,
-          subscription_plan: supabasePlan,
-          is_premium: supabasePlan === "premium",
+          // subscription_plan: supabasePlan, // SIMPLIFICATION: On ne stocke plus ça dans les métadonnées
+          // is_premium: supabasePlan === "premium",
         },
       },
     });
@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
             email_confirm: false,
             user_metadata: {
               name,
-              subscription_plan: supabasePlan,
-              is_premium: supabasePlan === "premium",
+              // subscription_plan: supabasePlan, // SIMPLIFICATION: On ne stocke plus ça dans les métadonnées
+              // is_premium: supabasePlan === "premium",
             },
           });
 
@@ -394,12 +394,12 @@ export async function POST(req: NextRequest) {
         const mutation = existingSubscription ? "update" : "insert";
         const { error: subscriptionError } = existingSubscription
           ? await adminClient
-              .from("user_subscriptions")
-              .update({ plan: supabasePlan })
-              .eq("user_id", userId)
+            .from("user_subscriptions")
+            .update({ plan: supabasePlan })
+            .eq("user_id", userId)
           : await adminClient
-              .from("user_subscriptions")
-              .insert({ user_id: userId, plan: supabasePlan });
+            .from("user_subscriptions")
+            .insert({ user_id: userId, plan: supabasePlan });
 
         if (subscriptionError) {
           console.error(

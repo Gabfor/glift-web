@@ -5,7 +5,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useUser } from "@/context/UserContext";
 
 export default function AuthDebug() {
-  const { user } = useUser();
+  /* SIMPLIFICATION: On utilise directement la valeur calculée par UserContext */
+  const { user, isPremiumUser } = useUser();
   const supabase = useSupabaseClient();
 
   const [isProfileLoading, setIsProfileLoading] = useState(false);
@@ -52,7 +53,7 @@ export default function AuthDebug() {
   if (!user) return null;
 
   const isAuthenticated = !!user;
-  const isPremiumUser = user.user_metadata?.is_premium === true;
+  // const isPremiumUser = user.user_metadata?.is_premium === true; // <-- OLD STALE CODE
   const verifiedLabel = isProfileLoading
     ? "Chargement..."
     : isVerified === null
