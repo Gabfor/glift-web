@@ -86,6 +86,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // Prevent restoring user from stale session context if we just signed out
+    if (latestAuthEventRef.current === "SIGNED_OUT") {
+      return;
+    }
+
     setUser((current) => {
       if (current?.id === sessionUser.id) {
         return current;
@@ -266,6 +271,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsRecoverySession(true);
         } else if (event === "SIGNED_OUT") {
           setIsRecoverySession(false);
+          setUser(null);
+          setIsPremiumUser(false);
+          setIsEmailVerified(null);
+          setGracePeriodExpiresAt(null);
         } else if (
           event === "SIGNED_IN" &&
           sessionType !== "recovery" &&

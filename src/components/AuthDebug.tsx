@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useUser } from "@/context/UserContext";
 
 export default function AuthDebug() {
-  const user = useUser();
+  const { user } = useUser();
   const supabase = useSupabaseClient();
 
   const [isProfileLoading, setIsProfileLoading] = useState(false);

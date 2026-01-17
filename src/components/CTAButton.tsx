@@ -146,7 +146,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       resolvedVariant === "active" &&
       "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]",
       resolvedVariant === "inactive" &&
-      "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] focus-visible:ring-[var(--color-border-soft)]",
+      "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&
       "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       resolvedVariant === "secondary" &&
