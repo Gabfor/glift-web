@@ -69,7 +69,7 @@ export default function TrainingCardMenu({
   return (
     <div className="relative" ref={menuRef}>
       <button
-        className="w-full h-full focus:outline-none"
+        className="w-full h-full flex items-center justify-center focus:outline-none"
         type="button"
         onClick={handleToggleMenu}
         aria-haspopup="menu"
@@ -82,7 +82,7 @@ export default function TrainingCardMenu({
       </button>
 
       {open && (
-        <div className="mt-2 flex justify-end -mr-2">
+        <div className="absolute right-[-10px] top-[20px] mt-2 z-50">
           <div
             className={cn(
               'relative w-[175px] rounded-[5px] border border-[#ECE9F1] bg-white py-2',

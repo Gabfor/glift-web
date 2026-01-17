@@ -12,6 +12,7 @@ import DroppableProgram, {
 } from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
+import UnlockTrainingModal from "@/components/UnlockTrainingModal";
 
 import {
   DndContext,
@@ -59,6 +60,7 @@ export default function EntrainementsPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
   const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
+  const [showUnlockModal, setShowUnlockModal] = useState(false);
 
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
@@ -376,6 +378,7 @@ export default function EntrainementsPage() {
                     onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
                     loadingTraining={loadingTraining}
                     isFirstProgram={index === 0}
+                    onUnlockClick={() => setShowUnlockModal(true)}
                   />
                 </div>
               );
@@ -402,6 +405,12 @@ export default function EntrainementsPage() {
           setShowProgramDeleteModal(false);
           setProgramIdToDelete(null);
         }}
+      />
+
+      <UnlockTrainingModal
+        isOpen={showUnlockModal}
+        onClose={() => setShowUnlockModal(false)}
+        onUnlock={() => router.push("/compte#mon-abonnement")}
       />
     </main>
   );

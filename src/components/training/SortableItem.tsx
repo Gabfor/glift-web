@@ -10,12 +10,7 @@ import { cn } from '@/lib/utils'
 import Spinner from '@/components/ui/Spinner'
 import useMinimumVisibility from '@/hooks/useMinimumVisibility'
 import Tooltip from '@/components/Tooltip'
-
-interface Training {
-  id: string
-  name: string
-  app: boolean
-}
+import { Training } from '@/types/training'
 
 type Props = {
   training: Training
@@ -30,6 +25,7 @@ type Props = {
   simulateDrag?: boolean
   isLoading?: boolean
   isLocked?: boolean
+  onUnlockClick?: () => void
 }
 
 export default function SortableItem({
@@ -45,6 +41,7 @@ export default function SortableItem({
   simulateDrag = false,
   isLoading = false,
   isLocked = false,
+  onUnlockClick,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -91,8 +88,7 @@ export default function SortableItem({
 
   const handleMainClick = () => {
     if (isLocked) {
-      // TODO: Ouvrir la modale premium
-      console.log("Entraînement bloqué - Ouvrir modale")
+      if (onUnlockClick) onUnlockClick();
       return;
     }
     onClick(training.id);

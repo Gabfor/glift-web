@@ -37,6 +37,7 @@ interface Props {
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
   loadingTraining?: LoadingTrainingState
   isFirstProgram?: boolean
+  onUnlockClick?: () => void
 }
 
 export default function DroppableProgram(props: Props) {
@@ -119,6 +120,7 @@ export default function DroppableProgram(props: Props) {
                 onUpdateTrainingVisibility={onUpdateTrainingVisibility}
                 isLoading={isTrainingLoading}
                 isLocked={isLocked}
+                onUnlockClick={props.onUnlockClick}
               />
             );
           })}
