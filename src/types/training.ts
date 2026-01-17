@@ -21,6 +21,7 @@ export interface Training {
   dashboard: boolean;
   program_id: string;
   position: number;
+  locked: boolean;
 }
 
 export interface Program {

@@ -13,6 +13,7 @@ import DroppableProgram, {
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 import {
   DndContext,
@@ -100,6 +101,57 @@ export default function EntrainementsPage() {
     };
     return () => channel.close();
   }, [fetchProgramsWithTrainings]);
+
+  // Sync 'locked' column with subscription status and position
+  const supabase = useSupabaseClient();
+  useEffect(() => {
+    if (isLoading || !programs) return;
+
+    const syncLocks = async () => {
+      const toLock: string[] = [];
+      const toUnlock: string[] = [];
+
+      programs.forEach((program, programIndex) => {
+        program.trainings.forEach((training, trainingIndex) => {
+          let shouldBeLocked = false;
+
+          if (!isPremiumUser) {
+            // Starter: Unlocked only if it's the 1st training of the 1st program
+            if (programIndex === 0 && trainingIndex === 0) {
+              shouldBeLocked = false;
+            } else {
+              shouldBeLocked = true;
+            }
+          } else {
+            // Premium: Always unlocked
+            shouldBeLocked = false;
+          }
+
+          if (training.locked !== shouldBeLocked) {
+            if (shouldBeLocked) {
+              toLock.push(training.id);
+            } else {
+              toUnlock.push(training.id);
+            }
+          }
+        });
+      });
+
+      if (toLock.length > 0) {
+        await supabase.from('trainings').update({ locked: true }).in('id', toLock);
+      }
+
+      if (toUnlock.length > 0) {
+        await supabase.from('trainings').update({ locked: false }).in('id', toUnlock);
+      }
+
+      // If we made changes, we might want to update the local state to avoid repeat firings,
+      // but fetchProgramsWithTrainings might be too heavy. 
+      // For now, relies on next interactions or eventual consistency.
+    };
+
+    syncLocks();
+  }, [programs, isPremiumUser, isLoading, supabase]);
 
   const handleTrainingNavigation = useCallback(
     async (trainingId: string) => {

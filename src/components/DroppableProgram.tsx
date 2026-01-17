@@ -7,12 +7,7 @@ import SortableItem from "./training/SortableItem";
 import { cn } from "@/lib/utils";
 
 import { useUser } from "@/context/UserContext";
-
-interface Training {
-  id: string
-  name: string
-  app: boolean
-}
+import { Training } from "@/types/training"; // Shared type
 
 export type LoadingTrainingState = { id: string; type: "open" | "add" } | null;
 
@@ -96,9 +91,8 @@ export default function DroppableProgram(props: Props) {
             const isTrainingLoading = loadingTraining?.id === training.id;
 
             // Logique de verrouillage :
-            // Si l'utilisateur n'est pas premium, on bloque TOUT sauf le 1er entrainement du 1er programme.
-            const isFirstTrainingOfFirstProgram = isFirstProgram && index === 0;
-            const isLocked = !isPremiumUser && !isFirstTrainingOfFirstProgram;
+            // Priorité à la DB (training.locked), sinon fallback sur la logique index
+            const isLocked = training.locked ?? (!isPremiumUser && (!isFirstProgram || index > 0));
 
             return (
               <SortableItem
