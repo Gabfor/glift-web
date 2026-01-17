@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import ProgramEditor from "@/components/ProgramEditor";
 import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
+import { useUser } from "@/context/UserContext";
 import DroppableProgram, {
   type LoadingTrainingState,
 } from "@/components/DroppableProgram";
@@ -52,6 +53,8 @@ export default function EntrainementsPage() {
     moveProgramDown,
     handleDuplicateProgram,
   } = usePrograms();
+
+  const { isPremiumUser } = useUser();
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
@@ -135,6 +138,7 @@ export default function EntrainementsPage() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
+    if (!isPremiumUser) return;
     const { active, over } = event;
     const fromProgramId = activeProgramId;
     const toProgramId = over?.data?.current?.programId;
@@ -169,6 +173,8 @@ export default function EntrainementsPage() {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     setProgramsDuringDrag(null);
+    if (!isPremiumUser) return;
+
     const { active, over } = event;
     if (!over) return;
 
@@ -369,6 +375,7 @@ export default function EntrainementsPage() {
                     setOpenVisibilityIds={setOpenVisibilityIds}
                     onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
                     loadingTraining={loadingTraining}
+                    isFirstProgram={index === 0}
                   />
                 </div>
               );

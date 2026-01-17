@@ -3,7 +3,8 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams, useParams, usePathname } from "next/navigation";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useUser } from "@/context/UserContext";
 import EditableTitle from "@/components/EditableTitle";
 import TrainingTable from "@/components/TrainingTable";
 import TableActionsBar from "@/components/TableActionsBar";
@@ -58,7 +59,7 @@ const isRowContentEmpty = (row: Row) => {
 export default function AdminEntrainementDetailPage() {
   const params = useParams();
   const trainingId = params?.id as string;
-  const user = useUser();
+  const { user, isPremiumUser } = useUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
@@ -68,6 +69,60 @@ export default function AdminEntrainementDetailPage() {
   const trainingsTableName = isAdminRoute ? "trainings_admin" : "trainings";
   const trainingRowsTableName = isAdminRoute ? "training_rows_admin" : "training_rows";
   const isNewParam = searchParams?.get("new") === "1";
+
+  // 🔒 ACCESS CONTROL
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  useEffect(() => {
+    if (isAdminRoute || isPremiumUser) {
+      setAccessChecked(true);
+      return;
+    }
+
+    if (!user) return;
+
+    const checkAccess = async () => {
+      // 1. Récupérer le premier programme
+      const { data: firstProgram } = await supabase
+        .from("programs")
+        .select("id, trainings(id)")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (!firstProgram) return;
+
+      // 2. Récupérer le premier entraînement de ce programme (si non inclus/ordonné correctement)
+      // Note: Supabase join order isn't guaranteed, better be safe
+      const { data: firstTraining } = await supabase
+        .from("trainings")
+        .select("id")
+        .eq("program_id", firstProgram.id)
+        .order("position", { ascending: true })
+        .limit(1)
+        .single();
+
+      if (!firstTraining) {
+        // Cas bizarre, mais on redirige par sécu
+        router.replace("/entrainements");
+        return;
+      }
+
+      if (firstTraining.id !== trainingId) {
+        console.warn("🚫 Accès interdit : Redirection vers /entrainements");
+        router.replace("/entrainements");
+      } else {
+        setAccessChecked(true);
+      }
+    };
+
+    void checkAccess();
+  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router]);
+
+  if (!isAdminRoute && !isPremiumUser && !accessChecked) {
+    return <div className="min-h-screen bg-[#FBFCFE]" />;
+  }
 
   const isNewTrainingRef = useRef(isNewParam);
   useEffect(() => {
@@ -79,7 +134,7 @@ export default function AdminEntrainementDetailPage() {
   const shouldDeleteRef = useRef(false);
   const hasDeletedRef = useRef(false);
   const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
-  const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => {});
+  const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => { });
 
   // ✅ States
   const [editing, setEditing] = useState(false);
@@ -228,33 +283,33 @@ export default function AdminEntrainementDetailPage() {
 
         <div
           className="flex items-center text-sm text-[#5D6494] hover:text-[#3A416F] text-[15px] font-semibold mb-6 cursor-pointer group w-fit"
-            onClick={async () => {
-              let adminProgramId: string | null = null;
+          onClick={async () => {
+            let adminProgramId: string | null = null;
 
-              if (isAdminRoute) {
-                const { data, error } = await supabase
-                  .from("trainings_admin")
-                  .select("program_id")
-                  .eq("id", trainingId)
-                  .single();
+            if (isAdminRoute) {
+              const { data, error } = await supabase
+                .from("trainings_admin")
+                .select("program_id")
+                .eq("id", trainingId)
+                .single();
 
-                if (!error && data?.program_id) {
-                  adminProgramId = data.program_id;
-                }
+              if (!error && data?.program_id) {
+                adminProgramId = data.program_id;
               }
+            }
 
-              await deleteEmptyTraining();
+            await deleteEmptyTraining();
 
-              if (isAdminRoute) {
-                if (adminProgramId) {
-                  router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
-                } else {
-                  router.push("/admin/entrainements");
-                }
+            if (isAdminRoute) {
+              if (adminProgramId) {
+                router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
               } else {
-                router.push("/entrainements");
+                router.push("/admin/entrainements");
               }
-            }}
+            } else {
+              router.push("/entrainements");
+            }
+          }}
         >
           <Image src="/icons/chevron_left.svg" alt="Retour" width={12} height={12} className="h-3 w-2 mr-2 group-hover:hidden" />
           <Image

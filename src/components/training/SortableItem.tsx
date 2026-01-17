@@ -1,5 +1,3 @@
-'use client'
-
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
@@ -11,6 +9,7 @@ import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import Spinner from '@/components/ui/Spinner'
 import useMinimumVisibility from '@/hooks/useMinimumVisibility'
+import Tooltip from '@/components/Tooltip'
 
 interface Training {
   id: string
@@ -30,6 +29,7 @@ type Props = {
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
   simulateDrag?: boolean
   isLoading?: boolean
+  isLocked?: boolean
 }
 
 export default function SortableItem({
@@ -44,6 +44,7 @@ export default function SortableItem({
   onUpdateTrainingVisibility,
   simulateDrag = false,
   isLoading = false,
+  isLocked = false,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -57,7 +58,7 @@ export default function SortableItem({
   } = useSortable({
     id: training.id,
     data: { programId },
-    disabled: simulateDrag || dragDisabled,
+    disabled: simulateDrag || dragDisabled || isLocked,
   })
 
   const style: React.CSSProperties = {
@@ -88,7 +89,16 @@ export default function SortableItem({
   const showLoader = useMinimumVisibility(isLoading, 2000)
   const spinnerColorClass = 'text-[#D7D4DC]'
 
-  return (
+  const handleMainClick = () => {
+    if (isLocked) {
+      // TODO: Ouvrir la modale premium
+      console.log("Entraînement bloqué - Ouvrir modale")
+      return;
+    }
+    onClick(training.id);
+  };
+
+  const content = (
     <div
       ref={setNodeRef}
       style={style}
@@ -101,39 +111,55 @@ export default function SortableItem({
     >
       <div
         className={cn(
-          "w-[270px] h-[60px] bg-white border border-[#D7D4DC] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
+          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
           showVisibility
             ? "rounded-t-[8px] rounded-b-none"
-            : "rounded-[8px]"
+            : "rounded-[8px]",
+          isLocked
+            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#D7D4DC] cursor-pointer"
+            : "bg-white border border-[#D7D4DC] text-[#3A416F]"
         )}
-        onClick={() => onClick(training.id)}
+        onClick={handleMainClick}
       >
+        {/* Zone de gauche : Drag ou Lock */}
         <div
           className={cn(
-            "w-[25px] h-[25px] group relative bg-[rgba(0,0,0,0.001)]",
-            dragDisabled
-              ? "cursor-not-allowed"
+            "w-[25px] h-[25px] group relative flex items-center justify-center",
+            dragDisabled || isLocked
+              ? "cursor-default" // Pas de drag si bloqué
               : "cursor-grab active:cursor-grabbing"
           )}
-          {...(!dragDisabled ? listeners : {})}
+          {...(!dragDisabled && !isLocked ? listeners : {})}
           onClick={(e) => e.stopPropagation()}
         >
-          <Image
-            src="/icons/drag.svg"
-            alt="Déplacer"
-            fill
-            sizes="100%"
-            className="group-hover:hidden"
-          />
-          <Image
-            src="/icons/drag_hover.svg"
-            alt="Déplacer (hover)"
-            fill
-            sizes="100%"
-            className="hidden group-hover:inline"
-          />
+          {isLocked ? (
+            <Image
+              src="/icons/cadena_defaut.svg"
+              alt="Bloqué"
+              width={25}
+              height={25}
+            />
+          ) : (
+            <>
+              <Image
+                src="/icons/drag.svg"
+                alt="Déplacer"
+                fill
+                sizes="100%"
+                className="group-hover:hidden"
+              />
+              <Image
+                src="/icons/drag_hover.svg"
+                alt="Déplacer (hover)"
+                fill
+                sizes="100%"
+                className="hidden group-hover:inline"
+              />
+            </>
+          )}
         </div>
 
+        {/* Titre */}
         <div className="flex-1 px-6 flex items-center justify-center min-w-0">
           {showLoader ? (
             <Spinner
@@ -146,17 +172,20 @@ export default function SortableItem({
           )}
         </div>
 
+        {/* Menu (caché si locked) */}
         <div
-          className="w-[25px] h-[25px] z-10"
+          className="w-[25px] h-[25px] z-10 flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
         >
-          <TrainingCardMenu
-            onOpen={() => onClick(training.id)}
-            onDuplicate={() => onDuplicate(training.id)}
-            onToggleVisibility={onToggleVisibility}
-            onDelete={() => onDelete(training.id)}
-            onOpenChange={setMenuOpen}
-          />
+          {!isLocked && (
+            <TrainingCardMenu
+              onOpen={() => onClick(training.id)}
+              onDuplicate={() => onDuplicate(training.id)}
+              onToggleVisibility={onToggleVisibility}
+              onDelete={() => onDelete(training.id)}
+              onOpenChange={setMenuOpen}
+            />
+          )}
         </div>
       </div>
 
@@ -168,5 +197,15 @@ export default function SortableItem({
         />
       )}
     </div>
-  )
+  );
+
+  if (isLocked) {
+    return (
+      <Tooltip content="Entraînement bloqué" placement="top">
+        {content}
+      </Tooltip>
+    );
+  }
+
+  return content;
 }
