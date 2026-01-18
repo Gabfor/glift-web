@@ -52,7 +52,7 @@ export default function usePrograms() {
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
           .from("programs")
-          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard)`)
+          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard, locked)`)
           .eq("user_id", user.id)
           .order("position", { ascending: true });
 
@@ -61,7 +61,7 @@ export default function usePrograms() {
           // Fallback: fetch without dashboard column on trainings
           const { data: dataWithoutDashboard, error: errorWithoutDashboard } = await supabase
             .from("programs")
-            .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app)`)
+            .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, locked)`)
             .eq("user_id", user.id)
             .order("position", { ascending: true });
 

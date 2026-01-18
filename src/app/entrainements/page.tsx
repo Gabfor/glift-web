@@ -68,6 +68,7 @@ export default function EntrainementsPage() {
 
   const [openVisibilityIds, setOpenVisibilityIds] = useState<string[]>([]);
   const [programsDuringDrag, setProgramsDuringDrag] = useState<Program[] | null>(null);
+  const [lockDebug, setLockDebug] = useState<string>("Waiting for sync...");
 
   const router = useRouter();
   const sensors = useSensors(useSensor(PointerSensor));
@@ -110,20 +111,54 @@ export default function EntrainementsPage() {
     const syncLocks = async () => {
       const toLock: string[] = [];
       const toUnlock: string[] = [];
+      let targetUnlockedId: string | null = null;
+      const logs: string[] = [];
 
-      programs.forEach((program, programIndex) => {
-        program.trainings.forEach((training, trainingIndex) => {
+      if (!isPremiumUser) {
+        // Rule: Unlock 1st training of 1st VISIBLE program
+        for (const program of programs) {
+          if (program.app === false) {
+            logs.push(`Hidden: ${program.name}`);
+            continue;
+          }
+
+          const sortedTrainings = [...program.trainings].sort((a, b) => a.position - b.position);
+          // Find first visible training in this program
+          const firstVisible = sortedTrainings.find(t => t.app !== false);
+
+          if (firstVisible) {
+            targetUnlockedId = firstVisible.id;
+            logs.push(`Target: ${firstVisible.name} (${program.name})`);
+            break;
+          }
+        }
+
+        // Fallback
+        if (!targetUnlockedId && programs.length > 0) {
+          const firstVisibleProgram = programs.find(p => p.app !== false);
+          const fallbackProgram = firstVisibleProgram || programs[0];
+
+          const sortedTrainings = [...fallbackProgram.trainings].sort((a, b) => a.position - b.position);
+          if (sortedTrainings.length > 0) {
+            targetUnlockedId = sortedTrainings[0].id;
+            logs.push(`Fallback: ${sortedTrainings[0].name}`);
+          }
+        }
+      } else {
+        logs.push("Premium");
+      }
+
+      programs.forEach((program) => {
+        program.trainings.forEach((training) => {
           let shouldBeLocked = false;
 
           if (!isPremiumUser) {
-            // Starter: Unlocked only if it's the 1st training of the 1st program
-            if (programIndex === 0 && trainingIndex === 0) {
+            if (training.id === targetUnlockedId) {
               shouldBeLocked = false;
             } else {
               shouldBeLocked = true;
             }
           } else {
-            // Premium: Always unlocked
             shouldBeLocked = false;
           }
 
@@ -137,17 +172,33 @@ export default function EntrainementsPage() {
         });
       });
 
+      logs.push(`L:${toLock.length} U:${toUnlock.length}`);
+      let hasChanges = false;
       if (toLock.length > 0) {
-        await supabase.from('trainings').update({ locked: true }).in('id', toLock);
+        const { data, error } = await supabase.from('trainings').update({ locked: true }).in('id', toLock).select('id');
+        if (error) logs.push(`LockErr: ${error.message}`);
+        else if (!data || data.length === 0) logs.push(`LockSucc: 0/${toLock.length} (RLS Blocked)`);
+        else {
+          logs.push(`Locked: ${data.length}/${toLock.length}`);
+          hasChanges = true;
+        }
       }
 
       if (toUnlock.length > 0) {
-        await supabase.from('trainings').update({ locked: false }).in('id', toUnlock);
+        const { data, error } = await supabase.from('trainings').update({ locked: false }).in('id', toUnlock).select('id');
+        if (error) logs.push(`UnlockErr: ${error.message}`);
+        else if (!data || data.length === 0) logs.push(`UnlSucc: 0/${toUnlock.length} (RLS Blocked)`);
+        else {
+          logs.push(`Unlocked: ${data.length}/${toUnlock.length}`);
+          hasChanges = true;
+        }
       }
 
-      // If we made changes, we might want to update the local state to avoid repeat firings,
-      // but fetchProgramsWithTrainings might be too heavy. 
-      // For now, relies on next interactions or eventual consistency.
+      setLockDebug(logs.join(" | "));
+
+      if (hasChanges) {
+        fetchProgramsWithTrainings({ showLoading: false });
+      }
     };
 
     syncLocks();
@@ -171,6 +222,7 @@ export default function EntrainementsPage() {
     .filter(({ program, originalIndex }) => {
       const isEmpty = program.trainings.length === 0;
       const isLast = originalIndex === basePrograms.length - 1;
+
       return !isEmpty || isLast;
     });
 
@@ -382,7 +434,7 @@ export default function EntrainementsPage() {
                     programId={program.id}
                     isVisible={program.app !== false}
                     dashboardVisible={program.dashboard !== false}
-                    onToggleVisibility={() => { }}
+                    onToggleVisibility={() => fetchProgramsWithTrainings({ showLoading: false })}
                     onDelete={() => {
                       if (programs.length <= 1) return;
                       setShowProgramDeleteModal(true);
@@ -443,6 +495,25 @@ export default function EntrainementsPage() {
             </DragOverlay>
           </DndContext>
         )}
+        {/* DEBUG SECTION - TO REMOVE */}
+        <div className="mt-10 p-5 bg-black text-white text-xs font-mono">
+          <h3>DEBUG DATA</h3>
+          <p className="mb-2 text-yellow-400">{lockDebug}</p>
+          <p>Premium: {isPremiumUser ? 'YES' : 'NO'}</p>
+          {programs.map(p => (
+            <div key={p.id} className="mb-2 border-b border-gray-700 pb-2">
+              <strong>{p.name}</strong> (app: {String(p.app)}) - ID: {p.id}
+              <div>
+                Trainings:
+                {p.trainings.map(t => (
+                  <span key={t.id} className="mr-2">
+                    [{t.name}: {t.locked ? 'LOCKED' : 'OPEN'} (app: {String(t.app)})]
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <ProgramDeleteModal

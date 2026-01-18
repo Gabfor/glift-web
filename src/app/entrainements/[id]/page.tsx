@@ -120,9 +120,7 @@ export default function AdminEntrainementDetailPage() {
     void checkAccess();
   }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router]);
 
-  if (!isAdminRoute && !isPremiumUser && !accessChecked) {
-    return <div className="min-h-screen bg-[#FBFCFE]" />;
-  }
+
 
   const isNewTrainingRef = useRef(isNewParam);
   useEffect(() => {
@@ -276,6 +274,10 @@ export default function AdminEntrainementDetailPage() {
       },
     ]);
   };
+
+  if (!isAdminRoute && !isPremiumUser && !accessChecked) {
+    return <div className="min-h-screen bg-[#FBFCFE]" />;
+  }
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
