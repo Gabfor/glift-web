@@ -10,6 +10,7 @@ type TrainingCardMenuProps = {
   onToggleVisibility: () => void
   onDelete: () => void
   onOpenChange?: (isOpen: boolean) => void
+  enableRestrictedMenu?: boolean
 }
 
 export default function TrainingCardMenu({
@@ -18,19 +19,25 @@ export default function TrainingCardMenu({
   onToggleVisibility,
   onDelete,
   onOpenChange,
+  enableRestrictedMenu = false,
 }: TrainingCardMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null)
-  const [open, setOpen] = useState(false)
+  const [open, setMenuOpenState] = useState(false)
   const baseMenuItemClass =
     'w-[155px] text-left h-[40px] rounded-[5px] text-[16px] px-2 mx-[10px] py-2 font-semibold transition-colors'
 
   const setMenuOpen = useCallback(
     (value: boolean) => {
-      setOpen(value)
+      setMenuOpenState(value)
       onOpenChange?.(value)
     },
     [onOpenChange]
   )
+
+  // Also fix the state variable usage to match original 'open' state if needed, 
+  // but looking at original code line 23: const [open, setOpen] = useState(false)
+  // and line 27: const setMenuOpen = useCallback... setOpen(value)
+  // I should stay consistent.
 
   useEffect(() => {
     if (!open) return
@@ -102,26 +109,30 @@ export default function TrainingCardMenu({
               >
                 Ouvrir
               </button>
-              <button
-                type="button"
-                onClick={() => handleSelect(onDuplicate)}
-                className={cn(
-                  baseMenuItemClass,
-                  'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]'
-                )}
-              >
-                Dupliquer
-              </button>
-              <button
-                type="button"
-                onClick={() => handleSelect(onToggleVisibility)}
-                className={cn(
-                  baseMenuItemClass,
-                  'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]'
-                )}
-              >
-                Régler la visibilité
-              </button>
+              {!enableRestrictedMenu && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(onDuplicate)}
+                    className={cn(
+                      baseMenuItemClass,
+                      'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]'
+                    )}
+                  >
+                    Dupliquer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(onToggleVisibility)}
+                    className={cn(
+                      baseMenuItemClass,
+                      'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]'
+                    )}
+                  >
+                    Régler la visibilité
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => handleSelect(onDelete)}

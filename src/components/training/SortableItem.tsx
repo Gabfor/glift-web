@@ -26,6 +26,7 @@ type Props = {
   isLoading?: boolean
   isLocked?: boolean
   onUnlockClick?: () => void
+  enableRestrictedMenu?: boolean
 }
 
 export default function SortableItem({
@@ -42,6 +43,7 @@ export default function SortableItem({
   isLoading = false,
   isLocked = false,
   onUnlockClick,
+  enableRestrictedMenu = false,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -180,6 +182,7 @@ export default function SortableItem({
               onToggleVisibility={onToggleVisibility}
               onDelete={() => onDelete(training.id)}
               onOpenChange={setMenuOpen}
+              enableRestrictedMenu={enableRestrictedMenu}
             />
           )}
         </div>

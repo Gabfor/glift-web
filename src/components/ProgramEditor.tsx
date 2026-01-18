@@ -213,12 +213,24 @@ export default function ProgramEditor({
     setIsAppVisible(newVisibility);
 
     try {
+      // 1. Update Program visibility
       const { error } = await supabase
         .from(programsTableName)
         .update({ app: newVisibility })
         .eq("id", programId);
 
       if (error) throw error;
+
+      // 2. Cascade: Update visibility for ALL trainings in this program
+      const { error: trainingsError } = await supabase
+        .from(tableName)
+        .update({ app: newVisibility })
+        .eq("program_id", programId);
+
+      if (trainingsError) {
+        console.error("Error syncing trainings visibility:", trainingsError);
+        throw trainingsError;
+      }
 
       onToggleVisibility();
       notifyTrainingChange(programId);
