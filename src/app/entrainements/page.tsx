@@ -35,6 +35,8 @@ const wait = (duration: number) =>
     setTimeout(resolve, duration);
   });
 
+import TrainingDeleteWarningModal from "@/components/TrainingDeleteWarningModal";
+
 export default function EntrainementsPage() {
   const {
     programs,
@@ -62,6 +64,10 @@ export default function EntrainementsPage() {
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
   const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+
+  const [showTrainingDeleteWarningModal, setShowTrainingDeleteWarningModal] = useState(false);
+  const [trainingIdToDelete, setTrainingIdToDelete] = useState<string | null>(null);
+  const [programIdForTrainingDelete, setProgramIdForTrainingDelete] = useState<string | null>(null);
 
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
@@ -464,9 +470,33 @@ export default function EntrainementsPage() {
                         router.push(`/entrainements/${newData.id}?new=1`);
                       }
                     }}
-                    onDeleteTraining={(id: string) =>
-                      handleDeleteTraining(program.id, id)
-                    }
+                    onDeleteTraining={(id: string) => {
+                      if (!isPremiumUser) {
+                        // Check if this is the ONLY active (unlocked + visible program) training
+                        // Active = unlocked AND in a visible program.
+                        // Since for Basic users, only ONE is unlocked effectively (based on logic in useEffect),
+                        // we can just check if THIS training is unlocked.
+                        // IF it is unlocked, we warn.
+                        // IF it is locked, we don't care because they can't access it anyway?
+                        // Actually, the request says "only active training".
+                        // Let's rely on the 'locked' property which we trust is synced correctly by the useEffect.
+
+                        // Find the training object
+                        const training = program.trainings.find(t => t.id === id);
+
+                        // If it's already locked, deleting it doesn't remove an "active" training.
+                        const isLocked = training?.locked ?? true;
+
+                        if (!isLocked) {
+                          setShowTrainingDeleteWarningModal(true);
+                          setTrainingIdToDelete(id);
+                          setProgramIdForTrainingDelete(program.id);
+                          return;
+                        }
+                      }
+
+                      handleDeleteTraining(program.id, id);
+                    }}
                     onDuplicateTraining={(id: string) =>
                       handleDuplicateTraining(program.id, id)
                     }
@@ -502,6 +532,22 @@ export default function EntrainementsPage() {
           await handleDeleteProgram(programIdToDelete);
           setShowProgramDeleteModal(false);
           setProgramIdToDelete(null);
+        }}
+      />
+
+      <TrainingDeleteWarningModal
+        show={showTrainingDeleteWarningModal}
+        onCancel={() => {
+          setShowTrainingDeleteWarningModal(false);
+          setTrainingIdToDelete(null);
+          setProgramIdForTrainingDelete(null);
+        }}
+        onConfirm={async () => {
+          if (!trainingIdToDelete || !programIdForTrainingDelete) return;
+          await handleDeleteTraining(programIdForTrainingDelete, trainingIdToDelete);
+          setShowTrainingDeleteWarningModal(false);
+          setTrainingIdToDelete(null);
+          setProgramIdForTrainingDelete(null);
         }}
       />
 
