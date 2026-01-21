@@ -33,6 +33,7 @@ interface Props {
   loadingTraining?: LoadingTrainingState
   isFirstProgram?: boolean
   onUnlockClick?: () => void
+  allowAddTraining?: boolean
 }
 
 export default function DroppableProgram(props: Props) {
@@ -48,6 +49,7 @@ export default function DroppableProgram(props: Props) {
     onUpdateTrainingVisibility,
     loadingTraining,
     isFirstProgram = false,
+    allowAddTraining = false,
   } = props;
 
   const { isPremiumUser } = useUser();
@@ -79,6 +81,8 @@ export default function DroppableProgram(props: Props) {
     // Sinon rien n'est déplaçable
     return [];
   }, [isPremiumUser, isFirstProgram, filteredTrainings, programId]);
+
+  const isAddEnabled = isPremiumUser || allowAddTraining;
 
   return (
     <div ref={setNodeRef}>
@@ -121,14 +125,14 @@ export default function DroppableProgram(props: Props) {
           })}
           <div className="ml-0">
             <button
-              disabled={!isPremiumUser}
+              disabled={!isAddEnabled}
               className={cn(
                 "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-[270px] h-[60px] transition",
-                !isPremiumUser
+                !isAddEnabled
                   ? "border-[#D7D4DC] text-[#D7D4DC] cursor-default"
                   : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               )}
-              onClick={!isPremiumUser ? undefined : onAddTraining}
+              onClick={!isAddEnabled ? undefined : onAddTraining}
             >
               + Ajouter un entraînement
             </button>

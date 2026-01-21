@@ -348,6 +348,8 @@ export default function usePrograms() {
         name: "Nom de l'entraînement",
         program_id: targetId,
         position: programs.find(p => p.id === targetId)?.trainings.length ?? 0,
+        app: true,
+        dashboard: true,
       })
       .select()
       .single();
@@ -395,8 +397,9 @@ export default function usePrograms() {
             name: data.name,
             program_id: data.program_id,
             position: data.position,
-            app: data.app,
-            dashboard: false,
+            app: true,
+            dashboard: true,
+            locked: false,
           },
         ],
       };

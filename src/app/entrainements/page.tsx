@@ -200,7 +200,11 @@ export default function EntrainementsPage() {
 
   const handleTrainingNavigation = useCallback(
     async (trainingId: string) => {
-      if (loadingTraining) return;
+      console.log("Navigating to:", trainingId);
+      if (loadingTraining) {
+        console.log("Navigation blocked: already loading", loadingTraining);
+        return;
+      }
       setLoadingTraining({ id: trainingId, type: "open" });
       await wait(MINIMUM_TRAINING_SPINNER_DURATION);
       if (!isMountedRef.current) return;
@@ -472,19 +476,7 @@ export default function EntrainementsPage() {
                     }}
                     onDeleteTraining={(id: string) => {
                       if (!isPremiumUser) {
-                        // Check if this is the ONLY active (unlocked + visible program) training
-                        // Active = unlocked AND in a visible program.
-                        // Since for Basic users, only ONE is unlocked effectively (based on logic in useEffect),
-                        // we can just check if THIS training is unlocked.
-                        // IF it is unlocked, we warn.
-                        // IF it is locked, we don't care because they can't access it anyway?
-                        // Actually, the request says "only active training".
-                        // Let's rely on the 'locked' property which we trust is synced correctly by the useEffect.
-
-                        // Find the training object
                         const training = program.trainings.find(t => t.id === id);
-
-                        // If it's already locked, deleting it doesn't remove an "active" training.
                         const isLocked = training?.locked ?? true;
 
                         if (!isLocked) {
@@ -507,6 +499,11 @@ export default function EntrainementsPage() {
                     loadingTraining={loadingTraining}
                     isFirstProgram={index === 0}
                     onUnlockClick={() => setShowUnlockModal(true)}
+                    allowAddTraining={
+                      // Enable if NO active (unlocked) trainings exist across ALL programs
+                      !isPremiumUser &&
+                      programs.flatMap(p => p.trainings).filter(t => t.locked === false).length === 0
+                    }
                   />
                 </div>
               );

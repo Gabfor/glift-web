@@ -65,7 +65,8 @@ export default function SortableItem({
     transition: transition ?? 'transform 200ms ease',
     willChange: 'transform',
     opacity: isDragging ? 0 : 1,
-    pointerEvents: isDragging ? 'none' : 'auto',
+    // Only force pointer-events: none when dragging. Otherwise let it inherit (auto).
+    ...(isDragging ? { pointerEvents: 'none' } : {}),
   };
 
   const handleVisibilityUpdate = async (
@@ -89,6 +90,7 @@ export default function SortableItem({
   const spinnerColorClass = 'text-[#D7D4DC]'
 
   const handleMainClick = () => {
+    console.log("Item clicked:", training.id, "Locked:", isLocked);
     if (isLocked) {
       if (onUnlockClick) onUnlockClick();
       return;
@@ -101,6 +103,7 @@ export default function SortableItem({
       ref={setNodeRef}
       style={style}
       {...attributes}
+      onClick={handleMainClick}
       className={cn(
         'w-[270px] transition-shadow duration-300 ease-in-out',
         showVisibility ? 'shadow-[0px_1px_15px_rgba(0,0,0,0.05)]' : 'shadow-none',
@@ -117,7 +120,6 @@ export default function SortableItem({
             ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#D7D4DC] cursor-pointer"
             : "bg-white border border-[#D7D4DC] text-[#3A416F]"
         )}
-        onClick={handleMainClick}
       >
         {/* Zone de gauche : Drag ou Lock */}
         <div

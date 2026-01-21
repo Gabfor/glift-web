@@ -70,58 +70,12 @@ export default function AdminEntrainementDetailPage() {
   const trainingRowsTableName = isAdminRoute ? "training_rows_admin" : "training_rows";
   const isNewParam = searchParams?.get("new") === "1";
 
-  // 🔒 ACCESS CONTROL
-  const [accessChecked, setAccessChecked] = useState(false);
+  // ✅ States
+  const [editing, setEditing] = useState(false);
+  const [, setIsEditing] = useState(false);
+  const [, setHoveredSuperset] = useState(false);
 
-  useEffect(() => {
-    if (isAdminRoute || isPremiumUser) {
-      setAccessChecked(true);
-      return;
-    }
-
-    if (!user) return;
-
-    const checkAccess = async () => {
-      // 1. Récupérer le premier programme
-      const { data: firstProgram } = await supabase
-        .from("programs")
-        .select("id, trainings(id)")
-        .eq("user_id", user.id)
-        .order("position", { ascending: true })
-        .limit(1)
-        .single();
-
-      if (!firstProgram) return;
-
-      // 2. Récupérer le premier entraînement de ce programme (si non inclus/ordonné correctement)
-      // Note: Supabase join order isn't guaranteed, better be safe
-      const { data: firstTraining } = await supabase
-        .from("trainings")
-        .select("id")
-        .eq("program_id", firstProgram.id)
-        .order("position", { ascending: true })
-        .limit(1)
-        .single();
-
-      if (!firstTraining) {
-        // Cas bizarre, mais on redirige par sécu
-        router.replace("/entrainements");
-        return;
-      }
-
-      if (firstTraining.id !== trainingId) {
-        console.warn("🚫 Accès interdit : Redirection vers /entrainements");
-        router.replace("/entrainements");
-      } else {
-        setAccessChecked(true);
-      }
-    };
-
-    void checkAccess();
-  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router]);
-
-
-
+  // ✅ Refs used in access control and cleanup
   const isNewTrainingRef = useRef(isNewParam);
   useEffect(() => {
     if (isNewParam) {
@@ -134,10 +88,52 @@ export default function AdminEntrainementDetailPage() {
   const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
   const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => { });
 
-  // ✅ States
-  const [editing, setEditing] = useState(false);
-  const [, setIsEditing] = useState(false);
-  const [, setHoveredSuperset] = useState(false);
+  // 🔒 ACCESS CONTROL
+  const [accessChecked, setAccessChecked] = useState(false);
+
+  useEffect(() => {
+    if (isAdminRoute || isPremiumUser) {
+      setAccessChecked(true);
+      return;
+    }
+
+    if (!user) return;
+
+    const checkAccess = async () => {
+      // Check if the SPECIFIC training is allowed (unlocked)
+      const { data: training } = await supabase
+        .from("trainings")
+        .select("id, locked, user_id")
+        .eq("id", trainingId)
+        .single();
+
+      if (!training) {
+        // Does not exist? Redirect.
+        shouldDeleteRef.current = false;
+        router.replace("/entrainements");
+        return;
+      }
+
+      if (training.user_id !== user.id) {
+        // Not owner
+        shouldDeleteRef.current = false;
+        router.replace("/entrainements");
+        return;
+      }
+
+      if (!isPremiumUser && training.locked) {
+        // Basic user trying to access locked training
+        console.warn("🚫 Accès interdit (verrouillé) : Redirection vers /entrainements");
+        shouldDeleteRef.current = false;
+        router.replace("/entrainements");
+      } else {
+        // Allowed
+        setAccessChecked(true);
+      }
+    };
+
+    void checkAccess();
+  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router]);
 
   // ✅ Training data
   const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user);
