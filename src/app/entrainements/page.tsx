@@ -113,6 +113,18 @@ export default function EntrainementsPage() {
       let targetUnlockedId: string | null = null;
 
       if (!isPremiumUser && programs.length > 0) {
+        // Check current state
+        const allTrainings = programs.flatMap(p => p.trainings);
+        const unlockedCount = allTrainings.filter(t => t.locked === false).length;
+
+        // FREEZE STATE:
+        // If 1 unlocked: Freeze (User choice preserved).
+        // If 0 unlocked: Freeze (User deleted active, or new user).
+        // Only if > 1 (e.g. Downgrade from Premium) do we intervene to lock excess.
+        if (unlockedCount <= 1) {
+          return;
+        }
+
         // Unlock 1st training of 1st VISIBLE program
         for (const program of programs) {
           if (program.app === false) continue;
@@ -425,6 +437,12 @@ export default function EntrainementsPage() {
                     tableName="trainings"
                     programsTableName="programs"
                     isNew={program.id === newlyDownloadedId}
+                    shouldWarnOnHide={
+                      !isPremiumUser &&
+                      program.app !== false && // It is currently visible
+                      programsToRender.filter(p => p.program.app !== false && p.program.trainings.length > 0).length === 1 && // It is the only one visible
+                      programsToRender.filter(p => p.program.app !== false && p.program.trainings.length > 0)[0].program.id === program.id // And it's this one
+                    }
                   />
 
                   <DroppableProgram

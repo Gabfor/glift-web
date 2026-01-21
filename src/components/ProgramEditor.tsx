@@ -39,6 +39,7 @@ interface ProgramEditorProps {
   programsTableName: string;
   adminMode?: boolean;
   isNew?: boolean;
+  shouldWarnOnHide?: boolean;
 }
 
 type ProgramTrainingSummary = {
@@ -48,6 +49,8 @@ type ProgramTrainingSummary = {
   position: number | null;
   app: boolean | null;
 };
+
+import ProgramHideWarningModal from "./ProgramHideWarningModal";
 
 export default function ProgramEditor({
   name,
@@ -73,6 +76,7 @@ export default function ProgramEditor({
   zIndex = 1,
   adminMode,
   isNew = false,
+  shouldWarnOnHide = false,
 }: ProgramEditorProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const supabase = useSupabaseClient();
@@ -85,6 +89,7 @@ export default function ProgramEditor({
   const [isUpdatingDashboardVisibility, setIsUpdatingDashboardVisibility] = useState(false);
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
   const [localName, setLocalName] = useState(name ?? "");
+  const [showHideWarningModal, setShowHideWarningModal] = useState(false);
 
   const handleClearName = useCallback(() => {
     setLocalName("");
@@ -205,10 +210,7 @@ export default function ProgramEditor({
     onStartEdit(index);
   }, [index, name, onStartEdit, setLocalName]);
 
-  // Fonction pour basculer l'icône de l'app
-  const handleAppClick = async () => {
-    if (!programId || programId === "xxx") return;
-
+  const executeToggleVisibility = async () => {
     const newVisibility = !isAppVisible;
     setIsAppVisible(newVisibility);
 
@@ -239,6 +241,18 @@ export default function ProgramEditor({
       console.error("Erreur lors de la mise à jour de la visibilité app :", error);
       setIsAppVisible(!newVisibility);
     }
+  };
+
+  // Fonction pour basculer l'icône de l'app
+  const handleAppClick = async () => {
+    if (!programId || programId === "xxx") return;
+
+    if (isAppVisible && shouldWarnOnHide) {
+      setShowHideWarningModal(true);
+      return;
+    }
+
+    await executeToggleVisibility();
   };
 
   const handleDashboardClick = async () => {
@@ -681,6 +695,15 @@ export default function ProgramEditor({
       )}
       {/* Nouvelle div pour la ligne sous la barre, z-index 0 pour être en dessous */}
       <div className="absolute bottom-6 left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+
+      <ProgramHideWarningModal
+        show={showHideWarningModal}
+        onCancel={() => setShowHideWarningModal(false)}
+        onConfirm={async () => {
+          await executeToggleVisibility();
+          setShowHideWarningModal(false);
+        }}
+      />
     </div>
   );
 }
