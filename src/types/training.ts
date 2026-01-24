@@ -12,6 +12,7 @@ export type Row = {
   superset_id?: string | null;
   link?: string;
   note?: string;
+  locked?: boolean;
 };
 
 export interface Training {

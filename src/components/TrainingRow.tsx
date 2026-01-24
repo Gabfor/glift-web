@@ -49,7 +49,7 @@ export default function TrainingRow({
     setNodeRef,
     transform,
     isDragging,
-  } = useSortable({ id: rowId, disabled: adminMode });
+  } = useSortable({ id: rowId, disabled: adminMode || row.locked });
 
   const [isGrabbing, setIsGrabbing] = useState(false);
 
@@ -98,7 +98,7 @@ export default function TrainingRow({
     zIndex: isDragging ? 50 : undefined,
     position: isDragging ? "relative" : undefined,
     width: "100%",
-    backgroundColor: row.checked ? "#F4F5FE" : "#ffffff",
+    backgroundColor: row.locked ? "#F2F1F6" : (row.checked ? "#F4F5FE" : "#ffffff"),
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
     height: "40px",
     ...transitionStyles,
@@ -125,28 +125,30 @@ export default function TrainingRow({
         <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
           <Image
             {...dragListeners}
-            src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
-            alt="Icone"
-            width={20}
-            height={20}
-            className={`w-5 h-5 select-none ${isGrabbing ? "cursor-grabbing" : "cursor-grab"}`}
-            onMouseEnter={() => handleIconHover(index, true)}
-            onMouseDown={() => setIsGrabbing(true)}
-            onMouseLeave={() => handleIconHover(index, false)}
+            src={row.locked ? "/icons/locked.svg" : (row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg")}
+            alt={row.locked ? "Locked" : "Icone"}
+            width={row.locked ? 15 : 20}
+            height={row.locked ? 15 : 20}
+            className={`select-none ${row.locked ? "cursor-default mx-auto" : (isGrabbing ? "cursor-grabbing w-5 h-5" : "cursor-grab w-5 h-5")}`}
+            onMouseEnter={() => !row.locked && handleIconHover(index, true)}
+            onMouseDown={() => !row.locked && setIsGrabbing(true)}
+            onMouseLeave={() => !row.locked && handleIconHover(index, false)}
           />
-          <button
-            onClick={() => handleCheckboxChange(rowId)}
-            className="flex items-center justify-center"
-            style={{ width: "15px", height: "15px" }}
-          >
-            <Image
-              src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
-              alt={row.checked ? "Coché" : "Non coché"}
-              width={15}
-              height={15}
+          {!row.locked && (
+            <button
+              onClick={() => handleCheckboxChange(rowId)}
+              className="flex items-center justify-center"
               style={{ width: "15px", height: "15px" }}
-            />
-          </button>
+            >
+              <Image
+                src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
+                alt={row.checked ? "Coché" : "Non coché"}
+                width={15}
+                height={15}
+                style={{ width: "15px", height: "15px" }}
+              />
+            </button>
+          )}
         </div>
       </td>
 
@@ -176,9 +178,10 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={handleDoubleClickSelect}
-            className="w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate"
+            disabled={row.locked}
+            className={`w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed" : ""}`}
+            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : "inherit" }}
             placeholder="Nom de l’exercice"
-            style={{ backgroundColor: "transparent" }}
             title={row.exercice || undefined}
           />
         )}
@@ -199,8 +202,9 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={handleDoubleClickSelect}
-            className="w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate"
-            style={{ backgroundColor: "transparent", lineHeight: "40px" }}
+            disabled={row.locked}
+            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed" : ""}`}
+            style={{ backgroundColor: "transparent", lineHeight: "40px", color: row.locked ? "#D7D4DC" : "inherit" }}
             placeholder="Matériel"
           />
         </td>
@@ -224,14 +228,14 @@ export default function TrainingRow({
             <button
               onClick={() => handleIncrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center mb-1"
-              disabled={row.series >= 6}
+              disabled={row.series >= 6 || row.locked}
             >
               <img src="/icons/chevron_training_up.svg" alt="+" />
             </button>
             <button
               onClick={() => handleDecrementSeries(index)}
               className="w-5 h-3 flex items-center justify-center"
-              disabled={row.series <= 1}
+              disabled={row.series <= 1 || row.locked}
             >
               <img src="/icons/chevron_training_down.svg" alt="-" />
             </button>
@@ -245,7 +249,8 @@ export default function TrainingRow({
             <input
               key={`rep-${subIndex}`}
               type="number"
-              className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input"
+              disabled={row.locked}
+              className={`flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : ""}`}
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
@@ -254,7 +259,7 @@ export default function TrainingRow({
                     : row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: getEffortTextColor(row.effort[subIndex]),
+                color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
               }}
               value={rep || ""}
               placeholder="0"
@@ -277,7 +282,8 @@ export default function TrainingRow({
             <input
               key={`weight-${subIndex}`}
               type="number"
-              className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input"
+              disabled={row.locked}
+              className={`flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : ""}`}
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
@@ -286,7 +292,7 @@ export default function TrainingRow({
                     : row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: getEffortTextColor(row.effort[subIndex]),
+                color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
               }}
               value={weight || ""}
               placeholder="0"
@@ -307,7 +313,9 @@ export default function TrainingRow({
         <td className="px-0 py-0">
           <input
             type="number"
-            className="w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered"
+            disabled={row.locked}
+            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed" : ""}`}
+            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : "inherit" }}
             value={row.repos}
             onFocus={() => setIsEditing(true)}
             onBlur={() => setIsEditing(false)}
@@ -320,7 +328,7 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={handleDoubleClickSelect}
-            style={{ backgroundColor: "transparent" }}
+
           />
         </td>
       )}
@@ -341,20 +349,21 @@ export default function TrainingRow({
                     }
                     alt="Effort"
                     className="w-6 h-6"
+                    style={{ filter: row.locked ? "grayscale(100%)" : "none", opacity: row.locked ? 0.5 : 1 }}
                   />
                 </div>
                 <div className="flex flex-col items-center ml-auto">
                   <button
                     className="w-5 h-3 flex items-center justify-center mb-1"
                     onClick={() => handleEffortChange(index, subIndex, "up")}
-                    disabled={eff === "trop facile"}
+                    disabled={eff === "trop facile" || row.locked}
                   >
                     <img src="/icons/chevron_training_up.svg" alt="+" />
                   </button>
                   <button
                     className="w-5 h-3 flex items-center justify-center"
                     onClick={() => handleEffortChange(index, subIndex, "down")}
-                    disabled={eff === "trop dur"}
+                    disabled={eff === "trop dur" || row.locked}
                   >
                     <img src="/icons/chevron_training_down.svg" alt="-" />
                   </button>

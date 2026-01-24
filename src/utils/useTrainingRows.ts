@@ -87,6 +87,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           superset_id: null,
           link: "",
           note: "",
+          locked: false,
         };
 
         setRows([optimisticRow]);
@@ -109,6 +110,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
             superset_id: optimisticRow.superset_id,
             link: optimisticRow.link,
             note: optimisticRow.note,
+            locked: optimisticRow.locked,
           })
           .select()
           .single();
@@ -134,6 +136,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           superset_id: newRow.superset_id,
           link: newRow.link,
           note: newRow.note,
+          locked: newRow.locked,
         }]);
 
         previousIdsRef.current = [newRow.id];
@@ -187,6 +190,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
             superset_id: row.superset_id,
             link: row.link,
             note: row.note,
+            locked: row.locked,
           }))
         );
 
@@ -212,6 +216,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           superset_id: row.superset_id,
           link: row.link,
           note: row.note,
+          locked: row.locked,
         }))
       );
 
@@ -276,6 +281,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         superset_id: row.superset_id,
         link: row.link,
         note: row.note,
+        locked: row.locked ?? false,
       }));
 
       const existingRows = existingRowsWithOrder.map((row) => ({
@@ -294,6 +300,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         superset_id: row.superset_id,
         link: row.link,
         note: row.note,
+        locked: row.locked ?? false,
       }));
 
       const currentIds = rows.filter(r => r.id).map(r => r.id as string);

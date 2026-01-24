@@ -141,6 +141,42 @@ export default function AdminEntrainementDetailPage() {
   // ✅ Column configuration
   const { columns, setColumns, togglableColumns, saveColumnsInSupabase } = useTrainingColumns(trainingId);
 
+  // 🔒 ENFORCE BASIC LIMIT (MAX 10 ROWS)
+  useEffect(() => {
+    if (rowsLoading || !rows.length) return;
+
+    const limit = 10;
+    let hasChanges = false;
+
+    const updatedRows = rows.map((row, index) => {
+      // If admin or premium, everything is unlocked
+      if (isAdminRoute || isPremiumUser) {
+        if (row.locked) {
+          hasChanges = true;
+          return { ...row, locked: false };
+        }
+        return row;
+      }
+
+      // Basic user: lock rows >= limit
+      const shouldLock = index >= limit;
+      // If manually locked in DB (e.g. for some other reason), keep it locked?
+      // For now, strictly enforce index rule for Basic users.
+      // If user had previous locked rows < 10, should we unlock?
+      // Let's assume 'locked' column is exclusively for this feature.
+      if (!!row.locked !== shouldLock) {
+        hasChanges = true;
+        return { ...row, locked: shouldLock };
+      }
+      return row;
+    });
+
+    if (hasChanges) {
+      console.log("🔒 Enforcing basic limit: updating locked rows");
+      setRows(updatedRows);
+    }
+  }, [rows, isPremiumUser, isAdminRoute, rowsLoading, setRows]);
+
   // ✅ Custom hooks
   const { programName, setProgramName, loading: programNameLoading, handleBlur } = useProgramName(trainingId, setEditing);
   const { handleGroupSuperset } = useSuperset(rows, setRows, selectedRowIds, setSelectedRowIds, setHoveredSuperset);
@@ -267,6 +303,7 @@ export default function AdminEntrainementDetailPage() {
         superset_id: null,
         link: "",
         note: "",
+        locked: false,
       },
     ]);
   };
