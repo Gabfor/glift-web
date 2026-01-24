@@ -175,7 +175,7 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : "text-[#5D6494] pointer-events-auto"
+            className={`w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : "text-[#7069FA] pointer-events-auto"
               }`}
             style={{
               backgroundColor: "transparent",
