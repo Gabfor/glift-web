@@ -73,6 +73,11 @@ body[style*="overflow: hidden"] {
   pointer-events: auto !important;
 }
 
+/* Permet de forcer le lock quand on le veut vraiment (ex: nos propres modales) */
+body.manual-scroll-lock {
+  overflow: hidden !important;
+}
+
 /* Désactive l'effet du `inert` que Radix met sur les parents du menu */
 [inert] {
   pointer-events: auto !important;

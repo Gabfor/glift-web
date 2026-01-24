@@ -60,6 +60,18 @@ export default function Modal({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [open, onClose, closeDisabled])
 
+  useEffect(() => {
+    if (open) {
+      document.body.classList.add('manual-scroll-lock')
+    } else {
+      document.body.classList.remove('manual-scroll-lock')
+    }
+
+    return () => {
+      document.body.classList.remove('manual-scroll-lock')
+    }
+  }, [open])
+
   if (!mounted || !open) {
     return null
   }
