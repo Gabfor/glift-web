@@ -12,7 +12,9 @@ import DroppableProgram, {
 } from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
+import AddTrainingLockedModal from "@/components/AddTrainingLockedModal";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
+
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 import {
@@ -64,6 +66,7 @@ export default function EntrainementsPage() {
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
   const [programIdToDelete, setProgramIdToDelete] = useState<string | null>(null);
   const [showUnlockModal, setShowUnlockModal] = useState(false);
+  const [showAddTrainingLockedModal, setShowAddTrainingLockedModal] = useState(false);
 
   const [showTrainingDeleteWarningModal, setShowTrainingDeleteWarningModal] = useState(false);
   const [trainingIdToDelete, setTrainingIdToDelete] = useState<string | null>(null);
@@ -500,10 +503,10 @@ export default function EntrainementsPage() {
                     isFirstProgram={index === 0}
                     onUnlockClick={() => setShowUnlockModal(true)}
                     allowAddTraining={
-                      // Enable if NO active (unlocked) trainings exist across ALL programs
                       !isPremiumUser &&
                       programs.flatMap(p => p.trainings).filter(t => t.locked === false).length === 0
                     }
+                    onAddLockedClick={() => setShowAddTrainingLockedModal(true)}
                   />
                 </div>
               );
@@ -552,6 +555,14 @@ export default function EntrainementsPage() {
         isOpen={showUnlockModal}
         onClose={() => setShowUnlockModal(false)}
         onUnlock={() => router.push("/compte#mon-abonnement")}
+      />
+      <AddTrainingLockedModal
+        isOpen={showAddTrainingLockedModal}
+        onClose={() => setShowAddTrainingLockedModal(false)}
+        onUnlock={() => {
+          setShowAddTrainingLockedModal(false);
+          router.push("/compte#mon-abonnement");
+        }}
       />
     </main>
   );

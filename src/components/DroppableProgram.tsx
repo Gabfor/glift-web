@@ -34,6 +34,7 @@ interface Props {
   isFirstProgram?: boolean
   onUnlockClick?: () => void
   allowAddTraining?: boolean
+  onAddLockedClick?: () => void
 }
 
 export default function DroppableProgram(props: Props) {
@@ -50,8 +51,10 @@ export default function DroppableProgram(props: Props) {
     loadingTraining,
     isFirstProgram = false,
     allowAddTraining = false,
+    onAddLockedClick,
   } = props;
 
+  // ... (rest of the component)
   const { isPremiumUser } = useUser();
 
   const { setNodeRef } = useDroppable({
@@ -82,20 +85,15 @@ export default function DroppableProgram(props: Props) {
     return [];
   }, [isPremiumUser, isFirstProgram, filteredTrainings, programId]);
 
-  const isAddEnabled = isPremiumUser || allowAddTraining;
+  const isAddEnabled = isPremiumUser || allowAddTraining; // True if Premium OR (Basic + count == 0)
 
   return (
     <div ref={setNodeRef}>
-      <SortableContext
-        items={sortableItems}
-        strategy={rectSortingStrategy}
-      >
+      <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
         <div className="flex flex-wrap gap-4 items-start">
           {filteredTrainings.map((training, index) => {
+            // ... (training item rendering)
             const isTrainingLoading = loadingTraining?.id === training.id;
-
-            // Logique de verrouillage :
-            // Priorité à la DB (training.locked), sinon fallback sur la logique index
             const isLocked = training.locked ?? (!isPremiumUser && (!isFirstProgram || index > 0));
 
             return (
@@ -125,14 +123,22 @@ export default function DroppableProgram(props: Props) {
           })}
           <div className="ml-0">
             <button
-              disabled={!isAddEnabled}
+              // We always enable the button if it's Premium OR enabled.
+              // If it is NOT enabled (Basic limit reached), we STILL want it clickable to show the modal.
+              disabled={false}
               className={cn(
                 "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-[270px] h-[60px] transition",
                 !isAddEnabled
-                  ? "border-[#D7D4DC] text-[#D7D4DC] cursor-default"
+                  ? "border-[#D7D4DC] text-[#D7D4DC] cursor-pointer" // Gray but clickable
                   : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               )}
-              onClick={!isAddEnabled ? undefined : onAddTraining}
+              onClick={() => {
+                if (isAddEnabled) {
+                  onAddTraining();
+                } else if (onAddLockedClick) {
+                  onAddLockedClick();
+                }
+              }}
             >
               + Ajouter un entraînement
             </button>
