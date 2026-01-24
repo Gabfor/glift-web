@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useCallback } from "react";
 import { useSortable } from "@dnd-kit/sortable";
+import Tooltip from "@/components/Tooltip";
 import { Row } from "@/types/training";
 import { getEffortBgColor } from "@/utils/effortColors";
 import { getEffortTextColor } from "@/utils/effortColors";
@@ -25,6 +26,7 @@ type Props = {
   }[];
   setIsEditing: (val: boolean) => void;
   adminMode?: boolean;
+  onUnlockClick?: () => void;
 };
 
 export default function TrainingRow({
@@ -41,6 +43,7 @@ export default function TrainingRow({
   columns,
   setIsEditing,
   adminMode = false,
+  onUnlockClick,
 }: Props) {
   const rowId = row.id ?? `temp-${index}`;
   const {
@@ -123,17 +126,31 @@ export default function TrainingRow({
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
         <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
-          <Image
-            {...dragListeners}
-            src={row.locked ? "/icons/locked.svg" : (row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg")}
-            alt={row.locked ? "Locked" : "Icone"}
-            width={row.locked ? 15 : 20}
-            height={row.locked ? 15 : 20}
-            className={`select-none ${row.locked ? "cursor-default mx-auto" : (isGrabbing ? "cursor-grabbing w-5 h-5" : "cursor-grab w-5 h-5")}`}
-            onMouseEnter={() => !row.locked && handleIconHover(index, true)}
-            onMouseDown={() => !row.locked && setIsGrabbing(true)}
-            onMouseLeave={() => !row.locked && handleIconHover(index, false)}
-          />
+          {row.locked ? (
+            <Tooltip content="Exercice bloqué" placement="top" offset={10}>
+              <Image
+                {...dragListeners}
+                src="/icons/locked.svg"
+                alt="Locked"
+                width={15}
+                height={15}
+                className="select-none cursor-pointer mx-auto"
+                onClick={onUnlockClick}
+              />
+            </Tooltip>
+          ) : (
+            <Image
+              {...dragListeners}
+              src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
+              alt="Icone"
+              width={20}
+              height={20}
+              className={`select-none ${isGrabbing ? "cursor-grabbing w-5 h-5" : "cursor-grab w-5 h-5"}`}
+              onMouseEnter={() => handleIconHover(index, true)}
+              onMouseDown={() => setIsGrabbing(true)}
+              onMouseLeave={() => handleIconHover(index, false)}
+            />
+          )}
           {!row.locked && (
             <button
               onClick={() => handleCheckboxChange(rowId)}

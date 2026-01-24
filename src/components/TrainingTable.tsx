@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   DndContext,
   PointerSensor,
@@ -24,6 +25,7 @@ import {
 import { Row } from "@/types/training";
 import TrainingRow from "./TrainingRow";
 import TrainingRowOverlay from "./TrainingRowOverlay";
+import UnlockTrainingModal from "./UnlockTrainingModal";
 
 const centerVerticalCollision: CollisionDetection = ({ active, droppableContainers }) => {
   const activeRect = active.rect.current.translated;
@@ -101,6 +103,9 @@ export default function TrainingTable({
   } as const;
 
   const [dragActive, setDragActive] = useState(false);
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+  const router = useRouter();
+
   const isVisible = (name: string) => columns.find(c => c.name === name)?.visible;
   const [dragGroup, setDragGroup] = useState<Row[]>([]);
   const dragGroupRef = useRef<Row[]>([]);
@@ -269,26 +274,32 @@ export default function TrainingTable({
   };
 
   const getSupersetGroups = () => {
-    const groups: { id: string; start: number; end: number }[] = [];
+    const groups: { id: string; start: number; end: number; locked: boolean }[] = [];
     let currentId: string | null = null;
     let startIndex = -1;
 
     rows.forEach((row, index) => {
       if (row.superset_id && row.superset_id !== currentId) {
         if (currentId !== null && startIndex !== -1) {
-          groups.push({ id: currentId, start: startIndex, end: index - 1 });
+          const groupRows = rows.slice(startIndex, index);
+          const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+          groups.push({ id: currentId, start: startIndex, end: index - 1, locked: isLocked });
         }
         currentId = row.superset_id;
         startIndex = index;
       } else if (!row.superset_id && currentId !== null) {
-        groups.push({ id: currentId, start: startIndex, end: index - 1 });
+        const groupRows = rows.slice(startIndex, index);
+        const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+        groups.push({ id: currentId, start: startIndex, end: index - 1, locked: isLocked });
         currentId = null;
         startIndex = -1;
       }
     });
 
     if (currentId && startIndex !== -1) {
-      groups.push({ id: currentId, start: startIndex, end: rows.length - 1 });
+      const groupRows = rows.slice(startIndex);
+      const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+      groups.push({ id: currentId, start: startIndex, end: rows.length - 1, locked: isLocked });
     }
 
     return groups;
@@ -302,30 +313,31 @@ export default function TrainingTable({
 
   return (
     <div className="relative overflow-hidden rounded-tl-[5px] rounded-tr-[5px] border border-[#ECE9F1]">
-    {getSupersetGroups().map((group) => (
-      !dragActive || !dragGroup.some(r => r.superset_id === group.id) ? (
-        <div
-          key={group.id}
-          className="absolute left-0 right-0 border-[2px] border-dotted border-[#7069FA] pointer-events-none"
-          style={{
-            top: `${group.start * 40 + 40}px`,
-            border: "none",
-            zIndex: 5,
-            pointerEvents: "none",
-            width: "1150px",
-            height: `${(group.end - group.start + 1) * 40 + 1}px`,
-            backgroundImage:
-              "linear-gradient(to right, #7069FA 4px, transparent 4px), " +
-              "linear-gradient(to bottom, #7069FA 4px, transparent 4px), " +
-              "linear-gradient(to right, #7069FA 4px, transparent 4px), " +
-              "linear-gradient(to bottom, #7069FA 4px, transparent 4px)",
-            backgroundRepeat: "repeat-x, repeat-y, repeat-x, repeat-y",
-            backgroundPosition: "top left, top right, bottom left, top left",
-            backgroundSize: "8px 2px, 2px 8px, 8px 2px, 2px 8px"
-          }}
-        />
-      ) : null
-    ))}
+      {getSupersetGroups().map((group) => (
+        !dragActive || !dragGroup.some(r => r.superset_id === group.id) ? (
+          <div
+            key={group.id}
+            className="absolute left-0 right-0 border-[2px] border-dotted pointer-events-none"
+            style={{
+              top: `${group.start * 40 + 40}px`,
+              border: "none",
+              zIndex: 5,
+              pointerEvents: "none",
+              width: "1150px",
+              borderColor: group.locked ? "#D7D4DC" : "#7069FA",
+              height: `${(group.end - group.start + 1) * 40 + 1}px`,
+              backgroundImage:
+                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
+                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
+                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
+                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px)`,
+              backgroundRepeat: "repeat-x, repeat-y, repeat-x, repeat-y",
+              backgroundPosition: "top left, top right, bottom left, top left",
+              backgroundSize: "8px 2px, 2px 8px, 8px 2px, 2px 8px"
+            }}
+          />
+        ) : null
+      ))}
 
       <DndContext
         sensors={sensors}
@@ -345,7 +357,7 @@ export default function TrainingTable({
               borderSpacing: "0px",
               marginBottom: isLastSupersetAtBottom ? "1px" : "0px"
             }}
-            >
+          >
             <thead className="bg-[#7069FA] text-white text-left h-10">
               <tr>
                 <th className="text-[15px] border-r rounded-tl-[5px] px-3 py-2 font-semibold" style={{ maxWidth: "60px", width: "60px" }}></th>
@@ -380,6 +392,7 @@ export default function TrainingTable({
                   setIsEditing={setIsEditing}
                   isHidden={dragActive && dragGroup.some(d => d.id === row.id)}
                   adminMode={adminMode}
+                  onUnlockClick={() => setIsUnlockModalOpen(true)}
                 />
               ))}
             </tbody>
@@ -421,6 +434,14 @@ export default function TrainingTable({
           )}
         </DragOverlay>
       </DndContext>
+      <UnlockTrainingModal
+        isOpen={isUnlockModalOpen}
+        onClose={() => setIsUnlockModalOpen(false)}
+        onUnlock={() => {
+          setIsUnlockModalOpen(false);
+          router.push("/compte");
+        }}
+      />
     </div>
   );
 }

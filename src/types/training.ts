@@ -13,6 +13,7 @@ export type Row = {
   link?: string;
   note?: string;
   locked?: boolean;
+  superset_id_locked?: boolean;
 };
 
 export interface Training {
