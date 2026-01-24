@@ -103,7 +103,7 @@ export default function SortableItem({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      onClick={handleMainClick}
+
       className={cn(
         'w-[270px] transition-shadow duration-300 ease-in-out',
         showVisibility ? 'shadow-[0px_1px_15px_rgba(0,0,0,0.05)]' : 'shadow-none',
@@ -112,12 +112,12 @@ export default function SortableItem({
     >
       <div
         className={cn(
-          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] transition-transform duration-300 ease-in-out cursor-pointer",
+          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] transition-transform duration-300 ease-in-out",
           showVisibility
             ? "rounded-t-[8px] rounded-b-none"
             : "rounded-[8px]",
           isLocked
-            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#D7D4DC] cursor-pointer"
+            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#D7D4DC]"
             : "bg-white border border-[#D7D4DC] text-[#3A416F]"
         )}
       >
@@ -160,7 +160,10 @@ export default function SortableItem({
         </div>
 
         {/* Titre */}
-        <div className="flex-1 px-6 flex items-center justify-center min-w-0">
+        <div
+          className="flex-1 px-6 flex items-center justify-center min-w-0 h-full cursor-pointer"
+          onClick={handleMainClick}
+        >
           {showLoader ? (
             <Spinner
               size="lg"
