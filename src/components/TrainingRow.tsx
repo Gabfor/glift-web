@@ -175,11 +175,10 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold text-[#7069FA] underline focus:outline-none training-input truncate"
+            className={`w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : "text-[#5D6494] pointer-events-auto"
+              }`}
             style={{
               backgroundColor: "transparent",
-              color: row.locked ? "#D7D4DC" : "#7069FA",
-              pointerEvents: row.locked ? "none" : "auto"
             }}
             title={row.exercice || undefined}
           >
@@ -200,8 +199,9 @@ export default function TrainingRow({
             }}
             onDoubleClick={handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : "inherit" }}
+            className={`w-full h-full border-l border-t border-[#ECE9F1] px-3 py-2 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : "text-[#5D6494]"
+              }`}
+            style={{ backgroundColor: "transparent" }}
             placeholder="Nom de l’exercice"
             title={row.exercice || undefined}
           />
@@ -224,8 +224,9 @@ export default function TrainingRow({
             }}
             onDoubleClick={handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: "transparent", lineHeight: "40px", color: row.locked ? "#D7D4DC" : "inherit" }}
+            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : "text-[#5D6494]"
+              }`}
+            style={{ backgroundColor: "transparent", lineHeight: "40px" }}
             placeholder="Matériel"
           />
         </td>
@@ -237,7 +238,8 @@ export default function TrainingRow({
             type="number"
             value={row.series}
             disabled
-            className="w-9 h-8 text-left border-none px-2 py-1 rounded-md focus:outline-none training-input-series"
+            className={`w-9 h-8 text-left border-none px-2 py-1 rounded-md focus:outline-none training-input-series ${row.locked ? "!text-[#D7D4DC]" : "text-[#5D6494]"
+              }`}
             style={{
               backgroundColor: "transparent",
               border: "none",
@@ -335,8 +337,9 @@ export default function TrainingRow({
           <input
             type="number"
             disabled={row.locked}
-            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed" : ""}`}
-            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : "inherit" }}
+            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : "text-[#5D6494]"
+              }`}
+            style={{ backgroundColor: "transparent" }}
             value={row.repos}
             onFocus={() => setIsEditing(true)}
             onBlur={() => setIsEditing(false)}
