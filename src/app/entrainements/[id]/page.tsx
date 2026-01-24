@@ -10,6 +10,7 @@ import TrainingTable from "@/components/TrainingTable";
 import TableActionsBar from "@/components/TableActionsBar";
 import AddRowButton from "@/components/AddRowButton";
 import LinkModal from "@/components/LinkModal";
+import AddExerciseLockedModal from "@/components/AddExerciseLockedModal";
 import NoteModal from "@/components/NoteModal";
 import { useEffortChange } from "@/utils/useEffortChange";
 import { useProgramName } from "@/utils/useProgramName";
@@ -74,6 +75,7 @@ export default function AdminEntrainementDetailPage() {
   const [editing, setEditing] = useState(false);
   const [, setIsEditing] = useState(false);
   const [, setHoveredSuperset] = useState(false);
+  const [showLockedModal, setShowLockedModal] = useState(false);
 
   // ✅ Refs used in access control and cleanup
   const isNewTrainingRef = useRef(isNewParam);
@@ -421,8 +423,25 @@ export default function AdminEntrainementDetailPage() {
         <AddRowButton
           icon={icon}
           setIcon={setIcon}
-          onClick={handleAddRow}
-          disabled={!isAdminRoute && !isPremiumUser && rows.length >= 10}
+          onClick={() => {
+            const isLocked = !isAdminRoute && !isPremiumUser && rows.length >= 10;
+            if (isLocked) {
+              setShowLockedModal(true);
+            } else {
+              handleAddRow();
+            }
+          }}
+          disabled={false}
+          locked={!isAdminRoute && !isPremiumUser && rows.length >= 10}
+        />
+
+        <AddExerciseLockedModal
+          isOpen={showLockedModal}
+          onClose={() => setShowLockedModal(false)}
+          onUnlock={() => {
+            setShowLockedModal(false);
+            router.push("/compte");
+          }}
         />
 
         {showLinkModal && selectedLinkRowIndex !== null && (
