@@ -418,7 +418,12 @@ export default function AdminEntrainementDetailPage() {
           )}
         </div>
 
-        <AddRowButton icon={icon} setIcon={setIcon} onClick={handleAddRow} />
+        <AddRowButton
+          icon={icon}
+          setIcon={setIcon}
+          onClick={handleAddRow}
+          disabled={!isAdminRoute && !isPremiumUser && rows.length >= 10}
+        />
 
         {showLinkModal && selectedLinkRowIndex !== null && (
           <LinkModal
