@@ -159,7 +159,11 @@ export default function TrainingRow({
             target="_blank"
             rel="noopener noreferrer"
             className="w-full h-full block px-3 py-2 border-l border-t border-[#ECE9F1] font-semibold text-[#7069FA] underline focus:outline-none training-input truncate"
-            style={{ backgroundColor: "transparent" }}
+            style={{
+              backgroundColor: "transparent",
+              color: row.locked ? "#D7D4DC" : "#7069FA",
+              pointerEvents: row.locked ? "none" : "auto"
+            }}
             title={row.exercice || undefined}
           >
             <span className="block truncate">{row.exercice || "Nom de l’exercice"}</span>
@@ -254,9 +258,9 @@ export default function TrainingRow({
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
-                  isVisible("effort") && row.effort[subIndex] !== "parfait"
+                  !row.locked && isVisible("effort") && row.effort[subIndex] !== "parfait"
                     ? getEffortBgColor(row.effort[subIndex])
-                    : row.checked
+                    : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
                 color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
@@ -287,9 +291,9 @@ export default function TrainingRow({
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
-                  isVisible("effort") && row.effort[subIndex] !== "parfait"
+                  !row.locked && isVisible("effort") && row.effort[subIndex] !== "parfait"
                     ? getEffortBgColor(row.effort[subIndex])
-                    : row.checked
+                    : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
                 color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
