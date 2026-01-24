@@ -54,7 +54,7 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
           ref={textareaRef}
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Ajoutez votre note ici"
+          placeholder="Ajoutez vos notes ici"
           rows={4}
           className="w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[12px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-none"
         />
