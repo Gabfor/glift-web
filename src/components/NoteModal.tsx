@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 interface NoteModalProps {
   initialNote: string;
@@ -10,15 +11,15 @@ interface NoteModalProps {
 
 export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteModalProps) {
   const [note, setNote] = useState(initialNote);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    setTimeout(() => {
-      textareaRef.current?.focus();
-    }, 0);
-  }, []);
+  // Check if content has text (ignoring HTML tags for basic validation if needed, 
+  // but for "is editing" logic, checking if string length > 0 or specific HTML structure is usually enough.
+  // Here relying on string equivalence to initialNote or emptiness.)
 
-  const title = initialNote.trim() ? "Modifier la note" : "Ajouter une note";
+  // Clean up empty HTML tags if user clears editor but leaves <p></p> ? 
+  // For now we just pass the raw HTML string.
+
+  const title = initialNote && initialNote !== '<p></p>' ? "Modifier la note" : "Ajouter une note";
 
   return (
     <Modal
@@ -42,7 +43,7 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
               Annuler
             </CTAButton>
           )}
-          <CTAButton onClick={() => onSave(note.trim())}>
+          <CTAButton onClick={() => onSave(note)}>
             Enregistrer
           </CTAButton>
         </div>
@@ -50,13 +51,10 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
     >
       <div className="mb-6">
         <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">Note</label>
-        <textarea
-          ref={textareaRef}
+        <RichTextEditor
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={setNote}
           placeholder="Ajoutez vos notes ici"
-          rows={4}
-          className="w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[12px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-none"
         />
       </div>
     </Modal>
