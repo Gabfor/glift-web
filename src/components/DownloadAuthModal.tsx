@@ -30,7 +30,7 @@ export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalPr
               router.push("/tarifs");
             }}
           >
-            Créer un compte
+            Inscription
           </CTAButton>
         </div>
       }
@@ -38,12 +38,12 @@ export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalPr
       <ModalMessage
         variant="info"
         title="Attention"
-        description="Le téléchargement de ce programme d’entraînements est impossible car vous devez avoir préalablement créé un compte."
+        description="Le téléchargement de ce programme d’entraînements est impossible car vous devez avoir préalablement créer un compte."
         className="mb-6"
       />
 
       <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F]">« Créer un compte »</span> vous serez redirigé vers une page où vous pourrez créer votre compte en choisissant la formule d’abonnement qui convient à votre besoin.
+        En cliquant sur <span className="text-[#3A416F]">« Inscription »</span> vous serez redirigé vers une page où vous pourrez créer votre compte et choisir la formule d’abonnement qui convient à votre besoin.
         <br />
         <br />
         En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> vous resterez sur la page du Glift Store et vous pourrez continuer votre navigation.
