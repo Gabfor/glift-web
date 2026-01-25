@@ -6,15 +6,18 @@ import ModalMessage from "@/components/ui/ModalMessage";
 interface DownloadAuthModalProps {
   show: boolean;
   onClose: () => void;
+  mode?: "auth" | "restricted";
 }
 
-export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalProps) {
+export default function DownloadAuthModal({ show, onClose, mode = "auth" }: DownloadAuthModalProps) {
   const router = useRouter();
+
+  const isRestricted = mode === "restricted";
 
   return (
     <Modal
       open={show}
-      title="Téléchargement impossible"
+      title={isRestricted ? "Téléchargement bloqué" : "Téléchargement impossible"}
       onClose={onClose}
       footer={
         <div className="flex justify-center gap-4">
@@ -27,10 +30,10 @@ export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalPr
           <CTAButton
             onClick={() => {
               onClose();
-              router.push("/tarifs");
+              router.push(isRestricted ? "/tarifs" : "/tarifs");
             }}
           >
-            Inscription
+            {isRestricted ? "Débloquer" : "Inscription"}
           </CTAButton>
         </div>
       }
@@ -38,16 +41,29 @@ export default function DownloadAuthModal({ show, onClose }: DownloadAuthModalPr
       <ModalMessage
         variant="info"
         title="Attention"
-        description="Le téléchargement de ce programme d’entraînements est impossible car vous devez avoir préalablement créer un compte."
+        description={
+          isRestricted
+            ? "Le téléchargement de ce programme d’entraînements est bloqué car votre abonnement actuel vous limite à un seul entraînement de 10 exercices maximum."
+            : "Le téléchargement de ce programme d’entraînements est impossible car vous devez avoir préalablement créer un compte."
+        }
         className="mb-6"
       />
 
-      <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F]">« Inscription »</span> vous serez redirigé vers une page où vous pourrez créer votre compte et choisir la formule d’abonnement qui convient à votre besoin.
-        <br />
-        <br />
-        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> vous resterez sur la page du Glift Store et vous pourrez continuer votre navigation.
-      </p>
+      {isRestricted ? (
+        <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+          En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> vous serez redirigé vers votre compte où vous pourrez choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi ce programme.
+          <br />
+          <br />
+          En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous pourrez continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.
+        </p>
+      ) : (
+        <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+          En cliquant sur <span className="text-[#3A416F]">« Inscription »</span> vous serez redirigé vers une page où vous pourrez créer votre compte et choisir la formule d’abonnement qui convient à votre besoin.
+          <br />
+          <br />
+          En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> vous resterez sur la page du Glift Store et vous pourrez continuer votre navigation.
+        </p>
+      )}
     </Modal>
   );
 }

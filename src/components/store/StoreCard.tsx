@@ -149,44 +149,38 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
         </p>
 
         {/* BOUTON TÉLÉCHARGER */}
-        {isAuthenticated ? (
-          isRestricted ? (
-            <CTAButton
-              disabled
-              className="mx-auto select-none"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Image src="/icons/locked.svg" alt="Cadenas" width={15} height={15} />
-                Télécharger
-              </span>
-            </CTAButton>
-          ) : (
-            <CTAButton
-              onClick={handleDownload}
-              loading={loading}
-              className="mx-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Image src="/icons/download.svg" alt="" width={20} height={20} />
-                Télécharger
-              </span>
-            </CTAButton>
-          )
+        {isAuthenticated && !isRestricted ? (
+          <CTAButton
+            onClick={handleDownload}
+            loading={loading}
+            className="mx-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Image src="/icons/download.svg" alt="" width={20} height={20} />
+              Télécharger
+            </span>
+          </CTAButton>
         ) : (
           <CTAButton
             onClick={() => setShowModal(true)}
-            onMouseEnter={() => setLockedHover(true)}
-            onMouseLeave={() => setLockedHover(false)}
             variant="inactive"
-            className="mx-auto text-[16px] font-semibold"
+            className="group mx-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
-              <Image
-                src={`/icons/${lockedHover ? "locked_hover" : "locked"}.svg`}
-                alt=""
-                width={15}
-                height={15}
-              />
+              <div className="relative w-[15px] h-[15px]">
+                <Image
+                  src="/icons/locked.svg"
+                  alt=""
+                  fill
+                  className="group-hover:hidden transition-opacity"
+                />
+                <Image
+                  src="/icons/locked_hover.svg"
+                  alt=""
+                  fill
+                  className="hidden group-hover:block transition-opacity"
+                />
+              </div>
               Télécharger
             </span>
           </CTAButton>
@@ -204,7 +198,11 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
       </div>
 
       {/* MODALE DE CONNEXION */}
-      <DownloadAuthModal show={showModal} onClose={() => setShowModal(false)} />
+      <DownloadAuthModal
+        show={showModal}
+        onClose={() => setShowModal(false)}
+        mode={isRestricted ? "restricted" : "auth"}
+      />
     </div>
   );
 }
