@@ -73,7 +73,7 @@ export default function OfferModal({
       contentClassName="flex flex-col items-center"
       footerWrapperClassName="order-6 w-full"
       footer={
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-5">
           <CTAButton
             variant="secondary"
             onClick={onCancel}

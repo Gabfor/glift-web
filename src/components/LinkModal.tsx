@@ -49,7 +49,7 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
       title={title}
       onClose={onCancel}
       footer={
-        <div className="flex justify-center gap-3">
+        <div className="flex justify-center gap-5">
           {initialLink ? (
             <button
               onClick={() => onSave("", exerciceInput)}

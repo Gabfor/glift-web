@@ -48,7 +48,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '' }: Ri
         content: value,
         editorProps: {
             attributes: {
-                class: `prose prose-sm sm:prose-base focus:outline-none min-h-[120px] max-h-[300px] overflow-y-auto px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className}`,
+                class: `prose prose-sm focus:outline-none min-h-[120px] max-h-[300px] overflow-y-auto px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className}`,
             },
         },
         immediatelyRender: false,
@@ -92,6 +92,8 @@ export default function RichTextEditor({ value, onChange, placeholder = '' }: Ri
                     <MdFormatStrikethrough size={20} />
                 </ToolbarButton>
 
+                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                     isActive={editor.isActive('bulletList')}
@@ -130,8 +132,15 @@ export default function RichTextEditor({ value, onChange, placeholder = '' }: Ri
             padding-left: 18px;
             margin-left: 0;
         }
+        .ProseMirror p {
+            font-size: 14px;
+        }
+        .ProseMirror li {
+            font-size: 14px;
+        }
         .ProseMirror li p {
             margin: 0;
+            font-size: 14px;
         }
       `}</style>
         </div>
