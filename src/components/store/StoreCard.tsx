@@ -36,21 +36,8 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
-  const [isRestricted, setIsRestricted] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated || !subscriptionPlan) {
-      setIsRestricted(false);
-      return;
-    }
-
-    // Logic: Restricted if user is basic AND program is premium.
-    if (subscriptionPlan === 'basic' && program.plan === 'premium') {
-      setIsRestricted(true);
-    } else {
-      setIsRestricted(false);
-    }
-  }, [isAuthenticated, subscriptionPlan, program]);
+  // Logic: Restricted if user is basic AND program is premium.
+  const isRestricted = isAuthenticated && subscriptionPlan === 'basic' && program.plan === 'premium';
 
   const handleDownload = async () => {
     if (!isAuthenticated || loading || isRestricted) return;
@@ -77,14 +64,14 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
           : [];
 
   return (
-    <div className="w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
+    <div className="w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col">
       {/* IMAGE PRINCIPALE */}
       <Image
         src={program.image}
         alt={program.image_alt || program.title}
         width={540}
         height={360}
-        className="w-full h-[180px] object-cover rounded-t-[8px]"
+        className="w-full h-[180px] object-cover rounded-t-[15px]"
         unoptimized
       />
 

@@ -116,14 +116,14 @@ export default function ShopCard({ offer }: Props) {
   }, [offer.end_date]);
 
   return (
-    <div className="relative w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col">
+    <div className="relative w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col">
 
       <Image
         src={offer.image || "/placeholder.jpg"}
         alt={offer.image_alt || offer.name}
         width={540}
         height={360}
-        className="w-full h-[180px] object-cover rounded-t-[8px]"
+        className="w-full h-[180px] object-cover rounded-t-[15px]"
         unoptimized
       />
 
