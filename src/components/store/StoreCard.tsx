@@ -164,10 +164,15 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
         {/* BOUTON TÉLÉCHARGER */}
         {isAuthenticated ? (
           isRestricted ? (
-            <div className="mx-auto w-full h-[40px] flex items-center justify-center gap-2 bg-[#F2F1F6] rounded-[25px] text-[#D7D4DC] font-semibold text-[16px] cursor-not-allowed select-none">
-              <Image src="/icons/locked.svg" alt="Cadenas" width={15} height={15} />
-              Télécharger
-            </div>
+            <CTAButton
+              disabled
+              className="mx-auto select-none"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Image src="/icons/locked.svg" alt="Cadenas" width={15} height={15} />
+                Télécharger
+              </span>
+            </CTAButton>
           ) : (
             <CTAButton
               onClick={handleDownload}
