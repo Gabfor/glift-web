@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Program, Training } from "@/types/training";
@@ -33,8 +33,17 @@ export default function usePrograms() {
   const [isLoading, setIsLoading] = useState(true);
   const supabase = useSupabaseClient();
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchProgramsWithTrainings = useCallback(
     async (options?: { showLoading?: boolean }) => {
+      // Cancel previous request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       const shouldShowLoading = options?.showLoading ?? true;
       if (shouldShowLoading) {
         setIsLoading(true);
@@ -42,6 +51,8 @@ export default function usePrograms() {
 
       try {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (controller.signal.aborted) return;
+
         if (userError || !user?.id) {
           setPrograms([]);
           return;
@@ -56,6 +67,8 @@ export default function usePrograms() {
           .eq("user_id", user.id)
           .order("position", { ascending: true });
 
+        if (controller.signal.aborted) return;
+
         if (errorWithDashboard) {
           console.warn("Failed to fetch with dashboard column, falling back to legacy query:", errorWithDashboard);
           // Fallback: fetch without dashboard column on trainings
@@ -64,6 +77,8 @@ export default function usePrograms() {
             .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, locked)`)
             .eq("user_id", user.id)
             .order("position", { ascending: true });
+
+          if (controller.signal.aborted) return;
 
           if (errorWithoutDashboard) {
             console.error("Error fetching programs (fallback):", errorWithoutDashboard);
@@ -86,6 +101,9 @@ export default function usePrograms() {
             .insert({ name: DEFAULT_PROGRAM_NAME, user_id: user.id })
             .select()
             .single();
+
+          if (controller.signal.aborted) return;
+
           if (newProgram) {
             programsData = [{
               ...newProgram,
@@ -106,12 +124,16 @@ export default function usePrograms() {
         const hasEmpty = result.some(p => p.trainings.length === 0);
         if (!hasEmpty) {
           const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+          if (controller.signal.aborted) return;
+
           if (refreshedUser?.id) {
             const { data: newProgram } = await supabase
               .from("programs")
               .insert({ name: DEFAULT_PROGRAM_NAME, user_id: refreshedUser.id })
               .select()
               .single();
+
+            if (controller.signal.aborted) return;
 
             if (newProgram) {
               result.push({
@@ -128,9 +150,13 @@ export default function usePrograms() {
           result = [...nonEmpty, ...emptyPrograms];
         }
 
-        setPrograms(result as ProgramWithTrainings[]);
+        if (!controller.signal.aborted) {
+          setPrograms(result as ProgramWithTrainings[]);
+        }
       } finally {
-        setIsLoading(false);
+        if (!controller.signal.aborted) {
+          setIsLoading(false);
+        }
       }
     },
     [supabase]

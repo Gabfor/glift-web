@@ -62,9 +62,7 @@ export default function DroppableProgram(props: Props) {
     data: { programId },
   });
 
-  useEffect(() => {
-    console.log("✅ Droppable mounted for", programId);
-  }, [programId]);
+
 
   const filteredTrainings = trainings.filter(
     (t): t is Training => t !== null && t !== undefined
