@@ -341,9 +341,9 @@ export default function AdminProgramPage() {
                   {renderHeaderCell("ID du programme", "id", "text-left w-[330px]")}
                 </tr>
               </thead>
-              
+
               <tbody>
-              {filteredPrograms.map((program) => {
+                {filteredPrograms.map((program) => {
                   const isSelected = selectedIds.includes(program.id);
                   return (
                     <tr key={program.id} className="border-b border-[#ECE9F1] h-[60px]">
@@ -364,11 +364,10 @@ export default function AdminProgramPage() {
                       </td>
                       <td className="w-[82px] px-4 align-middle">
                         <span
-                          className={`inline-flex items-center justify-center rounded-full ${
-                            program.linked
+                          className={`inline-flex items-center justify-center rounded-full ${program.linked
                               ? "bg-[#DCFAF1] text-[#00D591]"
                               : "bg-[#FFE3E3] text-[#EF4F4E]"
-                          }`}
+                            }`}
                           style={{
                             width: "40px",
                             height: "20px",
@@ -382,7 +381,12 @@ export default function AdminProgramPage() {
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         {new Date(program.created_at).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle truncate">
+                      <td
+                        className="px-4 font-semibold text-[#5D6494] align-middle truncate cursor-pointer hover:text-[#2E3271] transition-colors"
+                        onClick={() =>
+                          router.push(`/admin/entrainements?id=${program.id}&edit=1`)
+                        }
+                      >
                         {program.name}
                       </td>
                       <td className="w-[110px] px-4 font-semibold text-[#5D6494] text-right align-middle">
@@ -406,17 +410,16 @@ export default function AdminProgramPage() {
                                   copiedId === program.id
                                     ? "/icons/check.svg"
                                     : hoveredId === program.id
-                                    ? "/icons/copy_hover.svg"
-                                    : "/icons/copy.svg"
+                                      ? "/icons/copy_hover.svg"
+                                      : "/icons/copy.svg"
                                 }
                                 alt="Copier"
                                 width={20}
                                 height={20}
                                 onMouseEnter={() => setHoveredId(program.id)}
                                 onMouseLeave={() => setHoveredId(null)}
-                                className={`transition-opacity duration-200 ${
-                                  copiedId === program.id ? "animate-fade" : ""
-                                }`}
+                                className={`transition-opacity duration-200 ${copiedId === program.id ? "animate-fade" : ""
+                                  }`}
                               />
                             </button>
                           </Tooltip>
