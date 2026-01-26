@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { Program, Training } from "@/types/training";
@@ -21,6 +21,13 @@ import {
 import { DragOverlay } from "@dnd-kit/core";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
 
+const MINIMUM_TRAINING_SPINNER_DURATION = 1000;
+
+const wait = (duration: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, duration);
+  });
+
 export default function AdminSingleProgramPage() {
   type TrainingsAdminRow = Database["public"]["Tables"]["trainings_admin"]["Row"];
   type TrainingsAdminInsert = Database["public"]["Tables"]["trainings_admin"]["Insert"];
@@ -30,11 +37,20 @@ export default function AdminSingleProgramPage() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [openVisibilityIds, setOpenVisibilityIds] = useState<string[]>([]);
+  const [loadingTraining, setLoadingTraining] = useState<{ id: string; type: "open" | "add" } | null>(null);
 
   const supabase = useSupabaseClient();
   const searchParams = useSearchParams();
   const router = useRouter();
   const sensors = useSensors(useSensor(PointerSensor));
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const programIdFromUrl = searchParams?.get("id");
 
@@ -266,6 +282,14 @@ export default function AdminSingleProgramPage() {
     handleReorderTrainings(reordered.map((t) => t.id));
   };
 
+  const handleTrainingNavigation = async (trainingId: string) => {
+    if (loadingTraining) return;
+    setLoadingTraining({ id: trainingId, type: "open" });
+    await wait(MINIMUM_TRAINING_SPINNER_DURATION);
+    if (!isMountedRef.current) return;
+    router.push(`/admin/entrainements/${trainingId}`);
+  };
+
   if (!program) return null;
 
   const isEditing = !!searchParams?.get("edit");
@@ -317,13 +341,13 @@ export default function AdminSingleProgramPage() {
               programId={program.id}
               isVisible={true}
               dashboardVisible={program.dashboard !== false}
-              onToggleVisibility={() => {}}
-              onDelete={() => {}}
+              onToggleVisibility={() => { }}
+              onDelete={() => { }}
               isFirst={true}
               isLastActive={true}
-              onMoveUp={() => {}}
-              onMoveDown={() => {}}
-              onDuplicate={() => {}}
+              onMoveUp={() => { }}
+              onMoveDown={() => { }}
+              onDuplicate={() => { }}
               zIndex={1}
               tableName="trainings_admin"
               programsTableName="programs_admin"
@@ -333,15 +357,16 @@ export default function AdminSingleProgramPage() {
             <DroppableProgram
               programId={program.id}
               trainings={program.trainings}
-              onClickTraining={(id: string) => router.push(`/admin/entrainements/${id}`)}
+              onClickTraining={handleTrainingNavigation}
+              loadingTraining={loadingTraining}
               onReorderTrainings={(_, ids) => handleReorderTrainings(ids)}
               onAddTraining={handleAddTraining}
               onDeleteTraining={handleDeleteTraining}
               onDuplicateTraining={handleDuplicateTraining}
-              onDropTraining={async () => {}}
+              onDropTraining={async () => { }}
               openVisibilityIds={openVisibilityIds}
               setOpenVisibilityIds={setOpenVisibilityIds}
-              onUpdateTrainingVisibility={() => {}}
+              onUpdateTrainingVisibility={() => { }}
             />
           </div>
 
