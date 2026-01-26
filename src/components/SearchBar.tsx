@@ -43,14 +43,14 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
 
       {/* Icône reset à droite */}
       {value && (
-        <button
-          type="button"
-          onClick={handleClear}
-          onMouseEnter={() => setHovered(true)}
-          onMouseLeave={() => setHovered(false)}
-          className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center p-1"
-        >
-          <Tooltip content="Effacer">
+        <Tooltip content="Effacer" asChild>
+          <button
+            type="button"
+            onClick={handleClear}
+            onMouseEnter={() => setHovered(true)}
+            onMouseLeave={() => setHovered(false)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center p-1"
+          >
             <div className="relative w-[25px] h-[25px] flex items-center justify-center">
               <Image
                 src="/icons/cross_reset.svg"
@@ -67,8 +67,8 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
                 className={`absolute top-0 left-0 w-full h-full transition-opacity duration-200 ${hovered ? "opacity-100" : "opacity-0"}`}
               />
             </div>
-          </Tooltip>
-        </button>
+          </button>
+        </Tooltip>
       )}
     </div>
   );
