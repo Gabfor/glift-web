@@ -429,12 +429,16 @@ export default function AdminProgramPage() {
                         )}
                       </td>
                       <td
-                        className="px-4 font-semibold text-[#5D6494] align-middle truncate max-w-[200px] cursor-pointer hover:text-[#2E3271] transition-colors"
+                        className="px-4 font-semibold text-[#5D6494] align-middle cursor-pointer hover:text-[#2E3271] transition-colors"
                         onClick={() =>
                           router.push(`/admin/entrainements?id=${program.id}&edit=1`)
                         }
                       >
-                        {program.name}
+                        <Tooltip content={program.name}>
+                          <div className="truncate max-w-[200px]">
+                            {program.name}
+                          </div>
+                        </Tooltip>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle w-[120px] truncate">
                         {program.partner_name || "-"}

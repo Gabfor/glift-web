@@ -432,13 +432,17 @@ export default function ProgramStorePage() {
                           program.gender
                         )}
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
-                        <Link
-                          href={`/admin/create-program?id=${program.id}`}
-                          className="hover:text-[#2E3271] transition-colors"
-                        >
-                          {program.title}
-                        </Link>
+                      <td className="px-4 font-semibold text-[#5D6494]">
+                        <Tooltip content={program.title}>
+                          <div className="max-w-[190px] truncate">
+                            <Link
+                              href={`/admin/create-program?id=${program.id}`}
+                              className="hover:text-[#2E3271] transition-colors"
+                            >
+                              {program.title}
+                            </Link>
+                          </div>
+                        </Tooltip>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{program.level}</td>
                       <td className="px-4 font-semibold text-[#5D6494] text-center">{program.sessions}</td>
