@@ -21,12 +21,14 @@ type ProgramRow = {
 
 type Program = ProgramRow & {
   linked: boolean;
+  gender: string | null;
+  partner_name: string | null;
 };
 
 type ProgramsAdminRow = Database["public"]["Tables"]["programs_admin"]["Row"];
 type ProgramsAdminInsert = Database["public"]["Tables"]["programs_admin"]["Insert"];
 
-type SortableColumn = "created_at" | "name" | "linked" | "id" | "vignettes";
+type SortableColumn = "created_at" | "name" | "linked" | "id" | "vignettes" | "gender" | "partner_name";
 
 export default function AdminProgramPage() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -59,7 +61,7 @@ export default function AdminProgramPage() {
 
     const { data: linkedRows, error: linkedError } = await supabase
       .from("program_store")
-      .select("linked_program_id");
+      .select("linked_program_id, gender, partner_name");
 
     if (linkedError) {
       console.error("Erreur Supabase (linked ids):", linkedError);
@@ -67,10 +69,21 @@ export default function AdminProgramPage() {
       return;
     }
 
-    const linkedIds = new Set(linkedRows?.map((row) => row.linked_program_id));
+    const linkedMap = new Map();
+    linkedRows?.forEach((row) => {
+      if (row.linked_program_id) {
+        linkedMap.set(row.linked_program_id, {
+          gender: row.gender,
+          partner_name: row.partner_name,
+        });
+      }
+    });
+
     const withLinked: Program[] = ((rawPrograms ?? []) as ProgramRow[]).map((program) => ({
       ...program,
-      linked: linkedIds.has(program.id),
+      linked: linkedMap.has(program.id),
+      gender: linkedMap.get(program.id)?.gender ?? null,
+      partner_name: linkedMap.get(program.id)?.partner_name ?? null,
     }));
 
     const sorted = [...withLinked].sort((a, b) => {
@@ -84,6 +97,22 @@ export default function AdminProgramPage() {
         return sortDirection === "asc"
           ? Number(!a.linked) - Number(!b.linked)
           : Number(!b.linked) - Number(!a.linked);
+      }
+
+      if (sortBy === "gender") {
+        const ag = a.gender || "";
+        const bg = b.gender || "";
+        return sortDirection === "asc"
+          ? ag.localeCompare(bg)
+          : bg.localeCompare(ag);
+      }
+
+      if (sortBy === "partner_name") {
+        const ap = a.partner_name || "";
+        const bp = b.partner_name || "";
+        return sortDirection === "asc"
+          ? ap.localeCompare(bp)
+          : bp.localeCompare(ap);
       }
 
       if (sortBy === "name") {
@@ -217,6 +246,13 @@ export default function AdminProgramPage() {
     }, 1000); // visible 1 seconde
   };
 
+  const getGenderIcon = (gender: string | null) => {
+    if (gender === "Homme") return "/icons/homme.svg";
+    if (gender === "Femme") return "/icons/femme.svg";
+    if (gender === "Tous") return "/icons/mixte.svg";
+    return null;
+  };
+
   const renderHeaderCell = (
     label: string,
     column: SortableColumn,
@@ -253,7 +289,8 @@ export default function AdminProgramPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredPrograms = programs.filter((p) =>
-    p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (p.partner_name && p.partner_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -336,7 +373,9 @@ export default function AdminProgramPage() {
                   </th>
                   {renderHeaderCell("Lié", "linked", "w-[82px]")}
                   {renderHeaderCell("Date", "created_at", "w-[75px]")}
-                  {renderHeaderCell("Nom du programme", "name", "truncate")}
+                  {renderHeaderCell("Sexe", "gender", "w-[65px]")}
+                  {renderHeaderCell("Nom du programme", "name", "truncate max-w-[200px]")}
+                  {renderHeaderCell("Partenaire", "partner_name", "w-[120px]")}
                   {renderHeaderCell("Vignettes", "vignettes", "text-right w-[110px]")}
                   {renderHeaderCell("ID du programme", "id", "text-left w-[330px]")}
                 </tr>
@@ -345,6 +384,7 @@ export default function AdminProgramPage() {
               <tbody>
                 {filteredPrograms.map((program) => {
                   const isSelected = selectedIds.includes(program.id);
+                  const genderIcon = getGenderIcon(program.gender);
                   return (
                     <tr key={program.id} className="border-b border-[#ECE9F1] h-[60px]">
                       <td className="w-[47px] px-4 align-middle">
@@ -365,8 +405,8 @@ export default function AdminProgramPage() {
                       <td className="w-[82px] px-4 align-middle">
                         <span
                           className={`inline-flex items-center justify-center rounded-full ${program.linked
-                              ? "bg-[#DCFAF1] text-[#00D591]"
-                              : "bg-[#FFE3E3] text-[#EF4F4E]"
+                            ? "bg-[#DCFAF1] text-[#00D591]"
+                            : "bg-[#FFE3E3] text-[#EF4F4E]"
                             }`}
                           style={{
                             width: "40px",
@@ -381,13 +421,23 @@ export default function AdminProgramPage() {
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         {new Date(program.created_at).toLocaleDateString("fr-FR")}
                       </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle w-[65px]">
+                        {genderIcon && (
+                          <div className="flex items-center justify-center">
+                            <Image src={genderIcon} alt={program.gender || ""} width={20} height={20} />
+                          </div>
+                        )}
+                      </td>
                       <td
-                        className="px-4 font-semibold text-[#5D6494] align-middle truncate cursor-pointer hover:text-[#2E3271] transition-colors"
+                        className="px-4 font-semibold text-[#5D6494] align-middle truncate max-w-[200px] cursor-pointer hover:text-[#2E3271] transition-colors"
                         onClick={() =>
                           router.push(`/admin/entrainements?id=${program.id}&edit=1`)
                         }
                       >
                         {program.name}
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle w-[120px] truncate">
+                        {program.partner_name || "-"}
                       </td>
                       <td className="w-[110px] px-4 font-semibold text-[#5D6494] text-right align-middle">
                         {program.vignettes}
