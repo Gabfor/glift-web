@@ -238,6 +238,13 @@ export default function ProgramStorePage() {
 
   const handleAdd = () => router.push("/admin/create-program");
 
+  const getGenderIcon = (gender: string | null) => {
+    if (gender === "Homme") return "/icons/homme.svg";
+    if (gender === "Femme") return "/icons/femme.svg";
+    if (gender === "Tous") return "/icons/mixte.svg";
+    return null;
+  };
+
   const renderHeaderCell = (label: string, column: SortableColumn) => {
     const isActive = sortBy === column;
     const isAscending = sortDirection === "asc";
@@ -372,6 +379,8 @@ export default function ProgramStorePage() {
               <tbody>
                 {filteredPrograms.map((program) => {
                   const isSelected = selectedIds.includes(program.id);
+                  const genderIcon = getGenderIcon(program.gender);
+
                   return (
                     <tr
                       key={program.id}
@@ -413,7 +422,15 @@ export default function ProgramStorePage() {
                       <td className="px-4 font-semibold text-[#5D6494]">
                         {new Date(program.created_at).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494]">{program.gender}</td>
+                      <td className="px-4 font-semibold text-[#5D6494]">
+                        {genderIcon ? (
+                          <div className="flex items-center justify-center w-full">
+                            <Image src={genderIcon} alt={program.gender} width={20} height={20} />
+                          </div>
+                        ) : (
+                          program.gender
+                        )}
+                      </td>
                       <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
                         <Link
                           href={`/admin/create-program?id=${program.id}`}
