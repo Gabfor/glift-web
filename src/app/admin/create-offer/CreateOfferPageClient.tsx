@@ -489,7 +489,7 @@ export default function CreateOfferPageClient({
                   <div className="flex flex-col">
                     <div className="flex justify-between mb-1">
                       <label className="text-[#3A416F] font-bold">
-                        Description
+                        Conditions
                       </label>
                       <div className="flex gap-2">
                         <button
@@ -518,7 +518,7 @@ export default function CreateOfferPageClient({
                                 border border-[#D7D4DC] hover:border-[#C2BFC6]
                                 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
                                 transition-all duration-150"
-                      placeholder="Description de l’offre"
+                      placeholder="Conditions de l’offre"
                     />
                   </div>
                 </div>
