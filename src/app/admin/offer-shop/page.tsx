@@ -123,7 +123,9 @@ export default function OfferShopPage() {
   const selectedStatus = selectedOffer?.status ?? null;
 
   const filteredOffers = offers.filter(offer =>
-    offer.name.toLowerCase().includes(searchTerm.toLowerCase())
+    offer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (offer.pays && offer.pays.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (offer.code && offer.code.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleDelete = async () => {

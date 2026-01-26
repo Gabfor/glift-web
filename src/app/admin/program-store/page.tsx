@@ -150,7 +150,8 @@ export default function ProgramStorePage() {
   const selectedStatus = selectedProgram?.status ?? null;
 
   const filteredPrograms = programs.filter(program =>
-    program.title.toLowerCase().includes(searchTerm.toLowerCase())
+    program.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    program.partner_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleDelete = async () => {
