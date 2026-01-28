@@ -269,15 +269,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </div>
 
           {/* Menu centré */}
-          <nav className="hidden md:flex gap-6 text-[16px] text-[var(--color-text-body)] font-semibold h-[44px] absolute left-1/2 transform -translate-x-1/2 z-10">
+          <nav className="hidden md:flex gap-1 text-[16px] text-[var(--color-text-body)] font-semibold h-full absolute left-1/2 transform -translate-x-1/2 z-10 top-0">
             {showAuthenticatedUI ? (
               <>
                 <Link
                   href="/dashboard"
                   className={
                     pathname === "/dashboard"
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Tableau de bord
@@ -286,8 +286,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/entrainements"
                   className={
                     pathname?.startsWith("/entrainements")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Entraînements
@@ -296,8 +296,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/store"
                   className={
                     pathname?.startsWith("/store")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Store
@@ -306,8 +306,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/shop"
                   className={
                     pathname?.startsWith("/shop")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Shop
@@ -316,8 +316,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/blog"
                   className={
                     pathname?.startsWith("/blog")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Blog
@@ -326,8 +326,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/aide"
                   className={
                     pathname?.startsWith("/aide")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Aide
@@ -339,8 +339,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/"
                   className={
                     pathname === "/"
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Concept
@@ -349,8 +349,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/apps"
                   className={
                     pathname === "/apps"
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Apps
@@ -359,8 +359,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/tarifs"
                   className={
                     pathname === "/tarifs"
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Tarifs
@@ -369,8 +369,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/store"
                   className={
                     pathname?.startsWith("/store")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Store
@@ -379,8 +379,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/shop"
                   className={
                     pathname?.startsWith("/shop")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Shop
@@ -389,8 +389,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/blog"
                   className={
                     pathname?.startsWith("/blog")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Blog
@@ -399,8 +399,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/aide"
                   className={
                     pathname?.startsWith("/aide")
-                      ? "flex items-center h-full text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Aide
