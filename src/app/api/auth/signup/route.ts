@@ -1,33 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
-import { createProvisionalSession } from "@/lib/auth/provisionalSession";
-import { resetEmailConfirmation } from "@/lib/auth/resetEmailConfirmation";
+import { SubscriptionService } from "@/lib/services/subscriptionService";
+import { UserService } from "@/lib/services/userService";
+import { EmailService } from "@/lib/services/emailService";
 import { getAbsoluteUrl } from "@/lib/url";
 
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
-    let supabaseAdmin: ReturnType<typeof createAdminClient> | null = null;
-
-    const ensureAdminClient = () => {
-      if (supabaseAdmin) {
-        return supabaseAdmin;
-      }
-
-      supabaseAdmin = createAdminClient();
-      return supabaseAdmin;
-    };
     const body = await req.json();
 
     const { email, password, name, plan } = body;
 
-    const callbackUrl = getAbsoluteUrl("/auth/callback", req.nextUrl.origin);
-    const callbackUrlWithEmail = new URL(callbackUrl);
-    callbackUrlWithEmail.searchParams.set("email", email);
-
-    const emailRedirectTo = callbackUrlWithEmail.toString();
-
-    // 🔒 Vérifie les champs requis
+    // 🔒 Validation
     if (!email || !password || !name || !plan) {
       return NextResponse.json({ error: "Champs manquants." }, { status: 400 });
     }
@@ -36,446 +21,95 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Formule d'abonnement invalide." }, { status: 400 });
     }
 
+    const callbackUrl = getAbsoluteUrl("/auth/callback", req.nextUrl.origin);
+    const callbackUrlWithEmail = new URL(callbackUrl);
+    callbackUrlWithEmail.searchParams.set("email", email);
+    const emailRedirectTo = callbackUrlWithEmail.toString();
+
     const supabasePlan = plan === "starter" ? "basic" : "premium";
 
     // 📝 Inscription Supabase
-    let { data: signupData, error: signupError } = await supabase.auth.signUp({
+    // Note: Option "Confirm email" disabled in Supabase project settings is REQUIRED for this to work
+    // without manual email validation steps.
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo,
         data: {
           name,
-          // subscription_plan: supabasePlan, // SIMPLIFICATION: On ne stocke plus ça dans les métadonnées
-          // is_premium: supabasePlan === "premium",
+          // We don't store plan in metadata anymore
         },
       },
     });
-
-    const isConfirmationEmailError = (
-      message: string | null | undefined,
-    ): boolean =>
-      typeof message === "string" &&
-      message.toLowerCase().includes("error sending confirmation email");
-
-    if (signupError && isConfirmationEmailError(signupError.message)) {
-      try {
-        const adminClient = ensureAdminClient();
-        const { data: adminSignupData, error: adminSignupError } =
-          await adminClient.auth.admin.createUser({
-            email,
-            password,
-            email_confirm: false,
-            user_metadata: {
-              name,
-              // subscription_plan: supabasePlan, // SIMPLIFICATION: On ne stocke plus ça dans les métadonnées
-              // is_premium: supabasePlan === "premium",
-            },
-          });
-
-        if (adminSignupError) {
-          return NextResponse.json(
-            { error: adminSignupError.message },
-            { status: 400 },
-          );
-        }
-
-        signupData = {
-          user: adminSignupData.user ?? null,
-          session: null,
-        } as typeof signupData;
-        signupError = null;
-      } catch (adminSignupException) {
-        console.error(
-          "Création de l'utilisateur impossible après l'échec d'envoi de l'email",
-          adminSignupException,
-        );
-        return NextResponse.json(
-          { error: "Création du compte impossible pour le moment." },
-          { status: 500 },
-        );
-      }
-    }
 
     if (signupError) {
       return NextResponse.json({ error: signupError.message }, { status: 400 });
     }
 
-    const userAlreadyExists =
-      signupData?.user?.identities && signupData.user.identities.length === 0;
-
-    if (userAlreadyExists) {
+    if (signupData?.user?.identities?.length === 0) {
       return NextResponse.json(
         { error: "Cette adresse email est déjà utilisée." },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
-    // 🔑 Connexion automatique juste après
-    let sessionTokens: { access_token: string; refresh_token: string } | null =
-      null;
+    const userId = signupData.user?.id;
+    const session = signupData.session;
 
-    const { data: signinData, error: signinError } =
-      await supabase.auth.signInWithPassword({
-        email,
-        password,
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Erreur lors de la création de l'utilisateur." },
+        { status: 500 }
+      );
+    }
+
+    // ⚙️ Initialisation des données (Profil, Abonnements...) via Admin Client
+    const adminClient = createAdminClient();
+    const userService = new UserService(adminClient);
+    const subscriptionService = new SubscriptionService(adminClient);
+    const emailService = new EmailService();
+
+    try {
+      // Exécution séquentielle pour garantir que le profil existe (contrainte FK)
+      await userService.createOrUpdateProfile(userId, { name, plan: supabasePlan });
+
+      // Ensuite, on peut lancer le reste en parallèle
+      await Promise.all([
+        userService.initializePreferences(userId),
+        subscriptionService.initializeSubscription(userId, supabasePlan),
+      ]);
+
+      // 📧 Envoi de l'email de confirmation (Non-bloquant)
+      // Génération du lien magique via admin
+      const { data: linkData, error: linkError } = await adminClient.auth.admin.generateLink({
+        type: "magiclink",
+        email: email,
+        options: {
+          redirectTo: emailRedirectTo,
+        },
       });
 
-    const signinErrorMessage = signinError?.message ?? null;
-
-    if (signinData?.session) {
-      sessionTokens = {
-        access_token: signinData.session.access_token,
-        refresh_token: signinData.session.refresh_token,
-      };
-    }
-
-    const emailNotConfirmed =
-      typeof signinErrorMessage === "string" &&
-      signinErrorMessage.toLowerCase().includes("email not confirmed");
-
-    if (emailNotConfirmed) {
-      try {
-        const adminClient = ensureAdminClient();
-        const { data: adminSigninData, error: adminSigninError } =
-          await adminClient.auth.signInWithPassword({ email, password });
-
-        if (adminSigninError) {
-          if (adminSigninError.code === "email_not_confirmed") {
-            console.info(
-              "Connexion admin bloquée par confirmation email, poursuite sans session",
-            );
-          } else {
-            console.error(
-              "Connexion admin impossible pour contourner la confirmation email",
-              adminSigninError,
-            );
-
-            return NextResponse.json(
-              {
-                error:
-                  "Connexion impossible après la création du compte. Merci de réessayer.",
-              },
-              { status: 500 },
-            );
-          }
-        } else if (adminSigninData.session) {
-          const adminSession = adminSigninData.session;
-          const { error: setSessionError } = await supabase.auth.setSession({
-            access_token: adminSession.access_token,
-            refresh_token: adminSession.refresh_token,
-          });
-
-          if (setSessionError) {
-            console.error(
-              "Echec du placement de session suite à la connexion admin",
-              setSessionError,
-            );
-
-            return NextResponse.json(
-              {
-                error:
-                  "Connexion impossible après la création du compte. Merci de réessayer.",
-              },
-              { status: 500 },
-            );
-          }
-
-          sessionTokens = {
-            access_token: adminSession.access_token,
-            refresh_token: adminSession.refresh_token,
-          };
-        }
-      } catch (adminSigninException) {
-        console.error(
-          "Impossible de créer le client admin Supabase",
-          adminSigninException,
-        );
-        return NextResponse.json(
-          { error: "Configuration Supabase incomplète." },
-          { status: 500 },
-        );
+      if (linkError) {
+        console.error("Erreur génération lien magique:", linkError);
+      } else if (linkData?.properties?.action_link) {
+        // On ne "await" pas forcément l'envoi pour ne pas ralentir la réponse,
+        // mais pour la fiabilité on peut le faire ou le mettre en tâche de fond.
+        // Ici on await pour simplifier et logger si erreur.
+        await emailService.sendVerificationEmail(email, linkData.properties.action_link);
       }
+
+    } catch (serviceError: any) {
+      console.error("Erreur initialisation post-inscription:", serviceError);
     }
 
-    if (signinErrorMessage && !emailNotConfirmed) {
-      return NextResponse.json({ error: signinErrorMessage }, { status: 400 });
-    }
-
-    const userId = signupData?.user?.id;
-    const userCreatedAtIso = signupData?.user?.created_at ?? null;
-    const userCreatedAtTimestamp = userCreatedAtIso
-      ? Date.parse(userCreatedAtIso)
-      : Number.NaN;
-    const GRACE_PERIOD_HOURS = 72;
-    const GRACE_PERIOD_MS = GRACE_PERIOD_HOURS * 60 * 60 * 1000;
-    const gracePeriodExpiration = new Date(
-      (Number.isNaN(userCreatedAtTimestamp)
-        ? Date.now()
-        : userCreatedAtTimestamp) + GRACE_PERIOD_MS,
-    ).toISOString();
-
-    if (userId) {
-      try {
-        const adminClient = ensureAdminClient();
-
-        try {
-          const { data: adminUserData, error: adminUserError } =
-            await adminClient.auth.admin.getUserById(userId);
-
-          if (adminUserError) {
-            console.warn(
-              "Impossible de vérifier l'état de confirmation email post-inscription",
-              adminUserError,
-            );
-          } else {
-            const emailConfirmedAt =
-              adminUserData?.user?.email_confirmed_at ?? null;
-
-            if (emailConfirmedAt) {
-              const resetSuccess = await resetEmailConfirmation(
-                adminClient,
-                userId,
-              );
-
-              if (!resetSuccess) {
-                console.warn(
-                  "Impossible de réinitialiser l'état de confirmation email post-inscription",
-                  { userId },
-                );
-              }
-            }
-          }
-        } catch (adminConfirmationCheckError) {
-          console.error(
-            "Erreur inattendue lors du contrôle de confirmation email post-inscription",
-            adminConfirmationCheckError,
-          );
-        }
-
-        const {
-          data: existingProfile,
-          error: profileLookupError,
-        } = await adminClient
-          .from("profiles")
-          .select(
-            "id, email_verified, subscription_plan, premium_trial_started_at",
-          )
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (profileLookupError) {
-          console.error("Lecture du profil impossible", profileLookupError);
-          return NextResponse.json(
-            { error: "Création du profil utilisateur impossible." },
-            { status: 400 },
-          );
-        }
-
-        const trialStartTimestamp =
-          supabasePlan === "premium" ? new Date().toISOString() : null;
-
-        if (!existingProfile) {
-          const { error: profileInsertError } = await adminClient
-            .from("profiles")
-            .insert({
-              id: userId,
-              name,
-              email_verified: false,
-              grace_expires_at: gracePeriodExpiration,
-              subscription_plan: supabasePlan,
-              premium_trial_started_at: trialStartTimestamp,
-            });
-
-          if (profileInsertError) {
-            console.error(
-              "Insertion du profil impossible",
-              profileInsertError,
-            );
-            return NextResponse.json(
-              { error: "Création du profil utilisateur impossible." },
-              { status: 400 },
-            );
-          }
-        } else {
-          const profileUpdatePayload: {
-            name: string;
-            email_verified?: boolean;
-            subscription_plan?: string;
-            premium_trial_started_at?: string | null;
-          } = {
-            name,
-          };
-
-          if (existingProfile.email_verified !== false) {
-            profileUpdatePayload.email_verified = false;
-          }
-
-          profileUpdatePayload.subscription_plan = supabasePlan;
-          profileUpdatePayload.premium_trial_started_at =
-            supabasePlan === "premium"
-              ? existingProfile.premium_trial_started_at ?? trialStartTimestamp
-              : null;
-
-          const { error: profileUpdateError } = await adminClient
-            .from("profiles")
-            .update(profileUpdatePayload)
-            .eq("id", userId);
-
-          if (profileUpdateError) {
-            console.error(
-              "Mise à jour du profil impossible",
-              profileUpdateError,
-            );
-            return NextResponse.json(
-              { error: "Création du profil utilisateur impossible." },
-              { status: 400 },
-            );
-          }
-        }
-
-        const {
-          data: existingPreferences,
-          error: preferencesLookupError,
-        } = await adminClient
-          .from("preferences")
-          .select("id")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (preferencesLookupError) {
-          console.error(
-            "Lecture des préférences impossible",
-            preferencesLookupError,
-          );
-          return NextResponse.json(
-            { error: "Création des préférences utilisateur impossible." },
-            { status: 400 },
-          );
-        }
-
-        if (!existingPreferences) {
-          const { error: preferencesInsertError } = await adminClient
-            .from("preferences")
-            .insert({ id: userId });
-
-          if (preferencesInsertError) {
-            console.error(
-              "Insertion des préférences impossible",
-              preferencesInsertError,
-            );
-            return NextResponse.json(
-              { error: "Création des préférences utilisateur impossible." },
-              { status: 400 },
-            );
-          }
-        }
-
-        const {
-          data: existingSubscription,
-          error: subscriptionLookupError,
-        } = await adminClient
-          .from("user_subscriptions")
-          .select("user_id")
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (subscriptionLookupError) {
-          console.error(
-            "Lecture de l'abonnement impossible",
-            subscriptionLookupError,
-          );
-          return NextResponse.json(
-            { error: "Création de l'abonnement impossible." },
-            { status: 400 },
-          );
-        }
-
-        const mutation = existingSubscription ? "update" : "insert";
-        const { error: subscriptionError } = existingSubscription
-          ? await adminClient
-            .from("user_subscriptions")
-            .update({ plan: supabasePlan })
-            .eq("user_id", userId)
-          : await adminClient
-            .from("user_subscriptions")
-            .insert({ user_id: userId, plan: supabasePlan });
-
-        if (subscriptionError) {
-          console.error(
-            `Erreur ${mutation} abonnement`,
-            subscriptionError,
-          );
-
-          return NextResponse.json(
-            { error: "Création de l'abonnement impossible." },
-            { status: 400 },
-          );
-        }
-      } catch (creationError) {
-        console.error(
-          "Impossible de créer le client admin Supabase",
-          creationError,
-        );
-        return NextResponse.json(
-          { error: "Configuration Supabase incomplète." },
-          { status: 500 },
-        );
-      }
-    }
-
-    if (!sessionTokens && email && password) {
-      try {
-        const adminClient = ensureAdminClient();
-        const provisionalResult = await createProvisionalSession(
-          adminClient,
-          { email, password },
-        );
-
-        if ("sessionTokens" in provisionalResult) {
-          sessionTokens = provisionalResult.sessionTokens;
-        } else {
-          console.warn(
-            "Création de session provisoire impossible après inscription",
-            provisionalResult,
-          );
-        }
-      } catch (provisionalError) {
-        console.error(
-          "Impossible d'initialiser une session provisoire post-inscription",
-          provisionalError,
-        );
-      }
-    }
-
-    if (emailNotConfirmed && userId) {
-      try {
-        const adminClient = ensureAdminClient();
-        const { error: resetEmailVerifiedError } = await adminClient
-          .from("profiles")
-          .update({ email_verified: false })
-          .eq("id", userId);
-
-        if (resetEmailVerifiedError) {
-          console.error(
-            "Impossible de réinitialiser l'état de vérification email du profil",
-            resetEmailVerifiedError,
-          );
-        }
-      } catch (resetEmailVerifiedException) {
-        console.error(
-          "Réinitialisation de l'état de vérification email échouée",
-          resetEmailVerifiedException,
-        );
-      }
-    }
-
-    // ✅ Succès : le frontend peut rediriger vers /dashboard
+    // ✅ Succès
     return NextResponse.json({
       success: true,
-      requiresEmailConfirmation: emailNotConfirmed,
-      session: sessionTokens,
+      requiresEmailConfirmation: false,
+      session: session,
     });
+
   } catch (unhandledError) {
     console.error("Erreur inattendue lors de l'inscription", unhandledError);
     return NextResponse.json(

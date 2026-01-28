@@ -31,13 +31,7 @@ export default function PostInscription() {
       ? "/dashboard"
       : `/connexion${email ? `?email=${encodeURIComponent(email)}` : ""}`;
 
-    const timer = window.setTimeout(() => {
-      router.replace(destination);
-    }, 3000);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
+    router.replace(destination);
   }, [email, isAuthenticated, isLoading, router]);
 
   return <GliftLoader />;

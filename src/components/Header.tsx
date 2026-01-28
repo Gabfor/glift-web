@@ -190,17 +190,61 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const remainingHoursForBanner =
     remainingVerificationHours ?? DEFAULT_GRACE_PERIOD_HOURS;
   const safeHoursForBanner = Math.max(1, remainingHoursForBanner);
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+  const handleResendEmail = async () => {
+    if (resendStatus === "loading" || resendStatus === "success") return;
+
+    setResendStatus("loading");
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        console.error("Resend API failed:", data);
+        throw new Error(data.error || "Failed to resend");
+      }
+
+      setResendStatus("success");
+      // Reset success message after 5 seconds to allow sending again if needed
+      setTimeout(() => setResendStatus("idle"), 5000);
+    } catch (error) {
+      console.error("Error resending email:", error);
+      setResendStatus("error");
+      setTimeout(() => setResendStatus("idle"), 3000);
+    }
+  };
+
   const verificationCountdownMessage = `⚠️ Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
 
   return (
     <>
       {shouldShowEmailVerificationBanner && (
-        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60]">
+        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60] gap-1">
           <p className="text-white text-[14px] font-semibold">
             {verificationCountdownMessage}
           </p>
+          {resendStatus === "success" ? (
+            <span className="text-white text-[14px] font-semibold ml-1 flex items-center gap-1">
+              Email envoyé !
+              <Image src="/icons/check.svg" alt="Succès" width={14} height={14} />
+            </span>
+          ) : resendStatus === "error" ? (
+            <span className="text-[var(--color-accent-danger)] text-[14px] font-bold ml-1">Erreur lors de l'envoi</span>
+          ) : (
+            <button
+              onClick={handleResendEmail}
+              disabled={resendStatus === "loading"}
+              className="text-white text-[14px] font-semibold hover:underline transition-colors"
+            >
+              {resendStatus === "loading" ? "Envoi..." : "Renvoyer l'email."}
+            </button>
+          )}
         </div>
       )}
+
       <header
         className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"

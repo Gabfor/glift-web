@@ -15,7 +15,7 @@ import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
-import { isWithinGracePeriod } from "@/lib/auth/gracePeriod";
+
 
 export default function ConnexionPage() {
   const [email, setEmail] = useState("");
@@ -24,14 +24,14 @@ export default function ConnexionPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState<
     | {
-        type:
-          | "invalid-email"
-          | "invalid-credentials"
-          | "email-not-confirmed"
-          | "generic";
-        title: string;
-        description?: string;
-      }
+      type:
+      | "invalid-email"
+      | "invalid-credentials"
+      | "email-not-confirmed"
+      | "generic";
+      title: string;
+      description?: string;
+    }
     | null
   >(null);
   const [loading, setLoading] = useState(false);
@@ -138,55 +138,6 @@ export default function ConnexionPage() {
       });
 
       if (!error) {
-        let hasExpiredGracePeriod = false;
-
-        if (data?.user?.id) {
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from("profiles")
-              .select("email_verified, grace_expires_at")
-              .eq("id", data.user.id)
-              .maybeSingle();
-
-            if (profileError && profileError.code !== "PGRST116") {
-              console.error(
-                "Erreur lors du chargement du profil pour le contrôle de la période de grâce",
-                profileError,
-              );
-            }
-
-            const isProfileEmailVerified = profileData
-              ? Boolean(profileData.email_verified)
-              : Boolean(data.user.email_confirmed_at);
-
-            if (
-              !isProfileEmailVerified &&
-              !isWithinGracePeriod(
-                data.user.created_at ?? null,
-                profileData?.grace_expires_at ?? null,
-              )
-            ) {
-              hasExpiredGracePeriod = true;
-            }
-          } catch (profileLookupError) {
-            console.error(
-              "Erreur inattendue lors du contrôle de la période de grâce",
-              profileLookupError,
-            );
-          }
-        }
-
-        if (hasExpiredGracePeriod) {
-          await supabase.auth.signOut();
-          setError({
-            type: "email-not-confirmed",
-            title: "Email non vérifié",
-            description:
-              "Le délai de 72 heures pour valider votre email est écoulé et ce compte sera bientôt supprimé. Vous pouvez nous contacter si vous pensez que c'est une erreur.",
-          });
-          return;
-        }
-
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
@@ -200,59 +151,6 @@ export default function ConnexionPage() {
           description:
             "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
-      } else if (error.message?.toLowerCase().includes("email not confirmed")) {
-        try {
-          const response = await fetch("/api/auth/provisional-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-
-          const result: {
-            success?: boolean;
-            session?: { access_token: string; refresh_token: string } | null;
-            error?: string;
-            code?: string;
-          } = await response.json();
-
-          if (response.ok && result.success && result.session) {
-            const { access_token, refresh_token } = result.session;
-
-            await supabase.auth.setSession({
-              access_token,
-              refresh_token,
-            });
-
-            setShowTransitionLoader(true);
-            router.push(sanitizedNextParam ?? "/dashboard");
-            router.refresh();
-            return;
-          }
-
-          const isGracePeriodExpired = result.code === "grace_period_expired";
-          const description = isGracePeriodExpired
-            ? "Le délai de 72 heures pour valider votre email est écoulé et ce compte sera bientôt supprimé. Vous pouvez nous contacter si vous pensez que c'est une erreur."
-            : result.error ??
-              "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.";
-
-          setError({
-            type: "email-not-confirmed",
-            title: isGracePeriodExpired ? "Email non vérifié" : "Email non vérifiée",
-            description,
-          });
-        } catch (fallbackError) {
-          console.error(
-            "Erreur lors de la tentative de session provisoire",
-            fallbackError,
-          );
-
-          setError({
-            type: "email-not-confirmed",
-            title: "Email non vérifiée",
-            description:
-              "Un email de validation vous a été envoyé. Cliquez sur le lien de confirmation pour activer votre compte, puis réessayez de vous connecter.",
-          });
-        }
       } else {
         setError({
           type: "generic",
@@ -373,9 +271,8 @@ export default function ConnexionPage() {
                   alt="Icône cadenas"
                   width={20}
                   height={20}
-                  className={`transition-colors ${
-                    isFormValid && !loading ? "invert brightness-0" : ""
-                  }`}
+                  className={`transition-colors ${isFormValid && !loading ? "invert brightness-0" : ""
+                    }`}
                 />
                 Se connecter
               </>
