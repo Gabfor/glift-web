@@ -40,6 +40,12 @@ export default async function HeroConcept() {
 
         <div className="flex justify-center gap-4 mb-4 flex-wrap">
           <Link
+            href="#methode-glift"
+            className="border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
+          >
+            En savoir plus
+          </Link>
+          <Link
             href="/inscription?plan=premium"
             className="bg-[var(--color-brand-primary)] hover:bg-[var(--color-brand-primary-hover)] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
           >
@@ -52,12 +58,6 @@ export default async function HeroConcept() {
               width={25}
               height={25}
             />
-          </Link>
-          <Link
-            href="#methode-glift"
-            className="border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
-          >
-            En savoir plus
           </Link>
         </div>
 
@@ -148,7 +148,7 @@ export default async function HeroConcept() {
 
             <Link
               href="/inscription?plan=premium"
-              className="px-[30px] h-[44px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+              className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               Tester gratuitement
               <div className="relative w-[25px] h-[25px]">
@@ -214,7 +214,7 @@ export default async function HeroConcept() {
 
             <Link
               href="/inscription?plan=premium"
-              className="px-[30px] h-[44px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+              className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               Tester gratuitement
               <div className="relative w-[25px] h-[25px]">
@@ -256,7 +256,7 @@ export default async function HeroConcept() {
 
             <Link
               href="/inscription?plan=premium"
-              className="px-[30px] h-[44px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+              className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               Tester gratuitement
               <div className="relative w-[25px] h-[25px]">
@@ -322,7 +322,7 @@ export default async function HeroConcept() {
 
             <Link
               href="/inscription?plan=premium"
-              className="px-[30px] h-[44px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+              className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               Tester gratuitement
               <div className="relative w-[25px] h-[25px]">
@@ -364,7 +364,7 @@ export default async function HeroConcept() {
               Le Glift Store vous permet de télécharger gratuitement des programmes de musculation. En un seul clic, votre programme est immédiatement utilisable dans Glift. Vous pouvez l’utiliser tel quel ou y apporter vos modifications si besoin.
             </p>
           </div>
-          <div className="h-[44px] px-[30px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
+          <div className="h-[44px] px-[30px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
             Découvrir le Glift Store
             <div className="relative w-[25px] h-[25px]">
               <Image
@@ -395,7 +395,7 @@ export default async function HeroConcept() {
               voyez en priorité ce qui vous intéresse.
             </p>
           </div>
-          <div className="h-[44px] px-[30px] group border-2 border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
+          <div className="h-[44px] px-[30px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
             Découvrir la Glift Shop
             <div className="relative w-[25px] h-[25px]">
               <Image

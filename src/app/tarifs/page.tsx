@@ -17,10 +17,10 @@ export default function TarifsPage() {
       </section>
 
       {/* Section abonnements */}
-      <section className="flex flex-col md:flex-row items-stretch justify-center gap-6 bg-[#FBFCFE] max-w-[1152px] mx-auto px-4 pb-[100px]">
+      <section className="flex flex-col md:flex-row items-center justify-center gap-6 bg-[#FBFCFE] max-w-[1152px] mx-auto px-4 pb-[100px]">
 
         {/* Starter */}
-        <div className="bg-white border border-[#D7D4DC] rounded-[12px] p-6 md:p-8 flex flex-col text-center hover:shadow-glift-hover transition-shadow duration-300 w-full max-w-[466px] min-h-[577px]">
+        <div className="bg-white border border-[#D7D4DC] rounded-[20px] p-6 pb-[50px] md:p-8 md:pb-[50px] flex flex-col text-center w-full max-w-[466px]">
           <h2 className="uppercase text-[#3A416F] font-bold text-[20px] pt-[20px]">Starter</h2>
           <p className="text-[#2E3271] font-bold text-[40px] leading-tight pt-[15px] pb-[15px]">
             0,00 €<span className="text-[20px] font-semibold">/mois</span>
@@ -35,21 +35,19 @@ export default function TarifsPage() {
             <li className="flex items-center gap-2"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un maximum de 10 exercices</li>
             <li className="flex items-center gap-2"><Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />Un tableau de bord personnalisé</li>
             <li className="flex items-center gap-2 text-[#B1BACC] line-through">
-              <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
-              Accès aux programmes du{" "}
-              <span className="text-inherit">Glift Store</span>
+              <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} className="grayscale opacity-60" />
+              Accès aux programmes du Glift Store
             </li>
             <li className="flex items-center gap-2 text-[#B1BACC] line-through">
-              <Image src="/icons/exclus.svg" alt="Cross" width={30} height={30} />
-              Accès aux offres Premium de la{" "}
-              <span className="text-inherit">Glift Shop</span>
+              <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} className="grayscale opacity-60" />
+              Offres personnalisées dans la Glift Shop
             </li>
           </ul>
           {/* Bouton */}
-          <div className="mt-auto pt-6">
+          <div className="mt-auto pt-[30px]">
             <Link
               href="/inscription?plan=starter"
-              className="inline-flex items-center justify-center gap-1 h-[44px] w-full md:w-[243px] border-2 border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
+              className="inline-flex items-center justify-center gap-1 h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
             >
               Choisir cet abonnement
               <div className="relative w-[25px] h-[25px]">
@@ -71,7 +69,7 @@ export default function TarifsPage() {
         </div>
 
         {/* Premium */}
-        <div className="relative bg-white border border-[#D7D4DC] rounded-[12px] p-6 md:p-8 flex flex-col text-center hover:shadow-glift-hover transition-shadow duration-300 w-full max-w-[466px] min-h-[640px]">
+        <div className="relative bg-white border border-[#D7D4DC] rounded-[20px] p-6 pb-[50px] md:p-8 md:pb-[50px] flex flex-col text-center w-full max-w-[466px] min-h-[640px]">
 
           {/* Badge en diagonale */}
           <div className="absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
@@ -123,7 +121,7 @@ export default function TarifsPage() {
               <Image src="/icons/inclus.svg" alt="Check" width={30} height={30} />
               <span className="inline-flex items-center gap-1">
                 <span className="font-bold text-[#3A416F]">
-                  Accès aux offres Premium de la{" "}
+                  Offres personnalisées dans la{" "}
                   <Link
                     href="/shop"
                     target="_blank"
@@ -148,19 +146,16 @@ export default function TarifsPage() {
           </ul>
 
           {/* Bouton */}
-          <div className="mt-auto pt-6 flex flex-col items-center gap-2">
-            <CTAButton href="/inscription?plan=premium" className="font-semibold w-full">
-              <span className="inline-flex items-center gap-1 justify-center w-full">
-                Tester gratuitement
-                <div className="relative w-[25px] h-[25px]">
-                  <Image
-                    src="/icons/arrow.svg"
-                    alt="Flèche blanche"
-                    fill
-                    className="object-contain"
-                  />
-                </div>
-              </span>
+          <div className="mt-auto pt-[30px] flex flex-col items-center gap-2">
+            <CTAButton href="/inscription?plan=premium" className="font-semibold w-full md:w-auto">
+              Tester gratuitement
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche blanche"
+                width={25}
+                height={25}
+                className="object-contain"
+              />
             </CTAButton>
             <div className="flex flex-wrap items-center justify-center gap-2 text-[#5D6494] text-[14px] font-semibold">
               <span className="relative flex items-center justify-center w-2 h-2">
