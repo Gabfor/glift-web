@@ -1,10 +1,15 @@
 import Link from "next/link";
+import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { cookies } from "next/headers";
+import type { Database } from "@/lib/supabase/types";
 import Image from "next/image";
 import AnimatedSection from "@/components/AnimatedSection";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function HeroConcept() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -13,6 +18,15 @@ export default async function HeroConcept() {
   if (user) {
     redirect("/entrainements");
   }
+
+  // Fetch partners
+  const { data: partners } = await supabase
+    .from("partners")
+    .select("*")
+    .order("position", { ascending: true })
+    .limit(4);
+
+  const displayPartners = partners && partners.length > 0 ? partners : [];
 
   const surfaceBackground = "bg-[var(--color-surface-primary)]";
   const maxContentWidth = "max-w-[var(--layout-max-width)]";
@@ -427,22 +441,54 @@ export default async function HeroConcept() {
 
       <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-[90px]`}>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {/* Fitadium */}
-          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-            <span className="text-[#B1BACC] text-2xl font-bold">Fitadium</span>
-          </div>
-          {/* Foodspring */}
-          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-            <span className="text-[#B1BACC] text-2xl font-bold">foodspring</span>
-          </div>
-          {/* MyProtein */}
-          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-            <span className="text-[#B1BACC] text-2xl font-bold tracking-widest">MYPROTEIN</span>
-          </div>
-          {/* Bulk */}
-          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-            <span className="text-[#B1BACC] text-2xl font-bold">bulk</span>
-          </div>
+          {displayPartners.length > 0 ? (
+            displayPartners.map((partner) => (
+              <div
+                key={partner.id}
+                className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative"
+              >
+                <div className="relative w-full h-full">
+                  {partner.link_url ? (
+                    <a href={partner.link_url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
+                      <Image
+                        src={partner.logo_url}
+                        alt={partner.alt_text || partner.name}
+                        fill
+                        className="object-contain"
+                      />
+                    </a>
+                  ) : (
+                    <Image
+                      src={partner.logo_url}
+                      alt={partner.alt_text || partner.name}
+                      fill
+                      className="object-contain"
+                    />
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            // Placeholder text if no partners in DB
+            <>
+              {/* Fitadium */}
+              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                <span className="text-[#B1BACC] text-2xl font-bold">Fitadium</span>
+              </div>
+              {/* Foodspring */}
+              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                <span className="text-[#B1BACC] text-2xl font-bold">foodspring</span>
+              </div>
+              {/* MyProtein */}
+              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                <span className="text-[#B1BACC] text-2xl font-bold tracking-widest">MYPROTEIN</span>
+              </div>
+              {/* Bulk */}
+              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                <span className="text-[#B1BACC] text-2xl font-bold">bulk</span>
+              </div>
+            </>
+          )}
         </div>
 
         <div className="text-center text-[#2E3271] font-semibold text-[15px]">

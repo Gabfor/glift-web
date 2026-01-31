@@ -8,9 +8,17 @@ type Props = {
   value: string;
   onChange: (url: string) => void;
   placeholder?: string;
+  bucket?: string;
+  basePath?: string;
 };
 
-export default function ImageUploader({ value, onChange, placeholder }: Props) {
+export default function ImageUploader({
+  value,
+  onChange,
+  placeholder,
+  bucket = 'program-images',
+  basePath = 'programmes'
+}: Props) {
   const [loading, setLoading] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -26,12 +34,12 @@ export default function ImageUploader({ value, onChange, placeholder }: Props) {
       const fileName = `${Date.now()}.${fileExt}`;
 
       // Chemin dans le bucket
-      const filePath = `programmes/${fileName}`;
+      const filePath = `${basePath}/${fileName}`;
 
       // Upload dans Supabase Storage
       const { error } = await supabase
         .storage
-        .from('program-images')
+        .from(bucket)
         .upload(filePath, file, { upsert: true });
 
       if (error) {
@@ -42,7 +50,7 @@ export default function ImageUploader({ value, onChange, placeholder }: Props) {
       // Récupération de l'URL publique
       const { data } = supabase
         .storage
-        .from('program-images')
+        .from(bucket)
         .getPublicUrl(filePath);
 
       if (!data?.publicUrl) throw new Error("Impossible d'obtenir l'URL publique");

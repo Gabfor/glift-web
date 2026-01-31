@@ -682,6 +682,36 @@ export interface Database {
         };
         Relationships: never[];
       };
+      partners: {
+        Row: {
+          id: string;
+          name: string;
+          logo_url: string;
+          alt_text: string | null;
+          link_url: string | null;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          logo_url: string;
+          alt_text?: string | null;
+          link_url?: string | null;
+          position?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          logo_url?: string;
+          alt_text?: string | null;
+          link_url?: string | null;
+          position?: number;
+          created_at?: string;
+        };
+        Relationships: never[];
+      };
     };
     Views: Record<string, never>;
     Functions: {
