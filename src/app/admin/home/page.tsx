@@ -135,9 +135,10 @@ export default function AdminHomePage() {
 
         await Promise.all([...updates, settingsUpdate]);
 
-        setSaving(false);
         // Refresh to get real IDs for new items and reset change tracking
-        fetchData();
+        await fetchData();
+
+        setSaving(false);
     };
 
     const renderSlot = (position: number) => {
@@ -190,7 +191,7 @@ export default function AdminHomePage() {
                 <div className="mb-8">
                     <div className="flex justify-between items-center mb-[20px]">
                         {/*  Using the same style label (uppercase small) if desired, or standard header */}
-                        <span className="text-[#B1BACC] font-bold text-sm tracking-wider uppercase">BLOC PARTENAIRE</span>
+                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">BLOC PARTENAIRE</span>
                         <ToggleSwitch
                             checked={partnersEnabled}
                             onCheckedChange={setPartnersEnabled}

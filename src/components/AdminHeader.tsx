@@ -5,11 +5,13 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useUser } from "@/context/UserContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function AdminHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { user } = useUser();
+  const { logoUrl, logoAlt } = useSiteSettings();
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -42,19 +44,21 @@ export default function AdminHeader() {
     <>
       <header
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isSticky
-            ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
-            : "bg-[#FBFCFE]"
+          ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
+          : "bg-[#FBFCFE]"
           }`}
       >
         <div className="max-w-[1152px] mx-auto px-4 md:px-0 py-4 flex items-center justify-between">
           {/* Logo */}
-          <div className="w-[147px] flex items-center">
+          <div className="flex items-center">
             <Link href="/admin" className="flex items-center">
               <Image
-                src="/logo_beta.svg"
-                alt="Logo Glift Admin"
-                width={147}
-                height={35}
+                src={logoUrl || "/logo_beta.svg"}
+                alt={logoAlt || "Logo Glift Admin"}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="w-auto h-[35px]"
                 priority
               />
             </Link>

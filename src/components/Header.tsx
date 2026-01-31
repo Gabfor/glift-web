@@ -7,6 +7,10 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
+import { createClient } from "@/lib/supabaseClient";
+import { SettingsService } from "@/lib/services/settingsService";
+
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
 const DEFAULT_GRACE_PERIOD_HOURS = 72;
@@ -27,6 +31,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [remainingVerificationHours, setRemainingVerificationHours] =
     useState<number | null>(null);
+
+  const { logoUrl, logoAlt } = useSiteSettings();
 
   const rawAvatarUrl =
     typeof user?.user_metadata?.avatar_url === "string"
@@ -253,16 +259,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
       >
         <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between px-4 md:px-0 relative">
           {/* Logo */}
-          <div className="w-[147px] flex items-center">
+          <div className="flex items-center">
             <Link
               href={showAuthenticatedUI ? "/dashboard" : "/"}
               className="flex items-center"
             >
               <Image
-                src="/logo_beta.svg"
-                alt="Logo Glift"
-                width={147}
-                height={35}
+                src={logoUrl}
+                alt={logoAlt}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="w-auto h-[35px]"
                 priority
               />
             </Link>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import Link from "next/link";
 import ProgramAdminActionsBar from "@/app/admin/components/ProgramAdminActionsBar";
 import type { Database } from "@/lib/supabase/types";
 
@@ -428,16 +429,14 @@ export default function AdminProgramPage() {
                           </div>
                         )}
                       </td>
-                      <td
-                        className="px-4 font-semibold text-[#5D6494] align-middle cursor-pointer hover:text-[#2E3271] transition-colors"
-                        onClick={() =>
-                          router.push(`/admin/entrainements?id=${program.id}&edit=1`)
-                        }
-                      >
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         <Tooltip content={program.name}>
-                          <div className="truncate max-w-[200px]">
+                          <Link
+                            href={`/admin/entrainements?id=${program.id}&edit=1`}
+                            className="truncate max-w-[200px] block hover:text-[#2E3271] transition-colors"
+                          >
                             {program.name}
-                          </div>
+                          </Link>
                         </Tooltip>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle w-[120px] truncate">

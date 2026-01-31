@@ -4,14 +4,17 @@ import Link from "next/link";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function FooterConnected() {
+  const { logoUrl, logoAlt } = useSiteSettings();
+
   return (
     <footer className="mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[30px] pb-[30px]">
       {/* Top Section - Logo uniquement */}
       <div className="max-w-[1152px] mx-auto flex flex-col lg:flex-row justify-between items-start gap-10 border-b border-[#ECE9F1] pb-[30px]">
         <div className="flex items-center gap-3">
-          <Image src="/logo_beta.svg" alt="Logo Glift" width={147} height={35} />
+          <Image src={logoUrl || "/logo_beta.svg"} alt={logoAlt || "Logo Glift"} width={0} height={0} sizes="100vw" className="w-auto h-[35px]" />
         </div>
       </div>
 
@@ -69,10 +72,10 @@ export default function FooterConnected() {
       <div className="max-w-[1152px] mx-auto mt-[20px] flex flex-col md:flex-row justify-between md:items-center text-[#5D6494] text-sm gap-[20px] font-semibold">
         <p>Copyright © 2025 Glift. Tous droits réservés.</p>
         <div className="flex items-center gap-[15px]">
-          <Link href="#"><FontAwesomeIcon icon={faFacebookF} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Facebook"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faXTwitter} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="X (Twitter)"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faInstagram} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Instagram"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faYoutube} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Youtube"/></Link>
+          <Link href="#"><FontAwesomeIcon icon={faFacebookF} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Facebook" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faXTwitter} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="X (Twitter)" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faInstagram} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Instagram" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faYoutube} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Youtube" /></Link>
         </div>
       </div>
     </footer>

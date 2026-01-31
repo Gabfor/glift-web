@@ -3,11 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
 
 export default function Footer() {
+  const { logoUrl, logoAlt } = useSiteSettings();
+
   return (
     <footer className="mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[0px] pb-[30px]">
       {/* Top Section */}
@@ -15,7 +18,7 @@ export default function Footer() {
         {/* Left - Logo + Description */}
         <div className="flex flex-col gap-4 max-w-md">
           <div className="flex items-center gap-3">
-            <Image src="/logo_beta.svg" alt="Logo Glift" width={147} height={35} />
+            <Image src={logoUrl || "/logo_beta.svg"} alt={logoAlt || "Logo Glift"} width={0} height={0} sizes="100vw" className="w-auto h-[35px]" />
           </div>
           <p className="text-[#5D6494] font-semibold leading-relaxed max-w-[368px]">
             Glift est une plateforme qui permet de digitaliser ses programmes de musculation, d’analyser ses performances et de progresser efficacement.
