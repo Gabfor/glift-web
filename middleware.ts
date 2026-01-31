@@ -86,5 +86,9 @@ export const config = {
     "/entrainements/:path*",
     "/compte/:path*",
     "/concept/:path*",
+    "/creation/:path*",
+    "/suivi/:path*",
+    "/notation/:path*",
+    "/visualisation/:path*",
   ],
 };

@@ -180,7 +180,7 @@ export default async function Home() {
             </p>
 
             <Link
-              href="/inscription?plan=premium"
+              href="/creation"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               En savoir plus
@@ -246,7 +246,7 @@ export default async function Home() {
             </p>
 
             <Link
-              href="/inscription?plan=premium"
+              href="/suivi"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               En savoir plus
@@ -288,7 +288,7 @@ export default async function Home() {
             </p>
 
             <Link
-              href="/inscription?plan=premium"
+              href="/notation"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               En savoir plus
@@ -354,7 +354,7 @@ export default async function Home() {
             </p>
 
             <Link
-              href="/inscription?plan=premium"
+              href="/visualisation"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
               En savoir plus
