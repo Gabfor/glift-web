@@ -19,14 +19,26 @@ export default async function Home() {
     redirect("/entrainements");
   }
 
-  // Fetch partners
-  const { data: partners } = await supabase
-    .from("partners")
-    .select("*")
-    .order("position", { ascending: true })
-    .limit(4);
+  // Fetch partners and settings in parallel
+  const [partnersResponse, settingsResponse] = await Promise.all([
+    supabase
+      .from("partners")
+      .select("*")
+      .order("position", { ascending: true })
+      .limit(4),
+    supabase
+      .from("site_settings")
+      .select("value")
+      .eq("key", "partners_enabled")
+      .single()
+  ]);
 
+  const partners = partnersResponse.data;
   const displayPartners = partners && partners.length > 0 ? partners : [];
+
+  // Determine visibility
+  // If no setting found, default to TRUE to show partners unless explicitly disabled
+  const showPartners = settingsResponse.data?.value === false ? false : true;
 
   const surfaceBackground = "bg-[var(--color-surface-primary)]";
   const maxContentWidth = "max-w-[var(--layout-max-width)]";
@@ -129,6 +141,10 @@ export default async function Home() {
           />
         </div>
       </section>
+      {/* ... previous sections ... */}
+
+      {/* ... (Keep all other sections the same until Partenaires) ... */}
+
       {/* Section outils */}
       <section
         className={`${surfaceBackground} text-center px-4 ${maxContentWidth} pt-[80px] mx-auto`}
@@ -141,9 +157,12 @@ export default async function Home() {
           Comment fonctionne Glift ?
         </h2>
       </section>
+
+      {/* ... (Keep tool sections) ... */}
+
       {/* Nouvelle section : Outil de création */}
       <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 py-[30px] flex flex-col md:flex-row items-center justify-between gap-10`}>
-        {/* Texte à gauche */}
+        {/* ... content ... */}
         <AnimatedSection>
           <div className="max-w-[520px] flex flex-col">
             <p className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
@@ -430,71 +449,78 @@ export default async function Home() {
       </section>
 
       {/* Section Partenaires */}
-      <section className={`${surfaceBackground} text-center px-4 ${maxContentWidth} pt-[50px] mx-auto`}>
-        <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
-          Partenaires
-        </p>
-        <h2 className="text-[28px] font-bold leading-snug text-[var(--color-text-heading)]">
-          Merci à nos partenaires !
-        </h2>
-      </section>
+      {showPartners && (
+        <>
+          <section className={`${surfaceBackground} text-center px-4 ${maxContentWidth} pt-[50px] mx-auto`}>
+            <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
+              Partenaires
+            </p>
+            <h2 className="text-[28px] font-bold leading-snug text-[var(--color-text-heading)]">
+              Merci à nos partenaires !
+            </h2>
+          </section>
 
-      <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-[90px]`}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {displayPartners.length > 0 ? (
-            displayPartners.map((partner) => (
-              <div
-                key={partner.id}
-                className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative"
-              >
-                <div className="relative w-full h-full">
-                  {partner.link_url ? (
-                    <a href={partner.link_url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
-                      <Image
-                        src={partner.logo_url}
-                        alt={partner.alt_text || partner.name}
-                        fill
-                        className="object-contain"
-                      />
-                    </a>
-                  ) : (
-                    <Image
-                      src={partner.logo_url}
-                      alt={partner.alt_text || partner.name}
-                      fill
-                      className="object-contain"
-                    />
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            // Placeholder text if no partners in DB
-            <>
-              {/* Fitadium */}
-              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-                <span className="text-[#B1BACC] text-2xl font-bold">Fitadium</span>
-              </div>
-              {/* Foodspring */}
-              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-                <span className="text-[#B1BACC] text-2xl font-bold">foodspring</span>
-              </div>
-              {/* MyProtein */}
-              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-                <span className="text-[#B1BACC] text-2xl font-bold tracking-widest">MYPROTEIN</span>
-              </div>
-              {/* Bulk */}
-              <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
-                <span className="text-[#B1BACC] text-2xl font-bold">bulk</span>
-              </div>
-            </>
-          )}
-        </div>
+          <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px]`}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+              {displayPartners.length > 0 ? (
+                displayPartners.map((partner) => (
+                  <div
+                    key={partner.id}
+                    className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative"
+                  >
+                    <div className="relative w-full h-full">
+                      {partner.link_url ? (
+                        <a href={partner.link_url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
+                          <Image
+                            src={partner.logo_url}
+                            alt={partner.alt_text || partner.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </a>
+                      ) : (
+                        <Image
+                          src={partner.logo_url}
+                          alt={partner.alt_text || partner.name}
+                          fill
+                          className="object-contain"
+                        />
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Placeholder text if no partners in DB
+                <>
+                  {/* Fitadium */}
+                  <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                    <span className="text-[#B1BACC] text-2xl font-bold">Fitadium</span>
+                  </div>
+                  {/* Foodspring */}
+                  <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                    <span className="text-[#B1BACC] text-2xl font-bold">foodspring</span>
+                  </div>
+                  {/* MyProtein */}
+                  <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                    <span className="text-[#B1BACC] text-2xl font-bold tracking-widest">MYPROTEIN</span>
+                  </div>
+                  {/* Bulk */}
+                  <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+                    <span className="text-[#B1BACC] text-2xl font-bold">bulk</span>
+                  </div>
+                </>
+              )}
+            </div>
 
-        <div className="text-center text-[#2E3271] font-semibold text-[15px]">
-          Vous voulez devenir partenaire ? <Link href="#" className="text-[var(--color-brand-primary)] hover:underline">Contactez-nous</Link>
-        </div>
-      </section>
+            <div className="text-center text-[#2E3271] font-semibold text-[15px]">
+              Vous voulez devenir partenaire ? <Link href="#" className="text-[var(--color-brand-primary)] hover:underline">Contactez-nous</Link>
+            </div>
+          </section>
+        </>
+      )}
+
+      {/* Helper for consistent bottom spacing */}
+      <div className="pt-[100px]"></div>
     </>
   );
 }

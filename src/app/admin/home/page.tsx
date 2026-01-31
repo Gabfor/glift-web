@@ -26,32 +26,57 @@ function SaveIcon({ fill }: { fill: string }) {
 export default function AdminHomePage() {
     const [partners, setPartners] = useState<Partner[]>([]);
     const [initialPartners, setInitialPartners] = useState<Partner[]>([]);
+    const [partnersEnabled, setPartnersEnabled] = useState(true);
+    const [initialPartnersEnabled, setInitialPartnersEnabled] = useState(true);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [partnersEnabled, setPartnersEnabled] = useState(true); // Visual state for now
     const supabase = createClientComponentClient();
 
-    const fetchPartners = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         setLoading(true);
-        const { data, error } = await supabase
+
+        // Fetch partners
+        const { data: partnersData, error: partnersError } = await supabase
             .from("partners")
             .select("*")
             .order("position", { ascending: true });
 
-        if (error) {
-            console.error("Error fetching partners:", error);
+        // Fetch settings
+        const { data: settingsData, error: settingsError } = await supabase
+            .from("site_settings")
+            .select("value")
+            .eq("key", "partners_enabled")
+            .single();
+
+        if (partnersError) console.error("Error fetching partners:", partnersError);
+        if (settingsError && settingsError.code !== 'PGRST116') console.error("Error fetching settings:", settingsError);
+
+        // Set Partners
+        const fetchedPartners = partnersData || [];
+        setPartners(fetchedPartners);
+        setInitialPartners(JSON.parse(JSON.stringify(fetchedPartners)));
+
+        // Set Settings
+        const enabled = settingsData?.value === true;
+        // Note: checking strictly === true to handle jsonb nuances, assuming simple boolean stored
+        // If stored as string "true", logic might need adjustment. Standard supabase jsonb boolean is usually just true/false.
+        // Let's assume default true if not found is safer for UX, or match migration default.
+        // Migration default was 'true'::jsonb.
+        if (settingsData) {
+            setPartnersEnabled(!!settingsData.value);
+            setInitialPartnersEnabled(!!settingsData.value);
         } else {
-            const fetchedPartners = data || [];
-            setPartners(fetchedPartners);
-            // Deep copy to break reference
-            setInitialPartners(JSON.parse(JSON.stringify(fetchedPartners)));
+            // Default if missing
+            setPartnersEnabled(true);
+            setInitialPartnersEnabled(true);
         }
+
         setLoading(false);
     }, [supabase]);
 
     useEffect(() => {
-        fetchPartners();
-    }, [fetchPartners]);
+        fetchData();
+    }, [fetchData]);
 
     const handleUpdatePartner = (position: number, key: "logo_url" | "alt_text" | "link_url", value: string) => {
         setPartners((prev) => {
@@ -75,10 +100,12 @@ export default function AdminHomePage() {
     };
 
     // Determine if there are changes
-    const hasChanges = JSON.stringify(partners) !== JSON.stringify(initialPartners);
+    const hasChanges = (JSON.stringify(partners) !== JSON.stringify(initialPartners)) || (partnersEnabled !== initialPartnersEnabled);
 
     const handleSave = async () => {
         setSaving(true);
+
+        // 1. Save Partners
         const updates = partners.map(async (p) => {
             // Check if it's a new or existing partner
             const isTemp = p.id.startsWith("temp_");
@@ -101,11 +128,16 @@ export default function AdminHomePage() {
             }
         });
 
-        await Promise.all(updates);
+        // 2. Save Settings
+        const settingsUpdate = supabase
+            .from("site_settings")
+            .upsert({ key: "partners_enabled", value: partnersEnabled });
+
+        await Promise.all([...updates, settingsUpdate]);
+
         setSaving(false);
         // Refresh to get real IDs for new items and reset change tracking
-        fetchPartners();
-        // Removed alert as requested
+        fetchData();
     };
 
     const renderSlot = (position: number) => {
@@ -117,7 +149,7 @@ export default function AdminHomePage() {
                 <div className="flex flex-col">
                     <div className="flex justify-between items-baseline mb-[5px]">
                         <span className="text-[16px] text-[#3A416F] font-bold">Partenaire {position}</span>
-                        <span className="text-[#C2BFC6] text-xs font-semibold">222px x 102px</span>
+                        <span className="text-[#C2BFC6] text-xs font-semibold">444px x 204px</span>
                     </div>
 
                     <ImageUploader

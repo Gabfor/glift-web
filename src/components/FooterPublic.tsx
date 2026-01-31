@@ -23,32 +23,32 @@ export default function Footer() {
         </div>
 
         {/* Right - CTA */}
-        <div className="flex flex-col items-start gap-2">
-        <CTAButton href="/inscription?plan=premium" className="font-semibold text-[16px]">
-          <span className="inline-flex items-center gap-2">
-            Tester gratuitement
-            <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
-          </span>
-        </CTAButton>
+        <div className="flex flex-col items-center gap-2">
+          <CTAButton href="/inscription?plan=premium" className="font-semibold text-[16px]">
+            <span className="inline-flex items-center gap-2">
+              Tester gratuitement
+              <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
+            </span>
+          </CTAButton>
           {/* Texte centré sous le CTA */}
-          <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center w-[204px] gap-2">
+          <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center gap-2">
             <span className="relative w-[8px] h-[8px]">
-            {/* Onde accentuée */}
-            <span className="absolute inset-0 rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
-            {/* Point central */}
-            <span className="relative w-[8px] h-[8px] rounded-full bg-[#00D591] block"></span>
+              {/* Onde accentuée */}
+              <span className="absolute inset-0 rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
+              {/* Point central */}
+              <span className="relative w-[8px] h-[8px] rounded-full bg-[#00D591] block"></span>
+            </span>
+            30 jours pour tester
           </span>
-          30 jours pour tester
-        </span>
         </div>
       </div>
 
       {/* Bottom Grid */}
       <div className="max-w-[1152px] mx-auto mt-[30px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8 text-white">
         <div>
-        <h4 className="text-[#3A416F] font-bold mb-2">
-        <Link href="#">GLIFT</Link>
-        </h4>
+          <h4 className="text-[#3A416F] font-bold mb-2">
+            <Link href="#">GLIFT</Link>
+          </h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="/store" className="hover:text-[#3A416F] transition-colors">Glift Store</Link></li>
             <li><Link href="/shop" className="hover:text-[#3A416F] transition-colors">Glift Shop</Link></li>
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">
-          <Link href="#">APPS MOBILE</Link>
+            <Link href="#">APPS MOBILE</Link>
           </h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="#" className="hover:text-[#3A416F] transition-colors">App iOS</Link></li>
@@ -66,7 +66,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">
-          <Link href="#">AIDE</Link>
+            <Link href="#">AIDE</Link>
           </h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="#" className="hover:text-[#3A416F] transition-colors">Questions</Link></li>
@@ -75,7 +75,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">
-          <Link href="#">LIENS</Link>
+            <Link href="#">LIENS</Link>
           </h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="#" className="hover:text-[#3A416F] transition-colors">CGU</Link></li>
@@ -84,7 +84,7 @@ export default function Footer() {
         </div>
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">
-          <Link href="#">AUTRES</Link>
+            <Link href="#">AUTRES</Link>
           </h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="#" className="hover:text-[#3A416F] transition-colors">Press Kit</Link></li>
@@ -96,10 +96,10 @@ export default function Footer() {
       <div className="max-w-[1152px] mx-auto mt-[20px] flex flex-col md:flex-row justify-between  md:items-center text-[#5D6494] text-sm gap-[20px] font-semibold">
         <p>Copyright © 2025 Glift. Tous droits réservés.</p>
         <div className="flex items-center gap-[15px]">
-          <Link href="#"><FontAwesomeIcon icon={faFacebookF} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Facebook"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faXTwitter} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="X (Twitter)"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faInstagram} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Instagram"/></Link>
-          <Link href="#"><FontAwesomeIcon icon={faYoutube} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Youtube"/></Link>
+          <Link href="#"><FontAwesomeIcon icon={faFacebookF} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Facebook" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faXTwitter} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="X (Twitter)" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faInstagram} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Instagram" /></Link>
+          <Link href="#"><FontAwesomeIcon icon={faYoutube} className="text-[#5D6494] hover:text-[#3A416F] !w-[20px] !h-[20px]" aria-label="Youtube" /></Link>
         </div>
       </div>
     </footer>
