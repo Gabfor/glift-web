@@ -150,7 +150,7 @@ export default async function HeroConcept() {
               href="/inscription?plan=premium"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
-              Tester gratuitement
+              En savoir plus
               <div className="relative w-[25px] h-[25px]">
                 <Image
                   src="/icons/arrow_blue.svg"
@@ -216,7 +216,7 @@ export default async function HeroConcept() {
               href="/inscription?plan=premium"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
-              Tester gratuitement
+              En savoir plus
               <div className="relative w-[25px] h-[25px]">
                 <Image
                   src="/icons/arrow_blue.svg"
@@ -258,7 +258,7 @@ export default async function HeroConcept() {
               href="/inscription?plan=premium"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
-              Tester gratuitement
+              En savoir plus
               <div className="relative w-[25px] h-[25px]">
                 <Image
                   src="/icons/arrow_blue.svg"
@@ -324,7 +324,7 @@ export default async function HeroConcept() {
               href="/inscription?plan=premium"
               className="px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
             >
-              Tester gratuitement
+              En savoir plus
               <div className="relative w-[25px] h-[25px]">
                 <Image
                   src="/icons/arrow_blue.svg"
@@ -354,18 +354,17 @@ export default async function HeroConcept() {
           Glift, c&apos;est aussi...
         </h2>
       </section>
-      <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-[90px] grid grid-cols-1 md:grid-cols-2 gap-6`}>
+      <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-0 grid grid-cols-1 md:grid-cols-2 gap-6`}>
         {/* Glift Store */}
-        <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300">
-          <Image src="/images/icon-store.png" alt="Icône Glift Store" width={60} height={60} />
+        <div className="bg-white rounded-[20px] p-8 flex flex-col gap-4 border border-[#D7D4DC]">
           <div>
             <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-1">Le Glift Store</h3>
             <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
               Le Glift Store vous permet de télécharger gratuitement des programmes de musculation. En un seul clic, votre programme est immédiatement utilisable dans Glift. Vous pouvez l’utiliser tel quel ou y apporter vos modifications si besoin.
             </p>
           </div>
-          <div className="h-[44px] px-[30px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
-            Découvrir le Glift Store
+          <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
+            Découvrir
             <div className="relative w-[25px] h-[25px]">
               <Image
                 src="/icons/arrow_blue.svg"
@@ -385,8 +384,7 @@ export default async function HeroConcept() {
           </div>
         </div>
         {/* Glift Shop */}
-        <div className="bg-white rounded-[12px] p-6 flex flex-col gap-4 shadow-glift hover:shadow-glift-hover transition-shadow duration-300">
-          <Image src="/images/icon-shop.png" alt="Icône Glift Shop" width={60} height={60} />
+        <div className="bg-white rounded-[20px] p-8 flex flex-col gap-4 border border-[#D7D4DC]">
           <div>
             <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-1">La Glift Shop</h3>
             <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
@@ -395,8 +393,8 @@ export default async function HeroConcept() {
               voyez en priorité ce qui vous intéresse.
             </p>
           </div>
-          <div className="h-[44px] px-[30px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
-            Découvrir la Glift Shop
+          <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
+            Découvrir
             <div className="relative w-[25px] h-[25px]">
               <Image
                 src="/icons/arrow_blue.svg"
@@ -414,6 +412,41 @@ export default async function HeroConcept() {
               />
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Section Partenaires */}
+      <section className={`${surfaceBackground} text-center px-4 ${maxContentWidth} pt-[50px] mx-auto`}>
+        <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
+          Partenaires
+        </p>
+        <h2 className="text-[28px] font-bold leading-snug text-[var(--color-text-heading)]">
+          Merci à nos partenaires !
+        </h2>
+      </section>
+
+      <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-[90px]`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+          {/* Fitadium */}
+          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+            <span className="text-[#B1BACC] text-2xl font-bold">Fitadium</span>
+          </div>
+          {/* Foodspring */}
+          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+            <span className="text-[#B1BACC] text-2xl font-bold">foodspring</span>
+          </div>
+          {/* MyProtein */}
+          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+            <span className="text-[#B1BACC] text-2xl font-bold tracking-widest">MYPROTEIN</span>
+          </div>
+          {/* Bulk */}
+          <div className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6">
+            <span className="text-[#B1BACC] text-2xl font-bold">bulk</span>
+          </div>
+        </div>
+
+        <div className="text-center text-[#2E3271] font-semibold text-[15px]">
+          Vous voulez devenir partenaire ? <Link href="#" className="text-[var(--color-brand-primary)] hover:underline">Contactez-nous</Link>
         </div>
       </section>
     </>
