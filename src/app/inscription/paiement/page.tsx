@@ -8,6 +8,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import StepDots from "@/components/onboarding/StepDots";
 import { nextStepPath } from "@/lib/onboarding";
+import StripeWrapper from "@/components/stripe/StripeWrapper";
 
 import { getStepMetadata, parsePlan } from "../constants";
 
@@ -48,9 +49,6 @@ const PaymentPage = () => {
     };
   }, [pathname, searchParamsString]);
 
-  const [loading, setLoading] = useState(false);
-  const [accepted, setAccepted] = useState(false);
-
   const trialEndParam = searchParams?.get("trialEnd") ?? null;
 
   const trialEndLabel = useMemo(() => {
@@ -63,21 +61,6 @@ const PaymentPage = () => {
   }, [trialEndParam]);
 
   const priceLabel = searchParams?.get("price") ?? "2,49 €/mois";
-
-  const handleContinue = async () => {
-    if (!accepted) return;
-    setLoading(true);
-    try {
-      const params = new URLSearchParams(searchParams?.toString() ?? "");
-      const destination = nextStepPath(pathname, params);
-      router.replace(destination);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const btnDisabled = !accepted || loading;
-  const arrowIcon = btnDisabled ? "/icons/arrow_grey.svg" : "/icons/arrow.svg";
 
   if (!plan || plan !== "premium" || !stepMetadata) {
     return (
@@ -128,66 +111,7 @@ const PaymentPage = () => {
       </div>
 
       <div className="w-full max-w-[564px] mt-8">
-        <div className="rounded-[12px] bg-white p-6 shadow-sm border border-[#ECE9F1] mb-6">
-          <p className="text-[#5D6494]">[Stripe Payment Element à intégrer]</p>
-        </div>
-
-        <label className="flex items-start gap-3 cursor-pointer select-none text-[14px] font-semibold text-[#5D6494] mb-5">
-          <div className="relative w-[15px] h-[15px] shrink-0 mt-[4px]">
-            <input
-              id="subscription"
-              type="checkbox"
-              checked={accepted}
-              onChange={(event) => setAccepted(event.target.checked)}
-              className="peer sr-only"
-            />
-            <img
-              src="/icons/checkbox_unchecked.svg"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 w-[15px] h-[15px] peer-checked:hidden"
-            />
-            <img
-              src="/icons/checkbox_checked.svg"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 w-[15px] h-[15px] hidden peer-checked:block"
-            />
-          </div>
-          <span className="leading-relaxed">
-            Je comprends que je m’abonne à un service facturé{" "}
-            <span className="font-bold">{priceLabel}</span>, renouvelé automatiquement à la fin de la période d’essai et annulable à tout moment. J’autorise le prélèvement automatique sur ma carte. Je demande l’accès immédiat au service et je reconnais que je renonce à mon droit de rétractation.
-          </span>
-        </label>
-
-        <div className="mt-0 flex justify-center">
-          <button
-            type="button"
-            onClick={handleContinue}
-            disabled={btnDisabled}
-            aria-disabled={btnDisabled}
-            className={`inline-flex items-center justify-center h-[48px] rounded-[25px] px-[15px] text-[16px] font-semibold ${
-              btnDisabled
-                ? "bg-[#ECE9F1] text-[#D7D4DC] cursor-not-allowed"
-                : "bg-[#7069FA] text-white hover:bg-[#6660E4]"
-            }`}
-          >
-            {loading ? (
-              "Validation…"
-            ) : (
-              <>
-                Démarrer mon abonnement
-                <img src={arrowIcon} alt="" aria-hidden="true" className="w-[25px] h-[25px] ml-1" />
-              </>
-            )}
-          </button>
-        </div>
-
-        <div className="mt-5 flex items-center justify-center gap-2 text-[12px] font-semibold text-[#5D6494]">
-          <img src="/icons/cadena_stripe.svg" alt="Sécurisé" className="h-[16px] w-auto mt-[-3px]" />
-          <span>Paiement 100% sécurisé par</span>
-          <img src="/icons/logo_stripe.svg" alt="Stripe" className="h-[16px] w-auto ml-[-3px]" />
-        </div>
+        <StripeWrapper priceLabel={priceLabel} />
       </div>
     </main>
   );
