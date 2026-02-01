@@ -362,6 +362,7 @@ export default function AdminSliderPage() {
                               handleSlideChange(index, "alt", value)
                             }
                             placeholder={`Alt du slider prioritaire ${index + 1}`}
+                            labelClassName="mb-1"
                           />
 
                           <AdminTextField
@@ -371,8 +372,14 @@ export default function AdminSliderPage() {
                               handleSlideChange(index, "link", value)
                             }
                             placeholder={`Lien du slider prioritaire ${index + 1}`}
+                            labelClassName="mb-1"
                           />
                         </div>
+
+                        {/* Separator if not last */}
+                        {index < Number(priorityCount) - 1 && (
+                          <div className="w-full h-[1px] bg-[#D7D4DC] mt-8 mb-2" />
+                        )}
                       </div>
                     ))}
                   </div>
