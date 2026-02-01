@@ -6,10 +6,10 @@ import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import CTAButton from "@/components/CTAButton";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import AdminSliderSkeleton from "./AdminSliderSkeleton";
 import type { Database } from "@/lib/supabase/types";
-type Partner = Database["public"]["Tables"]["partners"]["Row"];
 
 function SaveIcon({ fill }: { fill: string }) {
   return (
@@ -39,6 +39,12 @@ const sliderDoubleOptions = [
   { value: "4", label: "4 sliders" },
   { value: "6", label: "6 sliders" },
 ];
+
+// Options for Priority Slider Count (1 to 6)
+const priorityCountOptions = Array.from({ length: 6 }, (_, i) => ({
+  value: String(i + 1),
+  label: `${i + 1} slider${i > 0 ? "s" : ""} prioritaire${i > 0 ? "s" : ""}`,
+}));
 
 type SliderRow = Database["public"]["Tables"]["sliders_admin"]["Row"];
 type SliderInsert = Database["public"]["Tables"]["sliders_admin"]["Insert"];
@@ -70,15 +76,21 @@ export default function AdminSliderPage() {
 
   const [loading, setLoading] = useState(true);
   const showSkeleton = useMinimumVisibility(loading);
+
+  // State
+  const [isActive, setIsActive] = useState(true);
   const [type, setType] = useState("none");
-  const [count, setCount] = useState("1");
+  const [slotCount, setSlotCount] = useState("1"); // Total slots
+  const [priorityCount, setPriorityCount] = useState("1"); // Priority (Manual) slots
   const [slides, setSlides] = useState<Slide[]>(
     Array.from({ length: 6 }, () => ({ ...emptySlide }))
   );
 
   // Initial state for change detection
+  const [initialIsActive, setInitialIsActive] = useState(true);
   const [initialType, setInitialType] = useState("none");
-  const [initialCount, setInitialCount] = useState("1");
+  const [initialSlotCount, setInitialSlotCount] = useState("1");
+  const [initialPriorityCount, setInitialPriorityCount] = useState("1");
   const [initialSlides, setInitialSlides] = useState<Slide[]>(
     Array.from({ length: 6 }, () => ({ ...emptySlide }))
   );
@@ -97,6 +109,8 @@ export default function AdminSliderPage() {
 
     if (data) {
       setType(data.type ?? "none");
+      setIsActive(data.is_active ?? true);
+      setSlotCount(String(data.slot_count ?? 1));
 
       const slidesValue = Array.isArray(data.slides) ? data.slides : [];
       const normalizedSlides = slidesValue.map(normalizeSlide);
@@ -106,22 +120,29 @@ export default function AdminSliderPage() {
       ].slice(0, 6);
 
       setSlides(paddedSlides);
-      setCount(
-        String(normalizedSlides.length > 0 ? normalizedSlides.length : 1),
+      // Priority count comes from the actual saved slides
+      setPriorityCount(
+        String(normalizedSlides.length > 0 ? normalizedSlides.length : 1)
       );
 
       // Set initial values
       setInitialType(data.type ?? "none");
-      setInitialCount(String(normalizedSlides.length > 0 ? normalizedSlides.length : 1));
+      setInitialIsActive(data.is_active ?? true);
+      setInitialSlotCount(String(data.slot_count ?? 1));
+      setInitialPriorityCount(String(normalizedSlides.length > 0 ? normalizedSlides.length : 1));
       setInitialSlides(paddedSlides);
     } else {
+      // Defaults
       setType("none");
-      setCount("1");
+      setIsActive(true);
+      setSlotCount("1");
+      setPriorityCount("1");
       setSlides(Array.from({ length: 6 }, () => ({ ...emptySlide })));
 
-      // Set initial values defaults
       setInitialType("none");
-      setInitialCount("1");
+      setInitialIsActive(true);
+      setInitialSlotCount("1");
+      setInitialPriorityCount("1");
       setInitialSlides(Array.from({ length: 6 }, () => ({ ...emptySlide })));
     }
 
@@ -132,26 +153,29 @@ export default function AdminSliderPage() {
     void fetchSliderConfig();
   }, [fetchSliderConfig]);
 
+  // Validate Slot Count against Types
   useEffect(() => {
     if (!loading) {
       const simpleValues = sliderSimpleOptions.map((o) => o.value);
       const doubleValues = sliderDoubleOptions.map((o) => o.value);
 
       const isValid =
-        (type === "single" && simpleValues.includes(count)) ||
-        (type === "double" && doubleValues.includes(count));
+        (type === "single" && simpleValues.includes(slotCount)) ||
+        (type === "double" && doubleValues.includes(slotCount));
 
-      if (!isValid) {
-        setCount(type === "double" ? "2" : "1");
+      // Default if invalid
+      if (!isValid && type !== "none") {
+        setSlotCount(type === "double" ? "2" : "1");
       }
     }
-  }, [type, loading, count]);
+  }, [type, loading]); // Remove slotCount dep to avoid loop, just check on type change
 
   const handleSave = async () => {
     setLoading(true);
 
-    const effectiveCount = type === "none" ? 0 : Number(count);
-    const trimmedSlides = slides.slice(0, Math.max(0, effectiveCount)).map(
+    const effectivePriorityCount = Number(priorityCount);
+    // Slice only the priority slides to save
+    const trimmedSlides = slides.slice(0, effectivePriorityCount).map(
       (slide) => ({
         image: slide.image || "",
         alt: slide.alt || "",
@@ -163,6 +187,8 @@ export default function AdminSliderPage() {
     const payload: SliderInsert = {
       type,
       slides: slidesPayload,
+      is_active: isActive,
+      slot_count: Number(slotCount),
     };
 
     const { data: existing, error } = await supabase
@@ -189,10 +215,10 @@ export default function AdminSliderPage() {
     } else {
       // Update initial state after save
       setInitialType(type);
-      setInitialCount(count);
-      setInitialSlides([...slides]); // Clone to avoid ref issues
-
-      // Saved silently
+      setInitialIsActive(isActive);
+      setInitialSlotCount(slotCount);
+      setInitialPriorityCount(priorityCount);
+      setInitialSlides([...slides]); // Clone 
     }
 
     setLoading(false);
@@ -219,9 +245,18 @@ export default function AdminSliderPage() {
   const hasChanges = useMemo(() => {
     if (loading) return false;
     if (type !== initialType) return true;
-    if (count !== initialCount) return true;
-    return JSON.stringify(slides) !== JSON.stringify(initialSlides);
-  }, [loading, type, initialType, count, initialCount, slides, initialSlides]);
+    if (isActive !== initialIsActive) return true;
+    if (slotCount !== initialSlotCount) return true;
+    if (priorityCount !== initialPriorityCount) return true;
+
+    // Check if relevant slides (priority ones) changed
+    // We compare up to the MAX of current or initial priority count to cover added/removed slides
+    const maxCount = Math.max(Number(priorityCount), Number(initialPriorityCount));
+    const currentRelevant = slides.slice(0, maxCount);
+    const initialRelevant = initialSlides.slice(0, maxCount);
+
+    return JSON.stringify(currentRelevant) !== JSON.stringify(initialRelevant);
+  }, [loading, type, initialType, isActive, initialIsActive, slotCount, initialSlotCount, priorityCount, initialPriorityCount, slides, initialSlides]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
@@ -233,85 +268,20 @@ export default function AdminSliderPage() {
         {showSkeleton ? (
           <AdminSliderSkeleton />
         ) : (
-          <>
-            {type !== "none" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                <div className="flex flex-col gap-6 w-full mx-auto">
-                  <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                      Type de slider
-                    </label>
-                    <AdminDropdown
-                      label=""
-                      selected={type}
-                      onSelect={setType}
-                      placeholder="Sélectionnez un type"
-                      options={sliderTypeOptions}
-                    />
-                  </div>
-
-                  <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                      Nombre de slider
-                    </label>
-                    <AdminDropdown
-                      label=""
-                      selected={count}
-                      onSelect={setCount}
-                      placeholder="Sélectionnez un nombre"
-                      options={getSliderCountOptions()}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-6">
-                  {slides.slice(0, Number(count)).map((slide, index) => (
-                    <div key={index} className="flex flex-col">
-                      <div className="flex justify-between">
-                        <span className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                          Slider {index + 1}
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          {type === "single"
-                            ? "1152px x 250px"
-                            : "564px x 250px"}
-                        </span>
-                      </div>
-
-                      <div className="flex flex-col gap-6">
-                        <ImageUploader
-                          value={slide.image}
-                          onChange={(url) =>
-                            handleSlideChange(index, "image", url)
-                          }
-                        />
-
-                        <AdminTextField
-                          label={`Alt slider ${index + 1}`}
-                          value={slide.alt}
-                          onChange={(value) =>
-                            handleSlideChange(index, "alt", value)
-                          }
-                          placeholder={`Alt slider ${index + 1}`}
-                        />
-
-                        <AdminTextField
-                          label={`Lien slider ${index + 1}`}
-                          value={slide.link}
-                          onChange={(value) =>
-                            handleSlideChange(index, "link", value)
-                          }
-                          placeholder={`Lien slider ${index + 1}`}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
+          <div className="flex flex-col gap-10">
+            {/* SLIDER BLOCK */}
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center mb-[20px]">
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase">
+                  SLIDER
+                </h3>
+                <ToggleSwitch
+                  checked={isActive}
+                  onCheckedChange={setIsActive}
+                />
               </div>
-            )}
 
-            {type === "none" && (
-              <div className="flex flex-col gap-6 w-full max-w-md mx-auto mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
                     Type de slider
@@ -324,9 +294,92 @@ export default function AdminSliderPage() {
                     options={sliderTypeOptions}
                   />
                 </div>
+
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                    Nombre de slider
+                  </label>
+                  <AdminDropdown
+                    label=""
+                    selected={slotCount}
+                    onSelect={setSlotCount}
+                    placeholder="Sélectionnez un nombre"
+                    options={getSliderCountOptions()}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* SLIDER PRIORITAIRE BLOCK */}
+            {/* Only show if type is selected? Or always? Assuming always visible if enabled or just always visible for config. */}
+            {type !== "none" && (
+              <div className="flex flex-col">
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
+                  SLIDER PRIORITAIRE
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                      Nombre de slider prioritaire
+                    </label>
+                    <AdminDropdown
+                      label=""
+                      selected={priorityCount}
+                      onSelect={setPriorityCount}
+                      placeholder="1 slider prioritaire"
+                      options={priorityCountOptions}
+                    />
+                  </div>
+
+                  {/* Slides Inputs */}
+                  <div className="flex flex-col gap-6">
+                    {slides.slice(0, Number(priorityCount)).map((slide, index) => (
+                      <div key={index} className="flex flex-col">
+                        <div className="flex justify-between">
+                          <span className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                            Slider prioritaire {index + 1}
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {type === "single"
+                              ? "1152px x 250px"
+                              : "564px x 250px"}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                          <ImageUploader
+                            value={slide.image}
+                            onChange={(url) =>
+                              handleSlideChange(index, "image", url)
+                            }
+                          />
+
+                          <AdminTextField
+                            label={`Alt slider prioritaire ${index + 1}`}
+                            value={slide.alt}
+                            onChange={(value) =>
+                              handleSlideChange(index, "alt", value)
+                            }
+                            placeholder={`Alt du slider prioritaire ${index + 1}`}
+                          />
+
+                          <AdminTextField
+                            label={`Lien slider prioritaire ${index + 1}`}
+                            value={slide.link}
+                            onChange={(value) =>
+                              handleSlideChange(index, "link", value)
+                            }
+                            placeholder={`Lien du slider prioritaire ${index + 1}`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
-          </>
+          </div>
         )}
 
         <div className="mt-10 flex justify-center">
@@ -344,3 +397,4 @@ export default function AdminSliderPage() {
     </main>
   );
 }
+

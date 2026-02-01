@@ -575,8 +575,23 @@ export default function CreateOfferPageClient({
                     />
                   </div>
 
-                  {/* Placeholder for grid alignment if needed */}
-                  <div className="hidden md:block"></div>
+                  {/* Image slider */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">
+                        Image slider
+                      </span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        564px x 250px
+                      </span>
+                    </div>
+                    <ImageUploader
+                      value={offer.slider_image}
+                      onChange={(url) =>
+                        setOffer({ ...offer, slider_image: url })
+                      }
+                    />
+                  </div>
 
                   {/* Image de la marque */}
                   <div className="flex flex-col">

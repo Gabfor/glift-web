@@ -44,15 +44,53 @@ export default function ShopBannerSliderClient() {
 
   useEffect(() => {
     const fetchSliderConfig = async () => {
-      const { data } = await supabase
+      // 1. Fetch Admin Slider Config (Priority Slides & Settings)
+      const { data: adminConfig } = await supabase
         .from("sliders_admin")
         .select("*")
         .single<SliderRow>();
-      if (data && data.type !== "none") {
-        setType(data.type as "single" | "double");
-        setSlides(normalizeSlides(data.slides));
+
+      if (!adminConfig || !adminConfig.is_active || adminConfig.type === "none") {
+        setType("none");
+        setSlides([]);
+        return;
       }
+
+      // 2. Fetch Relevant Offers (with slider_image)
+      // We assume we want enough offers to fill the remaining slots
+      // Priority count comes from the manual slides length
+      const prioritySlides = normalizeSlides(adminConfig.slides);
+      const slotCount = adminConfig.slot_count || 1;
+      const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
+
+      let offerSlides: Slide[] = [];
+
+      if (slotsNeeded > 0) {
+        const { data: offers } = await supabase
+          .from("offer_shop")
+          .select("id, name, slider_image, image_alt, shop_link, shop_website")
+          .eq("status", "ON")
+          .neq("slider_image", null)
+          .limit(slotsNeeded + 2); // Fetch a few more to be safe
+
+        if (offers) {
+          offerSlides = offers
+            .filter((o) => o.slider_image) // Ensure not null (redundant with neq but safe)
+            .map((o) => ({
+              image: o.slider_image!,
+              alt: o.image_alt || o.name,
+              link: o.shop_link || o.shop_website || "",
+            }));
+        }
+      }
+
+      // 3. Merge: Priority First, then Offers
+      const combinedSlides = [...prioritySlides, ...offerSlides].slice(0, slotCount);
+
+      setType(adminConfig.type as "single" | "double");
+      setSlides(combinedSlides);
     };
+
     fetchSliderConfig();
   }, [supabase]);
 
@@ -79,9 +117,8 @@ export default function ShopBannerSliderClient() {
 
   return (
     <div
-      className={`mx-auto mb-12 ${
-        isDouble ? "max-w-[1152px]" : "w-[1152px]"
-      }`}
+      className={`mx-auto mb-12 ${isDouble ? "max-w-[1152px]" : "w-[1152px]"
+        }`}
     >
       <Swiper
         modules={[Pagination, Autoplay]}
@@ -90,17 +127,17 @@ export default function ShopBannerSliderClient() {
           hideControls
             ? false
             : {
-                delay: 4000,
-                disableOnInteraction: false,
-              }
+              delay: 4000,
+              disableOnInteraction: false,
+            }
         }
         pagination={
           hideControls
             ? false
             : {
-                el: paginationRef.current,
-                clickable: true,
-              }
+              el: paginationRef.current,
+              clickable: true,
+            }
         }
         onBeforeInit={(swiper) => {
           swiperRef.current = swiper;

@@ -218,8 +218,8 @@ export default function ShopCard({ offer }: Props) {
         {(() => {
           if (!offer.end_date || !offer.end_date.includes("-")) {
             return (
-              <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
-                <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
+              <div className="text-[14px] text-[#D7D4DC] font-semibold mb-[10px] text-left flex items-center gap-1">
+                <Image src="/icons/check_offer_cross.svg" alt="check" width={20} height={20} />
                 Aucune date d&apos;expiration
               </div>
             );

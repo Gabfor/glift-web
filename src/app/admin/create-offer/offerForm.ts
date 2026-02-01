@@ -25,6 +25,7 @@ type OfferFormState = {
   boost: string;
   image_mobile: string;
   pays: string;
+  slider_image: string;
 };
 
 const emptyOffer: OfferFormState = {
@@ -49,6 +50,7 @@ const emptyOffer: OfferFormState = {
   boost: "NON",
   image_mobile: "",
   pays: "",
+  slider_image: "",
 };
 
 const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
@@ -77,6 +79,7 @@ const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
   boost: String(row.boost) === "true" ? "OUI" : "NON",
   image_mobile: row.image_mobile ?? "",
   pays: row.pays ?? "",
+  slider_image: row.slider_image ?? "",
 });
 
 const buildOfferPayload = (form: OfferFormState): OfferInsert => {
@@ -105,6 +108,7 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
     boost: form.boost === "OUI",
     image_mobile: form.image_mobile || null,
     pays: form.pays || null,
+    slider_image: form.slider_image || null,
   };
 };
 

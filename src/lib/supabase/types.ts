@@ -248,6 +248,7 @@ export interface Database {
           boost: Nullable<boolean>;
           image_mobile: Nullable<string>;
           pays: Nullable<string>;
+          slider_image: Nullable<string>;
         };
         Insert: {
           id?: string;
@@ -275,6 +276,7 @@ export interface Database {
           boost?: Nullable<boolean>;
           image_mobile?: Nullable<string>;
           pays?: Nullable<string>;
+          slider_image?: Nullable<string>;
         };
         Update: {
           id?: string;
@@ -302,6 +304,7 @@ export interface Database {
           boost?: Nullable<boolean>;
           image_mobile?: Nullable<string>;
           pays?: Nullable<string>;
+          slider_image?: Nullable<string>;
         };
         Relationships: never[];
       };
@@ -522,6 +525,8 @@ export interface Database {
           slides: Json;
           created_at: Nullable<string>;
           updated_at: Nullable<string>;
+          is_active: boolean; // New column
+          slot_count: number; // New column
         };
         Insert: {
           id?: string;
@@ -529,6 +534,8 @@ export interface Database {
           slides: Json;
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
+          is_active?: boolean;
+          slot_count?: number;
         };
         Update: {
           id?: string;
@@ -536,6 +543,8 @@ export interface Database {
           slides?: Json;
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
+          is_active?: boolean;
+          slot_count?: number;
         };
         Relationships: never[];
       };
