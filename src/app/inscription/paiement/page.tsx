@@ -103,7 +103,10 @@ const PaymentPage = () => {
       <div className="w-full max-w-[564px] mt-2">
         <div className="relative rounded-[5px] px-5 py-2.5 bg-[#F5F4FF]">
           <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A1A5FD] rounded-l-[5px]" />
-          <p className="text-[12px] font-bold text-[#7069FA] mb-1">Paiement 100% sécurisé</p>
+          <div className="flex items-center gap-2 mb-1">
+            <img src="/icons/cadena_stripe.svg" alt="" className="h-[14px] w-auto" />
+            <p className="text-[12px] font-bold text-[#7069FA]">Paiement 100% sécurisé</p>
+          </div>
           <p className="text-[12px] font-semibold text-[#A1A5FD] leading-relaxed">
             Nous utilisons Stripe comme plateforme de paiement. Stripe respecte les critères de sécurité les plus stricts en vigueur dans l’industrie.
           </p>
