@@ -6,6 +6,7 @@ const adminLinks = [
   { title: "Accueil", href: "/admin/home", visual: "home" },
   { title: "Programmes", href: "/admin/program", visual: "program" },
   { title: "Cartes Store", href: "/admin/program-store", visual: "store" },
+  { title: "Slider", href: "/admin/slider", visual: "slider" },
 
   { title: "Cartes Shop", href: "/admin/offer-shop", visual: "shop" },
   { title: "Blog", href: "/admin/blog", visual: "blog" },
@@ -66,6 +67,21 @@ function CardVisual({ type }: { type: string }) {
               className={`${base} h-[26px] col-span-1"}`}
             />
           ))}
+        </div>
+      );
+
+    case "slider":
+      return (
+        <div className="flex flex-col items-center justify-center w-full">
+          <div className="flex gap-2 w-[85%] mb-2">
+            <div className={`${base} flex-1 h-[32px]`} />
+            <div className={`${base} flex-1 h-[32px]`} />
+          </div>
+          <div className="flex gap-1">
+            <div className="w-[3px] h-[3px] rounded-full bg-[#D7D4DC]" />
+            <div className="w-[3px] h-[3px] rounded-full bg-[#D7D4DC]" />
+            <div className="w-[3px] h-[3px] rounded-full bg-[#D7D4DC]" />
+          </div>
         </div>
       );
 
