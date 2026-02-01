@@ -381,7 +381,7 @@ export default async function Home() {
       {/* Section bonus */}
       <section className={`${surfaceBackground} text-center px-4 ${maxContentWidth} pt-[50px] mx-auto`}>
         <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
-          En bonus
+          Bonus
         </p>
         <h2 id="methode-glift" className="text-[28px] font-bold leading-snug text-[var(--color-text-heading)]">
           Glift, c&apos;est aussi...
@@ -389,60 +389,80 @@ export default async function Home() {
       </section>
       <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[60px] pb-0 grid grid-cols-1 md:grid-cols-2 gap-6`}>
         {/* Glift Store */}
-        <div className="bg-white rounded-[20px] p-8 flex flex-col gap-4 border border-[#D7D4DC]">
-          <div>
-            <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-1">Le Glift Store</h3>
-            <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
-              Le Glift Store vous permet de télécharger gratuitement des programmes de musculation. En un seul clic, votre programme est immédiatement utilisable dans Glift. Vous pouvez l’utiliser tel quel ou y apporter vos modifications si besoin.
-            </p>
+        <div className="bg-white rounded-[20px] p-[20px] flex flex-col lg:flex-row gap-6 items-center lg:items-start border border-[#D7D4DC]">
+          <div className="flex-shrink-0">
+            <Image
+              src="/images/bonus_store.png"
+              alt="Glift Store"
+              width={221}
+              height={221}
+              className="object-contain"
+            />
           </div>
-          <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
-            Découvrir
-            <div className="relative w-[25px] h-[25px]">
-              <Image
-                src="/icons/arrow_blue.svg"
-                alt="Flèche normale"
-                fill
-                className="object-contain transition-opacity  group-hover:opacity-0"
-                priority={false}
-              />
-              <Image
-                src="/icons/arrow.svg"
-                alt="Flèche blanche"
-                fill
-                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                priority={false}
-              />
+          <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
+            <div className="pt-[10px] pr-[10px]">
+              <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">Le Glift Store</h3>
+              <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
+                En seulement un clic, téléchargez <span className="font-bold text-[var(--color-text-heading)]">gratuitement</span> des programmes de musculation correspondant à <span className="font-bold text-[var(--color-text-heading)]">votre profil</span> et à <span className="font-bold text-[var(--color-text-heading)]">votre objectif</span>.
+              </p>
+            </div>
+            <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
+              Découvrir
+              <div className="relative w-[25px] h-[25px]">
+                <Image
+                  src="/icons/arrow_blue.svg"
+                  alt="Flèche normale"
+                  fill
+                  className="object-contain transition-opacity  group-hover:opacity-0"
+                  priority={false}
+                />
+                <Image
+                  src="/icons/arrow.svg"
+                  alt="Flèche blanche"
+                  fill
+                  className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                  priority={false}
+                />
+              </div>
             </div>
           </div>
         </div>
         {/* Glift Shop */}
-        <div className="bg-white rounded-[20px] p-8 flex flex-col gap-4 border border-[#D7D4DC]">
-          <div>
-            <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-1">La Glift Shop</h3>
-            <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
-              La Glift Shop vous donne accès à une sélection d’offres de réduction sur des marques dans l’univers
-              de la musculation. Le petit plus, c’est que nous adaptons les offres à votre profil pour être sûr que vous
-              voyez en priorité ce qui vous intéresse.
-            </p>
+        <div className="bg-white rounded-[20px] p-[20px] flex flex-col lg:flex-row gap-6 items-center lg:items-start border border-[#D7D4DC]">
+          <div className="flex-shrink-0">
+            <Image
+              src="/images/bonus_shop.png"
+              alt="Glift Shop"
+              width={221}
+              height={221}
+              className="object-contain"
+            />
           </div>
-          <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer">
-            Découvrir
-            <div className="relative w-[25px] h-[25px]">
-              <Image
-                src="/icons/arrow_blue.svg"
-                alt="Flèche normale"
-                fill
-                className="object-contain transition-opacity  group-hover:opacity-0"
-                priority={false}
-              />
-              <Image
-                src="/icons/arrow.svg"
-                alt="Flèche blanche"
-                fill
-                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                priority={false}
-              />
+          <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
+            <div className="pt-[10px] pr-[10px]">
+              <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">La Glift Shop</h3>
+              <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold">
+                Une sélection de <span className="font-bold text-[var(--color-text-heading)]">réductions</span> dans l’univers du sport et du bien-être <span className="font-bold text-[var(--color-text-heading)]">adaptées à votre profil</span> et régulièrement mises à jour.
+              </p>
+            </div>
+            <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
+              Découvrir
+              <div className="relative w-[25px] h-[25px]">
+                <Image
+                  src="/icons/arrow_blue.svg"
+                  alt="Flèche normale"
+                  fill
+                  className="object-contain transition-opacity  group-hover:opacity-0"
+                  priority={false}
+                />
+                <Image
+                  src="/icons/arrow.svg"
+                  alt="Flèche blanche"
+                  fill
+                  className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                  priority={false}
+                />
+              </div>
             </div>
           </div>
         </div>
