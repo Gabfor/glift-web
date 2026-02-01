@@ -35,8 +35,6 @@ type Props = {
 export default function ShopCard({ offer }: Props) {
   const [showModal, setShowModal] = useState(false);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  // const [showPremiumModal, setShowPremiumModal] = useState(false); // Removed
-  // const [lockedHover, setLockedHover] = useState(false); // Removed
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!offer.end_date || !offer.end_date.includes("-")) {
       return null;
@@ -48,8 +46,6 @@ export default function ShopCard({ offer }: Props) {
   const supabase = createClient();
 
   const handleClick = async () => {
-
-
     try {
       await supabase.rpc("increment_offer_click", { offer_id: offer.id });
     } catch (error) {
@@ -216,7 +212,7 @@ export default function ShopCard({ offer }: Props) {
         <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
           <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
           Valide depuis le :{" "}
-          <span className="ml-auto text-[#3A416F] font-bold">{formatDate(offer.start_date)}</span>
+          <span className="ml-auto text-[#3A416F] font-semibold">{formatDate(offer.start_date)}</span>
         </div>
 
         {(() => {
@@ -258,7 +254,7 @@ export default function ShopCard({ offer }: Props) {
               <div className="text-[14px] font-semibold mb-[10px] text-left flex items-center gap-1 text-[#5D6494]">
                 <Image src="/icons/check_end_very_soon.svg" alt="ending very soon" width={20} height={20} />
                 L’offre expire dans :
-                <span className="ml-auto text-[#EF4F4E] font-bold">
+                <span className="ml-auto text-[#EF4F4E] font-semibold">
                   {formatCountdown(diffMs)}
                 </span>
               </div>
@@ -270,7 +266,7 @@ export default function ShopCard({ offer }: Props) {
               <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
                 <Image src="/icons/check_end_soon.svg" alt="ending soon" width={20} height={20} />
                 L’offre expire dans :{" "}
-                <span className="ml-auto text-[#F0C863] font-bold">{diffDays} jours</span>
+                <span className="ml-auto text-[#F0C863] font-semibold">{diffDays} jours</span>
               </div>
             );
           }
@@ -279,7 +275,7 @@ export default function ShopCard({ offer }: Props) {
             <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
               <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
               L’offre expire dans :{" "}
-              <span className="ml-auto text-[#3A416F] font-bold">{diffDays} jours</span>
+              <span className="ml-auto text-[#3A416F] font-semibold">{diffDays} jours</span>
             </div>
           );
         })()}
@@ -306,7 +302,7 @@ export default function ShopCard({ offer }: Props) {
                   <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
                   <div className="flex justify-between w-full text-[#5D6494]">
                     <span>Livraison offerte dès :</span>
-                    <span className="text-[#3A416F] font-bold">
+                    <span className="text-[#3A416F] font-semibold">
                       {shippingValue
                         .toLocaleString("fr-FR", {
                           minimumFractionDigits: shippingValue % 1 === 0 ? 0 : 2,
@@ -329,9 +325,16 @@ export default function ShopCard({ offer }: Props) {
 
         <CTAButton
           onClick={handleClick}
-          className="mt-[20px] mb-[30px] mx-auto font-semibold text-[16px]"
+          className="mt-[20px] mb-[20px] mx-auto font-semibold text-[16px] flex items-center justify-center gap-2"
         >
-          Profiter de cette offre
+          En profiter
+          <Image
+            src="/icons/arrow.svg"
+            alt="Flèche"
+            width={25}
+            height={25}
+            className="ml-[-5px]"
+          />
         </CTAButton>
       </div>
 
