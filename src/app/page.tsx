@@ -406,7 +406,7 @@ export default async function Home() {
                 En seulement un clic, téléchargez <span className="font-bold text-[var(--color-text-heading)]">gratuitement</span> des programmes de musculation correspondant à <span className="font-bold text-[var(--color-text-heading)]">votre profil</span> et à <span className="font-bold text-[var(--color-text-heading)]">votre objectif</span>.
               </p>
             </div>
-            <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
+            <Link href="/store" className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
               Découvrir
               <div className="relative w-[25px] h-[25px]">
                 <Image
@@ -424,7 +424,7 @@ export default async function Home() {
                   priority={false}
                 />
               </div>
-            </div>
+            </Link>
           </div>
         </div>
         {/* Glift Shop */}
@@ -445,7 +445,7 @@ export default async function Home() {
                 Une sélection de <span className="font-bold text-[var(--color-text-heading)]">réductions</span> dans l’univers du sport et du bien-être <span className="font-bold text-[var(--color-text-heading)]">adaptées à votre profil</span> et régulièrement mises à jour.
               </p>
             </div>
-            <div className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
+            <Link href="/shop" className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]">
               Découvrir
               <div className="relative w-[25px] h-[25px]">
                 <Image
@@ -463,7 +463,7 @@ export default async function Home() {
                   priority={false}
                 />
               </div>
-            </div>
+            </Link>
           </div>
         </div>
       </section>
