@@ -7,8 +7,10 @@ import { SettingsService } from "@/lib/services/settingsService";
 import CTAButton from "@/components/CTAButton";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import ImageUploader from "@/app/admin/components/ImageUploader";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import { cleanupOrphanedImages } from "./actions";
 
-// Inline SVG for dynamic coloring (same as admin/home)
+// Inline SVG for dynamic coloring
 function SaveIcon({ fill }: { fill: string }) {
     return (
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,13 +25,16 @@ function SaveIcon({ fill }: { fill: string }) {
 export default function AdminSettingsPage() {
     const [logoUrl, setLogoUrl] = useState<string>("");
     const [altText, setAltText] = useState<string>("");
+    const [partnersEnabled, setPartnersEnabled] = useState(true);
 
     // Initial state for change detection
     const [initialLogoUrl, setInitialLogoUrl] = useState<string>("");
     const [initialAltText, setInitialAltText] = useState<string>("");
+    const [initialPartnersEnabled, setInitialPartnersEnabled] = useState(true);
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
+    const [isCleaning, setIsCleaning] = useState(false);
 
     const supabase = createClient();
     const settingsService = new SettingsService(supabase);
@@ -43,9 +48,22 @@ export default function AdminSettingsPage() {
 
                 setLogoUrl(currentLogoUrl);
                 setAltText(currentAltText);
-
                 setInitialLogoUrl(currentLogoUrl);
                 setInitialAltText(currentAltText);
+
+                // Fetch Partners Toggle
+                const { data: siteSettings } = await supabase
+                    .from("site_settings")
+                    .select("value")
+                    .eq("key", "partners_enabled")
+                    .single();
+
+                if (siteSettings) {
+                    const enabled = siteSettings.value === true;
+                    setPartnersEnabled(enabled);
+                    setInitialPartnersEnabled(enabled);
+                }
+
             } catch (error) {
                 console.error("Failed to load settings", error);
             } finally {
@@ -53,9 +71,9 @@ export default function AdminSettingsPage() {
             }
         };
         fetchSettings();
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText);
+    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -65,11 +83,15 @@ export default function AdminSettingsPage() {
             }
             await settingsService.updateSetting("logo_alt", altText);
 
+            await supabase
+                .from("site_settings")
+                .upsert({ key: "partners_enabled", value: partnersEnabled, updated_at: new Date().toISOString() });
+
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
+            setInitialPartnersEnabled(partnersEnabled);
 
-            // alert("Paramètres sauvegardés !"); // Optional, relying on button state feedback usually or toast
         } catch (error) {
             console.error("Save failed", error);
             alert("Erreur lors de la sauvegarde.");
@@ -90,10 +112,16 @@ export default function AdminSettingsPage() {
                 </h2>
 
                 <div className="mb-8">
+                    {/* Header with Toggle */}
                     <div className="flex justify-between items-center mb-[20px]">
-                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">LOGO</span>
+                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">BLOC PARTENAIRE</span>
+                        <ToggleSwitch
+                            checked={partnersEnabled}
+                            onCheckedChange={setPartnersEnabled}
+                        />
                     </div>
 
+                    {/* Inputs */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
                         {/* Logo Upload Section */}
                         <div className="flex flex-col gap-[10px]">
@@ -121,6 +149,7 @@ export default function AdminSettingsPage() {
                         </div>
                     </div>
 
+                    {/* Save Button (Centered, Outside Grid) */}
                     <div className="mt-[50px] flex justify-center">
                         <CTAButton
                             onClick={handleSave}
@@ -131,6 +160,43 @@ export default function AdminSettingsPage() {
                             <SaveIcon fill={hasChanges ? "white" : "#D7D4DC"} />
                             Sauvegarder
                         </CTAButton>
+                    </div>
+
+                    {/* Cleanup Section */}
+                    <div className="mt-[60px]">
+                        <div className="flex justify-between items-center mb-[20px]">
+                            <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">VIDE BUCKETS SUPABASE</span>
+                        </div>
+
+                        {/* Dashed Container */}
+                        <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex items-center pl-6 py-6">
+                            <CTAButton
+                                onClick={async () => {
+                                    if (!confirm("Êtes-vous sûr de vouloir supprimer les images inutilisées ? Cette action est irréversible.")) return;
+
+                                    setIsCleaning(true);
+                                    try {
+                                        const result = await cleanupOrphanedImages();
+                                        alert(result.message);
+                                    } catch (e: any) {
+                                        alert("Erreur lors du nettoyage.");
+                                        console.error(e);
+                                    } finally {
+                                        setIsCleaning(false);
+                                    }
+                                }}
+                                loading={isCleaning}
+                                className="bg-[#111111] hover:bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-3"
+                            >
+                                <Image
+                                    src="/icons/supabase.svg"
+                                    alt="Supabase"
+                                    width={20}
+                                    height={20}
+                                />
+                                Vider Buckets
+                            </CTAButton>
+                        </div>
                     </div>
                 </div>
             </div>
