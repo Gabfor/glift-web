@@ -42,6 +42,31 @@ export async function POST() {
       console.error('[delete-account] sign out failed', signOutError)
     }
 
+    // Cleanup Storage: Avatars
+    // We attempt to clean up the user's avatar folder. 
+    // We don't block deletion if this fails, but we log it.
+    try {
+      const bucketName = process.env.NEXT_PUBLIC_SUPABASE_AVATARS_BUCKET || 'avatars'
+      const { data: files, error: listError } = await adminClient.storage
+        .from(bucketName)
+        .list(userId)
+
+      if (listError) {
+        console.error('[delete-account] failed to list avatar files', listError)
+      } else if (files && files.length > 0) {
+        const pathsToRemove = files.map((f) => `${userId}/${f.name}`)
+        const { error: removeError } = await adminClient.storage
+          .from(bucketName)
+          .remove(pathsToRemove)
+
+        if (removeError) {
+          console.error('[delete-account] failed to remove avatar files', removeError)
+        }
+      }
+    } catch (storageError) {
+      console.error('[delete-account] unexpected storage cleanup error', storageError)
+    }
+
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId)
     if (deleteUserError) {
       console.error('[delete-account] failed to delete auth user', deleteUserError)

@@ -172,15 +172,15 @@ export default function AdminSettingsPage() {
                         <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex items-center pl-6 py-6">
                             <CTAButton
                                 onClick={async () => {
-                                    if (!confirm("Êtes-vous sûr de vouloir supprimer les images inutilisées ? Cette action est irréversible.")) return;
-
                                     setIsCleaning(true);
                                     try {
                                         const result = await cleanupOrphanedImages();
-                                        alert(result.message);
+                                        console.log(result.message);
+                                        if (result.details && result.details.length > 0) {
+                                            console.log("Deleted files:", result.details);
+                                        }
                                     } catch (e: any) {
-                                        alert("Erreur lors du nettoyage.");
-                                        console.error(e);
+                                        console.error("Erreur lors du nettoyage:", e);
                                     } finally {
                                         setIsCleaning(false);
                                     }

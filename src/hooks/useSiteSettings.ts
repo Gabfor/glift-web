@@ -10,44 +10,23 @@ interface LogoSettings {
     isLoading: boolean;
 }
 
-// Simple in-memory cache to prevent multiple fetches
-let globalSettingsCache: { logo_url: string; logo_alt: string } | null = null;
-let globalFetchPromise: Promise<{ logo_url: string; logo_alt: string }> | null = null;
-
 export function useSiteSettings(): LogoSettings {
     const [data, setData] = useState({
-        logoUrl: globalSettingsCache?.logo_url || "/logo_beta.svg",
-        logoAlt: globalSettingsCache?.logo_alt || "Logo Glift",
-        isLoading: !globalSettingsCache,
+        logoUrl: "/logo_beta.svg",
+        logoAlt: "Logo Glift",
+        isLoading: true,
     });
 
     useEffect(() => {
-        if (globalSettingsCache) {
-            setData({
-                logoUrl: globalSettingsCache.logo_url || "/logo_beta.svg",
-                logoAlt: globalSettingsCache.logo_alt || "Logo Glift",
-                isLoading: false,
-            });
-            return;
-        }
-
         const fetchSettings = async () => {
             try {
-                if (!globalFetchPromise) {
-                    const supabase = createClient();
-                    const service = new SettingsService(supabase);
-                    globalFetchPromise = service.getSettings().then(settings => ({
-                        logo_url: settings["logo_url"] || "",
-                        logo_alt: settings["logo_alt"] || ""
-                    }));
-                }
-
-                const result = await globalFetchPromise;
-                globalSettingsCache = result;
+                const supabase = createClient();
+                const service = new SettingsService(supabase);
+                const settings = await service.getSettings();
 
                 setData({
-                    logoUrl: result.logo_url || "/logo_beta.svg",
-                    logoAlt: result.logo_alt || "Logo Glift",
+                    logoUrl: settings["logo_url"] || "/logo_beta.svg",
+                    logoAlt: settings["logo_alt"] || "Logo Glift",
                     isLoading: false,
                 });
             } catch (error) {

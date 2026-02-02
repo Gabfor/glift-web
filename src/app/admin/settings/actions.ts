@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 export type CleanupResult = {
     success: boolean;
@@ -10,7 +10,7 @@ export type CleanupResult = {
 };
 
 export async function cleanupOrphanedImages(): Promise<CleanupResult> {
-    const supabase = await createClient();
+    const supabase = await createClient(); // Regular client for DB
     const deletedFiles: string[] = [];
     let totalDeleted = 0;
 
@@ -50,8 +50,6 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         });
 
         // D. Settings (Logo)
-        // Settings table stores key-value pairs. 
-        // We specifically look for 'logo_url' key based on usage in SettingsService.
         const { data: settings } = await supabase
             .from("settings")
             .select("value")
@@ -60,7 +58,7 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
 
         if (settings?.value) usedUrls.add(settings.value);
 
-        // E. Sliders (JSON parsing)
+        // E. Sliders
         const { data: sliders } = await supabase
             .from("sliders_admin")
             .select("slides");
@@ -73,8 +71,36 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             }
         });
 
+        // F. Avatars (Requires Admin Client)
+        try {
+            const adminClient = createAdminClient();
+            let page = 1;
+            let hasMore = true;
+
+            while (hasMore) {
+                const { data: { users }, error } = await adminClient.auth.admin.listUsers({
+                    page: page,
+                    perPage: 1000
+                });
+
+                if (error) throw error;
+
+                if (!users || users.length === 0) {
+                    hasMore = false;
+                } else {
+                    users.forEach(u => {
+                        const meta = u.user_metadata;
+                        if (meta?.avatar_url) usedUrls.add(meta.avatar_url);
+                        // We could also check meta.avatar_path directly, but strict URL matching is safest for now
+                    });
+                    page++;
+                }
+            }
+        } catch (adminError) {
+            console.warn("Skipping avatars cleanup (Admin privileges missing/error):", adminError);
+        }
+
         // Helper to extract path from URL
-        // URL format: .../storage/v1/object/public/{bucket}/{path}
         const extractPath = (url: string, bucketName: string): string | null => {
             if (!url.includes(`/${bucketName}/`)) return null;
             const parts = url.split(`/${bucketName}/`);
@@ -83,12 +109,60 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         };
 
         // 2. Scan Buckets and Cleanup
-
-        // --- Bucket: program-images ---
-        // Files are typically in "programmes/" folder
-        // We list root (just in case) and "programmes" folder
-        // Note: Supabase list is not recursive by default. We assume simple structure.
         const cleanBucket = async (bucketName: string, folder: string = "") => {
+            // Note: Recurse into subfolders if necessary?
+            // "avatars" uses folder structure: {userId}/{filename}
+            // "program-images" uses "programmes/" and maybe root.
+
+            // For avatars, we need to list recursively if possible.
+            // But supabase storage list is flat per folder.
+            // If we list root of "avatars", we get folder names (user IDs) or files.
+            // We need a proper recursive strategy or assume structure.
+            // For now, let's keep it simple:
+            // "program-images" -> "programmes/" and root.
+            // "avatars" -> root gives folders. listing folders gives files. This is expensive recursively.
+            // Wait, "avatars" structure is `userId/filename`.
+            // Standard user buckets are hard to clean without recursive listing.
+            // If I just list root of avatars, I get folders.
+            // Does list() return folders as objects? Yes.
+
+            // Recursive Lister for specific deep buckets like avatars
+            if (bucketName === "avatars") {
+                const { data: rootItems } = await supabase.storage.from(bucketName).list();
+                if (rootItems) {
+                    for (const item of rootItems) {
+                        if (!item.id) { // It's a folder (Supabase convention usually, or check mimetype?)
+                            // Actually list() returns files AND folders. Folders have `id: null` in some versions or we check distinctness.
+                            // Safest is to try listing content of 'item.name'
+                            const { data: subFiles } = await supabase.storage.from(bucketName).list(item.name);
+                            if (subFiles && subFiles.length > 0) {
+                                const subToDelete: string[] = [];
+                                for (const sub of subFiles) {
+                                    if (sub.name === ".emptyFolderPlaceholder") continue;
+                                    const fullPath = `${item.name}/${sub.name}`;
+
+                                    // Check usage
+                                    const isUsed = Array.from(usedUrls).some(url => {
+                                        const pathInUrl = extractPath(url, bucketName);
+                                        return pathInUrl === fullPath;
+                                    });
+
+                                    if (!isUsed) subToDelete.push(fullPath);
+                                }
+
+                                if (subToDelete.length > 0) {
+                                    await supabase.storage.from(bucketName).remove(subToDelete);
+                                    totalDeleted += subToDelete.length;
+                                    deletedFiles.push(...subToDelete.map(f => `${bucketName}/${f}`));
+                                }
+                            }
+                        }
+                    }
+                }
+                return;
+            }
+
+            // Normal flat buckets
             const { data: files, error } = await supabase.storage.from(bucketName).list(folder, { limit: 1000 });
             if (error) {
                 console.error(`Error listing bucket ${bucketName}/${folder}:`, error);
@@ -98,13 +172,10 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             const toDelete: string[] = [];
 
             for (const file of files) {
-                if (file.name === ".emptyFolderPlaceholder") continue; // Skip placeholders
+                if (file.name === ".emptyFolderPlaceholder") continue;
 
-                // Construct full path
                 const filePath = folder ? `${folder}/${file.name}` : file.name;
 
-                // We match against usedUrls
-                // We check if ANY used URL ends with this filePath
                 const isUsed = Array.from(usedUrls).some(url => {
                     const pathInUrl = extractPath(url, bucketName);
                     return pathInUrl === filePath;
@@ -127,10 +198,14 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         };
 
         await cleanBucket("program-images", "programmes");
-        // Also check root of program-images just in case
+        await cleanBucket("partners", "");
+        // await cleanBucket("logos", ""); // Disabled for safety
 
-        await cleanBucket("partners", ""); // Root
-        await cleanBucket("logos", ""); // Root
+        try {
+            await cleanBucket("avatars", ""); // Will trigger recursive logic
+        } catch (e) {
+            console.error("Error cleaning avatars:", e);
+        }
 
         return {
             success: true,
