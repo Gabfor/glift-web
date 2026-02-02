@@ -106,11 +106,13 @@ const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
 export default function ShopGrid({
   sortBy,
   currentPage,
-  filters
+  filters,
+  onOfferClick,
 }: {
   sortBy: string;
   currentPage: number;
   filters: string[];
+  onOfferClick: (offer: Offer) => void;
 }) {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -414,7 +416,7 @@ export default function ShopGrid({
 
           <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {filteredOffers.map((offer) => (
-              <ShopCard key={offer.id} offer={offer} />
+              <ShopCard key={offer.id} offer={offer} onOfferClick={onOfferClick} />
             ))}
           </div>
 

@@ -11,7 +11,28 @@ import { createClient } from "@/lib/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
 
 type SliderRow = Database["public"]["Tables"]["sliders_admin"]["Row"];
-type Slide = { image: string; alt: string; link: string };
+
+// We define a shape compatible with what ShopCard/Modal expects
+export type OfferData = {
+  id: string;
+  name: string;
+  code: string | null;
+  modal: string | null;
+  condition: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  shop_link: string | null;
+  shop_website: string | null;
+  brand_image: string | null;
+  type: string[] | null;
+};
+
+type Slide = {
+  image: string;
+  alt: string;
+  link: string;
+  offer?: OfferData; // If present, this slide represents an offer
+};
 
 const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
   if (!Array.isArray(value)) {
@@ -32,7 +53,11 @@ const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
   });
 };
 
-export default function ShopBannerSliderClient() {
+type Props = {
+  onOfferClick?: (offer: OfferData) => void;
+};
+
+export default function ShopBannerSliderClient({ onOfferClick }: Props) {
   const supabase = createClient();
   const paginationRef = useRef<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperClass | null>(null);
@@ -66,20 +91,39 @@ export default function ShopBannerSliderClient() {
       let offerSlides: Slide[] = [];
 
       if (slotsNeeded > 0) {
+        // We select ALL fields relevant for the modal + display
         const { data: offers } = await supabase
           .from("offer_shop")
-          .select("id, name, slider_image, image_alt, shop_link, shop_website")
+          .select(`
+            id, name, slider_image, image_alt, 
+            shop_link, shop_website, 
+            code, modal, condition, 
+            start_date, end_date, brand_image, type
+          `)
           .eq("status", "ON")
           .neq("slider_image", null)
-          .limit(slotsNeeded + 2); // Fetch a few more to be safe
+          .limit(slotsNeeded + 2);
 
         if (offers) {
           offerSlides = offers
-            .filter((o) => o.slider_image) // Ensure not null (redundant with neq but safe)
+            .filter((o) => o.slider_image)
             .map((o) => ({
               image: o.slider_image!,
               alt: o.image_alt || o.name,
               link: o.shop_link || o.shop_website || "",
+              offer: {
+                id: o.id,
+                name: o.name,
+                code: o.code,
+                modal: o.modal,
+                condition: o.condition,
+                start_date: o.start_date,
+                end_date: o.end_date,
+                shop_link: o.shop_link,
+                shop_website: o.shop_website,
+                brand_image: o.brand_image,
+                type: o.type,
+              }
             }));
         }
       }
@@ -156,24 +200,39 @@ export default function ShopBannerSliderClient() {
       >
         {slides.map((slide, idx) => (
           <SwiperSlide key={idx}>
-            <a
-              href={slide.link || "#"}
-              target={slide.link ? "_blank" : undefined}
-              rel={slide.link ? "noopener noreferrer" : undefined}
-            >
-              <Image
-                src={slide.image}
-                alt={slide.alt || `Slider ${idx + 1}`}
-                width={width}
-                height={height}
-                className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
-              />
-            </a>
+            {slide.offer && onOfferClick ? (
+              <div
+                onClick={() => onOfferClick(slide.offer!)}
+                className="cursor-pointer block relative group"
+              >
+                <Image
+                  src={slide.image}
+                  alt={slide.alt || `Slider ${idx + 1}`}
+                  width={width}
+                  height={height}
+                  className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
+                />
+              </div>
+            ) : (
+              <a
+                href={slide.link || "#"}
+                target={slide.link ? "_blank" : undefined}
+                rel={slide.link ? "noopener noreferrer" : undefined}
+                className="block relative"
+              >
+                <Image
+                  src={slide.image}
+                  alt={slide.alt || `Slider ${idx + 1}`}
+                  width={width}
+                  height={height}
+                  className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
+                />
+              </a>
+            )}
           </SwiperSlide>
         ))}
       </Swiper>
 
-      {/* Pagination + pause/play uniquement si hideControls === false */}
       {!hideControls && (
         <>
           <div className="mt-5 flex justify-center">
