@@ -114,7 +114,7 @@ const PaymentPage = () => {
       </div>
 
       <div className="w-full max-w-[564px] mt-8">
-        <StripeWrapper priceLabel={priceLabel} />
+        <StripeWrapper priceLabel={priceLabel} plan={plan} />
       </div>
     </main>
   );

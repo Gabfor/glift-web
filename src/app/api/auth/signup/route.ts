@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient();
     const body = await req.json();
 
-    const { email, password, name, plan } = body;
+    const { email, password, name, plan, stripe_customer_id, stripe_subscription_id } = body;
 
     // 🔒 Validation
     if (!email || !password || !name || !plan) {
@@ -78,6 +78,17 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         userService.initializePreferences(userId),
         subscriptionService.initializeSubscription(userId, supabasePlan),
+        // Update user metadata with Stripe IDs if provided
+        (async () => {
+          if (stripe_customer_id && stripe_subscription_id) {
+            await adminClient.auth.admin.updateUserById(userId, {
+              app_metadata: {
+                stripe_customer_id,
+                stripe_subscription_id,
+              }
+            });
+          }
+        })()
       ]);
 
       // 📧 Envoi de l'email de confirmation (Non-bloquant)

@@ -10,17 +10,44 @@ export async function POST(request: Request) {
     try {
         const { email } = await request.json();
 
-        // Dans un vrai cas, on créerait ou récupérerait un Customer Stripe ici
-        // const customer = await stripe.customers.create({ email });
-
-        // Pour un essai gratuit, on veut juste valider la carte (SetupIntent)
-        // Coût : 0€ immédiat
-        const setupIntent = await stripe.setupIntents.create({
-            payment_method_types: ["card"],
-            // complet : customer: customer.id,
+        // 1. Create a customer
+        const customer = await stripe.customers.create({
+            email,
         });
 
-        return NextResponse.json({ clientSecret: setupIntent.client_secret });
+        const priceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+
+        if (!priceId) {
+            throw new Error("STRIPE_PRICE_ID_PREMIUM is not defined in environment variables");
+        }
+
+        // 2. Create a subscription with trial
+        const subscription = await stripe.subscriptions.create({
+            customer: customer.id,
+            items: [{
+                price: priceId,
+            }],
+            trial_period_days: 30,
+            payment_behavior: 'default_incomplete',
+            payment_settings: { save_default_payment_method: 'on_subscription' },
+            expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
+        });
+
+        // 3. Extract client secret
+        // Depending on payment_behavior, it might be in pending_setup_intent or latest_invoice
+        // For 'default_incomplete' with trial, it's usually in pending_setup_intent for card setup
+        const setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent;
+        const clientSecret = setupIntent?.client_secret;
+
+        if (!clientSecret) {
+            throw new Error("Failed to generate client secret for subscription setup");
+        }
+
+        return NextResponse.json({
+            clientSecret: clientSecret,
+            subscriptionId: subscription.id,
+            customerId: customer.id,
+        });
     } catch (error: any) {
         console.error("Internal Error:", error);
         return NextResponse.json(

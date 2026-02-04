@@ -18,6 +18,9 @@ import InfoTooltipAdornment from "@/components/account/fields/InfoTooltipAdornme
 interface CheckoutFormProps {
     priceLabel: string;
     clientSecret: string;
+    plan: string;
+    customerId: string | null;
+    subscriptionId: string | null;
 }
 
 const ELEMENT_OPTIONS = {
@@ -29,7 +32,8 @@ const ELEMENT_OPTIONS = {
             fontWeight: "600",
             "::placeholder": {
                 color: "#D7D4DC",
-                fontWeight: "600",
+                fontWeight: "500",
+                opacity: 1,
             },
             iconColor: "#5D6494",
         },
@@ -39,7 +43,7 @@ const ELEMENT_OPTIONS = {
     },
 };
 
-export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormProps) {
+export default function CheckoutForm({ priceLabel, clientSecret, plan, customerId, subscriptionId }: CheckoutFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const router = useRouter();
@@ -80,7 +84,7 @@ export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormP
             setErrorMessage(error.message ?? "Une erreur est survenue lors du paiement");
             setLoading(false);
         } else {
-            router.push("/inscription?payment_success=true");
+            router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
         }
     };
 
@@ -98,8 +102,8 @@ export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormP
                     </label>
                     <div
                         className={`h-[45px] w-full rounded-[5px] bg-white border px-[15px] flex items-center gap-3 transition-all duration-150 ${focusedField === "cardNumber"
-                                ? "border-transparent ring-2 ring-[#A1A5FD]"
-                                : "border-[#D7D4DC] hover:border-[#C2BFC6]"
+                            ? "border-transparent ring-2 ring-[#A1A5FD]"
+                            : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                             }`}
                     >
                         <div className="flex-1">
@@ -114,7 +118,6 @@ export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormP
                         <div className="flex items-center gap-1">
                             <img src="/icons/visa.svg" alt="Visa" className="h-[20px] w-auto" />
                             <img src="/icons/mastercard.svg" alt="Mastercard" className="h-[20px] w-auto" />
-                            <img src="/icons/amex.svg" alt="Amex" className="h-[20px] w-auto" />
                             <img src="/icons/cb.svg" alt="CB" className="h-[20px] w-auto" />
                         </div>
                     </div>
@@ -127,8 +130,8 @@ export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormP
                     </label>
                     <div
                         className={`h-[45px] w-full rounded-[5px] bg-white border px-[15px] flex items-center transition-all duration-150 ${focusedField === "cardExpiry"
-                                ? "border-transparent ring-2 ring-[#A1A5FD]"
-                                : "border-[#D7D4DC] hover:border-[#C2BFC6]"
+                            ? "border-transparent ring-2 ring-[#A1A5FD]"
+                            : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                             }`}
                     >
                         <CardExpiryElement
@@ -149,8 +152,8 @@ export default function CheckoutForm({ priceLabel, clientSecret }: CheckoutFormP
                     <div className="relative">
                         <div
                             className={`h-[45px] w-full rounded-[5px] bg-white border px-[15px] flex items-center transition-all duration-150 ${focusedField === "cardCvc"
-                                    ? "border-transparent ring-2 ring-[#A1A5FD]"
-                                    : "border-[#D7D4DC] hover:border-[#C2BFC6]"
+                                ? "border-transparent ring-2 ring-[#A1A5FD]"
+                                : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                                 }`}
                         >
                             <CardCvcElement

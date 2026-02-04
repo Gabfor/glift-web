@@ -196,10 +196,8 @@ const InformationsPage = () => {
     const progress = setInterval(() => {
       const seconds = Math.floor((Date.now() - startedAt) / 1000);
       console.log(
-        `[onboarding/submit] en cours... ${seconds}s écoulées | gender=${
-          gender || "(vide)"
-        } | birth=${birthDate || "(vide)"} | exp=${experience || "(vide)"} | goal=${
-          mainGoal || "(vide)"
+        `[onboarding/submit] en cours... ${seconds}s écoulées | gender=${gender || "(vide)"
+        } | birth=${birthDate || "(vide)"} | exp=${experience || "(vide)"} | goal=${mainGoal || "(vide)"
         }`
       );
     }, 5000);
@@ -208,9 +206,13 @@ const InformationsPage = () => {
 
     try {
       const ok = await submit({
-        values: valuesForDb,
+        values: {
+          ...valuesForDb,
+          stripe_customer_id: searchParams?.get("customer_id") ?? undefined,
+          stripe_subscription_id: searchParams?.get("subscription_id") ?? undefined,
+        },
         applyInitials: () => console.log("[onboarding] applyInitials called"),
-        onAfterPersist: () => {},
+        onAfterPersist: () => { },
         debugLabel: "onboarding",
         returnRow: false,
       });

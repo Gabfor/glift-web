@@ -10,18 +10,21 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 interface StripeWrapperProps {
     priceLabel: string;
+    plan: string;
 }
 
-export default function StripeWrapper({ priceLabel }: StripeWrapperProps) {
+export default function StripeWrapper({ priceLabel, plan }: StripeWrapperProps) {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
+    const [customerId, setCustomerId] = useState<string | null>(null);
+    const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Créer le PaymentIntent / SetupIntent dès que la page charge
+        // Créer le PaymentIntent / Sub dès que la page charge
         fetch("/api/create-payment-intent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "user@example.com" }), // On pourrait passer l'email de l'user connectée si dispo
+            body: JSON.stringify({ email: "user@example.com" }),
         })
             .then((res) => res.json())
             .then((data) => {
@@ -29,6 +32,8 @@ export default function StripeWrapper({ priceLabel }: StripeWrapperProps) {
                     setError(data.error);
                 } else {
                     setClientSecret(data.clientSecret);
+                    setCustomerId(data.customerId);
+                    setSubscriptionId(data.subscriptionId);
                 }
             })
             .catch((err) => setError("Erreur réseau: impossible d'initialiser le paiement."));
@@ -98,7 +103,13 @@ export default function StripeWrapper({ priceLabel }: StripeWrapperProps) {
 
     return (
         <Elements stripe={stripePromise} options={options}>
-            <CheckoutForm priceLabel={priceLabel} clientSecret={clientSecret} />
+            <CheckoutForm
+                priceLabel={priceLabel}
+                clientSecret={clientSecret}
+                plan={plan}
+                customerId={customerId}
+                subscriptionId={subscriptionId}
+            />
         </Elements>
     );
 }
