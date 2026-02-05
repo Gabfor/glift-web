@@ -12,7 +12,8 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
 export async function POST(req: Request) {
     const body = await req.text();
-    const signature = headers().get("Stripe-Signature") as string;
+    const headersList = await headers();
+    const signature = headersList.get("Stripe-Signature") as string;
 
     let event: Stripe.Event;
 
@@ -28,9 +29,14 @@ export async function POST(req: Request) {
     try {
         switch (event.type) {
             case "invoice.payment_succeeded": {
-                const invoice = event.data.object as Stripe.Invoice;
-                const subscriptionId = invoice.subscription as string;
-                const customerId = invoice.customer as string;
+                const invoice = event.data.object as any;
+                const subscriptionId = typeof invoice.subscription === 'string'
+                    ? invoice.subscription
+                    : invoice.subscription?.id;
+
+                const customerId = typeof invoice.customer === 'string'
+                    ? invoice.customer
+                    : invoice.customer?.id;
 
                 // Find user by stripe_customer_id in metadata
                 // Note: querying by metadata is slow/complex in standard auth, simpler if we stored it in profiles.
@@ -56,7 +62,9 @@ export async function POST(req: Request) {
             }
             case "customer.subscription.deleted": {
                 const subscription = event.data.object as Stripe.Subscription;
-                const customerId = subscription.customer as string;
+                const customerId = typeof subscription.customer === 'string'
+                    ? subscription.customer
+                    : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer)?.id;
 
                 const { data: { users }, error } = await supabase.auth.admin.listUsers();
                 if (error) throw error;
