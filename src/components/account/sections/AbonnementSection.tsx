@@ -1,12 +1,16 @@
-"use client"
-
+import { PaymentMethod } from "@/lib/services/paymentService"
 import AccountAccordionSection from "../AccountAccordionSection"
 import SubscriptionManager from "../SubscriptionManager"
 
-export default function AbonnementSection() {
+interface AbonnementSectionProps {
+  initialPaymentMethods?: PaymentMethod[]
+  initialIsPremium: boolean
+}
+
+export default function AbonnementSection({ initialPaymentMethods, initialIsPremium }: AbonnementSectionProps) {
   return (
     <AccountAccordionSection value="mon-abonnement" title="Mon abonnement">
-      <SubscriptionManager />
+      <SubscriptionManager initialPaymentMethods={initialPaymentMethods} initialIsPremium={initialIsPremium} />
     </AccountAccordionSection>
   )
 }

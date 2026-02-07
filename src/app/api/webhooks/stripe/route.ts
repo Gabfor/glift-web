@@ -72,11 +72,18 @@ export async function POST(req: Request) {
                 const user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
 
                 if (user) {
-                    // Mark plan as null or expired
+                    // Mark plan as null or expired in user_subscriptions (if used)
                     await supabase.from("user_subscriptions").update({
-                        plan: null, // or "expired"
+                        plan: null,
                         updated_at: new Date().toISOString(),
                     }).eq("user_id", user.id);
+
+                    // Update profiles table as requested
+                    await supabase.from("profiles").update({
+                        subscription_plan: 'basic',
+                        cancellation: false,
+                        updated_at: new Date().toISOString(),
+                    } as any).eq("id", user.id);
                 }
                 break;
             }

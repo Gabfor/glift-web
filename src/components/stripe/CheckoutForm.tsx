@@ -21,6 +21,7 @@ interface CheckoutFormProps {
     plan: string;
     customerId: string | null;
     subscriptionId: string | null;
+    onSuccess?: () => void;
 }
 
 const ELEMENT_OPTIONS = {
@@ -43,7 +44,8 @@ const ELEMENT_OPTIONS = {
     },
 };
 
-export default function CheckoutForm({ priceLabel, clientSecret, plan, customerId, subscriptionId }: CheckoutFormProps) {
+export default function CheckoutForm(props: CheckoutFormProps) {
+    const { priceLabel, clientSecret, plan, customerId, subscriptionId } = props;
     const stripe = useStripe();
     const elements = useElements();
     const router = useRouter();
@@ -84,7 +86,11 @@ export default function CheckoutForm({ priceLabel, clientSecret, plan, customerI
             setErrorMessage(error.message ?? "Une erreur est survenue lors du paiement");
             setLoading(false);
         } else {
-            router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
+            if (props.onSuccess) {
+                props.onSuccess();
+            } else {
+                router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
+            }
         }
     };
 

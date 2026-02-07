@@ -60,10 +60,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<CustomUser | null>(() => sessionUser);
   /* 
    * SIMPLIFICATION (Antigravity):
-   * Initialisation à false pour éviter d'utiliser les métadonnées potentiellement obsolètes.
-   * La vraie valeur sera chargée via fetchUser -> profiles table.
+   * Initialisation depuis les métadonnées de session pour éviter le flicker.
+   * La valeur définitive sera confirmée par fetchUser -> profiles table.
    */
-  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [isPremiumUser, setIsPremiumUser] = useState(() => {
+    return sessionUser?.user_metadata?.subscription_plan === 'premium';
+  });
   const [isLoading, setIsLoading] = useState(() => !sessionUser);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(() => {

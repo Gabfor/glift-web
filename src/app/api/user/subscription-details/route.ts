@@ -1,12 +1,10 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import { PaymentService } from '@/lib/services/paymentService';
+import { PaymentService } from '@/lib/services/paymentService'; // Adjust import path if needed
 
 export async function GET(request: Request) {
     try {
         const supabase = await createClient();
-
-        // 1. Verify Authentication
         const { data: { user }, error } = await supabase.auth.getUser();
 
         if (error || !user) {
@@ -14,15 +12,11 @@ export async function GET(request: Request) {
         }
 
         const paymentService = new PaymentService(supabase);
-        const paymentMethods = await paymentService.getUserPaymentMethods(user.id, user.email, user.app_metadata);
+        const details = await paymentService.getSubscriptionDetails(user.email!, user.id, user.user_metadata || user.app_metadata);
 
-        return NextResponse.json({ data: paymentMethods });
-
+        return NextResponse.json(details || { status: 'none' });
     } catch (error: any) {
-        console.error("Error fetching payment methods:", error);
-        return NextResponse.json(
-            { error: `Internal Server Error: ${error.message}` },
-            { status: 500 }
-        );
+        console.error("Get subscription details error:", error);
+        return NextResponse.json({ error: error.message }, { status: 500 });
     }
 }

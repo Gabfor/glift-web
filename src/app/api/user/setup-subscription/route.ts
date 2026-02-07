@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/services/paymentService';
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
     try {
         const supabase = await createClient();
 
@@ -14,12 +14,12 @@ export async function GET(request: Request) {
         }
 
         const paymentService = new PaymentService(supabase);
-        const paymentMethods = await paymentService.getUserPaymentMethods(user.id, user.email, user.app_metadata);
+        const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, user.app_metadata);
 
-        return NextResponse.json({ data: paymentMethods });
+        return NextResponse.json(setupData);
 
     } catch (error: any) {
-        console.error("Error fetching payment methods:", error);
+        console.error("Error setting up subscription:", error);
         return NextResponse.json(
             { error: `Internal Server Error: ${error.message}` },
             { status: 500 }

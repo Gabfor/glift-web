@@ -3,6 +3,13 @@ import CTAButton from "@/components/CTAButton";
 import Tooltip from "@/components/Tooltip";
 import { useEffect, useState } from "react";
 
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+import CheckoutForm from "@/components/stripe/CheckoutForm";
+
+// Initialize Stripe outside of component
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+
 const PlanOption = ({
     title,
     subtitle,
@@ -90,13 +97,13 @@ const PaymentMethodCard = ({
             <div className="flex items-center gap-4">
                 <div className="w-[50px] h-[34px] flex items-center justify-center overflow-hidden">
                     {brandIcon ? (
-                        <img src={brandIcon} alt={brand} className="h-full w-auto object-contain" />
+                        <img src={brandIcon} alt={brand} className={`${brand.toLowerCase() === 'visa' ? 'h-[25px]' : 'h-full'} w-auto object-contain`} />
                     ) : (
                         <span className="text-[10px] font-bold text-gray-500 uppercase">{brand}</span>
                     )}
                 </div>
                 <div className="flex flex-col text-left">
-                    <span className="text-[16px] font-semibold text-[#2E3271]">
+                    <span className="text-[14px] font-semibold text-[#2E3271]">
                         {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                     </span>
                     <span className="text-[12px] font-semibold text-[#5D6494]">
@@ -109,7 +116,7 @@ const PaymentMethodCard = ({
                 <button
                     onClick={onEdit}
                     type="button"
-                    className="text-[15px] font-semibold text-[#7069FA] hover:text-[#5a52cc] transition-colors"
+                    className="text-[14px] font-semibold text-[#7069FA] hover:text-[#5a52cc] transition-colors"
                 >
                     Modifier
                 </button>
@@ -136,60 +143,143 @@ const PaymentMethodCard = ({
     )
 }
 
-interface PaymentMethod {
-    id: string;
-    brand: string;
-    last4: string;
-    exp_month: number;
-    exp_year: number;
+import ModalMessage from "@/components/ui/ModalMessage";
+import { PaymentMethod } from "@/lib/services/paymentService";
+
+interface SubscriptionManagerProps {
+    initialPaymentMethods?: PaymentMethod[];
+    initialIsPremium?: boolean; // Optional because it might not be provided in all usages
 }
 
-export default function SubscriptionManager() {
-    const { isPremiumUser, isLoading } = useUser();
-    const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">("starter");
+export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
+    const { isPremiumUser, isLoading, refreshUser } = useUser();
+
+    // Initialize with server-side value if available, or default to starter
+    const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">(() => {
+        return initialIsPremium ? "premium" : "starter";
+    });
+
     const [loading, setLoading] = useState(false);
-    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(initialPaymentMethods?.[0] || null);
 
-    // Sync state with user profile when loaded
-    useEffect(() => {
-        setSelectedPlan(isPremiumUser ? "premium" : "starter");
-    }, [isPremiumUser]);
+    // New state for inline form
+    const [isAddingMethod, setIsAddingMethod] = useState(false);
+    const [closeHovered, setCloseHovered] = useState(false);
+    const [setupData, setSetupData] = useState<{ clientSecret: string; customerId: string; subscriptionId: string; plan: string } | null>(null);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
-    useEffect(() => {
-        async function fetchPaymentMethod() {
-            try {
-                console.log("Fetching payment methods...");
-                const res = await fetch('/api/user/payment-methods');
-                console.log("Fetch status:", res.status);
-                if (res.ok) {
-                    const json = await res.json();
-                    console.log("Fetch data:", json);
-                    if (json.data && json.data.length > 0) {
-                        setPaymentMethod(json.data[0]);
-                    } else {
-                        console.log("No payment methods found");
-                    }
+    const [successPlan, setSuccessPlan] = useState<'premium' | 'starter' | null>(null);
+    const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
+
+    const fetchPaymentMethod = async () => {
+        try {
+            console.log("Fetching payment methods...");
+            const res = await fetch('/api/user/payment-methods');
+            if (res.ok) {
+                const json = await res.json();
+                if (json.data && json.data.length > 0) {
+                    setPaymentMethod(json.data[0]);
+                    setIsAddingMethod(false); // Close form on success
+                } else {
+                    setPaymentMethod(null);
                 }
-            } catch (err) {
-                console.error("Failed to fetch payment methods", err);
             }
+        } catch (err) {
+            console.error("Failed to fetch payment methods", err);
         }
+    };
+
+    const handleStartSetup = async () => {
+        setIsAddingMethod(true);
+        try {
+            const res = await fetch('/api/user/setup-subscription', { method: 'POST' });
+            if (res.ok) {
+                const data = await res.json();
+                setSetupData(data);
+            }
+        } catch (e) {
+            console.error("Setup error", e);
+            setIsAddingMethod(false);
+        }
+    };
+
+    const [hasSyncedWithServer, setHasSyncedWithServer] = useState(false);
+
+    // Sync sync-state: if context matches initial, we are synced
+    useEffect(() => {
+        if (!isLoading && isPremiumUser === initialIsPremium) {
+            setHasSyncedWithServer(true);
+        }
+    }, [isPremiumUser, isLoading, initialIsPremium]);
+
+    // Sync state with user profile when loaded client-side (reconciliation)
+    useEffect(() => {
+        if (!isLoading && hasSyncedWithServer) {
+            setSelectedPlan(isPremiumUser ? "premium" : "starter");
+        }
+    }, [isPremiumUser, isLoading, hasSyncedWithServer]);
+
+    useEffect(() => {
         if (isPremiumUser) {
             fetchPaymentMethod();
+            // Fetch subscription details to check for pending cancellation
+            fetch('/api/user/subscription-details')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.cancel_at_period_end) {
+                        setSuccessPlan('starter');
+                        if (data.current_period_end) {
+                            setSubscriptionEndDate(data.current_period_end);
+                        }
+                        setShowSuccessMessage(true);
+                    }
+                })
+                .catch(err => console.error("Failed to fetch sub details", err));
         }
     }, [isPremiumUser]);
 
+
+    // Determine effective premium status: use server prop if not yet synced
+    const effectiveIsPremium = hasSyncedWithServer ? isPremiumUser : initialIsPremium;
+
     const isCurrentPlan =
-        (isPremiumUser && selectedPlan === "premium") ||
-        (!isPremiumUser && selectedPlan === "starter");
+        (effectiveIsPremium && selectedPlan === "premium") ||
+        (!effectiveIsPremium && selectedPlan === "starter");
 
     const handleUpdate = async () => {
         setLoading(true);
-        // TODO: Implement update logic
-        setTimeout(() => {
-            console.log("Update plan to:", selectedPlan);
+        setShowSuccessMessage(false);
+        setSuccessPlan(null);
+        try {
+            const res = await fetch('/api/user/update-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ plan: selectedPlan })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium');
+                const isStarterSuccess = selectedPlan === 'starter' && (data.status === 'canceled_at_period_end' || data.status === 'already_starter');
+
+                if (isPremiumSuccess || isStarterSuccess) {
+                    setSuccessPlan(selectedPlan);
+                    if (data.currentPeriodEnd) {
+                        setSubscriptionEndDate(data.currentPeriodEnd);
+                    }
+                    setShowSuccessMessage(true);
+                    // Refresh user context to update UI to 'Premium' state without reload
+                    await refreshUser();
+                    setHasSyncedWithServer(true); // Force sync on successful update
+                }
+            } else {
+                console.error("Update failed", data.error);
+                // Maybe show error toast
+            }
+        } catch (err) {
+            console.error("Update error", err);
+        } finally {
             setLoading(false);
-        }, 1000);
+        }
     };
 
     const handleDeletePaymentMethod = () => {
@@ -199,7 +289,7 @@ export default function SubscriptionManager() {
 
     const handleEditPaymentMethod = () => {
         console.log("Edit payment method");
-        // Implement edit logic
+        handleStartSetup();
     };
 
     if (isLoading) {
@@ -212,6 +302,18 @@ export default function SubscriptionManager() {
 
     return (
         <div className="w-full text-left mt-[14px] mb-8 px-[100px]">
+            {showSuccessMessage && (
+                <div className="mb-6 w-full">
+                    <ModalMessage
+                        variant="success"
+                        title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : "Félicitations !"}
+                        description={successPlan === 'starter'
+                            ? `Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium, soit le ${subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.`
+                            : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium."
+                        }
+                    />
+                </div>
+            )}
             <div className="space-y-4 mb-0">
                 <PlanOption
                     title="Abonnement Starter"
@@ -232,7 +334,7 @@ export default function SubscriptionManager() {
             </div>
 
             <div className="mt-[20px] mb-[40px]">
-                {selectedPlan === 'premium' && paymentMethod ? (
+                {paymentMethod && !isAddingMethod ? (
                     <PaymentMethodCard
                         brand={paymentMethod.brand}
                         last4={paymentMethod.last4}
@@ -242,19 +344,95 @@ export default function SubscriptionManager() {
                         onDelete={handleDeletePaymentMethod}
                     />
                 ) : (
-                    <button
-                        type="button"
-                        className="w-full h-[60px] rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
-                    >
-                        + Ajouter un mode de paiement
-                    </button>
+                    <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] overflow-hidden">
+                        {!isAddingMethod ? (
+                            <button
+                                onClick={handleStartSetup}
+                                type="button"
+                                className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
+                            >
+                                + Ajouter un mode de paiement
+                            </button>
+                        ) : (
+                            <div className="px-6 pb-6 pt-10 bg-white relative">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsAddingMethod(false);
+                                        setSetupData(null);
+                                    }}
+                                    onMouseEnter={() => setCloseHovered(true)}
+                                    onMouseLeave={() => setCloseHovered(false)}
+                                    className="absolute right-4 top-4 h-6 w-6 transition-opacity z-10"
+                                    aria-label="Fermer"
+                                >
+                                    <img
+                                        src={closeHovered ? "/icons/close_hover.svg" : "/icons/close.svg"}
+                                        alt="Fermer"
+                                        className="w-full h-full"
+                                    />
+                                </button>
+                                {setupData ? (
+                                    <Elements stripe={stripePromise} options={{
+                                        clientSecret: setupData.clientSecret,
+                                        locale: 'fr',
+                                        fonts: [
+                                            {
+                                                cssSrc: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap',
+                                            },
+                                        ],
+                                        appearance: {
+                                            theme: 'flat',
+                                            variables: {
+                                                colorPrimary: '#7069FA',
+                                                colorBackground: '#ffffff',
+                                                colorText: '#5D6494',
+                                                colorDanger: '#df1b41',
+                                                fontFamily: 'Quicksand, system-ui, sans-serif',
+                                                spacingUnit: '4px',
+                                                borderRadius: '5px',
+                                                fontSizeBase: '16px',
+                                                colorTextSecondary: '#D7D4DC',
+                                                colorTextPlaceholder: '#D7D4DC',
+                                            },
+                                            rules: {
+                                                '.Input': {
+                                                    border: '1px solid #D7D4DC',
+                                                    padding: '10px 15px',
+                                                },
+                                                '.Input:focus': {
+                                                    borderColor: 'transparent',
+                                                    boxShadow: '0 0 0 2px #A1A5FD',
+                                                },
+                                            }
+                                        }
+                                    }}>
+                                        <CheckoutForm
+                                            priceLabel="2,49 €/mois"
+                                            clientSecret={setupData.clientSecret}
+                                            plan={setupData.plan}
+                                            customerId={setupData.customerId}
+                                            subscriptionId={setupData.subscriptionId}
+                                            onSuccess={() => {
+                                                fetchPaymentMethod();
+                                            }}
+                                        />
+                                    </Elements>
+                                ) : (
+                                    <div className="flex justify-center items-center py-10">
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
 
             <div className="flex justify-center">
                 <CTAButton
                     onClick={handleUpdate}
-                    disabled={isCurrentPlan}
+                    disabled={isCurrentPlan || (selectedPlan === 'premium' && !paymentMethod)}
                     loading={loading}
                     className="px-[30px] font-semibold bg-[#F4F5FE] text-[#7069FA] hover:bg-[#EBEDFE]"
                 >
