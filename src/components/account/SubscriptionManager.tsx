@@ -1,7 +1,7 @@
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 import Tooltip from "@/components/Tooltip";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -213,11 +213,28 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     useEffect(() => {
         if (isPremiumUser) {
             fetchPaymentMethod();
+
+            // Check local state immediately to show message on reload
+            const now = new Date();
+            if (premiumEndAt && new Date(premiumEndAt) > now) {
+                setSuccessPlan('starter');
+                setSubscriptionEndDate(Math.floor(new Date(premiumEndAt).getTime() / 1000));
+                setShowSuccessMessage(true);
+            }
+
             // Fetch subscription details to check for pending cancellation
-            fetch('/api/user/subscription-details')
+            fetch(`/api/user/subscription-details?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     // Check local Premium End (paid) or Trial End, or Stripe Cancel at Period End
+
+                    // Race condition guard: If user just updated, ignore this fetch result if it contradicts
+                    if (Date.now() - lastActionTime.current < 5000) {
+                        console.log("Ignored stale subscription fetch due to recent action");
+                        return;
+                    }
+
+                    console.log("Subscription details fetched:", data);
 
                     const now = new Date();
                     const hasFutureTrialEnd = premiumTrialEndAt && new Date(premiumTrialEndAt) > now;
@@ -225,17 +242,18 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
                     if (data && data.status) {
                         // User has a Stripe subscription
-                        if (data.cancel_at_period_end) {
-                            // Cancellation pending (Stripe)
+                        if (data.cancel_at_period_end || hasFuturePremiumEnd) {
+                            // Cancellation pending (Stripe or DB)
                             setSuccessPlan('starter');
                             // Show end of current period
                             if (data.current_period_end) {
                                 setSubscriptionEndDate(data.current_period_end);
+                            } else if (hasFuturePremiumEnd) {
+                                setSubscriptionEndDate(Math.floor(new Date(premiumEndAt!).getTime() / 1000));
                             }
                             setShowSuccessMessage(true);
                         } else {
-                            // Active Stripe subscription (auto-renews)
-                            // Do NOT show downgrade message even if trial end is set
+                            // Active Stripe subscription (auto-renews) AND NO local cancellation date
                             setShowSuccessMessage(false);
                             setSuccessPlan(null);
                         }
@@ -268,8 +286,13 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         (effectiveIsPremium && selectedPlan === "premium") ||
         (!effectiveIsPremium && selectedPlan === "starter");
 
+    const lastActionTime = useRef<number>(0);
+
     const handleUpdate = async () => {
         setLoading(true);
+        lastActionTime.current = Date.now(); // Mark action start time
+        // Do NOT clear success message immediately if switching context? 
+        // Better to clear it to avoid confusion.
         setShowSuccessMessage(false);
         setSuccessPlan(null);
         try {
@@ -280,6 +303,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             });
             const data = await res.json();
             if (res.ok) {
+                console.log("Update SUCCESS:", data);
+                console.log("Selected Plan:", selectedPlan); // Log selected plan
                 const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium' || data.status === 'reactivated');
                 const isStarterSuccess = selectedPlan === 'starter' && (data.status === 'canceled_at_period_end' || data.status === 'already_starter');
 
@@ -329,7 +354,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         variant="success"
                         title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : "Félicitations !"}
                         description={successPlan === 'starter'
-                            ? `Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium, soit le ${subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.`
+                            ? `Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium actuelle, soit le ${subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.`
                             : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium."
                         }
                     />

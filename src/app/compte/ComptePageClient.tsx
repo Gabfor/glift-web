@@ -17,7 +17,7 @@ interface ComptePageClientProps {
 }
 
 export default function ComptePageClient({ initialPaymentMethods, initialIsPremium }: ComptePageClientProps) {
-  const { user } = useUser()
+  const { user, isEmailVerified } = useUser()
   const [openSections, setOpenSections] = useState<string[]>([])
 
   const openSectionFromHash = useCallback(() => {
@@ -29,20 +29,27 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
     }
 
     setOpenSections((current) => {
-      if (current.length === 1 && current[0] === hash) {
+      // If the section is already open, keep it open (and potentially others)
+      if (current.includes(hash)) {
         return current
       }
-      return [hash]
+      // Add the new section to the list of open sections to avoid layout shift
+      // This solves the scroll issue when navigating from a higher open section
+      return [...current, hash]
     })
 
     const target = document.getElementById(hash)
     if (target) {
-      const headerOffset = 110
+      // Base offset 110px. Add 36px if email not verified (banner visible)
+      // Check logic from Header.tsx: show if verified is false or (null AND not confirmed)
+      const shouldShowBanner = isEmailVerified === false || (isEmailVerified === null && !user?.email_confirmed_at)
+      const headerOffset = 110 + (shouldShowBanner ? 36 : 0)
+
       const { top } = target.getBoundingClientRect()
       const scrollTop = window.scrollY + top - headerOffset
       window.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
     }
-  }, [])
+  }, [isEmailVerified, user])
 
   useEffect(() => {
     openSectionFromHash()
