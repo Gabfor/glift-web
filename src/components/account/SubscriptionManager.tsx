@@ -2,6 +2,11 @@ import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 import Tooltip from "@/components/Tooltip";
 import { useEffect, useState, useRef } from "react";
+import Modal from "@/components/ui/Modal";
+import ConfirmationModal from "@/components/ui/ConfirmationModal";
+import ModalMessage from "@/components/ui/ModalMessage";
+import { PaymentMethod } from "@/lib/services/paymentService";
+
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -17,6 +22,7 @@ const PlanOption = ({
     period,
     isSelected,
     onSelect,
+    badge,
 }: {
     title: string;
     subtitle: string;
@@ -24,47 +30,54 @@ const PlanOption = ({
     period: string;
     isSelected: boolean;
     onSelect: () => void;
+    badge?: React.ReactNode;
 }) => {
     return (
         <div
             onClick={onSelect}
-            className="flex items-center justify-between py-2 cursor-pointer group"
+            className={`flex flex-col cursor-pointer group ${badge ? 'pt-0 pb-2' : 'py-2'}`}
         >
-            <div className="flex items-center gap-3">
-                <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
-                    <img
-                        src={isSelected ? "/icons/radio_ON.svg" : "/icons/radio_OFF.svg"}
-                        alt={isSelected ? "Selected" : "Not selected"}
-                        className="w-full h-full"
-                    />
+            {badge && (
+                <div className="mb-1 ml-8">
+                    {badge}
                 </div>
-                <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-1">
-                    <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
-                        {title}
+            )}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
+                        <img
+                            src={isSelected ? "/icons/radio_ON.svg" : "/icons/radio_OFF.svg"}
+                            alt={isSelected ? "Selected" : "Not selected"}
+                            className="w-full h-full"
+                        />
+                    </div>
+                    <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-1">
+                        <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
+                            {title}
+                        </span>
+                        <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
+                            {subtitle}
+                        </span>
+                    </div>
+                </div>
+                <div className="flex items-baseline gap-1">
+                    <span
+                        className={`text-[20px] font-bold ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"
+                            }`}
+                    >
+                        {price}
                     </span>
-                    <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
-                        {subtitle}
+                    <span
+                        className={`text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
+                            }`}
+                    >
+                        {period}
                     </span>
                 </div>
-            </div>
-            <div className="flex items-baseline gap-1">
-                <span
-                    className={`text-[20px] font-bold ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"
-                        }`}
-                >
-                    {price}
-                </span>
-                <span
-                    className={`text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
-                        }`}
-                >
-                    {period}
-                </span>
             </div>
         </div>
     );
 };
-
 const PaymentMethodCard = ({
     brand,
     last4,
@@ -143,8 +156,7 @@ const PaymentMethodCard = ({
     )
 }
 
-import ModalMessage from "@/components/ui/ModalMessage";
-import { PaymentMethod } from "@/lib/services/paymentService";
+
 
 interface SubscriptionManagerProps {
     initialPaymentMethods?: PaymentMethod[];
@@ -152,7 +164,7 @@ interface SubscriptionManagerProps {
 }
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
-    const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt } = useUser();
+    const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial } = useUser();
 
     // Initialize with server-side value if available, or default to starter
     const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">(() => {
@@ -160,6 +172,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     });
 
     const [loading, setLoading] = useState(false);
+    const [showDowngradeModal, setShowDowngradeModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(initialPaymentMethods?.[0] || null);
 
     // New state for inline form
@@ -288,7 +303,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     const lastActionTime = useRef<number>(0);
 
-    const handleUpdate = async () => {
+    const processUpdate = async () => {
         setLoading(true);
         lastActionTime.current = Date.now(); // Mark action start time
         // Do NOT clear success message immediately if switching context? 
@@ -328,9 +343,63 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         }
     };
 
+    const handleUpdate = () => {
+        if (isPremiumUser && selectedPlan === 'starter') {
+            setShowDowngradeModal(true);
+            return;
+        }
+        processUpdate();
+    };
+
+    const confirmDowngrade = () => {
+        setShowDowngradeModal(false);
+        processUpdate();
+    };
+
     const handleDeletePaymentMethod = () => {
-        console.log("Delete payment method");
-        // Implement deletion logic
+        setShowDeleteModal(true);
+    };
+
+    const confirmDeletePaymentMethod = async () => {
+        if (!paymentMethod) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/user/payment-methods?id=${paymentMethod.id}`, {
+                method: 'DELETE',
+            });
+
+            if (res.ok) {
+                // Determine if we need to show starter success message?
+                // Deletion implies downgrade.
+                setSuccessPlan('starter');
+                // We could fetch subscription details to get the exact end date, 
+                // but let's assume end of period or just let the user see the banner.
+                // Or better, let's trigger a refresh or check.
+                setShowDeleteModal(false);
+                setPaymentMethod(null);
+
+                // Fetch updated subscription details to enable success banner with date
+                fetch(`/api/user/subscription-details?t=${Date.now()}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.current_period_end) {
+                            setSubscriptionEndDate(data.current_period_end);
+                        } else if (premiumEndAt) {
+                            // Fallback if already set in context, though context might be stale immediately
+                            setSubscriptionEndDate(Math.floor(new Date(premiumEndAt).getTime() / 1000));
+                        }
+                        setShowSuccessMessage(true);
+                    });
+
+                await refreshUser();
+            } else {
+                console.error("Failed to delete payment method");
+            }
+        } catch (error) {
+            console.error("Error deleting payment method", error);
+        } finally {
+            setIsDeleting(false);
+        }
     };
 
     const handleEditPaymentMethod = () => {
@@ -348,6 +417,62 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     return (
         <div className="w-full text-left mt-[14px] mb-8 px-[100px]">
+            <ConfirmationModal
+                open={showDowngradeModal}
+                title="Modification d’abonnement"
+                variant="info"
+                messageTitle="Etes-vous sûr de vouloir changer d’abonnement ?"
+                messageDescription="L’abonnement Starter permet de créer et d’utiliser gratuitement uniquement un seul entraînement composé de 10 exercices maximum."
+                onConfirm={confirmDowngrade}
+                confirmLabel="Modifier"
+                onClose={() => {
+                    setShowDowngradeModal(false);
+                    setSelectedPlan("premium");
+                }}
+                onCancel={() => {
+                    setShowDowngradeModal(false);
+                    setSelectedPlan("premium");
+                }}
+                cancelLabel="Annuler"
+                confirmButtonProps={{ loading }}
+                cancelButtonProps={{ disabled: loading }}
+            >
+                <div className="space-y-4">
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F]">« Modifier »</span> vous passerez à l’abonnement Starter dès la fin de votre abonnement Premium. Vous ne serez plus débité de 2,49 € tous les mois. Vous pourrez repasser à un abonnement Premium à tout moment.
+                    </p>
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous continuerez de profiter d’un stockage illimité.
+                    </p>
+                </div>
+            </ConfirmationModal>
+
+            <ConfirmationModal
+                open={showDeleteModal}
+                title="Suppression du moyen de paiement"
+                variant="warning"
+                messageTitle="Attention"
+                messageDescription={
+                    <span>
+                        En supprimant votre moyen de paiement, vous mettrez fin à votre abonnement Premium et vous serez basculé vers un abonnement Starter.
+                    </span>
+                }
+                onConfirm={confirmDeletePaymentMethod}
+                confirmLabel="Supprimer"
+                onClose={() => setShowDeleteModal(false)}
+                onCancel={() => setShowDeleteModal(false)}
+                confirmButtonProps={{ loading: isDeleting }}
+                cancelButtonProps={{ disabled: isDeleting }}
+            >
+                <div className="space-y-4">
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F]">« Supprimer »</span> vous passerez à l’abonnement Starter dès la fin de votre abonnement Premium. Vous ne serez plus débité de 2,49 € tous les mois. Vous pourrez repasser à un abonnement Premium à tout moment.
+                    </p>
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous continuerez à profiter d’un stockage illimité.
+                    </p>
+                </div>
+            </ConfirmationModal>
             {showSuccessMessage && (
                 <div className="mb-6 w-full">
                     <ModalMessage
@@ -376,6 +501,11 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     period="/mois"
                     isSelected={selectedPlan === "premium"}
                     onSelect={() => setSelectedPlan("premium")}
+                    badge={(!isPremiumUser && trial === false) ? (
+                        <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center w-fit uppercase">
+                            Bénéficiez de 30 jours pour tester gratuitement
+                        </span>
+                    ) : null}
                 />
             </div>
 

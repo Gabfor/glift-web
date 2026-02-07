@@ -26,3 +26,33 @@ export async function GET(request: Request) {
         );
     }
 }
+
+export async function DELETE(request: Request) {
+    try {
+        const { searchParams } = new URL(request.url);
+        const id = searchParams.get('id');
+
+        if (!id) {
+            return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 });
+        }
+
+        const supabase = await createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const paymentService = new PaymentService(supabase);
+        await paymentService.removePaymentMethod(user.id, user.email || '', user.app_metadata, id);
+
+        return NextResponse.json({ status: 'success' });
+
+    } catch (error: any) {
+        console.error("Error deleting payment method:", error);
+        return NextResponse.json(
+            { error: `Internal Server Error: ${error.message}` },
+            { status: 500 }
+        );
+    }
+}

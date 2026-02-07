@@ -386,6 +386,59 @@ export class PaymentService {
         return null;
     }
 
+    async removePaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string) {
+        let customerId = appMetadata?.stripe_customer_id;
+
+        if (!customerId && userEmail) {
+            const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+            if (customers.data.length > 0) customerId = customers.data[0].id;
+        }
+
+        if (!customerId) throw new Error("No customer found");
+
+        // 1. Downgrade Subscription if active (Cancel at period end)
+        const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+            status: 'all',
+            limit: 1,
+        });
+
+        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
+
+        if (activeSub) {
+            // Cancel at period end
+            const updatedSub = await stripe.subscriptions.update(activeSub.id, {
+                cancel_at_period_end: true,
+                default_payment_method: null as any,
+            });
+
+            // Update profiles
+            const endDate = updatedSub.cancel_at ? new Date(updatedSub.cancel_at * 1000).toISOString() : new Date().toISOString();
+            // Or use current_period_end? Stripe usually sets cancel_at to current_period_end when cancel_at_period_end is true
+            const finalDate = (updatedSub as any).current_period_end
+                ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
+                : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+            await this.supabase.from('profiles').update({
+                cancellation: true,
+                premium_end_at: finalDate
+            } as any).eq('id', userId);
+        }
+
+        // 2. Detach Payment Method
+        // First ensure it's not the default for the customer
+        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+        if (customer.invoice_settings.default_payment_method === paymentMethodId) {
+            await stripe.customers.update(customerId, {
+                invoice_settings: { default_payment_method: null as any }
+            });
+        }
+
+        await stripe.paymentMethods.detach(paymentMethodId);
+
+        return { status: 'success' };
+    }
+
     async deleteCustomer(userId: string, userEmail: string, appMetadata: any) {
         let customerId = appMetadata?.stripe_customer_id;
 

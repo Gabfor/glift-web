@@ -99,7 +99,7 @@ export default function Modal({
       )}
     >
       <div
-        className="absolute inset-0 bg-[#2E3142]/60"
+        className="absolute inset-0 bg-[#2E3142]/60 animate-in fade-in duration-300"
         onClick={handleOverlayClick}
         aria-hidden="true"
       />
@@ -109,7 +109,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={labelId}
         className={clsx(
-          "relative z-10 w-[564px] max-w-[92vw] rounded-[20px] bg-white p-8 shadow-lg",
+          "relative z-10 w-[564px] max-w-[92vw] rounded-[20px] bg-white p-8 shadow-lg animate-in fade-in zoom-in-95 duration-300",
           contentClassName
         )}
       >

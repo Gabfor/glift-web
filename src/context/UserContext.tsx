@@ -36,6 +36,7 @@ interface UserContextType {
   gracePeriodExpiresAt: string | null;
   premiumTrialEndAt: string | null;
   premiumEndAt: string | null;
+  trial?: boolean;
   refreshUser: () => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
@@ -82,6 +83,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [gracePeriodExpiresAt, setGracePeriodExpiresAt] = useState<string | null>(null);
   const [premiumTrialEndAt, setPremiumTrialEndAt] = useState<string | null>(null);
   const [premiumEndAt, setPremiumEndAt] = useState<string | null>(null);
+  // Add trial state
+  const [trial, setTrial] = useState<boolean | undefined>(undefined);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   useEffect(() => {
@@ -102,9 +105,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       return sessionUser;
     });
-
-    // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
-    // On attend que fetchUser récupère la donnée fraîche de la table profiles
 
     // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
     // On attend que fetchUser récupère la donnée fraîche de la table profiles
@@ -145,6 +145,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             setIsPremiumUser(false);
             setPremiumTrialEndAt(null);
             setPremiumEndAt(null);
+            setTrial(undefined);
           }
           return;
         }
@@ -163,7 +164,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
          */
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at")
+          .select("email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at, trial")
           .eq("id", customUser.id)
           .maybeSingle();
 
@@ -199,6 +200,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setPremiumEndAt(profileData.premium_end_at);
         } else {
           setPremiumEndAt(null);
+        }
+
+        // Update trial state from profile
+        if (profileData && typeof profileData.trial === "boolean") {
+          setTrial(profileData.trial);
+        } else {
+          // Fallback to user_metadata or undefined
+          setTrial(customUser.user_metadata?.trial as boolean | undefined);
         }
 
         // Logic check: If premium_end_at OR premium_trial_end_at is passed, force downgrade to starter.
@@ -245,6 +254,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsEmailVerified(null);
           setGracePeriodExpiresAt(null);
           setPremiumTrialEndAt(null);
+          setTrial(undefined);
         }
       }
     } catch (error) {
@@ -264,6 +274,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsEmailVerified(null);
           setGracePeriodExpiresAt(null);
           setPremiumTrialEndAt(null);
+          setTrial(undefined);
         }
       }
     } finally {
@@ -336,6 +347,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setGracePeriodExpiresAt(null);
           setPremiumTrialEndAt(null);
           setPremiumEndAt(null);
+          setTrial(undefined);
         } else if (
           event === "SIGNED_IN" &&
           sessionType !== "recovery" &&
@@ -411,6 +423,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         gracePeriodExpiresAt,
         premiumTrialEndAt,
         premiumEndAt,
+        trial, // Use state value
         refreshUser: fetchUser,
         updateUserMetadata,
       }}
