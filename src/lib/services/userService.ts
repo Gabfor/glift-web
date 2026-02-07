@@ -8,7 +8,7 @@ export class UserService {
         userId: string,
         data: {
             name: string;
-            plan: "basic" | "premium";
+            plan: "starter" | "premium";
         }
     ) {
         const { name, plan } = data;

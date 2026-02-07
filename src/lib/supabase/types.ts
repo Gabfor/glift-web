@@ -41,6 +41,7 @@ export interface Database {
           premium_trial_started_at: Nullable<string>;
           cancellation: boolean;
           premium_trial_end_at: Nullable<string>;
+          premium_end_at: Nullable<string>;
           trial: boolean;
         };
         Insert: {

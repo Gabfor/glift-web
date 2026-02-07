@@ -124,7 +124,7 @@ export default function AdminEntrainementDetailPage() {
       }
 
       if (!isPremiumUser && training.locked) {
-        // Basic user trying to access locked training
+        // Starter user trying to access locked training
         console.warn("🚫 Accès interdit (verrouillé) : Redirection vers /entrainements");
         shouldDeleteRef.current = false;
         router.replace("/entrainements");
@@ -160,7 +160,7 @@ export default function AdminEntrainementDetailPage() {
         return row;
       }
 
-      // Basic user: lock rows >= limit
+      // Starter user: lock rows >= limit
       const shouldLock = index >= limit;
       // If manually locked in DB (e.g. for some other reason), keep it locked?
       // For now, strictly enforce index rule for Basic users.
@@ -174,7 +174,7 @@ export default function AdminEntrainementDetailPage() {
     });
 
     if (hasChanges) {
-      console.log("🔒 Enforcing basic limit: updating locked rows");
+      console.log("🔒 Enforcing starter limit: updating locked rows");
       setRows(updatedRows);
     }
   }, [rows, isPremiumUser, isAdminRoute, rowsLoading, setRows]);

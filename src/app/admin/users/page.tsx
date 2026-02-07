@@ -65,7 +65,7 @@ const normalizePlan = (plan: string | null) => {
     return "premium";
   }
 
-  return "basic";
+  return "starter";
 };
 
 const formatSubscription = (plan: string | null) =>
@@ -572,7 +572,7 @@ export default function AdminUsersPage() {
         console.error("Suppression impossible", payload ?? response.statusText);
         setError(
           payload?.error ??
-            "Une erreur est survenue lors de la suppression des utilisateurs.",
+          "Une erreur est survenue lors de la suppression des utilisateurs.",
         );
         return;
       }
@@ -1013,84 +1013,84 @@ export default function AdminUsersPage() {
                     </thead>
                     <tbody>
                       {displayedUsers.map((user) => {
-                  const isSelected = selectedIds.includes(user.id);
-                  const trialActive = isInTrial(user);
-                  const age = calculateAge(user.birth_date);
-                  const status = computeStatus(user);
+                        const isSelected = selectedIds.includes(user.id);
+                        const trialActive = isInTrial(user);
+                        const age = calculateAge(user.birth_date);
+                        const status = computeStatus(user);
 
-                  const genderLower = user.gender?.toLowerCase() ?? "";
-                  const genderIcon =
-                    genderLower === "homme"
-                      ? "/icons/homme.svg"
-                      : genderLower === "femme"
-                      ? "/icons/femme.svg"
-                      : null;
+                        const genderLower = user.gender?.toLowerCase() ?? "";
+                        const genderIcon =
+                          genderLower === "homme"
+                            ? "/icons/homme.svg"
+                            : genderLower === "femme"
+                              ? "/icons/femme.svg"
+                              : null;
 
-                  return (
-                    <tr key={user.id} className="border-b border-[#ECE9F1] h-[60px]">
-                      <td className="w-[47px] px-4 align-middle">
-                        <button
-                          onClick={() => toggleCheckbox(user.id)}
-                          aria-label={
-                            isSelected
-                              ? "Désélectionner l'utilisateur"
-                              : "Sélectionner l'utilisateur"
-                          }
-                        >
-                          <Image
-                            src={
-                              isSelected
-                                ? "/icons/checkbox_checked.svg"
-                                : "/icons/checkbox_unchecked.svg"
-                            }
-                            alt="checkbox"
-                            width={15}
-                            height={15}
-                            style={{ marginTop: "5px" }}
-                          />
-                        </button>
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {user.name ?? "—"}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {user.email}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {trialActive ? "Oui" : "Non"}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {formatSubscription(user.subscription_plan)}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {formatSeniority(user.created_at)}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {genderIcon ? (
-                          <div className="relative h-5 w-5">
-                            <Image
-                              src={genderIcon}
-                              alt={user.gender ?? "Sexe"}
-                              fill
-                              className="object-contain object-bottom"
-                            />
-                          </div>
-                        ) : (
-                          "—"
-                        )}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        {typeof age === "number" ? `${age} ans` : "—"}
-                      </td>
-                      <td className="px-4 align-middle">
-                        <span
-                          className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
-                        >
-                          {status}
-                        </span>
-                      </td>
-                      </tr>
-                    );
+                        return (
+                          <tr key={user.id} className="border-b border-[#ECE9F1] h-[60px]">
+                            <td className="w-[47px] px-4 align-middle">
+                              <button
+                                onClick={() => toggleCheckbox(user.id)}
+                                aria-label={
+                                  isSelected
+                                    ? "Désélectionner l'utilisateur"
+                                    : "Sélectionner l'utilisateur"
+                                }
+                              >
+                                <Image
+                                  src={
+                                    isSelected
+                                      ? "/icons/checkbox_checked.svg"
+                                      : "/icons/checkbox_unchecked.svg"
+                                  }
+                                  alt="checkbox"
+                                  width={15}
+                                  height={15}
+                                  style={{ marginTop: "5px" }}
+                                />
+                              </button>
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {user.name ?? "—"}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {user.email}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {trialActive ? "Oui" : "Non"}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {formatSubscription(user.subscription_plan)}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {formatSeniority(user.created_at)}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {genderIcon ? (
+                                <div className="relative h-5 w-5">
+                                  <Image
+                                    src={genderIcon}
+                                    alt={user.gender ?? "Sexe"}
+                                    fill
+                                    className="object-contain object-bottom"
+                                  />
+                                </div>
+                              ) : (
+                                "—"
+                              )}
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {typeof age === "number" ? `${age} ans` : "—"}
+                            </td>
+                            <td className="px-4 align-middle">
+                              <span
+                                className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
+                              >
+                                {status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
                       })}
                     </tbody>
                   </table>
@@ -1099,11 +1099,10 @@ export default function AdminUsersPage() {
                 <div className="mt-5 flex items-center justify-end gap-[20px]">
                   <button
                     type="button"
-                    className={`h-10 border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white transition ${
-                      isExportDisabled
-                        ? "opacity-60 cursor-not-allowed"
-                        : "hover:border-[#C2BFC6]"
-                    }`}
+                    className={`h-10 border border-[#D7D4DC] rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white transition ${isExportDisabled
+                      ? "opacity-60 cursor-not-allowed"
+                      : "hover:border-[#C2BFC6]"
+                      }`}
                     onClick={handleExport}
                     disabled={isExportDisabled}
                   >
@@ -1133,10 +1132,9 @@ export default function AdminUsersPage() {
                         h-10
                         min-w-[70px]
                         border
-                        ${
-                          isRowsDropdownOpen
-                            ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
-                            : "border-[#D7D4DC]"
+                        ${isRowsDropdownOpen
+                          ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+                          : "border-[#D7D4DC]"
                         }
                         rounded-[5px]
                         px-3
@@ -1201,10 +1199,9 @@ export default function AdminUsersPage() {
                                 rounded-[5px]
                                 hover:bg-[#FAFAFF]
                                 transition-colors duration-150
-                                ${
-                                  rowsPerPage === option
-                                    ? "text-[#7069FA]"
-                                    : "text-[#5D6494] hover:text-[#3A416F]"
+                                ${rowsPerPage === option
+                                  ? "text-[#7069FA]"
+                                  : "text-[#5D6494] hover:text-[#3A416F]"
                                 }
                               `}
                             >

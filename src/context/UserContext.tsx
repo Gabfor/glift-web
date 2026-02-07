@@ -34,6 +34,8 @@ interface UserContextType {
   isRecoverySession: boolean;
   isEmailVerified: boolean | null;
   gracePeriodExpiresAt: string | null;
+  premiumTrialEndAt: string | null;
+  premiumEndAt: string | null;
   refreshUser: () => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
@@ -48,6 +50,8 @@ const UserContext = createContext<UserContextType>({
   isRecoverySession: false,
   isEmailVerified: null,
   gracePeriodExpiresAt: null,
+  premiumTrialEndAt: null,
+  premiumEndAt: null,
   refreshUser: async () => { },
   updateUserMetadata: () => { },
 });
@@ -76,6 +80,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return typeof sessionUser.email_confirmed_at === "string";
   });
   const [gracePeriodExpiresAt, setGracePeriodExpiresAt] = useState<string | null>(null);
+  const [premiumTrialEndAt, setPremiumTrialEndAt] = useState<string | null>(null);
+  const [premiumEndAt, setPremiumEndAt] = useState<string | null>(null);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   useEffect(() => {
@@ -137,6 +143,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           if (!background) {
             setUser(null);
             setIsPremiumUser(false);
+            setPremiumTrialEndAt(null);
+            setPremiumEndAt(null);
           }
           return;
         }
@@ -155,7 +163,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
          */
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("email_verified, grace_expires_at, subscription_plan")
+          .select("email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at")
           .eq("id", customUser.id)
           .maybeSingle();
 
@@ -180,6 +188,53 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         } else {
           setGracePeriodExpiresAt(null);
         }
+
+        if (profileData && typeof profileData.premium_trial_end_at === "string") {
+          setPremiumTrialEndAt(profileData.premium_trial_end_at);
+        } else {
+          setPremiumTrialEndAt(null);
+        }
+
+        if (profileData && typeof profileData.premium_end_at === "string") {
+          setPremiumEndAt(profileData.premium_end_at);
+        } else {
+          setPremiumEndAt(null);
+        }
+
+        // Logic check: If premium_end_at OR premium_trial_end_at is passed, force downgrade to starter.
+        // We do this check here to ensure UI reflects reality even if webhook hasn't processed.
+        const now = new Date();
+        let effectiveIsPremium = planFromProfile === "premium";
+
+        if (effectiveIsPremium) {
+          if (profileData?.premium_end_at) {
+            // If we have a paid cancellation date, disregard trial date.
+            // It is the definitive source for "when does my paid access stop".
+            if (new Date(profileData.premium_end_at) < now) {
+              effectiveIsPremium = false;
+            }
+          } else if (profileData?.premium_trial_end_at) {
+            // No paid cancellation date, so check trial end.
+            if (new Date(profileData.premium_trial_end_at) < now) {
+              effectiveIsPremium = false;
+            }
+          }
+        }
+
+        setIsPremiumUser(effectiveIsPremium);
+
+        // Optional: If we detected an expiration locally but profile says premium, trigger a lazy background update?
+        // For now, client-side enforcement is enough for UI.
+        const dbIsPremium = planFromProfile === "premium";
+        if (dbIsPremium && !effectiveIsPremium) {
+          // Detected discrepancy: DB says premium, but dates are expired.
+          // Trigger background sync to update DB to 'starter'.
+          fetch('/api/user/sync-status', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => console.log("Background status sync:", data))
+            .catch(err => console.error("Background status sync failed", err));
+        }
+
       } else {
         // If we are refreshing in the background (e.g. on focus), don't log out the user if getUser returns null.
         // The only way to log out should be explicit SIGNED_OUT event or fatal error.
@@ -189,6 +244,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsPremiumUser(false);
           setIsEmailVerified(null);
           setGracePeriodExpiresAt(null);
+          setPremiumTrialEndAt(null);
         }
       }
     } catch (error) {
@@ -207,6 +263,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsPremiumUser(false);
           setIsEmailVerified(null);
           setGracePeriodExpiresAt(null);
+          setPremiumTrialEndAt(null);
         }
       }
     } finally {
@@ -277,6 +334,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setIsPremiumUser(false);
           setIsEmailVerified(null);
           setGracePeriodExpiresAt(null);
+          setPremiumTrialEndAt(null);
+          setPremiumEndAt(null);
         } else if (
           event === "SIGNED_IN" &&
           sessionType !== "recovery" &&
@@ -350,6 +409,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isRecoverySession,
         isEmailVerified,
         gracePeriodExpiresAt,
+        premiumTrialEndAt,
+        premiumEndAt,
         refreshUser: fetchUser,
         updateUserMetadata,
       }}

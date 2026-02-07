@@ -36,8 +36,8 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
-  // Logic: Restricted if user is basic AND program is premium.
-  const isRestricted = isAuthenticated && subscriptionPlan === 'basic' && program.plan === 'premium';
+  // Logic: Restricted if user is starter AND program is premium.
+  const isRestricted = isAuthenticated && subscriptionPlan === 'starter' && program.plan === 'premium';
 
   const handleDownload = async () => {
     if (!isAuthenticated || loading || isRestricted) return;

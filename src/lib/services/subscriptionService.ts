@@ -4,7 +4,7 @@ import { Database } from "@/lib/supabase/types";
 export class SubscriptionService {
     constructor(private supabase: SupabaseClient<Database>) { }
 
-    async initializeSubscription(userId: string, plan: "basic" | "premium") {
+    async initializeSubscription(userId: string, plan: "starter" | "premium") {
         // Check if subscription exists
         const { data: existingSub, error: fetchError } = await this.supabase
             .from("user_subscriptions")

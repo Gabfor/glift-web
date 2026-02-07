@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
+import { useUser } from "@/context/UserContext";
 
 type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
 type ProgramQueryRow = Pick<
@@ -125,12 +126,17 @@ export default function StoreGrid({
   };
 
 
-  // ➜ Auth & Profile check once on load
+  // ➜ UserContext provides auth state and computed premium status
+  const { user, isPremiumUser, isLoading: isUserContextLoading } = useUser();
+
+  // ➜ Auth & Extended Profile check once on load
   useEffect(() => {
     const supabase = createClient();
-    const fetchProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+    const fetchExtendedProfile = async () => {
+      // Wait for UserContext to be ready if possible, or just rely on it being fast?
+      // Actually we can just trigger this when `user` changes from context.
       setIsAuthenticated(!!user);
+
       if (user) {
         const { data } = await supabase
           .from("profiles")
@@ -138,12 +144,23 @@ export default function StoreGrid({
           .eq("id", user.id)
           .single();
         if (data) {
-          setUserProfile(data as any);
+          // FORCE OVERRIDE: Use the computed isPremiumUser from context to determine plan.
+          // This ensures immediate downgrade UI even if DB is lagging.
+          const effectivePlan = isPremiumUser ? 'premium' : 'starter';
+          setUserProfile({
+            ...data,
+            subscription_plan: effectivePlan
+          } as any);
         }
+      } else {
+        setUserProfile(null);
       }
     };
-    fetchProfile();
-  }, []);
+
+    if (!isUserContextLoading) {
+      fetchExtendedProfile();
+    }
+  }, [user, isPremiumUser, isUserContextLoading]);
   /* ... */
 
 

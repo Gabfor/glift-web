@@ -26,7 +26,8 @@ export async function POST(req: NextRequest) {
     callbackUrlWithEmail.searchParams.set("email", email);
     const emailRedirectTo = callbackUrlWithEmail.toString();
 
-    const supabasePlan = plan === "starter" ? "basic" : "premium";
+    // We now use "starter" consistently.
+    const supabasePlan = plan === "premium" ? "premium" : "starter";
 
     // 📝 Inscription Supabase
     // Note: Option "Confirm email" disabled in Supabase project settings is REQUIRED for this to work

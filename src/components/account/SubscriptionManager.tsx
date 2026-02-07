@@ -152,7 +152,7 @@ interface SubscriptionManagerProps {
 }
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
-    const { isPremiumUser, isLoading, refreshUser } = useUser();
+    const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt } = useUser();
 
     // Initialize with server-side value if available, or default to starter
     const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">(() => {
@@ -203,21 +203,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         }
     };
 
-    const [hasSyncedWithServer, setHasSyncedWithServer] = useState(false);
-
-    // Sync sync-state: if context matches initial, we are synced
-    useEffect(() => {
-        if (!isLoading && isPremiumUser === initialIsPremium) {
-            setHasSyncedWithServer(true);
-        }
-    }, [isPremiumUser, isLoading, initialIsPremium]);
-
     // Sync state with user profile when loaded client-side (reconciliation)
     useEffect(() => {
-        if (!isLoading && hasSyncedWithServer) {
+        if (!isLoading) {
             setSelectedPlan(isPremiumUser ? "premium" : "starter");
         }
-    }, [isPremiumUser, isLoading, hasSyncedWithServer]);
+    }, [isPremiumUser, isLoading]);
 
     useEffect(() => {
         if (isPremiumUser) {
@@ -226,21 +217,52 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             fetch('/api/user/subscription-details')
                 .then(res => res.json())
                 .then(data => {
-                    if (data && data.cancel_at_period_end) {
-                        setSuccessPlan('starter');
-                        if (data.current_period_end) {
-                            setSubscriptionEndDate(data.current_period_end);
+                    // Check local Premium End (paid) or Trial End, or Stripe Cancel at Period End
+
+                    const now = new Date();
+                    const hasFutureTrialEnd = premiumTrialEndAt && new Date(premiumTrialEndAt) > now;
+                    const hasFuturePremiumEnd = premiumEndAt && new Date(premiumEndAt) > now;
+
+                    if (data && data.status) {
+                        // User has a Stripe subscription
+                        if (data.cancel_at_period_end) {
+                            // Cancellation pending (Stripe)
+                            setSuccessPlan('starter');
+                            // Show end of current period
+                            if (data.current_period_end) {
+                                setSubscriptionEndDate(data.current_period_end);
+                            }
+                            setShowSuccessMessage(true);
+                        } else {
+                            // Active Stripe subscription (auto-renews)
+                            // Do NOT show downgrade message even if trial end is set
+                            setShowSuccessMessage(false);
+                            setSuccessPlan(null);
                         }
-                        setShowSuccessMessage(true);
+                    } else {
+                        // NO Stripe subscription (or error)
+                        // Fallback to manual/local checks
+                        if (hasFuturePremiumEnd) {
+                            // User cancelled manually (e.g. removed payment method or admin action)
+                            setSuccessPlan('starter');
+                            setSubscriptionEndDate(Math.floor(new Date(premiumEndAt!).getTime() / 1000));
+                            setShowSuccessMessage(true);
+                        } else if (hasFutureTrialEnd) {
+                            // Manual trial without Stripe sub -> will expire
+                            setSuccessPlan('starter');
+                            setSubscriptionEndDate(Math.floor(new Date(premiumTrialEndAt!).getTime() / 1000));
+                            setShowSuccessMessage(true);
+                        }
                     }
                 })
                 .catch(err => console.error("Failed to fetch sub details", err));
         }
-    }, [isPremiumUser]);
+    }, [isPremiumUser, premiumTrialEndAt, premiumEndAt]);
 
 
     // Determine effective premium status: use server prop if not yet synced
-    const effectiveIsPremium = hasSyncedWithServer ? isPremiumUser : initialIsPremium;
+    // SIMPLIFICATION: We trust context after mount.
+    const effectiveIsPremium = isPremiumUser;
 
     const isCurrentPlan =
         (effectiveIsPremium && selectedPlan === "premium") ||
@@ -258,7 +280,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             });
             const data = await res.json();
             if (res.ok) {
-                const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium');
+                const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium' || data.status === 'reactivated');
                 const isStarterSuccess = selectedPlan === 'starter' && (data.status === 'canceled_at_period_end' || data.status === 'already_starter');
 
                 if (isPremiumSuccess || isStarterSuccess) {
@@ -269,7 +291,6 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     setShowSuccessMessage(true);
                     // Refresh user context to update UI to 'Premium' state without reload
                     await refreshUser();
-                    setHasSyncedWithServer(true); // Force sync on successful update
                 }
             } else {
                 console.error("Update failed", data.error);
@@ -416,9 +437,26 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 subscriptionId={setupData.subscriptionId}
                                                 onSuccess={() => {
                                                     fetchPaymentMethod();
+                                                    // Always refresh user and set plan to premium on success
+                                                    setSelectedPlan('premium');
+                                                    setSuccessPlan('premium');
+                                                    setShowSuccessMessage(true);
+                                                    setIsAddingMethod(false);
                                                     // Trigger update to sync subscription status immediately
-                                                    handleUpdate();
+                                                    refreshUser();
                                                 }}
+                                            /* onSuccess={() => {
+                                                fetchPaymentMethod();
+                                                // Trigger update to sync subscription status immediately
+                                                if (isPremiumUser) {
+                                                    // Refresh user data to ensure latest status
+                                                    // After refresh, the effect above will update selectedPlan
+                                                    refreshUser();
+                                                } else {
+                                                    // Downgrade selected
+                                                    setSelectedPlan('starter');
+                                                }
+                                            }} */
                                             />
                                         </Elements>
                                     ) : (

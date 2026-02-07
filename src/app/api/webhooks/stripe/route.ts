@@ -80,7 +80,7 @@ export async function POST(req: Request) {
 
                     // Update profiles table as requested
                     await supabase.from("profiles").update({
-                        subscription_plan: 'basic',
+                        subscription_plan: 'starter',
                         cancellation: false,
                         updated_at: new Date().toISOString(),
                     } as any).eq("id", user.id);

@@ -162,9 +162,18 @@ export class PaymentService {
 
         const setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent;
 
-        // If we gave a trial, mark it as used
+        // If we gave a trial, mark it as used and record dates
         if (trialDays > 0) {
-            await this.supabase.from('profiles').update({ trial: true } as any).eq('id', userId);
+            const startDate = new Date().toISOString();
+            const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+            await this.supabase.from('profiles').update({
+                trial: true,
+                premium_trial_started_at: startDate,
+                premium_trial_end_at: endDate,
+                premium_end_at: null, // Clear any previous cancellation date
+                subscription_plan: 'premium'
+            } as any).eq('id', userId);
         }
 
         return {
@@ -204,15 +213,25 @@ export class PaymentService {
                 // Check if already premium (price check)
                 const currentPriceId = activeSub.items.data[0]?.price.id;
                 if (currentPriceId === priceId) {
+                    let updatedSub = activeSub;
+
+                    // If it was scheduled for cancellation, we must un-cancel it (Reactivate)
+                    if (activeSub.cancel_at_period_end) {
+                        updatedSub = await stripe.subscriptions.update(activeSub.id, {
+                            cancel_at_period_end: false,
+                        });
+                    }
+
                     // Update profiles to ensure sync even if webhook failed
-                    const trialEnd = activeSub.trial_end ? new Date(activeSub.trial_end * 1000).toISOString() : null;
+                    const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
                     await this.supabase.from('profiles').update({
-                        cancellation: activeSub.cancel_at_period_end,
+                        cancellation: false,
                         premium_trial_end_at: trialEnd,
+                        premium_end_at: null, // Clear any previous cancellation date
                         subscription_plan: 'premium'
                     } as any).eq('id', userId);
 
-                    return { status: 'already_premium', subscriptionId: activeSub.id };
+                    return { status: activeSub.cancel_at_period_end ? 'reactivated' : 'already_premium', subscriptionId: updatedSub.id };
                 }
 
                 // Upgrade/Update to Premium from another plan (rare case if only 2 plans)
@@ -232,12 +251,14 @@ export class PaymentService {
                 await this.supabase.from('profiles').update({
                     cancellation: false,
                     premium_trial_end_at: trialEnd,
+                    premium_end_at: null, // Clear any previous cancellation date
                     // We don't mark trial=true here typically because upgrade implies they already had a sub?
-                    // Or if they were on basic? Basic is usually no sub in this system.
+                    // Or if they were on starter? Starter is usually no sub in this system.
                     // If they upgrade from a hypothetical paid-non-trial plan to another, trial logic might not apply.
                     // But in this app, "Starter" = no sub. So we only hit this block if they have a sub that is NOT premium price?
                     // If they have a sub, they probably already used trial or are paying.
                     // Let's assume upgrade doesn't grant new trial unless explicitly handled.
+                    subscription_plan: 'premium'
                 } as any).eq('id', userId);
 
                 return { status: 'updated', subscriptionId: updatedSub.id };
@@ -281,17 +302,31 @@ export class PaymentService {
 
                 const subscription = await stripe.subscriptions.create(subscriptionParams);
 
-                // If we gave a trial, mark it as used
+                // If we gave a trial, mark it as used and record dates
                 if (trialDays > 0) {
-                    await this.supabase.from('profiles').update({ trial: true } as any).eq('id', userId);
+                    const startDate = new Date().toISOString();
+                    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+                    await this.supabase.from('profiles').update({
+                        trial: true,
+                        premium_trial_started_at: startDate,
+                        premium_trial_end_at: endDate,
+                        cancellation: false
+                    } as any).eq('id', userId);
+                } else {
+                    // Update profiles.cancellation = false AND set trial_end from stripe if any (should be null or past)
+                    // If no trial given, we still update cancellation
+                    const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+                    await this.supabase.from('profiles').update({
+                        cancellation: false,
+                        premium_trial_end_at: trialEnd,
+                        premium_end_at: null, // Clear any previous cancellation date
+                        subscription_plan: 'premium'
+                    } as any).eq('id', userId);
                 }
 
-                // Update profiles.cancellation = false AND set trial_end
-                const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
-                await this.supabase.from('profiles').update({
-                    cancellation: false,
-                    premium_trial_end_at: trialEnd
-                } as any).eq('id', userId);
+                // Return 'created' so API wrapper can confirm
+                return { status: 'created', subscriptionId: subscription.id };
 
                 return { status: 'created', subscriptionId: subscription.id };
             }
@@ -304,8 +339,12 @@ export class PaymentService {
                     cancel_at_period_end: true,
                 });
 
-                // Update profiles.cancellation = true
-                await this.supabase.from('profiles').update({ cancellation: true } as any).eq('id', userId);
+                // Update profiles.cancellation = true AND set expected end date
+                const finalDate = new Date(endDate * 1000).toISOString();
+                await this.supabase.from('profiles').update({
+                    cancellation: true,
+                    premium_end_at: finalDate
+                } as any).eq('id', userId);
 
                 return {
                     status: 'canceled_at_period_end',
