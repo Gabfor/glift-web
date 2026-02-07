@@ -333,103 +333,107 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 />
             </div>
 
-            <div className="mt-[20px] mb-[40px]">
-                {paymentMethod && !isAddingMethod ? (
-                    <PaymentMethodCard
-                        brand={paymentMethod.brand}
-                        last4={paymentMethod.last4}
-                        expMonth={paymentMethod.exp_month}
-                        expYear={paymentMethod.exp_year}
-                        onEdit={handleEditPaymentMethod}
-                        onDelete={handleDeletePaymentMethod}
-                    />
-                ) : (
-                    <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] overflow-hidden">
-                        {!isAddingMethod ? (
-                            <button
-                                onClick={handleStartSetup}
-                                type="button"
-                                className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
-                            >
-                                + Ajouter un mode de paiement
-                            </button>
-                        ) : (
-                            <div className="px-6 pb-6 pt-10 bg-white relative">
+            {selectedPlan === 'premium' && (
+                <div className="mt-[20px] mb-[40px]">
+                    {paymentMethod && !isAddingMethod ? (
+                        <PaymentMethodCard
+                            brand={paymentMethod.brand}
+                            last4={paymentMethod.last4}
+                            expMonth={paymentMethod.exp_month}
+                            expYear={paymentMethod.exp_year}
+                            onEdit={handleEditPaymentMethod}
+                            onDelete={handleDeletePaymentMethod}
+                        />
+                    ) : (
+                        <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] overflow-hidden">
+                            {!isAddingMethod ? (
                                 <button
+                                    onClick={handleStartSetup}
                                     type="button"
-                                    onClick={() => {
-                                        setIsAddingMethod(false);
-                                        setSetupData(null);
-                                    }}
-                                    onMouseEnter={() => setCloseHovered(true)}
-                                    onMouseLeave={() => setCloseHovered(false)}
-                                    className="absolute right-4 top-4 h-6 w-6 transition-opacity z-10"
-                                    aria-label="Fermer"
+                                    className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
                                 >
-                                    <img
-                                        src={closeHovered ? "/icons/close_hover.svg" : "/icons/close.svg"}
-                                        alt="Fermer"
-                                        className="w-full h-full"
-                                    />
+                                    + Ajouter un mode de paiement
                                 </button>
-                                {setupData ? (
-                                    <Elements stripe={stripePromise} options={{
-                                        clientSecret: setupData.clientSecret,
-                                        locale: 'fr',
-                                        fonts: [
-                                            {
-                                                cssSrc: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap',
-                                            },
-                                        ],
-                                        appearance: {
-                                            theme: 'flat',
-                                            variables: {
-                                                colorPrimary: '#7069FA',
-                                                colorBackground: '#ffffff',
-                                                colorText: '#5D6494',
-                                                colorDanger: '#df1b41',
-                                                fontFamily: 'Quicksand, system-ui, sans-serif',
-                                                spacingUnit: '4px',
-                                                borderRadius: '5px',
-                                                fontSizeBase: '16px',
-                                                colorTextSecondary: '#D7D4DC',
-                                                colorTextPlaceholder: '#D7D4DC',
-                                            },
-                                            rules: {
-                                                '.Input': {
-                                                    border: '1px solid #D7D4DC',
-                                                    padding: '10px 15px',
-                                                },
-                                                '.Input:focus': {
-                                                    borderColor: 'transparent',
-                                                    boxShadow: '0 0 0 2px #A1A5FD',
-                                                },
-                                            }
-                                        }
-                                    }}>
-                                        <CheckoutForm
-                                            priceLabel="2,49 €/mois"
-                                            clientSecret={setupData.clientSecret}
-                                            plan={setupData.plan}
-                                            customerId={setupData.customerId}
-                                            subscriptionId={setupData.subscriptionId}
-                                            onSuccess={() => {
-                                                fetchPaymentMethod();
-                                            }}
+                            ) : (
+                                <div className="px-6 pb-6 pt-10 bg-white relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setIsAddingMethod(false);
+                                            setSetupData(null);
+                                        }}
+                                        onMouseEnter={() => setCloseHovered(true)}
+                                        onMouseLeave={() => setCloseHovered(false)}
+                                        className="absolute right-4 top-4 h-6 w-6 transition-opacity z-10"
+                                        aria-label="Fermer"
+                                    >
+                                        <img
+                                            src={closeHovered ? "/icons/close_hover.svg" : "/icons/close.svg"}
+                                            alt="Fermer"
+                                            className="w-full h-full"
                                         />
-                                    </Elements>
-                                ) : (
-                                    <div className="flex justify-center items-center py-10">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
+                                    </button>
+                                    {setupData ? (
+                                        <Elements stripe={stripePromise} options={{
+                                            clientSecret: setupData.clientSecret,
+                                            locale: 'fr',
+                                            fonts: [
+                                                {
+                                                    cssSrc: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap',
+                                                },
+                                            ],
+                                            appearance: {
+                                                theme: 'flat',
+                                                variables: {
+                                                    colorPrimary: '#7069FA',
+                                                    colorBackground: '#ffffff',
+                                                    colorText: '#5D6494',
+                                                    colorDanger: '#df1b41',
+                                                    fontFamily: 'Quicksand, system-ui, sans-serif',
+                                                    spacingUnit: '4px',
+                                                    borderRadius: '5px',
+                                                    fontSizeBase: '16px',
+                                                    colorTextSecondary: '#D7D4DC',
+                                                    colorTextPlaceholder: '#D7D4DC',
+                                                },
+                                                rules: {
+                                                    '.Input': {
+                                                        border: '1px solid #D7D4DC',
+                                                        padding: '10px 15px',
+                                                    },
+                                                    '.Input:focus': {
+                                                        borderColor: 'transparent',
+                                                        boxShadow: '0 0 0 2px #A1A5FD',
+                                                    },
+                                                }
+                                            }
+                                        }}>
+                                            <CheckoutForm
+                                                priceLabel="2,49 €/mois"
+                                                clientSecret={setupData.clientSecret}
+                                                plan={setupData.plan}
+                                                customerId={setupData.customerId}
+                                                subscriptionId={setupData.subscriptionId}
+                                                onSuccess={() => {
+                                                    fetchPaymentMethod();
+                                                    // Trigger update to sync subscription status immediately
+                                                    handleUpdate();
+                                                }}
+                                            />
+                                        </Elements>
+                                    ) : (
+                                        <div className="flex justify-center items-center py-10">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
-            <div className="flex justify-center">
+            <div className={`flex justify-center ${selectedPlan === "starter" ? "mt-[32px]" : ""}`}>
                 <CTAButton
                     onClick={handleUpdate}
                     disabled={isCurrentPlan || (selectedPlan === 'premium' && !paymentMethod)}

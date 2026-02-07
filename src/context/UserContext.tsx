@@ -100,6 +100,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
     // On attend que fetchUser récupère la donnée fraîche de la table profiles
 
+    // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
+    // On attend que fetchUser récupère la donnée fraîche de la table profiles
+
+    // SIMPLIFICATION (Antigravity):
+    // Also stop updating isEmailVerified from sessionUser here, because it flickers
+    // if Supabase auth says "verified" but profiles table says "not verified".
+    // fetchUser will handle the source of truth from profiles table.
+    /*
     setIsEmailVerified((current) => {
       if (current === true) {
         return current;
@@ -107,6 +115,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       return typeof sessionUser.email_confirmed_at === "string";
     });
+    */
   }, [sessionUser]);
 
   const fetchUser = useCallback(async (background = false) => {
@@ -121,8 +130,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         if (isAuthSessionMissingError(error)) {
-          setUser(null);
-          setIsPremiumUser(false);
+          // Even for missing session error, if we are in background mode (e.g. focus), 
+          // we should be careful not to log out immediately if it's a transient issue.
+          // However, "Auth session missing" usually means strictly no token.
+          // But to be super safe against flicker:
+          if (!background) {
+            setUser(null);
+            setIsPremiumUser(false);
+          }
           return;
         }
 
@@ -166,20 +181,34 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setGracePeriodExpiresAt(null);
         }
       } else {
-        setUser(null);
-        setIsPremiumUser(false);
-        setIsEmailVerified(null);
-        setGracePeriodExpiresAt(null);
+        // If we are refreshing in the background (e.g. on focus), don't log out the user if getUser returns null.
+        // The only way to log out should be explicit SIGNED_OUT event or fatal error.
+        // This prevents flickering on tab switch or token refresh.
+        if (!background) {
+          setUser(null);
+          setIsPremiumUser(false);
+          setIsEmailVerified(null);
+          setGracePeriodExpiresAt(null);
+        }
       }
     } catch (error) {
       if (!isAuthSessionMissingError(error)) {
         console.error("Erreur lors de la récupération de l'utilisateur", error);
+        // Do not clear user here if it's just a profile fetch error or transient network error
+        // forcing a logout on every error causes flickering.
+        // We only clear if we specifically suspect auth is gone, but isAuthSessionMissingError checks that.
+        // If we are here, it's likely a network error or DB error.
+        // Better to keep stale user than to flash a logout state.
+      } else {
+        // If background refresh occurs (e.g. on focus), do not clear the user if we have an error that might be transient
+        // Wait for explicit SIGNED_OUT from listener.
+        if (!background) {
+          setUser(null);
+          setIsPremiumUser(false);
+          setIsEmailVerified(null);
+          setGracePeriodExpiresAt(null);
+        }
       }
-
-      setUser(null);
-      setIsPremiumUser(false);
-      setIsEmailVerified(null);
-      setGracePeriodExpiresAt(null);
     } finally {
       setIsLoading(false);
     }
@@ -257,6 +286,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
 
         latestAuthEventRef.current = event;
+
+        // SIMPLIFICATION (Antigravity):
+        // Avoid re-fetching user on TOKEN_REFRESHED if we already have a user.
+        // This reduces flicker potential on tab focus.
+        // We only fetch if it's SIGNED_IN, USER_UPDATED, or INITIAL_SESSION (implicitly handled by mount)
+        // or if we don't have a user yet.
+        if (event === 'TOKEN_REFRESHED' && user) {
+          return;
+        }
 
         void fetchUser(true);
       },

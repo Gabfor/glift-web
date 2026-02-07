@@ -67,6 +67,18 @@ export async function POST() {
       console.error('[delete-account] unexpected storage cleanup error', storageError)
     }
 
+    try {
+      const { PaymentService } = await import('@/lib/services/paymentService')
+      const paymentService = new PaymentService(adminClient)
+      await paymentService.deleteCustomer(user.id, user.email || '', user.app_metadata)
+    } catch (paymentError) {
+      console.error('[delete-account] failed to delete stripe customer', paymentError)
+      // We log but do not block account deletion if stripe fails? 
+      // User requested deletion, so we should proceed with local deletion even if Stripe fails, 
+      // but maybe strictness depends on requirements. 
+      // Proceeding ensures the user account is deleted as requested.
+    }
+
     const { error: deleteUserError } = await adminClient.auth.admin.deleteUser(userId)
     if (deleteUserError) {
       console.error('[delete-account] failed to delete auth user', deleteUserError)

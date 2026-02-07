@@ -39,6 +39,9 @@ export interface Database {
           objectifs_completes: Nullable<boolean>;
           subscription_plan: Nullable<string>;
           premium_trial_started_at: Nullable<string>;
+          cancellation: boolean;
+          premium_trial_end_at: Nullable<string>;
+          trial: boolean;
         };
         Insert: {
           id: string;
@@ -58,6 +61,9 @@ export interface Database {
           objectifs_completes?: Nullable<boolean>;
           subscription_plan?: Nullable<string>;
           premium_trial_started_at?: Nullable<string>;
+          cancellation?: boolean;
+          premium_trial_end_at?: Nullable<string>;
+          trial?: boolean;
         };
         Update: {
           id?: string;
@@ -77,6 +83,9 @@ export interface Database {
           objectifs_completes?: Nullable<boolean>;
           subscription_plan?: Nullable<string>;
           premium_trial_started_at?: Nullable<string>;
+          cancellation?: boolean;
+          premium_trial_end_at?: Nullable<string>;
+          trial?: boolean;
         };
         Relationships: never[];
       };

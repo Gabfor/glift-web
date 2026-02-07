@@ -135,17 +135,37 @@ export class PaymentService {
             };
         }
 
+        // Fetch user profile to check trial eligibility
+        const { data: profile } = await this.supabase
+            .from('profiles')
+            .select('trial')
+            .eq('id', userId)
+            .single();
+
+        const hasUsedTrial = profile?.trial ?? false;
+        const trialDays = hasUsedTrial ? 0 : 30;
+
         // 3. Create new subscription if none exists
-        const subscription = await stripe.subscriptions.create({
+        const subscriptionParams: any = {
             customer: customerId,
             items: [{ price: priceId }],
-            trial_period_days: 30,
             payment_behavior: 'default_incomplete',
             payment_settings: { save_default_payment_method: 'on_subscription' },
             expand: ['pending_setup_intent'],
-        });
+        };
+
+        if (trialDays > 0) {
+            subscriptionParams.trial_period_days = trialDays;
+        }
+
+        const subscription = await stripe.subscriptions.create(subscriptionParams);
 
         const setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent;
+
+        // If we gave a trial, mark it as used
+        if (trialDays > 0) {
+            await this.supabase.from('profiles').update({ trial: true } as any).eq('id', userId);
+        }
 
         return {
             clientSecret: setupIntent.client_secret,
@@ -184,10 +204,21 @@ export class PaymentService {
                 // Check if already premium (price check)
                 const currentPriceId = activeSub.items.data[0]?.price.id;
                 if (currentPriceId === priceId) {
+                    // Update profiles to ensure sync even if webhook failed
+                    const trialEnd = activeSub.trial_end ? new Date(activeSub.trial_end * 1000).toISOString() : null;
+                    await this.supabase.from('profiles').update({
+                        cancellation: activeSub.cancel_at_period_end,
+                        premium_trial_end_at: trialEnd,
+                        subscription_plan: 'premium'
+                    } as any).eq('id', userId);
+
                     return { status: 'already_premium', subscriptionId: activeSub.id };
                 }
 
-                // Upgrade/Update to Premium
+                // Upgrade/Update to Premium from another plan (rare case if only 2 plans)
+                // But if they are re-subscribing on an existing cancelled-but-active sub?
+                // Simplification for now: update the item.
+
                 const updatedSub = await stripe.subscriptions.update(activeSub.id, {
                     items: [{
                         id: activeSub.items.data[0].id,
@@ -200,12 +231,29 @@ export class PaymentService {
                 const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
                 await this.supabase.from('profiles').update({
                     cancellation: false,
-                    premium_trial_end_at: trialEnd
+                    premium_trial_end_at: trialEnd,
+                    // We don't mark trial=true here typically because upgrade implies they already had a sub?
+                    // Or if they were on basic? Basic is usually no sub in this system.
+                    // If they upgrade from a hypothetical paid-non-trial plan to another, trial logic might not apply.
+                    // But in this app, "Starter" = no sub. So we only hit this block if they have a sub that is NOT premium price?
+                    // If they have a sub, they probably already used trial or are paying.
+                    // Let's assume upgrade doesn't grant new trial unless explicitly handled.
                 } as any).eq('id', userId);
 
                 return { status: 'updated', subscriptionId: updatedSub.id };
             } else {
-                // No active subscription: Create new one using default payment method
+                // No active subscription: Create new one
+
+                // Fetch user profile to check trial eligibility
+                const { data: profile } = await this.supabase
+                    .from('profiles')
+                    .select('trial')
+                    .eq('id', userId)
+                    .single();
+
+                const hasUsedTrial = profile?.trial ?? false;
+                const trialDays = hasUsedTrial ? 0 : 30;
+
                 // Check if customer has a default payment method
                 const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
                 if (!customer.invoice_settings.default_payment_method) {
@@ -221,12 +269,22 @@ export class PaymentService {
                     }
                 }
 
-                const subscription = await stripe.subscriptions.create({
+                const subscriptionParams: any = {
                     customer: customerId,
                     items: [{ price: priceId }],
-                    trial_period_days: 30, // Or 0 if re-subscribing without trial
-                    payment_behavior: 'error_if_incomplete', // Fail if payment fails
-                });
+                    payment_behavior: 'error_if_incomplete',
+                };
+
+                if (trialDays > 0) {
+                    subscriptionParams.trial_period_days = trialDays;
+                }
+
+                const subscription = await stripe.subscriptions.create(subscriptionParams);
+
+                // If we gave a trial, mark it as used
+                if (trialDays > 0) {
+                    await this.supabase.from('profiles').update({ trial: true } as any).eq('id', userId);
+                }
 
                 // Update profiles.cancellation = false AND set trial_end
                 const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
@@ -287,5 +345,30 @@ export class PaymentService {
             };
         }
         return null;
+    }
+
+    async deleteCustomer(userId: string, userEmail: string, appMetadata: any) {
+        let customerId = appMetadata?.stripe_customer_id;
+
+        if (!customerId && userEmail) {
+            console.log("PaymentService.deleteCustomer: Looking up Stripe Customer by email:", userEmail);
+            const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+            if (customers.data.length > 0) {
+                customerId = customers.data[0].id;
+            }
+        }
+
+        if (customerId) {
+            try {
+                // Delete the customer in Stripe. This cancels subscriptions and removes payment methods.
+                await stripe.customers.del(customerId);
+                console.log(`PaymentService.deleteCustomer: Successfully deleted Stripe customer ${customerId}`);
+            } catch (error) {
+                console.error(`PaymentService.deleteCustomer: Failed to delete Stripe customer ${customerId}`, error);
+                throw error;
+            }
+        } else {
+            console.log("PaymentService.deleteCustomer: No Stripe customer found to delete.");
+        }
     }
 }
