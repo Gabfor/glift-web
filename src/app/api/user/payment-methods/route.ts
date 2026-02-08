@@ -43,7 +43,9 @@ export async function PUT(request: Request) {
             return NextResponse.json({ error: 'Missing paymentMethodId' }, { status: 400 });
         }
 
-        const paymentService = new PaymentService(supabase);
+        // Use Admin Client to allow metadata and profile updates (like premium_end_at)
+        const adminSupabase = createAdminClient();
+        const paymentService = new PaymentService(adminSupabase);
         await paymentService.setDefaultPaymentMethod(user.id, user.email || '', user.app_metadata, paymentMethodId);
 
         return NextResponse.json({ success: true });

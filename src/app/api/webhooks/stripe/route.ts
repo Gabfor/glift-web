@@ -87,6 +87,47 @@ export async function POST(req: Request) {
                 }
                 break;
             }
+            case "setup_intent.succeeded": {
+                const setupIntent = event.data.object as Stripe.SetupIntent;
+                const subscriptionId = setupIntent.metadata?.subscription_id;
+
+                if (subscriptionId) {
+                    console.log(`Webhook: SetupIntent succeeded for subscription ${subscriptionId}. Checking if reactivation needed.`);
+
+                    try {
+                        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+                        if (subscription && subscription.cancel_at_period_end) {
+                            const customerId = typeof subscription.customer === 'string'
+                                ? subscription.customer
+                                : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer)?.id;
+
+                            const { data: { users }, error } = await supabase.auth.admin.listUsers();
+                            if (error) throw error;
+
+                            const user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+
+                            if (user) {
+                                console.log(`Webhook: Reactivating subscription ${subscriptionId} for user ${user.id}`);
+
+                                // Reactivate in Stripe
+                                await stripe.subscriptions.update(subscriptionId, {
+                                    cancel_at_period_end: false,
+                                });
+
+                                // Update Supabase
+                                await supabase.from('profiles').update({
+                                    cancellation: false,
+                                    premium_end_at: null
+                                } as any).eq('id', user.id);
+                            }
+                        }
+                    } catch (e) {
+                        console.error(`Webhook: Error processing setup_intent.succeeded for subscription ${subscriptionId}`, e);
+                    }
+                }
+                break;
+            }
         }
     } catch (error: any) {
         console.error(`Error processing webhook: ${error.message}`);

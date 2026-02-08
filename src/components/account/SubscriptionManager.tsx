@@ -611,9 +611,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                     // Prevent race condition with useEffect fetching stale data
                                                     lastActionTime.current = Date.now();
 
-                                                    // If we are in "update" mode (paymentMethod exists) OR if we got a new ID and want to set it as default
-                                                    // Actually, if we are editing, we MUST set it as default.
-                                                    if (paymentMethod && newPaymentMethodId) {
+                                                    // Always set as default to ensure subscription is updated/reactivated
+                                                    if (newPaymentMethodId) {
                                                         try {
                                                             await fetch('/api/user/payment-methods', {
                                                                 method: 'PUT',

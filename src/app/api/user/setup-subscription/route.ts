@@ -14,6 +14,8 @@ export async function POST(request: Request) {
         }
 
         const paymentService = new PaymentService(supabase);
+        console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}`);
+
         const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, user.app_metadata);
 
         return NextResponse.json(setupData);

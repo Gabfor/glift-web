@@ -96,14 +96,21 @@ export class PaymentService {
 
         // Validation helper
         customerId = await this.resolveStaleCustomerId(customerId);
+        console.log(`PaymentService.createSubscriptionSetup: ID from metadata/resolved: ${customerId}`);
 
         if (!customerId) {
             // Check by email
             const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
             if (customers.data.length > 0) {
-                customerId = customers.data[0].id;
-                // Double check this one too just in case? Usually list returns active ones.
-            } else {
+                const foundCustomer = customers.data[0];
+                if (!foundCustomer.deleted) {
+                    customerId = foundCustomer.id;
+                } else {
+                    console.log(`PaymentService: Customer found by email ${foundCustomer.id} is deleted. Creating new one.`);
+                }
+            }
+
+            if (!customerId) {
                 // Create new
                 const customer = await stripe.customers.create({
                     email: userEmail,
@@ -123,6 +130,7 @@ export class PaymentService {
         }
 
         const priceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+        console.log(`PaymentService.createSubscriptionSetup: Using Price ID: ${priceId}`);
         if (!priceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
 
         // 2. Check for existing active subscription
@@ -131,6 +139,8 @@ export class PaymentService {
             status: 'all',
             limit: 1,
         });
+
+        console.log(`PaymentService.createSubscriptionSetup: Found ${subscriptions.data.length} subscriptions`);
 
         // If has active/trialing subscription, creates a SetupIntent to update payment method
         const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
@@ -176,7 +186,17 @@ export class PaymentService {
 
         const subscription = await stripe.subscriptions.create(subscriptionParams);
 
-        const setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent;
+        let setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent | null;
+
+        // If no setup intent was created (e.g. trial with no immediate payment required), create one manually
+        if (!setupIntent) {
+            console.log("PaymentService: No pending_setup_intent from subscription. Creating manual SetupIntent.");
+            setupIntent = await stripe.setupIntents.create({
+                customer: customerId,
+                payment_method_types: ['card'],
+                metadata: { subscription_id: subscription.id }
+            });
+        }
 
         // If we gave a trial, mark it as used and record dates
         if (trialDays > 0) {
@@ -437,6 +457,12 @@ export class PaymentService {
             await stripe.subscriptions.update(activeSub.id, {
                 default_payment_method: null as any,
             });
+
+            // If subscription was cancelling, reactivate it
+            if (activeSub.cancel_at_period_end) {
+                console.log(`PaymentService: Reactivating subscription ${activeSub.id} because new payment method was set.`);
+                await this.reactivateSubscription(activeSub.id, userId);
+            }
         }
 
         return { status: 'success' };
@@ -524,6 +550,31 @@ export class PaymentService {
             }
         } else {
             console.log("PaymentService.deleteCustomer: No Stripe customer found to delete.");
+        }
+    }
+
+    /**
+     * Reactivates a subscription by setting cancel_at_period_end to false
+     * and clearing the cancellation date in the profile.
+     */
+    async reactivateSubscription(subscriptionId: string, userId: string) {
+        try {
+            // 1. Update Stripe
+            await stripe.subscriptions.update(subscriptionId, {
+                cancel_at_period_end: false,
+            });
+
+            // 2. Update Supabase Profile
+            await this.supabase.from('profiles').update({
+                cancellation: false,
+                premium_end_at: null
+            } as any).eq('id', userId);
+
+            console.log(`PaymentService: Successfully reactivated subscription ${subscriptionId} for user ${userId}`);
+            return { status: 'reactivated' };
+        } catch (error: any) {
+            console.error(`PaymentService: Failed to reactivate subscription ${subscriptionId}`, error);
+            throw error;
         }
     }
 
