@@ -9,6 +9,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import StepDots from "@/components/onboarding/StepDots";
 import { nextStepPath } from "@/lib/onboarding";
 import StripeWrapper from "@/components/stripe/StripeWrapper";
+import { useUser } from "@/context/UserContext";
 
 import { getStepMetadata, parsePlan } from "../constants";
 
@@ -18,6 +19,7 @@ function formatFr(date: Date) {
 
 const PaymentPage = () => {
   const router = useRouter();
+  const { user } = useUser();
   const pathname = usePathname() ?? "/inscription/paiement";
   const searchParams = useSearchParams();
 
@@ -114,7 +116,12 @@ const PaymentPage = () => {
       </div>
 
       <div className="w-full max-w-[564px] mt-8">
-        <StripeWrapper priceLabel={priceLabel} plan={plan} />
+        <StripeWrapper
+          priceLabel={priceLabel}
+          plan={plan}
+          email={user?.email || ""}
+          userId={user?.id || ""}
+        />
       </div>
     </main>
   );

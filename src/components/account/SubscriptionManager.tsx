@@ -110,7 +110,7 @@ const PaymentMethodCard = ({
             <div className="flex items-center gap-4">
                 <div className="w-[50px] h-[34px] flex items-center justify-center overflow-hidden">
                     {brandIcon ? (
-                        <img src={brandIcon} alt={brand} className={`${brand.toLowerCase() === 'visa' ? 'h-[25px]' : 'h-full'} w-auto object-contain`} />
+                        <img src={brandIcon} alt={brand} className="h-[25px] w-auto object-contain" />
                     ) : (
                         <span className="text-[10px] font-bold text-gray-500 uppercase">{brand}</span>
                     )}
@@ -182,6 +182,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const [closeHovered, setCloseHovered] = useState(false);
     const [setupData, setSetupData] = useState<{ clientSecret: string; customerId: string; subscriptionId: string; plan: string } | null>(null);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [showModalMessage, setShowModalMessage] = useState(false);
+    const [successMessage, setSuccessMessage] = useState<{ title: string; description: string; variant: 'success' | 'error' | 'info' | 'warning' }>({
+        title: "",
+        description: "",
+        variant: "success"
+    });
 
     const [successPlan, setSuccessPlan] = useState<'premium' | 'starter' | null>(null);
     const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
@@ -485,6 +491,16 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     />
                 </div>
             )}
+            {showModalMessage && (
+                <div className="mb-6 w-full">
+                    <ModalMessage
+                        variant={successMessage.variant}
+                        title={successMessage.title}
+                        description={successMessage.description}
+                        onClose={() => setShowModalMessage(false)}
+                    />
+                </div>
+            )}
             <div className="space-y-4 mb-0">
                 <PlanOption
                     title="Abonnement Starter"
@@ -590,28 +606,47 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 plan={setupData.plan}
                                                 customerId={setupData.customerId}
                                                 subscriptionId={setupData.subscriptionId}
-                                                onSuccess={() => {
-                                                    fetchPaymentMethod();
-                                                    // Always refresh user and set plan to premium on success
-                                                    setSelectedPlan('premium');
-                                                    setSuccessPlan('premium');
-                                                    setShowSuccessMessage(true);
-                                                    setIsAddingMethod(false);
+                                                submitButtonText={paymentMethod ? "Enregistrer" : "Démarrer mon abonnement"}
+                                                onSuccess={async (newPaymentMethodId?: string) => {
+                                                    // Prevent race condition with useEffect fetching stale data
+                                                    lastActionTime.current = Date.now();
+
+                                                    // If we are in "update" mode (paymentMethod exists) OR if we got a new ID and want to set it as default
+                                                    // Actually, if we are editing, we MUST set it as default.
+                                                    if (paymentMethod && newPaymentMethodId) {
+                                                        try {
+                                                            await fetch('/api/user/payment-methods', {
+                                                                method: 'PUT',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify({ paymentMethodId: newPaymentMethodId }),
+                                                            });
+                                                        } catch (err) {
+                                                            console.error("Failed to set default payment method", err);
+                                                        }
+                                                    }
+
+                                                    await fetchPaymentMethod();
                                                     // Trigger update to sync subscription status immediately
-                                                    refreshUser();
+                                                    await refreshUser();
+
+                                                    if (paymentMethod) {
+                                                        // Updated existing
+                                                        setSuccessMessage({
+                                                            title: "Mode de paiement modifié avec succès",
+                                                            description: "Votre changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
+                                                            variant: "success"
+                                                        });
+                                                        setShowModalMessage(true);
+                                                    } else {
+                                                        // New subscription
+                                                        setSelectedPlan('premium');
+                                                        setSuccessPlan('premium');
+                                                        setShowSuccessMessage(true);
+                                                    }
+
+                                                    setIsAddingMethod(false);
                                                 }}
-                                            /* onSuccess={() => {
-                                                fetchPaymentMethod();
-                                                // Trigger update to sync subscription status immediately
-                                                if (isPremiumUser) {
-                                                    // Refresh user data to ensure latest status
-                                                    // After refresh, the effect above will update selectedPlan
-                                                    refreshUser();
-                                                } else {
-                                                    // Downgrade selected
-                                                    setSelectedPlan('starter');
-                                                }
-                                            }} */
+
                                             />
                                         </Elements>
                                     ) : (

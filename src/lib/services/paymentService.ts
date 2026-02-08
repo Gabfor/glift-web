@@ -21,6 +21,10 @@ export class PaymentService {
         // 1. Get User's Stripe Customer ID
         let stripeCustomerId = appMetadata?.stripe_customer_id;
 
+        // Validate stale ID
+        const resolvedId = await this.resolveStaleCustomerId(stripeCustomerId);
+        stripeCustomerId = resolvedId;
+
         // If not in metadata, try to find by email
         if (!stripeCustomerId && userEmail) {
             console.log("PaymentService: Looking up Stripe Customer by email:", userEmail);
@@ -90,20 +94,32 @@ export class PaymentService {
         // 1. Get or Create Customer
         let customerId = appMetadata?.stripe_customer_id;
 
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
+
         if (!customerId) {
             // Check by email
             const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
             if (customers.data.length > 0) {
                 customerId = customers.data[0].id;
+                // Double check this one too just in case? Usually list returns active ones.
             } else {
                 // Create new
                 const customer = await stripe.customers.create({
                     email: userEmail,
-                    metadata: { user_id: userId }
+                    metadata: { user_id: userId },
+                }, {
+                    idempotencyKey: `create_cust_${userId}_${Date.now()}` // Unique key for new creation
                 });
                 customerId = customer.id;
+
+                // CRITICAL: Update Supabase immediately to fix the stale metadata for future calls
+                await this.supabase.auth.admin.updateUserById(userId, {
+                    app_metadata: {
+                        stripe_customer_id: customerId,
+                    }
+                });
             }
-            // TODO: Ideally update app_metadata here via Supabase Admin, but for now we rely on the webhook or next sync
         }
 
         const priceId = process.env.STRIPE_PRICE_ID_PREMIUM;
@@ -186,6 +202,9 @@ export class PaymentService {
 
     async updateSubscription(userEmail: string, userId: string, appMetadata: any, newPlan: 'premium' | 'starter') {
         let customerId = appMetadata?.stripe_customer_id;
+
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
 
         if (!customerId) {
             // Try fetch by email
@@ -359,6 +378,9 @@ export class PaymentService {
     async getSubscriptionDetails(userId: string, userEmail: string, appMetadata: any) {
         let customerId = appMetadata?.stripe_customer_id;
 
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
+
         if (!customerId && userEmail) {
             const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
             if (customers.data.length > 0) customerId = customers.data[0].id;
@@ -386,8 +408,45 @@ export class PaymentService {
         return null;
     }
 
+    async setDefaultPaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string) {
+        let customerId = appMetadata?.stripe_customer_id;
+
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
+
+        if (!customerId && userEmail) {
+            const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+            if (customers.data.length > 0) customerId = customers.data[0].id;
+        }
+
+        if (!customerId) throw new Error("No customer found");
+
+        // 1. Update Customer Default
+        await stripe.customers.update(customerId, {
+            invoice_settings: { default_payment_method: paymentMethodId }
+        });
+
+        // 2. Update Active Subscription Default (to null, so it uses customer default)
+        const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+        });
+
+        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
+
+        if (activeSub) {
+            await stripe.subscriptions.update(activeSub.id, {
+                default_payment_method: null as any,
+            });
+        }
+
+        return { status: 'success' };
+    }
+
     async removePaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string) {
         let customerId = appMetadata?.stripe_customer_id;
+
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
 
         if (!customerId && userEmail) {
             const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
@@ -425,22 +484,18 @@ export class PaymentService {
             } as any).eq('id', userId);
         }
 
-        // 2. Detach Payment Method
-        // First ensure it's not the default for the customer
-        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-        if (customer.invoice_settings.default_payment_method === paymentMethodId) {
-            await stripe.customers.update(customerId, {
-                invoice_settings: { default_payment_method: null as any }
-            });
-        }
-
-        await stripe.paymentMethods.detach(paymentMethodId);
+        // 3. Delete Customer (which also removes payment methods on Stripe's side)
+        // We do this instead of just detaching the method, as requested.
+        await this.deleteCustomer(userId, userEmail, appMetadata);
 
         return { status: 'success' };
     }
 
     async deleteCustomer(userId: string, userEmail: string, appMetadata: any) {
         let customerId = appMetadata?.stripe_customer_id;
+
+        // Validation helper
+        customerId = await this.resolveStaleCustomerId(customerId);
 
         if (!customerId && userEmail) {
             console.log("PaymentService.deleteCustomer: Looking up Stripe Customer by email:", userEmail);
@@ -455,12 +510,50 @@ export class PaymentService {
                 // Delete the customer in Stripe. This cancels subscriptions and removes payment methods.
                 await stripe.customers.del(customerId);
                 console.log(`PaymentService.deleteCustomer: Successfully deleted Stripe customer ${customerId}`);
+
+                // Remove Stripe ID from user metadata
+                await this.supabase.auth.admin.updateUserById(userId, {
+                    app_metadata: {
+                        stripe_customer_id: null,
+                        stripe_subscription_id: null,
+                    }
+                });
             } catch (error) {
                 console.error(`PaymentService.deleteCustomer: Failed to delete Stripe customer ${customerId}`, error);
                 throw error;
             }
         } else {
             console.log("PaymentService.deleteCustomer: No Stripe customer found to delete.");
+        }
+    }
+
+    /**
+     * Verifies if a Stripe Customer ID is valid and exists.
+     * If it's deleted or missing, returns null.
+     * This handles cases where the local DB/Session has a stale ID.
+     */
+    private async resolveStaleCustomerId(customerId: string | undefined | null): Promise<string | null> {
+        if (!customerId) return null;
+
+        try {
+            const customer = await stripe.customers.retrieve(customerId);
+            if (customer.deleted) {
+                console.log(`PaymentService: Customer ${customerId} is deleted. Treating as null.`);
+                return null;
+            }
+            return customer.id;
+        } catch (error: any) {
+            // Check for specific Stripe error code or message
+            if (
+                error?.code === 'resource_missing' ||
+                (error?.message && error.message.includes("No such customer"))
+            ) {
+                console.log(`PaymentService: Customer ${customerId} not found (404/No such customer). Treating as null.`);
+                return null;
+            }
+
+            // Re-throw other errors
+            throw error;
         }
     }
 }

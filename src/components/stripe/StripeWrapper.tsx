@@ -11,20 +11,24 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 interface StripeWrapperProps {
     priceLabel: string;
     plan: string;
+    email: string;
+    userId: string;
 }
 
-export default function StripeWrapper({ priceLabel, plan }: StripeWrapperProps) {
+export default function StripeWrapper({ priceLabel, plan, email, userId }: StripeWrapperProps) {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [customerId, setCustomerId] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!email || !userId) return;
+
         // Créer le PaymentIntent / Sub dès que la page charge
         fetch("/api/create-payment-intent", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: "user@example.com" }),
+            body: JSON.stringify({ email, userId }),
         })
             .then((res) => res.json())
             .then((data) => {
@@ -37,7 +41,7 @@ export default function StripeWrapper({ priceLabel, plan }: StripeWrapperProps) 
                 }
             })
             .catch((err) => setError("Erreur réseau: impossible d'initialiser le paiement."));
-    }, []);
+    }, [email, userId]);
 
     if (error) {
         return <div className="text-red-500 font-semibold p-4 bg-red-50 rounded-lg">{error}</div>;

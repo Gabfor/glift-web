@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/services/paymentService';
 
@@ -27,6 +27,35 @@ export async function GET(request: Request) {
     }
 }
 
+export async function PUT(request: Request) {
+    try {
+        const supabase = await createClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+
+        const body = await request.json();
+        const { paymentMethodId } = body;
+
+        if (!paymentMethodId) {
+            return NextResponse.json({ error: 'Missing paymentMethodId' }, { status: 400 });
+        }
+
+        const paymentService = new PaymentService(supabase);
+        await paymentService.setDefaultPaymentMethod(user.id, user.email || '', user.app_metadata, paymentMethodId);
+
+        return NextResponse.json({ success: true });
+    } catch (error: any) {
+        console.error("Error setting default payment method:", error);
+        return NextResponse.json(
+            { error: `Internal Server Error: ${error.message}` },
+            { status: 500 }
+        );
+    }
+}
+
 export async function DELETE(request: Request) {
     try {
         const { searchParams } = new URL(request.url);
@@ -43,7 +72,9 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const paymentService = new PaymentService(supabase);
+        // Use Admin Client to allow metadata updates
+        const adminSupabase = createAdminClient();
+        const paymentService = new PaymentService(adminSupabase);
         await paymentService.removePaymentMethod(user.id, user.email || '', user.app_metadata, id);
 
         return NextResponse.json({ status: 'success' });

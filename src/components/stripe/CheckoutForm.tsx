@@ -21,7 +21,8 @@ interface CheckoutFormProps {
     plan: string;
     customerId: string | null;
     subscriptionId: string | null;
-    onSuccess?: () => void;
+    onSuccess?: (paymentMethodId?: string) => void;
+    submitButtonText?: string;
 }
 
 const ELEMENT_OPTIONS = {
@@ -45,7 +46,7 @@ const ELEMENT_OPTIONS = {
 };
 
 export default function CheckoutForm(props: CheckoutFormProps) {
-    const { priceLabel, clientSecret, plan, customerId, subscriptionId } = props;
+    const { priceLabel, clientSecret, plan, customerId, subscriptionId, submitButtonText = "Démarrer mon abonnement" } = props;
     const stripe = useStripe();
     const elements = useElements();
     const router = useRouter();
@@ -76,7 +77,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
         setErrorMessage(null);
 
         // Confirm the setup intent
-        const { error } = await stripe.confirmCardSetup(clientSecret, {
+        const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
             payment_method: {
                 card: cardNumberElement,
             },
@@ -87,7 +88,12 @@ export default function CheckoutForm(props: CheckoutFormProps) {
             setLoading(false);
         } else {
             if (props.onSuccess) {
-                props.onSuccess();
+                // Pass the created payment method ID
+                const paymentMethodId = typeof setupIntent?.payment_method === 'string'
+                    ? setupIntent.payment_method
+                    : setupIntent?.payment_method?.id;
+
+                props.onSuccess(paymentMethodId);
             } else {
                 router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
             }
@@ -229,12 +235,12 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                     className="h-[48px] px-[20px] rounded-[25px] text-[16px] font-semibold"
                 >
                     <>
-                        Démarrer mon abonnement
+                        {submitButtonText}
                         <img
                             src={arrowIcon}
                             alt=""
                             aria-hidden="true"
-                            className="w-[20px] h-[20px] ml-2"
+                            className="w-[20px] h-[20px]"
                         />
                     </>
                 </CTAButton>
