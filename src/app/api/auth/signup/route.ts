@@ -3,6 +3,7 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { SubscriptionService } from "@/lib/services/subscriptionService";
 import { UserService } from "@/lib/services/userService";
 import { EmailService } from "@/lib/services/emailService";
+import { PaymentService } from "@/lib/services/paymentService";
 import { getAbsoluteUrl } from "@/lib/url";
 
 export async function POST(req: NextRequest) {
@@ -27,7 +28,8 @@ export async function POST(req: NextRequest) {
     const emailRedirectTo = callbackUrlWithEmail.toString();
 
     // We now use "starter" consistently.
-    const supabasePlan = plan === "premium" ? "premium" : "starter";
+    // Even if they selected "premium" in the UI, they are "starter" until they pay.
+    const supabasePlan = "starter";
 
     // 📝 Inscription Supabase
     // Note: Option "Confirm email" disabled in Supabase project settings is REQUIRED for this to work
@@ -69,6 +71,7 @@ export async function POST(req: NextRequest) {
     const adminClient = createAdminClient();
     const userService = new UserService(adminClient);
     const subscriptionService = new SubscriptionService(adminClient);
+    const paymentService = new PaymentService(adminClient);
     const emailService = new EmailService();
 
     try {
@@ -79,17 +82,8 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         userService.initializePreferences(userId),
         subscriptionService.initializeSubscription(userId, supabasePlan),
-        // Update user metadata with Stripe IDs if provided
-        (async () => {
-          if (stripe_customer_id && stripe_subscription_id) {
-            await adminClient.auth.admin.updateUserById(userId, {
-              app_metadata: {
-                stripe_customer_id,
-                stripe_subscription_id,
-              }
-            });
-          }
-        })()
+        // Create Stripe Customer and Starter Subscription
+        paymentService.createCustomerAndStarterSubscription(userId, email, name),
       ]);
 
       // 📧 Envoi de l'email de confirmation (Non-bloquant)

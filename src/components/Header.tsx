@@ -22,7 +22,7 @@ interface HeaderProps {
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt } =
+  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -424,21 +424,33 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="group flex items-center gap-2 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
               >
-                <div
-                  className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${hasAvatar ? "bg-transparent" : "bg-[var(--color-brand-primary)]"
-                    }`}
-                >
-                  {hasAvatar ? (
+                <div className="relative">
+                  <div
+                    className={`w-[44px] h-[44px] text-[25px] rounded-full text-white flex items-center justify-center font-semibold overflow-hidden ${hasAvatar ? "bg-transparent" : "bg-[var(--color-brand-primary)]"
+                      }`}
+                  >
+                    {hasAvatar ? (
+                      <Image
+                        src={rawAvatarUrl}
+                        alt={`Avatar de ${userDisplayName}`}
+                        width={44}
+                        height={44}
+                        className="w-full h-full object-cover rounded-full border-0 outline-none"
+                      />
+                    ) : (
+                      userInitial
+                    )}
+                  </div>
+                  {/* Subscription Badge */}
+                  <div className="absolute bottom-0 right-0 z-10">
                     <Image
-                      src={rawAvatarUrl}
-                      alt={`Avatar de ${userDisplayName}`}
-                      width={44}
-                      height={44}
-                      className="w-full h-full object-cover rounded-full border-0 outline-none"
+                      src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
+                      alt={isPremiumUser ? "Premium" : "Starter"}
+                      width={16.5}
+                      height={15}
+                      className="object-contain"
                     />
-                  ) : (
-                    userInitial
-                  )}
+                  </div>
                 </div>
                 {userDisplayName}
                 <span

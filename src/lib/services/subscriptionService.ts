@@ -16,17 +16,19 @@ export class SubscriptionService {
             throw new Error(`Failed to fetch subscription: ${fetchError.message}`);
         }
 
+        const dbPlan = plan === 'starter' ? 'free' : plan;
+
         if (existingSub) {
             const { error: updateError } = await this.supabase
                 .from("user_subscriptions")
-                .update({ plan })
+                .update({ plan: dbPlan })
                 .eq("user_id", userId);
 
             if (updateError) throw new Error(`Failed to update subscription: ${updateError.message}`);
         } else {
             const { error: insertError } = await this.supabase
                 .from("user_subscriptions")
-                .insert({ user_id: userId, plan });
+                .insert({ user_id: userId, plan: dbPlan });
 
             if (insertError) throw new Error(`Failed to create subscription: ${insertError.message}`);
         }

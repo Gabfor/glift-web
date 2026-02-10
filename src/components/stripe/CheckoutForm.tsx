@@ -23,30 +23,28 @@ interface CheckoutFormProps {
     subscriptionId: string | null;
     onSuccess?: (paymentMethodId?: string) => void;
     submitButtonText?: string;
+    mode?: 'setup' | 'payment';
 }
 
 const ELEMENT_OPTIONS = {
     style: {
         base: {
-            fontSize: "16px",
-            color: "#5D6494",
-            fontFamily: "Quicksand, system-ui, sans-serif",
-            fontWeight: "600",
-            "::placeholder": {
-                color: "#D7D4DC",
-                fontWeight: "500",
-                opacity: 1,
+            fontSize: '16px',
+            color: '#2E3271',
+            fontFamily: 'Quicksand, system-ui, sans-serif',
+            fontWeight: '600',
+            '::placeholder': {
+                color: '#D7D4DC',
             },
-            iconColor: "#5D6494",
         },
         invalid: {
-            color: "#df1b41",
+            color: '#df1b41',
         },
     },
 };
 
 export default function CheckoutForm(props: CheckoutFormProps) {
-    const { priceLabel, clientSecret, plan, customerId, subscriptionId, submitButtonText = "Démarrer mon abonnement" } = props;
+    const { priceLabel, clientSecret, plan, customerId, subscriptionId, submitButtonText = "Démarrer mon abonnement", mode = 'setup' } = props;
     const stripe = useStripe();
     const elements = useElements();
     const router = useRouter();
@@ -76,27 +74,55 @@ export default function CheckoutForm(props: CheckoutFormProps) {
         setLoading(true);
         setErrorMessage(null);
 
-        // Confirm the setup intent
-        const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
-            payment_method: {
-                card: cardNumberElement,
-            },
-        });
+        try {
+            if (mode === 'payment') {
+                const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                    payment_method: {
+                        card: cardNumberElement,
+                    },
+                });
 
-        if (error) {
-            setErrorMessage(error.message ?? "Une erreur est survenue lors du paiement");
-            setLoading(false);
-        } else {
-            if (props.onSuccess) {
-                // Pass the created payment method ID
-                const paymentMethodId = typeof setupIntent?.payment_method === 'string'
-                    ? setupIntent.payment_method
-                    : setupIntent?.payment_method?.id;
-
-                props.onSuccess(paymentMethodId);
+                if (error) {
+                    setErrorMessage(error.message ?? "Une erreur est survenue lors du paiement");
+                    setLoading(false);
+                } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                    if (props.onSuccess) {
+                        const paymentMethodId = typeof paymentIntent.payment_method === 'string'
+                            ? paymentIntent.payment_method
+                            : paymentIntent.payment_method?.id;
+                        props.onSuccess(paymentMethodId);
+                    } else {
+                        router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
+                    }
+                } else {
+                    setErrorMessage("Le paiement n'a pas pu être confirmé. Veuillez réessayer.");
+                    setLoading(false);
+                }
             } else {
-                router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
+                // Setup Mode (Trial)
+                const { error, setupIntent } = await stripe.confirmCardSetup(clientSecret, {
+                    payment_method: {
+                        card: cardNumberElement,
+                    },
+                });
+
+                if (error) {
+                    setErrorMessage(error.message ?? "Une erreur est survenue lors du paiement");
+                    setLoading(false);
+                } else {
+                    if (props.onSuccess) {
+                        const paymentMethodId = typeof setupIntent?.payment_method === 'string'
+                            ? setupIntent.payment_method
+                            : setupIntent?.payment_method?.id;
+                        props.onSuccess(paymentMethodId);
+                    } else {
+                        router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
+                    }
+                }
             }
+        } catch (err: any) {
+            setErrorMessage(err.message || "Une erreur inattendue est survenue");
+            setLoading(false);
         }
     };
 

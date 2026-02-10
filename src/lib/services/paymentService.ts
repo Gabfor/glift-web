@@ -90,7 +90,46 @@ export class PaymentService {
         }));
     }
 
+    async createCustomerAndStarterSubscription(userId: string, email: string, name: string) {
+        console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email})`);
+
+        // 1. Check if user already has a valid Stripe Customer ID in Supabase metadata
+        // ... (existing logic) ...
+        // Actually, let's create a new customer regardless of potentially stale ID, OR check if it exists.
+        // For fresh signup, it should be new.
+        const customer = await stripe.customers.create({
+            email,
+            name,
+            metadata: { user_id: userId },
+        });
+        console.log(`PaymentService: Created new Stripe Customer: ${customer.id}`);
+
+        const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+        if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
+
+        // 2. Create Starter Subscription (Free)
+        const subscription = await stripe.subscriptions.create({
+            customer: customer.id,
+            items: [{ price: starterPriceId }],
+        });
+
+        console.log(`PaymentService: Created Starter Subscription ${subscription.id} for customer ${customer.id}`);
+
+        // 3. Update Supabase User Metadata with Stripe IDs
+        await this.supabase.auth.admin.updateUserById(userId, {
+            app_metadata: {
+                stripe_customer_id: customer.id,
+                stripe_subscription_id: subscription.id,
+            }
+        });
+        console.log("PaymentService: Updated Supabase auth metadata");
+
+        return { customerId: customer.id, subscriptionId: subscription.id };
+    }
+
     async createSubscriptionSetup(userEmail: string, userId: string, appMetadata: any) {
+        console.log(`PaymentService: createSubscriptionSetup called for user ${userId}`);
+
         // 1. Get or Create Customer
         let customerId = appMetadata?.stripe_customer_id;
 
@@ -100,11 +139,13 @@ export class PaymentService {
 
         if (!customerId) {
             // Check by email
+            console.log("PaymentService: Customer ID missing, checking by email...");
             const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
             if (customers.data.length > 0) {
                 const foundCustomer = customers.data[0];
                 if (!foundCustomer.deleted) {
                     customerId = foundCustomer.id;
+                    console.log(`PaymentService: Found existing customer by email: ${customerId}`);
                 } else {
                     console.log(`PaymentService: Customer found by email ${foundCustomer.id} is deleted. Creating new one.`);
                 }
@@ -112,6 +153,7 @@ export class PaymentService {
 
             if (!customerId) {
                 // Create new
+                console.log("PaymentService: Creating NEW customer...");
                 const customer = await stripe.customers.create({
                     email: userEmail,
                     metadata: { user_id: userId },
@@ -119,6 +161,7 @@ export class PaymentService {
                     idempotencyKey: `create_cust_${userId}_${Date.now()}` // Unique key for new creation
                 });
                 customerId = customer.id;
+                console.log(`PaymentService: Created new customer ${customerId}`);
 
                 // CRITICAL: Update Supabase immediately to fix the stale metadata for future calls
                 await this.supabase.auth.admin.updateUserById(userId, {
@@ -137,29 +180,19 @@ export class PaymentService {
         const subscriptions = await stripe.subscriptions.list({
             customer: customerId,
             status: 'all',
-            limit: 1,
+            limit: 10, // Increased limit to see history if needed
         });
 
-        console.log(`PaymentService.createSubscriptionSetup: Found ${subscriptions.data.length} subscriptions`);
+        console.log(`PaymentService.createSubscriptionSetup: Found ${subscriptions.data.length} total subscriptions for customer`);
+        subscriptions.data.forEach(s => console.log(` - Sub ${s.id}: status=${s.status}, plan=${s.items.data[0]?.price.id}, cancel_at_period_end=${s.cancel_at_period_end}`));
 
-        // If has active/trialing subscription, creates a SetupIntent to update payment method
-        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
+        // With persistent starter, we look for 'active', 'trialing', 'past_due' (and maybe 'incomplete' if previous attempt failed)
+        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status));
+        console.log("PaymentService: Active subscription selected:", activeSub?.id);
 
-        if (activeSub) {
-            // Create a SetupIntent for this customer
-            const setupIntent = await stripe.setupIntents.create({
-                customer: customerId,
-                payment_method_types: ['card'],
-                metadata: { subscription_id: activeSub.id }
-            });
-
-            return {
-                clientSecret: setupIntent.client_secret,
-                customerId,
-                subscriptionId: activeSub.id,
-                plan: 'premium'
-            };
-        }
+        // Get env vars
+        const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+        if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
 
         // Fetch user profile to check trial eligibility
         const { data: profile } = await this.supabase
@@ -168,38 +201,194 @@ export class PaymentService {
             .eq('id', userId)
             .single();
 
+        console.debug("*** PaymentService: Profile trial status:", profile?.trial);
         const hasUsedTrial = profile?.trial ?? false;
         const trialDays = hasUsedTrial ? 0 : 30;
+        console.debug("*** PaymentService: Calculated trialDays:", trialDays);
 
+        if (activeSub) {
+            const currentPriceId = activeSub.items.data[0]?.price.id;
+            console.log(`PaymentService: Active sub ${activeSub.id} has price ${currentPriceId}`);
+            console.log(`PaymentService: Comparing against Starter: ${starterPriceId} and Premium: ${priceId}`);
+
+            // Case A: Already Premium (or some other paid plan)
+            if (currentPriceId === priceId) {
+                console.log("PaymentService: Detected already Premium. Returning SetupIntent for update.");
+                // Return SetupIntent to allow updating payment method
+                // Logic: If they are here, they might want to switch cards or reactivate
+                const setupIntent = await stripe.setupIntents.create({
+                    customer: customerId,
+                    payment_method_types: ['card'],
+                    metadata: { subscription_id: activeSub.id }
+                });
+                return {
+                    clientSecret: setupIntent.client_secret!,
+                    customerId,
+                    subscriptionId: activeSub.id,
+                    plan: 'premium',
+                    mode: 'setup'
+                };
+            }
+
+            // Case B: Starter Plan -> Upgrade to Premium
+            if (currentPriceId === starterPriceId) {
+                console.log("PaymentService: Upgrading from Starter to Premium");
+
+                const updateParams: any = {
+                    items: [{
+                        id: activeSub.items.data[0].id,
+                        price: priceId, // Premium
+                    }],
+                };
+
+                if (trialDays > 0) {
+                    console.log(`PaymentService: Upgrading with Trial (${trialDays} days)`);
+                    // Upgrade with Trial
+                    // stripe.subscriptions.update does not support trial_period_days. Use trial_end.
+                    const trialEndTimestamp = Math.floor(Date.now() / 1000) + (trialDays * 24 * 60 * 60);
+                    updateParams.trial_end = trialEndTimestamp;
+
+                    await stripe.subscriptions.update(activeSub.id, updateParams);
+                    console.log("PaymentService: Subscription updated with trial end");
+
+                    // Create SetupIntent
+                    const setupIntent = await stripe.setupIntents.create({
+                        customer: customerId,
+                        payment_method_types: ['card'],
+                        metadata: { subscription_id: activeSub.id }
+                    });
+                    console.log("PaymentService: Created SetupIntent for trial");
+
+                    // Update Supabase trial info
+                    const startDate = new Date().toISOString();
+                    const endDate = new Date(trialEndTimestamp * 1000).toISOString();
+                    await this.supabase.from('profiles').update({
+                        trial: true,
+                        premium_trial_started_at: startDate,
+                        premium_trial_end_at: endDate,
+                        premium_end_at: null,
+                        subscription_plan: 'premium'
+                    } as any).eq('id', userId);
+
+                    return {
+                        clientSecret: setupIntent.client_secret!,
+                        customerId,
+                        subscriptionId: activeSub.id,
+                        plan: 'premium',
+                        mode: 'setup'
+                    };
+
+                } else {
+                    // Upgrade with Immediate Charge
+                    updateParams.payment_behavior = 'default_incomplete';
+                    updateParams.proration_behavior = 'always_invoice'; // FORCE immediate invoice
+                    updateParams.payment_settings = {
+                        save_default_payment_method: 'on_subscription',
+                        payment_method_types: ['card']
+                    };
+                    updateParams.expand = ['latest_invoice.payment_intent'];
+
+                    console.debug("*** PaymentService: Sending updateParams to Stripe (Immediate Charge):", JSON.stringify(updateParams, null, 2));
+
+                    const updatedSub = await stripe.subscriptions.update(activeSub.id, updateParams);
+
+                    // Handle Payment Intent retrieval (same logic as creation)
+                    let invoice = updatedSub.latest_invoice as Stripe.Invoice;
+
+                    if (invoice) {
+                        console.debug(`*** PaymentService: Invoice created: ${typeof invoice === 'string' ? invoice : invoice.id}, Status: ${typeof invoice !== 'string' ? invoice.status : 'N/A'}, Amount: ${typeof invoice !== 'string' ? invoice.amount_due : 'N/A'}`);
+                    } else {
+                        console.error("*** PaymentService: NO INVOICE CREATED via update!");
+                    }
+
+                    let paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
+
+                    if (!paymentIntent && invoice && (invoice as any).payment_intent) {
+                        if (typeof (invoice as any).payment_intent === 'string') {
+                            console.debug("*** PaymentService: Fetching PI from ID:", (invoice as any).payment_intent);
+                            paymentIntent = await stripe.paymentIntents.retrieve((invoice as any).payment_intent);
+                        }
+                    }
+
+                    // Fallback: If still no PI, retrieve invoice with expansion
+                    if (!paymentIntent && invoice) {
+                        const invoiceId = typeof invoice === 'string' ? invoice : invoice.id;
+                        console.debug("*** PaymentService: Fetching invoice to find PI:", invoiceId);
+                        const fullInvoice = await stripe.invoices.retrieve(invoiceId, { expand: ['payment_intent'] });
+                        paymentIntent = (fullInvoice as any).payment_intent as Stripe.PaymentIntent;
+                    }
+
+                    if (!paymentIntent) {
+                        console.error("*** PaymentService: CRITICAL - No PaymentIntent found even after retries.");
+                        throw new Error("No payment intent found for upgrade.");
+                    }
+
+                    // Update Supabase
+                    await this.supabase.from('profiles').update({
+                        cancellation: false,
+                        premium_end_at: null,
+                        subscription_plan: 'premium'
+                    } as any).eq('id', userId);
+
+                    return {
+                        clientSecret: paymentIntent.client_secret!,
+                        customerId,
+                        subscriptionId: updatedSub.id,
+                        plan: 'premium',
+                        mode: 'payment'
+                    };
+                }
+            }
+        }
+
+        // Fallback: Create new subscription if none exists (should not happen with persistent starter)
+        // ... (Keep existing creation logic as fallback) ...
+        // Actually, let's keep the existing logic below but wrapped in 'else' or just proceed if no activeSub found.
+
+        // existing creation logic continues here...
         // 3. Create new subscription if none exists
         const subscriptionParams: any = {
             customer: customerId,
             items: [{ price: priceId }],
             payment_behavior: 'default_incomplete',
-            payment_settings: { save_default_payment_method: 'on_subscription' },
-            expand: ['pending_setup_intent'],
         };
 
         if (trialDays > 0) {
             subscriptionParams.trial_period_days = trialDays;
+            subscriptionParams.payment_settings = { save_default_payment_method: 'on_subscription' };
+            subscriptionParams.expand = ['pending_setup_intent', 'latest_invoice.payment_intent'];
+        } else {
+            // Immediate charge
+            // Explicitly define payment settings to ensure PaymentIntent is created
+            subscriptionParams.payment_settings = {
+                save_default_payment_method: 'on_subscription',
+                payment_method_types: ['card']
+            };
+            subscriptionParams.expand = ['latest_invoice.payment_intent'];
         }
 
         const subscription = await stripe.subscriptions.create(subscriptionParams);
 
-        let setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent | null;
+        // Determine if we need to confirm a SetupIntent (trial) or PaymentIntent (immediate charge)
+        let clientSecret = "";
+        let mode = "setup";
 
-        // If no setup intent was created (e.g. trial with no immediate payment required), create one manually
-        if (!setupIntent) {
-            console.log("PaymentService: No pending_setup_intent from subscription. Creating manual SetupIntent.");
-            setupIntent = await stripe.setupIntents.create({
-                customer: customerId,
-                payment_method_types: ['card'],
-                metadata: { subscription_id: subscription.id }
-            });
-        }
-
-        // If we gave a trial, mark it as used and record dates
         if (trialDays > 0) {
+            let setupIntent = subscription.pending_setup_intent as Stripe.SetupIntent | null;
+
+            // If no setup intent was created (e.g. trial with no immediate payment required), create one manually
+            if (!setupIntent) {
+                console.log("PaymentService: No pending_setup_intent from subscription. Creating manual SetupIntent.");
+                setupIntent = await stripe.setupIntents.create({
+                    customer: customerId,
+                    payment_method_types: ['card'],
+                    metadata: { subscription_id: subscription.id }
+                });
+            }
+            clientSecret = setupIntent.client_secret!;
+            mode = "setup";
+
+            // Mark trial as used
             const startDate = new Date().toISOString();
             const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -210,13 +399,78 @@ export class PaymentService {
                 premium_end_at: null, // Clear any previous cancellation date
                 subscription_plan: 'premium'
             } as any).eq('id', userId);
+
+        } else {
+            // Immediate charge
+            let invoice = subscription.latest_invoice as Stripe.Invoice;
+
+            // Debug logging
+            console.log("PaymentService: Subscription created (mode=payment). ID:", subscription.id);
+            console.log("PaymentService: latest_invoice type:", typeof invoice);
+            if (typeof invoice === 'object') {
+                console.log("PaymentService: latest_invoice.id:", invoice?.id);
+                console.log("PaymentService: latest_invoice.payment_intent:", (invoice as any).payment_intent);
+            } else {
+                console.log("PaymentService: latest_invoice is a string:", invoice);
+            }
+
+            let paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
+
+            // Log subscription status
+            console.log(`PaymentService: Subscription status: ${subscription.status}`);
+
+            if (!paymentIntent) {
+                console.log("PaymentService: Payment Intent missing. Retrying retrieval with explicit expansion...");
+                const invoiceId = typeof invoice === 'string' ? invoice : invoice.id;
+                invoice = await stripe.invoices.retrieve(invoiceId, {
+                    expand: ['payment_intent']
+                });
+                paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
+            }
+
+            if (!paymentIntent) {
+                // Second fallback: list payment intents for this invoice
+                // Sometimes the link is not reflected in the invoice object immediately?
+                console.log("PaymentService: PI still missing. Listing PIs for invoice...");
+                const invoiceId = typeof invoice === 'string' ? invoice : invoice.id;
+                const pis = await stripe.paymentIntents.list({ invoice: invoiceId } as any);
+
+                if (pis.data.length > 0) {
+                    paymentIntent = pis.data[0];
+                    console.log("PaymentService: Found PI via search:", paymentIntent.id);
+                }
+            }
+
+            if (!paymentIntent) {
+                console.error("PaymentService: Payment Intent STILL Missing from Invoice:", JSON.stringify(invoice, null, 2));
+
+                // Last resort: if the invoice is open but has no PI, maybe try to finalize it?
+                // But usually default_incomplete creates it.
+                // Let's trying to create a PI manually is complicated because it must be linked to the invoice.
+                // For now, throw detailed error.
+                throw new Error("No payment intent found for immediate charge subscription. Invoice status: " + invoice.status);
+            }
+
+            clientSecret = paymentIntent.client_secret!;
+            mode = "payment";
+
+            // Update profiles.cancellation = false AND set trial_end from stripe if any (should be null or past)
+            // If no trial given, we still update cancellation
+            const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+            await this.supabase.from('profiles').update({
+                cancellation: false,
+                premium_trial_end_at: trialEnd,
+                premium_end_at: null, // Clear any previous cancellation date
+                subscription_plan: 'premium'
+            } as any).eq('id', userId);
         }
 
         return {
-            clientSecret: setupIntent.client_secret,
+            clientSecret: clientSecret,
             customerId,
             subscriptionId: subscription.id,
-            plan: 'premium'
+            plan: 'premium',
+            mode // Return mode to frontend
         };
     }
 
@@ -259,18 +513,38 @@ export class PaymentService {
                         updatedSub = await stripe.subscriptions.update(activeSub.id, {
                             cancel_at_period_end: false,
                         });
+                    } else {
+                        // Even if active, fetch fresh to be sure about dates
+                        updatedSub = await stripe.subscriptions.retrieve(activeSub.id);
                     }
 
                     // Update profiles to ensure sync even if webhook failed
+                    const updatedSubAny = updatedSub as any;
+                    console.log(`*** PaymentService Debug: Retrieved FRESH sub ${updatedSub.id}`);
+                    console.log(`*** PaymentService Debug: current_period_end raw=${updatedSubAny.current_period_end}`);
+
                     const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
+
+                    let premiumEnd = null;
+                    if (updatedSubAny.current_period_end) {
+                        premiumEnd = new Date(updatedSubAny.current_period_end * 1000).toISOString();
+                        console.log(`*** PaymentService Debug: Calculated premiumEnd=${premiumEnd}`);
+                    } else {
+                        console.log("*** PaymentService Debug: current_period_end is MISSING or Falsy on FRESH fetch!");
+                    }
+
                     await this.supabase.from('profiles').update({
                         cancellation: false,
                         premium_trial_end_at: trialEnd,
-                        premium_end_at: null, // Clear any previous cancellation date
+                        premium_end_at: premiumEnd, // Always sync the end date!
                         subscription_plan: 'premium'
                     } as any).eq('id', userId);
 
-                    return { status: activeSub.cancel_at_period_end ? 'reactivated' : 'already_premium', subscriptionId: updatedSub.id };
+                    return {
+                        status: activeSub.cancel_at_period_end ? 'reactivated' : 'already_premium',
+                        subscriptionId: updatedSub.id,
+                        currentPeriodEnd: updatedSubAny.current_period_end
+                    };
                 }
 
                 // Upgrade/Update to Premium from another plan (rare case if only 2 plans)
@@ -350,7 +624,8 @@ export class PaymentService {
                         trial: true,
                         premium_trial_started_at: startDate,
                         premium_trial_end_at: endDate,
-                        cancellation: false
+                        cancellation: false,
+                        subscription_plan: 'premium'
                     } as any).eq('id', userId);
                 } else {
                     // Update profiles.cancellation = false AND set trial_end from stripe if any (should be null or past)
@@ -372,6 +647,14 @@ export class PaymentService {
         } else {
             // Downgrade to Starter (Cancel Premium)
             if (activeSub) {
+                const currentPriceId = activeSub.items.data[0]?.price.id;
+                const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+
+                if (currentPriceId === starterPriceId) {
+                    console.log("PaymentService: Already on Starter plan. No action needed.");
+                    return { status: 'already_starter', subscriptionId: activeSub.id };
+                }
+
                 const endDate = (activeSub as any).current_period_end || Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60);
 
                 const updatedSub = await stripe.subscriptions.update(activeSub.id, {
@@ -379,7 +662,9 @@ export class PaymentService {
                 });
 
                 // Update profiles.cancellation = true AND set expected end date
-                const finalDate = new Date(endDate * 1000).toISOString();
+                // Use the updated subscription's cancel_at (timestamp) or current_period_end
+                const cancelTimestamp = updatedSub.cancel_at || (updatedSub as any).current_period_end;
+                const finalDate = new Date(cancelTimestamp * 1000).toISOString();
                 await this.supabase.from('profiles').update({
                     cancellation: true,
                     premium_end_at: finalDate
@@ -416,16 +701,77 @@ export class PaymentService {
 
         const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
 
+        console.log("PaymentService: activeSub found?", activeSub ? "YES" : "NO", activeSub?.status);
+
+        // Resolve Stripe Plan
+        let stripePlan = 'starter';
+        if (activeSub && activeSub.items.data[0]?.price.id === process.env.STRIPE_PRICE_ID_PREMIUM) {
+            stripePlan = 'premium';
+        }
+
+        console.log("PaymentService: Resolved stripePlan:", stripePlan);
+
+        // Self-healing: Check DB and update if mismatched
+        try {
+            const { data: profile } = await this.supabase
+                .from('profiles')
+                .select('subscription_plan, cancellation, premium_end_at')
+                .eq('id', userId)
+                .single();
+
+            console.log("PaymentService: Current DB Profile:", profile);
+
+            if (profile) {
+                let needsUpdate = false;
+                const updates: any = {};
+
+                // 1. Sync Plan
+                if (profile.subscription_plan !== stripePlan) {
+                    console.log(`PaymentService: Syncing mismatch. DB=${profile.subscription_plan}, Stripe=${stripePlan}`);
+                    updates.subscription_plan = stripePlan;
+                    needsUpdate = true;
+                }
+
+                // 2. Sync Cancellation Status
+                if (activeSub?.cancel_at_period_end !== undefined) {
+                    if (profile.cancellation !== activeSub.cancel_at_period_end) {
+                        console.log(`PaymentService: Syncing cancellation. DB=${profile.cancellation}, Stripe=${activeSub.cancel_at_period_end}`);
+                        updates.cancellation = activeSub.cancel_at_period_end;
+                        needsUpdate = true;
+                    }
+
+                    // Sync End Date if cancelled
+                    if (activeSub.cancel_at_period_end && (activeSub as any).current_period_end) {
+                        const stripeEnd = new Date((activeSub as any).current_period_end * 1000).toISOString();
+                        if (profile.premium_end_at !== stripeEnd) {
+                            updates.premium_end_at = stripeEnd;
+                            needsUpdate = true;
+                        }
+                    } else if (!activeSub.cancel_at_period_end && profile.premium_end_at) {
+                        // If not cancelled (reactivated), clear end date
+                        updates.premium_end_at = null;
+                        needsUpdate = true;
+                    }
+                }
+
+                if (needsUpdate) {
+                    await this.supabase.from('profiles').update(updates).eq('id', userId);
+                }
+            }
+        } catch (e) {
+            console.error("PaymentService: Error during self-healing sync", e);
+        }
+
         if (activeSub) {
             return {
                 id: activeSub.id,
                 status: activeSub.status,
                 cancel_at_period_end: activeSub.cancel_at_period_end,
                 current_period_end: (activeSub as any).current_period_end,
-                plan: activeSub.items.data[0]?.price.id === process.env.STRIPE_PRICE_ID_PREMIUM ? 'premium' : 'starter'
+                plan: stripePlan
             };
         }
-        return null;
+        return null; // Implies starter/none logic in frontend
     }
 
     async setDefaultPaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string) {
@@ -474,47 +820,54 @@ export class PaymentService {
         // Validation helper
         customerId = await this.resolveStaleCustomerId(customerId);
 
-        if (!customerId && userEmail) {
-            const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
-            if (customers.data.length > 0) customerId = customers.data[0].id;
-        }
-
         if (!customerId) throw new Error("No customer found");
 
-        // 1. Downgrade Subscription if active (Cancel at period end)
-        const subscriptions = await stripe.subscriptions.list({
-            customer: customerId,
-            status: 'all',
-            limit: 1,
-        });
+        try {
+            // 1. Detach payment method
+            await stripe.paymentMethods.detach(paymentMethodId);
+            console.log(`PaymentService: Detached payment method ${paymentMethodId}`);
 
-        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
-
-        if (activeSub) {
-            // Cancel at period end
-            const updatedSub = await stripe.subscriptions.update(activeSub.id, {
-                cancel_at_period_end: true,
-                default_payment_method: null as any,
+            // 2. Handle Subscription Cancellation (Downgrade)
+            const subscriptions = await stripe.subscriptions.list({
+                customer: customerId,
+                status: 'all',
+                limit: 1,
             });
 
-            // Update profiles
-            const endDate = updatedSub.cancel_at ? new Date(updatedSub.cancel_at * 1000).toISOString() : new Date().toISOString();
-            // Or use current_period_end? Stripe usually sets cancel_at to current_period_end when cancel_at_period_end is true
-            const finalDate = (updatedSub as any).current_period_end
-                ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
-                : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
 
-            await this.supabase.from('profiles').update({
-                cancellation: true,
-                premium_end_at: finalDate
-            } as any).eq('id', userId);
+            if (activeSub) {
+                // Check if it's already Starter
+                const currentPriceId = activeSub.items.data[0]?.price.id;
+                const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+
+                if (currentPriceId !== starterPriceId) {
+                    // It is Premium (or other), so cancel at period end
+                    const updatedSub = await stripe.subscriptions.update(activeSub.id, {
+                        cancel_at_period_end: true,
+                    });
+
+                    // Update profiles
+                    const finalDate = (updatedSub as any).current_period_end
+                        ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
+                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+                    await this.supabase.from('profiles').update({
+                        cancellation: true,
+                        premium_end_at: finalDate
+                    } as any).eq('id', userId);
+
+                    console.log(`PaymentService: Subscription ${activeSub.id} set to cancel at period end.`);
+                } else {
+                    console.log("PaymentService: User is on Starter plan. No subscription cancellation needed.");
+                }
+            }
+
+            return { status: 'success' };
+        } catch (error) {
+            console.error("PaymentService.removePaymentMethod: Error", error);
+            throw error;
         }
-
-        // 3. Delete Customer (which also removes payment methods on Stripe's side)
-        // We do this instead of just detaching the method, as requested.
-        await this.deleteCustomer(userId, userEmail, appMetadata);
-
-        return { status: 'success' };
     }
 
     async deleteCustomer(userId: string, userEmail: string, appMetadata: any) {

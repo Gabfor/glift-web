@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/services/paymentService';
 
@@ -13,7 +13,9 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const paymentService = new PaymentService(supabase);
+        // Use Admin Client for critical subscription updates
+        const adminSupabase = createAdminClient();
+        const paymentService = new PaymentService(adminSupabase);
         console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}`);
 
         const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, user.app_metadata);

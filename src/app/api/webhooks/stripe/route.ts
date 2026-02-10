@@ -57,6 +57,14 @@ export async function POST(req: Request) {
                         end_date: periodEnd,
                         updated_at: new Date().toISOString(),
                     }).eq("user_id", user.id);
+
+                    // Also update profiles to mark trial as used (since they paid/invoiced)
+                    // and ensure subscription_plan is premium if it's a paid invoice
+                    // (Though usually subscription update handles plan, this is a safety net)
+                    await supabase.from("profiles").update({
+                        trial: true,
+                        updated_at: new Date().toISOString(),
+                    }).eq("id", user.id);
                 }
                 break;
             }
@@ -66,24 +74,98 @@ export async function POST(req: Request) {
                     ? subscription.customer
                     : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer)?.id;
 
-                const { data: { users }, error } = await supabase.auth.admin.listUsers();
-                if (error) throw error;
+                if (!customerId) return new NextResponse("No customer ID", { status: 400 });
 
-                const user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+                // 1. Check if customer is deleted
+                try {
+                    const customer = await stripe.customers.retrieve(customerId);
+                    if (customer.deleted) {
+                        console.log(`Webhook: Customer ${customerId} deleted. Skipping Starter re-creation.`);
+                        break;
+                    }
+                } catch (e) {
+                    console.error("Webhook: Error retrieving customer", e);
+                    break;
+                }
+
+                // 2. Check if user already has another active subscription
+                const existingSubs = await stripe.subscriptions.list({
+                    customer: customerId,
+                    status: 'all', // listing all to filter active
+                });
+                const hasActive = existingSubs.data.some(sub => ['active', 'trialing', 'past_due'].includes(sub.status) && sub.id !== subscription.id);
+
+                if (hasActive) {
+                    console.log(`Webhook: Customer ${customerId} has other active subscriptions. Skipping.`);
+                    break;
+                }
+
+                // 3. Create Starter Subscription
+                const starterPrice = process.env.STRIPE_PRICE_ID_STARTER;
+                if (!starterPrice) {
+                    console.error("Webhook: STRIPE_PRICE_ID_STARTER missing");
+                    break;
+                }
+
+                console.log(`Webhook: Re-creating Starter subscription for customer ${customerId}`);
+                const newSub = await stripe.subscriptions.create({
+                    customer: customerId,
+                    items: [{ price: starterPrice }],
+                });
+
+                // 4. Find User and Update
+                const { data: { users }, error } = await supabase.auth.admin.listUsers();
+                if (error || !users) {
+                    console.error("Webhook: Error listing users", error);
+                    break;
+                }
+
+                let user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+
+                // Fallback: Find by email if metadata lookup fails
+                if (!user) {
+                    try {
+                        console.log(`Webhook: User not found by ID for customer ${customerId}. Trying email lookup...`);
+                        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+                        if (customer.email && !customer.deleted) {
+                            const customerEmail = customer.email;
+                            user = users.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase());
+                            if (user) {
+                                console.log(`Webhook: Found user ${user.id} by email ${customerEmail}`);
+                                // Optional: Repair metadata?
+                            }
+                        }
+                    } catch (err) {
+                        console.error("Webhook: Error retrieving customer for email lookup", err);
+                    }
+                }
 
                 if (user) {
-                    // Mark plan as null or expired in user_subscriptions (if used)
-                    await supabase.from("user_subscriptions").update({
-                        plan: null,
-                        updated_at: new Date().toISOString(),
-                    }).eq("user_id", user.id);
+                    // Update metadata
+                    await supabase.auth.admin.updateUserById(user.id, {
+                        app_metadata: {
+                            stripe_customer_id: customerId, // Ensure it's set
+                            stripe_subscription_id: newSub.id
+                        }
+                    });
 
-                    // Update profiles table as requested
+                    // Update profiles table
                     await supabase.from("profiles").update({
                         subscription_plan: 'starter',
                         cancellation: false,
+                        premium_end_at: null,
+                        premium_trial_end_at: null, // Clear trial end too as they are now on Starter
                         updated_at: new Date().toISOString(),
                     } as any).eq("id", user.id);
+
+                    // Update user_subscriptions (legacy/internal tracking)
+                    await supabase.from("user_subscriptions").update({
+                        plan: 'starter',
+                        end_date: null,
+                        updated_at: new Date().toISOString(),
+                    }).eq("user_id", user.id);
+                } else {
+                    console.warn(`Webhook: User not found for customer ${customerId} (even after email fallback)`);
                 }
                 break;
             }

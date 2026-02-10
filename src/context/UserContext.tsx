@@ -240,7 +240,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           // Trigger background sync to update DB to 'starter'.
           fetch('/api/user/sync-status', { method: 'POST' })
             .then(res => res.json())
-            .then(data => console.log("Background status sync:", data))
+            .then(data => {
+              console.log("Background status sync:", data);
+              if (data.status === 'active_restored' || data.status === 'downgraded') {
+                console.log("Status changed during sync, refreshing user profile...");
+                fetchUser(true); // Refresh in background
+              }
+            })
             .catch(err => console.error("Background status sync failed", err));
         }
 

@@ -1,7 +1,7 @@
 import clsx from "clsx"
 import { ReactNode } from "react"
 
-type ModalMessageVariant = "warning" | "info" | "success"
+type ModalMessageVariant = "warning" | "info" | "success" | "error"
 
 const VARIANT_STYLES: Record<ModalMessageVariant, {
   background: string
@@ -10,6 +10,12 @@ const VARIANT_STYLES: Record<ModalMessageVariant, {
   barColor: string
 }> = {
   warning: {
+    background: "#FFE3E3",
+    titleColor: "#BA2524",
+    textColor: "#EF4F4E",
+    barColor: "#EF4F4E",
+  },
+  error: {
     background: "#FFE3E3",
     titleColor: "#BA2524",
     textColor: "#EF4F4E",
@@ -34,6 +40,7 @@ interface ModalMessageProps {
   title: ReactNode
   description: ReactNode
   className?: string
+  onClose?: () => void
 }
 
 export default function ModalMessage({
@@ -41,6 +48,7 @@ export default function ModalMessage({
   title,
   description,
   className,
+  onClose,
 }: ModalMessageProps) {
   const styles = VARIANT_STYLES[variant]
 
@@ -55,11 +63,29 @@ export default function ModalMessage({
         borderLeftColor: styles.barColor,
       }}
     >
-      <div className="text-[12px] font-bold" style={{ color: styles.titleColor }}>
-        {title}
-      </div>
-      <div className="text-[12px] font-semibold" style={{ color: styles.textColor }}>
-        {description}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="text-[12px] font-bold" style={{ color: styles.titleColor }}>
+            {title}
+          </div>
+          <div className="text-[12px] font-semibold" style={{ color: styles.textColor }}>
+            {description}
+          </div>
+        </div>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="shrink-0 mt-0.5 opacity-60 hover:opacity-100 transition-opacity"
+            aria-label="Fermer"
+          >
+            <img
+              src="/icons/close.svg"
+              alt=""
+              className="w-3 h-3"
+              style={{ filter: variant === 'warning' || variant === 'error' ? 'invert(23%) sepia(52%) saturate(3061%) hue-rotate(338deg) brightness(87%) contrast(92%)' : undefined }}
+            />
+          </button>
+        )}
       </div>
     </div>
   )

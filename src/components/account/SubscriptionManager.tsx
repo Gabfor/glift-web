@@ -180,7 +180,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     // New state for inline form
     const [isAddingMethod, setIsAddingMethod] = useState(false);
     const [closeHovered, setCloseHovered] = useState(false);
-    const [setupData, setSetupData] = useState<{ clientSecret: string; customerId: string; subscriptionId: string; plan: string } | null>(null);
+    const [setupData, setSetupData] = useState<{ clientSecret: string; customerId: string; subscriptionId: string; plan: string; mode?: 'setup' | 'payment' } | null>(null);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const [showModalMessage, setShowModalMessage] = useState(false);
     const [successMessage, setSuccessMessage] = useState<{ title: string; description: string; variant: 'success' | 'error' | 'info' | 'warning' }>({
@@ -323,13 +323,42 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 body: JSON.stringify({ plan: selectedPlan })
             });
             const data = await res.json();
+
             if (res.ok) {
-                console.log("Update SUCCESS:", data);
+                console.log("Update API Response:", data);
                 console.log("Selected Plan:", selectedPlan); // Log selected plan
+
+                // Check for clientSecret -> Immediate Payment Required
+                if (data.clientSecret && selectedPlan === 'premium') {
+                    console.log("Immediate payment required. Confirming...");
+                    const stripe = await stripePromise;
+                    if (!stripe) {
+                        throw new Error("Stripe not initialized");
+                    }
+
+                    const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret);
+
+                    if (error) {
+                        console.error("Payment confirmation failed:", error);
+                        // Show error message to user?
+                        // For now, let's just log and maybe not show success.
+                        throw error;
+                    }
+
+                    if (paymentIntent && paymentIntent.status === 'succeeded') {
+                        console.log("Payment confirmed successfully!");
+                        // Proceed to success handling
+                    } else {
+                        console.error("Payment status not succeeded:", paymentIntent?.status);
+                        throw new Error("Payment not succeeded");
+                    }
+                }
+
                 const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium' || data.status === 'reactivated');
                 const isStarterSuccess = selectedPlan === 'starter' && (data.status === 'canceled_at_period_end' || data.status === 'already_starter');
 
-                if (isPremiumSuccess || isStarterSuccess) {
+                // If we confirmed payment, it is a success even if status in data was initial
+                if (isPremiumSuccess || isStarterSuccess || (data.clientSecret && !data.error)) {
                     setSuccessPlan(selectedPlan);
                     if (data.currentPeriodEnd) {
                         setSubscriptionEndDate(data.currentPeriodEnd);
@@ -537,7 +566,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             onDelete={handleDeletePaymentMethod}
                         />
                     ) : (
-                        <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] overflow-hidden">
+                        <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] hover:border-[#7069FA] transition-colors overflow-hidden">
                             {!isAddingMethod ? (
                                 <button
                                     onClick={handleStartSetup}
@@ -607,6 +636,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 customerId={setupData.customerId}
                                                 subscriptionId={setupData.subscriptionId}
                                                 submitButtonText={paymentMethod ? "Enregistrer" : "Démarrer mon abonnement"}
+                                                mode={setupData.mode}
                                                 onSuccess={async (newPaymentMethodId?: string) => {
                                                     // Prevent race condition with useEffect fetching stale data
                                                     lastActionTime.current = Date.now();
