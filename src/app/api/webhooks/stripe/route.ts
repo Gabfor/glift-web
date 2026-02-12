@@ -38,19 +38,30 @@ export async function POST(req: Request) {
                     ? invoice.customer
                     : invoice.customer?.id;
 
-                // Find user by stripe_customer_id in metadata
-                // Note: querying by metadata is slow/complex in standard auth, simpler if we stored it in profiles.
-                // For now, let's assume we can query user_subscriptions if we add stripe_subscription_id there, OR query users
-                // Since we put it in app_metadata, we have to search users.
-
                 const { data: { users }, error } = await supabase.auth.admin.listUsers();
                 if (error) throw error;
 
-                const user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+                let user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+
+                if (!user) {
+                    try {
+                        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+                        if (customer.email && !customer.deleted) {
+                            const emailWithFallback = customer.email;
+                            user = users.find(u => u.email?.toLowerCase() === emailWithFallback.toLowerCase());
+                            if (user) {
+                                // Self-repair: Update metadata so next time it's faster
+                                await supabase.auth.admin.updateUserById(user.id, {
+                                    app_metadata: { stripe_customer_id: customerId }
+                                });
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Webhook: Failed to retrieve customer for lookup (invoice)", e);
+                    }
+                }
 
                 if (user) {
-                    // Extend subscription
-                    // invoice.lines.data[0].period.end
                     const periodEnd = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
 
                     await supabase.from("user_subscriptions").update({
@@ -58,9 +69,6 @@ export async function POST(req: Request) {
                         updated_at: new Date().toISOString(),
                     }).eq("user_id", user.id);
 
-                    // Also update profiles to mark trial as used (since they paid/invoiced)
-                    // and ensure subscription_plan is premium if it's a paid invoice
-                    // (Though usually subscription update handles plan, this is a safety net)
                     await supabase.from("profiles").update({
                         trial: true,
                         updated_at: new Date().toISOString(),
@@ -76,7 +84,6 @@ export async function POST(req: Request) {
 
                 if (!customerId) return new NextResponse("No customer ID", { status: 400 });
 
-                // 1. Check if customer is deleted
                 try {
                     const customer = await stripe.customers.retrieve(customerId);
                     if (customer.deleted) {
@@ -88,10 +95,9 @@ export async function POST(req: Request) {
                     break;
                 }
 
-                // 2. Check if user already has another active subscription
                 const existingSubs = await stripe.subscriptions.list({
                     customer: customerId,
-                    status: 'all', // listing all to filter active
+                    status: 'all',
                 });
                 const hasActive = existingSubs.data.some(sub => ['active', 'trialing', 'past_due'].includes(sub.status) && sub.id !== subscription.id);
 
@@ -100,7 +106,6 @@ export async function POST(req: Request) {
                     break;
                 }
 
-                // 3. Create Starter Subscription
                 const starterPrice = process.env.STRIPE_PRICE_ID_STARTER;
                 if (!starterPrice) {
                     console.error("Webhook: STRIPE_PRICE_ID_STARTER missing");
@@ -113,7 +118,6 @@ export async function POST(req: Request) {
                     items: [{ price: starterPrice }],
                 });
 
-                // 4. Find User and Update
                 const { data: { users }, error } = await supabase.auth.admin.listUsers();
                 if (error || !users) {
                     console.error("Webhook: Error listing users", error);
@@ -132,7 +136,6 @@ export async function POST(req: Request) {
                             user = users.find(u => u.email?.toLowerCase() === customerEmail.toLowerCase());
                             if (user) {
                                 console.log(`Webhook: Found user ${user.id} by email ${customerEmail}`);
-                                // Optional: Repair metadata?
                             }
                         }
                     } catch (err) {
@@ -169,6 +172,81 @@ export async function POST(req: Request) {
                 }
                 break;
             }
+            case "customer.subscription.updated": {
+                const subscription = event.data.object as Stripe.Subscription;
+                const customerId = typeof subscription.customer === 'string'
+                    ? subscription.customer
+                    : (subscription.customer as Stripe.Customer | Stripe.DeletedCustomer)?.id;
+
+                if (!customerId) return new NextResponse("No customer ID", { status: 400 });
+
+                const { data: { users }, error } = await supabase.auth.admin.listUsers();
+                if (error) throw error;
+
+                let user = users.find(u => u.app_metadata?.stripe_customer_id === customerId);
+
+                if (!user) {
+                    try {
+                        const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+                        if (customer.email && !customer.deleted) {
+                            const emailWithFallback = customer.email;
+                            user = users.find(u => u.email?.toLowerCase() === emailWithFallback.toLowerCase());
+                        }
+                    } catch (e) {
+                        console.error("Webhook: Failed to retrieve customer for lookup", e);
+                    }
+                }
+
+                if (user) {
+                    console.log(`Webhook: subscription.updated for user ${user.id} (${subscription.status})`);
+
+                    const subAny = subscription as any;
+                    const periodEnd = subAny.current_period_end
+                        ? new Date(subAny.current_period_end * 1000).toISOString()
+                        : null;
+                    const trialEnd = subAny.trial_end
+                        ? new Date(subAny.trial_end * 1000).toISOString()
+                        : null;
+
+                    const priceId = subAny.items?.data[0]?.price.id;
+                    const isStarter = priceId === process.env.STRIPE_PRICE_ID_STARTER;
+
+                    const updateData: any = {
+                        updated_at: new Date().toISOString(),
+                    };
+
+                    if (periodEnd) {
+                        updateData.premium_end_at = periodEnd;
+                    }
+
+                    if (isStarter) {
+                        updateData.subscription_plan = 'starter';
+                        updateData.premium_end_at = null;
+                        updateData.premium_trial_end_at = null;
+                        updateData.trial = false;
+                    } else {
+                        updateData.subscription_plan = 'premium';
+                        updateData.trial = subscription.status === 'trialing';
+                        updateData.premium_trial_end_at = trialEnd;
+                        updateData.cancellation = subscription.cancel_at_period_end;
+                    }
+
+                    await supabase.from("profiles").update(updateData).eq("id", user.id);
+                    console.log(`Webhook: Updated profile for ${user.id} with end_at=${periodEnd}`);
+                } else {
+                    console.warn(`Webhook: User not found for subscription.updated (Customer: ${customerId})`);
+                }
+                break;
+            }
+            case "invoice.payment_failed": {
+                const invoice = event.data.object as any;
+                const customerId = typeof invoice.customer === 'string'
+                    ? invoice.customer
+                    : invoice.customer?.id;
+
+                console.error(`Webhook: Payment failed for customer ${customerId}, invoice ${invoice.id}`);
+                break;
+            }
             case "setup_intent.succeeded": {
                 const setupIntent = event.data.object as Stripe.SetupIntent;
                 const subscriptionId = setupIntent.metadata?.subscription_id;
@@ -192,12 +270,10 @@ export async function POST(req: Request) {
                             if (user) {
                                 console.log(`Webhook: Reactivating subscription ${subscriptionId} for user ${user.id}`);
 
-                                // Reactivate in Stripe
                                 await stripe.subscriptions.update(subscriptionId, {
                                     cancel_at_period_end: false,
                                 });
 
-                                // Update Supabase
                                 await supabase.from('profiles').update({
                                     cancellation: false,
                                     premium_end_at: null

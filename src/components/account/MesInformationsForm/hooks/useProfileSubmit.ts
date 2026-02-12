@@ -22,6 +22,9 @@ const mapValuesToProfilePatch = (values: Record<string, unknown>) => {
   for (const [key, value] of Object.entries(values)) {
     if (value === undefined) continue;
 
+    // Filter out Stripe fields that are passed via URL params but shouldn't be in profiles table
+    if (key === 'stripe_customer_id' || key === 'stripe_subscription_id') continue;
+
     const normalizedKey = KEY_OVERRIDES[key] ?? (key.includes("_") ? key : camelToSnake(key));
 
     if (normalizedKey === "birth_date" && value === "") {
