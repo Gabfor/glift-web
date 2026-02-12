@@ -20,7 +20,7 @@ export default async function Home() {
   }
 
   // Fetch partners and settings in parallel
-  const [partnersResponse, settingsResponse] = await Promise.all([
+  const [partnersResponse, settingsResponse, trialSettingsResponse] = await Promise.all([
     supabase
       .from("partners")
       .select("*")
@@ -30,7 +30,8 @@ export default async function Home() {
       .from("site_settings")
       .select("value")
       .eq("key", "partners_enabled")
-      .single()
+      .single(),
+    supabase.from("settings").select("value").eq("key", "trial_period_days").single()
   ]);
 
   const partners = partnersResponse.data;
@@ -39,6 +40,8 @@ export default async function Home() {
   // Determine visibility
   // If no setting found, default to TRUE to show partners unless explicitly disabled
   const showPartners = settingsResponse.data?.value === false ? false : true;
+
+  const trialDays = trialSettingsResponse.data?.value ? parseInt(trialSettingsResponse.data.value, 10) : 30;
 
   const surfaceBackground = "bg-[var(--color-surface-primary)]";
   const maxContentWidth = "max-w-[var(--layout-max-width)]";
@@ -92,7 +95,7 @@ export default async function Home() {
             <span className="absolute w-full h-full rounded-full bg-[var(--color-accent-success)] opacity-50 animate-ping"></span>
             <span className="relative w-2 h-2 rounded-full bg-[var(--color-accent-success)]"></span>
           </span>
-          30 jours pour tester gratuitement
+          {trialDays} jours pour tester gratuitement
         </div>
       </section>
       <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[30px] text-center relative`}>

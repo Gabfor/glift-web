@@ -4,8 +4,10 @@ import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
 import InfoAdornment from "@/components/InfoAdornment";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 export default function TarifsPage() {
+  const { trialDays } = useSiteSettings();
   return (
     <>
       {/* Section header */}
@@ -162,7 +164,7 @@ export default function TarifsPage() {
                 <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
                 <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
               </span>
-              <span>30 jours pour tester</span>
+              <span>{trialDays} jours pour tester</span>
             </div>
           </div>
         </div>

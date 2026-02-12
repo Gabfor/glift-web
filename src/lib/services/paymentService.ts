@@ -201,10 +201,19 @@ export class PaymentService {
             .eq('id', userId)
             .single();
 
+        // Fetch dynamic trial days setting
+        const { data: trialSetting } = await this.supabase
+            .from('settings')
+            .select('value')
+            .eq('key', 'trial_period_days')
+            .single();
+
+        const configuredTrialDays = trialSetting?.value ? parseInt(trialSetting.value, 10) : 30;
+
         console.debug("*** PaymentService: Profile trial status:", profile?.trial);
         const hasUsedTrial = profile?.trial ?? false;
-        const trialDays = hasUsedTrial ? 0 : 30;
-        console.debug("*** PaymentService: Calculated trialDays:", trialDays);
+        const trialDays = hasUsedTrial ? 0 : configuredTrialDays;
+        console.debug(`*** PaymentService: Calculated trialDays: ${trialDays} (Configured: ${configuredTrialDays})`);
 
         if (activeSub) {
             const currentPriceId = activeSub.items.data[0]?.price.id;
@@ -390,7 +399,7 @@ export class PaymentService {
 
             // Mark trial as used
             const startDate = new Date().toISOString();
-            const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            const endDate = new Date(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000).toISOString();
 
             await this.supabase.from('profiles').update({
                 trial: true,
@@ -551,13 +560,20 @@ export class PaymentService {
                 // But if they are re-subscribing on an existing cancelled-but-active sub?
                 // Simplification for now: update the item.
 
-                const updatedSub = await stripe.subscriptions.update(activeSub.id, {
+                const updateParams: any = {
                     items: [{
                         id: activeSub.items.data[0].id,
                         price: priceId,
                     }],
                     cancel_at_period_end: false,
-                });
+                    payment_behavior: 'default_incomplete',
+                    proration_behavior: 'always_invoice',
+                    expand: ['latest_invoice.payment_intent'],
+                };
+
+                console.log("PaymentService: Upgrading subscription with params:", JSON.stringify(updateParams, null, 2));
+
+                const updatedSub = await stripe.subscriptions.update(activeSub.id, updateParams);
 
                 // Update profiles.cancellation = false AND set trial end if applicable
                 const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
@@ -565,16 +581,40 @@ export class PaymentService {
                     cancellation: false,
                     premium_trial_end_at: trialEnd,
                     premium_end_at: null, // Clear any previous cancellation date
-                    // We don't mark trial=true here typically because upgrade implies they already had a sub?
-                    // Or if they were on starter? Starter is usually no sub in this system.
-                    // If they upgrade from a hypothetical paid-non-trial plan to another, trial logic might not apply.
-                    // But in this app, "Starter" = no sub. So we only hit this block if they have a sub that is NOT premium price?
-                    // If they have a sub, they probably already used trial or are paying.
-                    // Let's assume upgrade doesn't grant new trial unless explicitly handled.
                     subscription_plan: 'premium'
                 } as any).eq('id', userId);
 
-                return { status: 'updated', subscriptionId: updatedSub.id };
+                // Handle Payment Intent for SCA / Immediate Charge
+                let clientSecret = "";
+                let invoice = updatedSub.latest_invoice as Stripe.Invoice;
+
+                if (invoice) {
+                    if (typeof invoice === 'string') {
+                        invoice = await stripe.invoices.retrieve(invoice, { expand: ['payment_intent'] });
+                    }
+
+                    let paymentIntent = (invoice as any).payment_intent as Stripe.PaymentIntent;
+
+                    if (!paymentIntent && (invoice as any).payment_intent) {
+                        // Double check expansion
+                        const piId = typeof (invoice as any).payment_intent === 'string' ? (invoice as any).payment_intent : (invoice as any).payment_intent.id;
+                        paymentIntent = await stripe.paymentIntents.retrieve(piId);
+                    }
+
+                    if (paymentIntent) {
+                        clientSecret = paymentIntent.client_secret!;
+                        console.log("PaymentService: Upgrade requires payment. Client Secret obtained.");
+                    } else if (invoice.status === 'open') {
+                        // Edge case: Invoice open but no PI?
+                        console.warn("PaymentService: Invoice open but no PI found immediately.");
+                    }
+                }
+
+                return {
+                    status: 'updated',
+                    subscriptionId: updatedSub.id,
+                    clientSecret: clientSecret || undefined // Return if exists
+                };
             } else {
                 // No active subscription: Create new one
 
@@ -586,7 +626,16 @@ export class PaymentService {
                     .single();
 
                 const hasUsedTrial = profile?.trial ?? false;
-                const trialDays = hasUsedTrial ? 0 : 30;
+
+                // Fetch dynamic trial days setting (Fallback creation)
+                const { data: trialSetting } = await this.supabase
+                    .from('settings')
+                    .select('value')
+                    .eq('key', 'trial_period_days')
+                    .single();
+                const configuredTrialDays = trialSetting?.value ? parseInt(trialSetting.value, 10) : 30;
+
+                const trialDays = hasUsedTrial ? 0 : configuredTrialDays;
 
                 // Check if customer has a default payment method
                 const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
@@ -618,7 +667,7 @@ export class PaymentService {
                 // If we gave a trial, mark it as used and record dates
                 if (trialDays > 0) {
                     const startDate = new Date().toISOString();
-                    const endDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                    const endDate = new Date(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000).toISOString();
 
                     await this.supabase.from('profiles').update({
                         trial: true,

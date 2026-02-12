@@ -19,16 +19,18 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [customerId, setCustomerId] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
+    const [mode, setMode] = useState<'setup' | 'payment'>('setup');
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!email || !userId) return;
+        // We use the authenticated session for the API call, so we just trigger it.
+        // ID and Email are used for initial checks if needed, but the API relies on the cookie.
 
-        // Créer le PaymentIntent / Sub dès que la page charge
-        fetch("/api/create-payment-intent", {
+        fetch("/api/user/setup-subscription", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, userId }),
+            // Body is empty because the API gets user from session
+            body: JSON.stringify({}),
         })
             .then((res) => res.json())
             .then((data) => {
@@ -38,10 +40,13 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
                     setClientSecret(data.clientSecret);
                     setCustomerId(data.customerId);
                     setSubscriptionId(data.subscriptionId);
+                    if (data.mode) {
+                        setMode(data.mode);
+                    }
                 }
             })
             .catch((err) => setError("Erreur réseau: impossible d'initialiser le paiement."));
-    }, [email, userId]);
+    }, []); // Run once on mount
 
     if (error) {
         return <div className="text-red-500 font-semibold p-4 bg-red-50 rounded-lg">{error}</div>;
@@ -113,6 +118,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
                 plan={plan}
                 customerId={customerId}
                 subscriptionId={subscriptionId}
+                mode={mode}
             />
         </Elements>
     );

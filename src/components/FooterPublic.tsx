@@ -9,7 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
 
 export default function Footer() {
-  const { logoUrl, logoAlt } = useSiteSettings();
+  const { logoUrl, logoAlt, trialDays } = useSiteSettings();
 
   return (
     <footer className="mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[0px] pb-[30px]">
@@ -41,7 +41,7 @@ export default function Footer() {
               {/* Point central */}
               <span className="relative w-[8px] h-[8px] rounded-full bg-[#00D591] block"></span>
             </span>
-            30 jours pour tester
+            {trialDays} jours pour tester
           </span>
         </div>
       </div>

@@ -4,16 +4,18 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import { SettingsService } from "@/lib/services/settingsService";
 
-interface LogoSettings {
+interface SiteSettings {
     logoUrl: string;
     logoAlt: string;
+    trialDays: number;
     isLoading: boolean;
 }
 
-export function useSiteSettings(): LogoSettings {
-    const [data, setData] = useState({
+export function useSiteSettings(): SiteSettings {
+    const [data, setData] = useState<SiteSettings>({
         logoUrl: "/logo_beta.svg",
         logoAlt: "Logo Glift",
+        trialDays: 30, // Default
         isLoading: true,
     });
 
@@ -27,6 +29,7 @@ export function useSiteSettings(): LogoSettings {
                 setData({
                     logoUrl: settings["logo_url"] || "/logo_beta.svg",
                     logoAlt: settings["logo_alt"] || "Logo Glift",
+                    trialDays: settings["trial_period_days"] ? parseInt(settings["trial_period_days"], 10) : 30,
                     isLoading: false,
                 });
             } catch (error) {

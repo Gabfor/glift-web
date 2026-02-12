@@ -8,6 +8,7 @@ import CTAButton from "@/components/CTAButton";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import { cleanupOrphanedImages } from "./actions";
 
 // Inline SVG for dynamic coloring
@@ -31,6 +32,9 @@ export default function AdminSettingsPage() {
     const [initialLogoUrl, setInitialLogoUrl] = useState<string>("");
     const [initialAltText, setInitialAltText] = useState<string>("");
     const [initialPartnersEnabled, setInitialPartnersEnabled] = useState(true);
+
+    const [trialDays, setTrialDays] = useState<string>("30");
+    const [initialTrialDays, setInitialTrialDays] = useState<string>("30");
 
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
@@ -64,6 +68,11 @@ export default function AdminSettingsPage() {
                     setInitialPartnersEnabled(enabled);
                 }
 
+                // Fetch Trial Days
+                const trialDaysValue = settings["trial_period_days"] || "30";
+                setTrialDays(trialDaysValue);
+                setInitialTrialDays(trialDaysValue);
+
             } catch (error) {
                 console.error("Failed to load settings", error);
             } finally {
@@ -73,7 +82,7 @@ export default function AdminSettingsPage() {
         fetchSettings();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled);
+    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled) || (trialDays !== initialTrialDays);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -87,10 +96,13 @@ export default function AdminSettingsPage() {
                 .from("site_settings")
                 .upsert({ key: "partners_enabled", value: partnersEnabled, updated_at: new Date().toISOString() });
 
+            await settingsService.updateSetting("trial_period_days", trialDays);
+
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
             setInitialPartnersEnabled(partnersEnabled);
+            setInitialTrialDays(trialDays);
 
         } catch (error) {
             console.error("Save failed", error);
@@ -149,6 +161,26 @@ export default function AdminSettingsPage() {
                         </div>
                     </div>
 
+                    {/* REGLAGES Section */}
+                    <div className="mt-8">
+                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">REGLAGES</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                            <div>
+                                <AdminDropdown
+                                    label="Durée de la période d’essai"
+                                    placeholder="Sélectionner"
+                                    options={[
+                                        { value: "1", label: "1 jour" },
+                                        { value: "7", label: "7 jours" },
+                                        { value: "30", label: "30 jours" },
+                                    ]}
+                                    selected={trialDays}
+                                    onSelect={setTrialDays}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Save Button (Centered, Outside Grid) */}
                     <div className="mt-[50px] flex justify-center">
                         <CTAButton
@@ -186,7 +218,7 @@ export default function AdminSettingsPage() {
                                     }
                                 }}
                                 loading={isCleaning}
-                                className="bg-[#111111] hover:bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-3"
+                                className="bg-black hover:bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-3"
                             >
                                 <Image
                                     src="/icons/supabase.svg"
