@@ -22,7 +22,7 @@ interface HeaderProps {
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser } =
+  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -442,15 +442,17 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     )}
                   </div>
                   {/* Subscription Badge */}
-                  <div className="absolute bottom-0 right-0 z-10">
-                    <Image
-                      src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
-                      alt={isPremiumUser ? "Premium" : "Starter"}
-                      width={16.5}
-                      height={15}
-                      className="object-contain"
-                    />
-                  </div>
+                  {isUserDataLoaded && (
+                    <div className="absolute bottom-0 right-0 z-10 transition-opacity duration-300 animate-in fade-in zoom-in">
+                      <Image
+                        src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
+                        alt={isPremiumUser ? "Premium" : "Starter"}
+                        width={16.5}
+                        height={15}
+                        className="object-contain"
+                      />
+                    </div>
+                  )}
                 </div>
                 {userDisplayName}
                 <span

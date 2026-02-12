@@ -37,6 +37,7 @@ interface UserContextType {
   premiumTrialEndAt: string | null;
   premiumEndAt: string | null;
   trial?: boolean;
+  isUserDataLoaded: boolean;
   refreshUser: () => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
@@ -53,6 +54,7 @@ const UserContext = createContext<UserContextType>({
   gracePeriodExpiresAt: null,
   premiumTrialEndAt: null,
   premiumEndAt: null,
+  isUserDataLoaded: false,
   refreshUser: async () => { },
   updateUserMetadata: () => { },
 });
@@ -85,6 +87,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [premiumEndAt, setPremiumEndAt] = useState<string | null>(null);
   // Add trial state
   const [trial, setTrial] = useState<boolean | undefined>(undefined);
+  // If no session user, we are "loaded" (as null). If session user exists, we are "loading" fresh data.
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(() => !sessionUser);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
   useEffect(() => {
@@ -285,6 +289,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } finally {
       setIsLoading(false);
+      setIsUserDataLoaded(true);
     }
   }, [supabase]);
 
@@ -354,6 +359,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setPremiumTrialEndAt(null);
           setPremiumEndAt(null);
           setTrial(undefined);
+          setIsUserDataLoaded(true); // User is null, so data is "loaded"
         } else if (
           event === "SIGNED_IN" &&
           sessionType !== "recovery" &&
@@ -430,6 +436,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         premiumTrialEndAt,
         premiumEndAt,
         trial, // Use state value
+        isUserDataLoaded,
         refreshUser: fetchUser,
         updateUserMetadata,
       }}
