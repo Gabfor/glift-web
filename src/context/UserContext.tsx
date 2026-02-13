@@ -42,6 +42,7 @@ interface UserContextType {
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
   ) => void;
+  setOptimisticPremium: (isPremium: boolean) => void;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -57,6 +58,7 @@ const UserContext = createContext<UserContextType>({
   isUserDataLoaded: false,
   refreshUser: async () => { },
   updateUserMetadata: () => { },
+  setOptimisticPremium: () => { },
 });
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
@@ -245,9 +247,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           fetch('/api/user/sync-status', { method: 'POST' })
             .then(res => res.json())
             .then(data => {
-              console.log("Background status sync:", data);
               if (data.status === 'active_restored' || data.status === 'downgraded') {
-                console.log("Status changed during sync, refreshing user profile...");
                 fetchUser(true); // Refresh in background
               }
             })
@@ -439,6 +439,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         isUserDataLoaded,
         refreshUser: fetchUser,
         updateUserMetadata,
+        setOptimisticPremium: setIsPremiumUser,
       }}
     >
       {children}

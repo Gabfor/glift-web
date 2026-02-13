@@ -263,14 +263,20 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
                     if (data && data.status) {
                         // User has a Stripe subscription
-                        if (data.cancel_at_period_end || hasFuturePremiumEnd) {
-                            // Cancellation pending (Stripe or DB)
+                        if (data.cancel_at_period_end || hasFuturePremiumEnd || data.status === 'incomplete') {
+                            // Cancellation pending (Stripe or DB) OR Incomplete subscription (Payment Failed/Abandoned)
                             setSuccessPlan('starter');
                             // Show end of current period
                             if (data.current_period_end) {
                                 setSubscriptionEndDate(data.current_period_end);
                             } else if (hasFuturePremiumEnd) {
                                 setSubscriptionEndDate(Math.floor(new Date(premiumEndAt!).getTime() / 1000));
+                            } else {
+                                // For incomplete, maybe show "now"? or let it be blank/default
+                                // If incomplete, it means they are not effectively paid, so it will end "now" or "soon".
+                                // If we don't set a date, the message might look weird if it depends on it.
+                                // Let's try to set it to now to indicate immediate expiry.
+                                setSubscriptionEndDate(Math.floor(Date.now() / 1000));
                             }
                             setShowSuccessMessage(true);
                         } else {

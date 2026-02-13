@@ -21,7 +21,7 @@ const AccountCreationPage = () => {
   const supabase = supabaseClient;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { refreshUser, isAuthenticated, isLoading } = useUser();
+  const { refreshUser, isAuthenticated, isLoading, setOptimisticPremium } = useUser();
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
@@ -188,13 +188,16 @@ const AccountCreationPage = () => {
           setError(
             normalizeErrorMessage(
               sessionError.message ||
-                "Connexion impossible après la création du compte.",
+              "Connexion impossible après la création du compte.",
             ),
           );
           return;
         }
 
         await refreshUser();
+        if (plan === 'premium') {
+          setOptimisticPremium(true);
+        }
       } else {
         try {
           const response = await fetch("/api/auth/provisional-session", {
@@ -219,18 +222,21 @@ const AccountCreationPage = () => {
               setError(
                 normalizeErrorMessage(
                   sessionError.message ||
-                    "Connexion impossible après la création du compte.",
+                  "Connexion impossible après la création du compte.",
                 ),
               );
               return;
             }
 
             await refreshUser();
+            if (plan === 'premium') {
+              setOptimisticPremium(true);
+            }
           } else if (!response.ok) {
             setError(
               normalizeErrorMessage(
                 provisionalResult.error ||
-                  "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
+                "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
               ),
             );
             return;
@@ -243,7 +249,6 @@ const AccountCreationPage = () => {
         }
       }
 
-      router.refresh();
       router.replace(nextStepPath);
     } catch (submitError) {
       console.error(submitError);
@@ -327,13 +332,12 @@ const AccountCreationPage = () => {
                 setPrenomTouched(true);
                 setPrenomFocused(false);
               }}
-              className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 ${
-                shouldShowPrenomSuccess
-                  ? "border border-[#00D591]"
-                  : shouldShowPrenomError
+              className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 ${shouldShowPrenomSuccess
+                ? "border border-[#00D591]"
+                : shouldShowPrenomError
                   ? "border border-[#EF4444]"
                   : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
-              }`}
+                }`}
             />
             <div className="h-[20px] mt-[5px] text-[13px] font-medium">
               {shouldShowPrenomSuccess && <p className="text-[#00D591]">Enchanté {prenom.trim()} !</p>}
@@ -415,9 +419,8 @@ const AccountCreationPage = () => {
                   alt="Icône cadenas"
                   width={20}
                   height={20}
-                  className={`h-[20px] w-[20px] transition-colors ${
-                    isFormValid ? "invert brightness-0" : ""
-                  }`}
+                  className={`h-[20px] w-[20px] transition-colors ${isFormValid ? "invert brightness-0" : ""
+                    }`}
                 />
                 Créer mon compte
               </>

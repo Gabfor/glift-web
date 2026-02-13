@@ -82,8 +82,8 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         userService.initializePreferences(userId),
         subscriptionService.initializeSubscription(userId, supabasePlan),
-        // Create Stripe Customer and Starter Subscription
-        paymentService.createCustomerAndStarterSubscription(userId, email, name),
+        // Create Stripe Customer and Subscription (Starter or Incomplete Premium)
+        paymentService.createCustomerAndStarterSubscription(userId, email, name, plan as 'starter' | 'premium'),
       ]);
 
       // 📧 Envoi de l'email de confirmation (Non-bloquant)

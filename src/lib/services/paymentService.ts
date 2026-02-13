@@ -90,13 +90,10 @@ export class PaymentService {
         }));
     }
 
-    async createCustomerAndStarterSubscription(userId: string, email: string, name: string) {
-        console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email})`);
+    async createCustomerAndStarterSubscription(userId: string, email: string, name: string, plan: 'starter' | 'premium' = 'starter') {
+        console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email}), plan=${plan}`);
 
-        // 1. Check if user already has a valid Stripe Customer ID in Supabase metadata
-        // ... (existing logic) ...
-        // Actually, let's create a new customer regardless of potentially stale ID, OR check if it exists.
-        // For fresh signup, it should be new.
+        // 1. Create Stripe Customer
         const customer = await stripe.customers.create({
             email,
             name,
@@ -104,27 +101,81 @@ export class PaymentService {
         });
         console.log(`PaymentService: Created new Stripe Customer: ${customer.id}`);
 
-        const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
-        if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
+        let subscriptionId = "";
+        let clientSecret = "";
 
-        // 2. Create Starter Subscription (Free)
-        const subscription = await stripe.subscriptions.create({
-            customer: customer.id,
-            items: [{ price: starterPriceId }],
-        });
+        if (plan === 'starter') {
+            const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+            if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
 
-        console.log(`PaymentService: Created Starter Subscription ${subscription.id} for customer ${customer.id}`);
+            // 2. Create Starter Subscription (Free)
+            const subscription = await stripe.subscriptions.create({
+                customer: customer.id,
+                items: [{ price: starterPriceId }],
+            });
+            subscriptionId = subscription.id;
+            console.log(`PaymentService: Created Starter Subscription ${subscription.id}`);
+        } else {
+            // Premium Plan -> Create "Incomplete" subscription requiring payment method
+            const premiumPriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+            if (!premiumPriceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
+
+            // Fetch dynamic trial days setting
+            const { data: trialSetting } = await this.supabase
+                .from('settings')
+                .select('value')
+                .eq('key', 'trial_period_days')
+                .single();
+            const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
+            console.log(`PaymentService: Using trial days: ${configuredTrialDays}`);
+
+            const subscriptionParams: any = {
+                customer: customer.id,
+                items: [{ price: premiumPriceId }],
+                payment_behavior: 'default_incomplete',
+                payment_settings: { save_default_payment_method: 'on_subscription' },
+                expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
+            };
+
+            // Calculate trial end or days
+            if (Number.isInteger(configuredTrialDays) && configuredTrialDays >= 1) {
+                subscriptionParams.trial_period_days = configuredTrialDays;
+            } else {
+                const trialEndTimestamp = Math.floor(Date.now() / 1000) + Math.ceil(configuredTrialDays * 24 * 60 * 60);
+                subscriptionParams.trial_end = trialEndTimestamp;
+            }
+
+            const subscription = await stripe.subscriptions.create(subscriptionParams);
+            subscriptionId = subscription.id;
+            console.log(`PaymentService: Created Incomplete Premium Subscription ${subscription.id}`);
+
+            // Update Supabase immediately to reflect (optimistic) Premium status + Trial usage intent
+            // Although status is incomplete, we set it to premium so UI shows warnings if payment fails/abandons.
+            // But we also need to mark trial start/end for consistency if they pay later?
+            // Actually, for incomplete, we just need to ensure the profile ref reflects 'premium'
+            // and trial fields are prepared?
+            // 'createSubscriptionSetup' handles trial marking AFTER payment/setup.
+            // Here we just want to create the Stripe object so 'getSubscriptionDetails' sees 'incomplete'.
+            // The profile update happens in step 3 below or via webhook/setup success.
+        }
 
         // 3. Update Supabase User Metadata with Stripe IDs
         await this.supabase.auth.admin.updateUserById(userId, {
             app_metadata: {
                 stripe_customer_id: customer.id,
-                stripe_subscription_id: subscription.id,
+                stripe_subscription_id: subscriptionId,
             }
         });
-        console.log("PaymentService: Updated Supabase auth metadata");
 
-        return { customerId: customer.id, subscriptionId: subscription.id };
+        // Update profile plan if premium was requested (optimistic)
+        // This is what triggers the "abandoned payment flow" warning because sub exists but is incomplete.
+        if (plan === 'premium') {
+            await this.supabase.from('profiles').update({ subscription_plan: 'premium' }).eq('id', userId);
+        }
+
+        console.log("PaymentService: Updated Supabase auth metadata and profile");
+
+        return { customerId: customer.id, subscriptionId: subscriptionId };
     }
 
     async createSubscriptionSetup(userEmail: string, userId: string, appMetadata: any) {
@@ -222,7 +273,43 @@ export class PaymentService {
 
             // Case A: Already Premium (or some other paid plan)
             if (currentPriceId === priceId) {
-                console.log("PaymentService: Detected already Premium. Returning SetupIntent for update.");
+                console.log("PaymentService: Detected already Premium. Checking status...");
+
+                if (activeSub.status === 'incomplete') {
+                    console.log("PaymentService: Subscription is incomplete. Retrieving pending invoice/intent...");
+                    // Retrieve latest invoice to get the PaymentIntent
+                    const invoiceId = typeof activeSub.latest_invoice === 'string' ? activeSub.latest_invoice : activeSub.latest_invoice?.id;
+
+                    if (invoiceId) {
+                        const invoice = await stripe.invoices.retrieve(invoiceId, { expand: ['payment_intent'] });
+                        const pi = (invoice as any).payment_intent as Stripe.PaymentIntent;
+
+                        if (pi && pi.client_secret) {
+                            return {
+                                clientSecret: pi.client_secret,
+                                customerId,
+                                subscriptionId: activeSub.id,
+                                plan: 'premium',
+                                mode: 'payment'
+                            };
+                        }
+                    }
+                    // If no PI found for incomplete (weird), fall through or create new SetupIntent?
+                    // Verify if it's a SetupIntent (e.g. trial incomplete)?
+                    if (activeSub.pending_setup_intent) {
+                        const siId = typeof activeSub.pending_setup_intent === 'string' ? activeSub.pending_setup_intent : activeSub.pending_setup_intent.id;
+                        const si = await stripe.setupIntents.retrieve(siId);
+                        return {
+                            clientSecret: si.client_secret!,
+                            customerId,
+                            subscriptionId: activeSub.id,
+                            plan: 'premium',
+                            mode: 'setup'
+                        };
+                    }
+                }
+
+                console.log("PaymentService: Returning SetupIntent for update (already active/trialing).");
                 // Return SetupIntent to allow updating payment method
                 // Logic: If they are here, they might want to switch cards or reactivate
                 const setupIntent = await stripe.setupIntents.create({
@@ -238,6 +325,7 @@ export class PaymentService {
                     mode: 'setup'
                 };
             }
+
 
             // Case B: Starter Plan -> Upgrade to Premium
             if (currentPriceId === starterPriceId) {
@@ -756,7 +844,7 @@ export class PaymentService {
             limit: 1,
         });
 
-        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due'].includes(sub.status));
+        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status));
 
         console.log("PaymentService: activeSub found?", activeSub ? "YES" : "NO", activeSub?.status);
 
@@ -820,12 +908,60 @@ export class PaymentService {
         }
 
         if (activeSub) {
+            let lastInvoiceError = null;
+            let lastInvoiceStatus = null;
+
+            if (activeSub.latest_invoice) {
+                const invoiceId = typeof activeSub.latest_invoice === 'string' ? activeSub.latest_invoice : activeSub.latest_invoice.id;
+                // Retrieve invoice to inspect error
+                try {
+                    // Only fetch if we need details we don't have
+                    if (typeof activeSub.latest_invoice === 'string') {
+                        const inv = await stripe.invoices.retrieve(invoiceId, { expand: ['payment_intent'] });
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        if ((inv as any).payment_intent) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            const piObj = (inv as any).payment_intent;
+                            const piId = typeof piObj === 'string' ? piObj : piObj.id;
+                            const pi = await stripe.paymentIntents.retrieve(piId);
+                            lastInvoiceError = pi.last_payment_error?.message;
+                            lastInvoiceStatus = pi.status;
+                        }
+                    } else {
+                        // We have the object if expanded
+                        const inv = activeSub.latest_invoice as Stripe.Invoice;
+                        // Check if payment_intent is expanded in the original object or just ID
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const pi = (inv as any).payment_intent;
+
+                        if (pi) {
+                            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                            if (typeof pi === 'object' && (pi as any).last_payment_error) {
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                lastInvoiceError = (pi as any).last_payment_error.message;
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                lastInvoiceStatus = (pi as any).status;
+                            } else if (typeof pi === 'string') {
+                                // Fetch if string
+                                const piFetched = await stripe.paymentIntents.retrieve(pi);
+                                lastInvoiceError = piFetched.last_payment_error?.message;
+                                lastInvoiceStatus = piFetched.status;
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("Error fetching invoice details", e);
+                }
+            }
+
             return {
                 id: activeSub.id,
                 status: activeSub.status,
                 cancel_at_period_end: activeSub.cancel_at_period_end,
                 current_period_end: (activeSub as any).current_period_end,
-                plan: stripePlan
+                plan: stripePlan,
+                lastInvoiceError,
+                lastInvoiceStatus
             };
         }
         return null; // Implies starter/none logic in frontend
