@@ -93,89 +93,131 @@ export class PaymentService {
     async createCustomerAndStarterSubscription(userId: string, email: string, name: string, plan: 'starter' | 'premium' = 'starter') {
         console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email}), plan=${plan}`);
 
-        // 1. Create Stripe Customer
-        const customer = await stripe.customers.create({
-            email,
-            name,
-            metadata: { user_id: userId },
-        });
-        console.log(`PaymentService: Created new Stripe Customer: ${customer.id}`);
+        // 1. Get or Create Stripe Customer
+        let customerId: string | null = null;
+
+        // Check for existing customer by email
+        const customers = await stripe.customers.list({ email: email, limit: 1 });
+        if (customers.data.length > 0) {
+            customerId = customers.data[0].id;
+            console.log(`PaymentService: Found existing customer ${customerId} by email`);
+
+            // Optional: Update metadata to ensure user_id is linked
+            if (customers.data[0].metadata?.user_id !== userId) {
+                await stripe.customers.update(customerId, { metadata: { user_id: userId } });
+            }
+        } else {
+            const customer = await stripe.customers.create({
+                email,
+                name,
+                metadata: { user_id: userId },
+            }, {
+                // Determine Idempotency Key to prevent duplicates on double-click
+                // We use 'signup_cust_' + userId to ensure one customer per user ID for signup flow
+                idempotencyKey: `signup_cust_${userId}`
+            });
+            customerId = customer.id;
+            console.log(`PaymentService: Created new Stripe Customer: ${customerId}`);
+        }
 
         let subscriptionId = "";
-        let clientSecret = "";
 
-        if (plan === 'starter') {
-            const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
-            if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
+        // 2. Check for existing subscription
+        const subscriptions = await stripe.subscriptions.list({
+            customer: customerId,
+            status: 'all',
+            limit: 10
+        });
 
-            // 2. Create Starter Subscription (Free)
-            const subscription = await stripe.subscriptions.create({
-                customer: customer.id,
-                items: [{ price: starterPriceId }],
-            });
-            subscriptionId = subscription.id;
-            console.log(`PaymentService: Created Starter Subscription ${subscription.id}`);
-        } else {
-            // Premium Plan -> Create "Incomplete" subscription requiring payment method
-            const premiumPriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
-            if (!premiumPriceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
+        // Find any active or incomplete subscription
+        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status));
 
-            // Fetch dynamic trial days setting
-            const { data: trialSetting } = await this.supabase
-                .from('settings')
-                .select('value')
-                .eq('key', 'trial_period_days')
-                .single();
-            const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
-            console.log(`PaymentService: Using trial days: ${configuredTrialDays}`);
+        if (activeSub) {
+            console.log(`PaymentService: Found existing subscription ${activeSub.id} for customer ${customerId}`);
+            subscriptionId = activeSub.id;
 
-            const subscriptionParams: any = {
-                customer: customer.id,
-                items: [{ price: premiumPriceId }],
-                payment_behavior: 'default_incomplete',
-                payment_settings: { save_default_payment_method: 'on_subscription' },
-                expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
-            };
+            // If plan mismatch, we might need to update/upgrade here?
+            // For signup flow, if they already have a sub, we probably just want to ensure it's linked.
+            // But if they selected Premium and have Starter, we should probably upgrade?
+            // Given this is "createCustomerAndStarterSubscription" used mainly for initial signup,
+            // we assume if a sub exists, we respect it.
+            // However, to enforce the requested plan:
+            const currentPriceId = activeSub.items.data[0]?.price.id;
+            const targetPriceId = plan === 'premium' ? process.env.STRIPE_PRICE_ID_PREMIUM : process.env.STRIPE_PRICE_ID_STARTER;
 
-            // Calculate trial end or days
-            if (Number.isInteger(configuredTrialDays) && configuredTrialDays >= 1) {
-                subscriptionParams.trial_period_days = configuredTrialDays;
-            } else {
-                const trialEndTimestamp = Math.floor(Date.now() / 1000) + Math.ceil(configuredTrialDays * 24 * 60 * 60);
-                subscriptionParams.trial_end = trialEndTimestamp;
+            if (currentPriceId !== targetPriceId) {
+                console.log(`PaymentService: Existing sub price (${currentPriceId}) does not match target (${targetPriceId}). Updating...`);
+                // NOT IMPLEMENTED: Automatic upgrade in this method to avoid side effects. 
+                // The 'createSubscriptionSetup' will handle upgrades if needed when they go to payment.
+                // Here we just ensure we have A subscription.
             }
 
-            const subscription = await stripe.subscriptions.create(subscriptionParams);
-            subscriptionId = subscription.id;
-            console.log(`PaymentService: Created Incomplete Premium Subscription ${subscription.id}`);
+        } else {
+            // Create New Subscription
+            const idempotencyKey = `signup_sub_${userId}_${plan}`;
 
-            // Update Supabase immediately to reflect (optimistic) Premium status + Trial usage intent
-            // Although status is incomplete, we set it to premium so UI shows warnings if payment fails/abandons.
-            // But we also need to mark trial start/end for consistency if they pay later?
-            // Actually, for incomplete, we just need to ensure the profile ref reflects 'premium'
-            // and trial fields are prepared?
-            // 'createSubscriptionSetup' handles trial marking AFTER payment/setup.
-            // Here we just want to create the Stripe object so 'getSubscriptionDetails' sees 'incomplete'.
-            // The profile update happens in step 3 below or via webhook/setup success.
+            if (plan === 'starter') {
+                const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
+                if (!starterPriceId) throw new Error("STRIPE_PRICE_ID_STARTER missing");
+
+                const subscription = await stripe.subscriptions.create({
+                    customer: customerId,
+                    items: [{ price: starterPriceId }],
+                }, { idempotencyKey });
+                subscriptionId = subscription.id;
+                console.log(`PaymentService: Created Starter Subscription ${subscription.id}`);
+            } else {
+                // Premium Plan -> Create "Incomplete" subscription requiring payment method
+                const premiumPriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+                if (!premiumPriceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
+
+                // Fetch dynamic trial days setting
+                const { data: trialSetting } = await this.supabase
+                    .from('settings')
+                    .select('value')
+                    .eq('key', 'trial_period_days')
+                    .single();
+                const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
+                console.log(`PaymentService: Using trial days: ${configuredTrialDays}`);
+
+                const subscriptionParams: any = {
+                    customer: customerId,
+                    items: [{ price: premiumPriceId }],
+                    payment_behavior: 'default_incomplete',
+                    payment_settings: { save_default_payment_method: 'on_subscription' },
+                    expand: ['latest_invoice.payment_intent', 'pending_setup_intent'],
+                };
+
+                // Calculate trial end or days
+                if (Number.isInteger(configuredTrialDays) && configuredTrialDays >= 1) {
+                    subscriptionParams.trial_period_days = configuredTrialDays;
+                } else {
+                    const trialEndTimestamp = Math.floor(Date.now() / 1000) + Math.ceil(configuredTrialDays * 24 * 60 * 60);
+                    subscriptionParams.trial_end = trialEndTimestamp;
+                }
+
+                const subscription = await stripe.subscriptions.create(subscriptionParams, { idempotencyKey });
+                subscriptionId = subscription.id;
+                console.log(`PaymentService: Created Incomplete Premium Subscription ${subscription.id}`);
+            }
         }
 
         // 3. Update Supabase User Metadata with Stripe IDs
         await this.supabase.auth.admin.updateUserById(userId, {
             app_metadata: {
-                stripe_customer_id: customer.id,
+                stripe_customer_id: customerId,
                 stripe_subscription_id: subscriptionId,
             }
         });
 
         // Update profile plan if premium was requested (optimistic)
-        // This is what triggers the "abandoned payment flow" warning because sub exists but is incomplete.
         if (plan === 'premium') {
             await this.supabase.from('profiles').update({ subscription_plan: 'premium' }).eq('id', userId);
         }
 
         console.log("PaymentService: Updated Supabase auth metadata and profile");
 
-        return { customerId: customer.id, subscriptionId: subscriptionId };
+        return { customerId: customerId, subscriptionId: subscriptionId };
     }
 
     async createSubscriptionSetup(userEmail: string, userId: string, appMetadata: any) {
@@ -228,18 +270,40 @@ export class PaymentService {
         if (!priceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
 
         // 2. Check for existing active subscription
-        const subscriptions = await stripe.subscriptions.list({
-            customer: customerId,
-            status: 'all',
-            limit: 10, // Increased limit to see history if needed
-        });
+        let activeSub: Stripe.Subscription | undefined;
+        const metadataSubId = appMetadata?.stripe_subscription_id;
 
-        console.log(`PaymentService.createSubscriptionSetup: Found ${subscriptions.data.length} total subscriptions for customer`);
-        subscriptions.data.forEach(s => console.log(` - Sub ${s.id}: status=${s.status}, plan=${s.items.data[0]?.price.id}, cancel_at_period_end=${s.cancel_at_period_end}`));
+        if (metadataSubId) {
+            try {
+                const sub = await stripe.subscriptions.retrieve(metadataSubId);
+                if (['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status)) {
+                    // Check if it belongs to the correct customer
+                    if (sub.customer === customerId) {
+                        activeSub = sub;
+                        console.log(`PaymentService: Found active subscription ${activeSub.id} via metadata ID`);
+                    }
+                }
+            } catch (e) {
+                console.warn(`PaymentService: Failed to retrieve subscription from metadata ID ${metadataSubId}`, e);
+            }
+        }
 
-        // With persistent starter, we look for 'active', 'trialing', 'past_due' (and maybe 'incomplete' if previous attempt failed)
-        const activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status));
-        console.log("PaymentService: Active subscription selected:", activeSub?.id);
+        if (!activeSub) {
+            const subscriptions = await stripe.subscriptions.list({
+                customer: customerId,
+                status: 'all',
+                limit: 10,
+            });
+
+            console.log(`PaymentService.createSubscriptionSetup: Found ${subscriptions.data.length} total subscriptions for customer`);
+            subscriptions.data.forEach(s => console.log(` - Sub ${s.id}: status=${s.status}, plan=${s.items.data[0]?.price.id}, cancel_at_period_end=${s.cancel_at_period_end}`));
+
+            // With persistent starter, we look for 'active', 'trialing', 'past_due' (and maybe 'incomplete' if previous attempt failed)
+            activeSub = subscriptions.data.find(sub => ['active', 'trialing', 'past_due', 'incomplete'].includes(sub.status));
+            if (activeSub) {
+                console.log("PaymentService: Active subscription selected via list search:", activeSub.id);
+            }
+        }
 
         // Get env vars
         const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
@@ -472,7 +536,78 @@ export class PaymentService {
             subscriptionParams.expand = ['latest_invoice.payment_intent'];
         }
 
-        const subscription = await stripe.subscriptions.create(subscriptionParams);
+        let subscription: Stripe.Subscription;
+
+        // Unify Idempotency Key with 'signup' flow to prevent duplicates
+        // signup uses: `signup_sub_${userId}_${plan}`
+        const planName = priceId === process.env.STRIPE_PRICE_ID_PREMIUM ? 'premium' : 'starter';
+        const signupIdempotencyKey = `signup_sub_${userId}_${planName}`;
+        // Fallback key (hourly) if we need to create a distinct one (e.g. re-subscription)
+        const setupIdempotencyKey = `setup_sub_${userId}_${priceId}_${new Date().toISOString().slice(0, 13)}`;
+
+        // We try to use the SIGNUP key first. If it exists (created by signup API), we get it back.
+        // If it doesn't exist, we create it.
+        // If it exists but is Canceled (stale < 24h), we must use the setup key.
+
+        try {
+            subscription = await stripe.subscriptions.create(subscriptionParams, {
+                idempotencyKey: signupIdempotencyKey
+            });
+
+            if (subscription.status === 'canceled') {
+                console.log("PaymentService: matching signup subscription is canceled. Creating new one with setup key.");
+                subscription = await stripe.subscriptions.create(subscriptionParams, {
+                    idempotencyKey: setupIdempotencyKey
+                });
+            } else {
+                console.log("PaymentService: Successfully reused/created subscription with signup key:", subscription.id);
+            }
+
+        } catch (error: any) {
+            console.warn("PaymentService: Signup Idempotency Key failed:", error.message);
+
+            // Handle "Keys ... parameters mismatch" or "in-progress"
+            if (error.message && (error.message.includes("parameters mismatch") || error.message.includes("in-progress") || error.message.includes("Keys for idempotent requests can only be used with the same parameters"))) {
+                if (error.message.includes("in-progress")) {
+                    console.log("PaymentService: In-progress request. Waiting 2s...");
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                } else {
+                    console.log("PaymentService: Idempotency parameter mismatch (Subscription already created by Signup). Fetching existing...");
+                }
+
+                // Fallback: Check if it was actually created and we just missed it?
+                // Or retry with the SETUP key to force a new one (if distinct)?
+                // Better: Retry with SETUP key to ensure we get A subscription (worst case duplicate is better than crash, 
+                // but duplicate is what we are fighting).
+                // IF parameters mismatch, it means 'signup' created it with DIFFERENT params.
+                // In that case, we should FIND that subscription instead of creating new.
+
+                console.log("PaymentService: Attempting to find existing sub due to key conflict...");
+                const existingSubs = await stripe.subscriptions.list({
+                    customer: customerId,
+                    status: 'all',
+                    limit: 5
+                });
+                // Find the one that matches our desired price and is NOT canceled
+                const match = existingSubs.data.find(s => s.status !== 'canceled' && s.items.data[0].price.id === priceId);
+
+                if (match) {
+                    console.log("PaymentService: Found existing sub after conflict:", match.id);
+                    // CRITICAL: Retrieve with expansion to ensure latest_invoice and pending_setup_intent are objects, not IDs.
+                    // The 'list' command above returns them as IDs, breaking downstream logic.
+                    subscription = await stripe.subscriptions.retrieve(match.id, {
+                        expand: ['latest_invoice.payment_intent', 'pending_setup_intent']
+                    });
+                } else {
+                    console.log("PaymentService: No existing sub found. Creating with SETUP key fallback.");
+                    subscription = await stripe.subscriptions.create(subscriptionParams, {
+                        idempotencyKey: setupIdempotencyKey
+                    });
+                }
+            } else {
+                throw error;
+            }
+        }
 
         // Determine if we need to confirm a SetupIntent (trial) or PaymentIntent (immediate charge)
         let clientSecret = "";

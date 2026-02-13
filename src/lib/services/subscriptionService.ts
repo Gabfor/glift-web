@@ -16,7 +16,7 @@ export class SubscriptionService {
             throw new Error(`Failed to fetch subscription: ${fetchError.message}`);
         }
 
-        const dbPlan = plan === 'starter' ? 'free' : plan;
+        const dbPlan = plan;
 
         if (existingSub) {
             const { error: updateError } = await this.supabase

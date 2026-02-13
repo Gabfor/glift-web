@@ -13,12 +13,23 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // Use Admin Client for critical subscription updates
+        // Use Admin Client for critical subscription updates and to fetch FRESH metadata
+        // (The user object from auth.getUser() might have stale metadata from the JWT)
         const adminSupabase = createAdminClient();
-        const paymentService = new PaymentService(adminSupabase);
-        console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}`);
+        const { data: { user: freshUser }, error: freshUserError } = await adminSupabase.auth.admin.getUserById(user.id);
 
-        const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, user.app_metadata);
+        if (freshUserError || !freshUser) {
+            console.error("Setup-Sub Route: Failed to fetch fresh user data", freshUserError);
+            // Fallback to existing user object if admin fetch fails (unlikely)
+        }
+
+        const paymentService = new PaymentService(adminSupabase);
+        const metadataToUse = freshUser?.app_metadata || user.app_metadata;
+
+        console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}`);
+        console.log(`Setup-Sub Route: Using metadata subscription_id: ${metadataToUse?.stripe_subscription_id}`);
+
+        const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, metadataToUse);
 
         return NextResponse.json(setupData);
 
