@@ -12,6 +12,7 @@ import BirthDateField from "@/components/account/fields/BirthDateField";
 import FieldRow from "@/components/account/fields/FieldRow";
 import { useProfileSubmit } from "@/components/account/MesInformationsForm/hooks/useProfileSubmit";
 import { createClientComponentClient } from "@/lib/supabase/client";
+import { useUser } from "@/context/UserContext";
 
 import { getStepMetadata, parsePlan } from "../constants";
 
@@ -44,6 +45,13 @@ const InformationsPage = () => {
   const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
   const { submit, loading: hookLoading, error: hookError } = useProfileSubmit();
+  const { refreshUser } = useUser();
+
+  useEffect(() => {
+    if (searchParams?.get("payment_success") === "true") {
+      refreshUser();
+    }
+  }, [searchParams, refreshUser]);
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);

@@ -41,7 +41,7 @@ export default async function Home() {
   // If no setting found, default to TRUE to show partners unless explicitly disabled
   const showPartners = settingsResponse.data?.value === false ? false : true;
 
-  const trialDays = trialSettingsResponse.data?.value ? parseInt(trialSettingsResponse.data.value, 10) : 30;
+  const trialDays = trialSettingsResponse.data?.value ? parseFloat(trialSettingsResponse.data.value) : 30;
 
   const surfaceBackground = "bg-[var(--color-surface-primary)]";
   const maxContentWidth = "max-w-[var(--layout-max-width)]";
@@ -95,7 +95,7 @@ export default async function Home() {
             <span className="absolute w-full h-full rounded-full bg-[var(--color-accent-success)] opacity-50 animate-ping"></span>
             <span className="relative w-2 h-2 rounded-full bg-[var(--color-accent-success)]"></span>
           </span>
-          {trialDays} jours pour tester gratuitement
+          {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester gratuitement
         </div>
       </section>
       <section className={`${surfaceBackground} ${maxContentWidth} mx-auto px-4 pt-[30px] text-center relative`}>

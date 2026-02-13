@@ -164,7 +164,7 @@ export default function TarifsPage() {
                 <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
                 <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
               </span>
-              <span>{trialDays} jours pour tester</span>
+              <span>{trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester</span>
             </div>
           </div>
         </div>

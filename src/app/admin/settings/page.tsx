@@ -170,6 +170,7 @@ export default function AdminSettingsPage() {
                                     label="Durée de la période d’essai"
                                     placeholder="Sélectionner"
                                     options={[
+                                        { value: "0.0416667", label: "1 heure" },
                                         { value: "1", label: "1 jour" },
                                         { value: "7", label: "7 jours" },
                                         { value: "30", label: "30 jours" },

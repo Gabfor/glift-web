@@ -41,7 +41,7 @@ export default function Footer() {
               {/* Point central */}
               <span className="relative w-[8px] h-[8px] rounded-full bg-[#00D591] block"></span>
             </span>
-            {trialDays} jours pour tester
+            {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester
           </span>
         </div>
       </div>

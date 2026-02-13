@@ -208,7 +208,7 @@ export class PaymentService {
             .eq('key', 'trial_period_days')
             .single();
 
-        const configuredTrialDays = trialSetting?.value ? parseInt(trialSetting.value, 10) : 30;
+        const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
 
         console.debug("*** PaymentService: Profile trial status:", profile?.trial);
         const hasUsedTrial = profile?.trial ?? false;
@@ -254,7 +254,7 @@ export class PaymentService {
                     console.log(`PaymentService: Upgrading with Trial (${trialDays} days)`);
                     // Upgrade with Trial
                     // stripe.subscriptions.update does not support trial_period_days. Use trial_end.
-                    const trialEndTimestamp = Math.floor(Date.now() / 1000) + (trialDays * 24 * 60 * 60);
+                    const trialEndTimestamp = Math.floor(Date.now() / 1000) + Math.ceil(trialDays * 24 * 60 * 60);
                     updateParams.trial_end = trialEndTimestamp;
 
                     await stripe.subscriptions.update(activeSub.id, updateParams);
@@ -363,7 +363,15 @@ export class PaymentService {
         };
 
         if (trialDays > 0) {
-            subscriptionParams.trial_period_days = trialDays;
+            // If trialDays is an integer >= 1, use trial_period_days (cleaner in Stripe UI)
+            // If trialDays is fractional (e.g. 1 hour = 0.0416), use trial_end timestamp
+            if (Number.isInteger(trialDays) && trialDays >= 1) {
+                subscriptionParams.trial_period_days = trialDays;
+            } else {
+                // For fractional days (e.g. 1 hour), we must use trial_end timestamp
+                const trialEndTimestamp = Math.floor(Date.now() / 1000) + Math.ceil(trialDays * 24 * 60 * 60);
+                subscriptionParams.trial_end = trialEndTimestamp;
+            }
             subscriptionParams.payment_settings = { save_default_payment_method: 'on_subscription' };
             subscriptionParams.expand = ['pending_setup_intent', 'latest_invoice.payment_intent'];
         } else {
