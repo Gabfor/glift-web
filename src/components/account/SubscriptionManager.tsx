@@ -84,7 +84,8 @@ const PaymentMethodCard = ({
     expMonth,
     expYear,
     onEdit,
-    onDelete
+    onDelete,
+    error // New prop for external errors
 }: {
     brand: string;
     last4: string;
@@ -92,7 +93,16 @@ const PaymentMethodCard = ({
     expYear: number;
     onEdit: () => void;
     onDelete: () => void;
+    error?: string | null;
 }) => {
+    // Check for expiry
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1; // 1-indexed
+
+    const isExpired = expYear < currentYear || (expYear === currentYear && expMonth < currentMonth);
+    const isError = isExpired || !!error;
+
     // Basic mapping for brand icons
     const getBrandIcon = (brandName: string) => {
         const name = brandName.toLowerCase();
@@ -100,13 +110,13 @@ const PaymentMethodCard = ({
         if (name === 'mastercard') return '/icons/mastercard.svg';
         if (name === 'amex') return '/icons/amex.svg';
         if (name === 'cb') return '/icons/cb.svg';
-        return null; // or generic default
+        return null;
     };
 
     const brandIcon = getBrandIcon(brand);
 
     return (
-        <div className="w-full h-[80px] rounded-[8px] bg-[#FAFAFF] border border-[#E6E6FF] flex items-center justify-between px-[20px]">
+        <div className={`w-full h-[80px] rounded-[8px] bg-[#FAFAFF] border flex items-center justify-between px-[20px] ${isError ? 'border-red-500 bg-[#FFF1F1]' : 'border-[#E6E6FF]'}`}>
             <div className="flex items-center gap-4">
                 <div className="w-[50px] h-[34px] flex items-center justify-center overflow-hidden">
                     {brandIcon ? (
@@ -119,8 +129,8 @@ const PaymentMethodCard = ({
                     <span className="text-[14px] font-semibold text-[#2E3271]">
                         {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                     </span>
-                    <span className="text-[12px] font-semibold text-[#5D6494]">
-                        Expire le : {expMonth.toString().padStart(2, '0')}/{expYear}
+                    <span className={`text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
+                        {isExpired ? "Expirée depuis" : "Expire le"} : {expMonth.toString().padStart(2, '0')}/{expYear}
                     </span>
                 </div>
             </div>
@@ -156,6 +166,27 @@ const PaymentMethodCard = ({
     )
 }
 
+const getPaymentErrorMessage = (code: string | null): string => {
+    switch (code) {
+        case 'insufficient_funds':
+            return "Le paiement a été refusé par votre banque (fonds insuffisants).";
+        case 'lost_card':
+        case 'stolen_card':
+            return "Cette carte a été déclarée perdue ou volée. Veuillez utiliser un autre moyen de paiement.";
+        case 'expired_card':
+            return "Votre carte a expiré. Veuillez mettre à jour votre moyen de paiement.";
+        case 'incorrect_cvc':
+            return "Le code de sécurité (CVC) est incorrect.";
+        case 'processing_error':
+            return "Une erreur est survenue lors du traitement du paiement. Veuillez réessayer.";
+        case 'card_declined':
+            return "Votre carte a été refusée. Veuillez contacter votre banque ou essayer une autre carte.";
+        case 'authentication_required':
+            return "L'authentification de votre banque a échoué. Veuillez réessayer.";
+        default:
+            return "Le dernier paiement a échoué. Veuillez vérifier votre moyen de paiement.";
+    }
+};
 
 
 interface SubscriptionManagerProps {
@@ -191,6 +222,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     const [successPlan, setSuccessPlan] = useState<'premium' | 'starter' | null>(null);
     const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
+    const [paymentError, setPaymentError] = useState<string | null>(null);
+    const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
 
     const fetchPaymentMethod = async () => {
         try {
@@ -225,6 +258,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     };
 
     // Sync state with user profile when loaded client-side (reconciliation)
+    // Sync state with user profile when loaded client-side (reconciliation)
     useEffect(() => {
         if (!isLoading) {
             // Guard against race condition: if we just successfully upgraded (successPlan is set),
@@ -235,6 +269,19 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             }
             setSelectedPlan(isPremiumUser ? "premium" : "starter");
         }
+
+        // SIMULATION: Expired Card (forced)
+        setPaymentError("Votre carte a expiré. Veuillez mettre à jour votre moyen de paiement.");
+        setPaymentErrorCode('expired_card');
+        setSelectedPlan('premium');
+        setPaymentMethod({
+            id: 'mock_123',
+            brand: 'visa',
+            last4: '4242',
+            exp_month: 12,
+            exp_year: 2030, // Future date but expired error code
+        });
+
     }, [isPremiumUser, isLoading, successPlan]);
 
     useEffect(() => {
@@ -253,12 +300,25 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             fetch(`/api/user/subscription-details?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
-                    // Check local Premium End (paid) or Trial End, or Stripe Cancel at Period End
+                    if (Date.now() - lastActionTime.current < 5000) return;
 
-                    // Race condition guard: If user just updated, ignore this fetch result if it contradicts
-                    if (Date.now() - lastActionTime.current < 5000) {
-                        console.log("Ignored stale subscription fetch due to recent action");
-                        return;
+                    // Handle Payment Errors
+                    if (data && (data.lastInvoiceErrorCode || data.lastInvoiceError)) {
+                        const errorMessage = data.lastInvoiceErrorCode
+                            ? getPaymentErrorMessage(data.lastInvoiceErrorCode)
+                            : (data.lastInvoiceError || "Erreur de paiement inconnue");
+
+                        setPaymentError(errorMessage);
+                        setPaymentErrorCode(data.lastInvoiceErrorCode || null);
+
+                        // Show global message only if significantly past due or recent error?
+                        // Let's show it if status is past_due or incomplete
+                        if (data.status === 'past_due' || data.status === 'incomplete') {
+                            // Global error message handled by useEffect depending on expiry/error
+                        }
+                    } else {
+                        setPaymentError(null);
+                        setPaymentErrorCode(null);
                     }
 
                     console.log("Subscription details fetched:", data);
@@ -314,6 +374,43 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     // Determine effective premium status: use server prop if not yet synced
     // SIMPLIFICATION: We trust context after mount.
     const effectiveIsPremium = isPremiumUser;
+
+    // Check for expiry locally
+    useEffect(() => {
+        if (paymentMethod) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1;
+            const isLocalExpired = paymentMethod.exp_year < currentYear || (paymentMethod.exp_year === currentYear && paymentMethod.exp_month < currentMonth);
+            const isExpired = isLocalExpired || paymentErrorCode === 'expired_card';
+
+            if (isExpired) {
+                setSuccessMessage({
+                    title: "Mode de paiement expiré",
+                    description: "Pour continuer à bénéficier d’un abonnement Premium veuillez renseigner un nouveau mode de paiement valide.",
+                    variant: "error"
+                });
+                setShowModalMessage(true);
+            } else if (paymentError) {
+                // Fallback to generic payment error if not strictly expired locally but API says error
+                setSuccessMessage({
+                    title: "Problème de paiement",
+                    description: paymentError,
+                    variant: "error"
+                });
+                setShowModalMessage(true);
+            } else {
+                // Clear error messages if resolved?
+                // Don't clear success messages!
+                // We need to distinguish error modal from success modal?
+                // They share `showModalMessage` and `successMessage` state.
+                // We should only clear if currently showing an ERROR.
+                if (successMessage.variant === 'error') {
+                    setShowModalMessage(false);
+                }
+            }
+        }
+    }, [paymentMethod, paymentError, paymentErrorCode]);
 
     const isCurrentPlan =
         (effectiveIsPremium && selectedPlan === "premium") ||
@@ -538,7 +635,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         variant={successMessage.variant}
                         title={successMessage.title}
                         description={successMessage.description}
-                        onClose={() => setShowModalMessage(false)}
+                        onClose={successMessage.variant === 'error' ? undefined : () => setShowModalMessage(false)}
                     />
                 </div>
             )}
@@ -576,6 +673,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             expYear={paymentMethod.exp_year}
                             onEdit={handleEditPaymentMethod}
                             onDelete={handleDeletePaymentMethod}
+                            error={paymentError}
                         />
                     ) : (
                         <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] hover:border-[#7069FA] transition-colors overflow-hidden">

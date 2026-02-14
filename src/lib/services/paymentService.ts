@@ -1044,6 +1044,7 @@ export class PaymentService {
 
         if (activeSub) {
             let lastInvoiceError = null;
+            let lastInvoiceErrorCode = null;
             let lastInvoiceStatus = null;
 
             if (activeSub.latest_invoice) {
@@ -1060,6 +1061,7 @@ export class PaymentService {
                             const piId = typeof piObj === 'string' ? piObj : piObj.id;
                             const pi = await stripe.paymentIntents.retrieve(piId);
                             lastInvoiceError = pi.last_payment_error?.message;
+                            lastInvoiceErrorCode = pi.last_payment_error?.code;
                             lastInvoiceStatus = pi.status;
                         }
                     } else {
@@ -1075,11 +1077,14 @@ export class PaymentService {
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 lastInvoiceError = (pi as any).last_payment_error.message;
                                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                                lastInvoiceErrorCode = (pi as any).last_payment_error.code;
+                                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                                 lastInvoiceStatus = (pi as any).status;
                             } else if (typeof pi === 'string') {
                                 // Fetch if string
                                 const piFetched = await stripe.paymentIntents.retrieve(pi);
                                 lastInvoiceError = piFetched.last_payment_error?.message;
+                                lastInvoiceErrorCode = piFetched.last_payment_error?.code;
                                 lastInvoiceStatus = piFetched.status;
                             }
                         }
@@ -1096,6 +1101,7 @@ export class PaymentService {
                 current_period_end: (activeSub as any).current_period_end,
                 plan: stripePlan,
                 lastInvoiceError,
+                lastInvoiceErrorCode,
                 lastInvoiceStatus
             };
         }

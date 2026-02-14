@@ -16,7 +16,7 @@ const VARIANT_STYLES: Record<ModalMessageVariant, {
     barColor: "#EF4F4E",
   },
   error: {
-    background: "#FFE3E3",
+    background: "#FFF1F1",
     titleColor: "#BA2524",
     textColor: "#EF4F4E",
     barColor: "#EF4F4E",
