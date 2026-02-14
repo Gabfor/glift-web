@@ -227,9 +227,15 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     // Sync state with user profile when loaded client-side (reconciliation)
     useEffect(() => {
         if (!isLoading) {
+            // Guard against race condition: if we just successfully upgraded (successPlan is set),
+            // do NOT revert to 'starter' even if isPremiumUser (context) is stale.
+            if (successPlan === 'premium') {
+                setSelectedPlan('premium');
+                return;
+            }
             setSelectedPlan(isPremiumUser ? "premium" : "starter");
         }
-    }, [isPremiumUser, isLoading]);
+    }, [isPremiumUser, isLoading, successPlan]);
 
     useEffect(() => {
         if (isPremiumUser) {

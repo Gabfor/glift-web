@@ -67,14 +67,21 @@ export class WebhookService {
 
         if (user && invoice.lines.data[0]?.period?.end) {
             const periodEnd = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
+            const priceId = invoice.lines.data[0]?.price?.id;
+            const isStarter = priceId === process.env.STRIPE_PRICE_ID_STARTER;
 
             await this.supabase.from("user_subscriptions").update({
+                plan: isStarter ? 'starter' : 'premium',
                 end_date: periodEnd,
                 updated_at: new Date().toISOString(),
             }).eq("user_id", user.id);
 
             await this.supabase.from("profiles").update({
-                trial: true,
+                subscription_plan: isStarter ? 'starter' : 'premium',
+                // If payment succeeded, it's not a trial (unless it's a $0 trial invoice? But usually that's different).
+                // Assuming payment_succeeded means they paid, so trial is false.
+                trial: false,
+                premium_end_at: isStarter ? null : periodEnd,
                 updated_at: new Date().toISOString(),
             }).eq("id", user.id);
         }
