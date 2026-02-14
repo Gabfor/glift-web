@@ -511,7 +511,8 @@ export class PaymentService {
         const subscriptionParams: any = {
             customer: customerId,
             items: [{ price: priceId }],
-            payment_behavior: 'default_incomplete',
+            // payment_behavior: 'default_incomplete',
+            payment_behavior: 'allow_incomplete', // Attempt immediate charge
         };
 
         if (trialDays > 0) {

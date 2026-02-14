@@ -269,19 +269,6 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             }
             setSelectedPlan(isPremiumUser ? "premium" : "starter");
         }
-
-        // SIMULATION: Expired Card (forced)
-        setPaymentError("Votre carte a expiré. Veuillez mettre à jour votre moyen de paiement.");
-        setPaymentErrorCode('expired_card');
-        setSelectedPlan('premium');
-        setPaymentMethod({
-            id: 'mock_123',
-            brand: 'visa',
-            last4: '4242',
-            exp_month: 12,
-            exp_year: 2030, // Future date but expired error code
-        });
-
     }, [isPremiumUser, isLoading, successPlan]);
 
     useEffect(() => {
@@ -374,6 +361,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     // Determine effective premium status: use server prop if not yet synced
     // SIMPLIFICATION: We trust context after mount.
     const effectiveIsPremium = isPremiumUser;
+    // const effectiveIsPremium = true; // SIMULATION: FORCE VALID PREMIUM
 
     // Check for expiry locally
     useEffect(() => {
