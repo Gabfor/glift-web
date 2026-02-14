@@ -46,7 +46,8 @@ export async function POST(req: Request) {
                 shouldDowngrade = true;
             }
         } else if (profile.premium_trial_end_at) {
-            if (new Date(profile.premium_trial_end_at) < now) {
+            // Add 2-hour grace period for Stripe processing
+            if (new Date(profile.premium_trial_end_at).getTime() + 7200000 < now.getTime()) {
                 shouldDowngrade = true;
             }
         }

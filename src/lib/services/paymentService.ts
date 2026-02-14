@@ -935,7 +935,7 @@ export class PaymentService {
                     return { status: 'already_starter', subscriptionId: activeSub.id };
                 }
 
-                const endDate = (activeSub as any).current_period_end || Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60);
+                // const endDate = (activeSub as any).current_period_end || Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60);
 
                 const updatedSub = await stripe.subscriptions.update(activeSub.id, {
                     cancel_at_period_end: true,
@@ -953,7 +953,7 @@ export class PaymentService {
                 return {
                     status: 'canceled_at_period_end',
                     subscriptionId: updatedSub.id,
-                    currentPeriodEnd: endDate
+                    currentPeriodEnd: (updatedSub as any).current_period_end
                 };
             }
             return { status: 'already_starter', subscriptionId: null };
@@ -1175,17 +1175,23 @@ export class PaymentService {
                         cancel_at_period_end: true,
                     });
 
-                    // Update profiles
-                    const finalDate = (updatedSub as any).current_period_end
-                        ? new Date((updatedSub as any).current_period_end * 1000).toISOString()
-                        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                    // Update profiles with robust date checking
+                    let cancelDate = (updatedSub as any).current_period_end || updatedSub.cancel_at;
+                    if (!cancelDate) {
+                        // Fallback to activeSub's period end if update response is weird
+                        cancelDate = (activeSub as any).current_period_end;
+                    }
+
+                    const finalDate = cancelDate
+                        ? new Date(cancelDate * 1000).toISOString()
+                        : null;
 
                     await this.supabase.from('profiles').update({
                         cancellation: true,
                         premium_end_at: finalDate
                     } as any).eq('id', userId);
 
-                    console.log(`PaymentService: Subscription ${activeSub.id} set to cancel at period end.`);
+                    console.log(`PaymentService: Subscription ${activeSub.id} set to cancel at period end: ${finalDate}`);
                 } else {
                     console.log("PaymentService: User is on Starter plan. No subscription cancellation needed.");
                 }
