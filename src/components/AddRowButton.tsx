@@ -39,7 +39,7 @@ export default function AddRowButton({ icon, setIcon, onClick, disabled, locked 
 
   return (
     <div className="flex justify-center mt-4">
-      <Tooltip content={disabled ? "Limite de 10 exercices atteinte" : "Ajouter une ligne"} placement="bottom" delay={500}>
+      <Tooltip content={disabled ? "Chargement..." : "Ajouter une ligne"} placement="bottom" delay={500}>
         <Image
           src={icon}
           alt="Ajouter une ligne"

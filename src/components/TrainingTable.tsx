@@ -439,7 +439,7 @@ export default function TrainingTable({
         onClose={() => setIsUnlockModalOpen(false)}
         onUnlock={() => {
           setIsUnlockModalOpen(false);
-          router.push("/compte");
+          router.push("/compte#mon-abonnement");
         }}
       />
     </div>

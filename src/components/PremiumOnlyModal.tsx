@@ -27,7 +27,7 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
           <CTAButton
             onClick={() => {
               onClose();
-              router.push("/compte");
+              router.push("/compte#mon-abonnement");
             }}
           >
             Débloquer

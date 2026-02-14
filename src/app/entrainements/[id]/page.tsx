@@ -90,6 +90,8 @@ export default function AdminEntrainementDetailPage() {
   const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
   const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => { });
 
+
+
   // 🔒 ACCESS CONTROL
   const [accessChecked, setAccessChecked] = useState(false);
 
@@ -139,6 +141,12 @@ export default function AdminEntrainementDetailPage() {
 
   // ✅ Training data
   const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user);
+
+  // 🔒 Synchronous row count tracking to prevent race conditions on rapid clicks
+  const rowCountRef = useRef(0);
+  useEffect(() => {
+    rowCountRef.current = rows.length;
+  }, [rows.length]);
 
   // ✅ Column configuration
   const { columns, setColumns, togglableColumns, saveColumnsInSupabase } = useTrainingColumns(trainingId);
@@ -289,25 +297,31 @@ export default function AdminEntrainementDetailPage() {
   };
 
   const handleAddRow = () => {
-    setRows((prev) => [
-      ...prev,
-      {
-        id: undefined,
-        series: 4,
-        repetitions: Array(4).fill(""),
-        poids: Array(4).fill(""),
-        repos: "",
-        effort: Array(4).fill("parfait"),
-        checked: false,
-        iconHovered: false,
-        exercice: "",
-        materiel: "",
-        superset_id: null,
-        link: "",
-        note: "",
-        locked: false,
-      },
-    ]);
+    setRows((prev) => {
+      // 🔒 Double-check limit inside the updater to prevent race conditions
+      if (!isAdminRoute && !isPremiumUser && prev.length >= 10) {
+        return prev;
+      }
+      return [
+        ...prev,
+        {
+          id: undefined,
+          series: 4,
+          repetitions: Array(4).fill(""),
+          poids: Array(4).fill(""),
+          repos: "",
+          effort: Array(4).fill("parfait"),
+          checked: false,
+          iconHovered: false,
+          exercice: "",
+          materiel: "",
+          superset_id: null,
+          link: "",
+          note: "",
+          locked: false,
+        },
+      ];
+    });
   };
 
   if (!isAdminRoute && !isPremiumUser && !accessChecked) {
@@ -424,14 +438,21 @@ export default function AdminEntrainementDetailPage() {
           icon={icon}
           setIcon={setIcon}
           onClick={() => {
-            const isLocked = !isAdminRoute && !isPremiumUser && rows.length >= 10;
+            if (rowsLoading) return;
+
+            // Check against REF for immediate feedback during rapid clicks
+            const currentCount = rowCountRef.current;
+            const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= 10;
+
             if (isLocked) {
               setShowLockedModal(true);
             } else {
+              // Optimistically increment ref to block subsequent clicks immediately
+              rowCountRef.current = currentCount + 1;
               handleAddRow();
             }
           }}
-          disabled={false}
+          disabled={rowsLoading}
           locked={!isAdminRoute && !isPremiumUser && rows.length >= 10}
         />
 
@@ -440,7 +461,7 @@ export default function AdminEntrainementDetailPage() {
           onClose={() => setShowLockedModal(false)}
           onUnlock={() => {
             setShowLockedModal(false);
-            router.push("/compte");
+            router.push("/compte#mon-abonnement");
           }}
         />
 

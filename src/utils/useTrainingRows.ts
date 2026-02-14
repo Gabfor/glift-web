@@ -264,7 +264,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
 
     saveTimeoutRef.current = setTimeout(async () => {
       // ✅ PATCH ajouté ici
-      if (isEditing) return;
+      if (isEditing || !fullyLoaded) return;
 
       const rowsWithOrder = rows.map((row, index) => ({ ...row, _finalOrder: index }));
 
