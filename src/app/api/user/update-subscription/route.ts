@@ -25,10 +25,16 @@ export async function POST(request: Request) {
             // Use Admin Client to allow metadata and profile updates (like premium_end_at)
             const adminSupabase = createAdminClient();
             const paymentService = new PaymentService(adminSupabase);
+            const { data: { user: freshUser }, error: freshUserError } = await adminSupabase.auth.admin.getUserById(user.id);
+
+            if (freshUserError || !freshUser) {
+                console.error("Update-Sub Route: Failed to fetch fresh user data", freshUserError);
+            }
+
             const result = await paymentService.updateSubscription(
                 user.email!,
                 user.id,
-                user.user_metadata,
+                freshUser?.app_metadata || user.app_metadata,
                 plan
             );
 
