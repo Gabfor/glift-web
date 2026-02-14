@@ -14,7 +14,11 @@ export async function GET(request: Request) {
         }
 
         const paymentService = new PaymentService(supabase);
-        const details = await paymentService.getSubscriptionDetails(user.email!, user.id, user.user_metadata || user.app_metadata);
+        const details = await paymentService.getSubscriptionDetails(
+            user.id,
+            user.email!,
+            user.app_metadata,
+        );
 
         return NextResponse.json(details || { status: 'none' });
     } catch (error: any) {
