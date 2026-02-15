@@ -30,7 +30,11 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
           <CTAButton
             onClick={() => {
               onClose();
-              router.push(isRestricted ? "/tarifs" : "/tarifs");
+              if (isRestricted) {
+                router.push("/compte#mon-abonnement");
+              } else {
+                router.push("/tarifs");
+              }
             }}
           >
             {isRestricted ? "Débloquer" : "Inscription"}
