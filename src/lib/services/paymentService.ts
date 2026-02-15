@@ -488,6 +488,8 @@ export class PaymentService {
                     await this.supabase.from('profiles').update({
                         cancellation: false,
                         premium_end_at: null,
+                        premium_trial_end_at: null,
+                        trial: false,
                         subscription_plan: 'premium'
                     } as any).eq('id', userId);
 
@@ -702,7 +704,8 @@ export class PaymentService {
                 cancellation: false,
                 premium_trial_end_at: trialEnd,
                 premium_end_at: null, // Clear any previous cancellation date
-                subscription_plan: 'premium'
+                subscription_plan: 'premium',
+                trial: false
             } as any).eq('id', userId);
         }
 

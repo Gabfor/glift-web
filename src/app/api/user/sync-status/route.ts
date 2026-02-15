@@ -55,6 +55,7 @@ export async function POST(req: Request) {
         // 3. Update if expired (Check with Stripe first!)
         if (shouldDowngrade) {
             console.log(`Syncing status for user ${user.id}: DB says expired. Verifying with Stripe...`);
+            console.log("Triggering sync-status logic...");
 
             // Initialize stripe
             const Stripe = (await import("stripe")).default;
@@ -114,7 +115,8 @@ export async function POST(req: Request) {
                                 premium_end_at: subAny.cancel_at_period_end ? new Date(subAny.current_period_end * 1000).toISOString() : null,
                                 premium_trial_end_at: subAny.trial_end ? new Date(subAny.trial_end * 1000).toISOString() : null,
                                 subscription_plan: 'premium',
-                                cancellation: subAny.cancel_at_period_end
+                                cancellation: subAny.cancel_at_period_end,
+                                trial: subAny.status === 'trialing'
                             } as any).eq("id", user.id);
                         } else {
                             console.log("No active/trialing premium subscription found in list.");

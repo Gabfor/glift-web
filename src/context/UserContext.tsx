@@ -228,7 +228,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             if (new Date(profileData.premium_end_at) < now) {
               effectiveIsPremium = false;
             }
-          } else if (profileData?.premium_trial_end_at) {
+          } else if (profileData?.premium_trial_end_at && profileData.trial === true) {
             // No paid cancellation date, so check trial end.
             // Add 2-hour (7200000 ms) grace period for Stripe invoice processing
             if (new Date(profileData.premium_trial_end_at).getTime() + 7200000 < now.getTime()) {

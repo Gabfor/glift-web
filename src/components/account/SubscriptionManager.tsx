@@ -224,6 +224,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
     const [paymentError, setPaymentError] = useState<string | null>(null);
     const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
+    const [isUndoingDowngrade, setIsUndoingDowngrade] = useState(false);
 
     const fetchPaymentMethod = async () => {
         try {
@@ -411,7 +412,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         lastActionTime.current = Date.now(); // Mark action start time
         // Do NOT clear success message immediately if switching context? 
         // Better to clear it to avoid confusion.
-        setShowSuccessMessage(false);
+        if (!isUndoingDowngrade) {
+            setShowSuccessMessage(false);
+        }
         setSuccessPlan(null);
         try {
             const res = await fetch('/api/user/update-subscription', {
@@ -609,10 +612,32 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 <div className="mb-6 w-full">
                     <ModalMessage
                         variant="success"
-                        title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : "Félicitations !"}
+                        title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : (isUndoingDowngrade ? "Annulation prise en compte" : "Félicitations !")}
                         description={successPlan === 'starter'
-                            ? `Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium actuelle, soit le ${subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.`
-                            : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium."
+                            ? (
+                                <span>
+                                    Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium actuelle, soit le {subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.
+                                    {paymentMethod && (
+                                        <>
+                                            {" "}
+                                            <button
+                                                onClick={() => {
+                                                    setIsUndoingDowngrade(true);
+                                                    setSelectedPlan('premium');
+                                                    processUpdate();
+                                                }}
+                                                className="underline hover:text-[#207227] font-semibold cursor-pointer text-inherit transition-colors"
+                                            >
+                                                Annuler ce changement
+                                            </button>
+                                            .
+                                        </>
+                                    )}
+                                </span>
+                            )
+                            : (isUndoingDowngrade
+                                ? "Suite à votre annulation, votre abonnement Premium sera renouvelé automatiquement à l’issu de la période d’abonnement actuelle."
+                                : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
                         }
                     />
                 </div>
