@@ -556,7 +556,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     }
 
     return (
-        <div className="w-full text-left mt-[14px] mb-8 px-[100px]">
+        <div className="w-full text-left mt-[14px] mb-8 px-[81px]">
             <ConfirmationModal
                 open={showDowngradeModal}
                 title="Modification d’abonnement"
