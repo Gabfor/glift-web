@@ -216,8 +216,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setTrial(customUser.user_metadata?.trial as boolean | undefined);
         }
 
-        // Logic check: If premium_end_at OR premium_trial_end_at is passed, force downgrade to starter.
-        // We do this check here to ensure UI reflects reality even if webhook hasn't processed.
+        // Logic check: if paid period end is passed, force downgrade to starter.
+        // NOTE: `trial` is used in DB as "trial already consumed" (historical), not
+        // "currently in trial". Using premium_trial_end_at here can incorrectly downgrade
+        // paid users who previously had a trial.
         const now = new Date();
         let effectiveIsPremium = planFromProfile === "premium";
 
@@ -226,12 +228,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             // If we have a paid cancellation date, disregard trial date.
             // It is the definitive source for "when does my paid access stop".
             if (new Date(profileData.premium_end_at) < now) {
-              effectiveIsPremium = false;
-            }
-          } else if (profileData?.premium_trial_end_at && profileData.trial === true) {
-            // No paid cancellation date, so check trial end.
-            // Add 2-hour (7200000 ms) grace period for Stripe invoice processing
-            if (new Date(profileData.premium_trial_end_at).getTime() + 7200000 < now.getTime()) {
               effectiveIsPremium = false;
             }
           }

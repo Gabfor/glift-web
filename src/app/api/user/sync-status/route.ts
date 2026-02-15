@@ -38,16 +38,14 @@ export async function POST(req: Request) {
         }
 
         // 2. Verified expiration logic server-side
+        // NOTE: profiles.trial means "trial already used" in this codebase.
+        // We must not downgrade based on premium_trial_end_at alone, otherwise
+        // paid users with historical trial dates can be reverted to starter.
         const now = new Date();
         let shouldDowngrade = false;
 
         if (profile.premium_end_at) {
             if (new Date(profile.premium_end_at) < now) {
-                shouldDowngrade = true;
-            }
-        } else if (profile.premium_trial_end_at) {
-            // Add 2-hour grace period for Stripe processing
-            if (new Date(profile.premium_trial_end_at).getTime() + 7200000 < now.getTime()) {
                 shouldDowngrade = true;
             }
         }
