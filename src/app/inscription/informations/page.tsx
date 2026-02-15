@@ -15,6 +15,7 @@ import { createClientComponentClient } from "@/lib/supabase/client";
 import { useUser } from "@/context/UserContext";
 
 import { getStepMetadata, parsePlan } from "../constants";
+import { validateDateParts } from "@/utils/dateValidation";
 
 type BirthDateParts = {
   birthDay: string;
@@ -316,14 +317,23 @@ const InformationsPage = () => {
             birthMonth={birthMonth}
             birthYear={birthYear}
             setBirthDay={(value) => {
-              setBirthDay(value);
+              const validated = validateDateParts(value, birthMonth, birthYear);
+              setBirthDay(validated);
               markTouched("birthDay");
             }}
             setBirthMonth={(value) => {
+              const validatedDay = validateDateParts(birthDay, value, birthYear);
+              if (validatedDay !== birthDay) {
+                setBirthDay(validatedDay);
+              }
               setBirthMonth(value);
               markTouched("birthMonth");
             }}
             setBirthYear={(value) => {
+              const validatedDay = validateDateParts(birthDay, birthMonth, value);
+              if (validatedDay !== birthDay) {
+                setBirthDay(validatedDay);
+              }
               setBirthYear(value);
               markTouched("birthYear");
             }}

@@ -121,7 +121,7 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
             {program.level}
           </span>
           <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
-            {program.sessions} séances
+            {program.sessions} {parseInt(program.sessions) > 1 ? "séances" : "séance"}
           </span>
           <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center gap-[5px]">
             {program.duration} min

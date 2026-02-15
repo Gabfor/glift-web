@@ -13,6 +13,7 @@ import type { User } from "@supabase/supabase-js"
 import { useUser } from "@/context/UserContext"
 import { createClient } from "@/lib/supabaseClient"
 import type { Database } from "@/lib/supabase/types"
+import { validateDateParts } from "@/utils/dateValidation"
 
 const supabase = createClient()
 
@@ -234,8 +235,8 @@ const useSuccessMessages = (params: {
         values.gender === "Homme"
           ? "Men power !"
           : values.gender === "Femme"
-          ? "Women power !"
-          : "C'est noté !"
+            ? "Women power !"
+            : "C'est noté !"
     } else {
       delete next.gender
     }
@@ -452,12 +453,28 @@ export const useAccountForm = (user: User | null) => {
         const current = prev.birthDate[part]
         const nextValue = typeof input === "function" ? input(current) : input
         if (current === nextValue) return prev
+
+        // Validate date
+        let nextBirthDate = {
+          ...prev.birthDate,
+          [part]: nextValue,
+        }
+
+        // If modifying month or year, ensure day is valid for new month/year
+        // If modifying day, ensure it is valid for current month/year
+        const validatedDay = validateDateParts(
+          nextBirthDate.birthDay,
+          nextBirthDate.birthMonth,
+          nextBirthDate.birthYear
+        )
+
+        if (validatedDay !== nextBirthDate.birthDay) {
+          nextBirthDate.birthDay = validatedDay
+        }
+
         return {
           ...prev,
-          birthDate: {
-            ...prev.birthDate,
-            [part]: nextValue,
-          },
+          birthDate: nextBirthDate,
         }
       })
     },
@@ -469,11 +486,11 @@ export const useAccountForm = (user: User | null) => {
   const isBirthDateValid = useMemo(() => {
     return Boolean(
       values.birthDate.birthDay &&
-        values.birthDate.birthMonth &&
-        values.birthDate.birthYear &&
-        (latchedTouched.birthDay ||
-          latchedTouched.birthMonth ||
-          latchedTouched.birthYear)
+      values.birthDate.birthMonth &&
+      values.birthDate.birthYear &&
+      (latchedTouched.birthDay ||
+        latchedTouched.birthMonth ||
+        latchedTouched.birthYear)
     )
   }, [
     latchedTouched.birthDay,

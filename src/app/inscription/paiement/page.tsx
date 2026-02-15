@@ -10,6 +10,7 @@ import StepDots from "@/components/onboarding/StepDots";
 import { nextStepPath } from "@/lib/onboarding";
 import StripeWrapper from "@/components/stripe/StripeWrapper";
 import { useUser } from "@/context/UserContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 import { getStepMetadata, parsePlan } from "../constants";
 
@@ -51,6 +52,7 @@ const PaymentPage = () => {
     };
   }, [pathname, searchParamsString]);
 
+  const { trialDays } = useSiteSettings();
   const trialEndParam = searchParams?.get("trialEnd") ?? null;
 
   const trialEndLabel = useMemo(() => {
@@ -58,9 +60,18 @@ const PaymentPage = () => {
     if (explicit) return explicit;
 
     const now = new Date();
-    now.setDate(now.getDate() + 30);
-    return formatFr(now);
-  }, [trialEndParam]);
+    // Handle fractional days (e.g. 1 hour = 0.0416667)
+    // If less than 1 day, adding it to date object might not work as expected with setDate(float)
+    // setDate takes an integer.
+    // So we should add milliseconds.
+    const trialDurationMs = trialDays * 24 * 60 * 60 * 1000;
+    const endDate = new Date(now.getTime() + trialDurationMs);
+
+    // For formatting, if it's less than 24h, we might want to show time?
+    // User requested "17/03/2026", so date only seems fine.
+
+    return formatFr(endDate);
+  }, [trialEndParam, trialDays]);
 
   const priceLabel = searchParams?.get("price") ?? "2,49 €/mois";
 
