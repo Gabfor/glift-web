@@ -130,7 +130,7 @@ const PaymentMethodCard = ({
                         {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                     </span>
                     <span className={`text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
-                        {isExpired ? "Expirée depuis" : "Expire le"} : {expMonth.toString().padStart(2, '0')}/{expYear}
+                        {isExpired ? "Expirée depuis" : "Expire en"} : {expMonth.toString().padStart(2, '0')}/{expYear}
                     </span>
                 </div>
             </div>
