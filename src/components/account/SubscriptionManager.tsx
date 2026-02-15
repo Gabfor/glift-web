@@ -11,6 +11,7 @@ import { PaymentMethod } from "@/lib/services/paymentService";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "@/components/stripe/CheckoutForm";
+import { useGlobalLoader } from "@/context/GlobalLoaderContext";
 
 // Initialize Stripe outside of component
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -196,6 +197,7 @@ interface SubscriptionManagerProps {
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
     const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial } = useUser();
+    const { triggerLoader, stopLoader } = useGlobalLoader();
 
     // Initialize with server-side value if available, or default to starter
     const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">(() => {
@@ -246,6 +248,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     const handleStartSetup = async () => {
         setIsAddingMethod(true);
+        triggerLoader(3000); // Immediate feedback for setup
         try {
             const res = await fetch('/api/user/setup-subscription', { method: 'POST' });
             if (res.ok) {
@@ -407,15 +410,16 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     const lastActionTime = useRef<number>(0);
 
-    const processUpdate = async () => {
+    const processUpdate = async (options?: { isUndo?: boolean }) => {
         setLoading(true);
+        triggerLoader(0); // Trigger global loader indefinitely until we finish
         lastActionTime.current = Date.now(); // Mark action start time
         // Do NOT clear success message immediately if switching context? 
         // Better to clear it to avoid confusion.
-        if (!isUndoingDowngrade) {
+        if (!options?.isUndo) {
             setShowSuccessMessage(false);
+            setSuccessPlan(null);
         }
-        setSuccessPlan(null);
         try {
             const res = await fetch('/api/user/update-subscription', {
                 method: 'POST',
@@ -475,6 +479,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             console.error("Update error", err);
         } finally {
             setLoading(false);
+            stopLoader();
         }
     };
 
@@ -624,7 +629,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 onClick={() => {
                                                     setIsUndoingDowngrade(true);
                                                     setSelectedPlan('premium');
-                                                    processUpdate();
+                                                    // Optimistic update
+                                                    setSuccessPlan('premium');
+                                                    processUpdate({ isUndo: true });
                                                 }}
                                                 className="underline hover:text-[#207227] font-semibold cursor-pointer text-inherit transition-colors"
                                             >
@@ -636,22 +643,25 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 </span>
                             )
                             : (isUndoingDowngrade
-                                ? "Suite à votre annulation, votre abonnement Premium sera renouvelé automatiquement à l’issu de la période d’abonnement actuelle."
+                                ? "Suite à votre annulation, nous vous confirmons que votre abonnement Premium sera renouvelé automatiquement à l’issu de la période d’abonnement actuelle."
                                 : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
                         }
                     />
                 </div>
-            )}
-            {showModalMessage && (
-                <div className="mb-6 w-full">
-                    <ModalMessage
-                        variant={successMessage.variant}
-                        title={successMessage.title}
-                        description={successMessage.description}
-                        onClose={successMessage.variant === 'error' ? undefined : () => setShowModalMessage(false)}
-                    />
-                </div>
-            )}
+            )
+            }
+            {
+                showModalMessage && (
+                    <div className="mb-6 w-full">
+                        <ModalMessage
+                            variant={successMessage.variant}
+                            title={successMessage.title}
+                            description={successMessage.description}
+                            onClose={successMessage.variant === 'error' ? undefined : () => setShowModalMessage(false)}
+                        />
+                    </div>
+                )
+            }
             <div className="space-y-4 mb-0">
                 <PlanOption
                     title="Abonnement Starter"
@@ -676,142 +686,144 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 />
             </div>
 
-            {selectedPlan === 'premium' && (
-                <div className="mt-[20px] mb-[40px]">
-                    {paymentMethod && !isAddingMethod ? (
-                        <PaymentMethodCard
-                            brand={paymentMethod.brand}
-                            last4={paymentMethod.last4}
-                            expMonth={paymentMethod.exp_month}
-                            expYear={paymentMethod.exp_year}
-                            onEdit={handleEditPaymentMethod}
-                            onDelete={handleDeletePaymentMethod}
-                            error={paymentError}
-                        />
-                    ) : (
-                        <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] hover:border-[#7069FA] transition-colors overflow-hidden">
-                            {!isAddingMethod ? (
-                                <button
-                                    onClick={handleStartSetup}
-                                    type="button"
-                                    className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
-                                >
-                                    + Ajouter un mode de paiement
-                                </button>
-                            ) : (
-                                <div className="px-6 pb-6 pt-10 bg-white relative">
+            {
+                selectedPlan === 'premium' && (
+                    <div className="mt-[20px] mb-[40px]">
+                        {paymentMethod && !isAddingMethod ? (
+                            <PaymentMethodCard
+                                brand={paymentMethod.brand}
+                                last4={paymentMethod.last4}
+                                expMonth={paymentMethod.exp_month}
+                                expYear={paymentMethod.exp_year}
+                                onEdit={handleEditPaymentMethod}
+                                onDelete={handleDeletePaymentMethod}
+                                error={paymentError}
+                            />
+                        ) : (
+                            <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] hover:border-[#7069FA] transition-colors overflow-hidden">
+                                {!isAddingMethod ? (
                                     <button
+                                        onClick={handleStartSetup}
                                         type="button"
-                                        onClick={() => {
-                                            setIsAddingMethod(false);
-                                            setSetupData(null);
-                                        }}
-                                        onMouseEnter={() => setCloseHovered(true)}
-                                        onMouseLeave={() => setCloseHovered(false)}
-                                        className="absolute right-4 top-4 h-6 w-6 transition-opacity z-10"
-                                        aria-label="Fermer"
+                                        className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
                                     >
-                                        <img
-                                            src={closeHovered ? "/icons/close_hover.svg" : "/icons/close.svg"}
-                                            alt="Fermer"
-                                            className="w-full h-full"
-                                        />
+                                        + Ajouter un mode de paiement
                                     </button>
-                                    {setupData ? (
-                                        <Elements stripe={stripePromise} options={{
-                                            clientSecret: setupData.clientSecret,
-                                            locale: 'fr',
-                                            fonts: [
-                                                {
-                                                    cssSrc: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap',
-                                                },
-                                            ],
-                                            appearance: {
-                                                theme: 'flat',
-                                                variables: {
-                                                    colorPrimary: '#7069FA',
-                                                    colorBackground: '#ffffff',
-                                                    colorText: '#5D6494',
-                                                    colorDanger: '#df1b41',
-                                                    fontFamily: 'Quicksand, system-ui, sans-serif',
-                                                    spacingUnit: '4px',
-                                                    borderRadius: '5px',
-                                                    fontSizeBase: '16px',
-                                                    colorTextSecondary: '#D7D4DC',
-                                                    colorTextPlaceholder: '#D7D4DC',
-                                                },
-                                                rules: {
-                                                    '.Input': {
-                                                        border: '1px solid #D7D4DC',
-                                                        padding: '10px 15px',
-                                                    },
-                                                    '.Input:focus': {
-                                                        borderColor: 'transparent',
-                                                        boxShadow: '0 0 0 2px #A1A5FD',
-                                                    },
-                                                }
-                                            }
-                                        }}>
-                                            <CheckoutForm
-                                                priceLabel="2,49 €/mois"
-                                                clientSecret={setupData.clientSecret}
-                                                plan={setupData.plan}
-                                                customerId={setupData.customerId}
-                                                subscriptionId={setupData.subscriptionId}
-                                                submitButtonText={paymentMethod ? "Enregistrer" : "Démarrer mon abonnement"}
-                                                mode={setupData.mode}
-                                                onSuccess={async (newPaymentMethodId?: string) => {
-                                                    // Prevent race condition with useEffect fetching stale data
-                                                    lastActionTime.current = Date.now();
-
-                                                    // Always set as default to ensure subscription is updated/reactivated
-                                                    if (newPaymentMethodId) {
-                                                        try {
-                                                            await fetch('/api/user/payment-methods', {
-                                                                method: 'PUT',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify({ paymentMethodId: newPaymentMethodId }),
-                                                            });
-                                                        } catch (err) {
-                                                            console.error("Failed to set default payment method", err);
-                                                        }
-                                                    }
-
-                                                    await fetchPaymentMethod();
-                                                    // Trigger update to sync subscription status immediately
-                                                    await refreshUser();
-
-                                                    if (paymentMethod) {
-                                                        // Updated existing
-                                                        setSuccessMessage({
-                                                            title: "Mode de paiement modifié avec succès",
-                                                            description: "Votre changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
-                                                            variant: "success"
-                                                        });
-                                                        setShowModalMessage(true);
-                                                    } else {
-                                                        // New subscription
-                                                        setSelectedPlan('premium');
-                                                        setSuccessPlan('premium');
-                                                        setShowSuccessMessage(true);
-                                                    }
-
-                                                    setIsAddingMethod(false);
-                                                }}
-
+                                ) : (
+                                    <div className="px-6 pb-6 pt-10 bg-white relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsAddingMethod(false);
+                                                setSetupData(null);
+                                            }}
+                                            onMouseEnter={() => setCloseHovered(true)}
+                                            onMouseLeave={() => setCloseHovered(false)}
+                                            className="absolute right-4 top-4 h-6 w-6 transition-opacity z-10"
+                                            aria-label="Fermer"
+                                        >
+                                            <img
+                                                src={closeHovered ? "/icons/close_hover.svg" : "/icons/close.svg"}
+                                                alt="Fermer"
+                                                className="w-full h-full"
                                             />
-                                        </Elements>
-                                    ) : (
-                                        <div className="flex justify-center items-center py-10">
-                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
+                                        </button>
+                                        {setupData ? (
+                                            <Elements stripe={stripePromise} options={{
+                                                clientSecret: setupData.clientSecret,
+                                                locale: 'fr',
+                                                fonts: [
+                                                    {
+                                                        cssSrc: 'https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap',
+                                                    },
+                                                ],
+                                                appearance: {
+                                                    theme: 'flat',
+                                                    variables: {
+                                                        colorPrimary: '#7069FA',
+                                                        colorBackground: '#ffffff',
+                                                        colorText: '#5D6494',
+                                                        colorDanger: '#df1b41',
+                                                        fontFamily: 'Quicksand, system-ui, sans-serif',
+                                                        spacingUnit: '4px',
+                                                        borderRadius: '5px',
+                                                        fontSizeBase: '16px',
+                                                        colorTextSecondary: '#D7D4DC',
+                                                        colorTextPlaceholder: '#D7D4DC',
+                                                    },
+                                                    rules: {
+                                                        '.Input': {
+                                                            border: '1px solid #D7D4DC',
+                                                            padding: '10px 15px',
+                                                        },
+                                                        '.Input:focus': {
+                                                            borderColor: 'transparent',
+                                                            boxShadow: '0 0 0 2px #A1A5FD',
+                                                        },
+                                                    }
+                                                }
+                                            }}>
+                                                <CheckoutForm
+                                                    priceLabel="2,49 €/mois"
+                                                    clientSecret={setupData.clientSecret}
+                                                    plan={setupData.plan}
+                                                    customerId={setupData.customerId}
+                                                    subscriptionId={setupData.subscriptionId}
+                                                    submitButtonText={paymentMethod ? "Enregistrer" : "Démarrer mon abonnement"}
+                                                    mode={setupData.mode}
+                                                    onSuccess={async (newPaymentMethodId?: string) => {
+                                                        // Prevent race condition with useEffect fetching stale data
+                                                        lastActionTime.current = Date.now();
+
+                                                        // Always set as default to ensure subscription is updated/reactivated
+                                                        if (newPaymentMethodId) {
+                                                            try {
+                                                                await fetch('/api/user/payment-methods', {
+                                                                    method: 'PUT',
+                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                    body: JSON.stringify({ paymentMethodId: newPaymentMethodId }),
+                                                                });
+                                                            } catch (err) {
+                                                                console.error("Failed to set default payment method", err);
+                                                            }
+                                                        }
+
+                                                        await fetchPaymentMethod();
+                                                        // Trigger update to sync subscription status immediately
+                                                        await refreshUser();
+
+                                                        if (paymentMethod) {
+                                                            // Updated existing
+                                                            setSuccessMessage({
+                                                                title: "Mode de paiement modifié avec succès",
+                                                                description: "Votre changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
+                                                                variant: "success"
+                                                            });
+                                                            setShowModalMessage(true);
+                                                        } else {
+                                                            // New subscription
+                                                            setSelectedPlan('premium');
+                                                            setSuccessPlan('premium');
+                                                            setShowSuccessMessage(true);
+                                                        }
+
+                                                        setIsAddingMethod(false);
+                                                    }}
+
+                                                />
+                                            </Elements>
+                                        ) : (
+                                            <div className="flex justify-center items-center py-10">
+                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )
+            }
 
             <div className={`flex justify-center ${selectedPlan === "starter" ? "mt-[32px]" : ""}`}>
                 <CTAButton
@@ -823,6 +835,6 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     Mettre à jour
                 </CTAButton>
             </div>
-        </div>
+        </div >
     );
 }

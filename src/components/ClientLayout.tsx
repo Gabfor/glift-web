@@ -18,6 +18,8 @@ interface ClientLayoutProps {
   initialSession: Session | null;
 }
 
+import { GlobalLoaderProvider, useGlobalLoader } from "@/context/GlobalLoaderContext";
+
 export default function ClientLayout({ children, disconnected = false, initialSession }: ClientLayoutProps) {
   const pathname = usePathname();
   const isAdminPage = pathname?.startsWith("/admin");
@@ -26,13 +28,15 @@ export default function ClientLayout({ children, disconnected = false, initialSe
   return (
     <SupabaseProvider initialSession={initialSession}>
       <UserProvider>
-        <ClientLayoutContent
-          disconnected={disconnected}
-          isAdminPage={Boolean(isAdminPage)}
-          isComptePage={Boolean(isComptePage)}
-        >
-          {children}
-        </ClientLayoutContent>
+        <GlobalLoaderProvider>
+          <ClientLayoutContent
+            disconnected={disconnected}
+            isAdminPage={Boolean(isAdminPage)}
+            isComptePage={Boolean(isComptePage)}
+          >
+            {children}
+          </ClientLayoutContent>
+        </GlobalLoaderProvider>
       </UserProvider>
     </SupabaseProvider>
   );
@@ -52,8 +56,11 @@ function ClientLayoutContent({
   isComptePage,
 }: ClientLayoutContentProps) {
   const { isLoading, isAuthenticated } = useUser();
+  const { isGlobalLoading } = useGlobalLoader();
   const shouldForceDisconnected = disconnected && !isAuthenticated;
-  const showLoader = useMinimumVisibility(isLoading);
+
+  // Combine auth loading and manual global loading
+  const showLoader = useMinimumVisibility(isLoading || isGlobalLoading);
 
   return (
     <>
