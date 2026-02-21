@@ -15,6 +15,7 @@ import AdminUserEditor from "./AdminUserEditor";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import ExportIcon from "/public/icons/export.svg";
+import Tooltip from "@/components/Tooltip";
 
 type AdminUser = {
   id: string;
@@ -281,6 +282,33 @@ type SortableColumn =
   | "gender"
   | "age"
   | "status";
+
+function UserNameCell({ user }: { user: AdminUser }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    if (!user.id) return;
+    navigator.clipboard.writeText(user.id);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  if (!user.name) {
+    return <span>—</span>;
+  }
+
+  return (
+    <Tooltip content={copied ? "Copié !" : user.id} placement="top">
+      <button
+        type="button"
+        onClick={handleCopy}
+        className="hover:text-[#3A416F] transition-colors text-left font-semibold"
+      >
+        {user.name}
+      </button>
+    </Tooltip>
+  );
+}
 
 export default function AdminUsersPage() {
 
@@ -1051,7 +1079,7 @@ export default function AdminUsersPage() {
                               </button>
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                              {user.name ?? "—"}
+                              <UserNameCell user={user} />
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
                               {user.email}

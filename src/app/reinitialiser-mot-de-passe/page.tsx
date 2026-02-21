@@ -140,22 +140,26 @@ export default function ResetPasswordPage() {
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (event, _session) => {
         if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-          handleRecoverySession(session);
+          supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) {
+              handleRecoverySession({ user: data.user });
+            }
+          });
         }
       }
     );
 
     const verifySession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await supabase.auth.getUser();
         if (error) {
           throw error;
         }
 
-        if (data.session?.user?.email) {
-          handleRecoverySession(data.session);
+        if (data.user?.email) {
+          handleRecoverySession({ user: data.user });
         } else if (!cancelled) {
           errorTimeout = setTimeout(() => {
             setStage((current) => (current === "verify" ? "error" : current));
@@ -230,9 +234,8 @@ export default function ResetPasswordPage() {
         params.set("next", next);
       }
 
-      const loginUrl = `/connexion${
-        params.toString() ? `?${params.toString()}` : ""
-      }`;
+      const loginUrl = `/connexion${params.toString() ? `?${params.toString()}` : ""
+        }`;
 
       window.setTimeout(() => {
         router.push(loginUrl);
@@ -244,11 +247,11 @@ export default function ResetPasswordPage() {
         if (unknownError.status === 422 || unknownError.message) {
           const translatedMessage =
             unknownError.status === 422 &&
-            unknownError.message ===
+              unknownError.message ===
               "New password should be different from the old password."
               ? "Le nouveau mot de passe doit être différent de l'ancien."
               : unknownError.message ||
-                "Une erreur est survenue lors de la mise à jour du mot de passe.";
+              "Une erreur est survenue lors de la mise à jour du mot de passe.";
 
           setFormError(translatedMessage);
           setStage("reset");

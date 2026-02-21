@@ -29,15 +29,13 @@ export default async function RootLayout({
 }) {
   const supabase = await createClient();
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
+  // On passe initialSession={null} pour éviter le warning serveur de Supabase (getSession).
+  // Le client gérera sa propre session via SupabaseProvider et getUser().
   return (
     <html lang="fr">
       <body className={quicksand.className}>
         <UnlockScroll />
-        <ClientLayoutWrapper initialSession={session}>{children}</ClientLayoutWrapper>
+        <ClientLayoutWrapper initialSession={null}>{children}</ClientLayoutWrapper>
       </body>
     </html>
   );

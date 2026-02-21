@@ -11,7 +11,6 @@ import {
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { isAuthSessionMissingError } from "@supabase/auth-js";
 import { AuthChangeEvent, User } from "@supabase/supabase-js";
-import { useSessionContext } from "@supabase/auth-helpers-react";
 
 // On étend ici le type Supabase User pour inclure user_metadata
 interface CustomUser extends User {
@@ -63,72 +62,20 @@ const UserContext = createContext<UserContextType>({
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClientComponentClient();
-  const { session } = useSessionContext();
-  const sessionUser = (session?.user as CustomUser) ?? null;
-
-  const [user, setUser] = useState<CustomUser | null>(() => sessionUser);
-  /* 
-   * SIMPLIFICATION (Antigravity):
-   * Initialisation depuis les métadonnées de session pour éviter le flicker.
-   * La valeur définitive sera confirmée par fetchUser -> profiles table.
-   */
-  const [isPremiumUser, setIsPremiumUser] = useState(() => {
-    return sessionUser?.user_metadata?.subscription_plan === 'premium';
-  });
-  const [isLoading, setIsLoading] = useState(() => !sessionUser);
+  const [user, setUser] = useState<CustomUser | null>(null);
+  const [isPremiumUser, setIsPremiumUser] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRecoverySession, setIsRecoverySession] = useState(false);
-  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(() => {
-    if (!sessionUser) {
-      return null;
-    }
-
-    return typeof sessionUser.email_confirmed_at === "string";
-  });
+  const [isEmailVerified, setIsEmailVerified] = useState<boolean | null>(null);
   const [gracePeriodExpiresAt, setGracePeriodExpiresAt] = useState<string | null>(null);
   const [premiumTrialEndAt, setPremiumTrialEndAt] = useState<string | null>(null);
   const [premiumEndAt, setPremiumEndAt] = useState<string | null>(null);
-  // Add trial state
   const [trial, setTrial] = useState<boolean | undefined>(undefined);
-  // If no session user, we are "loaded" (as null). If session user exists, we are "loading" fresh data.
-  const [isUserDataLoaded, setIsUserDataLoaded] = useState(() => !sessionUser);
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
 
-  useEffect(() => {
-    if (!sessionUser) {
-      setGracePeriodExpiresAt(null);
-      return;
-    }
-
-    // Prevent restoring user from stale session context if we just signed out
-    if (latestAuthEventRef.current === "SIGNED_OUT") {
-      return;
-    }
-
-    setUser((current) => {
-      if (current?.id === sessionUser.id) {
-        return current;
-      }
-
-      return sessionUser;
-    });
-
-    // On ne met plus à jour isPremiumUser depuis sessionUser (métadonnées)
-    // On attend que fetchUser récupère la donnée fraîche de la table profiles
-
-    // SIMPLIFICATION (Antigravity):
-    // Also stop updating isEmailVerified from sessionUser here, because it flickers
-    // if Supabase auth says "verified" but profiles table says "not verified".
-    // fetchUser will handle the source of truth from profiles table.
-    /*
-    setIsEmailVerified((current) => {
-      if (current === true) {
-        return current;
-      }
-
-      return typeof sessionUser.email_confirmed_at === "string";
-    });
-    */
-  }, [sessionUser]);
+  // We no longer restore from session synchronously because reading session.user
+  // triggers the Supabase warning. We rely fully on fetchUser() via Supabase Auth server.
 
   const fetchUser = useCallback(async (background = false) => {
     if (!background) {
@@ -291,7 +238,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, [supabase]);
 
   useEffect(() => {
-    void fetchUser(!!sessionUser);
+    void fetchUser(false);
 
     const authClient = supabase.auth;
 
