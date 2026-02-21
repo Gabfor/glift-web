@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 
-export default function IncompleteAlert() {
+export default function IncompleteAlert({ onScrollClick }: { onScrollClick?: () => void }) {
   return (
     <div className="w-[564px] max-w-full mt-4 mb-[30px]">
       <div className="relative bg-[#F4F5FE] rounded-[8px] px-5 py-2.5 text-left">
@@ -13,7 +13,14 @@ export default function IncompleteAlert() {
           <span className="inline-flex items-center justify-center align-[-7px] w-[24px] h-[24px] rounded-full">
             <Image src="/icons/missing.svg" alt="" width={24} height={24} />
           </span>{' '}
-          et personnalisez votre expérience avec Glift.
+          et personnalisez votre expérience avec Glift.{' '}
+          <button
+            type="button"
+            onClick={onScrollClick}
+            className="underline hover:text-[#7069FA] transition-colors"
+          >
+            Voir les informations manquantes.
+          </button>
         </p>
       </div>
     </div>

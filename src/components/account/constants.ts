@@ -24,12 +24,15 @@ export const EXPERIENCE_OPTIONS = ['0', '1', '2', '3', '4', '5+'] as const
 export const MAIN_GOALS = [
   "Prise de muscle",
   "Perte de graisse",
+  "Perte de poids",
   "Gain de force",
   "Performance sportive",
+  "Performance",
   "Confiance & bien-être",
   "Prévention des blessures",
   "Santé & longévité",
   "Routine & discipline",
+  "Remise en forme",
 ] as const
 
 export const TRAINING_PLACES = ['Salle', 'Domicile', 'Les deux'] as const

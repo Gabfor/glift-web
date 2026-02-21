@@ -16,14 +16,13 @@ import { useUser } from "@/context/UserContext";
 
 import { getStepMetadata, parsePlan } from "../constants";
 import { validateDateParts } from "@/utils/dateValidation";
+import { MAIN_GOALS } from "@/components/account/constants";
 
 type BirthDateParts = {
   birthDay: string;
   birthMonth: string;
   birthYear: string;
 };
-
-const GOALS = ["Perte de poids", "Prise de muscle", "Remise en forme", "Performance"];
 
 function buildBirthDate(day: string, month: string, year: string) {
   return day && month && year ? `${year}-${month}-${day}` : "";
@@ -381,7 +380,7 @@ const InformationsPage = () => {
               setMainGoal(value);
               markTouched("mainGoal");
             }}
-            options={GOALS.map((value) => ({ value, label: value }))}
+            options={Array.from(MAIN_GOALS).map((value) => ({ value, label: value }))}
             touched={touched.mainGoal}
             setTouched={(value) => value && markTouched("mainGoal")}
             success={mainGoalSuccess}

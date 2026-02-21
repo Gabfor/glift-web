@@ -12,6 +12,8 @@ type MissingFieldProps = {
   iconSize?: number
   /** écart entre le bord du champ et l'icône (px) */
   gapPx?: number
+  /** ID optionnel pour scroller vers ce champ */
+  id?: string
 }
 
 /**
@@ -24,6 +26,7 @@ export default function MissingField({
   widthPx = 368,
   iconSize = 24,
   gapPx = 10,
+  id,
 }: MissingFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [topPx, setTopPx] = useState<number | null>(null)
@@ -91,7 +94,7 @@ export default function MissingField({
   }, [])
 
   return (
-    <div ref={wrapRef} className="relative" style={{ width: widthPx }}>
+    <div ref={wrapRef} id={id} className="relative" style={{ width: widthPx }}>
       {children}
 
       {show && topPx !== null && (

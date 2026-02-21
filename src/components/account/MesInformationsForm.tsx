@@ -110,6 +110,29 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     }
   }, [hasIncomplete, isInitialLoading])
 
+  const handleScrollToFirstMissing = () => {
+    const missingKeys = [
+      "gender",
+      "name",
+      "birthDate",
+      "email",
+      "country",
+      "experience",
+      "mainGoal",
+      "trainingPlace",
+      "weeklySessions",
+      "supplements",
+    ] as const
+
+    const firstMissingKey = missingKeys.find((k) => missing[k])
+    if (firstMissingKey) {
+      const el = document.getElementById(`missing-field-${firstMissingKey}`)
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" })
+      }
+    }
+  }
+
   useEffect(() => {
     if (isInitialLoading) {
       return
@@ -160,7 +183,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         </div>
       )}
 
-      {hasIncomplete ? <IncompleteAlert /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
+      {hasIncomplete ? <IncompleteAlert onScrollClick={handleScrollToFirstMissing} /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
       <div
         className={`w-[368px] flex flex-col items-center mb-[30px]${hasTopMessage ? "" : " mt-[30px]"
@@ -181,7 +204,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </div>
 
-      <MissingField show={missing.gender}>
+      <MissingField show={missing.gender} id="missing-field-gender">
         <ToggleField
           label="Sexe"
           value={values.gender}
@@ -200,7 +223,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.name}>
+      <MissingField show={missing.name} id="missing-field-name">
         <TextField
           label="Prénom"
           value={values.name}
@@ -220,7 +243,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.birthDate}>
+      <MissingField show={missing.birthDate} id="missing-field-birthDate">
         <BirthDateField
           birthDay={values.birthDate.birthDay}
           birthMonth={values.birthDate.birthMonth}
@@ -256,7 +279,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.email}>
+      <MissingField show={missing.email} id="missing-field-email">
         <TextField
           label="Email"
           value={user?.email || ""}
@@ -265,7 +288,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.country}>
+      <MissingField show={missing.country} id="missing-field-country">
         <div
           onMouseDown={() => {
             resetSuppress()
@@ -297,7 +320,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         </div>
       </MissingField>
 
-      <MissingField show={missing.experience}>
+      <MissingField show={missing.experience} id="missing-field-experience">
         <ToggleField
           label="Années de pratique"
           value={values.experience}
@@ -317,7 +340,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.mainGoal}>
+      <MissingField show={missing.mainGoal} id="missing-field-mainGoal">
         <div
           onMouseDown={() => {
             resetSuppress()
@@ -346,7 +369,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         </div>
       </MissingField>
 
-      <MissingField show={missing.trainingPlace}>
+      <MissingField show={missing.trainingPlace} id="missing-field-trainingPlace">
         <ToggleField
           label="Lieu d’entraînement"
           value={values.trainingPlace}
@@ -365,7 +388,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.weeklySessions}>
+      <MissingField show={missing.weeklySessions} id="missing-field-weeklySessions">
         <ToggleField
           label="Nombre de séances par semaine"
           value={values.weeklySessions}
@@ -385,7 +408,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
         />
       </MissingField>
 
-      <MissingField show={missing.supplements}>
+      <MissingField show={missing.supplements} id="missing-field-supplements">
         <ToggleField
           label="Prise de compléments alimentaires"
           value={values.supplements}
