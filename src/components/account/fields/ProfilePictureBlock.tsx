@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Tooltip from "@/components/Tooltip"
+import { useUser } from "@/context/UserContext"
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -37,6 +38,8 @@ export default function ProfilePictureBlock({
   const [localBusy, setLocalBusy] = useState(false)
   const [isDeleteHovered, setIsDeleteHovered] = useState(false)
   const [isUploadHovered, setIsUploadHovered] = useState(false)
+
+  const { isPremiumUser } = useUser()
 
   const working = isBusy || localBusy
   const pct = useMemo(() => clampPercentage(profileCompletion), [profileCompletion])
@@ -96,8 +99,8 @@ export default function ProfilePictureBlock({
     }
   }
 
-  const SIZE = 100
-  const RADIUS = 46
+  const SIZE = 126
+  const RADIUS = 59
   const STROKE = 6
 
   return (
@@ -118,18 +121,16 @@ export default function ProfilePictureBlock({
               aria-label="Supprimer la photo de profil"
               onMouseEnter={isDeleteEnabled ? () => setIsDeleteHovered(true) : undefined}
               onMouseLeave={() => setIsDeleteHovered(false)}
-              className={`group relative inline-flex h-[28px] w-[28px] items-center justify-center ${
-                isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+              className={`group relative inline-flex h-[28px] w-[28px] items-center justify-center ${isDeleteEnabled ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
             >
               <Image
                 src="/icons/delete_photo.svg"
                 alt=""
                 width={28}
                 height={28}
-                className={`transition-opacity duration-150 ${
-                  isDeleteHovered ? "opacity-0" : "opacity-100"
-                }`}
+                className={`transition-opacity duration-150 ${isDeleteHovered ? "opacity-0" : "opacity-100"
+                  }`}
                 aria-hidden="true"
               />
               {isDeleteEnabled ? (
@@ -138,28 +139,27 @@ export default function ProfilePictureBlock({
                   alt=""
                   width={28}
                   height={28}
-                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${
-                    isDeleteHovered ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${isDeleteHovered ? "opacity-100" : "opacity-0"
+                    }`}
                   aria-hidden="true"
                 />
               ) : null}
             </button>
           </Tooltip>
 
-          <div className="relative w-[100px] h-[100px]">
+          <div className="relative w-[126px] h-[126px]">
             <svg className="absolute inset-0" viewBox={`0 0 ${SIZE} ${SIZE}`} aria-hidden="true">
               <circle
-                cx="50"
-                cy="50"
+                cx="63"
+                cy="63"
                 r={RADIUS}
                 stroke="#ECE9F1"
                 strokeWidth={STROKE}
                 fill="none"
               />
               <circle
-                cx="50"
-                cy="50"
+                cx="63"
+                cy="63"
                 r={RADIUS}
                 stroke="#33E1AC"
                 strokeWidth={STROKE}
@@ -168,16 +168,15 @@ export default function ProfilePictureBlock({
                 strokeDasharray={100}
                 strokeDashoffset={100 - pct}
                 strokeLinecap="round"
-                transform="rotate(-90 50 50)"
+                transform="rotate(-90 63 63)"
                 style={{ transition: "stroke-dashoffset 300ms ease" }}
               />
             </svg>
 
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className={`relative w-[75px] h-[75px] rounded-full overflow-hidden ${
-                  hasImage ? "" : "bg-[#F2F1F6]"
-                }`}
+                className={`relative w-[100px] h-[100px] rounded-full overflow-hidden ${hasImage ? "" : "bg-[#F2F1F6]"
+                  }`}
               >
                 {hasImage ? (
                   <Image
@@ -185,7 +184,7 @@ export default function ProfilePictureBlock({
                     alt="Photo de profil"
                     fill
                     className="object-cover"
-                    sizes="75px"
+                    sizes="100px"
                   />
                 ) : null}
               </div>
@@ -206,18 +205,16 @@ export default function ProfilePictureBlock({
               aria-label="Changer la photo de profil"
               onMouseEnter={isUploadEnabled ? () => setIsUploadHovered(true) : undefined}
               onMouseLeave={() => setIsUploadHovered(false)}
-              className={`group relative inline-flex h-[25px] w-[28px] items-center justify-center ${
-                isUploadEnabled ? "cursor-pointer" : "cursor-not-allowed"
-              }`}
+              className={`group relative inline-flex h-[25px] w-[28px] items-center justify-center ${isUploadEnabled ? "cursor-pointer" : "cursor-not-allowed"
+                }`}
             >
               <Image
                 src="/icons/photo.svg"
                 alt=""
                 width={28}
                 height={25}
-                className={`transition-opacity duration-150 ${
-                  isUploadHovered ? "opacity-0" : "opacity-100"
-                }`}
+                className={`transition-opacity duration-150 ${isUploadHovered ? "opacity-0" : "opacity-100"
+                  }`}
                 aria-hidden="true"
               />
               {isUploadEnabled ? (
@@ -226,9 +223,8 @@ export default function ProfilePictureBlock({
                   alt=""
                   width={28}
                   height={25}
-                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${
-                    isUploadHovered ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`absolute inset-0 m-auto transition-opacity duration-150 ${isUploadHovered ? "opacity-100" : "opacity-0"
+                    }`}
                   aria-hidden="true"
                 />
               ) : null}
@@ -246,13 +242,30 @@ export default function ProfilePictureBlock({
         />
       </div>
 
-      <p className="text-base font-semibold text-[#3A416F]">
+      <p className="text-base font-semibold text-[#3A416F] mb-[20px]">
         Votre profil est complet à{" "}
         <span className="inline-flex w-[5ch] tabular-nums text-left justify-start">
           <span className="text-[#33E1AC]">{pct}%</span>
           <span className="text-[#3A416F]">.</span>
         </span>
       </p>
+
+      <div className="flex items-center gap-[5px]">
+        <Image
+          src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
+          alt=""
+          width={15}
+          height={15}
+        />
+        <div
+          className={`flex h-[15px] items-center rounded-full px-[10px] text-[8px] font-semibold ${isPremiumUser
+            ? "bg-[#FFF7CB] text-[#E2BA00]"
+            : "bg-[#F4F5FE] text-[#A1A5FD]"
+            }`}
+        >
+          {isPremiumUser ? "Abonnement Premium" : "Abonnement Starter"}
+        </div>
+      </div>
     </div>
   )
 }
