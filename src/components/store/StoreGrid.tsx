@@ -254,22 +254,9 @@ export default function StoreGrid({
           query = query.lte("duration", maxDuration);
         }
       }
-      if (availabilityFilter) {
-        if (availabilityFilter === "Oui") {
-          if (!isAuthenticated) {
-            query = query.eq('id', '00000000-0000-0000-0000-000000000000');
-          } else if (userProfile?.subscription_plan === 'basic') {
-            query = query.eq('plan', 'starter');
-          }
-        } else if (availabilityFilter === "Non") {
-          if (isAuthenticated) {
-            if (userProfile?.subscription_plan === 'basic') {
-              query = query.eq('plan', 'premium');
-            } else {
-              // Premium user -> everything is available -> "Non" yields nothing
-              query = query.eq('id', '00000000-0000-0000-0000-000000000000');
-            }
-          }
+      if (availabilityFilter === "Oui") {
+        if (!isAuthenticated || userProfile?.subscription_plan === "starter") {
+          query = query.eq("plan", "starter");
         }
       }
 

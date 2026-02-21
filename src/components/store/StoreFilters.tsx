@@ -6,7 +6,9 @@ import FiltersPanel, {
   type FilterGroup,
   type SortOption,
 } from "@/components/filters/FiltersPanel";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import { createClient } from "@/lib/supabaseClient";
+import { useUser } from "@/context/UserContext";
 
 type Props = {
   sortBy: string;
@@ -190,31 +192,8 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
   const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
   const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", ""]);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile] = useState<{
-    subscription_plan: string | null;
-  } | null>(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      setIsAuthenticated(!!user);
-
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("subscription_plan")
-          .eq("id", user.id)
-          .single();
-
-        if (data) {
-          setUserProfile(data);
-        }
-      }
-    };
-    fetchProfile();
-  }, []);
+  const { user, isPremiumUser, isUserDataLoaded } = useUser();
+  const isAuthenticated = !!user;
 
   useEffect(() => {
     let isActive = true;
@@ -271,7 +250,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
     const checkAvailability = (program: NormalizedProgramStoreField) => {
       if (!isAuthenticated) return false;
-      if (userProfile?.subscription_plan === "premium") return true;
+      if (isPremiumUser) return true;
       // Basic plan
       return program.plan === "starter";
     };
@@ -380,7 +359,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       availabilityOptions: toStringOptions(availabilityValues),
       allAvailabilityOptions: toStringOptions(allAvailabilityValues),
     };
-  }, [programs, selectedFilters, isAuthenticated, userProfile]);
+  }, [programs, selectedFilters, isAuthenticated, isPremiumUser]);
 
   const filterOptions: FilterGroup[] = [
     {
@@ -413,16 +392,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       options: durationOptions,
       allOptions: allDurationOptions,
     },
-    ...(userProfile?.subscription_plan !== "premium"
-      ? [
-        {
-          label: "Disponible",
-          placeholder: "Tous",
-          options: availabilityOptions,
-          allOptions: allAvailabilityOptions,
-        },
-      ]
-      : []),
   ];
 
   const handleFilterChange = (index: number, value: string) => {
@@ -440,6 +409,19 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       filters={filterOptions}
       selectedFilters={selectedFilters}
       onFilterChange={handleFilterChange}
+      rightContent={
+        isUserDataLoaded && !isPremiumUser ? (
+          <div className="flex items-center gap-[10px]">
+            <span className="text-[16px] font-semibold text-[#3A416F]">
+              Masquer les programmes bloqués
+            </span>
+            <ToggleSwitch
+              checked={selectedFilters[5] === "Oui"}
+              onCheckedChange={(checked) => handleFilterChange(5, checked ? "Oui" : "")}
+            />
+          </div>
+        ) : undefined
+      }
     />
   );
 }

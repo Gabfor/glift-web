@@ -6,6 +6,7 @@ import StoreFilters from "@/components/store/StoreFilters";
 import StoreGrid from "@/components/store/StoreGrid";
 import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
+import { useUser } from "@/context/UserContext";
 
 export default function StorePage() {
   const [sortBy, setSortBy] = useState("relevance");
@@ -13,6 +14,7 @@ export default function StorePage() {
   const [totalPrograms, setTotalPrograms] = useState(0);
   const [loadingCount, setLoadingCount] = useState(true);
   const [filters, setFilters] = useState(["", "", "", "", "", ""]);
+  const { user, isPremiumUser } = useUser();
 
   // Fetch total count of ON programs once (or when sort/filter changes)
   useEffect(() => {
@@ -31,7 +33,7 @@ export default function StorePage() {
         levelFilter,
         locationFilter,
         durationFilter,
-        partnerFilter,
+        availabilityFilter,
       ] = filters;
 
       // appliquer les filtres s'ils sont actifs
@@ -49,7 +51,11 @@ export default function StorePage() {
           query = query.lte("duration", maxDuration);
         }
       }
-      if (partnerFilter) query = query.eq("partner_name", partnerFilter);
+      if (availabilityFilter === "Oui") {
+        if (!user || !isPremiumUser) {
+          query = query.eq("plan", "starter");
+        }
+      }
 
       const { count, error } = await query;
 
@@ -64,7 +70,7 @@ export default function StorePage() {
     };
 
     fetchTotalCount();
-  }, [sortBy, filters]);
+  }, [sortBy, filters, user, isPremiumUser]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
