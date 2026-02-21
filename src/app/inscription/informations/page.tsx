@@ -269,7 +269,7 @@ const InformationsPage = () => {
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
           Nous sommes ravis de vous compter parmi nous.
           <br />
-          Vous pouvez dès à présent créer votre première entraînement.
+          Vous pouvez dès à présent commencer à utiliser la plateforme.
         </p>
         <StepDots
           className="mt-4 mb-6"
@@ -281,9 +281,9 @@ const InformationsPage = () => {
       <div className="w-[564px] max-w-full mb-6">
         <div className="relative bg-[#F4F5FE] rounded-[5px] px-5 py-3 text-left">
           <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A1A5FD] rounded-l-[5px]" />
-          <p className="text-[#7069FA] font-bold text-[12px] mb-1">Complétez votre profil</p>
+          <p className="text-[#7069FA] font-bold text-[12px] mb-1">Hey psst !</p>
           <p className="text-[#A1A5FD] font-semibold text-[12px] leading-relaxed">
-            Personnalisez votre expérience avec Glift et aidez-nous à mieux vous connaître en répondant aux 4 questions ci-dessous.
+            Avant de partir vous entrainer, aidez-nous à mieux vous connaître et à personnaliser votre expérience avec Glift en répondant aux 4 questions ci-dessous.
           </p>
         </div>
       </div>

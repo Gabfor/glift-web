@@ -169,6 +169,7 @@ export default function AdminSettingsPage() {
                                 <AdminDropdown
                                     label="Durée de la période d’essai"
                                     placeholder="Sélectionner"
+                                    sortStrategy="none"
                                     options={[
                                         { value: "0.0416667", label: "1 heure" },
                                         { value: "1", label: "1 jour" },
