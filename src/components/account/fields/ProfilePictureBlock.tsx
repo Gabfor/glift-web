@@ -175,8 +175,18 @@ export default function ProfilePictureBlock({
 
             <div className="absolute inset-0 flex items-center justify-center">
               <div
-                className={`relative w-[100px] h-[100px] rounded-full overflow-hidden ${hasImage ? "" : "bg-[#F2F1F6]"
+                className={`relative w-[100px] h-[100px] rounded-full overflow-hidden cursor-pointer transition-opacity hover:opacity-80 ${hasImage ? "" : "bg-[#F2F1F6]"
                   }`}
+                onClick={openFileDialog}
+                aria-label="Changer la photo de profil"
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openFileDialog();
+                  }
+                }}
               >
                 {hasImage ? (
                   <Image
