@@ -536,7 +536,7 @@ export default async function Home() {
             </div>
 
             <div className="text-center text-[#2E3271] font-semibold text-[15px]">
-              Vous voulez devenir partenaire ? <Link href="#" className="text-[var(--color-brand-primary)] hover:underline">Contactez-nous</Link>
+              Vous voulez devenir partenaire ? <Link href="/contact" className="text-[var(--color-brand-primary)] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
             </div>
           </section>
         </>

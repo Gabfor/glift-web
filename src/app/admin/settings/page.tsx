@@ -36,6 +36,9 @@ export default function AdminSettingsPage() {
     const [trialDays, setTrialDays] = useState<string>("30");
     const [initialTrialDays, setInitialTrialDays] = useState<string>("30");
 
+    const [contactEmail, setContactEmail] = useState<string>("");
+    const [initialContactEmail, setInitialContactEmail] = useState<string>("");
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isCleaning, setIsCleaning] = useState(false);
@@ -73,6 +76,11 @@ export default function AdminSettingsPage() {
                 setTrialDays(trialDaysValue);
                 setInitialTrialDays(trialDaysValue);
 
+                // Fetch Contact Email
+                const contactEmailValue = settings["contact_email"] || "";
+                setContactEmail(contactEmailValue);
+                setInitialContactEmail(contactEmailValue);
+
             } catch (error) {
                 console.error("Failed to load settings", error);
             } finally {
@@ -82,7 +90,7 @@ export default function AdminSettingsPage() {
         fetchSettings();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled) || (trialDays !== initialTrialDays);
+    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled) || (trialDays !== initialTrialDays) || (contactEmail !== initialContactEmail);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -97,12 +105,14 @@ export default function AdminSettingsPage() {
                 .upsert({ key: "partners_enabled", value: partnersEnabled, updated_at: new Date().toISOString() });
 
             await settingsService.updateSetting("trial_period_days", trialDays);
+            await settingsService.updateSetting("contact_email", contactEmail);
 
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
             setInitialPartnersEnabled(partnersEnabled);
             setInitialTrialDays(trialDays);
+            setInitialContactEmail(contactEmail);
 
         } catch (error) {
             console.error("Save failed", error);
@@ -178,6 +188,22 @@ export default function AdminSettingsPage() {
                                     ]}
                                     selected={trialDays}
                                     onSelect={setTrialDays}
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* EMAILS Section */}
+                    <div className="mt-8">
+                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">EMAILS</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                            {/* Contact Email Field */}
+                            <div>
+                                <AdminTextField
+                                    label="Email de contact"
+                                    value={contactEmail}
+                                    onChange={setContactEmail}
+                                    placeholder="Email de contact"
                                 />
                             </div>
                         </div>
