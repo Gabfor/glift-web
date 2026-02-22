@@ -105,7 +105,11 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             if (!url.includes(`/${bucketName}/`)) return null;
             const parts = url.split(`/${bucketName}/`);
             if (parts.length < 2) return null;
-            return decodeURIComponent(parts[1]);
+            let path = decodeURIComponent(parts[1]);
+            if (path.startsWith('/')) {
+                path = path.substring(1);
+            }
+            return path;
         };
 
         // 2. Scan Buckets and Cleanup

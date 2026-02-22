@@ -34,7 +34,7 @@ export default function ImageUploader({
       const fileName = `${Date.now()}.${fileExt}`;
 
       // Chemin dans le bucket
-      const filePath = `${basePath}/${fileName}`;
+      const filePath = basePath ? `${basePath}/${fileName}` : fileName;
 
       // Upload dans Supabase Storage
       const { error } = await supabase
