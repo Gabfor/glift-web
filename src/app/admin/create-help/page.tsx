@@ -18,9 +18,13 @@ function CreateHelpForm() {
 
     const [categories, setCategories] = useState<string[]>([]);
     const [status, setStatus] = useState("ON");
+    const [langue, setLangue] = useState("Français");
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Store original data to check for modifications
+    const [initialData, setInitialData] = useState<any>(null);
 
     useEffect(() => {
         if (!helpId) return;
@@ -39,6 +43,15 @@ function CreateHelpForm() {
                 setAnswer(item.answer);
                 setCategories(item.categories || []);
                 setStatus(item.status);
+                if (item.langue) setLangue(item.langue);
+
+                setInitialData({
+                    question: item.question,
+                    answer: item.answer,
+                    categories: item.categories || [],
+                    status: item.status,
+                    langue: item.langue || "Français",
+                });
             } else if (error) {
                 console.error("Error fetching help item:", error);
             }
@@ -57,11 +70,29 @@ function CreateHelpForm() {
         [categories, status, question, answer]
     );
 
+    const hasChanges = useMemo(() => {
+        if (!isEditing) return true; // Always allow creation if form is valid
+        if (!initialData) return false;
+
+        const currentCategoriesSorted = [...categories].sort();
+        const initialCategoriesSorted = [...initialData.categories].sort();
+
+        const categoriesChanged = JSON.stringify(currentCategoriesSorted) !== JSON.stringify(initialCategoriesSorted);
+
+        return (
+            question !== initialData.question ||
+            answer !== initialData.answer ||
+            status !== initialData.status ||
+            langue !== initialData.langue ||
+            categoriesChanged
+        );
+    }, [isEditing, initialData, question, answer, status, langue, categories]);
+
     const inputClass =
         "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
 
     const handleSave = async () => {
-        if (!isFormValid || loading) return;
+        if (!isFormValid || !hasChanges || loading) return;
 
         setLoading(true);
 
@@ -70,6 +101,7 @@ function CreateHelpForm() {
             answer,
             categories,
             status,
+            langue,
         };
 
         let resultError = null;
@@ -104,9 +136,40 @@ function CreateHelpForm() {
                 </h2>
 
                 <div className="flex flex-col gap-[30px]">
-                    {/* Row 1: Catégories & Statut */}
+                    {/* Row 1: Statut & Langue */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
-                        {/* Catégories */}
+                        {/* Statut */}
+                        <div className="flex flex-col">
+                            <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                            <AdminDropdown
+                                label=""
+                                placeholder="Sélectionnez le statut"
+                                selected={status}
+                                onSelect={(value) => setStatus(value)}
+                                options={[
+                                    { value: "ON", label: "ON" },
+                                    { value: "OFF", label: "OFF" },
+                                ]}
+                            />
+                        </div>
+
+                        {/* Langue */}
+                        <div className="flex flex-col">
+                            <label className="text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                            <AdminDropdown
+                                label=""
+                                placeholder="Sélectionnez la langue"
+                                selected={langue}
+                                onSelect={(value) => setLangue(value)}
+                                options={[
+                                    { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
+                                ]}
+                            />
+                        </div>
+                    </div>
+
+                    {/* Row 2: Catégories */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
                         <div className="flex flex-col">
                             <label className="text-[#3A416F] font-bold mb-[5px]">Catégories</label>
                             <AdminMultiSelectDropdown
@@ -124,24 +187,9 @@ function CreateHelpForm() {
                                 ]}
                             />
                         </div>
-
-                        {/* Statut */}
-                        <div className="flex flex-col">
-                            <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                            <AdminDropdown
-                                label=""
-                                placeholder="Sélectionnez le statut"
-                                selected={status}
-                                onSelect={(value) => setStatus(value)}
-                                options={[
-                                    { value: "ON", label: "ON" },
-                                    { value: "OFF", label: "OFF" },
-                                ]}
-                            />
-                        </div>
                     </div>
 
-                    {/* Row 2: Question */}
+                    {/* Row 3: Question */}
                     <div className="flex flex-col">
                         <div className="flex justify-between mb-[5px]">
                             <span className="text-[16px] text-[#3A416F] font-bold">Question</span>
@@ -172,8 +220,8 @@ function CreateHelpForm() {
                     <div className="mt-10 flex justify-center">
                         <CTAButton
                             onClick={handleSave}
-                            disabled={!isFormValid || loading}
-                            variant={isFormValid && !loading ? "active" : "inactive"}
+                            disabled={!isFormValid || !hasChanges || loading}
+                            variant={isFormValid && hasChanges && !loading ? "active" : "inactive"}
                             className="font-semibold"
                         >
                             {loading

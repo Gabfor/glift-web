@@ -21,9 +21,10 @@ type HelpQuestion = {
   top: number;
   flop: number;
   created_at: string;
+  langue?: string;
 };
 
-type SortableColumn = "status" | "question" | "answer" | "top" | "flop";
+type SortableColumn = "status" | "question" | "langue" | "top" | "flop";
 
 export default function AdminContentHelpPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -84,6 +85,29 @@ export default function AdminContentHelpPage() {
     }
   };
 
+  const handleEdit = () => {
+    if (selectedIds.length !== 1) return;
+    router.push(`/admin/create-help?id=${selectedIds[0]}`);
+  };
+
+  const handleReset = async () => {
+    if (selectedIds.length === 0) return;
+
+    setLoading(true);
+    const { error } = await (supabase
+      .from("help_questions") as any)
+      .update({ top: 0, flop: 0 })
+      .in("id", selectedIds);
+
+    if (error) {
+      console.error("Erreur lors de la remise à zéro:", error);
+      alert(`Erreur: ${error.message}`);
+    } else {
+      await fetchQuestions();
+    }
+    setLoading(false);
+  };
+
   const handleDelete = async () => {
     if (selectedIds.length === 0) return;
 
@@ -123,8 +147,11 @@ export default function AdminContentHelpPage() {
         case "question":
           comparison = a.question.localeCompare(b.question);
           break;
-        case "answer":
-          comparison = a.answer.localeCompare(b.answer);
+
+        case "langue":
+          const langueA = a.langue || "Français";
+          const langueB = b.langue || "Français";
+          comparison = langueA.localeCompare(langueB);
           break;
         case "top":
           comparison = a.top - b.top;
@@ -196,6 +223,8 @@ export default function AdminContentHelpPage() {
           <HelpAdminActionsBar
             selectedIds={selectedIds}
             onDelete={handleDelete}
+            onEdit={handleEdit}
+            onReset={handleReset}
             onAdd={handleAdd}
           />
         ) : (
@@ -257,7 +286,7 @@ export default function AdminContentHelpPage() {
                   </th>
                   {renderHeaderCell("Statut", "status", "w-[82px]")}
                   {renderHeaderCell("Questions", "question", "w-auto")}
-                  {renderHeaderCell("Réponses", "answer", "w-auto")}
+                  {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                   {renderHeaderCell(
                     <div className="flex justify-center w-[20px]">
                       <Image src="/icons/oui_vert.svg" alt="Top" width={20} height={20} />
@@ -315,10 +344,10 @@ export default function AdminContentHelpPage() {
                           {q.question}
                         </Link>
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`/admin/create-help?id=${q.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
-                          {q.answer.replace(/<[^>]+>/g, '')}
-                        </Link>
+                      <td className="px-4">
+                        <div className="flex items-center justify-center">
+                          <Image src="/flags/france.svg" alt="Français" width={20} height={15} className="object-contain" />
+                        </div>
                       </td>
                       <td className="w-[80px] px-4 font-semibold text-[#5D6494] text-center align-middle">
                         {q.top}
