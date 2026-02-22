@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -48,7 +49,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '' }: Ri
         content: value,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none min-h-[120px] max-h-[300px] overflow-y-auto px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className}`,
+                class: `prose prose-sm focus:outline-none min-h-[345px] px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} h-full`,
             },
         },
         immediatelyRender: false,
@@ -57,13 +58,19 @@ export default function RichTextEditor({ value, onChange, placeholder = '' }: Ri
         },
     });
 
+    useEffect(() => {
+        if (editor && value !== editor.getHTML()) {
+            editor.commands.setContent(value);
+        }
+    }, [value, editor]);
+
     if (!editor) {
         return null;
     }
 
     return (
-        <div className="border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] overflow-hidden">
-            <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] relative z-10">
+        <div className="border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] resize-y overflow-auto min-h-[345px] flex flex-col relative w-full">
+            <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full">
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     isActive={editor.isActive('bold')}

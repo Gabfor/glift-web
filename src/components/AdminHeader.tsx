@@ -108,9 +108,9 @@ export default function AdminHeader() {
               Blog
             </Link>
             <Link
-              href="/admin/content-help"
+              href="/admin/help"
               className={
-                pathname?.startsWith("/admin/content-help")
+                pathname?.startsWith("/admin/help")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
