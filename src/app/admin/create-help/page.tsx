@@ -21,6 +21,7 @@ function CreateHelpForm() {
     const [langue, setLangue] = useState("Français");
     const [question, setQuestion] = useState("");
     const [answer, setAnswer] = useState("");
+    const [display, setDisplay] = useState("Les deux");
     const [loading, setLoading] = useState(false);
 
     // Store original data to check for modifications
@@ -44,6 +45,7 @@ function CreateHelpForm() {
                 setCategories(item.categories || []);
                 setStatus(item.status);
                 if (item.langue) setLangue(item.langue);
+                if (item.display) setDisplay(item.display);
 
                 setInitialData({
                     question: item.question,
@@ -51,6 +53,7 @@ function CreateHelpForm() {
                     categories: item.categories || [],
                     status: item.status,
                     langue: item.langue || "Français",
+                    display: item.display || "Les deux",
                 });
             } else if (error) {
                 console.error("Error fetching help item:", error);
@@ -84,9 +87,10 @@ function CreateHelpForm() {
             answer !== initialData.answer ||
             status !== initialData.status ||
             langue !== initialData.langue ||
+            display !== initialData.display ||
             categoriesChanged
         );
-    }, [isEditing, initialData, question, answer, status, langue, categories]);
+    }, [isEditing, initialData, question, answer, status, langue, display, categories]);
 
     const inputClass =
         "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
@@ -102,6 +106,7 @@ function CreateHelpForm() {
             categories,
             status,
             langue,
+            display,
         };
 
         let resultError = null;
@@ -184,6 +189,23 @@ function CreateHelpForm() {
                                     { value: "Blog", label: "Blog" },
                                     { value: "Abonnement", label: "Abonnement" },
                                     { value: "Application", label: "Application" },
+                                ]}
+                            />
+                        </div>
+
+                        {/* Affichage */}
+                        <div className="flex flex-col">
+                            <label className="text-[#3A416F] font-bold mb-[5px]">Affichage</label>
+                            <AdminDropdown
+                                label=""
+                                placeholder="Sélectionnez un affichage"
+                                selected={display}
+                                onSelect={(value) => setDisplay(value)}
+                                sortStrategy="none"
+                                options={[
+                                    { value: "Connecté", label: "Connecté" },
+                                    { value: "Non connecté", label: "Non connecté" },
+                                    { value: "Les deux", label: "Les deux" },
                                 ]}
                             />
                         </div>

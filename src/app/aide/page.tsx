@@ -18,6 +18,7 @@ type HelpQuestion = {
   top: number;
   flop: number;
   created_at: string;
+  display: string;
 };
 
 export default function AidePage() {
@@ -25,13 +26,19 @@ export default function AidePage() {
 
   const [questions, setQuestions] = useState<HelpQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLogged, setIsLogged] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [openSections, setOpenSections] = useState<string[]>([]);
 
   useEffect(() => {
-    const fetchQuestions = async () => {
+    const fetchData = async () => {
       setLoading(true);
+
+      const { data: userData } = await supabase.auth.getUser();
+      const logged = !!userData?.user;
+      setIsLogged(logged);
+
       const { data, error } = await supabase
         .from("help_questions")
         .select("*")
@@ -46,7 +53,7 @@ export default function AidePage() {
       setLoading(false);
     };
 
-    void fetchQuestions();
+    void fetchData();
   }, [supabase]);
 
   // Extract unique categories from all live questions for the dropdown
@@ -60,16 +67,22 @@ export default function AidePage() {
     return Array.from(cats).sort().map(cat => ({ value: cat, label: cat }));
   }, [questions]);
 
-  // Filter questions based on search term and category
+  // Filter questions based on search term, category and user login state
   const filteredQuestions = useMemo(() => {
     return questions.filter(q => {
+      // 1. Check Affichage display mode
+      const displayMode = q.display || 'Les deux'; // legacy fallback
+      if (displayMode === 'Connecté' && !isLogged) return false;
+      if (displayMode === 'Non connecté' && isLogged) return false;
+
+      // 2. Check search and categories
       const matchesSearch = q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
         q.answer.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === "" ||
         (q.categories && q.categories.includes(selectedCategory));
       return matchesSearch && matchesCategory;
     });
-  }, [questions, searchTerm, selectedCategory]);
+  }, [questions, searchTerm, selectedCategory, isLogged]);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
