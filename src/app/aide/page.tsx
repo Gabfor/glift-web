@@ -1,27 +1,147 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabaseClient";
+import SearchBar from "@/components/SearchBar";
+import { Accordion } from "@/components/ui/accordion";
+import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
+import GliftLoader from "@/components/ui/GliftLoader";
+import DropdownFilter from "@/components/filters/DropdownFilter";
+
+type HelpQuestion = {
+  id: string;
+  question: string;
+  answer: string;
+  categories: string[];
+  status: string;
+  top: number;
+  flop: number;
+  created_at: string;
+};
 
 export default function AidePage() {
+  const supabase = useMemo(() => createClient(), []);
+
+  const [questions, setQuestions] = useState<HelpQuestion[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [openSections, setOpenSections] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from("help_questions")
+        .select("*")
+        .eq("status", "ON")
+        .order("created_at", { ascending: false });
+
+      if (data && !error) {
+        setQuestions(data as HelpQuestion[]);
+      } else {
+        console.error("Error fetching help questions:", error);
+      }
+      setLoading(false);
+    };
+
+    void fetchQuestions();
+  }, [supabase]);
+
+  // Extract unique categories from all live questions for the dropdown
+  const allCategories = useMemo(() => {
+    const cats = new Set<string>();
+    questions.forEach(q => {
+      if (q.categories) {
+        q.categories.forEach(c => cats.add(c));
+      }
+    });
+    return Array.from(cats).sort().map(cat => ({ value: cat, label: cat }));
+  }, [questions]);
+
+  // Filter questions based on search term and category
+  const filteredQuestions = useMemo(() => {
+    return questions.filter(q => {
+      const matchesSearch = q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        q.answer.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = selectedCategory === "" ||
+        (q.categories && q.categories.includes(selectedCategory));
+      return matchesSearch && matchesCategory;
+    });
+  }, [questions, searchTerm, selectedCategory]);
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
-      <div className="max-w-[1152px] mx-auto">
-        <div className="text-center mb-10">
-          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
-            Aide
-          </h1>
-          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494]">
-            Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
-            <br />
-            Si vous avez d’autres questions,{" "}
-            <Link
-              href="/contact?from=aide"
-              className="text-[#7069FA] hover:text-[#6660E4] hover:no-underline transition-colors"
-            >
-              contactez-nous
-            </Link>.
-          </p>
+      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+
+        {/* Header Section */}
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
+          Aide
+        </h1>
+        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
+          Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
+          <br />
+          Si vous avez d’autres questions,{" "}
+          <Link
+            href="/contact?from=aide"
+            className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
+          >
+            contactez-nous.
+          </Link>
+        </p>
+
+        {/* Search Bar */}
+        <div className="mb-[40px] w-full max-w-[500px]">
+          <SearchBar
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Rechercher par mot-clé"
+          />
         </div>
+
+        {loading ? (
+          <div className="mt-10"><GliftLoader /></div>
+        ) : (
+          <div className="w-full max-w-[760px] text-left">
+            {/* Category Filter */}
+            {allCategories.length > 0 && (
+              <div className="mb-[30px] flex justify-start z-20 relative">
+                <DropdownFilter
+                  label="Catégorie"
+                  placeholder="Toutes les catégories"
+                  options={allCategories}
+                  allOptions={allCategories}
+                  selected={selectedCategory}
+                  onSelect={setSelectedCategory}
+                />
+              </div>
+            )}
+
+            {/* Questions List */}
+            {filteredQuestions.length === 0 ? (
+              <div className="text-center text-[#5D6494] mt-10">
+                Aucune question trouvée pour ces critères.
+              </div>
+            ) : (
+              <Accordion
+                type="multiple"
+                className="space-y-[20px]"
+                value={openSections}
+                onValueChange={setOpenSections}
+              >
+                {filteredQuestions.map(q => (
+                  <HelpQuestionItem
+                    key={q.id}
+                    questionId={q.id}
+                    question={q.question}
+                    answer={q.answer}
+                  />
+                ))}
+              </Accordion>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
