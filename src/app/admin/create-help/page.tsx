@@ -187,8 +187,13 @@ function CreateHelpForm() {
                                     { value: "Store", label: "Store" },
                                     { value: "Shop", label: "Shop" },
                                     { value: "Blog", label: "Blog" },
+                                    { value: "Questions fréquentes", label: "Questions fréquentes" },
+                                    { value: "Compte", label: "Compte" },
                                     { value: "Abonnement", label: "Abonnement" },
                                     { value: "Application", label: "Application" },
+                                    { value: "Paiement", label: "Paiement" },
+                                    { value: "Bug", label: "Bug" },
+                                    { value: "Entraînement", label: "Entraînement" }
                                 ]}
                             />
                         </div>
@@ -235,6 +240,8 @@ function CreateHelpForm() {
                         <RichTextEditor
                             value={answer}
                             onChange={setAnswer}
+                            placeholder="Commencez à rédiger votre réponse ici..."
+                            withHelpLink={true}
                         />
                     </div>
 

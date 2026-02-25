@@ -5,6 +5,13 @@ import Image from "next/image";
 import { AccordionItem, AccordionContent } from "@/components/ui/accordion";
 import AccordionTrigger from "@/components/account/AccordionTrigger";
 import Tooltip from "@/components/Tooltip";
+import { Quicksand } from "next/font/google";
+
+const quicksand = Quicksand({
+    subsets: ["latin"],
+    weight: ["400", "500", "600", "700"],
+    display: "swap",
+});
 
 type Props = {
     questionId: string;
@@ -35,7 +42,9 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                 setVoteCasted(null);
                 localStorage.removeItem(`glift_help_vote_${questionId}`);
             } else {
-                return; // Interaction prevented by disabled state
+                action = 'switch';
+                setVoteCasted(voteType);
+                localStorage.setItem(`glift_help_vote_${questionId}`, voteType);
             }
         } else {
             setHasVoted(true);
@@ -68,7 +77,7 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                     <div className="px-[30px] pt-[20px] pb-[15px]">
                         {/* Answer Content */}
                         <div
-                            className="prose prose-sm max-w-none text-[16px] leading-[24px] font-semibold text-[#5D6494] mb-[25px]"
+                            className={`prose prose-sm max-w-none text-[14px] leading-[22px] font-semibold text-[#5D6494] mb-[25px] whitespace-pre-wrap ${quicksand.className}`}
                             dangerouslySetInnerHTML={{ __html: answer }}
                         />
 
@@ -82,7 +91,6 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                                 <Tooltip content="Oui">
                                     <button
                                         onClick={() => handleVote('top')}
-                                        disabled={hasVoted && voteCasted !== 'top'}
                                         className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100"
                                         aria-label="Oui, utile"
                                     >
@@ -113,7 +121,6 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                                 <Tooltip content="Non">
                                     <button
                                         onClick={() => handleVote('flop')}
-                                        disabled={hasVoted && voteCasted !== 'flop'}
                                         className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100"
                                         aria-label="Non, pas utile"
                                     >

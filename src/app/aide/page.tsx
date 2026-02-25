@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import SearchBar from "@/components/SearchBar";
 import { Accordion } from "@/components/ui/accordion";
@@ -21,8 +22,10 @@ type HelpQuestion = {
   display: string;
 };
 
-export default function AidePage() {
+function AideContent() {
   const supabase = useMemo(() => createClient(), []);
+  const searchParams = useSearchParams();
+  const q = searchParams.get('q');
 
   const [questions, setQuestions] = useState<HelpQuestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +58,35 @@ export default function AidePage() {
 
     void fetchData();
   }, [supabase]);
+
+  // Handle deep linking to a specific question via ?q=id
+  useEffect(() => {
+    if (!loading && questions.length > 0 && q) {
+      if (questions.some(question => question.id === q)) {
+        // Clear any filters so the question is definitely visible
+        setSearchTerm("");
+        setSelectedCategory("");
+
+        setOpenSections(prev => prev.includes(q) ? prev : [...prev, q]);
+
+        let attempts = 0;
+        const scrollInterval = setInterval(() => {
+          const el = document.getElementById(q);
+          if (el) {
+            // Found it, now scroll. Offset by 180 to account for the sticky header
+            const y = el.getBoundingClientRect().top + window.scrollY - 180;
+            window.scrollTo({ top: y, behavior: 'smooth' });
+            clearInterval(scrollInterval);
+          } else {
+            attempts++;
+            if (attempts > 30) {
+              clearInterval(scrollInterval); // stop trying after 3 seconds
+            }
+          }
+        }, 100);
+      }
+    }
+  }, [loading, questions, q]);
 
   // Extract unique categories from all live questions for the dropdown
   const allCategories = useMemo(() => {
@@ -157,5 +189,17 @@ export default function AidePage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function AidePage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px] flex justify-center items-start">
+        <GliftLoader />
+      </main>
+    }>
+      <AideContent />
+    </Suspense>
   );
 }

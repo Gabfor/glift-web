@@ -421,3 +421,68 @@ input:checked+.slider:before {
     cursor: default !important;
   }
 }
+
+@layer components {
+
+  /* Rich Text (Tiptap / Prose) Custom Styles */
+  .prose a {
+    color: var(--color-brand-primary) !important;
+    text-decoration: none !important;
+    transition: color 0.15s ease;
+    cursor: pointer;
+  }
+
+  .prose a:hover {
+    color: var(--color-brand-primary-hover) !important;
+  }
+
+  .prose iframe {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 16px 0;
+    aspect-ratio: 16 / 9;
+  }
+
+  .prose img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin: 16px 0;
+  }
+
+  /* Match Tiptap list styling for the frontend */
+  .prose ul {
+    list-style-type: disc;
+    list-style-position: outside;
+    padding-left: 18px;
+    margin-left: 0;
+  }
+
+  .prose ol {
+    list-style-type: decimal;
+    list-style-position: outside;
+    padding-left: 18px;
+    margin-left: 0;
+  }
+
+  .prose li {
+    font-size: 14px;
+  }
+
+  .prose li p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  .prose p:empty::before {
+    content: "\00a0";
+  }
+
+  @media (max-width: 640px) {
+    .prose iframe {
+      height: auto;
+      min-height: 200px;
+    }
+  }
+}

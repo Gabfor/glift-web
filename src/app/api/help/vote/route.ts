@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { questionId, voteType, action = 'add' } = body;
 
-        if (!questionId || (voteType !== 'top' && voteType !== 'flop') || (action !== 'add' && action !== 'remove')) {
+        if (!questionId || (voteType !== 'top' && voteType !== 'flop') || (action !== 'add' && action !== 'remove' && action !== 'switch')) {
             return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
         }
 
@@ -36,10 +36,14 @@ export async function POST(request: Request) {
             updateData = voteType === 'top'
                 ? { top: currentData.top + 1 }
                 : { flop: currentData.flop + 1 };
-        } else {
+        } else if (action === 'remove') {
             updateData = voteType === 'top'
                 ? { top: Math.max(0, currentData.top - 1) }
                 : { flop: Math.max(0, currentData.flop - 1) };
+        } else if (action === 'switch') {
+            updateData = voteType === 'top'
+                ? { top: currentData.top + 1, flop: Math.max(0, currentData.flop - 1) }
+                : { flop: currentData.flop + 1, top: Math.max(0, currentData.top - 1) };
         }
 
         // Update the row
