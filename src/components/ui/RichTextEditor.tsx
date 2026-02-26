@@ -10,11 +10,13 @@ import Image from '@tiptap/extension-image';
 import {
     MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatStrikethrough,
     MdFormatListBulleted, MdFormatListNumbered, MdLink, MdLinkOff, MdOndemandVideo, MdImage,
-    MdHelpOutline, MdClose
+    MdHelpOutline, MdClose, MdEmojiEmotions
 } from "react-icons/md";
 import { Quicksand } from "next/font/google";
 import RichTextLinkModal from "./RichTextLinkModal";
 import RichTextVideoModal from "./RichTextVideoModal";
+import RichTextHelpLinkModal from "./RichTextHelpLinkModal";
+import EmojiPicker from 'emoji-picker-react';
 
 const quicksand = Quicksand({
     subsets: ["latin"],
@@ -90,11 +92,9 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     const supabase = useMemo(() => createClient(), []);
     const [uploadingImage, setUploadingImage] = useState(false);
 
-    // Help Link state
-    const [showHelpDropdown, setShowHelpDropdown] = useState(false);
-    const [helpQuestions, setHelpQuestions] = useState<{ id: string; question: string }[]>([]);
-    const [helpSearch, setHelpSearch] = useState("");
-    const [loadingHelp, setLoadingHelp] = useState(false);
+    // Help Link Modal state
+    const [isHelpLinkModalOpen, setIsHelpLinkModalOpen] = useState(false);
+    const [helpLinkInitialText, setHelpLinkInitialText] = useState("");
 
     // General Link Modal state
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -104,22 +104,8 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     // Video Modal state
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
 
-    // Fetch help questions when dropdown is opened
-    useEffect(() => {
-        if (showHelpDropdown && helpQuestions.length === 0) {
-            const fetchHelp = async () => {
-                setLoadingHelp(true);
-                const { data } = await supabase
-                    .from('help_questions')
-                    .select('id, question')
-                    .eq('status', 'ON')
-                    .order('created_at', { ascending: false });
-                if (data) setHelpQuestions(data);
-                setLoadingHelp(false);
-            };
-            fetchHelp();
-        }
-    }, [showHelpDropdown, helpQuestions.length, supabase]);
+    // Emoji Picker state
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
         if (editor && value !== editor.getHTML()) {
@@ -217,24 +203,26 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         }
     };
 
-    const insertHelpLink = (id: string, questionTitle: string) => {
-        // If there's text selected, it will turn it into a link.
-        // If not, it will insert the question title as link text.
+    const handleSaveHelpLink = (helpId: string, text: string) => {
+        const url = `/aide?q=${helpId}`;
         const selection = editor.state.selection;
-        const hasSelection = !selection.empty;
-        const url = `/aide?q=${id}`;
+        const currentText = editor.state.doc.textBetween(selection.from, selection.to, ' ');
 
-        if (!hasSelection) {
-            editor.chain().focus().insertContent(`<a href="${url}">${questionTitle}</a> `).run();
+        if (text !== currentText && text !== "") {
+            editor.chain().focus().insertContent(`<a href="${url}">${text}</a> `).run();
         } else {
             editor.chain().focus().setLink({ href: url }).run();
         }
-        setShowHelpDropdown(false);
-        setHelpSearch("");
+
+        setIsHelpLinkModalOpen(false);
     };
 
-    const filteredHelp = helpQuestions.filter(q => q.question.toLowerCase().includes(helpSearch.toLowerCase()));
-
+    const handleOpenHelpLinkModal = () => {
+        const selection = editor.state.selection;
+        const text = editor.state.doc.textBetween(selection.from, selection.to, ' ');
+        setHelpLinkInitialText(text || "");
+        setIsHelpLinkModalOpen(true);
+    };
     return (
         <div className="border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] resize-y overflow-auto min-h-[345px] flex flex-col relative w-full">
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
@@ -314,51 +302,42 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                     <MdOndemandVideo size={20} />
                 </ToolbarButton>
 
+                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
+                <div className="relative">
+                    <ToolbarButton
+                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                        isActive={showEmojiPicker}
+                    >
+                        <MdEmojiEmotions size={20} />
+                    </ToolbarButton>
+
+                    {showEmojiPicker && (
+                        <div className="absolute top-[30px] right-0 z-50 shadow-lg rounded-[8px] bg-white">
+                            <EmojiPicker
+                                onEmojiClick={(emojiData) => {
+                                    editor.chain().focus().insertContent(emojiData.emoji).run();
+                                    setShowEmojiPicker(false);
+                                }}
+                                width={300}
+                                height={400}
+                                searchPlaceHolder="Rechercher un emoji..."
+                                previewConfig={{ showPreview: false }}
+                            />
+                        </div>
+                    )}
+                </div>
+
                 {withHelpLink && (
                     <>
                         <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
                         <div className="relative">
                             <ToolbarButton
-                                onClick={() => setShowHelpDropdown(!showHelpDropdown)}
-                                isActive={showHelpDropdown}
+                                onClick={handleOpenHelpLinkModal}
+                                isActive={isHelpLinkModalOpen}
                             >
                                 <MdHelpOutline size={20} />
                             </ToolbarButton>
-
-                            {showHelpDropdown && (
-                                <div className="absolute top-[30px] right-0 w-[300px] bg-white border border-[#D7D4DC] rounded-[8px] shadow-lg p-3 z-50 flex flex-col gap-2">
-                                    <div className="flex justify-between items-center bg-[#FAFAFF] rounded-[5px] px-2 py-1 border border-[#E9E8EE]">
-                                        <input
-                                            type="text"
-                                            placeholder="Rechercher une question..."
-                                            value={helpSearch}
-                                            onChange={e => setHelpSearch(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-[13px] text-[#3A416F] flex-1 font-semibold placeholder:text-[#C2BFC6] placeholder:font-normal h-[24px]"
-                                            autoFocus
-                                        />
-                                        <button onClick={() => setShowHelpDropdown(false)} className="text-[#C2BFC6] hover:text-[#5D6494]">
-                                            <MdClose size={16} />
-                                        </button>
-                                    </div>
-                                    <div className="max-h-[200px] overflow-y-auto pr-1 flex flex-col gap-1">
-                                        {loadingHelp ? (
-                                            <span className="text-[12px] text-[#A1A5FD] text-center p-2">Chargement...</span>
-                                        ) : filteredHelp.length === 0 ? (
-                                            <span className="text-[12px] text-[#C2BFC6] text-center p-2">Aucune question trouvée</span>
-                                        ) : (
-                                            filteredHelp.map(q => (
-                                                <button
-                                                    key={q.id}
-                                                    onClick={() => insertHelpLink(q.id, q.question)}
-                                                    className="text-left text-[13px] text-[#5D6494] hover:bg-[#FAFAFF] hover:text-[#7069FA] p-2 rounded-[5px] transition-colors leading-[18px] font-semibold"
-                                                >
-                                                    {q.question}
-                                                </button>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </>
                 )}
@@ -442,6 +421,14 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                 <RichTextVideoModal
                     onSave={handleSaveVideo}
                     onCancel={() => setIsVideoModalOpen(false)}
+                />
+            )}
+
+            {isHelpLinkModalOpen && (
+                <RichTextHelpLinkModal
+                    initialText={helpLinkInitialText}
+                    onSave={handleSaveHelpLink}
+                    onCancel={() => setIsHelpLinkModalOpen(false)}
                 />
             )}
         </div>

@@ -24,7 +24,7 @@ type HelpQuestion = {
   langue?: string;
 };
 
-type SortableColumn = "status" | "question" | "langue" | "top" | "flop";
+type SortableColumn = "status" | "question" | "langue" | "top" | "flop" | "id";
 
 export default function AdminContentHelpPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -37,6 +37,8 @@ export default function AdminContentHelpPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortableColumn>("question");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
 
   useEffect(() => {
     setShowActionsBar(selectedIds.length > 0);
@@ -128,6 +130,13 @@ export default function AdminContentHelpPage() {
     }
   };
 
+  const handleCopyId = async (id: string) => {
+    if (copiedId === id) return;
+    await navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 1000);
+  };
+
   const sortedAndFilteredQuestions = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
 
@@ -158,6 +167,9 @@ export default function AdminContentHelpPage() {
           break;
         case "flop":
           comparison = a.flop - b.flop;
+          break;
+        case "id":
+          comparison = a.id.localeCompare(b.id);
           break;
         default:
           comparison = 0;
@@ -286,6 +298,7 @@ export default function AdminContentHelpPage() {
                   </th>
                   {renderHeaderCell("Statut", "status", "w-[82px]")}
                   {renderHeaderCell("Questions", "question", "w-auto")}
+                  {renderHeaderCell("ID de la question", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                   {renderHeaderCell(
                     <div className="flex justify-center w-[20px]">
@@ -343,6 +356,39 @@ export default function AdminContentHelpPage() {
                         <Link href={`/admin/create-help?id=${q.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
                           {q.question}
                         </Link>
+                      </td>
+                      <td className="w-[330px] px-4 font-semibold text-[#5D6494] text-left align-middle">
+                        <div className="flex items-center gap-2">
+                          <span className="truncate w-[280px]">{q.id}</span>
+                          <Tooltip
+                            content="Copié !"
+                            delay={0}
+                            forceVisible={copiedId === q.id}
+                            disableHover
+                          >
+                            <button
+                              onClick={() => handleCopyId(q.id)}
+                              className="relative w-[20px] h-[20px]"
+                            >
+                              <Image
+                                src={
+                                  copiedId === q.id
+                                    ? "/icons/check.svg"
+                                    : hoveredId === q.id
+                                      ? "/icons/copy_hover.svg"
+                                      : "/icons/copy.svg"
+                                }
+                                alt="Copier"
+                                width={20}
+                                height={20}
+                                onMouseEnter={() => setHoveredId(q.id)}
+                                onMouseLeave={() => setHoveredId(null)}
+                                className={`transition-opacity duration-200 ${copiedId === q.id ? "animate-fade" : ""
+                                  }`}
+                              />
+                            </button>
+                          </Tooltip>
+                        </div>
                       </td>
                       <td className="px-4">
                         <div className="flex items-center justify-center">
