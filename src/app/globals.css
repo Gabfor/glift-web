@@ -455,14 +455,14 @@ input:checked+.slider:before {
   .prose ul {
     list-style-type: disc;
     list-style-position: outside;
-    padding-left: 18px;
+    padding-left: 32px !important;
     margin-left: 0;
   }
 
   .prose ol {
     list-style-type: decimal;
     list-style-position: outside;
-    padding-left: 18px;
+    padding-left: 32px !important;
     margin-left: 0;
   }
 
@@ -477,6 +477,11 @@ input:checked+.slider:before {
 
   .prose p:empty::before {
     content: "\00a0";
+  }
+
+  /* Cache la barre d'alignement native de l'extension de redimensionnement d'image */
+  .prose div[style*="z-index: 999"]:has(img[src*="format_align_"]) {
+    display: none !important;
   }
 
   @media (max-width: 640px) {

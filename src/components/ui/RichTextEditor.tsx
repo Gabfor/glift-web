@@ -1,21 +1,23 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import { createClient } from "@/lib/supabaseClient";
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
 import Youtube from '@tiptap/extension-youtube';
-import Image from '@tiptap/extension-image';
+import ImageResize from 'tiptap-extension-resize-image';
+import TextAlign from '@tiptap/extension-text-align';
 import {
     MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatStrikethrough,
     MdFormatListBulleted, MdFormatListNumbered, MdLink, MdLinkOff, MdOndemandVideo, MdImage,
-    MdHelpOutline, MdClose, MdEmojiEmotions
+    MdHelpOutline, MdClose, MdEmojiEmotions,
+    MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight
 } from "react-icons/md";
 import { Quicksand } from "next/font/google";
 import RichTextLinkModal from "./RichTextLinkModal";
 import RichTextVideoModal from "./RichTextVideoModal";
 import RichTextHelpLinkModal from "./RichTextHelpLinkModal";
+import RichTextImageModal from "./RichTextImageModal";
 import EmojiPicker from 'emoji-picker-react';
 
 const quicksand = Quicksand({
@@ -58,6 +60,9 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
             Placeholder.configure({
                 placeholder,
             }),
+            TextAlign.configure({
+                types: ['heading', 'paragraph', 'image', 'imageResize'],
+            }),
             Link.configure({
                 openOnClick: false,
                 HTMLAttributes: {
@@ -70,10 +75,8 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                     class: 'w-full aspect-video rounded-[8px] my-4 shadow-sm',
                 },
             }),
-            Image.configure({
-                HTMLAttributes: {
-                    class: 'max-w-full h-auto rounded-[8px] my-4 shadow-sm',
-                },
+            ImageResize.configure({
+                inline: false,
             }),
         ],
         content: value,
@@ -88,13 +91,12 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         },
     });
 
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const supabase = useMemo(() => createClient(), []);
-    const [uploadingImage, setUploadingImage] = useState(false);
-
     // Help Link Modal state
     const [isHelpLinkModalOpen, setIsHelpLinkModalOpen] = useState(false);
     const [helpLinkInitialText, setHelpLinkInitialText] = useState("");
+
+    // Image Modal state
+    const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
     // General Link Modal state
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
@@ -158,49 +160,21 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const addImage = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
+        setIsImageModalOpen(true);
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleSaveImage = (url: string, alt: string, description: string) => {
+        if (!url) return;
 
-        setUploadingImage(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const filePath = `help/${fileName}`;
+        let content = `<p class="text-center"><img src="${url}" alt="${alt}" width="400" class="mx-auto block" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" /></p>`;
 
-            const { error } = await supabase
-                .storage
-                .from('program-images')
-                .upload(filePath, file, { upsert: true });
-
-            if (error) {
-                console.error("Supabase Storage error:", error);
-                throw error;
-            }
-
-            const { data } = supabase
-                .storage
-                .from('program-images')
-                .getPublicUrl(filePath);
-
-            if (!data?.publicUrl) throw new Error("Impossible d'obtenir l'URL publique");
-
-            editor.chain().focus().setImage({ src: data.publicUrl }).run();
-
-        } catch (err) {
-            console.error("Erreur d'upload :", err);
-            alert("Erreur lors de l'upload de l'image. Assurez-vous que l'image fait moins de 5Mo.");
-        } finally {
-            setUploadingImage(false);
-            if (fileInputRef.current) {
-                fileInputRef.current.value = "";
-            }
+        if (description) {
+            content += `<p class="image-caption text-center" style="text-align: center; color: #D7D4DC; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0;">${description}</p>`;
         }
+
+        content += `<p></p>`;
+
+        editor.chain().focus().insertContent(content).run();
     };
 
     const handleSaveHelpLink = (helpId: string, text: string) => {
@@ -257,6 +231,29 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                 <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
 
                 <ToolbarButton
+                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
+                    isActive={editor.isActive({ textAlign: 'left' })}
+                >
+                    <MdFormatAlignLeft size={20} />
+                </ToolbarButton>
+
+                <ToolbarButton
+                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
+                    isActive={editor.isActive({ textAlign: 'center' })}
+                >
+                    <MdFormatAlignCenter size={20} />
+                </ToolbarButton>
+
+                <ToolbarButton
+                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
+                    isActive={editor.isActive({ textAlign: 'right' })}
+                >
+                    <MdFormatAlignRight size={20} />
+                </ToolbarButton>
+
+                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
+                <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBulletList().run()}
                     isActive={editor.isActive('bulletList')}
                 >
@@ -292,7 +289,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                     onClick={addImage}
                     isActive={editor.isActive('image')}
                 >
-                    <MdImage size={20} className={uploadingImage ? "animate-pulse" : ""} />
+                    <MdImage size={20} />
                 </ToolbarButton>
 
                 <ToolbarButton
@@ -345,15 +342,6 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
 
             <EditorContent editor={editor} />
 
-            <input
-                type="file"
-                accept="image/*"
-                ref={fileInputRef}
-                onChange={handleImageUpload}
-                disabled={uploadingImage}
-                className="hidden"
-            />
-
             <style jsx global>{`
         .ProseMirror p.is-editor-empty:first-child::before {
           color: #D7D4DC;
@@ -362,6 +350,23 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
           height: 0;
           pointer-events: none;
           font-weight: 600;
+        }
+        .ProseMirror p.image-caption {
+            color: #D7D4DC !important;
+            font-size: 12px !important;
+            font-weight: 500 !important;
+            text-align: center !important;
+            margin-top: 8px !important;
+            margin-bottom: 0px !important;
+            width: 100%;
+            display: block;
+        }
+        .ProseMirror img {
+            max-width: 100%;
+            height: auto;
+            margin-left: auto !important;
+            margin-right: auto !important;
+            display: block !important;
         }
         .ProseMirror ul {
             list-style-type: disc;
@@ -431,6 +436,12 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                     onCancel={() => setIsHelpLinkModalOpen(false)}
                 />
             )}
+
+            <RichTextImageModal
+                isOpen={isImageModalOpen}
+                onClose={() => setIsImageModalOpen(false)}
+                onSave={handleSaveImage}
+            />
         </div>
     );
 }
