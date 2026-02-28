@@ -46,6 +46,7 @@ function AideContent() {
         .from("help_questions")
         .select("*")
         .eq("status", "ON")
+        .order("top", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (data && !error) {
