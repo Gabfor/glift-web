@@ -12,6 +12,7 @@ import AddRowButton from "@/components/AddRowButton";
 import LinkModal from "@/components/LinkModal";
 import AddExerciseLockedModal from "@/components/AddExerciseLockedModal";
 import NoteModal from "@/components/NoteModal";
+import BackLink from "@/components/BackLink";
 import { useEffortChange } from "@/utils/useEffortChange";
 import { useProgramName } from "@/utils/useProgramName";
 import { useTrainingRows } from "@/utils/useTrainingRows";
@@ -332,8 +333,8 @@ export default function AdminEntrainementDetailPage() {
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto">
 
-        <div
-          className="flex items-center text-sm text-[#5D6494] hover:text-[#3A416F] text-[15px] font-semibold mb-6 cursor-pointer group w-fit"
+        <BackLink
+          className="mb-6"
           onClick={async () => {
             let adminProgramId: string | null = null;
 
@@ -362,16 +363,8 @@ export default function AdminEntrainementDetailPage() {
             }
           }}
         >
-          <Image src="/icons/chevron_left.svg" alt="Retour" width={12} height={12} className="h-3 w-2 mr-2 group-hover:hidden" />
-          <Image
-            src="/icons/chevron_left_hover.svg"
-            alt="Retour (hover)"
-            width={12}
-            height={12}
-            className="h-3 w-2 mr-2 hidden group-hover:inline"
-          />
           Entraînements
-        </div>
+        </BackLink>
 
         <EditableTitle
           loading={programNameLoading}

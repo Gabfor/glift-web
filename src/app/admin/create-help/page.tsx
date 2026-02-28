@@ -6,8 +6,10 @@ import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import dynamic from 'next/dynamic';
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
-const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), { ssr: false });
 import CTAButton from "@/components/CTAButton";
+import BackLink from "@/components/BackLink";
+
+const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), { ssr: false });
 
 function CreateHelpForm() {
     const router = useRouter();
@@ -135,130 +137,135 @@ function CreateHelpForm() {
     };
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
-            <div className="w-full max-w-3xl px-4 sm:px-0">
-                <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
-                    {isEditing ? "Modifier l'aide" : "Créer une aide"}
-                </h2>
+        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px]">
+            <div className="max-w-[1152px] mx-auto w-full">
+                <BackLink href="/admin/help" className="mb-6">
+                    Aide
+                </BackLink>
+                <div className="w-full max-w-3xl mx-auto px-4 sm:px-0">
+                    <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+                        {isEditing ? "Modifier l'aide" : "Créer une aide"}
+                    </h2>
 
-                <div className="flex flex-col gap-[30px]">
-                    {/* Row 1: Statut & Langue */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
-                        {/* Statut */}
+                    <div className="flex flex-col gap-[30px]">
+                        {/* Row 1: Statut & Langue */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                            {/* Statut */}
+                            <div className="flex flex-col">
+                                <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                                <AdminDropdown
+                                    label=""
+                                    placeholder="Sélectionnez le statut"
+                                    selected={status}
+                                    onSelect={(value) => setStatus(value)}
+                                    options={[
+                                        { value: "ON", label: "ON" },
+                                        { value: "OFF", label: "OFF" },
+                                    ]}
+                                />
+                            </div>
+
+                            {/* Langue */}
+                            <div className="flex flex-col">
+                                <label className="text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                                <AdminDropdown
+                                    label=""
+                                    placeholder="Sélectionnez la langue"
+                                    selected={langue}
+                                    onSelect={(value) => setLangue(value)}
+                                    options={[
+                                        { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
+                                    ]}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 2: Catégories */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                            <div className="flex flex-col">
+                                <label className="text-[#3A416F] font-bold mb-[5px]">Catégories</label>
+                                <AdminMultiSelectDropdown
+                                    label=""
+                                    placeholder="Sélectionnez les catégories"
+                                    selected={categories}
+                                    onChange={setCategories}
+                                    options={[
+                                        { value: "Programmes", label: "Programmes" },
+                                        { value: "Store", label: "Store" },
+                                        { value: "Shop", label: "Shop" },
+                                        { value: "Blog", label: "Blog" },
+                                        { value: "Questions fréquentes", label: "Questions fréquentes" },
+                                        { value: "Compte", label: "Compte" },
+                                        { value: "Abonnement", label: "Abonnement" },
+                                        { value: "Application", label: "Application" },
+                                        { value: "Paiement", label: "Paiement" },
+                                        { value: "Bug", label: "Bug" },
+                                        { value: "Entraînement", label: "Entraînement" }
+                                    ]}
+                                />
+                            </div>
+
+                            {/* Affichage */}
+                            <div className="flex flex-col">
+                                <label className="text-[#3A416F] font-bold mb-[5px]">Affichage</label>
+                                <AdminDropdown
+                                    label=""
+                                    placeholder="Sélectionnez un affichage"
+                                    selected={display}
+                                    onSelect={(value) => setDisplay(value)}
+                                    sortStrategy="none"
+                                    options={[
+                                        { value: "Connecté", label: "Connecté" },
+                                        { value: "Non connecté", label: "Non connecté" },
+                                        { value: "Les deux", label: "Les deux" },
+                                    ]}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Row 3: Question */}
                         <div className="flex flex-col">
-                            <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                            <AdminDropdown
-                                label=""
-                                placeholder="Sélectionnez le statut"
-                                selected={status}
-                                onSelect={(value) => setStatus(value)}
-                                options={[
-                                    { value: "ON", label: "ON" },
-                                    { value: "OFF", label: "OFF" },
-                                ]}
+                            <div className="flex justify-between mb-[5px]">
+                                <span className="text-[16px] text-[#3A416F] font-bold">Question</span>
+                                <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                                    {question.length}/120
+                                </span>
+                            </div>
+                            <input
+                                type="text"
+                                maxLength={120}
+                                placeholder="Question de l'aide"
+                                value={question}
+                                onChange={(e) => setQuestion(e.target.value)}
+                                spellCheck={true}
+                                className={inputClass}
                             />
                         </div>
 
-                        {/* Langue */}
+                        {/* Row 3: Réponse */}
                         <div className="flex flex-col">
-                            <label className="text-[#3A416F] font-bold mb-[5px]">Langue</label>
-                            <AdminDropdown
-                                label=""
-                                placeholder="Sélectionnez la langue"
-                                selected={langue}
-                                onSelect={(value) => setLangue(value)}
-                                options={[
-                                    { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
-                                ]}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Row 2: Catégories */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
-                        <div className="flex flex-col">
-                            <label className="text-[#3A416F] font-bold mb-[5px]">Catégories</label>
-                            <AdminMultiSelectDropdown
-                                label=""
-                                placeholder="Sélectionnez les catégories"
-                                selected={categories}
-                                onChange={setCategories}
-                                options={[
-                                    { value: "Programmes", label: "Programmes" },
-                                    { value: "Store", label: "Store" },
-                                    { value: "Shop", label: "Shop" },
-                                    { value: "Blog", label: "Blog" },
-                                    { value: "Questions fréquentes", label: "Questions fréquentes" },
-                                    { value: "Compte", label: "Compte" },
-                                    { value: "Abonnement", label: "Abonnement" },
-                                    { value: "Application", label: "Application" },
-                                    { value: "Paiement", label: "Paiement" },
-                                    { value: "Bug", label: "Bug" },
-                                    { value: "Entraînement", label: "Entraînement" }
-                                ]}
+                            <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Réponse</label>
+                            <RichTextEditor
+                                value={answer}
+                                onChange={setAnswer}
+                                placeholder="Commencez à rédiger votre réponse ici..."
+                                withHelpLink={true}
                             />
                         </div>
 
-                        {/* Affichage */}
-                        <div className="flex flex-col">
-                            <label className="text-[#3A416F] font-bold mb-[5px]">Affichage</label>
-                            <AdminDropdown
-                                label=""
-                                placeholder="Sélectionnez un affichage"
-                                selected={display}
-                                onSelect={(value) => setDisplay(value)}
-                                sortStrategy="none"
-                                options={[
-                                    { value: "Connecté", label: "Connecté" },
-                                    { value: "Non connecté", label: "Non connecté" },
-                                    { value: "Les deux", label: "Les deux" },
-                                ]}
-                            />
+                        {/* BOUTON */}
+                        <div className="mt-10 flex justify-center">
+                            <CTAButton
+                                onClick={handleSave}
+                                disabled={!isFormValid || !hasChanges || loading}
+                                variant={isFormValid && hasChanges && !loading ? "active" : "inactive"}
+                                className="font-semibold"
+                            >
+                                {loading
+                                    ? (isEditing ? "Mise à jour..." : "Création...")
+                                    : (isEditing ? "Mettre à jour" : "Créer la question")}
+                            </CTAButton>
                         </div>
-                    </div>
-
-                    {/* Row 3: Question */}
-                    <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                            <span className="text-[16px] text-[#3A416F] font-bold">Question</span>
-                            <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                                {question.length}/120
-                            </span>
-                        </div>
-                        <input
-                            type="text"
-                            maxLength={120}
-                            placeholder="Question de l'aide"
-                            value={question}
-                            onChange={(e) => setQuestion(e.target.value)}
-                            spellCheck={true}
-                            className={inputClass}
-                        />
-                    </div>
-
-                    {/* Row 3: Réponse */}
-                    <div className="flex flex-col">
-                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Réponse</label>
-                        <RichTextEditor
-                            value={answer}
-                            onChange={setAnswer}
-                            placeholder="Commencez à rédiger votre réponse ici..."
-                            withHelpLink={true}
-                        />
-                    </div>
-
-                    {/* BOUTON */}
-                    <div className="mt-10 flex justify-center">
-                        <CTAButton
-                            onClick={handleSave}
-                            disabled={!isFormValid || !hasChanges || loading}
-                            variant={isFormValid && hasChanges && !loading ? "active" : "inactive"}
-                            className="font-semibold"
-                        >
-                            {loading
-                                ? (isEditing ? "Mise à jour..." : "Création...")
-                                : (isEditing ? "Mettre à jour" : "Créer la question")}
-                        </CTAButton>
                     </div>
                 </div>
             </div>

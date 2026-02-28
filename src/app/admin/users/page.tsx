@@ -669,18 +669,20 @@ export default function AdminUsersPage() {
     setError(null);
   };
 
+  const handleEditUser = (userId: string) => {
+    const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
+    nextParams.set("id", userId);
+    const query = nextParams.toString();
+    router.push(query ? `/admin/users?${query}` : "/admin/users");
+  };
+
   const handleEdit = () => {
     if (selectedIds.length !== 1) {
       return;
     }
 
     const userId = selectedIds[0];
-
-    const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
-    nextParams.set("id", userId);
-
-    const query = nextParams.toString();
-    router.push(query ? `/admin/users?${query}` : "/admin/users");
+    handleEditUser(userId);
   };
 
   const filteredUsers = useMemo(() => {
@@ -1082,7 +1084,12 @@ export default function AdminUsersPage() {
                               <UserNameCell user={user} />
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                              {user.email}
+                              <button
+                                onClick={() => handleEditUser(user.id)}
+                                className="hover:text-[#3A416F] transition-colors text-left font-semibold"
+                              >
+                                {user.email}
+                              </button>
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
                               {trialActive ? "Oui" : "Non"}
