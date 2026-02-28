@@ -1,4 +1,7 @@
 {
+  "css.customData": [
+    "../.vscode/tailwind.json"
+  ],
   // --- Tailwind CSS support ---
   "tailwindCSS.includeLanguages": {
     "plaintext": "html",
@@ -13,26 +16,22 @@
     "tw\\.\\w+`([^`]*)",
     "tw\\(.*?\\)`([^`]*)"
   ],
-
   // --- Editor experience ---
   "editor.quickSuggestions": {
     "strings": true
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-
+  // "editor.defaultFormatter": "esbenp.prettier-vscode",
   // Appliquer les corrections ESLint/Prettier à la sauvegarde
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit",
     "source.fixAll.eslint": "explicit"
   },
-
   // --- Désactiver les validations CSS conflictuelles avec Tailwind ---
   "css.validate": false,
   "scss.validate": false,
   "less.validate": false,
   "css.lint.unknownAtRules": "ignore",
-
   // --- ESLint & TypeScript validation ---
   "eslint.alwaysShowStatus": true,
   "eslint.validate": [
@@ -43,13 +42,11 @@
   ],
   "typescript.validate.enable": true,
   "typescript.tsserver.experimental.enableProjectDiagnostics": true,
-
   // --- Affichage des erreurs dans l’explorateur VS Code ---
   "problems.decorations.enabled": true,
   "problems.showCurrentInStatus": true,
   "explorer.decorations.badges": true,
   "explorer.decorations.colors": true,
-
   // --- Error Lens (affichage des erreurs directement dans le code) ---
   "errorLens.enabled": true,
   "errorLens.fontWeight": "500",
@@ -58,9 +55,13 @@
   "errorLens.followCursor": "closestProblem",
   "errorLens.gutterIconsEnabled": true,
   "errorLens.gutterIconSet": "circle",
-  "errorLens.enabledDiagnosticLevels": ["error", "warning"],
-  "errorLens.excludeByMessage": ["hint"],
-
+  "errorLens.enabledDiagnosticLevels": [
+    "error",
+    "warning"
+  ],
+  "errorLens.excludeByMessage": [
+    "hint"
+  ],
   // --- Prettier configuration ---
   "prettier.requireConfig": true,
   "prettier.printWidth": 100,
@@ -69,7 +70,6 @@
   "prettier.semi": false,
   "prettier.tabWidth": 2,
   "prettier.useTabs": false,
-
   // --- Task runner ---
   "task.problemMatchers.neverPrompt": false
 }
