@@ -34,19 +34,19 @@ const AccordionTrigger = React.forwardRef<
     >
       <span>{children}</span>
       <span
-        className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180"
+        className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180"
       >
         <Image
           src="/icons/chevron_down.svg"
           alt="Chevron"
           fill
-          className="object-contain transition-opacity duration-150 group-hover:opacity-0"
+          className="object-contain transition-opacity duration-300 group-hover:opacity-0"
         />
         <Image
           src="/icons/chevron_down_hover.svg"
           alt="Chevron hover"
           fill
-          className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+          className="object-contain absolute top-0 left-0 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
         />
       </span>
     </AccordionPrimitive.Trigger>
@@ -60,7 +60,7 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-[height] duration-200 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:h-0 data-[state=open]:h-auto"
+    className="overflow-hidden text-sm transition-[height] duration-300 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down data-[state=closed]:h-0 data-[state=open]:h-auto"
     {...props}
   >
     <div className={cn('pb-4 pt-0', className)}>{children}</div>

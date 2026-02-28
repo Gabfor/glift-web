@@ -32,7 +32,7 @@ function AideContent() {
   const [isLogged, setIsLogged] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [openSections, setOpenSections] = useState<string[]>([]);
+  const [openSection, setOpenSection] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -67,7 +67,7 @@ function AideContent() {
         setSearchTerm("");
         setSelectedCategory("");
 
-        setOpenSections(prev => prev.includes(q) ? prev : [...prev, q]);
+        setOpenSection(q);
 
         let attempts = 0;
         const scrollInterval = setInterval(() => {
@@ -165,15 +165,16 @@ function AideContent() {
 
             {/* Questions List */}
             {filteredQuestions.length === 0 ? (
-              <div className="text-center text-[#5D6494] mt-10">
-                Aucune question trouvée pour ces critères.
+              <div className="text-center text-[#5D6494] font-semibold mt-10">
+                Aucun résultat trouvé
               </div>
             ) : (
               <Accordion
-                type="multiple"
+                type="single"
+                collapsible
                 className="space-y-[20px]"
-                value={openSections}
-                onValueChange={setOpenSections}
+                value={openSection}
+                onValueChange={setOpenSection}
               >
                 {filteredQuestions.map(q => (
                   <HelpQuestionItem
