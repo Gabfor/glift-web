@@ -348,10 +348,10 @@ export default function ProgramStorePage() {
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
-                  <th className="px-4">
+                  <th className="px-4 w-[48px]">
                     <button
                       onClick={toggleAll}
-                      className="flex items-center justify-center h-[60px]"
+                      className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]"
                     >
                       <Image
                         src={
@@ -390,7 +390,7 @@ export default function ProgramStorePage() {
                       <td className="px-4">
                         <button
                           onClick={() => toggleCheckbox(program.id)}
-                          className="flex items-center justify-center h-[60px]"
+                          className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]"
                         >
                           <Image
                             src={

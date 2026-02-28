@@ -143,6 +143,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         editorProps: {
             attributes: {
                 class: `prose prose-sm focus:outline-none min-h-[345px] px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} h-full`,
+                spellcheck: "true",
             },
         },
         immediatelyRender: false,

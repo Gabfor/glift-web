@@ -9,6 +9,7 @@ import { Accordion } from "@/components/ui/accordion";
 import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
 import GliftLoader from "@/components/ui/GliftLoader";
 import DropdownFilter from "@/components/filters/DropdownFilter";
+import Pagination from "@/components/pagination/Pagination";
 
 type HelpQuestion = {
   id: string;
@@ -33,6 +34,8 @@ function AideContent() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
   const [openSection, setOpenSection] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,6 +72,13 @@ function AideContent() {
         setSelectedCategory("");
 
         setOpenSection(q);
+
+        // Find the index of the question to determine the page
+        const questionIndex = questions.findIndex((question) => question.id === q);
+        if (questionIndex !== -1) {
+          const targetPage = Math.floor(questionIndex / ITEMS_PER_PAGE) + 1;
+          setCurrentPage(targetPage);
+        }
 
         let attempts = 0;
         const scrollInterval = setInterval(() => {
@@ -117,6 +127,12 @@ function AideContent() {
     });
   }, [questions, searchTerm, selectedCategory, isLogged]);
 
+  // Extract the current page items
+  const paginatedQuestions = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredQuestions, currentPage]);
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
@@ -141,7 +157,10 @@ function AideContent() {
         <div className="mb-[40px] w-full max-w-[500px]">
           <SearchBar
             value={searchTerm}
-            onChange={setSearchTerm}
+            onChange={(val) => {
+              setSearchTerm(val);
+              setCurrentPage(1);
+            }}
             placeholder="Rechercher par mot-clé"
           />
         </div>
@@ -159,7 +178,10 @@ function AideContent() {
                   options={allCategories}
                   allOptions={allCategories}
                   selected={selectedCategory}
-                  onSelect={setSelectedCategory}
+                  onSelect={(val) => {
+                    setSelectedCategory(val);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             )}
@@ -170,23 +192,32 @@ function AideContent() {
                 Aucun résultat trouvé
               </div>
             ) : (
-              <Accordion
-                type="single"
-                collapsible
-                className="space-y-[20px]"
-                value={openSection}
-                onValueChange={setOpenSection}
-              >
-                {filteredQuestions.map(q => (
-                  <HelpQuestionItem
-                    key={q.id}
-                    questionId={q.id}
-                    question={q.question}
-                    answer={q.answer}
-                    searchTerm={searchTerm}
-                  />
-                ))}
-              </Accordion>
+              <>
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="space-y-[20px]"
+                  value={openSection}
+                  onValueChange={setOpenSection}
+                >
+                  {paginatedQuestions.map(q => (
+                    <HelpQuestionItem
+                      key={q.id}
+                      questionId={q.id}
+                      question={q.question}
+                      answer={q.answer}
+                      searchTerm={searchTerm}
+                    />
+                  ))}
+                </Accordion>
+
+                <Pagination
+                  currentPage={currentPage}
+                  totalItems={filteredQuestions.length}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
+              </>
             )}
           </div>
         )}

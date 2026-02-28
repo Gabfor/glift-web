@@ -281,8 +281,8 @@ export default function AdminContentHelpPage() {
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
-                  <th className="w-[47px] px-4">
-                    <button onClick={toggleAll}>
+                  <th className="px-4 w-[48px]">
+                    <button onClick={toggleAll} className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
                       <Image
                         src={
                           questions.length === selectedIds.length && questions.length > 0
@@ -292,7 +292,6 @@ export default function AdminContentHelpPage() {
                         alt="Checkbox"
                         width={15}
                         height={15}
-                        style={{ marginTop: "5px" }}
                       />
                     </button>
                   </th>
@@ -321,8 +320,8 @@ export default function AdminContentHelpPage() {
                   const isSelected = selectedIds.includes(q.id);
                   return (
                     <tr key={q.id} className="border-b border-[#ECE9F1] h-[60px]">
-                      <td className="w-[47px] px-4 align-middle">
-                        <button onClick={() => toggleCheckbox(q.id)}>
+                      <td className="px-4">
+                        <button onClick={() => toggleCheckbox(q.id)} className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
                           <Image
                             src={
                               isSelected
@@ -332,7 +331,6 @@ export default function AdminContentHelpPage() {
                             alt="checkbox"
                             width={15}
                             height={15}
-                            style={{ marginTop: "5px" }}
                           />
                         </button>
                       </td>

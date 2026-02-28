@@ -231,6 +231,7 @@ function CreateHelpForm() {
                             placeholder="Question de l'aide"
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
+                            spellCheck={true}
                             className={inputClass}
                         />
                     </div>
