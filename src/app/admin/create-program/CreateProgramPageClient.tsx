@@ -32,6 +32,9 @@ export default function CreateProgramPageClient({
   const [program, setProgram] = useState<ProgramFormState>(
     initialProgram ?? emptyProgram,
   );
+  const [baseProgram, setBaseProgram] = useState<ProgramFormState>(
+    initialProgram ?? emptyProgram,
+  );
   const [loading, setLoading] = useState(
     () => Boolean(programId) && !initialProgram,
   );
@@ -54,7 +57,9 @@ export default function CreateProgramPageClient({
         }
 
         if (data) {
-          setProgram(mapProgramRowToForm(data));
+          const mapped = mapProgramRowToForm(data);
+          setProgram(mapped);
+          setBaseProgram(mapped);
         }
       } catch (unknownError) {
         console.error("Erreur inattendue lors du chargement du programme", unknownError);
@@ -93,6 +98,7 @@ export default function CreateProgramPageClient({
   useEffect(() => {
     if (initialProgram) {
       setProgram(initialProgram);
+      setBaseProgram(initialProgram);
       setLoading(false);
       shouldRefreshOnShowRef.current = false;
       return;
@@ -104,6 +110,7 @@ export default function CreateProgramPageClient({
     }
 
     setProgram(emptyProgram);
+    setBaseProgram(emptyProgram);
     setLoading(false);
     shouldRefreshOnShowRef.current = false;
   }, [initialProgram, programId, requestProgramRefresh]);
@@ -138,8 +145,14 @@ export default function CreateProgramPageClient({
       return;
     }
 
+    setBaseProgram(program);
     router.push("/admin/program-store");
   };
+
+  const isDirty = useMemo(
+    () => JSON.stringify(program) !== JSON.stringify(baseProgram),
+    [program, baseProgram],
+  );
 
   const isFormValid = useMemo(
     () =>
@@ -503,8 +516,8 @@ export default function CreateProgramPageClient({
                 <div className="mt-10 flex justify-center">
                   <CTAButton
                     onClick={handleSave}
-                    disabled={!isFormValid}
-                    variant={isFormValid ? "active" : "inactive"}
+                    disabled={!isFormValid || !isDirty}
+                    variant={isFormValid && isDirty ? "active" : "inactive"}
                     className="font-semibold"
                   >
                     {programId ? "Mettre à jour" : "Créer la carte"}

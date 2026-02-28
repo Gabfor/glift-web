@@ -70,6 +70,8 @@ export default function CreateOfferPageClient({
   const router = useRouter();
 
   const [offer, setOffer] = useState<OfferFormState>(initialOffer ?? emptyOffer);
+  const [baseOffer, setBaseOffer] = useState<OfferFormState>(initialOffer ?? emptyOffer);
+  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(
     () => Boolean(offerId) && !initialOffer,
   );
@@ -105,7 +107,9 @@ export default function CreateOfferPageClient({
         }
 
         if (data) {
-          setOffer(mapOfferRowToForm(data));
+          const mapped = mapOfferRowToForm(data);
+          setOffer(mapped);
+          setBaseOffer(mapped);
         }
       } catch (unknownError) {
         setErrorMessage(
@@ -148,6 +152,7 @@ export default function CreateOfferPageClient({
   useEffect(() => {
     if (initialOffer) {
       setOffer(initialOffer);
+      setBaseOffer(initialOffer);
       setErrorMessage(null);
       setLoading(false);
       shouldRefreshOnShowRef.current = false;
@@ -160,6 +165,7 @@ export default function CreateOfferPageClient({
     }
 
     setOffer(emptyOffer);
+    setBaseOffer(emptyOffer);
     setErrorMessage(null);
     setLoading(false);
     shouldRefreshOnShowRef.current = false;
@@ -167,6 +173,7 @@ export default function CreateOfferPageClient({
 
   const handleSave = async () => {
     shouldRefreshOnShowRef.current = false;
+    setSaving(true);
     setLoading(true);
 
     const offerPayload = buildOfferPayload(offer);
@@ -177,6 +184,7 @@ export default function CreateOfferPageClient({
       if (normalizedId === null) {
         alert("Erreur : identifiant d’offre invalide.");
         setLoading(false);
+        setSaving(false);
         return;
       }
 
@@ -187,10 +195,13 @@ export default function CreateOfferPageClient({
       if (error) {
         alert("Erreur : " + error.message);
         setLoading(false);
+        setSaving(false);
         return;
       }
 
+      setBaseOffer(offer);
       setLoading(false);
+      setSaving(false);
       router.push("/admin/offer-shop");
       return;
     }
@@ -202,12 +213,20 @@ export default function CreateOfferPageClient({
     if (error) {
       alert("Erreur : " + error.message);
       setLoading(false);
+      setSaving(false);
       return;
     }
 
+    setBaseOffer(offer);
     setLoading(false);
+    setSaving(false);
     router.push("/admin/offer-shop");
   };
+
+  const isDirty = useMemo(
+    () => JSON.stringify(offer) !== JSON.stringify(baseOffer),
+    [offer, baseOffer]
+  );
 
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -794,7 +813,11 @@ export default function CreateOfferPageClient({
 
                 {/* BOUTON */}
                 <div className="mt-10 flex justify-center">
-                  <CTAButton onClick={handleSave}>
+                  <CTAButton
+                    onClick={handleSave}
+                    disabled={!isDirty || loading || saving}
+                    variant={isDirty ? "active" : "inactive"}
+                  >
                     {offerId ? "Mettre à jour" : "Créer la carte"}
                   </CTAButton>
                 </div>
