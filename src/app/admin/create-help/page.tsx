@@ -4,8 +4,9 @@ import { useMemo, useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import dynamic from 'next/dynamic';
 import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), { ssr: false });
 import CTAButton from "@/components/CTAButton";
 
 function CreateHelpForm() {

@@ -6,11 +6,13 @@ import { createClient } from "@/lib/supabaseClient";
 type Props = {
     value: string[];
     onChange: (urls: string[]) => void;
+    accept?: string;
 };
 
 export default function FileUploader({
     value,
     onChange,
+    accept,
 }: Props) {
     const [loading, setLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
@@ -170,6 +172,7 @@ export default function FileUploader({
                 ref={inputRef}
                 onChange={handleFileChange}
                 disabled={loading}
+                accept={accept}
                 className="hidden"
             />
         </div>

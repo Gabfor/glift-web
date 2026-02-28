@@ -60,7 +60,7 @@ export default function RichTextImageModal({ isOpen, onClose, onSave }: RichText
                 <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
                     Pièces jointes
                 </label>
-                <FileUploader value={fileUrls} onChange={setFileUrls} />
+                <FileUploader value={fileUrls} onChange={setFileUrls} accept="image/*" />
             </div>
 
             <div className="mb-4">

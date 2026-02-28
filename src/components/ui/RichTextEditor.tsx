@@ -135,9 +135,9 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                     class: 'w-full aspect-video rounded-[8px] my-4 shadow-sm',
                 },
             }),
-            ImageResize.configure({
+            ...(typeof window !== 'undefined' ? [ImageResize.configure({
                 inline: false,
-            }),
+            })] : []),
         ],
         content: value,
         editorProps: {

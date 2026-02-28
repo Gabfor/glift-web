@@ -1,7 +1,8 @@
 import { useState } from "react";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
-import RichTextEditor from "@/components/ui/RichTextEditor";
+import dynamic from 'next/dynamic';
+const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), { ssr: false });
 
 interface NoteModalProps {
   initialNote: string;
