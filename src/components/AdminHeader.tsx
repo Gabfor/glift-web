@@ -69,7 +69,9 @@ export default function AdminHeader() {
             <Link
               href="/admin/program"
               className={
-                pathname === "/admin/program" || pathname?.startsWith("/admin/program?")
+                pathname === "/admin/program" ||
+                  pathname?.startsWith("/admin/program?") ||
+                  pathname?.startsWith("/admin/entrainements")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
@@ -79,7 +81,8 @@ export default function AdminHeader() {
             <Link
               href="/admin/program-store"
               className={
-                pathname?.startsWith("/admin/program-store")
+                pathname?.startsWith("/admin/program-store") ||
+                  pathname?.startsWith("/admin/create-program")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
@@ -90,7 +93,8 @@ export default function AdminHeader() {
             <Link
               href="/admin/offer-shop"
               className={
-                pathname?.startsWith("/admin/offer-shop")
+                pathname?.startsWith("/admin/offer-shop") ||
+                  pathname?.startsWith("/admin/create-offer")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
@@ -110,7 +114,8 @@ export default function AdminHeader() {
             <Link
               href="/admin/help"
               className={
-                pathname?.startsWith("/admin/help")
+                pathname?.startsWith("/admin/help") ||
+                  pathname?.startsWith("/admin/create-help")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
