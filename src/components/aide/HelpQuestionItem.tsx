@@ -17,9 +17,10 @@ type Props = {
     questionId: string;
     question: string;
     answer: string;
+    searchTerm?: string;
 };
 
-export default function HelpQuestionItem({ questionId, question, answer }: Props) {
+export default function HelpQuestionItem({ questionId, question, answer, searchTerm = "" }: Props) {
     const [hasVoted, setHasVoted] = useState(false);
     const [voteCasted, setVoteCasted] = useState<'top' | 'flop' | null>(null);
 
@@ -71,6 +72,37 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
         // Collapse multiple empty paragraphs (with or without align styles) into a single empty paragraph
         .replace(/(<p(?:\s+style="text-align:\s*(?:left|center|right);?")?><\/p>\s*)+/g, '<p></p>');
 
+    const highlightHTML = (htmlContent: string, term: string) => {
+        if (!term) return htmlContent;
+        // Negative lookahead to ensure we don't match our term inside HTML tags.
+        // It looks for "term" that is NOT followed by any characters EXCEPT angle brackets before a closing '>'.
+        const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedTerm})(?![^<]*>)`, 'gi');
+        return htmlContent.replace(regex, '<mark class="bg-[#7069FA]/20 text-inherit px-[2px]">$1</mark>');
+    };
+
+    const highlightText = (text: string, term: string) => {
+        if (!term) return <>{text}</>;
+        const escapedTerm = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedTerm})`, 'gi');
+        const parts = text.split(regex);
+        return (
+            <>
+                {parts.map((part, i) =>
+                    regex.test(part) ? (
+                        <mark key={i} className="bg-[#7069FA]/20 text-inherit px-[2px]">
+                            {part}
+                        </mark>
+                    ) : (
+                        part
+                    )
+                )}
+            </>
+        );
+    };
+
+    const displayAnswer = highlightHTML(cleanAnswer, searchTerm);
+
     return (
         <AccordionItem value={questionId} id={questionId}>
             <style jsx global>{`
@@ -94,7 +126,7 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
             `}</style>
             <div className="border border-[#D7D4DC] bg-white rounded-[8px]">
                 <div className="overflow-hidden rounded-[8px]">
-                    <AccordionTrigger>{question}</AccordionTrigger>
+                    <AccordionTrigger>{highlightText(question, searchTerm)}</AccordionTrigger>
                 </div>
                 <AccordionContent
                     className="bg-white border-t border-[#D7D4DC] rounded-b-[8px]"
@@ -103,7 +135,7 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                         {/* Answer Content */}
                         <div
                             className={`prose prose-sm max-w-none text-[14px] leading-[22px] font-semibold text-[#5D6494] mb-[25px] whitespace-pre-wrap ${quicksand.className}`}
-                            dangerouslySetInnerHTML={{ __html: cleanAnswer }}
+                            dangerouslySetInnerHTML={{ __html: displayAnswer }}
                         />
 
                         {/* Vote Section */}

@@ -182,6 +182,7 @@ function AideContent() {
                     questionId={q.id}
                     question={q.question}
                     answer={q.answer}
+                    searchTerm={searchTerm}
                   />
                 ))}
               </Accordion>
