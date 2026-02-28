@@ -65,8 +65,33 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
         }
     };
 
+
+
+    const cleanAnswer = answer
+        // Collapse multiple empty paragraphs (with or without align styles) into a single empty paragraph
+        .replace(/(<p(?:\s+style="text-align:\s*(?:left|center|right);?")?><\/p>\s*)+/g, '<p></p>');
+
     return (
         <AccordionItem value={questionId} id={questionId}>
+            <style jsx global>{`
+                .prose p.image-caption {
+                    color: #D7D4DC !important;
+                    font-size: 12px !important;
+                    font-weight: 500 !important;
+                    text-align: center !important;
+                    margin-top: 8px !important;
+                    margin-bottom: 0px !important;
+                    width: 100%;
+                    display: block;
+                }
+                .prose img {
+                    margin-top: 0px !important;
+                    margin-bottom: 0px !important;
+                    border-radius: 8px;
+                    max-width: 100% !important;
+                    height: auto !important;
+                }
+            `}</style>
             <div className="border border-[#D7D4DC] bg-white rounded-[8px]">
                 <div className="overflow-hidden rounded-[8px]">
                     <AccordionTrigger>{question}</AccordionTrigger>
@@ -78,7 +103,7 @@ export default function HelpQuestionItem({ questionId, question, answer }: Props
                         {/* Answer Content */}
                         <div
                             className={`prose prose-sm max-w-none text-[14px] leading-[22px] font-semibold text-[#5D6494] mb-[25px] whitespace-pre-wrap ${quicksand.className}`}
-                            dangerouslySetInnerHTML={{ __html: answer }}
+                            dangerouslySetInnerHTML={{ __html: cleanAnswer }}
                         />
 
                         {/* Vote Section */}

@@ -49,6 +49,7 @@ a {
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -117,6 +118,7 @@ input.training-input {
 input[type="number"].no-arrow::-webkit-outer-spin-button,
 input[type="number"].no-arrow::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   /* Pour Chrome et Safari */
   margin: 0;
   /* Enlève les marges */
@@ -139,12 +141,14 @@ input[type="number"].no-arrow::-ms-clear {
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
+  appearance: none;
   /* Masquer les flèches sur Chrome/Safari */
   margin: 0;
 }
 
 input[type="number"] {
   -moz-appearance: textfield;
+  appearance: textfield;
   /* Masquer les flèches sur Firefox */
 }
 
@@ -445,8 +449,6 @@ input:checked+.slider:before {
   }
 
   .prose img {
-    max-width: 100%;
-    height: auto;
     border-radius: 8px;
     margin: 16px 0;
   }

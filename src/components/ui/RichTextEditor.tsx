@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { Extension, Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -33,6 +34,63 @@ interface RichTextEditorProps {
     withHelpLink?: boolean;
 }
 
+const GlobalAttributes = Extension.create({
+    name: 'globalAttributes',
+    addGlobalAttributes() {
+        return [
+            {
+                types: ['paragraph'],
+                attributes: {
+                    class: {
+                        default: null,
+                        parseHTML: element => element.getAttribute('class'),
+                        renderHTML: attributes => {
+                            if (!attributes.class) return {};
+                            return { class: attributes.class };
+                        },
+                    },
+                    style: {
+                        default: null,
+                        parseHTML: element => element.getAttribute('style'),
+                        renderHTML: attributes => {
+                            if (!attributes.style) return {};
+                            return { style: attributes.style };
+                        },
+                    },
+                },
+            },
+            {
+                types: ['image', 'imageResize'],
+                attributes: {
+                    style: {
+                        default: null,
+                        parseHTML: element => element.getAttribute('style'),
+                        renderHTML: attributes => {
+                            if (!attributes.style) return {};
+                            return { style: attributes.style };
+                        },
+                    },
+                },
+            },
+        ];
+    },
+});
+
+const ImageCaption = Node.create({
+    name: 'imageCaption',
+    group: 'block',
+    content: 'inline*',
+    parseHTML() {
+        return [
+            { tag: 'p.image-caption' },
+            { tag: 'figcaption' },
+        ];
+    },
+    renderHTML({ HTMLAttributes }) {
+        return ['p', mergeAttributes(HTMLAttributes, { class: 'image-caption' }), 0];
+    },
+});
+
 const ToolbarButton = ({
     onClick,
     isActive = false,
@@ -57,6 +115,8 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         extensions: [
             StarterKit,
             Underline,
+            GlobalAttributes,
+            ImageCaption,
             Placeholder.configure({
                 placeholder,
             }),
@@ -166,10 +226,11 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     const handleSaveImage = (url: string, alt: string, description: string) => {
         if (!url) return;
 
-        let content = `<p class="text-center"><img src="${url}" alt="${alt}" width="400" class="mx-auto block" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" /></p>`;
+        // "containerstyle" is for Tiptap editor extension. "style" is for native public frontend HTML parsing.
+        let content = `<img src="${url}" alt="${alt}" style="display: block; margin: 0 auto; width: 200px; max-width: 100%;" containerstyle="display: block; margin: 0 auto; width: 200px; max-width: 100%;" />`;
 
         if (description) {
-            content += `<p class="image-caption text-center" style="text-align: center; color: #D7D4DC; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0;">${description}</p>`;
+            content += `<p class="image-caption" style="text-align: center; color: #D7D4DC; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0px;">${description}</p>`;
         }
 
         content += `<p></p>`;
@@ -362,11 +423,8 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
             display: block;
         }
         .ProseMirror img {
-            max-width: 100%;
-            height: auto;
-            margin-left: auto !important;
-            margin-right: auto !important;
-            display: block !important;
+            margin-top: 0px !important;
+            margin-bottom: 0px !important;
         }
         .ProseMirror ul {
             list-style-type: disc;
