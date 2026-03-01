@@ -143,6 +143,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setGracePeriodExpiresAt(null);
         }
 
+        // Active Session Grace Period Check
+        if (profileData && profileData.email_verified === false && profileData.grace_expires_at) {
+          const now = new Date();
+          const graceExpiresAt = new Date(profileData.grace_expires_at);
+
+          if (graceExpiresAt < now) {
+            // Période de grâce expirée pour un utilisateur actif, on l'éjecte de force.
+            await supabase.auth.signOut();
+            window.location.href = "/connexion?error=grace-expired";
+            return;
+          }
+        }
+
         if (profileData && typeof profileData.premium_trial_end_at === "string") {
           setPremiumTrialEndAt(profileData.premium_trial_end_at);
         } else {

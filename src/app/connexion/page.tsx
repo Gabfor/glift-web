@@ -28,6 +28,7 @@ export default function ConnexionPage() {
       | "invalid-email"
       | "invalid-credentials"
       | "email-not-confirmed"
+      | "grace-expired"
       | "generic";
       title: string;
       description?: string;
@@ -96,6 +97,20 @@ export default function ConnexionPage() {
       const query = params.toString();
       router.replace(`/connexion${query ? `?${query}` : ""}`);
     }
+
+    if (searchParams?.get("error") === "grace-expired") {
+      setError({
+        type: "grace-expired",
+        title: "Connexion impossible",
+        description:
+          "Nous sommes désolés mais il semblerait que vous n'ayez pas validé votre email à temps. Votre compte a été désactivé et va être supprimé. Si c'est une erreur, contactez-nous.",
+      });
+
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("error");
+      const query = params.toString();
+      router.replace(`/connexion${query ? `?${query}` : ""}`);
+    }
   }, [resetStatus, searchParams, router]);
 
   const persistRememberPreference = (value: boolean) => {
@@ -138,10 +153,42 @@ export default function ConnexionPage() {
       });
 
       if (!error) {
+        setShowTransitionLoader(true);
+        // Validation de la période de grâce
+        if (data.user?.id) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email_verified, grace_expires_at")
+            .eq("id", data.user.id)
+            .single();
+
+          if (
+            profile &&
+            profile.email_verified === false &&
+            profile.grace_expires_at
+          ) {
+            const now = new Date();
+            const graceExpiresAt = new Date(profile.grace_expires_at);
+
+            if (graceExpiresAt < now) {
+              // La période de grâce a expiré et l'email n'est pas vérifié
+              await supabase.auth.signOut();
+              setError({
+                type: "grace-expired",
+                title: "Connexion impossible",
+                description:
+                  "Nous sommes désolés mais il semblerait que vous n'ayez pas validé votre email à temps. Votre compte a été désactivé et va être supprimé. Si c'est une erreur, contactez-nous.",
+              });
+              setLoading(false);
+              setShowTransitionLoader(false);
+              return;
+            }
+          }
+        }
+
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
-        setShowTransitionLoader(true);
         router.push(sanitizedNextParam ?? "/dashboard");
         router.refresh();
       } else if (error.message === "Invalid login credentials") {
@@ -190,7 +237,30 @@ export default function ConnexionPage() {
           ) : null}
 
           {error && error.type !== "invalid-email" ? (
-            <ErrorMessage title={error.title} description={error.description} />
+            <ErrorMessage
+              title={error.title}
+              description={
+                error.type === "grace-expired" && error.description ? (
+                  <span>
+                    {error.description.split("contactez-nous").map((part, index, array) => (
+                      <span key={index}>
+                        {part}
+                        {index < array.length - 1 && (
+                          <Link
+                            href="/contact"
+                            className="underline hover:text-[#C43636]"
+                          >
+                            contactez-nous
+                          </Link>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  error.description
+                )
+              }
+            />
           ) : null}
 
           <div className="flex flex-col gap-0">
