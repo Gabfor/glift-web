@@ -141,8 +141,8 @@ const AccountCreationPage = () => {
     }
 
     return {
-      title: "Une erreur est survenue.",
-      description: "Nous n'avons pas pu finaliser votre inscription. Merci de réessayer.",
+      title: "Mince, il y a un problème...",
+      description: "Nous sommes désolé mais nous rencontrons actuellement une erreur. Merci de réessayer dans un instant.",
     };
   };
 
@@ -309,8 +309,14 @@ const AccountCreationPage = () => {
         />
 
         {error ? (
-          <div className="w-[564px] max-w-full mb-6">
-            <ErrorMessage title={error.title} description={error.description} className="w-full" />
+          <div className="w-[564px] max-w-full mb-6 relative rounded-[5px] px-5 py-4 bg-[#FFF1F1]">
+            <span className="absolute left-0 top-0 h-full w-[3px] bg-[#E34A4A] rounded-l-[5px]" />
+            <p className="text-[14px] font-bold text-[#E34A4A] mb-2">{error.title}</p>
+            {error.description && (
+              <p className="text-[14px] font-semibold text-[#E34A4A] leading-snug">
+                {error.description}
+              </p>
+            )}
           </div>
         ) : null}
 

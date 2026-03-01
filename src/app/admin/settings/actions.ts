@@ -42,11 +42,12 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         // C. Program Store
         const { data: programs } = await supabase
             .from("program_store")
-            .select("image, partner_image");
+            .select("image, partner_image, image_mobile");
 
         programs?.forEach((p) => {
             if (p.image) usedUrls.add(p.image);
             if (p.partner_image) usedUrls.add(p.partner_image);
+            if (p.image_mobile) usedUrls.add(p.image_mobile);
         });
 
         // D. Settings (Logo)

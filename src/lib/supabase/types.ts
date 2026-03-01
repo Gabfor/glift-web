@@ -346,6 +346,7 @@ export interface Database {
           is_active: boolean;
           updated_at: Nullable<string>;
           plan: "starter" | "premium";
+          image_mobile: Nullable<string>;
         };
         Insert: {
           id?: string;
@@ -374,6 +375,7 @@ export interface Database {
           is_active?: boolean;
           updated_at?: Nullable<string>;
           plan?: "starter" | "premium";
+          image_mobile?: Nullable<string>;
         };
         Update: {
           id?: string;
@@ -402,6 +404,7 @@ export interface Database {
           is_active?: boolean;
           updated_at?: Nullable<string>;
           plan?: "starter" | "premium";
+          image_mobile?: Nullable<string>;
         };
         Relationships: never[];
       };
