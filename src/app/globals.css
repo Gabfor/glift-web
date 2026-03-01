@@ -441,11 +441,12 @@ input:checked+.slider:before {
   }
 
   .prose iframe {
-    width: 100%;
-    max-width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
     border-radius: 8px;
     margin: 16px 0;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 9 !important;
   }
 
   .prose img {
@@ -487,9 +488,6 @@ input:checked+.slider:before {
   }
 
   @media (max-width: 640px) {
-    .prose iframe {
-      height: auto;
-      min-height: 200px;
-    }
+    /* (Currently no specific overrides needed here) */
   }
 }

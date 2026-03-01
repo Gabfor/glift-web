@@ -9,6 +9,7 @@ import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import GliftLoader from "@/components/ui/GliftLoader";
 import { cleanupOrphanedImages } from "./actions";
 
 // Inline SVG for dynamic coloring
@@ -123,7 +124,7 @@ export default function AdminSettingsPage() {
     };
 
     if (isLoading) {
-        return <div className="min-h-screen bg-[#FBFCFE] pt-[140px] flex justify-center">Chargement...</div>;
+        return <GliftLoader />;
     }
 
     return (
@@ -225,7 +226,7 @@ export default function AdminSettingsPage() {
                     {/* Cleanup Section */}
                     <div className="mt-[60px]">
                         <div className="flex justify-between items-center mb-[20px]">
-                            <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">VIDE BUCKETS SUPABASE</span>
+                            <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">RACCOURCIS</span>
                         </div>
 
                         {/* Dashed Container */}
