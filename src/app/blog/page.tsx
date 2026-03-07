@@ -9,8 +9,13 @@ export default function BlogPage() {
             Blog
           </h1>
           <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494]">
-            Découvrez nos articles autour de la pratique de la musculation.
+            Découvrez nos conseils, programmes et astuces pour progresser
+            <br />
+            et atteindre vos objectifs, quel que soit votre niveau.
           </p>
+          <div className="mt-[15px] bg-[#F4F5FE] rounded-[10px] p-[20px] text-[#A1A5FD] text-[14px] font-semibold text-left">
+            Que votre objectif soit la prise de masse musculaire, la perte de gras (sèche) ou le développement de votre force, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, passez au niveau supérieur.
+          </div>
         </div>
       </div>
     </main>
