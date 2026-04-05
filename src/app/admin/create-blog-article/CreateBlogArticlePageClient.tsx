@@ -8,6 +8,7 @@ import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import Image from "next/image";
 import { BlogArticleFormState, emptyBlogArticle } from "./blogArticleForm";
+import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 
 type Props = {
   articleId: string | null;
@@ -17,6 +18,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   const router = useRouter();
   const [article, setArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
   const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
+  const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
   const isDirty = useMemo(
     () => JSON.stringify(article) !== JSON.stringify(baseArticle),
@@ -43,6 +45,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
     "min-h-[143px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
 
   return (
+    <>
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px]">
       <div className="max-w-[1152px] mx-auto w-full">
         <BackLink href="/admin/content-blog" className="mb-6">
@@ -346,7 +349,15 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                 Contenu de l'article
               </h3>
               <button
-                className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#A1A5FD] transition-all duration-150 group"
+                onClick={() => {
+                  if (article.type === "Conseil") {
+                    setIsWidgetModalOpen(true);
+                  } else {
+                    // Mettre ici d'autres actions s'il y a un comportement différent pour Programme
+                    setIsWidgetModalOpen(true);
+                  }
+                }}
+                className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
               >
                 <div className="relative w-[16px] h-[16px]">
                   <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
@@ -372,5 +383,18 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         </div>
       </div>
     </main>
+
+    {isWidgetModalOpen && (
+      <AddWidgetModal
+        articleType={article.type}
+        onClose={() => setIsWidgetModalOpen(false)}
+        onSelect={(type) => {
+          console.log("Selected widget type:", type);
+          setIsWidgetModalOpen(false);
+          // TODO: handle widget insertion
+        }}
+      />
+    )}
+    </>
   );
 }
