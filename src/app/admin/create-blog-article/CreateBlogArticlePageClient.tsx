@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
@@ -9,6 +10,8 @@ import BackLink from "@/components/BackLink";
 import Image from "next/image";
 import { BlogArticleFormState, emptyBlogArticle } from "./blogArticleForm";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
+import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
+import { ContentBlock } from "./blogArticleForm";
 
 type Props = {
   articleId: string | null;
@@ -33,16 +36,109 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
     [article]
   );
 
-  const handleSave = () => {
-    // Save logic later
-    console.log("Save Article", article);
-    router.push("/admin/content-blog");
+  const [isSaving, setIsSaving] = useState(false);
+  const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    if (!articleId) return;
+
+    const fetchArticle = async () => {
+      const { data: rawData, error } = await supabase
+        .from("blog_articles")
+        .select("*")
+        .eq("id", articleId)
+        .single();
+
+      if (rawData && !error) {
+        const data = rawData as any;
+        const fetchedArticle: BlogArticleFormState = {
+          id: data.id,
+          type: data.type || "Conseil",
+          titre: data.titre || "",
+          description: data.description || "",
+          url: data.url || "",
+          categorie: data.categorie || "",
+          sexe: data.sexe || "",
+          niveau: data.niveau || "",
+          objectif: data.objectif || "",
+          nombre_seances: data.nombre_seances || "",
+          duree_moyenne: data.duree_moyenne || "",
+          nombre_semaines: data.nombre_semaines || "",
+          lieu: data.lieu || "",
+          intensite: data.intensite || "",
+          image: data.image_url || "",
+          image_alt: data.image_alt || "",
+          article_lie_1: data.article_lie_1_id || "",
+          article_lie_2: data.article_lie_2_id || "",
+          content_blocks: data.content_blocks || []
+        };
+        setArticle(fetchedArticle);
+        setBaseArticle(fetchedArticle);
+      } else {
+        console.error("Erreur lors du chargement de l'article:", error);
+      }
+    };
+
+    void fetchArticle();
+  }, [articleId, supabase]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const payload: any = {
+        type: article.type,
+        titre: article.titre,
+        description: article.description,
+        url: article.url,
+        categorie: article.categorie || null,
+        sexe: article.sexe || null,
+        niveau: article.niveau || null,
+        objectif: article.objectif || null,
+        nombre_seances: article.nombre_seances || null,
+        duree_moyenne: article.duree_moyenne || null,
+        nombre_semaines: article.nombre_semaines || null,
+        lieu: article.lieu || null,
+        intensite: article.intensite || null,
+        image_url: article.image || null,
+        image_alt: article.image_alt || null,
+        article_lie_1_id: article.article_lie_1 || null,
+        article_lie_2_id: article.article_lie_2 || null,
+        content_blocks: article.content_blocks || []
+      };
+      
+      let reqError;
+      if (article.id) {
+        const { error } = await (supabase as any)
+          .from("blog_articles")
+          .update(payload)
+          .eq("id", article.id);
+        reqError = error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("blog_articles")
+          .insert([payload]);
+        reqError = error;
+      }
+
+      if (reqError) throw reqError;
+
+      if (article.id) {
+        setBaseArticle(article);
+      } else {
+        router.push("/admin/content-blog");
+      }
+    } catch (err: any) {
+      console.error("Erreur de sauvegarde:", err);
+      alert("Erreur lors de la sauvegarde: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const inputClass =
     "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
   const textareaClass =
-    "min-h-[143px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
+    "min-h-[70px] h-[70px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150 resize-none";
 
   return (
     <>
@@ -161,6 +257,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       { value: "Entraînement", label: "Entraînement" },
                       { value: "Santé", label: "Santé" },
                       { value: "Motivation", label: "Motivation" },
+                      { value: "Lifestyle", label: "Lifestyle" },
                     ]}
                   />
                 </div>
@@ -188,7 +285,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     selected={article.niveau}
                     onSelect={(value) => setArticle({ ...article, niveau: value })}
                     options={[
-                      { value: "Tous niveaux", label: "Tous niveaux" },
+                      { value: "Tous", label: "Tous" },
                       { value: "Débutant", label: "Débutant" },
                       { value: "Intermédiaire", label: "Intermédiaire" },
                       { value: "Confirmé", label: "Confirmé" },
@@ -203,6 +300,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     selected={article.objectif}
                     onSelect={(value) => setArticle({ ...article, objectif: value })}
                     options={[
+                      { value: "Tous", label: "Tous" },
                       { value: "Prise de muscle", label: "Prise de muscle" },
                       { value: "Perte de graisse", label: "Perte de graisse" },
                       { value: "Gain de force", label: "Gain de force" },
@@ -348,12 +446,21 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Contenu de l'article
               </h3>
+              
+              {article.content_blocks.length > 0 && (
+                <div className="mb-[30px]">
+                  <WidgetsRenderer 
+                    blocks={article.content_blocks} 
+                    onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 
+                  />
+                </div>
+              )}
+
               <button
                 onClick={() => {
                   if (article.type === "Conseil") {
                     setIsWidgetModalOpen(true);
                   } else {
-                    // Mettre ici d'autres actions s'il y a un comportement différent pour Programme
                     setIsWidgetModalOpen(true);
                   }
                 }}
@@ -368,15 +475,14 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               </button>
             </div>
 
-            {/* BOUTON CREER */}
-            <div className="mt-6 flex justify-center">
+            <div className="mt-[10px] flex justify-center">
               <CTAButton
                 onClick={handleSave}
-                disabled={!isFormValid || !isDirty}
-                variant={isFormValid && isDirty ? "active" : "inactive"}
+                disabled={!isFormValid || !isDirty || isSaving}
+                variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
                 className="font-semibold"
               >
-                Créer l'article
+                {isSaving ? "Sauvegarde en cours..." : articleId ? "Mettre à jour" : "Créer l'article"}
               </CTAButton>
             </div>
           </div>
@@ -389,9 +495,37 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         articleType={article.type}
         onClose={() => setIsWidgetModalOpen(false)}
         onSelect={(type) => {
-          console.log("Selected widget type:", type);
+          const newId = Math.random().toString(36).substr(2, 9);
+          let newBlock = null;
+
+          switch (type) {
+            case "titre-texte":
+              newBlock = { id: newId, type: "titre-texte", titre: "", ancreId: "", texte: "" };
+              break;
+            case "texte":
+              newBlock = { id: newId, type: "texte", texte: "" };
+              break;
+            case "source":
+              newBlock = { id: newId, type: "source", titre: "", texte: "" };
+              break;
+            case "programme":
+              newBlock = { id: newId, type: "programme", titre: "", texte: "", features_list: "" };
+              break;
+            case "telechargement":
+              newBlock = { id: newId, type: "telechargement", titre: "", url: "", nom_bouton: "", texte: "" };
+              break;
+            case "seance":
+              newBlock = { id: newId, type: "seance", titre: "", table_rows: [], texte: "" };
+              break;
+          }
+
+          if (newBlock) {
+            setArticle({
+              ...article,
+              content_blocks: [...article.content_blocks, newBlock as any]
+            });
+          }
           setIsWidgetModalOpen(false);
-          // TODO: handle widget insertion
         }}
       />
     )}

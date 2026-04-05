@@ -131,7 +131,7 @@ export default function CreateProgramPageClient({
         return;
       }
 
-      router.push("/admin/program-store");
+      setBaseProgram(program);
       return;
     }
 

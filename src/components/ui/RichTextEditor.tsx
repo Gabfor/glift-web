@@ -32,6 +32,8 @@ interface RichTextEditorProps {
     onChange: (value: string) => void;
     placeholder?: string;
     withHelpLink?: boolean;
+    editorClassName?: string;
+    containerClassName?: string;
 }
 
 const GlobalAttributes = Extension.create({
@@ -110,7 +112,7 @@ const ToolbarButton = ({
     </button>
 );
 
-export default function RichTextEditor({ value, onChange, placeholder = '', withHelpLink = false }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, placeholder = '', withHelpLink = false, editorClassName, containerClassName }: RichTextEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -142,7 +144,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         content: value,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none min-h-[345px] px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} h-full`,
+                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'min-h-[345px] h-full'}`,
                 spellcheck: "true",
             },
         },
@@ -260,7 +262,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         setIsHelpLinkModalOpen(true);
     };
     return (
-        <div className="border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] resize-y overflow-auto min-h-[345px] flex flex-col relative w-full">
+        <div className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto min-h-[345px]'}`}>
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
                 <ToolbarButton
                     onClick={() => editor.chain().focus().toggleBold().run()}

@@ -15,14 +15,14 @@ import BlogAdminActionsBar from "@/app/admin/components/BlogAdminActionsBar";
 type BlogArticle = {
   id: string;
   titre: string;
-  status: string;
+  is_published: boolean;
   top: number;
   flop: number;
   created_at: string;
   langue?: string;
 };
 
-type SortableColumn = "status" | "titre" | "langue" | "top" | "flop" | "id";
+type SortableColumn = "is_published" | "titre" | "langue" | "top" | "flop" | "id";
 
 export default function AdminContentBlogPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -150,8 +150,8 @@ export default function AdminContentBlogPage() {
     return filtered.sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
-        case "status":
-          comparison = (a.status || "").localeCompare(b.status || "");
+        case "is_published":
+          comparison = (a.is_published === b.is_published) ? 0 : a.is_published ? -1 : 1;
           break;
         case "titre":
           comparison = (a.titre || "").localeCompare(b.titre || "");
@@ -210,7 +210,40 @@ export default function AdminContentBlogPage() {
     );
   };
 
+  const handleToggleStatus = async () => {
+    if (selectedIds.length !== 1) return;
+    const currentId = selectedIds[0];
+    const current = articles.find((a) => a.id === currentId);
+    if (!current) return;
+
+    const newStatus = !current.is_published;
+
+    setArticles((prev) =>
+      prev.map((a) =>
+        a.id === currentId ? { ...a, is_published: newStatus } : a
+      )
+    );
+    setShowActionsBar(false);
+    setSelectedIds([]);
+
+    const { error } = await (supabase.from("blog_articles") as any)
+      .update({ is_published: newStatus })
+      .eq("id", currentId);
+
+    if (error) {
+      console.error("Erreur update status:", error);
+      setArticles((prev) =>
+        prev.map((a) =>
+          a.id === currentId ? { ...a, is_published: current.is_published } : a
+        )
+      );
+    }
+  };
+
   const handleAdd = () => router.push("/admin/create-blog-article");
+
+  const selectedArticle = articles.find(a => a.id === selectedIds[0]) || null;
+  const selectedStatus = selectedArticle?.is_published ?? null;
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
@@ -232,9 +265,10 @@ export default function AdminContentBlogPage() {
         {showActionsBar ? (
           <BlogAdminActionsBar
             selectedIds={selectedIds}
+            selectedStatus={selectedStatus}
             onDelete={handleDelete}
             onEdit={handleEdit}
-            onReset={handleReset}
+            onToggleStatus={handleToggleStatus}
             onAdd={handleAdd}
           />
         ) : (
@@ -280,24 +314,10 @@ export default function AdminContentBlogPage() {
                       <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} />
                     </div>
                   </th>
-                  {renderHeaderCell("Statut", "status", "w-[82px]")}
+                  {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("ID de la question", "id", "w-[330px]")}
+                  {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
-                  {renderHeaderCell(
-                    <div className="flex justify-center w-[20px]">
-                      <Image src="/icons/oui_vert.svg" alt="Top" width={20} height={20} />
-                    </div>,
-                    "top",
-                    "w-[80px]"
-                  )}
-                  {renderHeaderCell(
-                    <div className="flex justify-center w-[20px]">
-                      <Image src="/icons/non_rouge.svg" alt="Flop" width={20} height={20} />
-                    </div>,
-                    "flop",
-                    "w-[80px]"
-                  )}
                 </tr>
               </thead>
             </table>
@@ -324,24 +344,10 @@ export default function AdminContentBlogPage() {
                       />
                     </button>
                   </th>
-                  {renderHeaderCell("Statut", "status", "w-[82px]")}
+                  {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("ID de la question", "id", "w-[330px]")}
+                  {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
-                  {renderHeaderCell(
-                    <div className="flex justify-center w-[20px]">
-                      <Image src="/icons/oui_vert.svg" alt="Top" width={20} height={20} />
-                    </div>,
-                    "top",
-                    "w-[80px]"
-                  )}
-                  {renderHeaderCell(
-                    <div className="flex justify-center w-[20px]">
-                      <Image src="/icons/non_rouge.svg" alt="Flop" width={20} height={20} />
-                    </div>,
-                    "flop",
-                    "w-[80px]"
-                  )}
                 </tr>
               </thead>
               <tbody>
@@ -365,7 +371,7 @@ export default function AdminContentBlogPage() {
                       </td>
                       <td className="w-[82px] px-4 align-middle">
                         <span
-                          className={`inline-flex items-center justify-center rounded-full uppercase ${a.status === "ON"
+                          className={`inline-flex items-center justify-center rounded-full uppercase ${a.is_published
                             ? "bg-[#DCFAF1] text-[#00D591]"
                             : "bg-[#FEF7D0] text-[#DCBC04]"
                             }`}
@@ -376,7 +382,7 @@ export default function AdminContentBlogPage() {
                             fontWeight: 600,
                           }}
                         >
-                          {a.status}
+                          {a.is_published ? "ON" : "OFF"}
                         </span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
@@ -421,12 +427,6 @@ export default function AdminContentBlogPage() {
                         <div className="flex items-center justify-center">
                           <Image src="/flags/france.svg" alt="Français" width={20} height={15} className="object-contain" />
                         </div>
-                      </td>
-                      <td className="w-[80px] px-4 font-semibold text-[#5D6494] text-center align-middle">
-                        {a.top}
-                      </td>
-                      <td className="w-[80px] px-4 font-semibold text-[#5D6494] text-center align-middle">
-                        {a.flop}
                       </td>
                     </tr>
                   );
