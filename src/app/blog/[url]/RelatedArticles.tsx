@@ -30,25 +30,39 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
   }
 
   return (
-    <div className="mt-[60px] pb-[60px]">
+    <div className="mt-[50px]">
       <div className="w-full h-[1px] bg-[#E7E8EA] mb-[40px]" />
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-[40px] gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-[20px] gap-6">
         <div className="flex flex-col gap-1">
-          <h2 className="text-[16px] font-bold text-[#3A416F] uppercase tracking-wider">
+          <h2 className="text-[14px] font-bold text-[#3A416F] uppercase tracking-wider">
             Articles liés
           </h2>
-          <p className="text-[#5D6494] text-[16px]">
+          <p className="text-[#5D6494] text-[14px] font-semibold">
             Voici d’autres articles qui pourraient vous plaire.
           </p>
         </div>
-        <Link href="/blog">
-          <button className="flex items-center gap-2 border border-[#3A416F] text-[#3A416F] text-[14px] font-bold px-[24px] py-[10px] rounded-full transition-all bg-white hover:bg-[#F4F5FE]">
-            Voir tous les articles
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </button>
+        <Link
+          href="/blog"
+          className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer"
+        >
+          Voir tous les articles
+          <div className="relative w-[25px] h-[25px]">
+            <Image
+              src="/icons/arrow_blue.svg"
+              alt="Flèche normale"
+              fill
+              className="object-contain transition-opacity group-hover:opacity-0"
+              priority={false}
+            />
+            <Image
+              src="/icons/arrow.svg"
+              alt="Flèche blanche"
+              fill
+              className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+              priority={false}
+            />
+          </div>
         </Link>
       </div>
 

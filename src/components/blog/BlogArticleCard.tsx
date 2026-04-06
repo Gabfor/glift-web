@@ -18,7 +18,7 @@ type Props = {
 
 export default function BlogArticleCard({ article }: Props) {
   return (
-    <div className="w-full bg-white rounded-[20px] border border-[#E9E8EC] overflow-hidden flex flex-col h-full hover:shadow-[0_8px_30px_rgba(58,65,111,0.08)] transition-all duration-300">
+    <div className="w-full bg-white rounded-[20px] border border-[#E9E8EC] overflow-hidden flex flex-col h-full transition-all duration-300">
       <div className="relative w-full h-[240px] bg-[#F4F5FE]">
         <Image
           src={article.image_url || "/images/placeholder_image.jpg"}
@@ -28,49 +28,56 @@ export default function BlogArticleCard({ article }: Props) {
           unoptimized
         />
         {/* Badge Type (CONSEIL...) */}
-        <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[11px] font-bold uppercase px-[14px] py-[6px] rounded-[10px] shadow-sm tracking-wider">
+        <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-sm tracking-wider flex items-center justify-center">
           {article.type || "Conseil"}
         </div>
       </div>
 
-      <div className="p-[25px] flex-1 flex flex-col items-start">
+      <div className="pt-[10px] px-[10px] pb-[30px] flex-1 flex flex-col items-start">
         {/* Badges Catégorie & Sexe */}
-        <div className="flex items-center gap-[10px] mb-[15px]">
-          <div className="bg-[#F4F5FE] text-[#7069FA] text-[12px] font-bold px-[12px] py-[6px] rounded-[5px]">
+        <div className="flex items-center gap-[5px] mb-[15px]">
+          <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
             {article.categorie || "Lifestyle"}
           </div>
-          {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
-            <div className="bg-[#F4F5FE] w-[30px] h-[30px] rounded-[5px] flex items-center justify-center">
-              <Image 
-                src={article.sexe === "Homme" ? "/icons/homme.svg" : article.sexe === "Femme" ? "/icons/femme.svg" : "/icons/mixte.svg"} 
-                alt={article.sexe} 
-                width={16} 
-                height={16} 
-              />
-            </div>
-          )}
+          
+          {/* Logique de genre identique au Store */}
+          {article.sexe === "Tous" ? (
+            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center">
+              <Image src="/icons/mixte.svg" alt="Mixte" width={14} height={14} />
+            </span>
+          ) : article.sexe === "Homme" ? (
+            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center">
+              <Image src="/icons/homme.svg" alt="Homme" width={14} height={14} />
+            </span>
+          ) : article.sexe === "Femme" ? (
+            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center">
+              <Image src="/icons/femme.svg" alt="Femme" width={14} height={14} />
+            </span>
+          ) : null}
         </div>
 
-        <h3 className="text-[#3A416F] text-[18px] font-bold mb-[15px] uppercase leading-tight line-clamp-2">
+        <h3 className="text-[#3A416F] text-[16px] font-bold mb-[15px] uppercase leading-tight line-clamp-2">
           {article.titre}
         </h3>
         
-        <p className="text-[14px] text-[#5D6494] font-medium mb-[25px] line-clamp-3 leading-relaxed">
+        <p className="text-[14px] text-[#5D6494] font-semibold mb-[20px] line-clamp-3 leading-relaxed">
           {article.description}
         </p>
 
-        <div className="mt-auto w-full flex justify-center">
-          <Link href={`/blog/${article.url}`} className="w-full max-w-[220px]">
+          <Link href={`/blog/${article.url}`} className="mt-auto mx-auto group">
             <CTAButton
-              className="w-full text-[14px] font-bold bg-[#7069FA] hover:bg-[#5E56E8] text-white py-[12px] rounded-full flex items-center justify-center gap-2"
+              className="font-semibold text-[16px] flex items-center justify-center gap-2"
             >
               Lire cet article
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <Image
+                src="/icons/arrow.svg"
+                alt="Flèche"
+                width={25}
+                height={25}
+                className="ml-[-5px]"
+              />
             </CTAButton>
           </Link>
-        </div>
       </div>
     </div>
   );

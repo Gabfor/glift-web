@@ -53,10 +53,7 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
 
   const genderIcons =
     program.gender === "Tous"
-      ? [
-        { src: "/icons/homme.svg", label: "homme" },
-        { src: "/icons/femme.svg", label: "femme" },
-      ]
+      ? [{ src: "/icons/mixte.svg", label: "mixte" }]
       : program.gender === "Homme"
         ? [{ src: "/icons/homme.svg", label: "homme" }]
         : program.gender === "Femme"

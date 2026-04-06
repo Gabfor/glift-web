@@ -78,14 +78,14 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
           )}
 
           {/* Contenu dynamique */}
-          <article className="mb-[60px]">
+          <article className="mb-[50px]">
             <BlogArticleBlocksRenderer blocks={article.content_blocks || []} />
           </article>
 
         </div>
 
         {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
-        <div className="bg-white">
+        <div className="bg-[#FBFCFE]">
           <div className="max-w-[760px] mx-auto px-4 md:px-0">
             <RelatedArticles
               articleLie1Id={article.article_lie_1_id}
