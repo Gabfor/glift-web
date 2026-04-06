@@ -419,23 +419,23 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                 {/* Article 1 */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 1</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez un article"
-                    selected={article.article_lie_1}
-                    onSelect={(value) => setArticle({ ...article, article_lie_1: value })}
-                    options={[]} // Wait for articles to load if real data, empty for now
+                  <input
+                    type="text"
+                    placeholder="Id de l’article"
+                    value={article.article_lie_1}
+                    onChange={(e) => setArticle({ ...article, article_lie_1: e.target.value })}
+                    className={inputClass}
                   />
                 </div>
                 {/* Article 2 */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 2</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez un article"
-                    selected={article.article_lie_2}
-                    onSelect={(value) => setArticle({ ...article, article_lie_2: value })}
-                    options={[]}
+                  <input
+                    type="text"
+                    placeholder="Id de l’article"
+                    value={article.article_lie_2}
+                    onChange={(e) => setArticle({ ...article, article_lie_2: e.target.value })}
+                    className={inputClass}
                   />
                 </div>
               </div>
