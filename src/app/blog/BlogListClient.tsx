@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
-import SearchBar from "@/components/SearchBar";
 
 type Article = {
   id: string;
@@ -19,46 +18,33 @@ type Props = {
   initialArticles: Article[];
 };
 
-const CATEGORIES = ["Tous", "Nutrition", "Entraînement", "Santé", "Motivation", "Lifestyle"];
-
 export default function BlogListClient({ initialArticles }: Props) {
   const [selectedCategory, setSelectedCategory] = useState("Tous");
-  const [searchTerm, setSearchTerm] = useState("");
+
+  // Dynamically generate categories from existing articles
+  const dynamicCategories = ["Tous", ...Array.from(new Set(initialArticles.map(a => a.categorie))).sort()];
 
   const filteredArticles = initialArticles.filter((article) => {
-    const matchesCategory = selectedCategory === "Tous" || article.categorie === selectedCategory;
-    const matchesSearch = article.titre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          article.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
+    return selectedCategory === "Tous" || article.categorie === selectedCategory;
   });
 
   return (
     <div className="max-w-[1152px] mx-auto px-4">
       {/* Filtres par catégorie */}
-      <div className="flex flex-wrap justify-center gap-2 mb-10">
-        {CATEGORIES.map((cat) => (
+      <div className="flex flex-wrap justify-center gap-2 my-[30px]">
+        {dynamicCategories.length > 1 && dynamicCategories.map((cat) => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-[20px] py-[8px] rounded-full text-[14px] font-bold transition-all duration-200 border ${
+            className={`px-[30px] h-[44px] rounded-full text-[16px] font-semibold transition-all duration-200 border ${
               selectedCategory === cat
-                ? "bg-[#7069FA] text-white border-[#7069FA] shadow-md"
-                : "bg-white text-[#5D6494] border-[#D7D4DC] hover:border-[#C2BFC6] hover:bg-[#F4F5FE]"
+                ? "bg-[#3A416F] text-white border-[#3A416F]"
+                : "bg-[#FBFCFE] text-[#3A416F] border-[#3A416F] hover:bg-[#3A416F] hover:text-white"
             }`}
           >
             {cat}
           </button>
         ))}
-      </div>
-
-      <div className="flex justify-center mb-12">
-        <div className="w-full max-w-[400px]">
-          <SearchBar
-            placeholder="Rechercher un article..."
-            value={searchTerm}
-            onChange={setSearchTerm}
-          />
-        </div>
       </div>
 
       {filteredArticles.length > 0 ? (
@@ -70,10 +56,10 @@ export default function BlogListClient({ initialArticles }: Props) {
       ) : (
         <div className="text-center py-20">
           <p className="text-[#5D6494] text-[18px] font-semibold">
-            Aucun article ne correspond à votre recherche.
+            Aucun article ne correspond dans cette catégorie.
           </p>
           <button 
-            onClick={() => { setSelectedCategory("Tous"); setSearchTerm(""); }}
+            onClick={() => setSelectedCategory("Tous")}
             className="mt-4 text-[#7069FA] font-bold hover:underline"
           >
             Voir tous les articles
