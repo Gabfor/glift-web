@@ -259,7 +259,7 @@ export default function AdminSliderPage() {
   }, [loading, type, initialType, isActive, initialIsActive, slotCount, initialSlotCount, priorityCount, initialPriorityCount, slides, initialSlides]);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[100px]">
       <div className="w-full max-w-3xl">
         <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-10">
           Slider

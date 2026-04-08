@@ -26,7 +26,7 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
 
   return (
     <>
-      <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[40px]">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
         {/* Container pour le fil d'ariane aligné à gauche */}
         <div className="max-w-[1152px] mx-auto px-4 mb-[20px]">
           <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">

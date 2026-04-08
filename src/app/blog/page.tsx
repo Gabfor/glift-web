@@ -12,7 +12,7 @@ export default async function BlogPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
       <div className="max-w-[1152px] mx-auto text-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
           Blog

@@ -134,7 +134,7 @@ function AideContent() {
   }, [filteredQuestions, currentPage]);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
 
         {/* Header Section */}
@@ -229,7 +229,7 @@ function AideContent() {
 export default function AidePage() {
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px] flex justify-center items-start">
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] flex justify-center items-start">
         <GliftLoader />
       </main>
     }>

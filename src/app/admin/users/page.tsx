@@ -930,7 +930,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px] flex justify-center">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl">
         {editingUserId ? (
           <AdminUserEditor

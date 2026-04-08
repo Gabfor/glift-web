@@ -2,7 +2,7 @@
 
 export default function AppsPage() {
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <div className="text-center mb-10">
           <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">

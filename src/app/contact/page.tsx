@@ -62,7 +62,7 @@ function ContactForm() {
     const isFormValid = email.trim() !== "" && subject.trim() !== "" && description.trim() !== "";
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px] pb-[40px]">
+        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]">
             <div className="w-full flex flex-col items-center px-4 sm:px-0">
 
                 <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[20px]">

@@ -89,7 +89,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
   }, [])
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">
           Bienvenue dans votre compte

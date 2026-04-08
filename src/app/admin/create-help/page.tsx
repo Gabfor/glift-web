@@ -137,7 +137,7 @@ function CreateHelpForm() {
     };
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px]">
+        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
             <div className="max-w-[1152px] mx-auto w-full">
                 <BackLink href="/admin/help" className="mb-6">
                     Aide

@@ -95,7 +95,7 @@ const PaymentPage = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-4 pt-[140px] pb-[40px]">
+    <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-4 pt-[140px]">
       <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[10px]">
           Mode de paiement

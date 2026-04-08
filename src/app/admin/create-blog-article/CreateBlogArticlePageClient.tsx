@@ -146,7 +146,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
 
   return (
     <>
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[40px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto w-full">
         <BackLink href="/admin/content-blog" className="mb-6">
           Blog

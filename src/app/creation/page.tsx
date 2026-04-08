@@ -2,7 +2,7 @@
 
 export default function CreationPage() {
     return (
-        <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[40px]">
+        <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
             <div className="max-w-[1152px] mx-auto px-4 text-center">
                 <h1 className="text-[30px] font-bold text-[#2E3271] mb-6">
                     Créez et personnalisez facilement vos programmes de musculation

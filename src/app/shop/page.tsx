@@ -96,7 +96,7 @@ export default function ShopPage() {
   }, [sortBy, filters]);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[60px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <ShopHeader />
       </div>
