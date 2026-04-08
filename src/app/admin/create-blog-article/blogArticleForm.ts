@@ -77,6 +77,8 @@ export type BlogArticleFormState = {
   article_lie_1: string;
   article_lie_2: string;
   content_blocks: ContentBlock[];
+  is_published: boolean;
+  is_featured: boolean;
 };
 
 export const emptyBlogArticle: BlogArticleFormState = {
@@ -98,4 +100,6 @@ export const emptyBlogArticle: BlogArticleFormState = {
   article_lie_1: "",
   article_lie_2: "",
   content_blocks: [],
+  is_published: false,
+  is_featured: false,
 };

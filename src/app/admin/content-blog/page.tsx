@@ -16,13 +16,14 @@ type BlogArticle = {
   id: string;
   titre: string;
   is_published: boolean;
+  is_featured: boolean;
   top: number;
   flop: number;
   created_at: string;
   langue?: string;
 };
 
-type SortableColumn = "is_published" | "titre" | "langue" | "top" | "flop" | "id";
+type SortableColumn = "is_published" | "is_featured" | "titre" | "langue" | "top" | "flop" | "id";
 
 export default function AdminContentBlogPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -37,6 +38,7 @@ export default function AdminContentBlogPage() {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [hoveredFeaturedId, setHoveredFeaturedId] = useState<string | null>(null);
 
   useEffect(() => {
     setShowActionsBar(selectedIds.length > 0);
@@ -153,6 +155,9 @@ export default function AdminContentBlogPage() {
         case "is_published":
           comparison = (a.is_published === b.is_published) ? 0 : a.is_published ? -1 : 1;
           break;
+        case "is_featured":
+          comparison = (a.is_featured === b.is_featured) ? 0 : a.is_featured ? -1 : 1;
+          break;
         case "titre":
           comparison = (a.titre || "").localeCompare(b.titre || "");
           break;
@@ -191,9 +196,9 @@ export default function AdminContentBlogPage() {
         className={`px-4 font-semibold text-[#3A416F] cursor-pointer select-none ${extraClass || ""}`}
         onClick={() => handleSort(column)}
       >
-        <div className="flex items-center gap-1">
+        <div className={`flex items-center gap-1 whitespace-nowrap ${extraClass?.includes("justify-center") ? "justify-center" : ""}`}>
           {label}
-          <span className="relative w-[8px] h-[8px] ml-[3px] mt-[3px]">
+          <span className="relative w-[8px] h-[8px] ml-[3px] mt-[3px] shrink-0">
             <Image
               src={icon}
               alt=""
@@ -237,6 +242,28 @@ export default function AdminContentBlogPage() {
           a.id === currentId ? { ...a, is_published: current.is_published } : a
         )
       );
+    }
+  };
+  
+  const handleToggleFeatured = async (id: string, current: boolean) => {
+    const newStatus = !current;
+
+    // Optimistic update
+    setArticles((prev) =>
+      prev.map((a) => (a.id === id ? { ...a, is_featured: newStatus } : a))
+    );
+
+    const { error } = await (supabase.from("blog_articles") as any)
+      .update({ is_featured: newStatus })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Erreur update featured:", error);
+      // Rollback
+      setArticles((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, is_featured: current } : a))
+      );
+      alert(`Erreur: ${error.message}`);
     }
   };
 
@@ -316,6 +343,7 @@ export default function AdminContentBlogPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
                   {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                 </tr>
@@ -346,6 +374,7 @@ export default function AdminContentBlogPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
                   {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                 </tr>
@@ -389,6 +418,31 @@ export default function AdminContentBlogPage() {
                         <Link href={`/admin/create-blog-article?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
                           {a.titre}
                         </Link>
+                      </td>
+                      <td className="px-4 align-middle">
+                        <div className="flex items-center justify-center">
+                          <button
+                            onClick={() => handleToggleFeatured(a.id, a.is_featured)}
+                            onMouseEnter={() => setHoveredFeaturedId(a.id)}
+                            onMouseLeave={() => setHoveredFeaturedId(null)}
+                            className="relative w-[20px] h-[20px] flex items-center justify-center transition-opacity"
+                            title={a.is_featured ? "Retirer de la mise en avant" : "Mettre en avant"}
+                          >
+                            <Image
+                              src={
+                                hoveredFeaturedId === a.id && !a.is_featured
+                                  ? "/icons/coeur_hover.svg"
+                                  : a.is_featured
+                                    ? "/icons/coeur_red.svg"
+                                    : "/icons/coeur_grey.svg"
+                              }
+                              alt="Featured"
+                              width={20}
+                              height={20}
+                              className="object-contain"
+                            />
+                          </button>
+                        </div>
                       </td>
                       <td className="w-[330px] px-4 font-semibold text-[#5D6494] text-left align-middle">
                         <div className="flex items-center gap-2">

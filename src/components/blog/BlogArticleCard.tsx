@@ -18,13 +18,13 @@ type Props = {
 
 export default function BlogArticleCard({ article }: Props) {
   return (
-    <div className="w-full bg-white rounded-[20px] border border-[#E9E8EC] overflow-hidden flex flex-col h-full transition-all duration-300">
-      <div className="relative w-full h-[240px] bg-[#F4F5FE]">
+    <div className="w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full">
+      <div className="relative w-full h-[180px] bg-[#F4F5FE]">
         <Image
           src={article.image_url || "/images/placeholder_image.jpg"}
           alt={article.image_alt || article.titre}
           fill
-          className="object-cover"
+          className="w-full h-full object-cover rounded-t-[15px]"
           unoptimized
         />
         {/* Badge Type (CONSEIL...) */}
@@ -33,12 +33,16 @@ export default function BlogArticleCard({ article }: Props) {
         </div>
       </div>
 
-      <div className="pt-[10px] px-[10px] pb-[30px] flex-1 flex flex-col items-start">
+      <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col items-start">
+        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left leading-tight line-clamp-2">
+          {article.titre}
+        </h3>
+
         {/* Badges Catégorie & Sexe */}
-        <div className="flex items-center gap-[5px] mb-[15px]">
-          <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
+        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
+          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
             {article.categorie || "Lifestyle"}
-          </div>
+          </span>
           
           {/* Logique de genre identique au Store */}
           {article.sexe === "Tous" ? (
@@ -55,29 +59,25 @@ export default function BlogArticleCard({ article }: Props) {
             </span>
           ) : null}
         </div>
-
-        <h3 className="text-[#3A416F] text-[16px] font-bold mb-[15px] uppercase leading-tight line-clamp-2">
-          {article.titre}
-        </h3>
         
-        <p className="text-[14px] text-[#5D6494] font-semibold mb-[20px] line-clamp-3 leading-relaxed">
+        <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left line-clamp-3 leading-relaxed">
           {article.description}
         </p>
 
-          <Link href={`/blog/${article.url}`} className="mt-auto mx-auto group">
-            <CTAButton
-              className="font-semibold text-[16px] flex items-center justify-center gap-2"
-            >
-              Lire cet article
-              <Image
-                src="/icons/arrow.svg"
-                alt="Flèche"
-                width={25}
-                height={25}
-                className="ml-[-5px]"
-              />
-            </CTAButton>
-          </Link>
+        <Link href={`/blog/${article.url}`} className="mt-auto mx-auto">
+          <CTAButton
+            className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center gap-2"
+          >
+            Lire cet article
+            <Image
+              src="/icons/arrow.svg"
+              alt="Flèche"
+              width={25}
+              height={25}
+              className="ml-[-5px]"
+            />
+          </CTAButton>
+        </Link>
       </div>
     </div>
   );

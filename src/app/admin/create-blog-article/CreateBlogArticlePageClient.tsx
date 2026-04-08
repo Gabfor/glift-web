@@ -70,7 +70,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           image_alt: data.image_alt || "",
           article_lie_1: data.article_lie_1_id || "",
           article_lie_2: data.article_lie_2_id || "",
-          content_blocks: data.content_blocks || []
+          content_blocks: data.content_blocks || [],
+          is_published: !!data.is_published,
+          is_featured: !!data.is_featured,
         };
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
@@ -103,7 +105,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         image_alt: article.image_alt || null,
         article_lie_1_id: article.article_lie_1 || null,
         article_lie_2_id: article.article_lie_2 || null,
-        content_blocks: article.content_blocks || []
+        content_blocks: article.content_blocks || [],
+        is_published: article.is_published,
+        is_featured: article.is_featured,
       };
       
       let reqError;
@@ -183,6 +187,43 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           </div>
 
           <div className="flex flex-col gap-[40px] w-full">
+            {/* SECTION 0: STATUT DE L'ARTICLE */}
+            <div className="flex flex-col">
+              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
+                Statut de l'article
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                {/* Statut (is_published) */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez le statut"
+                    selected={article.is_published ? "ON" : "OFF"}
+                    onSelect={(value) => setArticle({ ...article, is_published: value === "ON" })}
+                    options={[
+                      { value: "ON", label: "ON" },
+                      { value: "OFF", label: "OFF" },
+                    ]}
+                  />
+                </div>
+                {/* Mis en avant (is_featured) */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Mis en avant</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez"
+                    selected={article.is_featured ? "OUI" : "NON"}
+                    onSelect={(value) => setArticle({ ...article, is_featured: value === "OUI" })}
+                    options={[
+                      { value: "OUI", label: "OUI" },
+                      { value: "NON", label: "NON" },
+                    ]}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* SECTION 1: INTRODUCTION */}
             <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">

@@ -7,13 +7,13 @@ export default async function BlogPage() {
   const supabase = await createServerClient();
   
   const { data: articles, error } = await (supabase.from("blog_articles") as any)
-    .select("id, url, titre, description, image_url, image_alt, type, categorie")
+    .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px]">
-      <div className="max-w-[1152px] mx-auto text-center px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px] px-4">
+      <div className="max-w-[1152px] mx-auto text-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
           Blog
         </h1>
