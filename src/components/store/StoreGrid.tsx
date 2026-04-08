@@ -9,107 +9,44 @@ import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
 import { useUser } from "@/context/UserContext";
 
-type ProgramRow = Database["public"]["Tables"]["program_store"]["Row"];
-type ProgramQueryRow = Pick<
-  ProgramRow,
-  |
-  "id"
-  | "title"
-  | "level"
-  | "goal"
-  | "gender"
-  | "sessions"
-  | "duration"
-  | "description"
-  | "image"
-  | "image_alt"
-  | "partner_image"
-  | "partner_image_alt"
-  | "partner_link"
-  | "link"
-  | "downloads"
-  | "created_at"
-  | "partner_name"
-  | "plan"
-  | "location"
->;
+import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
 
-type Program = {
-  id: string;
-  title: string;
-  level: string;
-  sessions: string;
-  duration: string;
-  description: string;
-  image: string;
-  image_alt: string;
-  partner_image?: string;
-  partner_image_alt?: string;
-  partner_link?: string;
-  link?: string;
-  downloads: number;
-  created_at: string;
-  goal: string;
-  gender: string;
-  partner_name: string;
-  plan: "starter" | "premium";
-  location: string;
-};
-
-const mapProgramRowToCard = (row: ProgramQueryRow): Program => ({
-  id: row.id,
-  title: row.title,
-  level: row.level ?? "",
-  sessions: row.sessions !== null && row.sessions !== undefined ? String(row.sessions) : "",
-  duration: row.duration ?? "",
-  description: row.description ?? "",
-  image: row.image ?? "",
-  image_alt: row.image_alt ?? "",
-  partner_image: row.partner_image ?? "",
-  partner_image_alt: row.partner_image_alt ?? "",
-  partner_link: row.partner_link ?? "",
-  link: row.link ?? "",
-  downloads: row.downloads ?? 0,
-  created_at: row.created_at ?? "",
-  goal: row.goal ?? "",
-  gender: row.gender ?? "",
-  partner_name: row.partner_name ?? "",
-  plan: row.plan ?? "starter",
-  location: row.location ?? "",
-});
+import { StoreProgram, StoreProfile } from "@/types/store";
+import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 
 export default function StoreGrid({
   sortBy,
   currentPage,
-  filters
+  filters,
+  initialPrograms = []
 }: {
   sortBy: string;
   currentPage: number;
   filters: string[];
+  initialPrograms?: StoreProgram[];
 }) {
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [programs, setPrograms] = useState<StoreProgram[]>(initialPrograms);
+  const [loading, setLoading] = useState(initialPrograms.length === 0);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(initialPrograms.length > 0);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile] = useState<{
-    gender: string | null;
-    subscription_plan: string | null;
-    main_goal: string | null;
-    experience: string | null;
-    training_place: string | null;
-    weekly_sessions: string | null;
-  } | null>(null);
+  const [userProfile, setUserProfile] = useState<StoreProfile | null>(null);
 
   const showSkeleton = useMinimumVisibility(loading);
-  const hasLoadedOnceRef = useRef(false);
+  const hasLoadedOnceRef = useRef(initialPrograms.length > 0);
 
   const previousQueryRef = useRef<{
     sortBy: string;
     currentPage: number;
     filters: string[];
     isAuthenticated: boolean;
-    userProfile: typeof userProfile;
-  } | null>(null);
+    userProfile: StoreProfile | null;
+  } | null>(initialPrograms.length > 0 ? {
+    sortBy,
+    currentPage,
+    filters: [...filters],
+    isAuthenticated: false,
+    userProfile: null
+  } : null);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -161,7 +98,6 @@ export default function StoreGrid({
       fetchExtendedProfile();
     }
   }, [user, isPremiumUser, isUserContextLoading]);
-  /* ... */
 
 
   // ➜ Fetch programs
@@ -170,7 +106,6 @@ export default function StoreGrid({
     const hasQueryChanged =
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
-      previousQuery.currentPage !== currentPage ||
       previousQuery.currentPage !== currentPage ||
       previousQuery.isAuthenticated !== isAuthenticated ||
       previousQuery.userProfile !== userProfile ||
@@ -196,63 +131,44 @@ export default function StoreGrid({
     let isActive = true;
 
     const fetchPrograms = async () => {
-      setLoading(true);
-      const supabase = createClient();
+      // ✅ LOADING LOGIC: stay in skeleton while UserContext is syncing
+      const isInitialSync = !hasLoadedOnceRef.current;
+      const isProfileSyncing = isUserContextLoading;
+      
+      const queryChangedMaturity = previousQuery && (
+        previousQuery.sortBy !== sortBy || 
+        previousQuery.currentPage !== currentPage || 
+        haveStringArrayChanged(previousQuery.filters, filters)
+      );
 
+      if (isInitialSync || queryChangedMaturity) {
+        setLoading(true);
+      }
+
+      const supabase = createClient();
       const start = (currentPage - 1) * 8;
       const end = start + 7;
-
       const order = getOrderForSortBy(sortBy);
-
       const isClientSideSort = sortBy === 'relevance';
 
       let query = supabase
         .from("program_store")
         .select(`
-          id,
-          title,
-          level,
-          goal,
-          gender,
-          sessions,
-          duration,
-          description,
-          image,
-          image_alt,
-          partner_image,
-          partner_image_alt,
-          partner_link,
-          link,
-          downloads,
-          created_at,
-          plan,
-          location
+          id, title, level, goal, gender, sessions, duration, description, 
+          image, image_alt, partner_image, partner_image_alt, partner_link, 
+          link, downloads, created_at, plan, location
         `)
         .eq("status", "ON");
 
-      const [
-        genderFilter,
-        goalFilter,
-        levelFilter,
-        locationFilter,
-        durationFilter,
-        availabilityFilter,
-      ] = filters;
+      const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, availabilityFilter] = filters;
 
-      // Apply filters if active
-      if (genderFilter) {
-        query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
-      }
+      if (genderFilter) query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
       if (goalFilter) query = query.eq("goal", goalFilter);
-      if (levelFilter) {
-        query = query.in("level", [levelFilter, "Tous niveaux"]);
-      }
+      if (levelFilter) query = query.in("level", [levelFilter, "Tous niveaux"]);
       if (locationFilter) query = query.eq("location", locationFilter);
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
-        if (!Number.isNaN(maxDuration)) {
-          query = query.lte("duration", maxDuration);
-        }
+        if (!Number.isNaN(maxDuration)) query = query.lte("duration", maxDuration);
       }
       if (availabilityFilter === "Oui") {
         if (!isAuthenticated || userProfile?.subscription_plan === "starter") {
@@ -271,9 +187,7 @@ export default function StoreGrid({
 
       const { data, error } = await finalQuery.returns<ProgramQueryRow[]>();
 
-      if (!isActive) {
-        return;
-      }
+      if (!isActive) return;
 
       if (error) {
         console.error("Erreur Supabase :", error.message);
@@ -281,105 +195,23 @@ export default function StoreGrid({
         let mappedPrograms = (data ?? []).map(mapProgramRowToCard);
 
         if (sortBy === "relevance") {
-          mappedPrograms.sort((a, b) => {
-            let scoreA = 0;
-            let scoreB = 0;
-
-            // 1. Gender Rule
-            const userGender = userProfile?.gender?.toString().trim().toLowerCase();
-            const getGenderScore = (programGender: string): number => {
-              const pg = programGender.trim().toLowerCase();
-              // "Homme" user
-              if (userGender === "homme") {
-                if (pg === "homme" || pg === "tous") return 5;
-                if (pg === "femme") return -5;
-              }
-              // "Femme" user
-              else if (userGender === "femme") {
-                if (pg === "femme" || pg === "tous") return 5;
-                if (pg === "homme") return -5;
-              }
-              // "Non binaire" user
-              else if (userGender === "non binaire" || userGender === "non-binaire") {
-                if (pg === "tous") return 3;
-              }
-              return 0;
-            };
-            if (userGender) {
-              scoreA += getGenderScore(a.gender);
-              scoreB += getGenderScore(b.gender);
-            }
-
-            // 2. Experience Rule (Years of practice -> Level)
-            const userYOP = userProfile?.experience?.toString().trim();
-            const getLevelScore = (programLevel: string): number => {
-              const pl = programLevel.trim().toLowerCase();
-              const isAllLevels = pl === "tous niveaux";
-
-              if (userYOP === "0") {
-                if (pl === "débutant") return 5;
-                if (isAllLevels) return 3;
-              } else if (["1", "2", "3"].includes(userYOP || "")) {
-                if (pl === "intermédiaire") return 5;
-                if (isAllLevels) return 3;
-              } else if (["4", "5+"].includes(userYOP || "")) {
-                if (pl === "confirmé") return 5;
-                if (isAllLevels) return 3;
-              }
-              return 0;
-            };
-            if (userYOP) {
-              scoreA += getLevelScore(a.level);
-              scoreB += getLevelScore(b.level);
-            }
-
-            // 3. Goal Rule
-            const userGoal = userProfile?.main_goal?.toString().trim();
-            if (userGoal) {
-              if (userGoal === a.goal.trim()) scoreA += 5;
-              if (userGoal === b.goal.trim()) scoreB += 5;
-            }
-
-            // 4. Location Rule
-            const userLocation = userProfile?.training_place?.toString().trim();
-            if (userLocation) {
-              if (a.location && a.location.trim() === userLocation) scoreA += 3;
-              if (b.location && b.location.trim() === userLocation) scoreB += 3;
-            }
-
-            // 5. Sessions Rule
-            // "Nombre de séances par semaine" match "category "Nombre de séances"
-            const userSessions = userProfile?.weekly_sessions?.toString().trim(); // e.g. "3" or "3 séances"
-            // Program sessions is a string number e.g "3"
-            if (userSessions) {
-              // Try strict string matching or slight fuzzy matching if formats differ
-              // Assuming strict match based on prompt saying "identique"
-              // But typically user profile might say "3" and program "3"
-              // Or user "3 séances" vs program "3"
-              // Let's maximize chance: check if program session is contained in user session string or equals
-              const pSessionsA = String(a.sessions).trim();
-              const uSessions = userSessions;
-              if (pSessionsA && (pSessionsA === uSessions || uSessions.startsWith(pSessionsA))) {
-                scoreA += 2;
-              }
-              const pSessionsB = String(b.sessions).trim();
-              if (pSessionsB && (pSessionsB === uSessions || uSessions.startsWith(pSessionsB))) {
-                scoreB += 2;
-              }
-            }
-
-            if (scoreA !== scoreB) {
-              return scoreB - scoreA;
-            }
-
-            // Tie-breaker 1: Downloads
-            if (a.downloads !== b.downloads) {
-              return b.downloads - a.downloads;
-            }
-
-            // Tie-breaker 2: Alphabetical
-            return a.title.localeCompare(b.title);
-          });
+          // ✅ SESSION PERSISTENCE:
+          const sessionKey = `store_relevance_order_${user?.id || 'guest'}`;
+          const savedOrder = sessionStorage.getItem(sessionKey);
+          
+          if (savedOrder && !queryChangedMaturity) {
+            const orderIds = JSON.parse(savedOrder) as string[];
+            mappedPrograms.sort((a, b) => {
+              const indexA = orderIds.indexOf(a.id);
+              const indexB = orderIds.indexOf(b.id);
+              if (indexA === -1 || indexB === -1) return 0;
+              return indexA - indexB;
+            });
+          } else {
+            mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
+            const orderIds = mappedPrograms.map(p => p.id);
+            sessionStorage.setItem(sessionKey, JSON.stringify(orderIds));
+          }
         }
 
         if (isClientSideSort) {
@@ -399,7 +231,7 @@ export default function StoreGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile, isAuthenticated]);
+  }, [sortBy, currentPage, filters, userProfile, isAuthenticated, isUserContextLoading]);
 
   return (
     <>

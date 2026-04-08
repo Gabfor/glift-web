@@ -1,152 +1,160 @@
-"use client";
+import { createServerClient } from "@/lib/supabaseServer";
+import ShopPageClient from "./ShopPageClient";
+import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
+import { sortOffersByRelevance } from "@/utils/sortingUtils";
+import { ShopProfile } from "@/types/shop";
 
-import { useEffect, useState } from "react";
+export const revalidate = 60; // Mise à jour auto toutes les minutes
+
 import ShopHeader from "@/components/shop/ShopHeader";
-import ShopFilters from "@/components/shop/ShopFilters";
-import ShopGrid from "@/components/shop/ShopGrid";
-import Pagination from "@/components/pagination/Pagination";
-import dynamic from "next/dynamic";
-import OfferCodeModal from "@/components/OfferCodeModal";
-import { createClient } from "@/lib/supabaseClient";
 
-const ShopBannerSlider = dynamic<{ onOfferClick?: (offer: any) => void }>(
-  () => import("@/components/ShopBannerSliderClient"),
-  {
-    ssr: false,
+export default async function ShopPage() {
+  const supabase = await createServerClient();
+  
+  // 1. Get user profile for relevance sorting
+  const { data: { session } } = await supabase.auth.getSession();
+  let userProfile: ShopProfile | null = null;
+  
+  if (session?.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("gender, main_goal, supplements")
+      .eq("id", session.user.id)
+      .single();
+    
+    if (profile) {
+      userProfile = profile as ShopProfile;
+    }
   }
-);
 
-export default function ShopPage() {
-  const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPrograms, setTotalPrograms] = useState(0);
-  const [loadingCount, setLoadingCount] = useState(true);
-  const [filters, setFilters] = useState(["", "", "", ""]);
+  // 2. Fetch total count
+  const { count: totalCount } = await supabase
+    .from("offer_shop")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "ON");
 
-  // Modal Management
-  const [selectedOffer, setSelectedOffer] = useState<any | null>(null);
-  const [showCodeModal, setShowCodeModal] = useState(false);
+  // 3. Fetch offers for initial display (Default relevance sort)
+  const { data: rawOffers } = await supabase
+    .from("offer_shop")
+    .select(`
+      id,
+      name,
+      start_date,
+      end_date,
+      type,
+      code,
+      image,
+      image_alt,
+      brand_image,
+      brand_image_alt,
+      shop,
+      shop_website,
+      shop_link,
+      shipping,
+      modal,
+      condition,
+      gender,
+      boost,
+      click_count,
+      created_at
+    `)
+    .eq("status", "ON");
 
-  // Offer Interaction Handler
-  const handleOfferClick = async (offer: any) => {
-    // 1. Analytics
-    try {
-      const supabase = createClient();
-      await supabase.rpc("increment_offer_click", { offer_id: offer.id });
-    } catch (error) {
-      console.error("Erreur lors de l'incrémentation :", error);
-    }
+  const mappedOffers = (rawOffers ?? []).map(row => mapOfferRowToOffer(row as OfferQueryRow));
+  
+  // Perform relevance sorting on the server
+  const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile);
+  
+  // Only send the first 8 for the initial page
+  const initialOffers = sortedOffers.slice(0, 8);
 
-    // 2. Decide: Modal vs Link
-    if (offer.modal === "Avec code" || offer.modal === "Sans code") {
-      setSelectedOffer(offer);
-      setShowCodeModal(true);
-    } else if (offer.shop_link) {
-      window.open(offer.shop_link, "_blank");
-    } else if (offer.shop_website) {
-      // Fallback if no specific product link
-      window.open(offer.shop_website, "_blank");
-    }
-  };
+  // 4. Fetch Slider Configuration
+  const { data: adminConfig } = await supabase
+    .from("sliders_admin")
+    .select("*")
+    .single();
 
-  const handleModalConfirm = () => {
-    setShowCodeModal(false);
-    if (selectedOffer?.shop_link) {
-      window.open(selectedOffer.shop_link, "_blank");
-    } else if (selectedOffer?.shop_website) {
-      window.open(selectedOffer.shop_website, "_blank");
-    }
-    setSelectedOffer(null);
-  };
+  let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[] };
 
-  // ✅ Compter les offres filtrées
-  useEffect(() => {
-    const fetchTotalCount = async () => {
-      setLoadingCount(true);
-      const supabase = createClient();
-
-      let query = supabase
-        .from("offer_shop")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "ON");
-
-      if (filters[0]) {
-        query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
-      }
-      if (filters[1]) query = query.filter("type", "cs", JSON.stringify([filters[1]]));
-      if (filters[2]) query = query.filter("sport", "cs", JSON.stringify([filters[2]]));
-      if (filters[3]) query = query.eq("shop", filters[3]);
-
-      const { count, error } = await query;
-
-      if (error) {
-        console.error(
-          "Erreur lors du comptage des programmes :",
-          JSON.stringify(error, null, 2)
-        );
-        setTotalPrograms(0);
-      } else {
-        setTotalPrograms(count || 0);
-      }
-
-      setLoadingCount(false);
+  if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
+    // 4a. Normalize priority slides
+    const normalizeSlides = (value: any): any[] => {
+      if (!Array.isArray(value)) return [];
+      return value.map((slide) => {
+        if (typeof slide === "object" && slide !== null && !Array.isArray(slide)) {
+          return {
+            image: slide.image || "",
+            alt: slide.alt || "",
+            link: slide.link || "",
+          };
+        }
+        return { image: "", alt: "", link: "" };
+      });
     };
 
-    fetchTotalCount();
-  }, [sortBy, filters]);
+    const prioritySlides = normalizeSlides(adminConfig.slides);
+    const slotCount = adminConfig.slot_count || 1;
+    const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
+
+    let offerSlides: any[] = [];
+
+    if (slotsNeeded > 0) {
+      const { data: offers } = await supabase
+        .from("offer_shop")
+        .select(`
+          id, name, slider_image, image_alt, 
+          shop_link, shop_website, 
+          code, modal, condition, 
+          start_date, end_date, brand_image, type,
+          image
+        `)
+        .eq("status", "ON")
+        .neq("slider_image", null)
+        .limit(slotsNeeded + 2);
+
+      if (offers) {
+        offerSlides = (offers ?? [])
+          .filter((o) => o.slider_image)
+          .map((o) => ({
+            image: o.slider_image!,
+            alt: o.image_alt || o.name,
+            link: o.shop_link || o.shop_website || "",
+            offer: {
+              id: o.id,
+              name: o.name,
+              code: o.code ?? "",
+              modal: o.modal ?? "",
+              condition: o.condition ?? "",
+              start_date: o.start_date ?? "",
+              end_date: o.end_date ?? "",
+              shop_link: o.shop_link ?? "",
+              shop_website: o.shop_website ?? "",
+              brand_image: o.brand_image ?? "",
+              type: Array.isArray(o.type) ? o.type : [],
+              image: o.image || "",
+              image_alt: o.image_alt || "",
+              created_at: "",
+            }
+          }));
+      }
+    }
+
+    sliderConfig = {
+      type: adminConfig.type as "single" | "double",
+      slides: [...prioritySlides, ...offerSlides].slice(0, slotCount)
+    };
+  }
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <ShopHeader />
       </div>
-
-      <ShopBannerSlider onOfferClick={handleOfferClick} />
-
-      <div className="max-w-[1152px] mx-auto">
-        <ShopFilters
-          sortBy={sortBy}
-          onSortChange={(value) => {
-            setSortBy(value);
-            setCurrentPage(1);
-          }}
-          onFiltersChange={(newFilters) => {
-            setFilters(newFilters);
-            setCurrentPage(1);
-          }}
-        />
-        <ShopGrid
-          sortBy={sortBy}
-          currentPage={currentPage}
-          filters={filters}
-          onOfferClick={handleOfferClick}
-        />
-        {!loadingCount && (
-          <Pagination
-            currentPage={currentPage}
-            totalItems={totalPrograms}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        )}
-      </div>
-
-      {showCodeModal && selectedOffer && (
-        <OfferCodeModal
-          name={selectedOffer.name}
-          brandImage={selectedOffer.brand_image}
-          code={selectedOffer.code}
-          link={selectedOffer.shop_link || ""}
-          shopWebsite={selectedOffer.shop_website || ""}
-          modal={(selectedOffer.modal || "Sans code") as "Avec code" | "Sans code"}
-          condition={selectedOffer.condition}
-          endDate={selectedOffer.end_date}
-          onCancel={() => {
-            setShowCodeModal(false);
-            setSelectedOffer(null);
-          }}
-          onConfirm={handleModalConfirm}
-        />
-      )}
+      <ShopPageClient 
+        initialOffers={initialOffers} 
+        initialTotalCount={totalCount || 0}
+        sliderConfig={sliderConfig}
+      />
     </main>
   );
 }

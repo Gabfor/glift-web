@@ -62,6 +62,7 @@ export default function AdminSingleProgramPage() {
         setProgram({
           id: "",
           name: "Nouveau programme",
+          app: true,
           dashboard: true,
           trainings: [],
         });
@@ -88,13 +89,16 @@ export default function AdminSingleProgramPage() {
         id: training.id,
         name: training.name,
         app: Boolean(training.app),
+        dashboard: true,
         program_id: training.program_id ?? programIdFromUrl,
         position: training.position ?? 0,
+        locked: false,
       }));
 
       setProgram({
         id: programData.id,
         name: programData.name,
+        app: true,
         dashboard: true,
         trainings: sanitizedTrainings,
       });
@@ -184,7 +188,17 @@ export default function AdminSingleProgramPage() {
       console.error("❌ Erreur création première ligne entraînement admin :", firstRowError);
     }
 
-    setProgram({ ...program, trainings: [...program.trainings, data] });
+    const newTrainingData: Training = {
+      id: data.id,
+      name: data.name,
+      app: Boolean(data.app),
+      dashboard: true,
+      program_id: data.program_id ?? program.id,
+      position: data.position ?? 0,
+      locked: false,
+    };
+
+    setProgram({ ...program, trainings: [...program.trainings, newTrainingData] });
     router.push(`/admin/entrainements/${data.id}?new=1`);
   };
 
@@ -247,8 +261,10 @@ export default function AdminSingleProgramPage() {
       id: data.id,
       name: data.name,
       app: Boolean(data.app),
+      dashboard: true,
       program_id: data.program_id ?? program.id,
       position: data.position ?? 0,
+      locked: false,
     };
     updatedTrainings.splice(insertAt, 0, newTraining);
 

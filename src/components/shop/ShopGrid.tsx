@@ -7,135 +7,49 @@ import { createClient } from "@/lib/supabaseClient";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
+import { useUser } from "@/context/UserContext";
 
+import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
 
-type OfferRow = Database["public"]["Tables"]["offer_shop"]["Row"];
-type OfferQueryRow = Pick<
-  OfferRow,
-  |
-  "id"
-  | "name"
-  | "start_date"
-  | "end_date"
-  | "type"
-  | "code"
-  | "image"
-  | "image_alt"
-  | "brand_image"
-  | "brand_image_alt"
-  | "shop"
-  | "shop_website"
-  | "shop_link"
-  | "shipping"
-  | "modal"
-  | "condition"
-  | "gender"
-  | "boost"
-  | "click_count"
-  | "created_at"
->;
-
-type OfferId = OfferRow["id"];
-
-type Offer = {
-  id: OfferId;
-  name: string;
-  start_date: string;
-  end_date: string;
-  type: string[];
-  code: string;
-  image: string;
-  image_alt: string;
-  brand_image?: string;
-  brand_image_alt?: string;
-  shop?: string;
-  shop_website?: string;
-  shop_link?: string;
-  shipping?: string;
-  modal?: string;
-  condition?: string;
-  gender?: string;
-  boost?: boolean;
-  click_count?: number;
-  created_at?: string;
-};
-
-const parseOfferTypes = (value: unknown): string[] => {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string");
-  }
-
-  if (typeof value === "string") {
-    try {
-      const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) {
-        return parsed.filter((item): item is string => typeof item === "string");
-      }
-    } catch {
-      return value.split(",").map((item: string) => item.trim());
-    }
-  }
-
-  return [];
-};
-
-const mapOfferRowToOffer = (row: OfferQueryRow): Offer => ({
-  id: row.id,
-  name: row.name,
-  start_date: row.start_date ?? "",
-  end_date: row.end_date ?? "",
-  type: parseOfferTypes(row.type),
-  code: row.code ?? "",
-  image: row.image,
-  image_alt: row.image_alt ?? "",
-  brand_image: row.brand_image ?? "",
-  brand_image_alt: row.brand_image_alt ?? "",
-  shop: row.shop ?? "",
-  shop_website: row.shop_website ?? "",
-  shop_link: row.shop_link ?? "",
-  shipping: row.shipping ?? "",
-
-  modal: row.modal ?? "",
-  condition: row.condition ?? "",
-  gender: row.gender ?? "",
-  boost: row.boost ?? false,
-  click_count: row.click_count ?? 0,
-  created_at: row.created_at ?? "",
-});
+import { ShopOffer, ShopProfile } from "@/types/shop";
+import { sortOffersByRelevance } from "@/utils/sortingUtils";
 
 export default function ShopGrid({
   sortBy,
   currentPage,
   filters,
   onOfferClick,
+  initialOffers = [],
 }: {
   sortBy: string;
   currentPage: number;
   filters: string[];
-  onOfferClick: (offer: Offer) => void;
+  onOfferClick: (offer: ShopOffer) => void;
+  initialOffers?: ShopOffer[];
 }) {
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [offers, setOffers] = useState<ShopOffer[]>(initialOffers);
+  const [loading, setLoading] = useState(initialOffers.length === 0);
   const showSkeleton = useMinimumVisibility(loading);
-  const hasLoadedOnceRef = useRef(false);
+  const hasLoadedOnceRef = useRef(initialOffers.length > 0);
+
+  const [userProfile, setUserProfile] = useState<ShopProfile | null>(null);
+  const { user, isLoading: isUserContextLoading } = useUser();
+
   const previousQueryRef = useRef<{
     sortBy: string;
     currentPage: number;
     filters: string[];
-    userProfile: typeof userProfile;
-  } | null>(null);
-
-  const [userProfile, setUserProfile] = useState<{
-    gender: string | null;
-    main_goal: string | null;
-    supplements: string | null;
-  } | null>(null);
+    userProfile: ShopProfile | null;
+  } | null>(initialOffers.length > 0 ? {
+    sortBy,
+    currentPage,
+    filters: [...filters],
+    userProfile: null
+  } : null);
 
   useEffect(() => {
     const fetchProfile = async () => {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
       if (user) {
         const { data } = await supabase
           .from("profiles")
@@ -146,17 +60,21 @@ export default function ShopGrid({
         if (data) {
           setUserProfile(data);
         }
+      } else {
+        setUserProfile(null);
       }
     };
-    fetchProfile();
-  }, []);
+    if (!isUserContextLoading) {
+      fetchProfile();
+    }
+  }, [user, isUserContextLoading]);
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
       case "relevance":
         return { column: "", ascending: false }; // Client-side sort
       case "popularity":
-        return { column: "click_count", ascending: false }; // Server-side sort main, but needs multiple
+        return { column: "click_count", ascending: false };
       case "oldest":
         return { column: "start_date", ascending: true };
       case "expiration":
@@ -195,37 +113,31 @@ export default function ShopGrid({
     let isActive = true;
 
     const fetchOffers = async () => {
-      setLoading(true);
-      const supabase = createClient();
+      // ✅ LOADING LOGIC: stay in skeleton while UserContext is syncing
+      const isInitialSync = !hasLoadedOnceRef.current;
+      const isProfileSyncing = isUserContextLoading;
 
+      const queryChangedMaturity = previousQuery && (
+        previousQuery.sortBy !== sortBy || 
+        previousQuery.currentPage !== currentPage || 
+        haveStringArrayChanged(previousQuery.filters, filters)
+      );
+
+      if (isInitialSync || queryChangedMaturity) {
+        setLoading(true);
+      }
+
+      const supabase = createClient();
       const start = (currentPage - 1) * 8;
       const end = start + 7;
-
       const order = getOrderForSortBy(sortBy);
 
       let query = supabase
         .from("offer_shop")
         .select(`
-          id,
-          name,
-          start_date,
-          end_date,
-          type,
-          code,
-          image,
-          image_alt,
-          brand_image,
-          brand_image_alt,
-          shop,
-          shop_website,
-          shop_link,
-          shipping,
-          modal,
-          condition,
-          gender,
-          boost,
-          click_count,
-          created_at
+          id, name, start_date, end_date, type, code, image, image_alt, 
+          brand_image, brand_image_alt, shop, shop_website, shop_link, 
+          shipping, modal, condition, gender, boost, click_count, created_at
         `)
         .eq("status", "ON");
 
@@ -235,7 +147,6 @@ export default function ShopGrid({
       if (filters[2]) query = query.filter("sport", "cs", JSON.stringify([filters[2]]));
       if (filters[3]) query = query.eq("shop", filters[3]);
 
-      // ➜ Appliquer tri Supabase sauf pour "expiration" et "relevance"
       let finalQuery = query;
       if (sortBy === "popularity") {
         finalQuery = finalQuery
@@ -246,19 +157,14 @@ export default function ShopGrid({
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
 
-      // If Relevance or Expiration, fetch ALL matching items to sort client-side
-      // Otherwise paginate server-side
       const isClientSideSort = sortBy === "relevance" || sortBy === "expiration";
-
       if (!isClientSideSort) {
         finalQuery = finalQuery.range(start, end);
       }
 
       const { data, error } = await finalQuery.returns<OfferQueryRow[]>();
 
-      if (!isActive) {
-        return;
-      }
+      if (!isActive) return;
 
       if (error) {
         console.error("Erreur Supabase :", error.message);
@@ -275,106 +181,26 @@ export default function ShopGrid({
         }
 
         if (sortBy === "relevance") {
-          // Pre-calculate scores for logging and sorting
-          const scored = normalized.map((offer) => {
-            let score = 0;
-            const gender = userProfile?.gender?.toLowerCase();
-            const supplements = userProfile?.supplements;
-
-            // 1. Gender Rules
-            let genderScore = 0;
-            if (gender) {
-              const checkGenderScore = (offerGender: string | undefined): number => {
-                const g = offerGender?.toLowerCase();
-                const isWildcard = g === "tous" || g === "mixte" || g === "unisexe";
-
-                if (gender === "homme") {
-                  if (g === "homme" || isWildcard) return 5;
-                  if (g === "femme") return -5;
-                } else if (gender === "femme") {
-                  if (g === "femme" || isWildcard) return 5;
-                  if (g === "homme") return -5;
-                } else if (gender === "non binaire" || gender === "non-binaire") {
-                  if (isWildcard) return 3;
-                }
-                return 0;
-              };
-              genderScore = checkGenderScore(offer.gender);
-              score += genderScore;
-            }
-
-            // 2. Supplements Rule
-            let suppScore = 0;
-            const isSupplement = (types: string[]) => types.some(t => t.toLowerCase().includes("complément"));
-            if (supplements === "Oui" && isSupplement(offer.type)) {
-              suppScore = 5;
-              score += 5;
-            } else if (supplements === "Non" && isSupplement(offer.type)) {
-              suppScore = -5;
-              score += -5;
-            }
-
-            // 3. Boost Rule
-            let boostScore = 0;
-            // Handle string "false" from DB which evaluates to true in JS if (offer.boost)
-            const isBoosted = String(offer.boost).toLowerCase() === "true" || offer.boost === true;
-
-            if (isBoosted) {
-              boostScore = 5;
-              score += 5;
-            }
-
-            // 4. Expiration Rule
-            let expScore = 0;
-            let diffHoursLabel = "N/A";
-
-            const getExpirationScore = (endDateStr: string): number => {
-              if (!endDateStr) return 0;
-              const now = new Date().getTime();
-              // Force Local Time parsing to match Mobile (Dart)
-              // new Date("YYYY-MM-DD") is UTC, but new Date(y,m,d) or "YYYY-MM-DDT00:00:00" is Local
-              const end = new Date(`${endDateStr}T00:00:00`).getTime();
-              const diffHours = (end - now) / (1000 * 60 * 60);
-              diffHoursLabel = diffHours.toFixed(2);
-
-              if (diffHours <= 24 && diffHours > 0) return 2;
-              if (diffHours > 24 && diffHours <= 72) return 1;
-              return 0;
-            };
-
-            expScore = getExpirationScore(offer.end_date);
-            score += expScore;
-
-            return {
-              offer,
-              score,
-              details: { genderScore, suppScore, boostScore, expScore, diffHours: diffHoursLabel }
-            };
-          });
-
-          // Sort based on pre-calculated scores
-          scored.sort((a, b) => {
-            if (a.score !== b.score) {
-              return b.score - a.score;
-            }
-
-            // Tie-breaker 1: Expiration Date (Ascending - ends soonest first)
-            const dateA = a.offer.end_date ? new Date(`${a.offer.end_date}T00:00:00`).getTime() : 8640000000000;
-            const dateB = b.offer.end_date ? new Date(`${b.offer.end_date}T00:00:00`).getTime() : 8640000000000;
-
-            if (dateA !== dateB) {
-              return dateA - dateB;
-            }
-
-            // Tie-breaker 2: Name (Alphabetical)
-            return a.offer.name.localeCompare(b.offer.name);
-          });
-
-          normalized = scored.map(s => s.offer);
+          // ✅ SESSION PERSISTENCE:
+          const sessionKey = `shop_relevance_order_${user?.id || 'guest'}`;
+          const savedOrder = sessionStorage.getItem(sessionKey);
+          
+          if (savedOrder && !queryChangedMaturity) {
+            const orderIds = JSON.parse(savedOrder) as string[];
+            normalized.sort((a, b) => {
+              const indexA = orderIds.indexOf(a.id);
+              const indexB = orderIds.indexOf(b.id);
+              if (indexA === -1 || indexB === -1) return 0;
+              return indexA - indexB;
+            });
+          } else {
+            normalized = sortOffersByRelevance(normalized, userProfile);
+            const orderIds = normalized.map(o => o.id);
+            sessionStorage.setItem(sessionKey, JSON.stringify(orderIds));
+          }
         }
 
         if (isClientSideSort) {
-          // Apply pagination client-side for relevance and expiration
           normalized = normalized.slice(start, end + 1);
         }
 
@@ -390,7 +216,7 @@ export default function ShopGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile]);
+  }, [sortBy, currentPage, filters, userProfile, isUserContextLoading]);
 
   const filteredOffers = offers
     .filter((offer) => Boolean(offer.image))

@@ -63,18 +63,19 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col">
       {/* IMAGE PRINCIPALE */}
-      <Image
-        src={program.image}
-        alt={program.image_alt || program.title}
-        width={540}
-        height={360}
-        className="w-full h-[180px] object-cover rounded-t-[15px]"
-        unoptimized
-      />
+      <div className="relative w-full h-[180px]">
+        <Image
+          src={program.image}
+          alt={program.image_alt || program.title}
+          fill
+          className="object-cover rounded-t-[15px]"
+          unoptimized
+        />
+      </div>
 
       {/* IMAGE PARTENAIRE ENTRE IMAGE ET TITRE */}
       {program.partner_image && (
-        <div className="flex justify-center -mt-8">
+        <div className="flex justify-center -mt-8 relative z-10">
           {program.partner_link ? (
             <a
               href={program.partner_link}
@@ -109,24 +110,24 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
 
       {/* CONTENU TEXTE */}
       <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col">
-        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left">
+        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 h-[48px]">
           {program.title}
         </h3>
 
-        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
-          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
+        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px] min-h-[32px]">
+          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
             {program.level}
           </span>
-          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]">
+          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
             {program.sessions} {parseInt(program.sessions) > 1 ? "séances" : "séance"}
           </span>
-          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center gap-[5px]">
+          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
             {program.duration} min
           </span>
           {genderIcons.map(({ src, label }) => (
             <span
               key={label}
-              className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px] inline-flex items-center justify-center gap-[5px]"
+              className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]"
               title={`Programme ${label}`}
             >
               <Image
@@ -141,47 +142,49 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
           ))}
         </div>
 
-        <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left">
+        <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left line-clamp-3 h-[63px]">
           {program.description}
         </p>
 
-        {/* BOUTON TÉLÉCHARGER */}
-        {isAuthenticated && !isRestricted ? (
-          <CTAButton
-            onClick={handleDownload}
-            loading={loading}
-            className="mx-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
-          >
-            <span className="inline-flex items-center gap-2">
-              <Image src="/icons/download.svg" alt="" width={20} height={20} />
-              Télécharger
-            </span>
-          </CTAButton>
-        ) : (
-          <CTAButton
-            onClick={() => setShowModal(true)}
-            variant="inactive"
-            className="group mx-auto text-[16px] font-semibold"
-          >
-            <span className="inline-flex items-center gap-2">
-              <div className="relative w-[15px] h-[15px]">
-                <Image
-                  src="/icons/locked.svg"
-                  alt=""
-                  fill
-                  className="group-hover:hidden transition-opacity"
-                />
-                <Image
-                  src="/icons/locked_hover.svg"
-                  alt=""
-                  fill
-                  className="hidden group-hover:block transition-opacity"
-                />
-              </div>
-              Télécharger
-            </span>
-          </CTAButton>
-        )}
+        {/* BOUTON TÉLÉCHARGER - Fixed structure to prevent layout jumps */}
+        <div className="min-h-[44px] flex items-center justify-center">
+          {isAuthenticated && !isRestricted ? (
+            <CTAButton
+              onClick={handleDownload}
+              loading={loading}
+              className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
+            >
+              <span className="inline-flex items-center gap-2">
+                <Image src="/icons/download.svg" alt="" width={20} height={20} />
+                Télécharger
+              </span>
+            </CTAButton>
+          ) : (
+            <CTAButton
+              onClick={() => setShowModal(true)}
+              variant="inactive"
+              className="group text-[16px] font-semibold"
+            >
+              <span className="inline-flex items-center gap-2">
+                <div className="relative w-[15px] h-[15px]">
+                  <Image
+                    src="/icons/locked.svg"
+                    alt=""
+                    fill
+                    className="group-hover:hidden transition-opacity"
+                  />
+                  <Image
+                    src="/icons/locked_hover.svg"
+                    alt=""
+                    fill
+                    className="hidden group-hover:block transition-opacity"
+                  />
+                </div>
+                Télécharger
+              </span>
+            </CTAButton>
+          )}
+        </div>
 
         {/* LIEN EN SAVOIR PLUS */}
         <a

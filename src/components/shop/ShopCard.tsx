@@ -8,33 +8,14 @@ import OfferCodeModal from "@/components/OfferCodeModal";
 import CTAButton from "@/components/CTAButton";
 
 
-type OfferId = Database["public"]["Tables"]["offer_shop"]["Row"]["id"];
+import { ShopOffer } from "@/types/shop";
 
 type Props = {
-  offer: {
-    id: OfferId;
-    name: string;
-    start_date: string;
-    end_date: string;
-    type: string[] | string;
-    code: string;
-    image: string;
-    image_alt: string;
-    brand_image?: string;
-    brand_image_alt?: string;
-    shop?: string;
-    shop_link?: string;
-    shop_website?: string;
-    shipping?: string;
-
-    modal?: string;
-    condition?: string;
-  };
+  offer: ShopOffer;
+  onOfferClick?: (offer: ShopOffer) => void;
 };
 
-export default function ShopCard({ offer }: Props) {
-  const [showModal, setShowModal] = useState(false);
-  const [showCodeModal, setShowCodeModal] = useState(false);
+export default function ShopCard({ offer, onOfferClick }: Props) {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!offer.end_date || !offer.end_date.includes("-")) {
       return null;
@@ -43,26 +24,10 @@ export default function ShopCard({ offer }: Props) {
     const parsedEndDate = new Date(offer.end_date).getTime();
     return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
   });
-  const supabase = createClient();
 
-  const handleClick = async () => {
-    try {
-      await supabase.rpc("increment_offer_click", { offer_id: offer.id });
-    } catch (error) {
-      console.error("Erreur lors de l'incrémentation :", error);
-    }
-
-    if (offer.modal === "Avec code" || offer.modal === "Sans code") {
-      setShowCodeModal(true);
-    } else if (offer.shop_link) {
-      window.open(offer.shop_link, "_blank");
-    }
-  };
-
-  const handleModalConfirm = () => {
-    setShowCodeModal(false);
-    if (offer.shop_link) {
-      window.open(offer.shop_link, "_blank");
+  const handleClick = () => {
+    if (onOfferClick) {
+      onOfferClick(offer);
     }
   };
 
@@ -114,17 +79,18 @@ export default function ShopCard({ offer }: Props) {
   return (
     <div className="relative w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col">
 
-      <Image
-        src={offer.image || "/placeholder.jpg"}
-        alt={offer.image_alt || offer.name}
-        width={540}
-        height={360}
-        className="w-full h-[180px] object-cover rounded-t-[15px]"
-        unoptimized
-      />
+      <div className="relative w-full h-[180px]">
+        <Image
+          src={offer.image || "/placeholder.jpg"}
+          alt={offer.image_alt || offer.name}
+          fill
+          className="object-cover rounded-t-[15px]"
+          unoptimized
+        />
+      </div>
 
       {offer.brand_image && (
-        <div className="flex justify-center -mt-8">
+        <div className="flex justify-center -mt-8 relative z-10">
           {offer.shop_website ? (
             <a href={offer.shop_website} target="_blank" rel="noopener noreferrer">
               <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
@@ -154,12 +120,12 @@ export default function ShopCard({ offer }: Props) {
       )}
 
       <div className="pt-2.5 px-2.5 flex-1 flex flex-col">
-        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words">
+        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words h-[48px]">
           {offer.name}
         </h3>
 
         {/* Tags */}
-        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
+        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px] min-h-[32px]">
           {(() => {
             const tags: string[] = [];
 
@@ -197,14 +163,43 @@ export default function ShopCard({ offer }: Props) {
               // do nothing
             }
 
-            return tags.map((tag, index) => (
-              <span
-                key={index}
-                className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] py-[5px] rounded-[5px]"
-              >
-                {tag}
-              </span>
-            ));
+            const genderIcons =
+              offer.gender === "Tous"
+                ? [{ src: "/icons/mixte.svg", label: "mixte" }]
+                : offer.gender === "Homme"
+                  ? [{ src: "/icons/homme.svg", label: "homme" }]
+                  : offer.gender === "Femme"
+                    ? [{ src: "/icons/femme.svg", label: "femme" }]
+                    : [];
+
+            return (
+              <>
+                {tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+                {genderIcons.map(({ src, label }) => (
+                  <span
+                    key={label}
+                    className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]"
+                    title={`Offre ${label}`}
+                  >
+                    <Image
+                      src={src}
+                      alt={`Icône ${label}`}
+                      width={14}
+                      height={14}
+                      aria-hidden="true"
+                    />
+                    <span className="sr-only">Offre {label}</span>
+                  </span>
+                ))}
+              </>
+            );
           })()}
         </div>
 
@@ -280,7 +275,7 @@ export default function ShopCard({ offer }: Props) {
           );
         })()}
 
-        <div className="text-[14px] font-semibold text-left flex items-center gap-1">
+        <div className="text-[14px] font-semibold text-left flex items-center gap-1 min-h-[20px]">
           {(() => {
             const raw = offer.shipping ?? "";
             const shippingValue = parseFloat(
@@ -323,36 +318,22 @@ export default function ShopCard({ offer }: Props) {
           })()}
         </div>
 
-        <CTAButton
-          onClick={handleClick}
-          className="mt-[20px] mb-[20px] mx-auto font-semibold text-[16px] flex items-center justify-center gap-2"
-        >
-          En profiter
-          <Image
-            src="/icons/arrow.svg"
-            alt="Flèche"
-            width={25}
-            height={25}
-            className="ml-[-5px]"
-          />
-        </CTAButton>
+        <div className="min-h-[84px] flex items-center justify-center">
+            <CTAButton
+            onClick={handleClick}
+            className="mt-[20px] mb-[20px] mx-auto"
+            >
+            En profiter
+            <Image
+                src="/icons/arrow.svg"
+                alt="Flèche"
+                width={25}
+                height={25}
+                className="ml-[-5px]"
+            />
+            </CTAButton>
+        </div>
       </div>
-
-
-      {showCodeModal && (
-        <OfferCodeModal
-          name={offer.name}
-          brandImage={offer.brand_image}
-          code={offer.code}
-          link={offer.shop_link || ""}
-          shopWebsite={offer.shop_website || ""}
-          modal={(offer.modal || "Sans code") as "Avec code" | "Sans code"}
-          condition={offer.condition}
-          endDate={offer.end_date}
-          onCancel={() => setShowCodeModal(false)}
-          onConfirm={handleModalConfirm}
-        />
-      )}
     </div>
   );
 }

@@ -1,105 +1,79 @@
-"use client";
+import { createServerClient } from "@/lib/supabaseServer";
+import StorePageClient from "./StorePageClient";
+import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
+import { sortProgramsByRelevance } from "@/utils/sortingUtils";
+import { StoreProfile } from "@/types/store";
 
-import { useEffect, useState } from "react";
+export const revalidate = 60; // Mise à jour auto toutes les minutes
+
 import StoreHeader from "@/components/store/StoreHeader";
-import StoreFilters from "@/components/store/StoreFilters";
-import StoreGrid from "@/components/store/StoreGrid";
-import Pagination from "@/components/pagination/Pagination";
-import { createClient } from "@/lib/supabaseClient";
-import { useUser } from "@/context/UserContext";
 
-export default function StorePage() {
-  const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPrograms, setTotalPrograms] = useState(0);
-  const [loadingCount, setLoadingCount] = useState(true);
-  const [filters, setFilters] = useState(["", "", "", "", "", ""]);
-  const { user, isPremiumUser } = useUser();
+export default async function StorePage() {
+  const supabase = await createServerClient();
+  
+  // 1. Get user profile for relevance sorting
+  const { data: { session } } = await supabase.auth.getSession();
+  let userProfile: StoreProfile | null = null;
+  
+  if (session?.user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
+      .eq("id", session.user.id)
+      .single();
+    
+    if (profile) {
+      userProfile = profile as StoreProfile;
+    }
+  }
 
-  // Fetch total count of ON programs once (or when sort/filter changes)
-  useEffect(() => {
-    const fetchTotalCount = async () => {
-      setLoadingCount(true);
-      const supabase = createClient();
+  // 2. Fetch total count
+  const { count: totalCount } = await supabase
+    .from("program_store")
+    .select("*", { count: "exact", head: true })
+    .eq("status", "ON");
 
-      let query = supabase
-        .from("program_store")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "ON");
+  // 3. Fetch first batch of programs for initial display (Default relevance sort)
+  const { data: rawPrograms } = await supabase
+    .from("program_store")
+    .select(`
+      id,
+      title,
+      level,
+      goal,
+      gender,
+      sessions,
+      duration,
+      description,
+      image,
+      image_alt,
+      partner_image,
+      partner_image_alt,
+      partner_link,
+      link,
+      downloads,
+      created_at,
+      plan,
+      location
+    `)
+    .eq("status", "ON")
+    .limit(50);
 
-      const [
-        genderFilter,
-        goalFilter,
-        levelFilter,
-        locationFilter,
-        durationFilter,
-        availabilityFilter,
-      ] = filters;
-
-      // appliquer les filtres s'ils sont actifs
-      if (genderFilter) {
-        query = query.in("gender", [genderFilter, "Tous"]);
-      }
-      if (goalFilter) query = query.eq("goal", goalFilter);
-      if (levelFilter) {
-        query = query.in("level", [levelFilter, "Tous niveaux"]);
-      }
-      if (locationFilter) query = query.eq("location", locationFilter);
-      if (durationFilter) {
-        const maxDuration = Number.parseInt(durationFilter, 10);
-        if (!Number.isNaN(maxDuration)) {
-          query = query.lte("duration", maxDuration);
-        }
-      }
-      if (availabilityFilter === "Oui") {
-        if (!user || !isPremiumUser) {
-          query = query.eq("plan", "starter");
-        }
-      }
-
-      const { count, error } = await query;
-
-      if (error) {
-        console.error("Erreur lors du comptage des programmes :", error.message);
-        setTotalPrograms(0);
-      } else {
-        setTotalPrograms(count || 0);
-      }
-
-      setLoadingCount(false);
-    };
-
-    fetchTotalCount();
-  }, [sortBy, filters, user, isPremiumUser]);
+  const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
+  const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
+  
+  // Only send the first 8 for the initial page
+  const initialPrograms = sortedPrograms.slice(0, 8);
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <StoreHeader />
-        <StoreFilters
-          sortBy={sortBy}
-          onSortChange={(value) => {
-            setSortBy(value);
-            setCurrentPage(1);
-          }}
-          onFiltersChange={(newFilters) => {
-            setFilters(newFilters);
-            setCurrentPage(1);
-          }}
-        />
-        <StoreGrid
-          sortBy={sortBy}
-          currentPage={currentPage}
-          filters={filters}
-        />
-        {!loadingCount && (
-          <Pagination
-            currentPage={currentPage}
-            totalItems={totalPrograms}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        )}
       </div>
+      <StorePageClient 
+        initialPrograms={initialPrograms} 
+        initialTotalCount={totalCount || 0} 
+      />
     </main>
   );
 }

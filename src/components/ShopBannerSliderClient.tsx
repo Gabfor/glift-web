@@ -27,11 +27,19 @@ export type OfferData = {
   type: string[] | null;
 };
 
+import { ShopOffer } from "@/types/shop";
+
 type Slide = {
   image: string;
   alt: string;
   link: string;
-  offer?: OfferData; // If present, this slide represents an offer
+  offer?: ShopOffer; // If present, this slide represents an offer
+};
+
+type Props = {
+  onOfferClick?: (offer: ShopOffer) => void;
+  initialType?: "none" | "single" | "double";
+  initialSlides?: Slide[];
 };
 
 const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
@@ -53,23 +61,17 @@ const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
   });
 };
 
-type Props = {
-  onOfferClick?: (offer: OfferData) => void;
-};
-
-export default function ShopBannerSliderClient({ onOfferClick }: Props) {
+export default function ShopBannerSliderClient({ onOfferClick, initialType = "none", initialSlides = [] }: Props) {
   const supabase = createClient();
   const paginationRef = useRef<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperClass | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(true);
-  // on gère maintenant "single" comme valeur de type « slider simple »
-  const [type, setType] = useState<"none" | "single" | "double">("none");
-  const [slides, setSlides] = useState<Slide[]>([]);
+  const [type, setType] = useState<"none" | "single" | "double">(initialType);
+  const [slides, setSlides] = useState<Slide[]>(initialSlides);
 
   useEffect(() => {
     const fetchSliderConfig = async () => {
-      // 1. Fetch Admin Slider Config (Priority Slides & Settings)
       const { data: adminConfig } = await supabase
         .from("sliders_admin")
         .select("*")
@@ -81,9 +83,6 @@ export default function ShopBannerSliderClient({ onOfferClick }: Props) {
         return;
       }
 
-      // 2. Fetch Relevant Offers (with slider_image)
-      // We assume we want enough offers to fill the remaining slots
-      // Priority count comes from the manual slides length
       const prioritySlides = normalizeSlides(adminConfig.slides);
       const slotCount = adminConfig.slot_count || 1;
       const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
@@ -91,14 +90,14 @@ export default function ShopBannerSliderClient({ onOfferClick }: Props) {
       let offerSlides: Slide[] = [];
 
       if (slotsNeeded > 0) {
-        // We select ALL fields relevant for the modal + display
         const { data: offers } = await supabase
           .from("offer_shop")
           .select(`
             id, name, slider_image, image_alt, 
             shop_link, shop_website, 
             code, modal, condition, 
-            start_date, end_date, brand_image, type
+            start_date, end_date, brand_image, type,
+            image
           `)
           .eq("status", "ON")
           .neq("slider_image", null)
@@ -114,16 +113,19 @@ export default function ShopBannerSliderClient({ onOfferClick }: Props) {
               offer: {
                 id: o.id,
                 name: o.name,
-                code: o.code,
-                modal: o.modal,
-                condition: o.condition,
-                start_date: o.start_date,
-                end_date: o.end_date,
-                shop_link: o.shop_link,
-                shop_website: o.shop_website,
-                brand_image: o.brand_image,
-                type: o.type,
-              }
+                code: o.code ?? "",
+                modal: o.modal ?? "",
+                condition: o.condition ?? "",
+                start_date: o.start_date ?? "",
+                end_date: o.end_date ?? "",
+                shop_link: o.shop_link ?? "",
+                shop_website: o.shop_website ?? "",
+                brand_image: o.brand_image ?? "",
+                type: Array.isArray(o.type) ? o.type : [],
+                image: o.image || "",
+                image_alt: o.image_alt || "",
+                created_at: "",
+              } as ShopOffer
             }));
         }
       }
@@ -135,8 +137,10 @@ export default function ShopBannerSliderClient({ onOfferClick }: Props) {
       setSlides(combinedSlides);
     };
 
-    fetchSliderConfig();
-  }, [supabase]);
+    if (slides.length === 0) {
+      fetchSliderConfig();
+    }
+  }, [supabase, slides.length]);
 
   // si aucun slider ou type "none", on n'affiche rien
   if (type === "none" || slides.length === 0) return null;

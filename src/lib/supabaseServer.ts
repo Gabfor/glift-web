@@ -1,5 +1,3 @@
-import "server-only";
-
 import {
   createServerClient as createSupabaseServerClient,
   type CookieMethodsServer,
@@ -7,63 +5,40 @@ import {
 import { cookies } from "next/headers";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-
 import type { Database } from "./supabase/types";
 
+/**
+ * Creates a Supabase client for Server Components, Server Actions, and Route Handlers.
+ * This function uses 'next/headers' which intrinsically makes it server-side only.
+ */
 export async function createServerClient(): Promise<SupabaseClient<Database>> {
+  // Defensive check for environment
+  if (typeof window !== "undefined") {
+    throw new Error("createServerClient must only be used on the server.");
+  }
+
   const cookieStore = await cookies();
-  const rememberPreference = cookieStore.get("glift-remember")?.value;
-  const shouldPersistSession = rememberPreference !== "0";
-
-  type CookieStore = Awaited<ReturnType<typeof cookies>>;
-  type NextCookieOptions = Parameters<CookieStore["set"]>[2];
-
-  const sanitizeCookieOptions = (
-    options?: NextCookieOptions,
-  ): NextCookieOptions | undefined => {
-    if (!options || shouldPersistSession) {
-      return options;
-    }
-
-    const sanitizedOptions = { ...options };
-    delete sanitizedOptions.maxAge;
-    delete sanitizedOptions.expires;
-
-    return sanitizedOptions;
-  };
-
-  const isReadOnlyCookiesError = (error: unknown): boolean =>
-    error instanceof Error &&
-    error.message.includes(
-      "Cookies can only be modified in a Server Action or Route Handler",
-    );
-
-  const cookieMethods: CookieMethodsServer = {
-    getAll() {
-      return cookieStore.getAll().map(({ name, value }) => ({ name, value }));
-    },
-    setAll(cookiesToSet) {
-      cookiesToSet.forEach(({ name, value, options }) => {
-        const sanitizedOptions = sanitizeCookieOptions(
-          options as NextCookieOptions,
-        );
-
-        try {
-          cookieStore.set(name, value, sanitizedOptions);
-        } catch (error) {
-          if (!isReadOnlyCookiesError(error)) {
-            throw error;
-          }
-        }
-      });
-    },
-  } satisfies CookieMethodsServer;
 
   return createSupabaseServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: cookieMethods,
+      cookies: {
+        getAll() {
+          return cookieStore.getAll();
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options),
+            );
+          } catch {
+            // The setAll method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
     },
   );
 }
