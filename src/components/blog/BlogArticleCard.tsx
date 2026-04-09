@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import CTAButton from "@/components/CTAButton";
+import Tooltip from "@/components/Tooltip";
 
 type Props = {
   article: {
@@ -46,17 +47,23 @@ export default function BlogArticleCard({ article }: Props) {
           
           {/* Logique de genre identique au Store */}
           {article.sexe === "Tous" ? (
-            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
-              <Image src="/icons/mixte.svg" alt="Mixte" width={14} height={14} />
-            </span>
+            <Tooltip content="Article mixte" placement="top" asChild={true}>
+              <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
+                <Image src="/icons/mixte.svg" alt="Mixte" width={14} height={14} />
+              </span>
+            </Tooltip>
           ) : article.sexe === "Homme" ? (
-            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
-              <Image src="/icons/homme.svg" alt="Homme" width={14} height={14} />
-            </span>
+            <Tooltip content="Article homme" placement="top" asChild={true}>
+              <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
+                <Image src="/icons/homme.svg" alt="Homme" width={14} height={14} />
+              </span>
+            </Tooltip>
           ) : article.sexe === "Femme" ? (
-            <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
-              <Image src="/icons/femme.svg" alt="Femme" width={14} height={14} />
-            </span>
+            <Tooltip content="Article femme" placement="top" asChild={true}>
+              <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">
+                <Image src="/icons/femme.svg" alt="Femme" width={14} height={14} />
+              </span>
+            </Tooltip>
           ) : null}
         </div>
         

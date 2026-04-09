@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabaseClient";
 import type { Database } from "@/lib/supabase/types";
 import OfferCodeModal from "@/components/OfferCodeModal";
 import CTAButton from "@/components/CTAButton";
+import Tooltip from "@/components/Tooltip";
 
 
 import { ShopOffer } from "@/types/shop";
@@ -183,20 +184,20 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
                   </span>
                 ))}
                 {genderIcons.map(({ src, label }) => (
-                  <span
-                    key={label}
-                    className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]"
-                    title={`Offre ${label}`}
-                  >
-                    <Image
-                      src={src}
-                      alt={`Icône ${label}`}
-                      width={14}
-                      height={14}
-                      aria-hidden="true"
-                    />
-                    <span className="sr-only">Offre {label}</span>
-                  </span>
+                  <Tooltip key={label} content={`Offre ${label}`} placement="top" asChild={true}>
+                    <span
+                      className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]"
+                    >
+                      <Image
+                        src={src}
+                        alt={`Icône ${label}`}
+                        width={14}
+                        height={14}
+                        aria-hidden="true"
+                      />
+                      <span className="sr-only">Offre {label}</span>
+                    </span>
+                  </Tooltip>
                 ))}
               </>
             );
