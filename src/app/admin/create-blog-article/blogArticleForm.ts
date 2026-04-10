@@ -1,9 +1,8 @@
-export type BaseBlock = { id: string; };
+export type BaseBlock = { id: string; ancreId?: string; };
 
 export type BlockTitreTexte = BaseBlock & {
   type: "titre-texte";
   titre: string;
-  ancreId: string;
   texte: string;
 };
 

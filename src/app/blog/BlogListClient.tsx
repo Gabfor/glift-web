@@ -13,7 +13,11 @@ type Article = {
   image_alt?: string;
   type: string;
   categorie: string;
+  sexe: string;
   is_featured?: boolean;
+  niveau?: string;
+  nombre_seances?: string;
+  duree_moyenne?: string;
 };
 
 type Props = {
@@ -54,7 +58,7 @@ export default function BlogListClient({ initialArticles }: Props) {
         {dynamicCategories.length > 1 && dynamicCategories.map((cat) => (
           <button
             key={cat}
-            onClick={() => setSelectedCategory(cat)}
+            onClick={() => setSelectedCategory(selectedCategory === cat ? "Tous" : cat)}
             className={`px-[30px] h-[44px] rounded-full text-[16px] font-semibold transition-all duration-200 border ${
               selectedCategory === cat
                 ? "bg-[#3A416F] text-white border-[#3A416F]"

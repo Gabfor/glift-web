@@ -26,6 +26,11 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
       return "";
     }
 
+    // Autoriser les ancres (#id) et les chemins relatifs (/)
+    if (trimmed.startsWith("#") || trimmed.startsWith("/")) {
+      return trimmed;
+    }
+
     try {
       // Lien déjà complet (avec http ou https)
       new URL(trimmed);

@@ -155,38 +155,40 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         </BackLink>
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-0 flex flex-col items-center">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
-            Créer un article
+            {articleId ? "Modifier l'article" : "Créer l'article"}
           </h2>
 
           {/* Toggle Conseil / Programme */}
-          <div className="relative flex items-center bg-[#F4F5FE] h-[40px] p-[5px] rounded-full mb-10 w-[230px]">
-            <div
-              className={`absolute h-[30px] w-[110px] bg-white rounded-full transition-transform duration-300 ease-in-out shadow-sm`}
-              style={{
-                transform: article.type === "Conseil" ? "translateX(0)" : "translateX(110px)",
-              }}
-            />
-            <button
-              onClick={() => setArticle({ ...article, type: "Conseil" })}
-              className={`relative z-10 h-[30px] w-[110px] flex items-center justify-center text-[14px] font-semibold rounded-full transition-colors duration-200 ${
-                article.type === "Conseil"
-                  ? "text-[#3A416F]"
-                  : "text-[#5D6494] hover:text-[#3A416F]"
-              }`}
-            >
-              Conseil
-            </button>
-            <button
-              onClick={() => setArticle({ ...article, type: "Programme" })}
-              className={`relative z-10 h-[30px] w-[110px] flex items-center justify-center text-[14px] font-semibold rounded-full transition-colors duration-200 ${
-                article.type === "Programme"
-                  ? "text-[#3A416F]"
-                  : "text-[#5D6494] hover:text-[#3A416F]"
-              }`}
-            >
-              Programme
-            </button>
-          </div>
+          {!articleId && (
+            <div className="relative flex items-center bg-[#F4F5FE] h-[40px] p-[5px] rounded-full mb-10 w-[230px]">
+              <div
+                className={`absolute h-[30px] w-[110px] bg-white rounded-full transition-transform duration-300 ease-in-out shadow-sm`}
+                style={{
+                  transform: article.type === "Conseil" ? "translateX(0)" : "translateX(110px)",
+                }}
+              />
+              <button
+                onClick={() => setArticle({ ...article, type: "Conseil" })}
+                className={`relative z-10 h-[30px] w-[110px] flex items-center justify-center text-[14px] font-semibold rounded-full transition-colors duration-200 ${
+                  article.type === "Conseil"
+                    ? "text-[#3A416F]"
+                    : "text-[#5D6494] hover:text-[#3A416F]"
+                }`}
+              >
+                Conseil
+              </button>
+              <button
+                onClick={() => setArticle({ ...article, type: "Programme", categorie: article.categorie || "Entraînement" })}
+                className={`relative z-10 h-[30px] w-[110px] flex items-center justify-center text-[14px] font-semibold rounded-full transition-colors duration-200 ${
+                  article.type === "Programme"
+                    ? "text-[#3A416F]"
+                    : "text-[#5D6494] hover:text-[#3A416F]"
+                }`}
+              >
+                Programme
+              </button>
+            </div>
+          )}
 
           <div className="flex flex-col gap-[40px] w-full">
             {/* SECTION 0: STATUT DE L'ARTICLE */}
@@ -396,7 +398,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     <div className="flex flex-col">
                       <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de semaines</label>
                       <input
-                        type="number"
+                        type="text"
                         placeholder="Nombre de semaines"
                         value={article.nombre_semaines}
                         onChange={(e) => setArticle({ ...article, nombre_semaines: e.target.value })}

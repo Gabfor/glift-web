@@ -23,7 +23,7 @@ type BlogArticle = {
   langue?: string;
 };
 
-type SortableColumn = "is_published" | "is_featured" | "titre" | "langue" | "top" | "flop" | "id";
+type SortableColumn = "is_published" | "is_featured" | "titre" | "created_at" | "langue" | "top" | "flop" | "id";
 
 export default function AdminContentBlogPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -34,8 +34,8 @@ export default function AdminContentBlogPage() {
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<SortableColumn>("titre");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [hoveredFeaturedId, setHoveredFeaturedId] = useState<string | null>(null);
@@ -160,6 +160,9 @@ export default function AdminContentBlogPage() {
           break;
         case "titre":
           comparison = (a.titre || "").localeCompare(b.titre || "");
+          break;
+        case "created_at":
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
         case "langue":
           const langueA = a.langue || "Français";
@@ -343,6 +346,7 @@ export default function AdminContentBlogPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("Date", "created_at", "w-[120px]")}
                   {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
                   {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
@@ -374,6 +378,7 @@ export default function AdminContentBlogPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("Date", "created_at", "w-[120px]")}
                   {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
                   {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
@@ -418,6 +423,9 @@ export default function AdminContentBlogPage() {
                         <Link href={`/admin/create-blog-article?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
                           {a.titre}
                         </Link>
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                        {new Date(a.created_at).toLocaleDateString("fr-FR")}
                       </td>
                       <td className="px-4 align-middle">
                         <div className="flex items-center justify-center">

@@ -14,10 +14,15 @@ type Props = {
     type: string;
     categorie?: string;
     sexe?: string;
+    niveau?: string;
+    nombre_seances?: string;
+    duree_moyenne?: string;
   };
 };
 
 export default function BlogArticleCard({ article }: Props) {
+  const isProgramme = article.type === "Programme";
+
   return (
     <div className="w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full">
       <div className="relative w-full h-[180px] bg-[#F4F5FE]">
@@ -39,13 +44,39 @@ export default function BlogArticleCard({ article }: Props) {
           {article.titre}
         </h3>
 
-        {/* Badges Catégorie & Sexe */}
+        {/* Badges Dynamiques */}
         <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
-          <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
-            {article.categorie || "Lifestyle"}
-          </span>
-          
-          {/* Logique de genre identique au Store */}
+          {isProgramme ? (
+            <>
+              {/* 1. Niveau */}
+              {article.niveau && (
+                <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
+                  {article.niveau}
+                </span>
+              )}
+              {/* 2. Nombre de séances */}
+              {article.nombre_seances && (
+                <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
+                  {article.nombre_seances} {Number(article.nombre_seances) <= 1 ? "séance" : "séances"}
+                </span>
+              )}
+              {/* 3. Durée moyenne */}
+              {article.duree_moyenne && (
+                <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
+                  {article.duree_moyenne} min
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Pour les articles classiques (Conseil...) */}
+              <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
+                {article.categorie || "Lifestyle"}
+              </span>
+            </>
+          )}
+
+          {/* 4. Sexe (Commun à tous) */}
           {article.sexe === "Tous" ? (
             <Tooltip content="Article mixte" placement="top" asChild={true}>
               <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[5px] h-[25px] w-[25px] inline-flex items-center justify-center rounded-[5px]">

@@ -130,6 +130,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
                 HTMLAttributes: {
                     class: 'text-[#7069FA] no-underline cursor-pointer hover:text-[#6660E4] transition-colors',
                 },
+                validate: (href) => /^https?:\/\//.test(href) || href.startsWith('#') || href.startsWith('/'),
             }),
             Youtube.configure({
                 inline: false,

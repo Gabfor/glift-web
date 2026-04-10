@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import CTAButton from "@/components/CTAButton";
@@ -18,6 +20,36 @@ type Props = {
 };
 
 export default function BlogArticleBlocksRenderer({ blocks }: Props) {
+  React.useEffect(() => {
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest("a");
+
+      if (anchor) {
+        const href = anchor.getAttribute("href");
+        if (href && href.startsWith("#")) {
+          e.preventDefault();
+          const targetElement = document.getElementById(href.slice(1));
+          if (targetElement) {
+            const headerOffset = 100;
+            const elementPosition = targetElement.getBoundingClientRect().top;
+            const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+            // Update URL without jump
+            window.history.pushState(null, "", href);
+          }
+        }
+      }
+    };
+
+    document.addEventListener("click", handleAnchorClick);
+    return () => document.removeEventListener("click", handleAnchorClick);
+  }, []);
+
   if (!blocks || blocks.length === 0) return null;
 
   return (
@@ -28,7 +60,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
         switch (block.type) {
           case "titre-texte":
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px]">
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[22px] font-bold text-[#2E3271]">
                     {block.titre}
@@ -45,7 +77,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
 
           case "texte":
             return (
-              <div key={key} className="flex flex-col">
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
                 {block.texte && (
                   <div
                     className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] space-y-4 font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
@@ -60,6 +92,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
               <React.Fragment key={key}>
                 <div className="w-full h-[1px] bg-[#E7E8EA]" />
                 <div
+                  id={block.ancreId || undefined}
                   className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px]"
                 >
                 {block.titre && (
@@ -81,7 +114,8 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
             return (
               <div
                 key={key}
-                className="bg-[#FAFAFF] rounded-[15px] p-[25px] border border-[#E9E8EC] flex flex-col gap-[15px]"
+                id={block.ancreId || undefined}
+                className="bg-[#FAFAFF] rounded-[15px] p-[25px] border border-[#E9E8EC] flex flex-col gap-[15px] scroll-mt-[100px]"
               >
                 {block.titre && (
                   <h3 className="text-[18px] font-bold text-[#2E3271] text-center mb-2">
@@ -106,7 +140,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
 
           case "seance":
             return (
-              <div key={key} className="flex flex-col gap-[15px]">
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[15px] scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[20px] font-bold text-[#2E3271]">
                     {block.titre}
@@ -151,7 +185,8 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
             return (
               <div
                 key={key}
-                className="bg-white rounded-[15px] p-[25px] border border-[#D7D4DC] flex flex-col md:flex-row items-center gap-[20px] justify-between shadow-sm"
+                id={block.ancreId || undefined}
+                className="bg-white rounded-[15px] p-[25px] border border-[#D7D4DC] flex flex-col md:flex-row items-center gap-[20px] justify-between shadow-sm scroll-mt-[100px]"
               >
                 <div className="flex flex-col gap-[5px] flex-1">
                   {block.titre && (
