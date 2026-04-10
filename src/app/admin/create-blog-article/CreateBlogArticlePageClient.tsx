@@ -59,6 +59,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           url: data.url || "",
           categorie: data.categorie || "",
           sexe: data.sexe || "",
+          langue: data.langue || "Français",
           niveau: data.niveau || "",
           objectif: data.objectif || "",
           nombre_seances: data.nombre_seances || "",
@@ -94,6 +95,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         url: article.url,
         categorie: article.categorie || null,
         sexe: article.sexe || null,
+        langue: article.langue || "Français",
         niveau: article.niveau || null,
         objectif: article.objectif || null,
         nombre_seances: article.nombre_seances || null,
@@ -218,6 +220,22 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     options={[
                       { value: "OUI", label: "OUI" },
                       { value: "NON", label: "NON" },
+                    ]}
+                  />
+                </div>
+              </div>
+
+              {/* Langue */}
+              <div className="mt-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez la langue"
+                    selected={article.langue}
+                    onSelect={(value) => setArticle({ ...article, langue: value })}
+                    options={[
+                      { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
                     ]}
                   />
                 </div>
