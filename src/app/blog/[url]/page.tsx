@@ -79,7 +79,19 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
 
           {/* Contenu dynamique */}
           <article className="mb-[50px]">
-            <BlogArticleBlocksRenderer blocks={article.content_blocks || []} />
+            <BlogArticleBlocksRenderer 
+              blocks={article.content_blocks || []} 
+              articleMeta={{
+                objectif: article.objectif,
+                nombre_seances: article.nombre_seances,
+                duree_moyenne: article.duree_moyenne,
+                nombre_semaines: article.nombre_semaines,
+                lieu: article.lieu,
+                intensite: article.intensite,
+                sexe: article.sexe,
+                niveau: article.niveau,
+              }}
+            />
           </article>
 
         </div>

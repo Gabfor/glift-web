@@ -237,7 +237,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
             content += `<p class="image-caption" style="text-align: center; color: #D7D4DC; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0px;">${description}</p>`;
         }
 
-        content += `<p></p>`;
+        content += ` `;
 
         editor.chain().focus().insertContent(content).run();
     };

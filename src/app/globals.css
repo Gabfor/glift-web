@@ -429,6 +429,10 @@ input:checked+.slider:before {
 @layer components {
 
   /* Rich Text (Tiptap / Prose) Custom Styles */
+  .prose > *:last-child {
+    margin-bottom: 0 !important;
+  }
+
   .prose a {
     color: var(--color-brand-primary) !important;
     text-decoration: none !important;
@@ -476,10 +480,6 @@ input:checked+.slider:before {
   .prose li p {
     margin: 0;
     font-size: 14px;
-  }
-
-  .prose p:empty::before {
-    content: "\00a0";
   }
 
   /* Cache la barre d'alignement native de l'extension de redimensionnement d'image */

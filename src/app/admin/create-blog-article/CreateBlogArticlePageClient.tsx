@@ -513,6 +513,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <WidgetsRenderer 
                     blocks={article.content_blocks} 
                     onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 
+                    currentNiveau={article.niveau}
                   />
                 </div>
               )}
@@ -570,7 +571,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               newBlock = { id: newId, type: "source", titre: "", texte: "" };
               break;
             case "programme":
-              newBlock = { id: newId, type: "programme", titre: "", texte: "", features_list: "" };
+              newBlock = { id: newId, type: "programme", ancreId: "programme", titre: "", texte: "" };
               break;
             case "telechargement":
               newBlock = { id: newId, type: "telechargement", titre: "", url: "", nom_bouton: "", texte: "" };

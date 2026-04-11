@@ -6,9 +6,19 @@ import { ContentBlock, SeanceRow } from "../create-blog-article/blogArticleForm"
 type Props = {
   blocks: ContentBlock[];
   onChangeBlocks: (blocks: ContentBlock[]) => void;
+  currentNiveau?: string;
 };
 
-export default function WidgetsRenderer({ blocks, onChangeBlocks }: Props) {
+export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau }: Props) {
+  const getNiveauIcon = (niveau?: string) => {
+    if (!niveau) return "/icons/admin_niveau_1.svg";
+    const n = niveau.toLowerCase();
+    if (n.includes("débutant") || n.includes("tous")) return "/icons/admin_niveau_1.svg";
+    if (n.includes("intermédiaire")) return "/icons/admin_niveau_2.svg";
+    if (n.includes("confirmé")) return "/icons/admin_niveau_3.svg";
+    return "/icons/admin_niveau_1.svg";
+  };
+
   const updateBlock = (id: string, updates: Partial<ContentBlock>) => {
     onChangeBlocks(
       blocks.map((b) => (b.id === id ? { ...b, ...updates } : b)) as ContentBlock[]
@@ -178,29 +188,42 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks }: Props) {
             )}
 
             {block.type === "programme" && (
-              <>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre</label>
-                  <input 
-                    type="text" 
-                    value={block.titre} 
-                    onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
-                    className={inputClass}
-                  />
+              <div className="flex flex-col gap-4">
+                <div className="bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[10px]">
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_objectif.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Objectif</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_temps.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Durée moyenne des séances</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_seance.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Nombre de séances</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_semaines.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Nombre de semaines</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src={getNiveauIcon(currentNiveau)} alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Niveau</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_lieu.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Lieu d'entraînement</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_sexe.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Sexe</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <img src="/icons/admin_intensite.svg" alt="" className="w-[28px] h-[28px]" />
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Intensité</span>
+                  </div>
                 </div>
-                <div className="flex flex-col border border-dashed border-[#A1A5FD] rounded-[5px] p-4 bg-[#F4F5FE] opacity-70">
-                   <p className="text-[#3A416F] text-center font-semibold text-[14px]">
-                     Le visuel des caractéristiques (Niveau, Lieu, etc) sera automatiquement déduit des tags de l'article sur la maquette finale.
-                   </p>
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte d'introduction</label>
-                  <RichTextEditor 
-                    value={block.texte} 
-                    onChange={(html) => updateBlock(block.id, { texte: html })}
-                  />
-                </div>
-              </>
+              </div>
             )}
 
             {block.type === "seance" && (

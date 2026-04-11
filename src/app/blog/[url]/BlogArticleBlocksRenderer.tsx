@@ -17,9 +17,19 @@ type ContentBlock = {
 
 type Props = {
   blocks: ContentBlock[];
+  articleMeta?: {
+    objectif?: string;
+    nombre_seances?: string;
+    duree_moyenne?: string;
+    nombre_semaines?: string;
+    lieu?: string;
+    intensite?: string;
+    sexe?: string;
+    niveau?: string;
+  };
 };
 
-export default function BlogArticleBlocksRenderer({ blocks }: Props) {
+export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
   React.useEffect(() => {
     const handleAnchorClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
@@ -68,7 +78,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] space-y-4 font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -80,7 +90,7 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
               <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] space-y-4 font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -111,30 +121,29 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
           );
 
           case "programme":
+            const getNiveauIcon = (niveau?: string) => {
+              if (!niveau) return "/icons/admin_niveau_1.svg";
+              const n = niveau.toLowerCase();
+              if (n.includes("débutant") || n.includes("tous")) return "/icons/admin_niveau_1.svg";
+              if (n.includes("intermédiaire")) return "/icons/admin_niveau_2.svg";
+              if (n.includes("confirmé")) return "/icons/admin_niveau_3.svg";
+              return "/icons/admin_niveau_1.svg";
+            };
+
             return (
               <div
                 key={key}
-                id={block.ancreId || undefined}
-                className="bg-[#FAFAFF] rounded-[15px] p-[25px] border border-[#E9E8EC] flex flex-col gap-[15px] scroll-mt-[100px]"
+                id={block.ancreId || "programme"}
+                className="bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[10px] scroll-mt-[100px]"
               >
-                {block.titre && (
-                  <h3 className="text-[18px] font-bold text-[#2E3271] text-center mb-2">
-                    {block.titre}
-                  </h3>
-                )}
-                {block.texte && (
-                  <div
-                    className="prose prose-sm max-w-none text-[#5D6494] mb-4 text-center font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
-                  />
-                )}
-                <div className="flex justify-center">
-                   <Link href="/program-store">
-                     <CTAButton className="font-semibold bg-[#7069FA] text-white">
-                        Découvrir les programmes
-                     </CTAButton>
-                   </Link>
-                </div>
+                <CharacteristicItem icon="/icons/admin_objectif.svg" label="Objectif" value={articleMeta?.objectif} />
+                <CharacteristicItem icon="/icons/admin_temps.svg" label="Durée moyenne" value={articleMeta?.duree_moyenne ? `${articleMeta.duree_moyenne} min` : undefined} />
+                <CharacteristicItem icon="/icons/admin_seance.svg" label="Nombre de séances" value={articleMeta?.nombre_seances} />
+                <CharacteristicItem icon="/icons/admin_semaines.svg" label="Durée du programme" value={articleMeta?.nombre_semaines} />
+                <CharacteristicItem icon={getNiveauIcon(articleMeta?.niveau)} label="Niveau" value={articleMeta?.niveau} />
+                <CharacteristicItem icon="/icons/admin_lieu.svg" label="Lieu d'entraînement" value={articleMeta?.lieu} />
+                <CharacteristicItem icon="/icons/admin_sexe.svg" label="Sexe" value={articleMeta?.sexe} />
+                <CharacteristicItem icon="/icons/admin_intensite.svg" label="Intensité" value={articleMeta?.intensite} />
               </div>
             );
 
@@ -218,6 +227,17 @@ export default function BlogArticleBlocksRenderer({ blocks }: Props) {
             return null;
         }
       })}
+    </div>
+  );
+}
+function CharacteristicItem({ icon, label, value }: { icon: string; label: string; value?: string | null }) {
+  return (
+    <div className="flex items-center gap-4">
+      <img src={icon} alt="" className="w-[28px] h-[28px] shrink-0" />
+      <div className="flex flex-col">
+        <span className="text-[14px] font-semibold text-[#D7D4DC] leading-none mb-1">{label}</span>
+        <span className="text-[16px] font-bold text-[#3A416F] leading-tight">{value || "—"}</span>
+      </div>
     </div>
   );
 }
