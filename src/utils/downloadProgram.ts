@@ -15,8 +15,9 @@ type InsertedTrainingRow = { id: string };
  * de `programs_admin`, `trainings_admin`, et `training_rows_admin` vers
  * `programs`, `trainings`, et `training_rows` de l'utilisateur.
  */
-export async function downloadProgram(storeProgramId: string): Promise<string | null> {
+export async function downloadProgram(rawId: string): Promise<string | null> {
   const supabase = createClient();
+  const storeProgramId = rawId.trim();
 
   // 1. Récupérer l'utilisateur connecté
   const {
@@ -29,21 +30,42 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
     return null;
   }
 
+  let linkedProgramId: string | null = null;
+  let shortName: string | null = null;
+  let isFromStore = false;
+
   // 2. Obtenir le linked_program_id depuis program_store
-  const { data: storeProgram, error: storeError } = await supabase
+  const { data: storeProgram } = await supabase
     .from("program_store")
     .select("linked_program_id, name_short")
     .eq("id", storeProgramId)
     .single<Pick<ProgramStoreRow, "linked_program_id" | "name_short">>();
 
-  if (storeError || !storeProgram?.linked_program_id) {
-    console.error("Impossible de retrouver le linked_program_id :", storeError);
-    return null;
+  if (storeProgram?.linked_program_id) {
+    linkedProgramId = storeProgram.linked_program_id;
+    shortName = storeProgram.name_short ?? null;
+    isFromStore = true;
+    console.log("✅ ID trouvé dans program_store. linked_program_id :", linkedProgramId);
+  } else {
+    // Fallback: Check if it's a direct admin programs ID
+    console.log("ℹ️ ID non trouvé dans program_store, vérification dans programs_admin...");
+    const { data: adminProgram } = await supabase
+      .from("programs_admin")
+      .select("id, name")
+      .eq("id", storeProgramId)
+      .single();
+
+    if (adminProgram) {
+      linkedProgramId = adminProgram.id;
+      shortName = adminProgram.name ?? null;
+      console.log("✅ ID trouvé directement dans programs_admin.");
+    }
   }
 
-  const linkedProgramId = storeProgram.linked_program_id;
-  const shortName = storeProgram.name_short ?? null;
-  console.log("✅ linked_program_id récupéré :", linkedProgramId);
+  if (!linkedProgramId) {
+    console.error("❌ Impossible de retrouver le programme source (n'existe ni dans le store ni dans l'admin) pour l'ID :", storeProgramId);
+    return null;
+  }
 
   // 3. Récupérer le programme source dans programs_admin
   const { data: programToCopy, error: programError } = await supabase
@@ -78,26 +100,26 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
         ? Math.max(...positions) + 1
         : 0;
 
+    const insertObject = {
+      name: shortName ?? programToCopy.name ?? "Programme copié",
+      user_id: user.id,
+      position: nextPosition,
+      dashboard: true,
+      app: true,
+      created_at: new Date().toISOString(),
+    };
+    console.log("🛠️ Tentative insertion programme (minimaliste) :", insertObject);
+
     // ✅ Insertion du nouveau programme avec position
     const { data: insertedProgram, error: insertProgramError } = await supabase
     .from("programs")
-    .insert([
-      {
-        name: shortName ?? programToCopy.name ?? "Programme copié",
-        name_short: shortName ?? programToCopy.name ?? "Programme copié",
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-        position: nextPosition,
-        is_new: true,
-        source_store_id: storeProgramId,
-      },
-    ])
+    .insert([insertObject])
     .select()
     .single<InsertedProgramRow>();
 
 
   if (insertProgramError || !insertedProgram) {
-    console.error("Erreur insertion programme utilisateur :", insertProgramError);
+    console.error("❌ Erreur insertion programme utilisateur :", JSON.stringify(insertProgramError, null, 2));
     return null;
   }
 
@@ -202,15 +224,17 @@ export async function downloadProgram(storeProgramId: string): Promise<string | 
     }
   }
 
-  // 9. Incrémenter manuellement le champ `downloads`
-  const { error: downloadsError } = await supabase.rpc("increment_downloads", {
-    store_program_id: storeProgramId,
-  });
+  // 9. Incrémenter manuellement le champ `downloads` (uniquement si issu du store)
+  if (isFromStore) {
+    const { error: downloadsError } = await supabase.rpc("increment_downloads", {
+      store_program_id: storeProgramId,
+    });
 
-  if (downloadsError) {
-    console.error("❌ Erreur incrémentation téléchargements :", downloadsError);
-  } else {
-    console.log("✅ Nombre de téléchargements mis à jour.");
+    if (downloadsError) {
+      console.error("❌ Erreur incrémentation téléchargements :", downloadsError);
+    } else {
+      console.log("✅ Nombre de téléchargements mis à jour.");
+    }
   }
 
   return newProgramId;

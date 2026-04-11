@@ -261,7 +261,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <input
                     type="text"
                     placeholder="Titre de l'article"
-                    value={article.titre}
+                    value={article.titre || ""}
                     onChange={(e) => setArticle({ ...article, titre: e.target.value })}
                     className={inputClass}
                     maxLength={52}
@@ -278,7 +278,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   </div>
                   <textarea
                     placeholder="Description de l'article"
-                    value={article.description}
+                    value={article.description || ""}
                     onChange={(e) => setArticle({ ...article, description: e.target.value })}
                     className={textareaClass}
                     maxLength={169}
@@ -291,7 +291,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <input
                     type="text"
                     placeholder="Url de l'article"
-                    value={article.url}
+                    value={article.url || ""}
                     onChange={(e) => setArticle({ ...article, url: e.target.value })}
                     className={inputClass}
                   />
@@ -345,11 +345,12 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     placeholder="Sélectionnez le niveau"
                     selected={article.niveau}
                     onSelect={(value) => setArticle({ ...article, niveau: value })}
+                    sortStrategy="none"
                     options={[
-                      { value: "Tous", label: "Tous" },
                       { value: "Débutant", label: "Débutant" },
                       { value: "Intermédiaire", label: "Intermédiaire" },
                       { value: "Confirmé", label: "Confirmé" },
+                      { value: "Tous", label: "Tous" },
                     ]}
                   />
                 </div>
@@ -378,7 +379,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       <input
                         type="number"
                         placeholder="Nombre de séances"
-                        value={article.nombre_seances}
+                        value={article.nombre_seances || ""}
                         onChange={(e) => setArticle({ ...article, nombre_seances: e.target.value })}
                         className={inputClass}
                       />
@@ -388,7 +389,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       <input
                         type="text"
                         placeholder="Durée moyenne"
-                        value={article.duree_moyenne}
+                        value={article.duree_moyenne || ""}
                         onChange={(e) => setArticle({ ...article, duree_moyenne: e.target.value })}
                         className={inputClass}
                       />
@@ -400,7 +401,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       <input
                         type="text"
                         placeholder="Nombre de semaines"
-                        value={article.nombre_semaines}
+                        value={article.nombre_semaines || ""}
                         onChange={(e) => setArticle({ ...article, nombre_semaines: e.target.value })}
                         className={inputClass}
                       />
@@ -427,6 +428,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                         placeholder="Sélectionnez l'intensité"
                         selected={article.intensite}
                         onSelect={(value) => setArticle({ ...article, intensite: value })}
+                        sortStrategy="none"
                         options={[
                           { value: "Faible", label: "Faible" },
                           { value: "Modérée", label: "Modérée" },
@@ -452,7 +454,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">760px x 400px</span>
                   </div>
                   <ImageUploader
-                    value={article.image}
+                    value={article.image || ""}
                     onChange={(url) => setArticle({ ...article, image: url })}
                     placeholder="Importer un fichier"
                   />
@@ -463,7 +465,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <input
                     type="text"
                     placeholder="Alt de l'image"
-                    value={article.image_alt}
+                    value={article.image_alt || ""}
                     onChange={(e) => setArticle({ ...article, image_alt: e.target.value })}
                     className={inputClass}
                   />
@@ -483,7 +485,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <input
                     type="text"
                     placeholder="Id de l’article"
-                    value={article.article_lie_1}
+                    value={article.article_lie_1 || ""}
                     onChange={(e) => setArticle({ ...article, article_lie_1: e.target.value })}
                     className={inputClass}
                   />
@@ -494,7 +496,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   <input
                     type="text"
                     placeholder="Id de l’article"
-                    value={article.article_lie_2}
+                    value={article.article_lie_2 || ""}
                     onChange={(e) => setArticle({ ...article, article_lie_2: e.target.value })}
                     className={inputClass}
                   />
@@ -514,6 +516,8 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     blocks={article.content_blocks} 
                     onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 
                     currentNiveau={article.niveau}
+                    currentSexe={article.sexe}
+                    currentIntensite={article.intensite}
                   />
                 </div>
               )}
@@ -574,7 +578,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               newBlock = { id: newId, type: "programme", ancreId: "programme", titre: "", texte: "" };
               break;
             case "telechargement":
-              newBlock = { id: newId, type: "telechargement", titre: "", url: "", nom_bouton: "", texte: "" };
+              newBlock = { id: newId, type: "telechargement", programme_id: "" };
               break;
             case "seance":
               newBlock = { id: newId, type: "seance", titre: "", table_rows: [], texte: "" };

@@ -7,9 +7,11 @@ type Props = {
   blocks: ContentBlock[];
   onChangeBlocks: (blocks: ContentBlock[]) => void;
   currentNiveau?: string;
+  currentSexe?: string;
+  currentIntensite?: string;
 };
 
-export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau }: Props) {
+export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau, currentSexe, currentIntensite }: Props) {
   const getNiveauIcon = (niveau?: string) => {
     if (!niveau) return "/icons/admin_niveau_1.svg";
     const n = niveau.toLowerCase();
@@ -17,6 +19,24 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
     if (n.includes("intermédiaire")) return "/icons/admin_niveau_2.svg";
     if (n.includes("confirmé")) return "/icons/admin_niveau_3.svg";
     return "/icons/admin_niveau_1.svg";
+  };
+
+  const getSexeIcon = (sexe?: string) => {
+    if (!sexe) return "/icons/admin_sexe.svg";
+    const s = sexe.toLowerCase();
+    if (s.includes("femme")) return "/icons/admin_femme.svg";
+    if (s.includes("homme")) return "/icons/admin_sexe.svg";
+    if (s.includes("tous") || s.includes("mixte")) return "/icons/admin_mixte.svg";
+    return "/icons/admin_sexe.svg";
+  };
+
+  const getIntensiteIcon = (intensite?: string) => {
+    if (!intensite) return "/icons/admin_intensite_modere.svg";
+    const i = intensite.toLowerCase();
+    if (i.includes("faible")) return "/icons/admin_intensite_faible.svg";
+    if (i.includes("modérée") || i.includes("modere")) return "/icons/admin_intensite_modere.svg";
+    if (i.includes("élevée") || i.includes("eleve")) return "/icons/admin_intensite_eleve.svg";
+    return "/icons/admin_intensite_modere.svg";
   };
 
   const updateBlock = (id: string, updates: Partial<ContentBlock>) => {
@@ -93,7 +113,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                     <input 
                       type="text" 
                       placeholder="Titre" 
-                      value={block.titre} 
+                      value={block.titre || ""} 
                       onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
                       className={inputClass}
                     />
@@ -103,7 +123,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                     <input 
                       type="text"
                       placeholder="Id"
-                      value={block.ancreId}
+                      value={block.ancreId || ""}
                       onChange={(e) => updateBlock(block.id, { ancreId: e.target.value })}
                       className={inputClass}
                     />
@@ -136,7 +156,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                   <input 
                     type="text" 
                     placeholder="Titre" 
-                    value={block.titre} 
+                    value={block.titre || ""} 
                     onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
                     className={inputClass}
                   />
@@ -154,37 +174,16 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
             )}
 
             {block.type === "telechargement" && (
-              <>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL du fichier</label>
-                    <input 
-                      type="text" 
-                      placeholder="Lien PDF ou autre" 
-                      value={block.url} 
-                      onChange={(e) => updateBlock(block.id, { url: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte du bouton</label>
-                    <input 
-                      type="text" 
-                      placeholder="Télécharger" 
-                      value={block.nom_bouton} 
-                      onChange={(e) => updateBlock(block.id, { nom_bouton: e.target.value })}
-                      className={inputClass}
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte descriptif</label>
-                  <RichTextEditor 
-                    value={block.texte} 
-                    onChange={(html) => updateBlock(block.id, { texte: html })}
-                  />
-                </div>
-              </>
+              <div className="flex flex-col">
+                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">ID du programme</label>
+                <input 
+                  type="text" 
+                  value={block.programme_id || ""} 
+                  onChange={(e) => updateBlock(block.id, { programme_id: e.target.value })}
+                  placeholder="75d0f9c9-ec6c-4220-af22-3632ddcc8ac9"
+                  className={inputClass}
+                />
+              </div>
             )}
 
             {block.type === "programme" && (
@@ -215,11 +214,11 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                     <span className="text-[#D7D4DC] text-[14px] font-semibold">Lieu d'entraînement</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <img src="/icons/admin_sexe.svg" alt="" className="w-[28px] h-[28px]" />
+                    <img src={getSexeIcon(currentSexe)} alt="" className="w-[28px] h-[28px]" />
                     <span className="text-[#D7D4DC] text-[14px] font-semibold">Sexe</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <img src="/icons/admin_intensite.svg" alt="" className="w-[28px] h-[28px]" />
+                    <img src={getIntensiteIcon(currentIntensite)} alt="" className="w-[28px] h-[28px]" />
                     <span className="text-[#D7D4DC] text-[14px] font-semibold">Intensité</span>
                   </div>
                 </div>
@@ -232,7 +231,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre de la séance</label>
                   <input 
                     type="text" 
-                    value={block.titre} 
+                    value={block.titre || ""} 
                     onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
                     className={inputClass}
                   />
@@ -249,19 +248,19 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau 
                    </div>
                    {block.table_rows.map((row, rID) => (
                      <div key={rID} className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_30px] border-b border-[#E9E8EC] last:border-none p-2 gap-2 items-center">
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.jour} onChange={(e) => {
+                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.jour || ""} onChange={(e) => {
                           const newRows = [...block.table_rows]; newRows[rID].jour = e.target.value; updateBlock(block.id, { table_rows: newRows });
                         }} placeholder="1" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.exercice} onChange={(e) => {
+                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.exercice || ""} onChange={(e) => {
                           const newRows = [...block.table_rows]; newRows[rID].exercice = e.target.value; updateBlock(block.id, { table_rows: newRows });
                         }} placeholder="Dev couché" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.series} onChange={(e) => {
+                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.series || ""} onChange={(e) => {
                           const newRows = [...block.table_rows]; newRows[rID].series = e.target.value; updateBlock(block.id, { table_rows: newRows });
                         }} placeholder="4" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.reps} onChange={(e) => {
+                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.reps || ""} onChange={(e) => {
                           const newRows = [...block.table_rows]; newRows[rID].reps = e.target.value; updateBlock(block.id, { table_rows: newRows });
                         }} placeholder="8-12" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.repos} onChange={(e) => {
+                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.repos || ""} onChange={(e) => {
                           const newRows = [...block.table_rows]; newRows[rID].repos = e.target.value; updateBlock(block.id, { table_rows: newRows });
                         }} placeholder="1'30" />
                         <button onClick={() => {

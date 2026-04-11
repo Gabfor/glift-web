@@ -27,10 +27,7 @@ export type BlockProgramme = BaseBlock & {
 
 export type BlockTelechargement = BaseBlock & {
   type: "telechargement";
-  titre: string;
-  url: string;
-  nom_bouton: string;
-  texte: string;
+  programme_id: string;
 };
 
 export type SeanceRow = {
