@@ -31,18 +31,19 @@ export type BlockTelechargement = BaseBlock & {
 };
 
 export type SeanceRow = {
-  jour: string;
+  checked: boolean;
   exercice: string;
-  series: string;
-  reps: string;
+  materiel?: string;
+  series: number;
+  reps: string[];
   repos: string;
+  link?: string;
 };
 
 export type BlockSeance = BaseBlock & {
   type: "seance";
   titre: string;
   table_rows: SeanceRow[];
-  texte: string;
 };
 
 export type ContentBlock = 

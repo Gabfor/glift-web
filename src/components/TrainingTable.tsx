@@ -360,14 +360,16 @@ export default function TrainingTable({
           >
             <thead className="bg-[#7069FA] text-white text-left h-10">
               <tr>
-                <th className="text-[15px] border-r rounded-tl-[5px] px-3 py-2 font-semibold" style={{ maxWidth: "60px", width: "60px" }}></th>
+                <th className="text-[15px] border-r rounded-tl-[5px] px-3 py-2 font-semibold" style={{ maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
                 <th className="text-[15px] border-r px-3 py-2 font-semibold">Exercices</th>
                 {isVisible("materiel") && (
                   <th className="text-[15px] border-r px-3 py-2 font-semibold text-left" style={{ maxWidth: "135px", width: "135px" }}>Matériel</th>
                 )}
                 <th className="text-[15px] border-r font-semibold text-center" style={{ maxWidth: "60px", width: "60px" }}>Séries</th>
                 <th className="text-[15px] border-r font-semibold text-center" style={{ maxWidth: "157px", width: "157px" }}>Répétitions</th>
-                <th className="text-[15px] border-r px-3 py-2 font-semibold text-center" style={{ maxWidth: "157px", width: "157px" }}>Poids</th>
+                {isVisible("poids") && (
+                  <th className="text-[15px] border-r px-3 py-2 font-semibold text-center" style={{ maxWidth: "157px", width: "157px" }}>Poids</th>
+                )}
                 {isVisible("repos") && (
                   <th className="text-[15px] border-r px-2 py-2 font-semibold text-center" style={{ maxWidth: "60px", width: "60px" }}>Repos</th>
                 )}

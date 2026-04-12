@@ -144,38 +144,40 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
         </div>
       </td>
 
-      <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
-        <div className="flex flex-row w-full">
-          {Array.from({ length: row.series }).map((_, subIndex) => {
-            const value = row.poids[subIndex];
-            const isUserInput = value !== "" && value !== undefined;
+      {isVisible("poids") && (
+        <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
+          <div className="flex flex-row w-full">
+            {Array.from({ length: row.series }).map((_, subIndex) => {
+              const value = row.poids[subIndex];
+              const isUserInput = value !== "" && value !== undefined;
 
-            return (
-              <div key={`weight-${subIndex}`} className="flex w-full">
-                <div
-                  className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
-                  style={{
-                    width: `${100 / row.series}%`,
-                    backgroundColor:
-                      row.effort[subIndex] !== "parfait"
-                        ? getEffortBgColor(row.effort[subIndex])
-                        : row.checked
-                        ? "#F4F5FE"
-                        : "transparent",
-                    color: isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {value || "0"}
+              return (
+                <div key={`weight-${subIndex}`} className="flex w-full">
+                  <div
+                    className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
+                    style={{
+                      width: `${100 / row.series}%`,
+                      backgroundColor:
+                        row.effort[subIndex] !== "parfait"
+                          ? getEffortBgColor(row.effort[subIndex])
+                          : row.checked
+                          ? "#F4F5FE"
+                          : "transparent",
+                      color: isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {value || "0"}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      </td>
+              );
+            })}
+          </div>
+        </td>
+      )}
 
       {isVisible("repos") && (
         <td className="px-0 py-0" style={{ maxWidth: "60px", width: "60px" }}>

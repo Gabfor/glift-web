@@ -2,6 +2,7 @@ import React from "react";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { ContentBlock, SeanceRow } from "../create-blog-article/blogArticleForm";
+import AdminSeanceTable from "./AdminSeanceTable";
 
 type Props = {
   blocks: ContentBlock[];
@@ -228,64 +229,21 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             {block.type === "seance" && (
               <>
                 <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre de la séance</label>
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nom de la séance</label>
                   <input 
                     type="text" 
                     value={block.titre || ""} 
                     onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
                     className={inputClass}
+                    placeholder="Nom de la séance"
                   />
                 </div>
 
-                <div className="flex flex-col w-full border border-[#D7D4DC] rounded-[5px] overflow-hidden">
-                   <div className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr] bg-[#F4F5FE] px-4 py-2 border-b border-[#D7D4DC]">
-                     <span className="text-[12px] font-bold text-[#3A416F] uppercase">Jour</span>
-                     <span className="text-[12px] font-bold text-[#3A416F] uppercase">Exercice</span>
-                     <span className="text-[12px] font-bold text-[#3A416F] uppercase">Séries</span>
-                     <span className="text-[12px] font-bold text-[#3A416F] uppercase">Rép.</span>
-                     <span className="text-[12px] font-bold text-[#3A416F] uppercase">Repos</span>
-                     {/* Pas de place pour le trash ici sans casser le tableau, posons le en absolue au survol de la Ligne, ou via une grid w/ minmax */}
-                   </div>
-                   {block.table_rows.map((row, rID) => (
-                     <div key={rID} className="grid grid-cols-[1fr_2fr_1fr_1fr_1fr_30px] border-b border-[#E9E8EC] last:border-none p-2 gap-2 items-center">
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.jour || ""} onChange={(e) => {
-                          const newRows = [...block.table_rows]; newRows[rID].jour = e.target.value; updateBlock(block.id, { table_rows: newRows });
-                        }} placeholder="1" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.exercice || ""} onChange={(e) => {
-                          const newRows = [...block.table_rows]; newRows[rID].exercice = e.target.value; updateBlock(block.id, { table_rows: newRows });
-                        }} placeholder="Dev couché" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.series || ""} onChange={(e) => {
-                          const newRows = [...block.table_rows]; newRows[rID].series = e.target.value; updateBlock(block.id, { table_rows: newRows });
-                        }} placeholder="4" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.reps || ""} onChange={(e) => {
-                          const newRows = [...block.table_rows]; newRows[rID].reps = e.target.value; updateBlock(block.id, { table_rows: newRows });
-                        }} placeholder="8-12" />
-                        <input className="text-[14px] w-full bg-transparent outline-none font-semibold text-[#5D6494] px-2" value={row.repos || ""} onChange={(e) => {
-                          const newRows = [...block.table_rows]; newRows[rID].repos = e.target.value; updateBlock(block.id, { table_rows: newRows });
-                        }} placeholder="1'30" />
-                        <button onClick={() => {
-                           const newRows = block.table_rows.filter((_, idx) => idx !== rID);
-                           updateBlock(block.id, { table_rows: newRows });
-                        }} className="text-red-500 font-bold hover:text-red-700 flex justify-center items-center">X</button>
-                     </div>
-                   ))}
-                   <div className="bg-white p-2 flex justify-center">
-                      <button onClick={() => {
-                        const newRow: SeanceRow = { jour: "", exercice: "", series: "", reps: "", repos: "" };
-                        updateBlock(block.id, { table_rows: [...block.table_rows, newRow] });
-                      }} className="text-[#3A416F] font-semibold text-[14px] underline hover:text-[#2E3271]">
-                        + Ajouter une ligne
-                      </button>
-                   </div>
-                </div>
+                <AdminSeanceTable 
+                  rows={block.table_rows} 
+                  setRows={(newRows) => updateBlock(block.id, { table_rows: newRows })} 
+                />
 
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Conseils de séance / Texte</label>
-                  <RichTextEditor 
-                    value={block.texte} 
-                    onChange={(html) => updateBlock(block.id, { texte: html })}
-                  />
-                </div>
               </>
             )}
 

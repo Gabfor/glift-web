@@ -581,7 +581,12 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               newBlock = { id: newId, type: "telechargement", programme_id: "" };
               break;
             case "seance":
-              newBlock = { id: newId, type: "seance", titre: "", table_rows: [], texte: "" };
+              newBlock = { 
+                id: newId, 
+                type: "seance", 
+                titre: "", 
+                table_rows: [{ checked: false, exercice: "", materiel: "", series: 4, reps: ["", "", "", ""], repos: "" }] 
+              };
               break;
           }
 

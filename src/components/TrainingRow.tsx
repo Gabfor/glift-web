@@ -123,7 +123,7 @@ export default function TrainingRow({
       {/* ✅ Colonne icônes drag + checkbox */}
       <td
         className="px-0 py-0"
-        style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
+        style={{ maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
         <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
           {row.locked ? (
@@ -138,7 +138,7 @@ export default function TrainingRow({
                 onClick={onUnlockClick}
               />
             </Tooltip>
-          ) : (
+          ) : !adminMode && (
             <Image
               {...dragListeners}
               src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
@@ -299,8 +299,9 @@ export default function TrainingRow({
         </div>
       </td>
 
-      <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
-        <div className="flex flex-row w-full">
+      {isVisible("poids") && (
+        <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
+          <div className="flex flex-row w-full">
           {row.poids.map((weight, subIndex) => (
             <input
               key={`weight-${subIndex}`}
@@ -331,6 +332,7 @@ export default function TrainingRow({
           ))}
         </div>
       </td>
+      )}
 
       {isVisible("repos") && (
         <td className="px-0 py-0">
