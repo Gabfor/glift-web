@@ -14,6 +14,7 @@ export type Row = {
   note?: string;
   locked?: boolean;
   superset_id_locked?: boolean;
+  conseils?: string;
 };
 
 export interface Training {

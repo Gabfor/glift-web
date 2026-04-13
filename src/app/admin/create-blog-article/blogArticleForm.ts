@@ -31,13 +31,14 @@ export type BlockTelechargement = BaseBlock & {
 };
 
 export type SeanceRow = {
-  checked: boolean;
   exercice: string;
   materiel?: string;
   series: number;
   reps: string[];
   repos: string;
   link?: string;
+  superset_id?: string;
+  conseils?: string;
 };
 
 export type BlockSeance = BaseBlock & {

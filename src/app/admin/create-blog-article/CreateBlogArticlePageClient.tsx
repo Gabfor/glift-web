@@ -585,7 +585,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                 id: newId, 
                 type: "seance", 
                 titre: "", 
-                table_rows: [{ checked: false, exercice: "", materiel: "", series: 4, reps: ["", "", "", ""], repos: "" }] 
+                table_rows: [{ exercice: "", materiel: "", series: 4, reps: ["", "", "", ""], repos: "", conseils: "" }] 
               };
               break;
           }

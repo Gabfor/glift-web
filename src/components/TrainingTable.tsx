@@ -323,7 +323,7 @@ export default function TrainingTable({
               border: "none",
               zIndex: 5,
               pointerEvents: "none",
-              width: "1150px",
+              width: "100%",
               borderColor: group.locked ? "#D7D4DC" : "#7069FA",
               height: `${(group.end - group.start + 1) * 40 + 1}px`,
               backgroundImage:
@@ -408,7 +408,7 @@ export default function TrainingTable({
                   className="absolute left-0 right-0 z-[100] pointer-events-none"
                   style={{
                     top: 0,
-                    width: "1150px",
+                    width: "100%",
                     height: `${dragGroup.length * 40 + 1}px`,
                     backgroundImage:
                       "linear-gradient(to right, #7069FA 4px, transparent 4px), " +
