@@ -13,9 +13,10 @@ import { Row } from "@/types/training";
 type Props = {
   rows: SeanceRow[];
   setRows: (rows: SeanceRow[]) => void;
+  readOnly?: boolean;
 };
 
-export default function AdminSeanceTable({ rows, setRows }: Props) {
+export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Props) {
   const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
@@ -239,11 +240,12 @@ export default function AdminSeanceTable({ rows, setRows }: Props) {
   const selectedRow = selectedIndices.length === 1 ? trainingRows[selectedIndices[0]] : null;
 
   return (
-    <div className="w-full mt-4">
-      <div className="flex justify-between items-center mb-[5px] min-h-[28px]">
-        <h3 className="text-[18px] text-[#3A416F] font-bold">Tableau</h3>
-        <div className="flex gap-4 items-center">
-          {selectedIndices.length > 0 && (
+    <div className="w-full mt-[20px]">
+      {!readOnly && (
+        <div className="flex justify-between items-center mb-[5px] min-h-[28px]">
+          <h3 className="text-[18px] text-[#3A416F] font-bold">Tableau</h3>
+          <div className="flex gap-4 items-center">
+            {selectedIndices.length > 0 && (
             <>
               {selectedIndices.length === 1 && (
                 <Tooltip content={selectedRow?.link ? "Modifier le lien" : "Ajouter un lien"}>
@@ -320,6 +322,7 @@ export default function AdminSeanceTable({ rows, setRows }: Props) {
           )}
         </div>
       </div>
+      )}
       <TrainingTable
         rows={trainingRows}
         setRows={handleSetTrainingRows}
@@ -331,51 +334,98 @@ export default function AdminSeanceTable({ rows, setRows }: Props) {
         columns={adminColumns}
         setIsEditing={() => {}}
         adminMode={true}
+        readOnly={readOnly}
       />
-      <AddRowButton
-        icon={plusIcon}
-        setIcon={setPlusIcon}
-        onClick={handleAddRow}
-      />
+      {!readOnly && (
+        <AddRowButton
+          icon={plusIcon}
+          setIcon={setPlusIcon}
+          onClick={handleAddRow}
+        />
+      )}
 
       {/* Details des exercices */}
       <div className="mt-[30px] flex flex-col gap-[30px]">
-        {trainingRows.map((row, index) => (
-          <div key={`details-${index}`} className="flex flex-col">
-            {/* Séparateur "Exercice" */}
-            <div className="relative flex items-center h-[50px] mb-[12px]">
-              <div className="flex-1 flex justify-center items-center relative z-10">
-                <div className="text-[16px] text-[#D7D4DC] font-semibold bg-[#FBFCFE] px-4">
-                  Exercice
+        {(() => {
+          const blocks: { type: 'superset' | 'single', rows: { row: any, index: number, hasConseils: boolean }[] }[] = [];
+          let i = 0;
+          while (i < trainingRows.length) {
+            const row = trainingRows[i];
+            const hasConseils = !!(row.conseils && row.conseils.trim().length > 0 && row.conseils !== "<p></p>");
+            
+            if (row.superset_id) {
+               const supersetRows = [ { row, index: i, hasConseils } ];
+               let j = i + 1;
+               while (j < trainingRows.length && trainingRows[j].superset_id === row.superset_id) {
+                 const sr = trainingRows[j];
+                 supersetRows.push({ row: sr, index: j, hasConseils: !!(sr.conseils && sr.conseils.trim().length > 0 && sr.conseils !== "<p></p>") });
+                 j++;
+               }
+               blocks.push({ type: 'superset', rows: supersetRows });
+               i = j;
+            } else {
+               blocks.push({ type: 'single', rows: [{ row, index: i, hasConseils }] });
+               i++;
+            }
+          }
+
+          return blocks.map((block, bIdx) => {
+            if (readOnly) {
+              const visibleRows = block.rows.filter(r => r.hasConseils);
+              if (visibleRows.length === 0) return null;
+
+              return (
+                <div key={`blk-${bIdx}`} className="flex flex-col pl-[15px] border-l-[3px] border-[#A1A5FD] gap-[30px]">
+                  {visibleRows.map((r) => (
+                    <div key={`details-${r.index}`} className="flex flex-col gap-[5px]">
+                      <div className="text-[16px] font-bold text-[#3A416F] mb-[5px]">{r.row.exercice || "—"}</div>
+                      <div 
+                        className="prose prose-sm max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:m-0"
+                        dangerouslySetInnerHTML={{ __html: r.row.conseils || "" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            return block.rows.map((r) => (
+              <div key={`details-${r.index}`} className="flex flex-col">
+                <div className="relative flex items-center h-[50px] mb-[12px]">
+                  <div className="flex-1 flex justify-center items-center relative z-10">
+                    <div className="text-[16px] text-[#D7D4DC] font-semibold bg-[#FBFCFE] px-4">
+                      Exercice
+                    </div>
+                  </div>
+                  <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+                </div>
+
+                <div className="flex flex-col gap-6">
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Exercice</label>
+                    <input 
+                      type="text" 
+                      value={r.row.exercice} 
+                      onChange={(e) => handleUpdateRow(r.index, { exercice: e.target.value })}
+                      placeholder="Nom de l'exercice"
+                      className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150"
+                    />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Conseils</label>
+                    <RichTextEditor 
+                      value={r.row.conseils || ""} 
+                      onChange={(html) => handleUpdateRow(r.index, { conseils: html })}
+                      containerClassName="h-[170px] overflow-hidden"
+                      editorClassName="h-[130px] overflow-y-auto w-full min-h-[130px]"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
-            </div>
-
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Exercice</label>
-                <input 
-                  type="text" 
-                  value={row.exercice} 
-                  onChange={(e) => handleUpdateRow(index, { exercice: e.target.value })}
-                  placeholder="Nom de l'exercice"
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150"
-                />
-              </div>
-
-              <div className="flex flex-col">
-                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Conseils</label>
-                <RichTextEditor 
-                  value={row.conseils || ""} 
-                  onChange={(html) => handleUpdateRow(index, { conseils: html })}
-                  containerClassName="h-[170px] overflow-hidden"
-                  editorClassName="h-[130px] overflow-y-auto w-full min-h-[130px]"
-                />
-              </div>
-            </div>
-          </div>
-        ))}
+            ));
+          });
+        })()}
       </div>
 
       {showLinkModal && selectedRow && (

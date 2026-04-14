@@ -9,6 +9,7 @@ import { useUser } from "@/context/UserContext";
 import { downloadProgram } from "@/utils/downloadProgram";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import { createClient } from "@/lib/supabaseClient";
+import AdminSeanceTable from "@/app/admin/components/AdminSeanceTable";
 
 type ContentBlock = {
   id: string;
@@ -96,7 +97,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
 
   return (
     <div className="flex flex-col gap-[30px] w-full text-[15px] text-[#5D6494] leading-[1.7]">
-      {blocks.map((block) => {
+      {blocks.map((block, index) => {
         const key = block.id;
 
         switch (block.type) {
@@ -179,8 +180,9 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             );
 
           case "seance":
+            const seanceKey = block.id || `seance-${index}`;
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[15px] scroll-mt-[100px]">
+              <div key={seanceKey} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[20px] font-bold text-[#2E3271]">
                     {block.titre}
@@ -193,29 +195,12 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                   />
                 )}
                 {block.table_rows && block.table_rows.length > 0 && (
-                  <div className="overflow-x-auto w-full mt-4">
-                    <table className="w-full border-collapse bg-white border border-[#D7D4DC] rounded-[10px] overflow-hidden">
-                      <thead>
-                        <tr className="bg-[#F4F5FE]">
-                          <th className="px-4 py-3 text-left text-[12px] font-bold text-[#3A416F] uppercase">Jour</th>
-                          <th className="px-4 py-3 text-left text-[12px] font-bold text-[#3A416F] uppercase">Exercice</th>
-                          <th className="px-4 py-3 text-left text-[12px] font-bold text-[#3A416F] uppercase">Séries</th>
-                          <th className="px-4 py-3 text-left text-[12px] font-bold text-[#3A416F] uppercase">Reps</th>
-                          <th className="px-4 py-3 text-left text-[12px] font-bold text-[#3A416F] uppercase">Repos</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {block.table_rows.map((row, idx) => (
-                          <tr key={idx} className="border-t border-[#E9E8EC]">
-                            <td className="px-4 py-3 text-[14px] font-semibold text-[#5D6494]">{row.jour}</td>
-                            <td className="px-4 py-3 text-[14px] font-semibold text-[#5D6494]">{row.exercice}</td>
-                            <td className="px-4 py-3 text-[14px] font-semibold text-[#5D6494]">{row.series}</td>
-                            <td className="px-4 py-3 text-[14px] font-semibold text-[#5D6494]">{row.reps}</td>
-                            <td className="px-4 py-3 text-[14px] font-semibold text-[#5D6494]">{row.repos}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                  <div className="overflow-x-auto w-full">
+                    <AdminSeanceTable
+                      rows={block.table_rows}
+                      setRows={() => {}}
+                      readOnly={true}
+                    />
                   </div>
                 )}
               </div>
