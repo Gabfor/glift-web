@@ -36,6 +36,24 @@ type Props = {
 };
 
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
+  const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
+
+  const firstSeanceId = React.useMemo(() => {
+    const first = blocks.find(b => b.type === "seance");
+    if (!first) return null;
+    return first.id || `seance-${blocks.indexOf(first)}`;
+  }, [blocks]);
+
+  const toggleSeance = (id: string, defaultCollapsed: boolean) => {
+    setCollapsedState(prev => {
+      const current = prev[id] !== undefined ? prev[id] : defaultCollapsed;
+      return {
+        ...prev,
+        [id]: !current
+      };
+    });
+  };
+
   const getNiveauIcon = (niveau?: string) => {
     if (!niveau) return "/icons/admin_niveau_1.svg";
     const n = niveau.toLowerCase();
@@ -181,28 +199,49 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
 
           case "seance":
             const seanceKey = block.id || `seance-${index}`;
+            const defaultCollapsed = seanceKey !== firstSeanceId;
+            const isCollapsed = collapsedState[seanceKey] !== undefined ? collapsedState[seanceKey] : defaultCollapsed;
+            
             return (
               <div key={seanceKey} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
                 {block.titre && (
-                  <h2 className="text-[20px] font-bold text-[#2E3271]">
-                    {block.titre}
-                  </h2>
-                )}
-                {block.texte && (
-                  <div
-                    className="prose prose-sm max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
-                  />
-                )}
-                {block.table_rows && block.table_rows.length > 0 && (
-                  <div className="overflow-x-auto w-full">
-                    <AdminSeanceTable
-                      rows={block.table_rows}
-                      setRows={() => {}}
-                      readOnly={true}
+                  <div 
+                    className="flex items-center justify-between cursor-pointer select-none"
+                    onClick={() => toggleSeance(seanceKey, defaultCollapsed)}
+                  >
+                    <h2 className="text-[20px] font-bold text-[#2E3271]">
+                      {block.titre}
+                    </h2>
+                    <Image
+                      src="/icons/chevron_down.svg"
+                      alt="Toggle"
+                      width={16}
+                      height={16}
+                      className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-180"}`}
+                      style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(35%) saturate(1450%) hue-rotate(200deg) brightness(85%) contrast(85%)" }} // Approximates #2E3271
                     />
                   </div>
                 )}
+                
+                <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? "h-0 opacity-0 mt-0" : "opacity-100"}`}>
+                  {block.texte && (
+                    <div
+                      className={`prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] ${block.titre ? "mt-[20px]" : ""}`}
+                      dangerouslySetInnerHTML={{ __html: block.texte }}
+                    />
+                  )}
+                  {block.table_rows && block.table_rows.length > 0 && (
+                    <div className="overflow-x-auto w-full">
+                      <AdminSeanceTable
+                        rows={block.table_rows}
+                        setRows={() => {}}
+                        readOnly={true}
+                      />
+                    </div>
+                  )}
+                </div>
+                
+                <div className="w-full h-[1px] bg-[#EBECEE] mt-[30px]"></div>
               </div>
             );
 
