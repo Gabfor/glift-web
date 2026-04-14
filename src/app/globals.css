@@ -482,6 +482,13 @@ input:checked+.slider:before {
     font-size: 14px;
   }
 
+  /* Sauts de lignes vides (éditions tiptap) avec espacement maitrisé (moitié de la taille par défaut) */
+  .prose p:empty {
+    display: block;
+    height: 12px;
+    margin: 0;
+  }
+
   /* Cache la barre d'alignement native de l'extension de redimensionnement d'image */
   .prose div[style*="z-index: 999"]:has(img[src*="format_align_"]) {
     display: none !important;
