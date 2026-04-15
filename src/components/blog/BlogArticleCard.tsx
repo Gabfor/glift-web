@@ -18,14 +18,22 @@ type Props = {
     nombre_seances?: string;
     duree_moyenne?: string;
   };
+  maxWidth?: string;
+  imageHeight?: string;
 };
 
-export default function BlogArticleCard({ article }: Props) {
+export default function BlogArticleCard({ article, maxWidth = "270px", imageHeight = "180px" }: Props) {
   const isProgramme = article.type === "Programme";
 
   return (
-    <div className="w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full">
-      <div className="relative w-full h-[180px] bg-[#F4F5FE]">
+    <div 
+      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full"
+      style={{ maxWidth }}
+    >
+      <div 
+        className="relative w-full bg-[#F4F5FE]"
+        style={{ height: imageHeight }}
+      >
         <Image
           src={article.image_url || "/images/placeholder_image.jpg"}
           alt={article.image_alt || article.titre}

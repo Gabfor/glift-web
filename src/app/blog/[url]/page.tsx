@@ -47,10 +47,31 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
             {article.description}
           </p>
 
-          <div className="flex justify-start items-center gap-[10px] mb-[20px]">
-            <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-              <span>{article.categorie || "Lifestyle"}</span>
-            </div>
+          <div className="flex justify-start items-center gap-[5px] mb-[20px] flex-wrap">
+            {article.type === "Programme" ? (
+              <>
+                {article.niveau && (
+                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                    <span>{article.niveau}</span>
+                  </div>
+                )}
+                {article.nombre_seances && (
+                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                    <span>{article.nombre_seances} {Number(article.nombre_seances) <= 1 ? "séance" : "séances"}</span>
+                  </div>
+                )}
+                {article.duree_moyenne && (
+                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                    <span>{article.duree_moyenne} min</span>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                <span>{article.categorie || "Lifestyle"}</span>
+              </div>
+            )}
+
             {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
               <div className="bg-[#F4F5FE] w-[30px] h-[30px] rounded-[5px] flex items-center justify-center">
                 <Image 

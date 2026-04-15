@@ -9,7 +9,7 @@ const adminLinks = [
   { title: "Slider", href: "/admin/slider", visual: "slider" },
 
   { title: "Cartes Shop", href: "/admin/offer-shop", visual: "shop" },
-  { title: "Blog", href: "/admin/blog", visual: "blog" },
+  { title: "Blog", href: "/admin/content-blog", visual: "blog" },
   { title: "Aide", href: "/admin/help", visual: "help" },
   { title: "Utilisateurs", href: "/admin/users", visual: "users" },
   { title: "Paramètres", href: "/admin/settings", visual: "settings" },

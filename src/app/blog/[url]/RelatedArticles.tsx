@@ -66,9 +66,14 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[30px]">
+      <div className="flex flex-col sm:flex-row gap-[30px] justify-start">
         {relatedArticles.map((article: any) => (
-          <BlogArticleCard key={article.id} article={article} />
+          <BlogArticleCard 
+            key={article.id} 
+            article={article} 
+            maxWidth="368px"
+            imageHeight="245px"
+          />
         ))}
       </div>
     </div>
