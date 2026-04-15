@@ -257,12 +257,12 @@ export default function Header({ disconnected = false }: HeaderProps) {
           : "bg-[var(--color-surface-primary)]"
           }`}
       >
-        <div className="max-w-[1152px] mx-auto py-4 flex items-center justify-between px-4 md:px-0 relative">
+        <div className="max-w-[1152px] mx-auto h-[72px] flex items-center justify-between px-4 md:px-0 relative">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center h-full">
             <Link
               href={showAuthenticatedUI ? "/dashboard" : "/"}
-              className="flex items-center"
+              className="flex items-center h-full pr-4"
             >
               <Image
                 src={logoUrl}
@@ -277,15 +277,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </div>
 
           {/* Menu centré */}
-          <nav className="hidden md:flex gap-1 text-[16px] text-[var(--color-text-body)] font-semibold h-full absolute left-1/2 transform -translate-x-1/2 z-10 top-0">
+          <nav className="hidden md:flex text-[16px] text-[var(--color-text-body)] font-semibold h-full absolute left-1/2 transform -translate-x-1/2 z-10 top-0">
             {showAuthenticatedUI ? (
               <>
                 <Link
                   href="/dashboard"
                   className={
                     pathname === "/dashboard"
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Tableau de bord
@@ -294,8 +294,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/entrainements"
                   className={
                     pathname?.startsWith("/entrainements")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Entraînements
@@ -304,8 +304,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/store"
                   className={
                     pathname?.startsWith("/store")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Store
@@ -314,8 +314,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/shop"
                   className={
                     pathname?.startsWith("/shop")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Shop
@@ -324,8 +324,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/blog"
                   className={
                     pathname?.startsWith("/blog")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Blog
@@ -334,8 +334,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/aide"
                   className={
                     pathname?.startsWith("/aide")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Aide
@@ -347,8 +347,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/"
                   className={
                     pathname === "/"
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Concept
@@ -357,8 +357,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/apps"
                   className={
                     pathname === "/apps"
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Apps
@@ -367,8 +367,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/tarifs"
                   className={
                     pathname === "/tarifs"
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Tarifs
@@ -377,8 +377,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/store"
                   className={
                     pathname?.startsWith("/store")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Store
@@ -387,8 +387,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/shop"
                   className={
                     pathname?.startsWith("/shop")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Shop
@@ -397,8 +397,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/blog"
                   className={
                     pathname?.startsWith("/blog")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Blog
@@ -407,8 +407,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   href="/aide"
                   className={
                     pathname?.startsWith("/aide")
-                      ? "flex items-center h-full px-3 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-3 hover:text-[var(--color-text-heading)]"
+                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
                 >
                   Aide
@@ -418,11 +418,11 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </nav>
 
           {/* User Zone */}
-          <div className="relative ml-[18px] flex items-center gap-3" ref={dropdownRef}>
+          <div className="relative flex items-center h-full" ref={dropdownRef}>
             {showAuthenticatedUI ? (
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="group flex items-center gap-2 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
+                className="group flex items-center h-full px-4 ml-[18px] gap-2 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
               >
                 <div className="relative">
                   <div
@@ -474,10 +474,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 </span>
               </button>
             ) : (
-              <div className="flex items-center gap-4 text-sm font-medium">
+              <div className="flex items-center text-sm font-medium h-full">
                 <Link
                   href="/connexion"
-                  className="text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
+                  className="flex items-center h-full px-6 text-[var(--color-text-body)] hover:text-[var(--color-text-heading)] text-[16px] font-semibold"
                 >
                   Connexion
                 </Link>
@@ -566,42 +566,42 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/dashboard"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Tableau de bord
                   </Link>
                   <Link
                     href="/entrainements"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Entraînements
                   </Link>
                   <Link
                     href="/store"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
                     href="/shop"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Shop
                   </Link>
                   <Link
                     href="/blog"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Blog
                   </Link>
                   <Link
                     href="/aide"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Aide
@@ -611,49 +611,49 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Concept
                   </Link>
                   <Link
                     href="/apps"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Apps
                   </Link>
                   <Link
                     href="/tarifs"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Tarifs
                   </Link>
                   <Link
                     href="/store"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
                     href="/shop"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Shop
                   </Link>
                   <Link
                     href="/blog"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Blog
                   </Link>
                   <Link
                     href="/aide"
-                    className="hover:text-[var(--color-brand-primary)]"
+                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Aide

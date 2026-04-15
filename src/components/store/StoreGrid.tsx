@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
-import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
 import { useUser } from "@/context/UserContext";
@@ -31,7 +30,6 @@ export default function StoreGrid({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userProfile, setUserProfile] = useState<StoreProfile | null>(null);
 
-  const showSkeleton = useMinimumVisibility(loading);
   const hasLoadedOnceRef = useRef(initialPrograms.length > 0);
 
   const previousQueryRef = useRef<{
@@ -141,7 +139,7 @@ export default function StoreGrid({
         haveStringArrayChanged(previousQuery.filters, filters)
       );
 
-      if (isInitialSync || queryChangedMaturity) {
+      if (queryChangedMaturity) {
         setLoading(true);
       }
 
@@ -235,7 +233,7 @@ export default function StoreGrid({
 
   return (
     <>
-      {showSkeleton && (!hasLoadedOnce || programs.length > 0) ? (
+      {loading && (!hasLoadedOnce || programs.length > 0) ? (
         <StoreGridSkeleton />
       ) : (
         <div className="relative mt-8">

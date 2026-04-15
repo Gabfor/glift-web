@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import ShopCard from "@/components/shop/ShopCard";
 import ShopGridSkeleton from "@/components/shop/ShopGridSkeleton";
 import { createClient } from "@/lib/supabaseClient";
-import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
 import { useUser } from "@/context/UserContext";
@@ -29,7 +28,6 @@ export default function ShopGrid({
 }) {
   const [offers, setOffers] = useState<ShopOffer[]>(initialOffers);
   const [loading, setLoading] = useState(initialOffers.length === 0);
-  const showSkeleton = useMinimumVisibility(loading);
   const hasLoadedOnceRef = useRef(initialOffers.length > 0);
 
   const [userProfile, setUserProfile] = useState<ShopProfile | null>(null);
@@ -123,7 +121,7 @@ export default function ShopGrid({
         haveStringArrayChanged(previousQuery.filters, filters)
       );
 
-      if (isInitialSync || queryChangedMaturity) {
+      if (queryChangedMaturity) {
         setLoading(true);
       }
 
@@ -230,7 +228,7 @@ export default function ShopGrid({
 
   return (
     <>
-      {showSkeleton ? (
+      {loading ? (
         <ShopGridSkeleton />
       ) : (
         <div className="relative mt-8">

@@ -7,9 +7,10 @@ import { createClient } from "@/lib/supabaseClient";
 import SearchBar from "@/components/SearchBar";
 import { Accordion } from "@/components/ui/accordion";
 import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
-import GliftLoader from "@/components/ui/GliftLoader";
 import DropdownFilter from "@/components/filters/DropdownFilter";
 import Pagination from "@/components/pagination/Pagination";
+import AideSkeleton from "@/components/aide/AideSkeleton";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 type HelpQuestion = {
   id: string;
@@ -30,6 +31,8 @@ function AideContent() {
 
   const [questions, setQuestions] = useState<HelpQuestion[]>([]);
   const [loading, setLoading] = useState(true);
+  const showSkeleton = useMinimumVisibility(loading, 400);
+
   const [isLogged, setIsLogged] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -165,8 +168,8 @@ function AideContent() {
           />
         </div>
 
-        {loading ? (
-          <div className="mt-10"><GliftLoader /></div>
+        {showSkeleton ? (
+          <AideSkeleton />
         ) : (
           <div className="w-full max-w-[760px] text-left">
             {/* Category Filter */}
@@ -230,7 +233,34 @@ export default function AidePage() {
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] flex justify-center items-start">
-        <GliftLoader />
+        <div className="w-full max-w-[1152px] mx-auto text-center flex flex-col items-center">
+            {/* Header Section */}
+            <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
+            Aide
+            </h1>
+            <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
+            Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
+            <br />
+            Si vous avez d’autres questions,{" "}
+            <Link
+                href="/contact?from=aide"
+                className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
+            >
+                contactez-nous.
+            </Link>
+            </p>
+
+            {/* Search Bar */}
+            <div className="mb-[40px] w-full max-w-[500px]">
+            <SearchBar
+                value=""
+                onChange={() => {}}
+                placeholder="Rechercher par mot-clé"
+            />
+            </div>
+
+            <AideSkeleton />
+        </div>
       </main>
     }>
       <AideContent />

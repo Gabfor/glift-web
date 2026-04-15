@@ -14,6 +14,7 @@ import DragPreviewItem from "@/components/training/DragPreviewItem";
 import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
 import AddTrainingLockedModal from "@/components/AddTrainingLockedModal";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
@@ -59,6 +60,8 @@ export default function EntrainementsPage() {
     moveProgramDown,
     handleDuplicateProgram,
   } = usePrograms();
+
+  const showSkeleton = useMinimumVisibility(isLoading, 400); // 400ms masks the very fast client fetch to match SSR feeling
 
   const { isPremiumUser } = useUser();
 
@@ -402,7 +405,7 @@ export default function EntrainementsPage() {
           Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.
         </p>
 
-        {isLoading ? (
+        {showSkeleton ? (
           <ProgramsSkeleton />
         ) : (
           <DndContext

@@ -11,7 +11,6 @@ import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
 import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 import type { Database } from "@/lib/supabase/types";
-import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -590,12 +589,11 @@ export default function DashboardPage() {
     weightUnit,
   ]);
 
-  const shouldShowFiltersSkeleton = useMinimumVisibility(
-    areFiltersLoading || !hasLoadedPreferences,
-  );
-  const shouldShowExercisesSkeleton = useMinimumVisibility(
-    !areFiltersLoading && isLoadingExercises,
-  );
+  const isGlobalLoading =
+    !hasLoadedPreferences ||
+    areFiltersLoading ||
+    isLoadingExercises ||
+    isLoadingStats;
 
   useEffect(() => {
     if (isLoadingExercises || !hasFetchedExercises) return;
@@ -1099,11 +1097,13 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="relative">
+        <div className="relative mt-8">
+          {/* CONTENT (mounted to allow data fetching but hidden if loading) */}
           <div
-            className={`transition-opacity duration-200 ${shouldShowFiltersSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
-              }`}
-            aria-hidden={shouldShowFiltersSkeleton}
+            className={`transition-opacity duration-200 ${
+              isGlobalLoading ? "pointer-events-none opacity-0 h-0 overflow-hidden" : "opacity-100"
+            }`}
+            aria-hidden={isGlobalLoading}
           >
             <DashboardProgramFilters
               onProgramChange={(programId) => {
@@ -1127,44 +1127,14 @@ export default function DashboardPage() {
               onProgramOptionsChange={handleProgramOptionsChange}
               onFiltersLoadingChange={setAreFiltersLoading}
             />
-          </div>
 
-          {shouldShowFiltersSkeleton && (
-            <div className="pointer-events-none absolute inset-0">
-              <div className="animate-pulse">
-                <DashboardFiltersSkeleton />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {!shouldShowFiltersSkeleton && (
-          <>
             {showStats && (
               <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[24px]">
                 {statsCards.map((card) => {
                   const diff = card.value - card.previousValue;
                   const absDiff = Math.abs(diff);
                   const isPositive = diff > 0;
-                  const isNegative = diff < 0; // Strictly negative
-                  // For stats: More is better -> Green. Less is bad -> Red. 
-                  // Exception: If user wants specific duration handling? Assuming more is better.
-
-                  // Icons
-                  // arrow_green_up.svg
-                  // arrow_red_down.svg
-                  // arrow_red_up.svg (Used when increase is bad? Or just red?)
-                  // arrow_green_down.svg (Used when decrease is good?)
-
-                  // Standard interpretation: 
-                  // Increase: Green Up
-                  // Decrease: Red Down
-                  // What if 'arrow_red_up' was requested? Maybe for something where increase is bad? 
-                  // Or maybe just if current < previous, show red down. If current > previous show green up.
-
-                  // Let's implement:
-                  // ID 'time' -> 48 min. 
-                  // ID 'sessions' -> 37.
+                  const isNegative = diff < 0; 
 
                   let arrowIcon = "/icons/Arrow_green_up.svg";
                   let diffColor = "text-[#00D591]"; // Green
@@ -1176,17 +1146,8 @@ export default function DashboardPage() {
                     arrowIcon = "/icons/Arrow_red_down.svg";
                     diffColor = "text-[#EF4F4E]";
                   } else {
-                    // No change -> Maybe green up or neutral? keeping green as default 'neutral' isn't great.
-                    // If 0, maybe no arrow? Or green +0?
                     arrowIcon = "/icons/Arrow_green_up.svg";
                   }
-
-                  // Formatting diff. If precision 0, default to 1 decimal for diff if it's small? 
-                  // The user mock has "+1,8". My values are integers. 
-                  // If I have integers in stats, diff is integer. 
-                  // Ideally I should track floats for averages.
-                  // But setStats uses Math.round. 
-                  // Let's stick to integers for main value. Diff will be integer.
 
                   const diffFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
                   const formattedDiff = diffFormatter.format(Math.round(Math.abs(diff)));
@@ -1247,7 +1208,6 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-                {/* DEBUG DISPLAY */}
                 {(stats as any).debugProgramIds && ((stats as any).debugProgramIds as string[]).length > 0 && (
                   <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600 w-full basis-full">
                     <p className="font-bold">Programmes inclus dans les stats :</p>
@@ -1256,6 +1216,7 @@ export default function DashboardPage() {
                 )}
               </div>
             )}
+
             {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
               <p className="mt-8 text-center text-[#5D6494] font-semibold">
                 Aucun programme trouvé.
@@ -1275,79 +1236,77 @@ export default function DashboardPage() {
             )}
 
             {selectedTraining !== "" && (
-              <div className={`relative ${showStats ? "" : "mt-[30px]"}`}>
-                <div
-                  className={`transition-opacity duration-200 ${shouldShowExercisesSkeleton ? "pointer-events-none opacity-0" : "opacity-100"
-                    }`}
-                  aria-hidden={shouldShowExercisesSkeleton}
-                >
-                  {fetchError ? (
-                    <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
-                  ) : trainingExercises.length === 0 ? (
-                    <p className="text-center text-[#5D6494] font-semibold">
-                      Aucun exercice n&apos;a été trouvé pour cet entraînement.
-                    </p>
-                  ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
-                    <p className="text-center text-[#5D6494] font-semibold">
-                      Aucun exercice ne correspond à votre sélection.
-                    </p>
-                  ) : (
-                    <div className="space-y-[30px]">
-                      {filteredExercises.map((exercise) => {
-                        const settings = getExerciseSettings(exercise.id);
-                        return (
-                          <DashboardExerciseBlock
-                            key={exercise.id}
-                            id={exercise.id}
-                            name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                            sessionCount={settings.sessionCount}
-                            curveType={settings.curveType}
-                            recordType={settings.recordCurveType}
-                            goal={settings.goal}
-                            onSessionChange={(nextValue: string) => {
-                              if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
-                                updateExerciseSettings(exercise.id, {
-                                  sessionCount: nextValue as SessionValue,
-                                });
-                              }
-                            }}
-                            onCurveChange={(nextValue: string) => {
-                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                                updateExerciseSettings(exercise.id, {
-                                  curveType: nextValue as CurveOptionValue,
-                                });
-                              }
-                            }}
-                            onRecordTypeChange={(nextValue: string) => {
-                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                                updateExerciseSettings(exercise.id, {
-                                  recordCurveType: nextValue as CurveOptionValue,
-                                });
-                              }
-                            }}
-                            onGoalChange={(nextGoal: DashboardExerciseGoal | null) => {
+              <div className={`${showStats ? "" : "mt-[30px]"}`}>
+                {fetchError ? (
+                  <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
+                ) : trainingExercises.length === 0 ? (
+                  <p className="text-center text-[#5D6494] font-semibold">
+                    Aucun exercice n&apos;a été trouvé pour cet entraînement.
+                  </p>
+                ) : selectedExercise !== "" && filteredExercises.length === 0 ? (
+                  <p className="text-center text-[#5D6494] font-semibold">
+                    Aucun exercice ne correspond à votre sélection.
+                  </p>
+                ) : (
+                  <div className="space-y-[30px]">
+                    {filteredExercises.map((exercise) => {
+                      const settings = getExerciseSettings(exercise.id);
+                      return (
+                        <DashboardExerciseBlock
+                          key={exercise.id}
+                          id={exercise.id}
+                          name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                          sessionCount={settings.sessionCount}
+                          curveType={settings.curveType}
+                          recordType={settings.recordCurveType}
+                          goal={settings.goal}
+                          onSessionChange={(nextValue: string) => {
+                            if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
                               updateExerciseSettings(exercise.id, {
-                                goal: nextGoal,
+                                sessionCount: nextValue as SessionValue,
                               });
-                            }}
-                            onGoalCompletionChange={handleGoalCompletionChange}
-                            weightUnit={weightUnit}
-                          />
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-
-                {shouldShowExercisesSkeleton && (
-                  <div className="pointer-events-none absolute inset-0">
-                    <DashboardExercisesSkeleton showFilters={false} />
+                            }
+                          }}
+                          onCurveChange={(nextValue: string) => {
+                            if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                              updateExerciseSettings(exercise.id, {
+                                curveType: nextValue as CurveOptionValue,
+                              });
+                            }
+                          }}
+                          onRecordTypeChange={(nextValue: string) => {
+                            if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                              updateExerciseSettings(exercise.id, {
+                                recordCurveType: nextValue as CurveOptionValue,
+                              });
+                            }
+                          }}
+                          onGoalChange={(nextGoal: DashboardExerciseGoal | null) => {
+                            updateExerciseSettings(exercise.id, {
+                              goal: nextGoal,
+                            });
+                          }}
+                          onGoalCompletionChange={handleGoalCompletionChange}
+                          weightUnit={weightUnit}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </div>
             )}
-          </>
-        )}
+          </div>
+
+          {/* SKELETON (Global) */}
+          {isGlobalLoading && (
+            <div className="pointer-events-none absolute top-0 left-0 right-0 w-full">
+              <div className="animate-pulse space-y-[30px]">
+                <DashboardFiltersSkeleton />
+                <DashboardExercisesSkeleton showFilters={false} />
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </main>
   );
