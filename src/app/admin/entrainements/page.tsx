@@ -260,6 +260,66 @@ export default function AdminSingleProgramPage() {
     );
   };
 
+  const handleDeleteProgram = async () => {
+    if (!program?.id) return;
+
+    const confirmDelete = window.confirm(
+      "Êtes-vous sûr de vouloir supprimer ce programme et tous les entraînements qu'il contient ?"
+    );
+    if (!confirmDelete) return;
+
+    const programId = program.id;
+
+    // 1. Récupérer les IDs des entraînements associés
+    const { data: trainings, error: trainingsFetchError } = await supabase
+      .from("trainings_admin")
+      .select("id")
+      .eq("program_id", programId);
+
+    if (trainingsFetchError) {
+      console.error("Erreur lors de la récupération des entraînements :", trainingsFetchError);
+      return;
+    }
+
+    const trainingIds = trainings?.map((t) => t.id) || [];
+
+    // 2. Supprimer les lignes d'exercices associées
+    if (trainingIds.length > 0) {
+      const { error: rowsError } = await supabase
+        .from("training_rows_admin")
+        .delete()
+        .in("training_id", trainingIds);
+
+      if (rowsError) {
+        console.error("Erreur lors de la suppression des lignes d'exercices :", rowsError);
+      }
+    }
+
+    // 3. Supprimer les entraînements associés
+    const { error: trainingsDeleteError } = await supabase
+      .from("trainings_admin")
+      .delete()
+      .eq("program_id", programId);
+
+    if (trainingsDeleteError) {
+      console.error("Erreur lors de la suppression des entraînements :", trainingsDeleteError);
+    }
+
+    // 4. Supprimer le programme lui-même
+    const { error: programError } = await supabase
+      .from("programs_admin")
+      .delete()
+      .eq("id", programId);
+
+    if (programError) {
+      console.error("Erreur lors de la suppression du programme :", programError);
+      alert("Une erreur est survenue lors de la suppression.");
+    } else {
+      console.log("Suppression en cascade réussie.");
+      router.push("/admin/program");
+    }
+  };
+
   const handleDeleteTraining = async (id: string) => {
     if (!program) return;
     await supabase.from("trainings_admin").delete().eq("id", id);
@@ -393,7 +453,7 @@ export default function AdminSingleProgramPage() {
               isVisible={true}
               dashboardVisible={program.dashboard !== false}
               onToggleVisibility={() => { }}
-              onDelete={() => { }}
+              onDelete={handleDeleteProgram}
               isFirst={true}
               isLastActive={true}
               onMoveUp={() => { }}

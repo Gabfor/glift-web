@@ -171,40 +171,52 @@ export default function AdminProgramPage() {
   const handleDelete = async () => {
     if (selectedIds.length === 0) return;
 
-    console.log("Tentative de suppression des programmes avec les IDs :", selectedIds);
+    // 1. Récupérer les IDs des entraînements associés
+    const { data: trainings, error: trainingsFetchError } = await supabase
+      .from("trainings_admin")
+      .select("id")
+      .in("program_id", selectedIds);
 
-    // Vérifie les IDs réellement présents dans programs_admin
-    const { data: realPrograms, error: checkError } = await supabase
-      .from("programs_admin")
-      .select("id");
-
-    if (checkError || !realPrograms) {
-      console.error("Erreur lors de la vérification des IDs :", checkError);
+    if (trainingsFetchError) {
+      console.error("Erreur lors de la récupération des entraînements :", trainingsFetchError);
       return;
     }
 
-    const validIds = realPrograms.map((p) => p.id);
-    const idsToDelete = selectedIds.filter((id) => validIds.includes(id));
+    const trainingIds = trainings?.map((t) => t.id) || [];
 
-    if (idsToDelete.length === 0) {
-      console.warn("Aucun ID valide à supprimer.");
-      return;
+    // 2. Supprimer les lignes d'exercices associées
+    if (trainingIds.length > 0) {
+      const { error: rowsError } = await supabase
+        .from("training_rows_admin")
+        .delete()
+        .in("training_id", trainingIds);
+
+      if (rowsError) {
+        console.error("Erreur lors de la suppression des lignes d'exercices :", rowsError);
+      }
     }
 
-    const { data, error, status } = await supabase
+    // 3. Supprimer les entraînements associés
+    const { error: trainingsDeleteError } = await supabase
+      .from("trainings_admin")
+      .delete()
+      .in("program_id", selectedIds);
+
+    if (trainingsDeleteError) {
+      console.error("Erreur lors de la suppression des entraînements :", trainingsDeleteError);
+    }
+
+    // 4. Supprimer les programmes eux-mêmes
+    const { error: programError } = await supabase
       .from("programs_admin")
       .delete()
-      .in("id", idsToDelete);
+      .in("id", selectedIds);
 
-    console.log("DELETE status:", status);
-    console.log("DELETE data:", data);
-    console.log("DELETE error:", error);
-
-    if (error) {
-      console.error("Erreur lors de la suppression :", error);
+    if (programError) {
+      console.error("Erreur lors de la suppression des programmes :", programError);
       alert("Une erreur est survenue lors de la suppression.");
     } else {
-      console.log("Suppression réussie, rechargement des programmes.");
+      console.log("Suppression en cascade réussie.");
       fetchPrograms();
     }
   };

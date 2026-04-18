@@ -77,6 +77,7 @@ export default function AdminEntrainementDetailPage() {
   const [, setIsEditing] = useState(false);
   const [, setHoveredSuperset] = useState(false);
   const [showLockedModal, setShowLockedModal] = useState(false);
+  const [parentProgramId, setParentProgramId] = useState<string | null>(null);
 
   // ✅ Refs used in access control and cleanup
   const isNewTrainingRef = useRef(isNewParam);
@@ -97,48 +98,47 @@ export default function AdminEntrainementDetailPage() {
   const [accessChecked, setAccessChecked] = useState(false);
 
   useEffect(() => {
-    if (isAdminRoute || isPremiumUser) {
-      setAccessChecked(true);
-      return;
-    }
-
-    if (!user) return;
-
-    const checkAccess = async () => {
-      // Check if the SPECIFIC training is allowed (unlocked)
-      const { data: training } = await supabase
-        .from("trainings")
-        .select("id, locked, user_id")
+    const fetchTrainingInfo = async () => {
+      const { data: training, error } = await supabase
+        .from(trainingsTableName)
+        .select("id, locked, user_id, program_id")
         .eq("id", trainingId)
         .single();
 
-      if (!training) {
-        // Does not exist? Redirect.
-        shouldDeleteRef.current = false;
-        router.replace("/entrainements");
+      if (error || !training) {
+        if (!isAdminRoute && !isPremiumUser) {
+          shouldDeleteRef.current = false;
+          router.replace("/entrainements");
+        }
         return;
       }
+
+      setParentProgramId(training.program_id);
+
+      if (isAdminRoute || isPremiumUser) {
+        setAccessChecked(true);
+        return;
+      }
+
+      if (!user) return;
 
       if (training.user_id !== user.id) {
-        // Not owner
         shouldDeleteRef.current = false;
         router.replace("/entrainements");
         return;
       }
 
-      if (!isPremiumUser && training.locked) {
-        // Starter user trying to access locked training
+      if (training.locked) {
         console.warn("🚫 Accès interdit (verrouillé) : Redirection vers /entrainements");
         shouldDeleteRef.current = false;
         router.replace("/entrainements");
       } else {
-        // Allowed
         setAccessChecked(true);
       }
     };
 
-    void checkAccess();
-  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router]);
+    void fetchTrainingInfo();
+  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router, trainingsTableName]);
 
   // ✅ Training data
   const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user);
@@ -226,10 +226,10 @@ export default function AdminEntrainementDetailPage() {
   }, [programName, rows]);
 
   const deleteEmptyTraining = useCallback(async () => {
-    if (hasDeletedRef.current) return;
-    if (!isNewTrainingRef.current) return;
-    if (!shouldDeleteRef.current) return;
-    if (!trainingId) return;
+    if (hasDeletedRef.current) return { trainingDeleted: false, programDeleted: false };
+    if (!isNewTrainingRef.current) return { trainingDeleted: false, programDeleted: false };
+    if (!shouldDeleteRef.current) return { trainingDeleted: false, programDeleted: false };
+    if (!trainingId) return { trainingDeleted: false, programDeleted: false };
 
     let userId = user?.id ?? null;
     if (!userId) {
@@ -237,44 +237,97 @@ export default function AdminEntrainementDetailPage() {
       userId = data.user?.id ?? null;
     }
 
+    let programDeleted = false;
     try {
-      let rowsDeleteQuery = supabase
+      console.log(`🗑️ Starting auto-deletion for training ${trainingId}...`);
+
+      // 0. Récupérer l'ID du programme parent AVANT de supprimer l'entraînement
+      let targetProgramId = parentProgramId;
+      if (!targetProgramId) {
+        const { data: tData } = await supabase
+          .from(trainingsTableName)
+          .select("program_id")
+          .eq("id", trainingId)
+          .single();
+        if (tData) targetProgramId = tData.program_id;
+      }
+
+      // 1. Suppression des lignes
+      const { error: rowsError } = await supabase
         .from(trainingRowsTableName)
         .delete()
         .eq("training_id", trainingId);
 
-      if (userId) {
-        rowsDeleteQuery = rowsDeleteQuery.eq("user_id", userId);
-      }
-
-      const { error: rowsError } = await rowsDeleteQuery;
       if (rowsError) {
-        console.error("❌ Erreur suppression lignes entraînement vide :", rowsError);
+        console.error("❌ Erreur suppression lignes :", rowsError);
       }
 
-      let trainingDeleteQuery = supabase
+      // 2. Suppression de l'entraînement
+      const { error: trainingError } = await supabase
         .from(trainingsTableName)
         .delete()
         .eq("id", trainingId);
 
-      if (userId) {
-        trainingDeleteQuery = trainingDeleteQuery.eq("user_id", userId);
+      if (trainingError) {
+        console.error("❌ Erreur suppression entraînement :", trainingError);
+        return { trainingDeleted: false, programDeleted: false };
       }
 
-      const { error: trainingError } = await trainingDeleteQuery;
-      if (trainingError) {
-        console.error("❌ Erreur suppression entraînement vide :", trainingError);
-        return;
+      console.log("✅ Entraînement vide supprimé.");
+
+      // 3. Suppression du programme parent s'il est vide et par défaut
+      if (targetProgramId) {
+        const programsTableName = isAdminRoute ? "programs_admin" : "programs";
+        
+        // On attend un tout petit peu que Supabase propage la suppression de l'entraînement
+        // (parfois utile avec les counts en temps réel)
+        const { count, error: countError } = await supabase
+          .from(trainingsTableName)
+          .select("id", { count: "exact" })
+          .eq("program_id", targetProgramId);
+
+        if (!countError && (count === 0 || count === null)) {
+          const { data: programData, error: programError } = await supabase
+            .from(programsTableName)
+            .select("name")
+            .eq("id", targetProgramId)
+            .single();
+
+          if (!programError && programData) {
+            const defaultNames = [
+              "Nom du programme", 
+              "Nouveau programme", 
+              "Nom de l'entraînement", 
+              "Nom de l’entraînement",
+              ""
+            ];
+            const normalizedName = programData.name ? programData.name.trim() : "";
+            const isDefaultName = defaultNames.includes(normalizedName);
+
+            if (isDefaultName) {
+              const { error: programDeleteError } = await supabase
+                .from(programsTableName)
+                .delete()
+                .eq("id", targetProgramId);
+
+              if (!programDeleteError) {
+                console.log("✅ Programme vide supprimé automatiquement.");
+                programDeleted = true;
+              }
+            }
+          }
+        }
       }
 
       notifyTrainingChange("all-programs");
       hasDeletedRef.current = true;
       shouldDeleteRef.current = false;
-      console.log("🗑️ Entraînement vide supprimé automatiquement");
+      return { trainingDeleted: true, programDeleted };
     } catch (error) {
-      console.error("❌ Erreur inattendue lors de la suppression de l'entraînement vide :", error);
+      console.error("❌ Erreur inattendue lors de la suppression automatique :", error);
+      return { trainingDeleted: false, programDeleted: false };
     }
-  }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id]);
+  }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id, parentProgramId, isAdminRoute]);
 
   useEffect(() => {
     deleteEmptyTrainingRef.current = deleteEmptyTraining;
@@ -350,10 +403,10 @@ export default function AdminEntrainementDetailPage() {
               }
             }
 
-            await deleteEmptyTraining();
+            const { programDeleted } = await deleteEmptyTraining();
 
             if (isAdminRoute) {
-              if (adminProgramId) {
+              if (adminProgramId && !programDeleted) {
                 router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
               } else {
                 router.push("/admin/entrainements");
