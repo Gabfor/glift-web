@@ -145,24 +145,53 @@ export default function AdminSingleProgramPage() {
   };
 
   const handleAddTraining = async () => {
-    if (!program?.id) return;
+    let currentProgramId = program?.id;
+
+    // 1. Si pas d'ID (création), on enregistre le programme d'abord
+    if (!currentProgramId) {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user?.user?.id) return;
+
+      const { data: newProgram, error: programError } = await supabase
+        .from("programs_admin")
+        .insert({
+          name: program?.name || "Nouveau programme",
+          user_id: user.user.id,
+        })
+        .select("id, name")
+        .single();
+
+      if (programError || !newProgram) return;
+
+      currentProgramId = newProgram.id;
+      // On met à jour l'état local pour éviter les doubles créations
+      setProgram(prev => prev ? { ...prev, id: newProgram.id } : prev);
+      setOriginalName(newProgram.name);
+      // On met à jour l'URL sans recharger la page
+      window.history.replaceState(null, "", `/admin/entrainements?id=${newProgram.id}`);
+    }
+
+    if (!currentProgramId) return;
+
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user?.id) return;
     const userId = user.user.id;
 
+    // 2. Création de l'entraînement
     const { data, error } = await supabase
       .from("trainings_admin")
       .insert({
         name: "Nouvel entraînement",
         user_id: userId,
-        program_id: program.id,
-        position: program.trainings.length,
+        program_id: currentProgramId,
+        position: program?.trainings.length || 0,
       })
       .select()
       .single();
 
     if (!data || error) return;
 
+    // 3. Création de la première ligne par défaut
     const defaultRow = {
       training_id: data.id,
       user_id: userId,
@@ -193,12 +222,25 @@ export default function AdminSingleProgramPage() {
       name: data.name,
       app: Boolean(data.app),
       dashboard: true,
-      program_id: data.program_id ?? program.id,
+      program_id: data.program_id ?? currentProgramId,
       position: data.position ?? 0,
       locked: false,
     };
 
-    setProgram({ ...program, trainings: [...program.trainings, newTrainingData] });
+    // 4. Gestion de l'état de chargement et navigation (parité avec page publique)
+    setLoadingTraining({ id: data.id, type: "add" });
+    await wait(MINIMUM_TRAINING_SPINNER_DURATION);
+    
+    if (!isMountedRef.current) return;
+
+    setProgram(prev => {
+      if (!prev) return prev;
+      // Éviter les doublons si le re-fetch d'init() (lié à replaceState) a déjà récupéré l'entraînement
+      if (prev.trainings.some(t => t.id === newTrainingData.id)) {
+        return prev;
+      }
+      return { ...prev, trainings: [...prev.trainings, newTrainingData] };
+    });
     router.push(`/admin/entrainements/${data.id}?new=1`);
   };
 
@@ -376,6 +418,7 @@ export default function AdminSingleProgramPage() {
               openVisibilityIds={openVisibilityIds}
               setOpenVisibilityIds={setOpenVisibilityIds}
               onUpdateTrainingVisibility={() => { }}
+              adminMode={true}
             />
           </div>
 

@@ -35,6 +35,7 @@ interface Props {
   onUnlockClick?: () => void
   allowAddTraining?: boolean
   onAddLockedClick?: () => void
+  adminMode?: boolean
 }
 
 export default function DroppableProgram(props: Props) {
@@ -52,6 +53,7 @@ export default function DroppableProgram(props: Props) {
     isFirstProgram = false,
     allowAddTraining = false,
     onAddLockedClick,
+    adminMode = false,
   } = props;
 
   // ... (rest of the component)
@@ -64,9 +66,16 @@ export default function DroppableProgram(props: Props) {
 
 
 
-  const filteredTrainings = trainings.filter(
-    (t): t is Training => t !== null && t !== undefined
-  );
+  // Filtrer les null/undefined ET dédupliquer par ID pour éviter les erreurs de clés React (race conditions)
+  const filteredTrainings = useMemo(() => {
+    const seen = new Set();
+    return trainings.filter((t): t is Training => {
+      if (!t?.id) return false;
+      if (seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    });
+  }, [trainings]);
 
   const dragDisabled = openVisibilityIds.length > 0;
 
@@ -83,7 +92,7 @@ export default function DroppableProgram(props: Props) {
     return [];
   }, [isPremiumUser, isFirstProgram, filteredTrainings, programId]);
 
-  const isAddEnabled = isPremiumUser || allowAddTraining; // True if Premium OR (Basic + count == 0)
+  const isAddEnabled = adminMode || isPremiumUser || allowAddTraining; // True if Admin OR Premium OR (Basic + count == 0)
 
   return (
     <div ref={setNodeRef}>
@@ -92,7 +101,7 @@ export default function DroppableProgram(props: Props) {
           {filteredTrainings.map((training, index) => {
             // ... (training item rendering)
             const isTrainingLoading = loadingTraining?.id === training.id;
-            const isLocked = training.locked ?? (!isPremiumUser && (!isFirstProgram || index > 0));
+            const isLocked = !adminMode && (training.locked ?? (!isPremiumUser && (!isFirstProgram || index > 0)));
 
             return (
               <SortableItem
