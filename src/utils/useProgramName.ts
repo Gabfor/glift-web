@@ -77,7 +77,7 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
 
     const { error } = await supabase
       .from(tableName)
-      .update({ name: finalName })
+      .update({ name: finalName, app: true, dashboard: true })
       .eq("id", trainingId)
       .eq("user_id", user.id);
 

@@ -166,6 +166,16 @@ export default function usePrograms() {
     fetchProgramsWithTrainings();
   }, [fetchProgramsWithTrainings]);
 
+  useEffect(() => {
+    const channel = new BroadcastChannel("glift-refresh");
+    channel.onmessage = (event) => {
+      if (typeof event.data === "string" && event.data.startsWith("refresh-")) {
+        fetchProgramsWithTrainings({ showLoading: false });
+      }
+    };
+    return () => channel.close();
+  }, [fetchProgramsWithTrainings]);
+
   const handleReorderTrainings = async (programId: string | null, ids: string[]) => {
 
     const currentTrainings =
@@ -374,8 +384,8 @@ export default function usePrograms() {
         name: "Nom de l'entraînement",
         program_id: targetId,
         position: programs.find(p => p.id === targetId)?.trainings.length ?? 0,
-        app: true,
-        dashboard: true,
+        app: false,
+        dashboard: false,
       })
       .select()
       .single();
@@ -414,21 +424,10 @@ export default function usePrograms() {
       const existingTrainings = updatedPrograms[programIdx].trainings ?? [];
       const wasEmptyBeforeAdd = existingTrainings.length === 0;
 
-      updatedPrograms[programIdx] = {
-        ...updatedPrograms[programIdx],
-        trainings: [
-          ...existingTrainings,
-          {
-            id: data.id,
-            name: data.name,
-            program_id: data.program_id,
-            position: data.position,
-            app: true,
-            dashboard: true,
-            locked: false,
-          },
-        ],
-      };
+      // 🚨 REMOVED OPTIMISTIC UI INSERTION HERE 🚨
+      // We no longer inject this empty training into the UI.
+      // It stays a "ghost" branch in Supabase until explicitly saved or deleted.
+      // If saved, the BroadcastChannel refresh will pull it organically.
 
       if (programIdx === updatedPrograms.length - 1) {
         const { data: newProgram } = await supabase
@@ -489,8 +488,13 @@ export default function usePrograms() {
       const hasOtherPrograms = updated.filter(p => p.id !== programId).length > 0;
 
       if (isEmpty && hasOtherPrograms) {
-        await supabase.from("programs").delete().eq("id", programId);
-        updated = updated.filter((p) => p.id !== programId);
+        const { error: pError } = await supabase.from("programs").delete().eq("id", programId);
+        if (pError) {
+          console.error("Error auto-deleting empty program:", pError);
+          // Keep the empty program in UI if delete failed
+        } else {
+          updated = updated.filter((p) => p.id !== programId);
+        }
       }
 
       setPrograms(updated);
@@ -505,10 +509,22 @@ export default function usePrograms() {
   };
 
   const handleDeleteProgram = async (programId: string) => {
-    const removedProgramPosition = programs.find(p => p.id === programId)?.position ?? null;
+    const removedProgramPosition = programs.find((p) => p.id === programId)?.position ?? null;
 
-    await supabase.from("trainings").delete().eq("program_id", programId);
-    await supabase.from("programs").delete().eq("id", programId);
+    const { error: trainingsError } = await supabase.from("trainings").delete().eq("program_id", programId);
+    if (trainingsError) {
+      console.error("Error deleting trainings:", trainingsError);
+      alert("Erreur lors de la suppression des entraînements associés.");
+      return;
+    }
+
+    const { error: programError } = await supabase.from("programs").delete().eq("id", programId);
+    if (programError) {
+      console.error("Error deleting program:", programError);
+      alert("Erreur lors de la suppression du programme. Veuillez réessayer.");
+      return;
+    }
+
     const { data: refreshed, error } = await supabase
       .from("programs")
       .select("id, name, position, user_id")
@@ -519,7 +535,7 @@ export default function usePrograms() {
     }
 
     if (!refreshed) return;
-    const cleaned = refreshed.filter(p => p.id !== programId);
+    const cleaned = refreshed.filter((p) => p.id !== programId);
     const corrected = cleaned.map((p, index) => ({
       ...p,
       position: index

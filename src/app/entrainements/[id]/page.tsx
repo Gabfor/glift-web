@@ -39,9 +39,9 @@ const isRowContentEmpty = (row: Row) => {
     row.note ?? "",
   ];
 
-  const hasTextContent = textFields.some((value) => Boolean(value && value.trim().length));
-  const hasRepetitions = (row.repetitions ?? []).some((rep) => rep.trim().length > 0);
-  const hasWeights = (row.poids ?? []).some((weight) => weight.trim().length > 0);
+  const hasTextContent = textFields.some((value) => Boolean(value && String(value).trim().length));
+  const hasRepetitions = (row.repetitions ?? []).some((rep) => Boolean(rep && String(rep).trim().length > 0));
+  const hasWeights = (row.poids ?? []).some((weight) => Boolean(weight && String(weight).trim().length > 0));
   const hasEffortChange = (row.effort ?? []).some((effort) => effort && effort !== DEFAULT_EFFORT_VALUE);
   const hasSeriesChange = typeof row.series === "number" && row.series !== DEFAULT_SERIES_COUNT;
   const hasChecked = Boolean(row.checked);
@@ -90,7 +90,9 @@ export default function AdminEntrainementDetailPage() {
   const shouldDeleteRef = useRef(false);
   const hasDeletedRef = useRef(false);
   const skipInitialCleanupRef = useRef(process.env.NODE_ENV !== "production");
-  const deleteEmptyTrainingRef = useRef<() => Promise<void>>(async () => { });
+  const deleteEmptyTrainingRef = useRef<() => Promise<{ trainingDeleted: boolean; programDeleted: boolean; }>>(
+    async () => ({ trainingDeleted: false, programDeleted: false })
+  );
 
 
 
@@ -414,6 +416,7 @@ export default function AdminEntrainementDetailPage() {
             } else {
               router.push("/entrainements");
             }
+            router.refresh();
           }}
         >
           Entraînements
