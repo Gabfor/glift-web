@@ -44,7 +44,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
         className="mb-6"
       />
 
-      <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+      <p className="mb-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
         En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> ce programme d’entraînements ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F]">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
       </p>
       <p className="mb-6 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
