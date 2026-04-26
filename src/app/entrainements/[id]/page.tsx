@@ -347,9 +347,13 @@ export default function AdminEntrainementDetailPage() {
   }, []);
 
   const handleDeleteSelectedRows = () => {
-    const newRows = rows.filter((row) => !selectedRowIds.includes(row.id ?? ""));
-    setRows(newRows);
+    const filteredRows = rows.filter((row) => !selectedRowIds.includes(row.id ?? ""));
+    setRows(filteredRows);
     setSelectedRowIds([]);
+
+    if (filteredRows.length === 0) {
+      handleAddRow();
+    }
   };
 
   const handleAddRow = () => {
