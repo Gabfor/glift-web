@@ -6,16 +6,20 @@ import StoreGrid from "@/components/store/StoreGrid";
 import Pagination from "@/components/pagination/Pagination";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
-import { StoreProgram } from "@/types/store";
+import { StoreProgram, StoreProfile } from "@/types/store";
 
 interface StorePageClientProps {
   initialPrograms: StoreProgram[];
   initialTotalCount: number;
+  initialUserProfile: StoreProfile | null;
+  initialIsAuthenticated: boolean;
 }
 
 export default function StorePageClient({
   initialPrograms,
-  initialTotalCount
+  initialTotalCount,
+  initialUserProfile,
+  initialIsAuthenticated
 }: StorePageClientProps) {
   const [sortBy, setSortBy] = useState("relevance");
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,6 +107,8 @@ export default function StorePageClient({
         currentPage={currentPage}
         filters={filters}
         initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" ? initialPrograms : undefined}
+        initialUserProfile={initialUserProfile}
+        initialIsAuthenticated={initialIsAuthenticated}
       />
       {!loadingCount && (
         <Pagination

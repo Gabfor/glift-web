@@ -4,7 +4,7 @@ import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import { StoreProfile } from "@/types/store";
 
-export const revalidate = 60; // Mise à jour auto toutes les minutes
+export const dynamic = "force-dynamic";
 
 import StoreHeader from "@/components/store/StoreHeader";
 
@@ -56,8 +56,7 @@ export default async function StorePage() {
       plan,
       location
     `)
-    .eq("status", "ON")
-    .limit(50);
+    .eq("status", "ON");
 
   const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
   const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
@@ -73,6 +72,8 @@ export default async function StorePage() {
       <StorePageClient 
         initialPrograms={initialPrograms} 
         initialTotalCount={totalCount || 0} 
+        initialUserProfile={userProfile}
+        initialIsAuthenticated={!!session?.user}
       />
     </main>
   );

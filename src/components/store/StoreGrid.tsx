@@ -17,18 +17,22 @@ export default function StoreGrid({
   sortBy,
   currentPage,
   filters,
-  initialPrograms = []
+  initialPrograms = [],
+  initialUserProfile = null,
+  initialIsAuthenticated = false
 }: {
   sortBy: string;
   currentPage: number;
   filters: string[];
   initialPrograms?: StoreProgram[];
+  initialUserProfile?: StoreProfile | null;
+  initialIsAuthenticated?: boolean;
 }) {
   const [programs, setPrograms] = useState<StoreProgram[]>(initialPrograms);
   const [loading, setLoading] = useState(initialPrograms.length === 0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(initialPrograms.length > 0);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userProfile, setUserProfile] = useState<StoreProfile | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
+  const [userProfile, setUserProfile] = useState<StoreProfile | null>(initialUserProfile);
 
   const hasLoadedOnceRef = useRef(initialPrograms.length > 0);
 
@@ -42,8 +46,8 @@ export default function StoreGrid({
     sortBy,
     currentPage,
     filters: [...filters],
-    isAuthenticated: false,
-    userProfile: null
+    isAuthenticated: initialIsAuthenticated,
+    userProfile: initialUserProfile
   } : null);
 
   const getOrderForSortBy = (sortBy: string) => {
@@ -106,7 +110,7 @@ export default function StoreGrid({
       previousQuery.sortBy !== sortBy ||
       previousQuery.currentPage !== currentPage ||
       previousQuery.isAuthenticated !== isAuthenticated ||
-      previousQuery.userProfile !== userProfile ||
+      JSON.stringify(previousQuery.userProfile) !== JSON.stringify(userProfile) ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
     const shouldSkipFetch =
@@ -193,23 +197,7 @@ export default function StoreGrid({
         let mappedPrograms = (data ?? []).map(mapProgramRowToCard);
 
         if (sortBy === "relevance") {
-          // ✅ SESSION PERSISTENCE:
-          const sessionKey = `store_relevance_order_${user?.id || 'guest'}`;
-          const savedOrder = sessionStorage.getItem(sessionKey);
-          
-          if (savedOrder && !queryChangedMaturity) {
-            const orderIds = JSON.parse(savedOrder) as string[];
-            mappedPrograms.sort((a, b) => {
-              const indexA = orderIds.indexOf(a.id);
-              const indexB = orderIds.indexOf(b.id);
-              if (indexA === -1 || indexB === -1) return 0;
-              return indexA - indexB;
-            });
-          } else {
-            mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
-            const orderIds = mappedPrograms.map(p => p.id);
-            sessionStorage.setItem(sessionKey, JSON.stringify(orderIds));
-          }
+          mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
         }
 
         if (isClientSideSort) {
