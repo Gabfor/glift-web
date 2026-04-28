@@ -691,13 +691,22 @@ export default function DashboardExerciseBlock({
   }, [goal]);
 
   const goalRecordValue = useMemo(() => {
-    if (!normalizedGoal) {
+    if (!normalizedGoal || !rawSessions || rawSessions.length === 0) {
       return 0;
     }
 
-    const matchingRecord = records.find((record) => record.curveType === normalizedGoal.type);
-    return typeof matchingRecord?.value === "number" ? matchingRecord.value : 0;
-  }, [normalizedGoal, records]);
+    // Sort to get the latest session (descending by date)
+    const latestSession = [...rawSessions].sort(
+      (a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
+    )[0];
+
+    if (!latestSession) return 0;
+
+    const metrics = aggregateSessionMetrics(latestSession);
+    const rawValue = getValueForCurve(metrics, normalizedGoal.type);
+
+    return rawValue !== null && Number.isFinite(rawValue) ? roundValue(rawValue) : 0;
+  }, [normalizedGoal, rawSessions]);
 
   const rawGoalProgress =
     normalizedGoal && normalizedGoal.target > 0
@@ -1261,11 +1270,7 @@ export default function DashboardExerciseBlock({
       // Calculate goal progress for this specific record type if it matches the goal
       let cardGoalProgress: number | null = null;
       if (isGoalType && normalizedGoal && normalizedGoal.target > 0) {
-        const val = typeof record.value === "number" ? record.value : 0;
-        cardGoalProgress = Math.min((val / normalizedGoal.target) * 100, 100); // Capped at 100 for display? Or allow >100? Rounding handled in Card.
-        // Actually the card handles visualization. Let's pass raw % or capped?
-        // The card code does `Math.round(goalProgress)`.
-        cardGoalProgress = (val / normalizedGoal.target) * 100;
+        cardGoalProgress = (goalRecordValue / normalizedGoal.target) * 100;
       }
 
       // If there is NO goal set at all, we might want to allow setting one for this type?
@@ -1301,7 +1306,7 @@ export default function DashboardExerciseBlock({
         ),
       };
     });
-  }, [records, normalizedGoal, formatRecordDate, favoriteRecordTypes, weightUnit]);
+  }, [records, normalizedGoal, formatRecordDate, favoriteRecordTypes, weightUnit, goalRecordValue]);
 
 
 
