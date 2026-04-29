@@ -884,25 +884,25 @@ export default function DashboardExerciseBlock({
       setFetchError(null);
 
       const { data, error } = await supabase
-        .from("training_session_exercises")
+        .from("training_sessions")
         .select(
           `
             id,
-            training_row_id,
-            session:training_sessions!inner (
-              performed_at,
-              user_id
-            ),
-            sets:training_session_sets (
-              repetitions,
-              weights
+            performed_at,
+            user_id,
+            exercises:training_session_exercises!inner (
+              id,
+              training_row_id,
+              sets:training_session_sets (
+                repetitions,
+                weights
+              )
             )
           `,
         )
-        .eq("training_row_id", id)
-        .eq("training_sessions.user_id", userId)
-        .order("performed_at", { referencedTable: "training_sessions", ascending: false })
-        .limit(sessionLimit);
+        .eq("user_id", userId)
+        .eq("exercises.training_row_id", id)
+        .order("performed_at", { ascending: false });
 
       if (!isActive) {
         return;
@@ -914,17 +914,18 @@ export default function DashboardExerciseBlock({
       } else {
         const normalizedSessions = (data ?? [])
           .map((row) => {
-            const performedAtRaw =
-              row.session && typeof row.session === "object"
-                ? (row.session as { performed_at?: string | null }).performed_at
-                : null;
+            const performedAtRaw = row.performed_at;
 
             if (!performedAtRaw || typeof performedAtRaw !== "string") {
               return null;
             }
 
-            const sets = Array.isArray(row.sets)
-              ? row.sets.map((set) => {
+            const exercises = Array.isArray(row.exercises) ? row.exercises : [];
+            const exercise = exercises[0];
+            const setsRaw = exercise?.sets;
+
+            const sets = Array.isArray(setsRaw)
+              ? setsRaw.map((set) => {
                 const repetitions =
                   typeof set?.repetitions === "number" && Number.isFinite(set.repetitions)
                     ? set.repetitions
@@ -969,7 +970,7 @@ export default function DashboardExerciseBlock({
     return () => {
       isActive = false;
     };
-  }, [id, sessionCount, supabase, user?.id, refreshTrigger]);
+  }, [id, supabase, user?.id, refreshTrigger]); // Removed sessionCount dependency
 
   useEffect(() => {
     if (!rawSessions.length) {
@@ -984,7 +985,11 @@ export default function DashboardExerciseBlock({
       return dateA - dateB;
     });
 
-    const computedChartData = sortedSessions
+    const limit = parseSessionCount(sessionCount);
+    // Take the last N sessions for the chart
+    const chartSessions = sortedSessions.slice(-limit);
+
+    const computedChartData = chartSessions
       .map((session) => {
         const parsedDate = new Date(session.performedAt);
         if (Number.isNaN(parsedDate.getTime())) {
@@ -993,17 +998,6 @@ export default function DashboardExerciseBlock({
 
         const metrics = aggregateSessionMetrics(session);
         const rawValue = getValueForCurve(metrics, curveType);
-
-        // Convert to lbs if needed AND if the curve is weight-based
-        // User requested NO value conversion.
-        /*
-        const isWeightCurve = curveType.includes("poids");
-        let finalValue = rawValue;
-
-        if (isWeightCurve && weightUnit === "lb" && finalValue != null) {
-          finalValue = finalValue * 2.20462;
-        }
-        */
 
         if (rawValue == null || !Number.isFinite(rawValue)) {
           return null;
@@ -1019,7 +1013,6 @@ export default function DashboardExerciseBlock({
       .filter((point) => point !== null) as ChartPoint[];
 
     // Padding logic to center points
-    const limit = parseSessionCount(sessionCount);
     const missing = Math.max(0, limit - computedChartData.length);
     const padBefore = Math.floor(missing / 2);
     const padAfter = missing - padBefore;
