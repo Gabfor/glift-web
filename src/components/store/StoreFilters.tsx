@@ -82,6 +82,7 @@ const matchesFilters = (
     locationFilter,
     durationFilter,
     partnerFilter,
+    availabilityFilter,
   ] = filters;
 
   if (skipIndex !== 0 && genderFilter) {
@@ -125,7 +126,11 @@ const matchesFilters = (
     }
   }
 
-
+  if (skipIndex !== 5 && partnerFilter) {
+    if (!program.partner || program.partner.trim().toLowerCase() !== partnerFilter.trim().toLowerCase()) {
+      return false;
+    }
+  }
 
   return true;
 };
@@ -191,7 +196,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
   ];
 
   const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", ""]);
+  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", "", ""]);
   const { user, isPremiumUser, isUserDataLoaded } = useUser();
   const isAuthenticated = !!user;
 
@@ -203,7 +208,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
       const { data, error } = await supabase
         .from("program_store")
-        .select("gender, goal, level, location, duration, plan")
+        .select("gender, goal, level, location, duration, plan, partner_name")
         .eq("status", "ON");
 
       if (error) {
@@ -240,6 +245,8 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     allDurationOptions,
     availabilityOptions,
     allAvailabilityOptions,
+    partnerOptions,
+    allPartnerOptions,
   } = useMemo(() => {
     const genderValues = new Set<string>();
     const goalValues = new Set<string>();
@@ -247,6 +254,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     const locationValues = new Set<string>();
     const durationValues: number[] = [];
     const availabilityValues = new Set<string>();
+    const partnerValues = new Set<string>();
 
     const checkAvailability = (program: NormalizedProgramStoreField) => {
       if (!isAuthenticated) return false;
@@ -268,6 +276,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     const allLocationValues = new Set<string>();
     const allDurationValues: number[] = [];
     const allAvailabilityValues = new Set<string>(["Oui", "Non"]);
+    const allPartnerValues = new Set<string>();
 
     programs.forEach((program) => {
       // Collect ALL possible values
@@ -276,6 +285,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       if (program.level) allLevelValues.add(program.level);
       if (program.location) allLocationValues.add(program.location);
       if (program.duration) allDurationValues.push(program.duration);
+      if (program.partner) allPartnerValues.add(program.partner);
 
       // Match common filters logic (replicated partly here or we rely on matchesFilters?) 
       // We need to use matchesFilters but inject the check for availability options
@@ -309,17 +319,21 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
         if (!Number.isNaN(max) && program.duration && program.duration > max) matches = false;
       }
 
+      // Index 5: Partner
+      if (matches && selectedFilters[5] && program.partner &&
+        program.partner.trim().toLowerCase() !== selectedFilters[5].trim().toLowerCase()) matches = false;
+
       if (matches) {
         // Check availability for option generation (if we are NOT filtering by availability OR if we allow it)
         // Actually, we want to know: "Given other filters, what availabilities are present?"
-        // So we skip index 5 check for availabilityValues.
+        // So we skip index 6 check for availabilityValues.
 
         const isAvail = checkAvailability(program);
         availabilityValues.add(isAvail ? "Oui" : "Non");
       }
 
       // Now for other options, we MUST respect availability filter
-      if (matches && selectedFilters[5] && !isAvailableMatch(program, selectedFilters[5])) {
+      if (matches && selectedFilters[6] && !isAvailableMatch(program, selectedFilters[6])) {
         matches = false;
       }
 
@@ -329,6 +343,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
         if (program.level) levelValues.add(program.level);
         if (program.location) locationValues.add(program.location);
         if (program.duration) durationValues.push(program.duration);
+        if (program.partner) partnerValues.add(program.partner);
       }
     });
 
@@ -336,7 +351,8 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     ensureFilterSelection(goalValues, selectedFilters[1] ?? "");
     ensureFilterSelection(levelValues, selectedFilters[2] ?? "");
     ensureFilterSelection(locationValues, selectedFilters[3] ?? "");
-    ensureFilterSelection(availabilityValues, selectedFilters[5] ?? "");
+    ensureFilterSelection(partnerValues, selectedFilters[5] ?? "");
+    ensureFilterSelection(availabilityValues, selectedFilters[6] ?? "");
 
     // For all locations, we don't force selection, just return options
     const allLocationFallback = () => {
@@ -356,6 +372,8 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       allLevelOptions: toStringOptions(allLevelValues, ["tous niveaux"]),
       allLocationOptions: allLocationFallback(),
       allDurationOptions: buildDurationOptions(allDurationValues, ""),
+      partnerOptions: toStringOptions(partnerValues),
+      allPartnerOptions: toStringOptions(allPartnerValues),
       availabilityOptions: toStringOptions(availabilityValues),
       allAvailabilityOptions: toStringOptions(allAvailabilityValues),
     };
@@ -392,6 +410,12 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       options: durationOptions,
       allOptions: allDurationOptions,
     },
+    {
+      label: "Partenaire",
+      placeholder: "Tous les partenaires",
+      options: partnerOptions,
+      allOptions: allPartnerOptions,
+    },
   ];
 
   const handleFilterChange = (index: number, value: string) => {
@@ -416,8 +440,8 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
               Masquer les programmes bloqués
             </span>
             <ToggleSwitch
-              checked={selectedFilters[5] === "Oui"}
-              onCheckedChange={(checked) => handleFilterChange(5, checked ? "Oui" : "")}
+              checked={selectedFilters[6] === "Oui"}
+              onCheckedChange={(checked) => handleFilterChange(6, checked ? "Oui" : "")}
             />
           </div>
         ) : undefined

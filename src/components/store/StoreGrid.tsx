@@ -162,7 +162,7 @@ export default function StoreGrid({
         `)
         .eq("status", "ON");
 
-      const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, availabilityFilter] = filters;
+      const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, partnerFilter, availabilityFilter] = filters;
 
       if (genderFilter) query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
       if (goalFilter) query = query.eq("goal", goalFilter);
@@ -171,6 +171,9 @@ export default function StoreGrid({
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) query = query.lte("duration", maxDuration);
+      }
+      if (partnerFilter) {
+        query = query.eq("partner_name", partnerFilter);
       }
       if (availabilityFilter === "Oui") {
         if (!isAuthenticated || userProfile?.subscription_plan === "starter") {

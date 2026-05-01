@@ -25,7 +25,7 @@ export default function StorePageClient({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
-  const [filters, setFilters] = useState(["", "", "", "", "", ""]);
+  const [filters, setFilters] = useState(["", "", "", "", "", "", ""]);
   const { user, isPremiumUser } = useUser();
 
   // Fetch total count of ON programs once (or when sort/filter changes)
@@ -50,6 +50,7 @@ export default function StorePageClient({
         levelFilter,
         locationFilter,
         durationFilter,
+        partnerFilter,
         availabilityFilter,
       ] = filters;
 
@@ -67,6 +68,9 @@ export default function StorePageClient({
         if (!Number.isNaN(maxDuration)) {
           query = query.lte("duration", maxDuration);
         }
+      }
+      if (partnerFilter) {
+        query = query.eq("partner_name", partnerFilter);
       }
       if (availabilityFilter === "Oui") {
         if (!user || !isPremiumUser) {
