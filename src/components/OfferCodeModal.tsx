@@ -46,7 +46,11 @@ export default function OfferModal({
 
   function formatDate(dateString?: string) {
     if (!dateString) return "";
-    const date = new Date(dateString);
+    // Force local time interpretation if it's a simple date string to match mobile
+    const finalDateStr = dateString.includes("-") && !dateString.includes("T") 
+      ? `${dateString}T00:00:00` 
+      : dateString;
+    const date = new Date(finalDateStr);
     return date.toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "long",

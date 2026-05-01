@@ -22,7 +22,8 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
       return null;
     }
 
-    const parsedEndDate = new Date(offer.end_date).getTime();
+    // Force local midnight interpretation to match mobile and sorting logic
+    const parsedEndDate = new Date(`${offer.end_date}T00:00:00`).getTime();
     return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
   });
 
@@ -52,7 +53,8 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
       return;
     }
 
-    const end = new Date(offer.end_date).getTime();
+    // Force local midnight interpretation to match mobile and sorting logic
+    const end = new Date(`${offer.end_date}T00:00:00`).getTime();
     if (Number.isNaN(end)) {
       setTimeRemaining(null);
       return;
