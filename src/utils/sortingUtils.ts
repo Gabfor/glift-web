@@ -91,7 +91,7 @@ export function sortProgramsByRelevance(programs: StoreProgram[], userProfile: S
 /**
  * Calcule le score de pertinence pour une offre selon le profil utilisateur
  */
-export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfile | null): number {
+export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfile | null, now?: number): number {
   if (!userProfile) return 0;
 
   let score = 0;
@@ -130,9 +130,9 @@ export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfi
 
   // 4. Expiration Rule
   if (offer.end_date) {
-    const now = new Date().getTime();
+    const currentTime = now || Date.now();
     const end = new Date(`${offer.end_date}T00:00:00`).getTime();
-    const diffHours = (end - now) / (1000 * 60 * 60);
+    const diffHours = (end - currentTime) / (1000 * 60 * 60);
 
     if (diffHours <= 24 && diffHours > 0) score += 2;
     else if (diffHours > 24 && diffHours <= 72) score += 1;
@@ -145,9 +145,10 @@ export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfi
  * Trie les offres par pertinence
  */
 export function sortOffersByRelevance(offers: ShopOffer[], userProfile: ShopProfile | null): ShopOffer[] {
+  const now = Date.now();
   return [...offers].sort((a, b) => {
-    const scoreA = calculateOfferRelevance(a, userProfile);
-    const scoreB = calculateOfferRelevance(b, userProfile);
+    const scoreA = calculateOfferRelevance(a, userProfile, now);
+    const scoreB = calculateOfferRelevance(b, userProfile, now);
 
     if (scoreA !== scoreB) {
       return scoreB - scoreA;
@@ -161,7 +162,9 @@ export function sortOffersByRelevance(offers: ShopOffer[], userProfile: ShopProf
       return dateA - dateB;
     }
 
-    // Tie-breaker 2: Name (Alphabetical)
-    return a.name.localeCompare(b.name);
+    // Tie-breaker 2: Name (Alphabetical - using simple comparison for cross-platform parity)
+    if (a.name < b.name) return -1;
+    if (a.name > b.name) return 1;
+    return 0;
   });
 }

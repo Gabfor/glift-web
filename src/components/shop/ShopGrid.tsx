@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import ShopCard from "./ShopCard";
 import ShopGridSkeleton from "./ShopGridSkeleton";
@@ -91,15 +91,42 @@ export default function ShopGrid({
   const [loading, setLoading] = useState(true);
   const { profile, isLoading: isUserContextLoading } = useUser();
   
-  const userProfile: ShopProfile | null = profile ? {
+  const userProfile: ShopProfile | null = useMemo(() => profile ? {
     gender: profile.gender || null,
     supplements: profile.supplements || null,
     main_goal: profile.main_goal || null
-  } : null;
+  } : null, [profile]);
 
   const hasLoadedOnceRef = useRef(false);
+  const previousQueryRef = useRef<{
+    sortBy: string;
+    currentPage: number;
+    filters: string[];
+    userProfile: ShopProfile | null;
+  } | null>(null);
 
   useEffect(() => {
+    const previousQuery = previousQueryRef.current;
+    const hasQueryChanged =
+      !previousQuery ||
+      previousQuery.sortBy !== sortBy ||
+      previousQuery.currentPage !== currentPage ||
+      previousQuery.userProfile?.gender !== userProfile?.gender ||
+      previousQuery.userProfile?.supplements !== userProfile?.supplements ||
+      previousQuery.userProfile?.main_goal !== userProfile?.main_goal ||
+      JSON.stringify(previousQuery.filters) !== JSON.stringify(filters);
+
+    if (!hasQueryChanged && hasLoadedOnceRef.current) {
+      return;
+    }
+
+    previousQueryRef.current = {
+      sortBy,
+      currentPage,
+      filters: [...filters],
+      userProfile: userProfile ? { ...userProfile } : null,
+    };
+
     let isActive = true;
 
     const fetchOffers = async () => {
