@@ -34,6 +34,7 @@ interface RichTextEditorProps {
     withHelpLink?: boolean;
     editorClassName?: string;
     containerClassName?: string;
+    minimal?: boolean;
 }
 
 const GlobalAttributes = Extension.create({
@@ -112,7 +113,15 @@ const ToolbarButton = ({
     </button>
 );
 
-export default function RichTextEditor({ value, onChange, placeholder = '', withHelpLink = false, editorClassName, containerClassName }: RichTextEditorProps) {
+export default function RichTextEditor({ 
+    value, 
+    onChange, 
+    placeholder = '', 
+    withHelpLink = false, 
+    editorClassName, 
+    containerClassName,
+    minimal = false 
+}: RichTextEditorProps) {
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -179,11 +188,10 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         }
     }, [value, editor]);
 
-    if (!editor) {
-        return null;
-    }
+    // Removed if (!editor) return null to prevent layout flash during initialization.
 
     const setLink = () => {
+        if (!editor) return;
         const previousUrl = editor.getAttributes('link').href;
         const selection = editor.state.selection;
         const text = editor.state.doc.textBetween(selection.from, selection.to, ' ');
@@ -193,6 +201,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const handleSaveLink = (url: string, text: string) => {
+        if (!editor) return;
         setIsLinkModalOpen(false);
 
         if (url === '') {
@@ -215,6 +224,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const handleSaveVideo = (url: string) => {
+        if (!editor) return;
         setIsVideoModalOpen(false);
         if (url) {
             editor.commands.setYoutubeVideo({
@@ -228,6 +238,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const handleSaveImage = (url: string, alt: string, description: string) => {
+        if (!editor) return;
         if (!url) return;
 
         // "containerstyle" is for Tiptap editor extension. "style" is for native public frontend HTML parsing.
@@ -243,6 +254,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const handleSaveHelpLink = (helpId: string, text: string) => {
+        if (!editor) return;
         const url = `/aide?q=${helpId}`;
         const selection = editor.state.selection;
         const currentText = editor.state.doc.textBetween(selection.from, selection.to, ' ');
@@ -257,6 +269,7 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
     };
 
     const handleOpenHelpLinkModal = () => {
+        if (!editor) return;
         const selection = editor.state.selection;
         const text = editor.state.doc.textBetween(selection.from, selection.to, ' ');
         setHelpLinkInitialText(text || "");
@@ -266,146 +279,158 @@ export default function RichTextEditor({ value, onChange, placeholder = '', with
         <div className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto min-h-[345px]'}`}>
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleBold().run()}
-                    isActive={editor.isActive('bold')}
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
+                    isActive={editor?.isActive('bold') ?? false}
                 >
                     <MdFormatBold size={20} />
                 </ToolbarButton>
 
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleItalic().run()}
-                    isActive={editor.isActive('italic')}
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
+                    isActive={editor?.isActive('italic') ?? false}
                 >
                     <MdFormatItalic size={20} />
                 </ToolbarButton>
 
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleUnderline().run()}
-                    isActive={editor.isActive('underline')}
+                    onClick={() => editor?.chain().focus().toggleUnderline().run()}
+                    isActive={editor?.isActive('underline') ?? false}
                 >
                     <MdFormatUnderlined size={20} />
                 </ToolbarButton>
 
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleStrike().run()}
-                    isActive={editor.isActive('strike')}
+                    onClick={() => editor?.chain().focus().toggleStrike().run()}
+                    isActive={editor?.isActive('strike') ?? false}
                 >
                     <MdFormatStrikethrough size={20} />
                 </ToolbarButton>
 
+                {!minimal && (
+                    <>
+                        <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
+                        <ToolbarButton
+                            onClick={() => editor?.chain().focus().setTextAlign('left').run()}
+                            isActive={editor?.isActive({ textAlign: 'left' }) ?? false}
+                        >
+                            <MdFormatAlignLeft size={20} />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            onClick={() => editor?.chain().focus().setTextAlign('center').run()}
+                            isActive={editor?.isActive({ textAlign: 'center' }) ?? false}
+                        >
+                            <MdFormatAlignCenter size={20} />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            onClick={() => editor?.chain().focus().setTextAlign('right').run()}
+                            isActive={editor?.isActive({ textAlign: 'right' }) ?? false}
+                        >
+                            <MdFormatAlignRight size={20} />
+                        </ToolbarButton>
+                    </>
+                )}
+
                 <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
 
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().setTextAlign('left').run()}
-                    isActive={editor.isActive({ textAlign: 'left' })}
-                >
-                    <MdFormatAlignLeft size={20} />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    onClick={() => editor.chain().focus().setTextAlign('center').run()}
-                    isActive={editor.isActive({ textAlign: 'center' })}
-                >
-                    <MdFormatAlignCenter size={20} />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    onClick={() => editor.chain().focus().setTextAlign('right').run()}
-                    isActive={editor.isActive({ textAlign: 'right' })}
-                >
-                    <MdFormatAlignRight size={20} />
-                </ToolbarButton>
-
-                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
-
-                <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleBulletList().run()}
-                    isActive={editor.isActive('bulletList')}
+                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                    isActive={editor?.isActive('bulletList') ?? false}
                 >
                     <MdFormatListBulleted size={20} />
                 </ToolbarButton>
 
                 <ToolbarButton
-                    onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                    isActive={editor.isActive('orderedList')}
+                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                    isActive={editor?.isActive('orderedList') ?? false}
                 >
                     <MdFormatListNumbered size={20} />
                 </ToolbarButton>
 
-                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
-
-                <ToolbarButton
-                    onClick={setLink}
-                    isActive={editor.isActive('link')}
-                >
-                    <MdLink size={20} />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    onClick={() => editor.chain().focus().unsetLink().run()}
-                    isActive={false}
-                >
-                    <MdLinkOff size={20} />
-                </ToolbarButton>
-
-                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
-
-                <ToolbarButton
-                    onClick={addImage}
-                    isActive={editor.isActive('image')}
-                >
-                    <MdImage size={20} />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    onClick={addYoutubeVideo}
-                    isActive={editor.isActive('youtube')}
-                >
-                    <MdOndemandVideo size={20} />
-                </ToolbarButton>
-
-                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
-
-                <div className="relative">
-                    <ToolbarButton
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        isActive={showEmojiPicker}
-                    >
-                        <MdEmojiEmotions size={20} />
-                    </ToolbarButton>
-
-                    {showEmojiPicker && (
-                        <div className="absolute top-[30px] right-0 z-50 shadow-lg rounded-[8px] bg-white">
-                            <EmojiPicker
-                                onEmojiClick={(emojiData) => {
-                                    editor.chain().focus().insertContent(emojiData.emoji).run();
-                                    setShowEmojiPicker(false);
-                                }}
-                                width={300}
-                                height={400}
-                                searchPlaceHolder="Rechercher un emoji..."
-                                previewConfig={{ showPreview: false }}
-                            />
-                        </div>
-                    )}
-                </div>
-
-                {withHelpLink && (
+                {!minimal && (
                     <>
                         <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
+                        <ToolbarButton
+                            onClick={setLink}
+                            isActive={editor?.isActive('link') ?? false}
+                        >
+                            <MdLink size={20} />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            onClick={() => editor?.chain().focus().unsetLink().run()}
+                            isActive={false}
+                        >
+                            <MdLinkOff size={20} />
+                        </ToolbarButton>
+
+                        <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
+                        <ToolbarButton
+                            onClick={addImage}
+                            isActive={editor?.isActive('image') ?? false}
+                        >
+                            <MdImage size={20} />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            onClick={addYoutubeVideo}
+                            isActive={editor?.isActive('youtube') ?? false}
+                        >
+                            <MdOndemandVideo size={20} />
+                        </ToolbarButton>
+
+                        <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+
                         <div className="relative">
                             <ToolbarButton
-                                onClick={handleOpenHelpLinkModal}
-                                isActive={isHelpLinkModalOpen}
+                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                isActive={showEmojiPicker}
                             >
-                                <MdHelpOutline size={20} />
+                                <MdEmojiEmotions size={20} />
                             </ToolbarButton>
+
+                            {showEmojiPicker && (
+                                <div className="absolute top-[30px] right-0 z-50 shadow-lg rounded-[8px] bg-white">
+                                    <EmojiPicker
+                                        onEmojiClick={(emojiData) => {
+                                            editor?.chain().focus().insertContent(emojiData.emoji).run();
+                                            setShowEmojiPicker(false);
+                                        }}
+                                        width={300}
+                                        height={400}
+                                        searchPlaceHolder="Rechercher un emoji..."
+                                        previewConfig={{ showPreview: false }}
+                                    />
+                                </div>
+                            )}
                         </div>
+
+                        {withHelpLink && (
+                            <>
+                                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+                                <div className="relative">
+                                    <ToolbarButton
+                                        onClick={handleOpenHelpLinkModal}
+                                        isActive={isHelpLinkModalOpen}
+                                    >
+                                        <MdHelpOutline size={20} />
+                                    </ToolbarButton>
+                                </div>
+                            </>
+                        )}
                     </>
                 )}
             </div>
 
-            <EditorContent editor={editor} />
+            {editor ? (
+                <EditorContent editor={editor} />
+            ) : (
+                <div className={`px-4 py-3 min-h-[345px] ${editorClassName}`} />
+            )}
 
             <style jsx global>{`
         .ProseMirror p.is-editor-empty:first-child::before {

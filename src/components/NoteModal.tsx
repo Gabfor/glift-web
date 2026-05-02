@@ -1,8 +1,7 @@
 import { useState } from "react";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
-import dynamic from 'next/dynamic';
-const RichTextEditor = dynamic(() => import("@/components/ui/RichTextEditor"), { ssr: false });
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 interface NoteModalProps {
   initialNote: string;
@@ -56,6 +55,7 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
           value={note}
           onChange={setNote}
           placeholder="Ajoutez vos notes ici"
+          minimal
         />
       </div>
     </Modal>
