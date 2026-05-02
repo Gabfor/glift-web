@@ -103,8 +103,12 @@ export default function ShopPageClient({
         query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
       }
       if (filters[1]) query = query.filter("type", "cs", JSON.stringify([filters[1]]));
-      if (filters[2]) query = query.filter("sport", "cs", JSON.stringify([filters[2]]));
-      if (filters[3]) query = query.eq("shop", filters[3]);
+      if (filters[2]) {
+        query = query.or(`sport.cs.["${filters[2]}"],sport.cs.["Tous"]`);
+      }
+      if (filters[3]) {
+        query = query.or(`shop.eq.${filters[3]},shop.eq.Tous`);
+      }
 
       const { count, error } = await query;
 

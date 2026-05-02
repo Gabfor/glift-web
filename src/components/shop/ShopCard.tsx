@@ -223,7 +223,7 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
             );
           }
 
-          const end = new Date(offer.end_date).getTime();
+          const end = new Date(`${offer.end_date}T00:00:00`).getTime();
           if (Number.isNaN(end)) {
             return (
               <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
@@ -236,7 +236,7 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
           const diffMs =
             typeof timeRemaining === "number" ? timeRemaining : end - Date.now();
           const dayMs = 24 * 60 * 60 * 1000;
-          const diffDays = Math.ceil(diffMs / dayMs);
+          const diffDays = Math.floor(diffMs / dayMs);
 
           if (diffMs <= 0) {
             return (
@@ -264,7 +264,7 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
               <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
                 <Image src="/icons/check_end_soon.svg" alt="ending soon" width={20} height={20} />
                 L’offre expire dans :{" "}
-                <span className="ml-auto text-[#F0C863] font-semibold">{diffDays} jours</span>
+                <span className="ml-auto text-[#F0C863] font-semibold">{diffDays} {diffDays > 1 ? 'jours' : 'jour'}</span>
               </div>
             );
           }
@@ -273,7 +273,7 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
             <div className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left flex items-center gap-1">
               <Image src="/icons/check_offer.svg" alt="check" width={20} height={20} />
               L’offre expire dans :{" "}
-              <span className="ml-auto text-[#3A416F] font-semibold">{diffDays} jours</span>
+              <span className="ml-auto text-[#3A416F] font-semibold">{diffDays} {diffDays > 1 ? 'jours' : 'jour'}</span>
             </div>
           );
         })()}
