@@ -23,11 +23,30 @@ export default function ShopPageClient({
   initialTotalCount,
   sliderConfig,
 }: ShopPageClientProps) {
-  const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [sortBy, setSortBy] = useState(() => {
+    try { return sessionStorage.getItem("glift_shop_sortBy") || "relevance"; } catch { return "relevance"; }
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    try { return Number.parseInt(sessionStorage.getItem("glift_shop_page") || "1", 10) || 1; } catch { return 1; }
+  });
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
-  const [filters, setFilters] = useState(["", "", "", ""]);
+  const [filters, setFilters] = useState<string[]>(() => {
+    try {
+      const saved = sessionStorage.getItem("glift_shop_filters");
+      if (saved) return JSON.parse(saved);
+    } catch { /* ignore */ }
+    return ["", "", "", ""];
+  });
+
+  // Save to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("glift_shop_sortBy", sortBy);
+      sessionStorage.setItem("glift_shop_filters", JSON.stringify(filters));
+      sessionStorage.setItem("glift_shop_page", currentPage.toString());
+    } catch { /* ignore */ }
+  }, [sortBy, filters, currentPage]);
 
   // Modal Management
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
@@ -116,6 +135,7 @@ export default function ShopPageClient({
       <div className="max-w-[1152px] mx-auto">
         <ShopFilters
           sortBy={sortBy}
+          initialFilters={filters}
           onSortChange={(value: string) => {
             setSortBy(value);
             setCurrentPage(1);

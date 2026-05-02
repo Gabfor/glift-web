@@ -14,6 +14,7 @@ type Props = {
   sortBy: string;
   onSortChange: (sortBy: string) => void;
   onFiltersChange: (filters: string[]) => void;
+  initialFilters?: string[];
 };
 
 type ProgramStoreField = {
@@ -187,7 +188,7 @@ const buildDurationOptions = (durations: number[], selected: string) => {
   return options.sort((a, b) => Number.parseInt(a.value, 10) - Number.parseInt(b.value, 10));
 };
 
-export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: Props) {
+export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, initialFilters }: Props) {
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
     { value: "popularity", label: "Popularité" },
@@ -195,8 +196,14 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
     { value: "oldest", label: "Ancienneté" },
   ];
 
-  const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
-  const [selectedFilters, setSelectedFilters] = useState(["", "", "", "", "", "", ""]);
+  const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("glift_store_programs_cache");
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    return [];
+  });
+  const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", "", "", "", ""]);
   const { user, isPremiumUser, isUserDataLoaded } = useUser();
   const isAuthenticated = !!user;
 
@@ -223,6 +230,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
 
       const normalized = (data ?? []).map((item) => normalizeProgram(item));
       setPrograms(normalized);
+      try { sessionStorage.setItem("glift_store_programs_cache", JSON.stringify(normalized)); } catch { /* ignore */ }
     };
 
     void fetchPrograms();
@@ -433,6 +441,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange }: 
       filters={filterOptions}
       selectedFilters={selectedFilters}
       onFilterChange={handleFilterChange}
+      storageKey="glift_store"
       rightContent={
         isUserDataLoaded && !isPremiumUser ? (
           <div className="flex items-center gap-[10px]">

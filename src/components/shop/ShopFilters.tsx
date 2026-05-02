@@ -12,6 +12,7 @@ type Props = {
   sortBy: string;
   onSortChange: (sortBy: string) => void;
   onFiltersChange: (filters: string[]) => void;
+  initialFilters?: string[];
 };
 
 type OfferShopField = {
@@ -173,6 +174,7 @@ export default function ShopFilters({
   sortBy,
   onSortChange,
   onFiltersChange,
+  initialFilters,
 }: Props) {
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
@@ -181,7 +183,13 @@ export default function ShopFilters({
     { value: "expiration", label: "Expiration" },
   ];
 
-  const [offers, setOffers] = useState<NormalizedOfferShopField[]>([]);
+  const [offers, setOffers] = useState<NormalizedOfferShopField[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("glift_shop_offers_cache");
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    return [];
+  });
 
   useEffect(() => {
     let isActive = true;
@@ -206,6 +214,7 @@ export default function ShopFilters({
 
       const normalizedOffers = (data ?? []).map((item) => normalizeOffer(item));
       setOffers(normalizedOffers);
+      try { sessionStorage.setItem("glift_shop_offers_cache", JSON.stringify(normalizedOffers)); } catch { /* ignore */ }
     };
 
     void fetchFilterOptions();
@@ -215,7 +224,7 @@ export default function ShopFilters({
     };
   }, []);
 
-  const [selectedFilters, setSelectedFilters] = useState(["", "", "", ""]);
+  const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", ""]);
 
   const { genderOptions, goalOptions, sportOptions, partnerOptions } = useMemo(() => {
     const genderValues = new Set<string>();
@@ -288,6 +297,7 @@ export default function ShopFilters({
       filters={filterOptions}
       selectedFilters={selectedFilters}
       onFilterChange={handleFilterChange}
+      storageKey="glift_shop"
     />
   );
 }

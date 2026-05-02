@@ -192,7 +192,7 @@ export default function DropdownFilter({
 
   return (
     <div
-      className={`inline-flex flex-col gap-[5px] relative transition-all duration-300 ${className ?? ""}`}
+      className={`inline-flex flex-col gap-[5px] relative ${className ?? ""}`}
       ref={menuRef}
     >
       <div className="flex items-center justify-between">
@@ -270,7 +270,6 @@ export default function DropdownFilter({
           gap-[10px]
           text-[16px]
           font-semibold
-          transition
         `}
         style={{
           ...(calculatedWidth

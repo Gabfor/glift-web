@@ -30,6 +30,7 @@ type FiltersPanelProps = {
   selectedFilters: string[];
   onFilterChange: (index: number, value: string) => void;
   rightContent?: React.ReactNode;
+  storageKey?: string;
 };
 
 export default function FiltersPanel({
@@ -40,12 +41,32 @@ export default function FiltersPanel({
   selectedFilters,
   onFilterChange,
   rightContent,
+  storageKey,
 }: FiltersPanelProps) {
-  const [showFilters, setShowFilters] = useState(false);
+  const [showFilters, setShowFilters] = useState(() => {
+    if (!storageKey) return false;
+    try {
+      return sessionStorage.getItem(`${storageKey}_showFilters`) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [openSortMenu, setOpenSortMenu] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+
+  const handleToggleFilters = () => {
+    const next = !showFilters;
+    setShowFilters(next);
+    if (storageKey) {
+      try {
+        sessionStorage.setItem(`${storageKey}_showFilters`, String(next));
+      } catch {
+        // ignore
+      }
+    }
+  };
 
   useEffect(() => {
     if (!openSortMenu) {
@@ -162,7 +183,7 @@ export default function FiltersPanel({
 
           {filters.length > 0 && (
             <button
-              onClick={() => setShowFilters((current) => !current)}
+              onClick={handleToggleFilters}
               className="h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
             >
               <div className="flex items-center gap-2">
