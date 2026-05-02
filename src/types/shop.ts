@@ -19,6 +19,7 @@ export interface ShopOffer {
   boost?: boolean;
   click_count?: number;
   created_at?: string;
+  sport: string[];
 }
 
 export interface ShopProfile {

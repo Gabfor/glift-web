@@ -1,144 +1,121 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import ShopCard from "@/components/shop/ShopCard";
-import ShopGridSkeleton from "@/components/shop/ShopGridSkeleton";
+import { useEffect, useState, useRef } from "react";
 import { createClient } from "@/lib/supabaseClient";
-import type { Database } from "@/lib/supabase/types";
-import { haveStringArrayChanged } from "@/utils/arrayUtils";
-import { useUser } from "@/context/UserContext";
-
-import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
-
+import ShopCard from "./ShopCard";
+import ShopGridSkeleton from "./ShopGridSkeleton";
 import { ShopOffer, ShopProfile } from "@/types/shop";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
+import { useUser } from "@/context/UserContext";
+
+const ITEMS_PER_PAGE = 8;
+
+type OfferQueryRow = {
+  id: string;
+  name: string;
+  start_date: string | null;
+  end_date: string | null;
+  type: string | string[] | null;
+  code: string | null;
+  image: string | null;
+  image_alt: string | null;
+  brand_image: string | null;
+  brand_image_alt: string | null;
+  shop: string | null;
+  shop_website: string | null;
+  shop_link: string | null;
+  shipping: string | number | null;
+  modal: string | null;
+  condition: string | null;
+  gender: string | null;
+  boost: boolean | string | null;
+  click_count: number | null;
+  created_at: string | null;
+  sport: string | string[] | null;
+};
+
+const normalizeToArray = (value: unknown): string[] => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.map(v => String(v));
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      if (Array.isArray(parsed)) return parsed.map(v => String(v));
+    } catch {
+      return value.split(",").map(v => v.trim()).filter(v => v);
+    }
+    return [value];
+  }
+  return [];
+};
+
+const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
+  ...row,
+  start_date: row.start_date ?? "",
+  end_date: row.end_date ?? "",
+  code: row.code ?? "",
+  image: row.image ?? "",
+  image_alt: row.image_alt ?? "",
+  type: normalizeToArray(row.type),
+  sport: normalizeToArray(row.sport),
+  click_count: row.click_count ?? 0,
+  brand_image: row.brand_image ?? undefined,
+  brand_image_alt: row.brand_image_alt ?? undefined,
+  shop: row.shop ?? undefined,
+  shop_website: row.shop_website ?? undefined,
+  shop_link: row.shop_link ?? undefined,
+  shipping: row.shipping ? String(row.shipping) : undefined,
+  modal: row.modal ?? undefined,
+  condition: row.condition ?? undefined,
+  gender: row.gender ?? undefined,
+  boost: row.boost === true || row.boost === "true",
+  created_at: row.created_at ?? undefined,
+});
 
 export default function ShopGrid({
   sortBy,
   currentPage,
   filters,
   onOfferClick,
+  onCountChange,
   initialOffers = [],
 }: {
   sortBy: string;
   currentPage: number;
   filters: string[];
   onOfferClick: (offer: ShopOffer) => void;
+  onCountChange?: (count: number) => void;
   initialOffers?: ShopOffer[];
 }) {
   const [offers, setOffers] = useState<ShopOffer[]>(initialOffers);
-  const [loading, setLoading] = useState(initialOffers.length === 0);
-  const hasLoadedOnceRef = useRef(initialOffers.length > 0);
+  const [loading, setLoading] = useState(true);
+  const { profile, isLoading: isUserContextLoading } = useUser();
+  
+  const userProfile: ShopProfile | null = profile ? {
+    gender: profile.gender || null,
+    supplements: profile.supplements || null,
+    main_goal: profile.main_goal || null
+  } : null;
 
-  const [userProfile, setUserProfile] = useState<ShopProfile | null>(null);
-  const { user, isLoading: isUserContextLoading } = useUser();
-
-  const previousQueryRef = useRef<{
-    sortBy: string;
-    currentPage: number;
-    filters: string[];
-    userProfile: ShopProfile | null;
-  } | null>(initialOffers.length > 0 ? {
-    sortBy,
-    currentPage,
-    filters: [...filters],
-    userProfile: null
-  } : null);
+  const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const supabase = createClient();
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("gender, main_goal, supplements")
-          .eq("id", user.id)
-          .single();
-
-        if (data) {
-          setUserProfile(data);
-        }
-      } else {
-        setUserProfile(null);
-      }
-    };
-    if (!isUserContextLoading) {
-      fetchProfile();
-    }
-  }, [user, isUserContextLoading]);
-
-  const getOrderForSortBy = (sortBy: string) => {
-    switch (sortBy) {
-      case "relevance":
-        return { column: "", ascending: false }; // Client-side sort
-      case "popularity":
-        return { column: "click_count", ascending: false };
-      case "oldest":
-        return { column: "start_date", ascending: true };
-      case "expiration":
-        return { column: "", ascending: true }; // Client-side sort
-      case "newest":
-      default:
-        return { column: "start_date", ascending: false };
-    }
-  };
-
-  useEffect(() => {
-    const previousQuery = previousQueryRef.current;
-    const hasQueryChanged =
-      !previousQuery ||
-      previousQuery.sortBy !== sortBy ||
-      previousQuery.currentPage !== currentPage ||
-      haveStringArrayChanged(previousQuery.filters, filters) ||
-      previousQuery.userProfile !== userProfile;
-
-    const shouldSkipFetch =
-      previousQuery !== null &&
-      !hasQueryChanged &&
-      hasLoadedOnceRef.current;
-
-    if (shouldSkipFetch) {
-      return;
-    }
-
-    previousQueryRef.current = {
-      sortBy,
-      currentPage,
-      filters: [...filters],
-      userProfile,
-    };
-
     let isActive = true;
 
     const fetchOffers = async () => {
-      // ✅ LOADING LOGIC: stay in skeleton while UserContext is syncing
-      const isInitialSync = !hasLoadedOnceRef.current;
-      const isProfileSyncing = isUserContextLoading;
-
-      const queryChangedMaturity = previousQuery && (
-        previousQuery.sortBy !== sortBy || 
-        previousQuery.currentPage !== currentPage || 
-        haveStringArrayChanged(previousQuery.filters, filters)
-      );
-
-      if (queryChangedMaturity) {
-        setLoading(true);
-      }
-
+      setLoading(true);
       const supabase = createClient();
-      const start = (currentPage - 1) * 8;
-      const end = start + 7;
-      const order = getOrderForSortBy(sortBy);
 
       let query = supabase
         .from("offer_shop")
         .select(`
           id, name, start_date, end_date, type, code, image, image_alt, 
           brand_image, brand_image_alt, shop, shop_website, shop_link, 
-          shipping, modal, condition, gender, boost, click_count, created_at
+          shipping, modal, condition, gender, boost, click_count, created_at, sport
         `)
         .eq("status", "ON");
 
+      // Server-side filters (Primary)
       if (filters[0]) {
         query = query.or(`gender.eq.${filters[0]},gender.eq.Tous`);
       }
@@ -149,68 +126,73 @@ export default function ShopGrid({
         query = query.or(`shop.eq.${filters[3]},shop.eq.Tous`);
       }
 
-      let finalQuery = query;
-      if (sortBy === "popularity") {
-        finalQuery = finalQuery
-          .order("click_count", { ascending: false })
-          .order("created_at", { ascending: false })
-          .order("name", { ascending: true });
-      } else if (order.column) {
-        finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
-      }
-
-      const isClientSideSort = sortBy === "relevance" || sortBy === "expiration";
-      if (!isClientSideSort) {
-        finalQuery = finalQuery.range(start, end);
-      }
-
-      const { data, error } = await finalQuery.returns<OfferQueryRow[]>();
+      const { data, error } = await query.returns<OfferQueryRow[]>();
 
       if (!isActive) return;
 
       if (error) {
-        console.error("Erreur Supabase :", error.message);
-      } else {
-        let normalized = (data ?? []).map(mapOfferRowToOffer);
-
-        if (sortBy === "expiration") {
-          normalized.sort((a, b) => {
-            if (!a.end_date && !b.end_date) return 0;
-            if (!a.end_date) return 1;
-            if (!b.end_date) return -1;
-            return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
-          });
-        }
-
-        if (sortBy === "relevance") {
-          // ✅ SESSION PERSISTENCE:
-          const sessionKey = `shop_relevance_order_${user?.id || 'guest'}`;
-          const savedOrder = sessionStorage.getItem(sessionKey);
-          
-          if (savedOrder && !queryChangedMaturity) {
-            const orderIds = JSON.parse(savedOrder) as string[];
-            normalized.sort((a, b) => {
-              const indexA = orderIds.indexOf(a.id);
-              const indexB = orderIds.indexOf(b.id);
-              if (indexA === -1 || indexB === -1) return 0;
-              return indexA - indexB;
-            });
-          } else {
-            normalized = sortOffersByRelevance(normalized, userProfile);
-            const orderIds = normalized.map(o => o.id);
-            sessionStorage.setItem(sessionKey, JSON.stringify(orderIds));
-          }
-        }
-
-        if (isClientSideSort) {
-          normalized = normalized.slice(start, end + 1);
-        }
-
-        setOffers(normalized);
+        console.error("Erreur fetch offers:", error.message);
+        setOffers([]);
+        if (onCountChange) onCountChange(0);
+        setLoading(false);
+        return;
       }
 
-      hasLoadedOnceRef.current = true;
+      let normalized = (data ?? []).map(mapOfferRowToOffer);
+
+      // JS Filters: Image presence and Category partial match
+      normalized = normalized
+        .filter((offer) => Boolean(offer.image))
+        .filter((offer) => {
+          if (!filters[1]) return true;
+          const normalizedType = filters[1].trim().toLowerCase();
+          return offer.type.some((t) =>
+            t.toLowerCase().includes(normalizedType)
+          );
+        });
+
+      // Sorting
+      if (sortBy === "relevance") {
+        normalized = sortOffersByRelevance(normalized, userProfile);
+      } else if (sortBy === "popularity") {
+        normalized.sort((a, b) => {
+          if (b.click_count !== a.click_count) return (b.click_count ?? 0) - (a.click_count ?? 0);
+          const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          if (dateB !== dateA) return dateB - dateA;
+          return a.name.localeCompare(b.name);
+        });
+      } else if (sortBy === "newest") {
+        normalized.sort((a, b) => {
+          const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+          const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+          if (dateB !== dateA) return dateB - dateA;
+          const createA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const createB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          if (createB !== createA) return createB - createA;
+          return a.name.localeCompare(b.name);
+        });
+      } else if (sortBy === "expiration") {
+        normalized.sort((a, b) => {
+          if (!a.end_date && !b.end_date) return a.name.localeCompare(b.name);
+          if (!a.end_date) return 1;
+          if (!b.end_date) return -1;
+          const timeA = new Date(`${a.end_date}T00:00:00`).getTime();
+          const timeB = new Date(`${b.end_date}T00:00:00`).getTime();
+          if (timeA !== timeB) return timeA - timeB;
+          return a.name.localeCompare(b.name);
+        });
+      }
+
+      if (onCountChange) onCountChange(normalized.length);
+
+      // In-memory pagination
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const paginated = normalized.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+      setOffers(paginated);
       setLoading(false);
+      hasLoadedOnceRef.current = true;
     };
 
     void fetchOffers();
@@ -220,34 +202,23 @@ export default function ShopGrid({
     };
   }, [sortBy, currentPage, filters, userProfile, isUserContextLoading]);
 
-  const filteredOffers = offers
-    .filter((offer) => Boolean(offer.image))
-    .filter((offer) => {
-      if (!filters[1]) return true;
-
-      return offer.type.some((t) =>
-        t.toLowerCase().includes(filters[1].toLowerCase())
-      );
-    });
-
   return (
     <>
       {loading ? (
         <ShopGridSkeleton />
       ) : (
         <div className="relative mt-8">
-          {filteredOffers.length === 0 && !loading && (
+          {offers.length === 0 && !loading && (
             <p className="text-center text-[#5D6494] font-semibold">
               Aucune offre trouvée.
             </p>
           )}
 
           <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-            {filteredOffers.map((offer) => (
+            {offers.map((offer) => (
               <ShopCard key={offer.id} offer={offer} onOfferClick={onOfferClick} />
             ))}
           </div>
-
         </div>
       )}
     </>

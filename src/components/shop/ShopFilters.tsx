@@ -122,7 +122,8 @@ const matchesFilters = (
   }
 
   if (skipIndex !== 1 && typeFilter) {
-    if (!includesValue(offer.types, typeFilter)) {
+    const normalizedType = typeFilter.trim().toLowerCase();
+    if (!offer.types.some(t => t.toLowerCase().includes(normalizedType))) {
       return false;
     }
   }
