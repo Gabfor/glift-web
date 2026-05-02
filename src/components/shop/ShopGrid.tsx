@@ -236,8 +236,8 @@ export default function ShopGrid({
       ) : (
         <div className="relative mt-8">
           {offers.length === 0 && !loading && (
-            <p className="text-center text-[#5D6494] font-semibold">
-              Aucune offre trouvée.
+            <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
+              Aucune offre disponible{"\n"}avec ces filtres...
             </p>
           )}
 
