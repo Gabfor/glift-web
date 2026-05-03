@@ -1381,10 +1381,11 @@ export default function DashboardExerciseBlock({
           {/* Chart Area */}
           <div className="flex-1 relative h-full overflow-hidden">
             {!isLoadingData && !fetchError && chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" className="dashboard-exercise-chart">
                 <AreaChart
                   data={chartData}
                   margin={chartMargin}
+                  tabIndex={-1}
                 >
                   <defs>
                     <linearGradient id={`gradient-${id}`} x1="0" y1="0" x2="0" y2="1">
@@ -1550,8 +1551,11 @@ export default function DashboardExerciseBlock({
       </div>
 
       <style jsx global>{`
-        .dashboard-exercise-chart .recharts-surface:focus {
-          outline: none;
+        .dashboard-exercise-chart :focus {
+          outline: none !important;
+        }
+        .recharts-wrapper:focus {
+          outline: none !important;
         }
       `}</style>
 
