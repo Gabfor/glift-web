@@ -11,6 +11,7 @@ import Tooltip from "@/components/Tooltip";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import BlogAdminActionsBar from "@/app/admin/components/BlogAdminActionsBar";
+import DropdownFilter from "@/components/filters/DropdownFilter";
 
 type BlogArticle = {
   id: string;
@@ -21,6 +22,7 @@ type BlogArticle = {
   flop: number;
   created_at: string;
   langue?: string;
+  categorie?: string;
 };
 
 type SortableColumn = "is_published" | "is_featured" | "titre" | "created_at" | "langue" | "top" | "flop" | "id";
@@ -34,6 +36,7 @@ export default function AdminContentBlogPage() {
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -144,8 +147,9 @@ export default function AdminContentBlogPage() {
 
     // Filtre
     const filtered = articles.filter((a) => {
-      if (!term) return true;
-      return a.titre?.toLowerCase().includes(term);
+      const matchesSearch = !term || a.titre?.toLowerCase().includes(term);
+      const matchesCategory = !categoryFilter || a.categorie === categoryFilter;
+      return matchesSearch && matchesCategory;
     });
 
     // Tri
@@ -183,7 +187,7 @@ export default function AdminContentBlogPage() {
       }
       return sortDirection === "asc" ? comparison : -comparison;
     });
-  }, [articles, searchTerm, sortBy, sortDirection]);
+  }, [articles, searchTerm, categoryFilter, sortBy, sortDirection]);
 
   const renderHeaderCell = (
     label: string | React.ReactNode,
@@ -292,17 +296,35 @@ export default function AdminContentBlogPage() {
           </div>
         </div>
 
-        {showActionsBar ? (
-          <BlogAdminActionsBar
-            selectedIds={selectedIds}
-            selectedStatus={selectedStatus}
-            onDelete={handleDelete}
-            onEdit={handleEdit}
-            onToggleStatus={handleToggleStatus}
-            onAdd={handleAdd}
-          />
-        ) : (
-          <div className="flex justify-end mb-4 relative z-10 w-full">
+        <div className="mb-6 flex min-h-[40px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-3">
+            <DropdownFilter
+              label="Catégorie"
+              placeholder="Toutes les catégories"
+              selected={categoryFilter}
+              onSelect={setCategoryFilter}
+              options={[
+                { value: "Nutrition", label: "Nutrition" },
+                { value: "Entraînement", label: "Entraînement" },
+                { value: "Santé", label: "Santé" },
+                { value: "Motivation", label: "Motivation" },
+                { value: "Lifestyle", label: "Lifestyle" },
+              ]}
+            />
+          </div>
+
+          <div className="flex w-full justify-end lg:w-auto mt-[49px]">
+            {showActionsBar ? (
+              <BlogAdminActionsBar
+                selectedIds={selectedIds}
+                selectedStatus={selectedStatus}
+                onDelete={handleDelete}
+                onEdit={handleEdit}
+                onToggleStatus={handleToggleStatus}
+                onAdd={handleAdd}
+              />
+            ) : (
+              <div className="flex justify-end relative z-10">
             <Tooltip content="Ajouter un article" delay={0}>
               <button
                 onClick={handleAdd}
@@ -327,8 +349,10 @@ export default function AdminContentBlogPage() {
             </Tooltip>
           </div>
         )}
+      </div>
+    </div>
 
-        {loading ? (
+    {loading ? (
           <div className="animate-pulse space-y-3">
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />

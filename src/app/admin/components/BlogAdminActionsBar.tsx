@@ -35,7 +35,7 @@ export default function BlogAdminActionsBar({
     };
 
     return (
-        <div className="flex justify-end items-center mb-4 gap-4 relative z-10 w-full">
+        <div className="flex justify-end items-center gap-4 relative z-10 w-full">
             {selectedIds.length === 1 && onToggleStatus && (
                 <Tooltip content={selectedStatus === true ? "Désactiver" : "Activer"} delay={0}>
                     <button
