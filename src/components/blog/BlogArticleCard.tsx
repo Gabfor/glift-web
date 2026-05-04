@@ -30,22 +30,24 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
       className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full"
       style={{ maxWidth }}
     >
-      <div 
-        className="relative w-full bg-[#F4F5FE]"
-        style={{ height: imageHeight }}
-      >
-        <Image
-          src={article.image_url || "/images/placeholder_image.jpg"}
-          alt={article.image_alt || article.titre}
-          fill
-          className="w-full h-full object-cover rounded-t-[15px]"
-          unoptimized
-        />
-        {/* Badge Type (CONSEIL...) */}
-        <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-sm tracking-wider flex items-center justify-center">
-          {article.type || "Conseil"}
+      <Link href={`/blog/${article.url}`} className="block">
+        <div 
+          className="relative w-full bg-[#F4F5FE] cursor-pointer"
+          style={{ height: imageHeight }}
+        >
+          <Image
+            src={article.image_url || "/images/placeholder_image.jpg"}
+            alt={article.image_alt || article.titre}
+            fill
+            className="w-full h-full object-cover rounded-t-[15px]"
+            unoptimized
+          />
+          {/* Badge Type (CONSEIL...) */}
+          <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-sm tracking-wider flex items-center justify-center">
+            {article.type || "Conseil"}
+          </div>
         </div>
-      </div>
+      </Link>
 
       <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col items-start">
         <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left leading-tight line-clamp-2">

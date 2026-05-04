@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
 import Pagination from "@/components/pagination/Pagination";
+import Link from "next/link";
 
 type Article = {
   id: string;
@@ -22,17 +23,19 @@ type Article = {
 
 type Props = {
   initialArticles: Article[];
+  initialCategory?: string;
 };
 
-export default function BlogListClient({ initialArticles }: Props) {
-  const [selectedCategory, setSelectedCategory] = useState("Tous");
+export default function BlogListClient({ initialArticles, initialCategory = "Tous" }: Props) {
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
 
-  // Reset to page 1 when category changes
+  // Sync state if initialCategory changes (e.g. navigation between category pages)
   useEffect(() => {
+    setSelectedCategory(initialCategory);
     setCurrentPage(1);
-  }, [selectedCategory]);
+  }, [initialCategory]);
 
   // Dynamically generate categories from existing articles
   const dynamicCategories = ["Tous", ...Array.from(new Set(initialArticles.map(a => a.categorie))).sort()];
@@ -51,30 +54,40 @@ export default function BlogListClient({ initialArticles }: Props) {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecent = allRecent.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+  const getCategoryUrl = (cat: string) => {
+    if (cat === "Tous") return "/blog";
+    // Standardize URL: no accents, lowercase
+    const slug = cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return `/blog/${slug}`;
+  };
+
   return (
     <div className="max-w-[1152px] mx-auto">
       {/* Filtres par catégorie */}
       <div className="flex flex-wrap justify-center gap-2 my-[30px]">
-        {dynamicCategories.length > 1 && dynamicCategories.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(selectedCategory === cat ? "Tous" : cat)}
-            className={`px-[30px] h-[44px] rounded-full text-[16px] font-semibold transition-all duration-200 border ${
-              selectedCategory === cat
-                ? "bg-[#3A416F] text-white border-[#3A416F]"
-                : "bg-[#FBFCFE] text-[#3A416F] border-[#3A416F] hover:bg-[#3A416F] hover:text-white"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+        {dynamicCategories.length > 1 && dynamicCategories.map((cat) => {
+          const isActive = selectedCategory === cat;
+          return (
+            <Link key={cat} href={getCategoryUrl(cat)} scroll={false}>
+              <button
+                className={`px-[30px] h-[44px] rounded-full text-[16px] font-semibold transition-all duration-200 border ${
+                  isActive
+                    ? "bg-[#3A416F] text-white border-[#3A416F]"
+                    : "bg-[#FBFCFE] text-[#3A416F] border-[#3A416F] hover:bg-[#3A416F] hover:text-white"
+                }`}
+              >
+                {cat}
+              </button>
+            </Link>
+          );
+        })}
       </div>
 
       <div className="flex flex-col gap-[30px]">
         {/* Section Articles à la une */}
         {featuredArticles.length > 0 && (
           <section>
-            <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider">
+            <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
               Articles à la une
             </h2>
             <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
@@ -89,7 +102,7 @@ export default function BlogListClient({ initialArticles }: Props) {
         <section>
           {allRecent.length > 0 ? (
             <>
-              <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider">
+              <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
                 Articles récents
               </h2>
               <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
@@ -113,12 +126,13 @@ export default function BlogListClient({ initialArticles }: Props) {
               <p className="text-[#5D6494] text-[18px] font-semibold">
                 Aucun article ne correspond dans cette catégorie.
               </p>
-              <button 
-                onClick={() => setSelectedCategory("Tous")}
-                className="mt-4 text-[#7069FA] font-bold hover:underline"
-              >
-                Voir tous les articles
-              </button>
+              <Link href="/blog">
+                <button 
+                  className="mt-4 text-[#7069FA] font-bold hover:underline"
+                >
+                  Voir tous les articles
+                </button>
+              </Link>
             </div>
           )}
         </section>
