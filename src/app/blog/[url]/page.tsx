@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogArticleBlocksRenderer from "./BlogArticleBlocksRenderer";
 import RelatedArticles from "./RelatedArticles";
+import Tooltip from "@/components/Tooltip";
 
 // Next.js Route Cache & revalidation (opt-in)
 export const revalidate = 60;
@@ -47,40 +48,61 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
             {article.description}
           </p>
 
-          <div className="flex justify-start items-center gap-[5px] mb-[20px] flex-wrap">
-            {article.type === "Programme" ? (
-              <>
-                {article.niveau && (
-                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-                    <span>{article.niveau}</span>
-                  </div>
-                )}
-                {article.nombre_seances && (
-                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-                    <span>{article.nombre_seances} {Number(article.nombre_seances) <= 1 ? "séance" : "séances"}</span>
-                  </div>
-                )}
-                {article.duree_moyenne && (
-                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-                    <span>{article.duree_moyenne} min</span>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-                <span>{article.categorie || "Lifestyle"}</span>
-              </div>
-            )}
+          <div className="flex justify-between items-center mb-[20px] gap-[10px]">
+            <div className="flex justify-start items-center gap-[5px] flex-wrap">
+              {article.type === "Programme" ? (
+                <>
+                  {article.niveau && (
+                    <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                      <span>{article.niveau}</span>
+                    </div>
+                  )}
+                  {article.nombre_seances && (
+                    <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                      <span>{article.nombre_seances} {Number(article.nombre_seances) <= 1 ? "séance" : "séances"}</span>
+                    </div>
+                  )}
+                  {article.duree_moyenne && (
+                    <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                      <span>{article.duree_moyenne} min</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                  <span>{article.categorie || "Lifestyle"}</span>
+                </div>
+              )}
 
-            {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
-              <div className="bg-[#F4F5FE] w-[30px] h-[30px] rounded-[5px] flex items-center justify-center">
-                <Image 
-                  src={article.sexe === "Homme" ? "/icons/homme.svg" : article.sexe === "Femme" ? "/icons/femme.svg" : "/icons/mixte.svg"} 
-                  alt={article.sexe} 
-                  width={16} 
-                  height={16} 
-                />
-              </div>
+              {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
+                <div className="bg-[#F4F5FE] w-[30px] h-[30px] rounded-[5px] flex items-center justify-center">
+                  <Image 
+                    src={article.sexe === "Homme" ? "/icons/homme.svg" : article.sexe === "Femme" ? "/icons/femme.svg" : "/icons/mixte.svg"} 
+                    alt={article.sexe} 
+                    width={16} 
+                    height={16} 
+                  />
+                </div>
+              )}
+            </div>
+
+            {article.is_ai_generated && (
+              <Tooltip 
+                content={article.type === "Programme" ? "Programme généré avec l'aide de l'IA" : "Article généré avec l'aide de l'IA"}
+                placement="top"
+                delay={0}
+                offset={20}
+                asChild={true}
+              >
+                <div className="w-[30px] h-[30px] flex items-center justify-center">
+                  <Image 
+                    src="/icons/IA.svg" 
+                    alt="IA" 
+                    width={30} 
+                    height={30} 
+                  />
+                </div>
+              </Tooltip>
             )}
           </div>
 

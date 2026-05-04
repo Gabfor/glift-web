@@ -78,6 +78,7 @@ export type BlogArticleFormState = {
   content_blocks: ContentBlock[];
   is_published: boolean;
   is_featured: boolean;
+  is_ai_generated: boolean;
 };
 
 export const emptyBlogArticle: BlogArticleFormState = {
@@ -102,4 +103,5 @@ export const emptyBlogArticle: BlogArticleFormState = {
   content_blocks: [],
   is_published: false,
   is_featured: false,
+  is_ai_generated: false,
 };

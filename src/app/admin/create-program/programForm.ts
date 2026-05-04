@@ -26,6 +26,7 @@ export type ProgramFormState = {
 
   location: string;
   plan: "starter" | "premium";
+  is_ai_generated: boolean;
 };
 
 export const emptyProgram: ProgramFormState = {
@@ -50,6 +51,7 @@ export const emptyProgram: ProgramFormState = {
 
   location: "",
   plan: "starter",
+  is_ai_generated: false,
 };
 
 export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
@@ -74,6 +76,7 @@ export const mapProgramRowToForm = (row: ProgramRow): ProgramFormState => ({
 
   location: row.location ?? "",
   plan: row.plan ?? "starter",
+  is_ai_generated: !!(row as any).is_ai_generated,
 });
 
 export const buildProgramPayload = (
@@ -100,4 +103,5 @@ export const buildProgramPayload = (
 
   location: form.location || null,
   plan: form.plan,
+  is_ai_generated: form.is_ai_generated,
 } as any);

@@ -74,6 +74,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           content_blocks: data.content_blocks || [],
           is_published: !!data.is_published,
           is_featured: !!data.is_featured,
+          is_ai_generated: !!data.is_ai_generated,
         };
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
@@ -110,6 +111,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         content_blocks: article.content_blocks || [],
         is_published: article.is_published,
         is_featured: article.is_featured,
+        is_ai_generated: article.is_ai_generated,
       };
       
       let reqError;
@@ -238,6 +240,20 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     onSelect={(value) => setArticle({ ...article, langue: value })}
                     options={[
                       { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
+                    ]}
+                  />
+                </div>
+                {/* Généré par IA */}
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Sélectionnez"
+                    selected={article.is_ai_generated ? "OUI" : "NON"}
+                    onSelect={(value) => setArticle({ ...article, is_ai_generated: value === "OUI" })}
+                    options={[
+                      { value: "OUI", label: "OUI" },
+                      { value: "NON", label: "NON" },
                     ]}
                   />
                 </div>

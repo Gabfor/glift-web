@@ -237,6 +237,20 @@ export default function CreateProgramPageClient({
                         ]}
                       />
                     </div>
+                    {/* Généré par IA */}
+                    <div className="flex flex-col">
+                      <label className="text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
+                      <AdminDropdown
+                        label=""
+                        placeholder="Sélectionnez"
+                        selected={program.is_ai_generated ? "OUI" : "NON"}
+                        onSelect={(value) => setProgram({ ...program, is_ai_generated: value === "OUI" })}
+                        options={[
+                          { value: "OUI", label: "OUI" },
+                          { value: "NON", label: "NON" },
+                        ]}
+                      />
+                    </div>
                   </div>
                 </div>
 
