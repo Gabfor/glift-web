@@ -325,9 +325,18 @@ export default function CreateOfferPageClient({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
                     {/* Date de début */}
                     <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1">
-                        Date de début
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[#3A416F] font-bold">Date de début</span>
+                        {offer.start_date && (
+                          <button
+                            type="button"
+                            onClick={() => setOffer({ ...offer, start_date: "" })}
+                            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+                          >
+                            Effacer
+                          </button>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <>
                           {/* Jour */}
@@ -402,9 +411,18 @@ export default function CreateOfferPageClient({
 
                     {/* Date de fin */}
                     <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1">
-                        Date de fin
-                      </label>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[#3A416F] font-bold">Date de fin</span>
+                        {offer.end_date && (
+                          <button
+                            type="button"
+                            onClick={() => setOffer({ ...offer, end_date: "" })}
+                            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+                          >
+                            Effacer
+                          </button>
+                        )}
+                      </div>
                       <div className="flex gap-2">
                         <>
                           {/* Jour */}

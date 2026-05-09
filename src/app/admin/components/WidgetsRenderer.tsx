@@ -78,6 +78,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
   const getBlockTitle = (type: string) => {
     switch (type) {
       case "titre-texte": return "Bloc titre + texte";
+      case "texte-1-1": return "Bloc texte 1.1";
       case "texte": return "Bloc texte";
       case "source": return "Bloc source";
       case "programme": return "Bloc programme";
@@ -129,6 +130,28 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       className={inputClass}
                     />
                   </div>
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
+                  <RichTextEditor 
+                    value={block.texte} 
+                    onChange={(html) => updateBlock(block.id, { texte: html })}
+                  />
+                </div>
+              </>
+            )}
+
+            {block.type === "texte-1-1" && (
+              <>
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre</label>
+                  <input 
+                    type="text" 
+                    placeholder="Titre" 
+                    value={block.titre || ""} 
+                    onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
+                    className={inputClass}
+                  />
                 </div>
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>

@@ -11,6 +11,12 @@ export type BlockTexte = BaseBlock & {
   texte: string;
 };
 
+export type BlockTexte11 = BaseBlock & {
+  type: "texte-1-1";
+  titre: string;
+  texte: string;
+};
+
 export type BlockSource = BaseBlock & {
   type: "source";
   titre: string;
@@ -50,6 +56,7 @@ export type BlockSeance = BaseBlock & {
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
+  | BlockTexte11
   | BlockSource 
   | BlockProgramme 
   | BlockTelechargement 

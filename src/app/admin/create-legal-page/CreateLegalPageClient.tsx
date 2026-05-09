@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
@@ -8,6 +8,14 @@ import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import Image from "next/image";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
+import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
+import {
+  LegalPageFormState,
+  emptyLegalPage,
+  mapLegalPageRowToForm,
+  buildLegalPagePayload,
+} from "./legalPageForm";
+import { ContentBlock } from "@/app/admin/create-blog-article/blogArticleForm";
 
 const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, "0"));
 const months = [
@@ -41,21 +49,22 @@ type Props = {
 
 export default function CreateLegalPageClient({ pageId }: Props) {
   const router = useRouter();
-  
   const supabase = useMemo(() => createClient(), []);
   
-  const [pageData, setPageData] = useState({
-    is_published: false,
-    langue: "Français",
-    updated_at: "",
-    titre: "",
-    url: "",
-    content_blocks: []
-  });
-
+  const [pageData, setPageData] = useState<LegalPageFormState>(emptyLegalPage);
+  const [basePageData, setBasePageData] = useState<LegalPageFormState>(emptyLegalPage);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
-  const isFormValid = pageData.titre.trim() !== "" && pageData.url.trim() !== "";
   const [isSaving, setIsSaving] = useState(false);
+
+  const isDirty = useMemo(
+    () => JSON.stringify(pageData) !== JSON.stringify(basePageData),
+    [pageData, basePageData],
+  );
+
+  const isFormValid = useMemo(
+    () => pageData.titre.trim() !== "" && pageData.url.trim() !== "",
+    [pageData]
+  );
 
   useEffect(() => {
     if (!pageId) return;
@@ -68,14 +77,9 @@ export default function CreateLegalPageClient({ pageId }: Props) {
         .single();
 
       if (data && !error) {
-        setPageData({
-          is_published: !!data.is_published,
-          langue: data.langue || "Français",
-          updated_at: data.updated_at || "",
-          titre: data.titre || "",
-          url: data.url || "",
-          content_blocks: data.content_blocks || []
-        });
+        const mapped = mapLegalPageRowToForm(data);
+        setPageData(mapped);
+        setBasePageData(mapped);
       } else {
         console.error("Erreur lors du chargement:", error);
       }
@@ -87,36 +91,35 @@ export default function CreateLegalPageClient({ pageId }: Props) {
   const handleSave = async () => {
     setIsSaving(true);
     
-    const payload = {
-      is_published: pageData.is_published,
-      langue: pageData.langue,
-      updated_at: pageData.updated_at || null,
-      titre: pageData.titre,
-      url: pageData.url,
-      content_blocks: pageData.content_blocks || []
-    };
+    const payload = buildLegalPagePayload(pageData);
 
-    let reqError;
-    if (pageId) {
-      const { error } = await (supabase as any)
-        .from("legal_pages")
-        .update(payload)
-        .eq("id", pageId);
-      reqError = error;
-    } else {
-      const { error } = await (supabase as any)
-        .from("legal_pages")
-        .insert([payload]);
-      reqError = error;
-    }
+    try {
+      let reqError;
+      if (pageId) {
+        const { error } = await (supabase as any)
+          .from("legal_pages")
+          .update(payload)
+          .eq("id", pageId);
+        reqError = error;
+      } else {
+        const { error } = await (supabase as any)
+          .from("legal_pages")
+          .insert([payload]);
+        reqError = error;
+      }
 
-    setIsSaving(false);
+      if (reqError) throw reqError;
 
-    if (reqError) {
-      console.error("Erreur de sauvegarde:", reqError);
-      alert("Erreur: " + reqError.message);
-    } else {
-      router.push("/admin/legal");
+      if (pageId) {
+        setBasePageData(pageData);
+      } else {
+        router.push("/admin/legal");
+      }
+    } catch (err: any) {
+      console.error("Erreur de sauvegarde:", err);
+      alert("Erreur: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -134,7 +137,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
         </BackLink>
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-0 flex flex-col items-center">
           <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
-            {pageId ? "Modifier une page légale" : "Créer une page légale"}
+            {pageId ? "Modifier la page légale" : "Créer une page légale"}
           </h2>
 
           <div className="flex flex-col gap-[40px] w-full">
@@ -175,7 +178,18 @@ export default function CreateLegalPageClient({ pageId }: Props) {
 
                 {/* Date MAJ */}
                 <div className="flex flex-col md:col-span-1">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Date MAJ</label>
+                  <div className="flex items-center justify-between mb-[5px]">
+                    <span className="text-[16px] text-[#3A416F] font-bold">Date MAJ</span>
+                    {pageData.updated_at && (
+                      <button
+                        type="button"
+                        onClick={() => setPageData({ ...pageData, updated_at: "" })}
+                        className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+                      >
+                        Effacer
+                      </button>
+                    )}
+                  </div>
                   <div className="flex gap-2">
                     <>
                       {/* Jour */}
@@ -263,7 +277,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
                   </div>
                   <input
                     type="text"
-                    placeholder="Titre de l'article"
+                    placeholder="Titre de la page"
                     value={pageData.titre}
                     onChange={(e) => setPageData({ ...pageData, titre: e.target.value })}
                     className={inputClass}
@@ -276,7 +290,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
                   <input
                     type="text"
-                    placeholder="Url de l'article"
+                    placeholder="Url de la page"
                     value={pageData.url}
                     onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
                     className={inputClass}
@@ -291,6 +305,15 @@ export default function CreateLegalPageClient({ pageId }: Props) {
                 Contenu de la page
               </h3>
               
+              {pageData.content_blocks && pageData.content_blocks.length > 0 && (
+                <div className="mb-[30px]">
+                  <WidgetsRenderer 
+                    blocks={pageData.content_blocks} 
+                    onChangeBlocks={(blocks: ContentBlock[]) => setPageData({ ...pageData, content_blocks: blocks })} 
+                  />
+                </div>
+              )}
+
               <button
                 onClick={() => setIsWidgetModalOpen(true)}
                 className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
@@ -304,14 +327,14 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               </button>
             </div>
 
-            <div className="mt-[20px] flex justify-center">
+            <div className="mt-[10px] flex justify-center">
               <CTAButton
                 onClick={handleSave}
-                disabled={!isFormValid || isSaving}
-                variant={isFormValid && !isSaving ? "active" : "inactive"}
+                disabled={!isFormValid || !isDirty || isSaving}
+                variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
                 className="font-semibold"
               >
-                {isSaving ? "Création en cours..." : "Créer la page"}
+                {isSaving ? "Sauvegarde en cours..." : pageId ? "Mettre à jour" : "Créer la page"}
               </CTAButton>
             </div>
           </div>
@@ -324,7 +347,29 @@ export default function CreateLegalPageClient({ pageId }: Props) {
         articleType="Legal"
         onClose={() => setIsWidgetModalOpen(false)}
         onSelect={(type) => {
-          alert(`Type sélectionné: ${type}. Implémentation du rendu à venir.`);
+          const newId = Math.random().toString(36).substr(2, 9);
+          let newBlock = null;
+
+          switch (type) {
+            case "titre-texte":
+              newBlock = { id: newId, type: "titre-texte", titre: "", ancreId: "", texte: "" };
+              break;
+            case "texte":
+              newBlock = { id: newId, type: "texte", texte: "" };
+              break;
+            case "texte-1-1":
+              newBlock = { id: newId, type: "texte-1-1", titre: "", texte: "" };
+              break;
+            default:
+              break;
+          }
+
+          if (newBlock) {
+            setPageData({
+              ...pageData,
+              content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock]
+            });
+          }
           setIsWidgetModalOpen(false);
         }}
       />

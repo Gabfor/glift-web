@@ -319,7 +319,7 @@ export default function AdminLegalPage() {
                         </span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`#`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
+                        <Link href={`/admin/create-legal-page?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
                           {a.titre}
                         </Link>
                       </td>

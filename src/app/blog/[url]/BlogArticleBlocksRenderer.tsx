@@ -136,6 +136,23 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
               </div>
             );
 
+          case "texte-1-1":
+            return (
+              <div key={key} className={`flex flex-col gap-[10px] scroll-mt-[100px] ${index > 0 ? "-mt-[20px]" : ""}`}>
+                {block.titre && (
+                  <h2 className="text-[16px] font-bold text-[#2E3271]">
+                    {block.titre}
+                  </h2>
+                )}
+                {block.texte && (
+                  <div
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    dangerouslySetInnerHTML={{ __html: block.texte }}
+                  />
+                )}
+              </div>
+            );
+
           case "texte":
             return (
               <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
