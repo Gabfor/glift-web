@@ -10,6 +10,8 @@ import Tooltip from "@/components/Tooltip";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import LegalAdminActionsBar from "@/app/admin/components/LegalAdminActionsBar";
+import LegalTableSkeleton from "./LegalTableSkeleton";
+
 
 type LegalPage = {
   id: string;
@@ -26,10 +28,12 @@ export default function AdminLegalPage() {
   const supabase = useMemo(() => createClient(), []);
 
   const [pages, setPages] = useState<LegalPage[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [sortBy, setSortBy] = useState<SortableColumn>("updated_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+
 
   const fetchPages = useCallback(async () => {
     const { data, error } = await (supabase as any)
@@ -44,7 +48,9 @@ export default function AdminLegalPage() {
       setPages([]);
     }
     setSelectedIds([]);
+    setIsLoading(false);
   }, [supabase]);
+
 
   useEffect(() => {
     void fetchPages();
@@ -237,8 +243,11 @@ export default function AdminLegalPage() {
           </div>
         </div>
 
-        {sortedPages.length === 0 ? (
+        {isLoading ? (
+          <LegalTableSkeleton />
+        ) : sortedPages.length === 0 ? (
           <div className="text-center text-[#5D6494] mt-12 bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+
             <table className="min-w-full text-left text-sm opacity-50">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
@@ -342,5 +351,6 @@ export default function AdminLegalPage() {
         )}
       </div>
     </main>
+
   );
 }
