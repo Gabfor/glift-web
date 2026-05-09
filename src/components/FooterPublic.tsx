@@ -53,6 +53,7 @@ export default function Footer() {
             <li><Link href="/store" className="hover:text-[#3A416F] transition-colors">Glift Store</Link></li>
             <li><Link href="/shop" className="hover:text-[#3A416F] transition-colors">Glift Shop</Link></li>
             <li><Link href="/tarifs" className="hover:text-[#3A416F] transition-colors">Tarifs</Link></li>
+            <li><Link href="/blog" className="hover:text-[#3A416F] transition-colors">Blog</Link></li>
           </ul>
         </div>
         <div>
@@ -73,13 +74,17 @@ export default function Footer() {
           <h4 className="text-[#3A416F] font-bold mb-2">LIENS</h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="/cgu" className="hover:text-[#3A416F] transition-colors">CGU</Link></li>
+            <li><Link href="/politique-de-confidentialite" className="hover:text-[#3A416F] transition-colors">Politique de confidentialité</Link></li>
             <li><Link href="/mentions-legales" className="hover:text-[#3A416F] transition-colors">Mentions légales</Link></li>
+            <li><Link href="/cgv" className="hover:text-[#3A416F] transition-colors">CGV</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">AUTRES</h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href="/press-kit" className="hover:text-[#3A416F] transition-colors">Press Kit</Link></li>
+            <li><Link href="/politique-des-cookies" className="hover:text-[#3A416F] transition-colors">Politique de cookies</Link></li>
+            <li><button className="hover:text-[#3A416F] transition-colors">Gestion des cookies</button></li>
           </ul>
         </div>
       </div>

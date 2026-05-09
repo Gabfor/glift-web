@@ -1,7 +1,7 @@
 import Modal from "@/components/ui/Modal";
 
 type AddWidgetModalProps = {
-  articleType: "Conseil" | "Programme";
+  articleType: "Conseil" | "Programme" | "Legal";
   onClose: () => void;
   onSelect: (type: string) => void;
 };
@@ -47,7 +47,36 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
           </div>
         </button>
 
-        {articleType === "Conseil" ? (
+        {articleType === "Legal" ? (
+          <>
+            {/* 3. Bloc texte 1.1 (Legal) */}
+            <button
+              onClick={() => onSelect("texte-1-1")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc texte 1.1
+              </span>
+              <div className="w-[85%] flex flex-col gap-[6px]">
+                <div className="w-full h-[8px] bg-[#F4F5FE] rounded-full mb-1" />
+                <div className="w-[85%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                <div className="w-[85%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                <div className="w-[60%] h-[6px] bg-[#F4F5FE] rounded-full" />
+              </div>
+            </button>
+
+            {/* Vides 4, 5, 6 (Legal) */}
+            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+            </div>
+            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+            </div>
+            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+            </div>
+          </>
+        ) : articleType === "Conseil" ? (
           <>
             {/* 3. Bloc source (Conseil) */}
             <button

@@ -12,6 +12,7 @@ const adminLinks = [
   { title: "Blog", href: "/admin/content-blog", visual: "blog" },
   { title: "Aide", href: "/admin/help", visual: "help" },
   { title: "Utilisateurs", href: "/admin/users", visual: "users" },
+  { title: "Pages légales", href: "/admin/legal", visual: "legal" },
   { title: "Paramètres", href: "/admin/settings", visual: "settings" },
 ];
 
@@ -86,15 +87,8 @@ function CardVisual({ type }: { type: string }) {
       );
 
     case "blog":
-      return (
-        <>
-          <div className={`${base} w-[60px] h-[8px] mb-3`} />
-          <div className={`${base} w-[85%] h-[10px] mb-1`} />
-          <div className={`${base} w-[85%] h-[10px] mb-1`} />
-          <div className={`${base} w-[85%] h-[10px]`} />
-        </>
-      );
     case "users":
+    case "legal":
       return (
         <>
           <div className={`${base} w-[60px] h-[8px] mb-3`} />
@@ -103,6 +97,7 @@ function CardVisual({ type }: { type: string }) {
           <div className={`${base} w-[85%] h-[10px]`} />
         </>
       );
+
     case "settings":
       return (
         <svg
