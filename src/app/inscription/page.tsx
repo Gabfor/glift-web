@@ -400,11 +400,11 @@ const AccountCreationPage = () => {
               />
               <span className="mt-[-3px]">
                 J’accepte la{" "}
-                <Link href="#" className="text-[#7069FA] hover:text-[#6660E4]">
+                <Link href="/politique-de-confidentialite" className="text-[#7069FA] hover:text-[#6660E4]">
                   Politique de confidentialité
                 </Link>{" "}
                 et les{" "}
-                <Link href="#" className="text-[#7069FA] hover:text-[#6660E4]">
+                <Link href="/cgu" className="text-[#7069FA] hover:text-[#6660E4]">
                   Conditions générales d’utilisation
                 </Link>{" "}
                 de Glift.

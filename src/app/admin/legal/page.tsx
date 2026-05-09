@@ -324,7 +324,9 @@ export default function AdminLegalPage() {
                         </Link>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle w-[160px]">
-                        {new Date(a.updated_at).toLocaleDateString("fr-FR")}
+                        {a.updated_at && !isNaN(new Date(a.updated_at).getTime())
+                          ? new Date(a.updated_at).toLocaleDateString("fr-FR")
+                          : "Aucune"}
                       </td>
                       <td className="w-[120px] px-4">
                         <div className="flex items-center">
