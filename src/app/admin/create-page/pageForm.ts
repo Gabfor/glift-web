@@ -4,6 +4,7 @@ export type PageFormState = {
   id?: string;
   titre: string;
   surtitre: string;
+  description: string;
   url: string;
   is_published: boolean;
   langue: string;
@@ -14,6 +15,7 @@ export type PageFormState = {
 export const emptyPage: PageFormState = {
   titre: "",
   surtitre: "",
+  description: "",
   url: "",
   is_published: false,
   langue: "Français",
@@ -26,6 +28,7 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     id: row.id,
     titre: row.titre || "",
     surtitre: row.surtitre || "",
+    description: row.description || "",
     url: row.url || "",
     is_published: !!row.is_published,
     langue: row.langue || "Français",
@@ -38,6 +41,7 @@ export const buildPagePayload = (form: PageFormState) => {
   const payload: any = {
     titre: form.titre,
     surtitre: form.surtitre,
+    description: form.description,
     url: form.url,
     is_published: form.is_published,
     langue: form.langue,

@@ -14,6 +14,7 @@ import BackLink from "@/components/BackLink";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import {
   PageFormState,
   emptyPage,
@@ -124,6 +125,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
 
   const [updatedYear, updatedMonth, updatedDay] = getDateParts(pageData.updated_at);
   const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
+  const textareaClass = "min-h-[70px] h-[70px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150 resize-none";
 
   return (
     <>
@@ -192,6 +194,15 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                         value={pageData.titre}
                         onChange={(e) => setPageData({ ...pageData, titre: e.target.value })}
                         className={inputClass}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description</label>
+                      <textarea
+                        placeholder="Description de la page"
+                        value={pageData.description}
+                        onChange={(e) => setPageData({ ...pageData, description: e.target.value })}
+                        className={textareaClass}
                       />
                     </div>
                     <div className="flex flex-col">

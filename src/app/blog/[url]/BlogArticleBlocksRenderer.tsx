@@ -278,8 +278,8 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] my-[40px]">
-                  <section className="text-center px-4 max-w-[var(--layout-max-width)] mx-auto">
+                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] my-[60px]">
+                  <section className="text-center px-4 w-full mx-auto">
                     {block.surtitre && (
                       <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
                         {block.surtitre}
@@ -292,8 +292,8 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                     )}
                   </section>
 
-                  <section className="max-w-[var(--layout-max-width)] mx-auto w-full pt-[40px]">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 w-full">
+                  <section className="w-full mx-auto px-0 pt-[40px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-10 w-full">
                       {(block.slots || []).map((partner: any, idx: number) => {
                         if (!partner.logo_url) return null;
                         return (
@@ -323,6 +323,9 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                           </div>
                         );
                       })}
+                    </div>
+                    <div className="text-center text-[#2E3271] font-semibold text-[15px]">
+                      Vous voulez devenir partenaire ? <Link href="/contact" className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
                     </div>
                   </section>
                 </div>

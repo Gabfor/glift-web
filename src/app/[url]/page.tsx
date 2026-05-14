@@ -36,17 +36,24 @@ export default async function LegalPage({ params }: { params: { url: string } })
   const page = pages[0];
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
-      <div className="max-w-[760px] mx-auto px-4 md:px-0">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px]">
+      <div className="max-w-[1152px] mx-auto px-4 md:px-0">
         {page.surtitre && (
           <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
             {page.surtitre}
           </p>
         )}
         <h1 
-          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center ${!isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"}`}
+          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"}`}
           dangerouslySetInnerHTML={{ __html: page.titre }}
         />
+
+        {page.description && (
+          <div 
+            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center"
+            dangerouslySetInnerHTML={{ __html: page.description }}
+          />
+        )}
 
         {!isGenericPage && page.updated_at && (
           <p className="text-[14px] text-[#5D6494] font-semibold text-center mb-[40px]">
@@ -54,7 +61,7 @@ export default async function LegalPage({ params }: { params: { url: string } })
           </p>
         )}
 
-        <article>
+        <article className="w-full">
           <BlogArticleBlocksRenderer 
             blocks={page.content_blocks || []} 
             articleMeta={{}}
