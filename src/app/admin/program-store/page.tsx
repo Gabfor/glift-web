@@ -60,7 +60,6 @@ const mapProgramRowToListItem = (row: ProgramListRow): Program => ({
 });
 
 type SortableColumn =
-  | "created_at"
   | "status"
   | "partner_name"
   | "gender"
@@ -76,7 +75,7 @@ export default function ProgramStorePage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<SortableColumn>("created_at");
+  const [sortBy, setSortBy] = useState<SortableColumn>("title");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   const router = useRouter();
@@ -348,10 +347,9 @@ export default function ProgramStorePage() {
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
-                  <th className="px-4 w-[48px]">
+                  <th className="px-4 w-[47px]">
                     <button
                       onClick={toggleAll}
-                      className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]"
                     >
                       <Image
                         src={
@@ -362,11 +360,11 @@ export default function ProgramStorePage() {
                         alt="Checkbox"
                         width={15}
                         height={15}
+                        style={{ marginTop: "5px" }}
                       />
                     </button>
                   </th>
                   {renderHeaderCell("Statut", "status")}
-                  {renderHeaderCell("Date", "created_at")}
                   {renderHeaderCell("Sexe", "gender")}
                   {renderHeaderCell("Nom du programme", "title")}
                   {renderHeaderCell("Difficulté", "level")}
@@ -387,10 +385,9 @@ export default function ProgramStorePage() {
                       key={program.id}
                       className="border-b border-[#ECE9F1] h-[60px]"
                     >
-                      <td className="px-4">
+                      <td className="w-[47px] px-4 align-middle">
                         <button
                           onClick={() => toggleCheckbox(program.id)}
-                          className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]"
                         >
                           <Image
                             src={
@@ -401,10 +398,11 @@ export default function ProgramStorePage() {
                             alt="Checkbox"
                             width={15}
                             height={15}
+                            style={{ marginTop: "5px" }}
                           />
                         </button>
                       </td>
-                      <td className="px-4">
+                      <td className="px-4 align-middle">
                         <span
                           className={`inline-flex items-center justify-center rounded-full ${program.status === "ON"
                             ? "bg-[#DCFAF1] text-[#00D591]"
@@ -420,10 +418,7 @@ export default function ProgramStorePage() {
                           {program.status}
                         </span>
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494]">
-                        {new Date(program.created_at).toLocaleDateString("fr-FR")}
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494]">
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
                         {genderIcon ? (
                           <div className="flex items-center justify-center w-full">
                             <Image src={genderIcon} alt={program.gender} width={20} height={20} />

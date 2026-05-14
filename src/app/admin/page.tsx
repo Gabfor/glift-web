@@ -3,7 +3,7 @@
 import Link from "next/link";
 
 const adminLinks = [
-  { title: "Accueil", href: "/admin/home", visual: "home" },
+  { title: "Pages", href: "/admin/pages", visual: "legal" },
   { title: "Programmes", href: "/admin/program", visual: "program" },
   { title: "Cartes Store", href: "/admin/program-store", visual: "store" },
   { title: "Slider", href: "/admin/slider", visual: "slider" },
@@ -20,35 +20,6 @@ function CardVisual({ type }: { type: string }) {
   const base = "bg-[#F4F5FE] rounded";
   switch (type) {
     case "program":
-    case "home":
-      if (type === "home") {
-        return (
-          <div className="flex flex-col gap-1.5 w-[85%]">
-            {/* Header */}
-            <div className="flex justify-between items-center w-full mb-1">
-              <div className={`${base} w-[20%] h-[6px]`} />
-              <div className="flex gap-1">
-                <div className={`${base} w-[25px] h-[6px]`} />
-                <div className={`${base} w-[25px] h-[6px]`} />
-              </div>
-            </div>
-            {/* Hero */}
-            <div className={`${base} w-full h-[14px]`} />
-            {/* 2 Cols */}
-            <div className="flex gap-1.5 w-full">
-              <div className={`${base} w-1/2 h-[12px]`} />
-              <div className={`${base} w-1/2 h-[12px]`} />
-            </div>
-            {/* 4 Cols */}
-            <div className="flex gap-1.5 w-full">
-              <div className={`${base} flex-1 h-[12px]`} />
-              <div className={`${base} flex-1 h-[12px]`} />
-              <div className={`${base} flex-1 h-[12px]`} />
-              <div className={`${base} flex-1 h-[12px]`} />
-            </div>
-          </div>
-        );
-      }
     case "help":
       return (
         <>

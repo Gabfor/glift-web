@@ -11,10 +11,10 @@ import SearchBar from "@/components/SearchBar";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import LegalAdminActionsBar from "@/app/admin/components/LegalAdminActionsBar";
-import LegalTableSkeleton from "./LegalTableSkeleton";
+import PagesTableSkeleton from "./PagesTableSkeleton";
 
 
-type LegalPage = {
+type PageData = {
   id: string;
   titre: string;
   is_published: boolean;
@@ -22,31 +22,31 @@ type LegalPage = {
   langue: string;
 };
 
-type SortableColumn = "is_published" | "titre" | "updated_at" | "langue";
+type SortableColumn = "is_published" | "titre" | "langue";
 
-export default function AdminLegalPage() {
+export default function AdminPagesPage() {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
-  const [pages, setPages] = useState<LegalPage[]>([]);
+  const [pages, setPages] = useState<PageData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState<SortableColumn>("updated_at");
+  const [sortBy, setSortBy] = useState<SortableColumn>("titre");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
 
   const fetchPages = useCallback(async () => {
     const { data, error } = await (supabase as any)
-      .from("legal_pages")
+      .from("pages")
       .select("*")
       .order("updated_at", { ascending: false });
 
     if (!error && data) {
-      setPages(data as LegalPage[]);
+      setPages(data as PageData[]);
     } else {
-      console.warn("Table legal_pages n'existe peut-être pas :", error?.message);
+      console.warn("Table pages n'existe peut-être pas :", error?.message);
       setPages([]);
     }
     setSelectedIds([]);
@@ -79,7 +79,7 @@ export default function AdminLegalPage() {
     setSelectedIds([]);
 
     const { error } = await (supabase as any)
-      .from("legal_pages")
+      .from("pages")
       .update({ is_published: newStatus })
       .eq("id", currentId);
 
@@ -95,7 +95,7 @@ export default function AdminLegalPage() {
 
   const handleEdit = () => {
     if (selectedIds.length !== 1) return;
-    router.push(`/admin/create-legal-page?id=${selectedIds[0]}`);
+    router.push(`/admin/create-page?id=${selectedIds[0]}`);
   };
 
   const handleDelete = async () => {
@@ -103,7 +103,7 @@ export default function AdminLegalPage() {
     if (!confirm(`Etes-vous sûr de vouloir supprimer ${selectedIds.length} page(s) ?`)) return;
     
     const { error } = await (supabase as any)
-      .from("legal_pages")
+      .from("pages")
       .delete()
       .in("id", selectedIds);
 
@@ -139,7 +139,7 @@ export default function AdminLegalPage() {
   };
 
   const handleAdd = () => {
-    router.push("/admin/create-legal-page");
+    router.push("/admin/create-page");
   };
 
   const sortedPages = useMemo(() => {
@@ -157,9 +157,6 @@ export default function AdminLegalPage() {
           break;
         case "titre":
           comparison = a.titre.localeCompare(b.titre);
-          break;
-        case "updated_at":
-          comparison = new Date(a.updated_at).getTime() - new Date(b.updated_at).getTime();
           break;
         case "langue":
           comparison = a.langue.localeCompare(b.langue);
@@ -208,7 +205,7 @@ export default function AdminLegalPage() {
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl">
         <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
-          Pages légales
+          Pages
         </h2>
 
         <div className="flex justify-center mb-6">
@@ -258,7 +255,7 @@ export default function AdminLegalPage() {
         )}
 
         {isLoading ? (
-          <LegalTableSkeleton />
+          <PagesTableSkeleton />
         ) : sortedPages.length === 0 ? (
           <div className="text-center text-[#5D6494] mt-12 bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
 
@@ -272,13 +269,12 @@ export default function AdminLegalPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("Date MAJ", "updated_at", "w-[160px]")}
                   {renderHeaderCell("Langue", "langue", "w-[120px] px-3")}
                 </tr>
               </thead>
             </table>
             <div className="py-12">
-              Pour le moment nous n&apos;avons pas de pages légales créées.
+              Pour le moment nous n&apos;avons pas de pages créées.
             </div>
           </div>
         ) : (
@@ -303,7 +299,6 @@ export default function AdminLegalPage() {
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
                   {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("Date MAJ", "updated_at", "w-[160px]")}
                   {renderHeaderCell("Langue", "langue", "w-[120px] px-3")}
                 </tr>
               </thead>
@@ -344,14 +339,9 @@ export default function AdminLegalPage() {
                         </span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`/admin/create-legal-page?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
+                        <Link href={`/admin/create-page?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
                           {a.titre}
                         </Link>
-                      </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle w-[160px]">
-                        {a.updated_at && !isNaN(new Date(a.updated_at).getTime())
-                          ? new Date(a.updated_at).toLocaleDateString("fr-FR")
-                          : "Aucune"}
                       </td>
                       <td className="w-[120px] px-4">
                         <div className="flex items-center">

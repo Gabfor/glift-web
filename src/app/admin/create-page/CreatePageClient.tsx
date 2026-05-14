@@ -23,7 +23,7 @@ function SaveIcon({ fill }: { fill: string }) {
     );
 }
 
-export default function AdminHomePage() {
+export default function CreatePageClient({ pageId }: { pageId: string | null }) {
     const [partners, setPartners] = useState<Partner[]>([]);
     const [initialPartners, setInitialPartners] = useState<Partner[]>([]);
     const [partnersEnabled, setPartnersEnabled] = useState(true);
