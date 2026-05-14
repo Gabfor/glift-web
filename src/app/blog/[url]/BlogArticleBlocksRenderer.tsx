@@ -24,6 +24,10 @@ type ContentBlock = {
   slots?: any[];
   bouton1?: any;
   bouton2?: any;
+  image?: string;
+  alt?: string;
+  texte1?: string;
+  texte2?: string;
 };
 
 type Props = {
@@ -286,6 +290,57 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 programmeId={block.programme_id || ""} 
                 ancreId={block.ancreId}
               />
+            );
+
+          case "image-principale":
+            if (block.enabled === false) return null;
+            return (
+              <React.Fragment key={key}>
+                <section className="w-full relative text-center pt-[30px]">
+                  {/* Mockups */}
+                  <div className="flex justify-center">
+                    <Image
+                      src={block.image || "/images/mockups-app-site.png"}
+                      alt={block.alt || "Appareils"}
+                      priority={false}
+                      width={800}
+                      height={400}
+                      className="w-full max-w-[700px]"
+                    />
+                  </div>
+                  {/* Flèche + texte gauche */}
+                  <div className="absolute left-[120px] top-[40%] -translate-y-1/2 hidden md:block pointer-events-none">
+                    <p 
+                      className="text-[var(--color-text-strong)] text-[14px] font-bold rotate-[-10deg] origin-left w-[180px]"
+                      dangerouslySetInnerHTML={{ __html: (block.texte1 || "").replace(/\n/g, '<br />') }}
+                    />
+                    <Image
+                      src="/images/arrow-left.png"
+                      alt="Flèche"
+                      priority={false}
+                      width={114}
+                      height={114}
+                      className="ml-[60px] mt-[-35px]"
+                    />
+                  </div>
+
+                  {/* Flèche + texte droite */}
+                  <div className="absolute right-[150px] top-[25%] -translate-y-1/2 hidden md:block pointer-events-none">
+                    <p 
+                      className="text-[var(--color-text-strong)] text-[14px] font-bold rotate-[8deg] origin-right w-[180px] ml-auto"
+                      dangerouslySetInnerHTML={{ __html: (block.texte2 || "").replace(/\n/g, '<br />') }}
+                    />
+                    <Image
+                      src="/images/arrow-right.png"
+                      alt="Flèche"
+                      priority={false}
+                      width={114}
+                      height={114}
+                      className="ml-[-5px] mt-[-37px]"
+                    />
+                  </div>
+                </section>
+              </React.Fragment>
             );
 
           case "partenaires":

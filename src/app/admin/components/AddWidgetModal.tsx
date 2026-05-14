@@ -31,8 +31,21 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 <div className="w-[80px] h-[30px] bg-[#F4F5FE] rounded-full" />
               </div>
             </button>
+            
+            {/* 2. Bloc image principale (Page) */}
+            <button
+              onClick={() => onSelect("image-principale")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Image principale
+              </span>
+              <div className="w-[85%] h-[60px] bg-[#F4F5FE] rounded-[4px] flex items-center justify-center">
+                <div className="w-[30px] h-[30px] bg-white rounded-full opacity-50" />
+              </div>
+            </button>
 
-            {/* 2. Bloc partenaire (Page) */}
+            {/* 3. Bloc partenaire (Page) */}
             <button
               onClick={() => onSelect("partenaires")}
               className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
@@ -48,10 +61,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               </div>
             </button>
 
-            {/* Vides 3, 4, 5, 6 (Page) */}
-            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-            </div>
+            {/* Vides 4, 5, 6 (Page) */}
             <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
               <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
             </div>

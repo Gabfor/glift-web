@@ -73,11 +73,30 @@ export type BoutonConfig = {
   lien: string;
 };
 
-export type BlockBoutons = BaseBlock & {
+export type BlockBoutons = {
+  id: string;
   type: "boutons";
   enabled: boolean;
-  bouton1: BoutonConfig;
-  bouton2: BoutonConfig;
+  bouton1: {
+    type: "primaire" | "secondaire";
+    texte: string;
+    lien: string;
+  };
+  bouton2: {
+    type: "primaire" | "secondaire";
+    texte: string;
+    lien: string;
+  };
+};
+
+export type BlockImagePrincipale = {
+  id: string;
+  type: "image-principale";
+  enabled: boolean;
+  image: string;
+  alt: string;
+  texte1: string;
+  texte2: string;
 };
 
 export type ContentBlock = 
@@ -89,7 +108,8 @@ export type ContentBlock =
   | BlockTelechargement 
   | BlockSeance
   | BlockPartenaires
-  | BlockBoutons;
+  | BlockBoutons
+  | BlockImagePrincipale;
 
 export type BlogArticleFormState = {
   id?: string;

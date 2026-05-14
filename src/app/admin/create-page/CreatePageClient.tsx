@@ -284,6 +284,17 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   bouton2: { type: "secondaire", texte: "En savoir plus", lien: "#methode-glift" },
                 };
                 break;
+              case "image-principale":
+                newBlock = {
+                  id: newId,
+                  type: "image-principale",
+                  enabled: true,
+                  image: "/images/mockups-app-site.png",
+                  alt: "Mockups Glift",
+                  texte1: "Une app pour\nsuivre ses entraînements\nefficacement",
+                  texte2: "Un site pour\ncréer ses entraînements\nfacilement"
+                };
+                break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });
             setIsWidgetModalOpen(false);

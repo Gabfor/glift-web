@@ -88,6 +88,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
+      case "image-principale": return "Image principale";
       case "partenaires": return "Bloc partenaire";
       case "boutons": return "Bloc boutons";
       default: return `Bloc ${type}`;
@@ -111,7 +112,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             isFirst={isFirst}
             isLast={isLast}
             headerActions={
-              block.type === "partenaires" || block.type === "boutons" ? (
+              block.type === "partenaires" || block.type === "boutons" || block.type === "image-principale" ? (
                 <ToggleSwitch 
                   checked={(block as any).enabled} 
                   onCheckedChange={(checked) => updateBlock(block.id, { enabled: checked })} 
@@ -282,6 +283,56 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 />
 
               </>
+            )}
+
+            {block.type === "image-principale" && (
+              <div className="flex flex-col gap-8">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                  {/* Image */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-[#2E3271] font-bold text-[16px]">Image</label>
+                      <span className="text-[12px] text-[#A1A5C1]">700 x 355px</span>
+                    </div>
+                    <ImageUploader
+                      value={block.image}
+                      onChange={(url: string) => updateBlock(block.id, { image: url })}
+                      bucket="blog-images"
+                      basePath="pages"
+                    />
+                  </div>
+
+                  {/* Alt */}
+                  <AdminTextField
+                    label="Alt image"
+                    placeholder="alt image"
+                    value={block.alt}
+                    onChange={(val) => updateBlock(block.id, { alt: val })}
+                  />
+
+                  {/* Texte 1 */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte 1</label>
+                    <textarea
+                      placeholder="Texte 1"
+                      value={block.texte1 || ""}
+                      onChange={(e) => updateBlock(block.id, { texte1: e.target.value })}
+                      className="input-admin py-2 min-h-[100px] resize-y"
+                    />
+                  </div>
+
+                  {/* Texte 2 */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte 2</label>
+                    <textarea
+                      placeholder="Texte 2"
+                      value={block.texte2 || ""}
+                      onChange={(e) => updateBlock(block.id, { texte2: e.target.value })}
+                      className="input-admin py-2 min-h-[100px] resize-y"
+                    />
+                  </div>
+                </div>
+              </div>
             )}
 
             {block.type === "partenaires" && (
