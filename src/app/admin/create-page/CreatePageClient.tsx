@@ -256,7 +256,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
 
       {isWidgetModalOpen && (
         <AddWidgetModal
-          articleType="Legal"
+          articleType="Page"
           onClose={() => setIsWidgetModalOpen(false)}
           onSelect={(type) => {
             const newId = Math.random().toString(36).substr(2, 9);
