@@ -61,13 +61,40 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               </div>
             </button>
 
-            {/* Vides 4, 5, 6 (Page) */}
-            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-            </div>
-            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-            </div>
+            {/* 4. Bloc titre (Page) */}
+            <button
+              onClick={() => onSelect("titre")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc titre
+              </span>
+              <div className="w-[85%] flex flex-col items-center gap-[6px] mt-2">
+                <div className="w-[30%] h-[8px] bg-[#F4F5FE] rounded-full" />
+                <div className="w-[60%] h-[8px] bg-[#F4F5FE] rounded-full" />
+                <div className="w-[90%] h-[8px] bg-[#F4F5FE] rounded-full" />
+              </div>
+            </button>
+
+            {/* 5. Bloc texte + image (Page) */}
+            <button
+              onClick={() => onSelect("texte-image")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc texte + image
+              </span>
+              <div className="w-[85%] flex gap-[15px] items-center mt-2 px-2">
+                <div className="flex-1 flex flex-col gap-[6px]">
+                  <div className="w-[60%] h-[8px] bg-[#F4F5FE] rounded-full" />
+                  <div className="w-full h-[8px] bg-[#F4F5FE] rounded-full" />
+                  <div className="w-full h-[8px] bg-[#F4F5FE] rounded-full" />
+                </div>
+                <div className="w-[45px] h-[45px] bg-[#F4F5FE] rounded-[4px]" />
+              </div>
+            </button>
+
+            {/* 6. Vide (Page) */}
             <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
               <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
             </div>

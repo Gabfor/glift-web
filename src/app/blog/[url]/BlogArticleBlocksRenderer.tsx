@@ -140,6 +140,23 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
         const key = block.id;
 
         switch (block.type) {
+          case "titre":
+            return (
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto mb-[20px] pt-[50px]">
+                {block.surtitre && (
+                  <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
+                    {block.surtitre}
+                  </p>
+                )}
+                {block.titre && (
+                  <h2 
+                    className="text-[24px] sm:text-[32px] md:text-[30px] font-bold text-[var(--color-text-heading)] leading-snug"
+                    dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
+                  />
+                )}
+              </div>
+            );
+
           case "titre-texte":
             return (
               <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px] scroll-mt-[100px]">

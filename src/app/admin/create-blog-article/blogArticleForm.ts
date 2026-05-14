@@ -99,6 +99,19 @@ export type BlockImagePrincipale = {
   texte2: string;
 };
 
+export type BlockTitre = BaseBlock & {
+  type: "titre";
+  surtitre?: string;
+  titre?: string;
+};
+
+export type BlockTexteImage = BaseBlock & {
+  type: "texte-image";
+  texte?: string;
+  image?: string;
+  alt?: string;
+};
+
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
@@ -109,7 +122,9 @@ export type ContentBlock =
   | BlockSeance
   | BlockPartenaires
   | BlockBoutons
-  | BlockImagePrincipale;
+  | BlockImagePrincipale
+  | BlockTitre
+  | BlockTexteImage;
 
 export type BlogArticleFormState = {
   id?: string;

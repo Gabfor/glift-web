@@ -82,8 +82,10 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
   const getBlockTitle = (type: string) => {
     switch (type) {
       case "titre-texte": return "Bloc titre + texte";
+      case "titre": return "Bloc titre";
       case "texte-1-1": return "Bloc texte 1.1";
       case "texte": return "Bloc texte";
+      case "texte-image": return "Bloc texte + image";
       case "source": return "Bloc source";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
@@ -151,6 +153,25 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   <RichTextEditor 
                     value={block.texte} 
                     onChange={(html) => updateBlock(block.id, { texte: html })}
+                  />
+                </div>
+              </>
+            )}
+
+            {block.type === "titre" && (
+              <>
+                <div className="flex flex-col gap-6">
+                  <AdminTextField
+                    label="Surtitre"
+                    placeholder="Surtitre"
+                    value={block.surtitre || ""}
+                    onChange={(val) => updateBlock(block.id, { surtitre: val })}
+                  />
+                  <AdminTextField
+                    label="Titre"
+                    placeholder="Titre"
+                    value={block.titre || ""}
+                    onChange={(val) => updateBlock(block.id, { titre: val })}
                   />
                 </div>
               </>
