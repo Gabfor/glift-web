@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
 import Tooltip from "@/components/Tooltip";
+import SearchBar from "@/components/SearchBar";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import LegalAdminActionsBar from "@/app/admin/components/LegalAdminActionsBar";
@@ -31,6 +32,7 @@ export default function AdminLegalPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [showActionsBar, setShowActionsBar] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<SortableColumn>("updated_at");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
@@ -141,7 +143,13 @@ export default function AdminLegalPage() {
   };
 
   const sortedPages = useMemo(() => {
-    return [...pages].sort((a, b) => {
+    const term = searchTerm.trim().toLowerCase();
+    
+    const filtered = pages.filter((p) => {
+      return !term || p.titre?.toLowerCase().includes(term);
+    });
+
+    return [...filtered].sort((a, b) => {
       let comparison = 0;
       switch (sortBy) {
         case "is_published":
@@ -161,7 +169,7 @@ export default function AdminLegalPage() {
       }
       return sortDirection === "asc" ? comparison : -comparison;
     });
-  }, [pages, sortBy, sortDirection]);
+  }, [pages, searchTerm, sortBy, sortDirection]);
 
   const renderHeaderCell = (
     label: string | React.ReactNode,
@@ -203,45 +211,51 @@ export default function AdminLegalPage() {
           Pages légales
         </h2>
 
-        <div className="mb-6 flex min-h-[40px] flex-col lg:flex-row lg:items-center justify-end">
-          <div className="flex w-full justify-end lg:w-auto mt-[49px]">
-            {showActionsBar ? (
-              <LegalAdminActionsBar
-                selectedIds={selectedIds}
-                selectedStatus={pages.find(p => p.id === selectedIds[0])?.is_published ?? null}
-                onDelete={handleDelete}
-                onEdit={handleEdit}
-                onToggleStatus={handleToggleStatus}
-                onAdd={handleAdd}
-              />
-            ) : (
-              <div className="flex justify-end relative z-10">
-                <Tooltip content="Ajouter une page" delay={0}>
-                  <button
-                    onClick={handleAdd}
-                    className="rounded-full transition-colors duration-200 flex items-center justify-center group"
-                    aria-label="Ajouter une page"
-                  >
-                    <Image
-                      src="/icons/plus.svg"
-                      alt="Ajouter"
-                      width={20}
-                      height={20}
-                      className="block group-hover:hidden"
-                    />
-                    <Image
-                      src="/icons/plus_hover.svg"
-                      alt="Ajouter"
-                      width={20}
-                      height={20}
-                      className="hidden group-hover:block"
-                    />
-                  </button>
-                </Tooltip>
-              </div>
-            )}
+        <div className="flex justify-center mb-6">
+          <div className="w-[368px]">
+            <SearchBar
+              placeholder="Rechercher une page"
+              value={searchTerm}
+              onChange={setSearchTerm}
+            />
           </div>
         </div>
+
+        {showActionsBar ? (
+          <LegalAdminActionsBar
+            selectedIds={selectedIds}
+            selectedStatus={pages.find(p => p.id === selectedIds[0])?.is_published ?? null}
+            onDelete={handleDelete}
+            onEdit={handleEdit}
+            onToggleStatus={handleToggleStatus}
+            onAdd={handleAdd}
+          />
+        ) : (
+          <div className="flex justify-end mb-4">
+            <Tooltip content="Ajouter une page" delay={0}>
+              <button
+                onClick={handleAdd}
+                className="rounded-full transition-colors duration-200 flex items-center justify-center group"
+                aria-label="Ajouter une page"
+              >
+                <Image
+                  src="/icons/plus.svg"
+                  alt="Ajouter"
+                  width={20}
+                  height={20}
+                  className="block group-hover:hidden"
+                />
+                <Image
+                  src="/icons/plus_hover.svg"
+                  alt="Ajouter"
+                  width={20}
+                  height={20}
+                  className="hidden group-hover:block"
+                />
+              </button>
+            </Tooltip>
+          </div>
+        )}
 
         {isLoading ? (
           <LegalTableSkeleton />
