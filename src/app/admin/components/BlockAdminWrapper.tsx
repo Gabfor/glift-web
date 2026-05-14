@@ -10,10 +10,11 @@ type Props = {
   onDuplicate: () => void;
   isFirst: boolean;
   isLast: boolean;
+  headerActions?: React.ReactNode;
   children: React.ReactNode;
 };
 
-export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelete, onDuplicate, isFirst, isLast, children }: Props) {
+export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelete, onDuplicate, isFirst, isLast, headerActions, children }: Props) {
   return (
     <div className={`flex flex-col relative w-full ${isLast ? 'mb-0' : 'mb-[30px]'}`}>
       {/* HEADER WIDGET */}
@@ -112,7 +113,8 @@ export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelet
         </div>
 
         {/* Poubelle à droite avec fond pour masquer la ligne */}
-        <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2">
+        <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2 gap-3">
+          {headerActions}
           <Tooltip content="Supprimer">
             <button 
               type="button"

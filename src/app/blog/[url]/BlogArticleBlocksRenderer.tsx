@@ -19,6 +19,9 @@ type ContentBlock = {
   ancreId?: string;
   programme_id?: string;
   table_rows?: any[];
+  surtitre?: string;
+  enabled?: boolean;
+  slots?: any[];
 };
 
 type Props = {
@@ -269,6 +272,61 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 programmeId={block.programme_id || ""} 
                 ancreId={block.ancreId}
               />
+            );
+
+          case "partenaires":
+            if (block.enabled === false) return null;
+            return (
+              <React.Fragment key={key}>
+                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] my-[40px]">
+                  <section className="text-center px-4 max-w-[var(--layout-max-width)] mx-auto">
+                    {block.surtitre && (
+                      <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
+                        {block.surtitre}
+                      </p>
+                    )}
+                    {block.titre && (
+                      <h2 className="text-[28px] font-bold leading-snug text-[#2E3271]">
+                        {block.titre}
+                      </h2>
+                    )}
+                  </section>
+
+                  <section className="max-w-[var(--layout-max-width)] mx-auto w-full pt-[40px]">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 w-full">
+                      {(block.slots || []).map((partner: any, idx: number) => {
+                        if (!partner.logo_url) return null;
+                        return (
+                          <div
+                            key={idx}
+                            className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative w-full"
+                          >
+                            <div className="relative w-full h-full">
+                              {partner.link_url ? (
+                                <a href={partner.link_url} target="_blank" rel="noopener noreferrer" className="block w-full h-full relative">
+                                  <Image
+                                    src={partner.logo_url}
+                                    alt={partner.alt_text || "Partenaire"}
+                                    fill
+                                    className="object-contain"
+                                  />
+                                </a>
+                              ) : (
+                                <Image
+                                  src={partner.logo_url}
+                                  alt={partner.alt_text || "Partenaire"}
+                                  fill
+                                  className="object-contain"
+                                />
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                </div>
+              </React.Fragment>
             );
 
           default:

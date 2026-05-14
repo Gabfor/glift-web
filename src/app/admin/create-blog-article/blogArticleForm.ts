@@ -53,6 +53,20 @@ export type BlockSeance = BaseBlock & {
   table_rows: SeanceRow[];
 };
 
+export type PartnerSlot = {
+  logo_url: string;
+  alt_text: string;
+  link_url: string;
+};
+
+export type BlockPartenaires = BaseBlock & {
+  type: "partenaires";
+  surtitre?: string;
+  titre?: string;
+  enabled: boolean;
+  slots: PartnerSlot[];
+};
+
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
@@ -60,7 +74,8 @@ export type ContentBlock =
   | BlockSource 
   | BlockProgramme 
   | BlockTelechargement 
-  | BlockSeance;
+  | BlockSeance
+  | BlockPartenaires;
 
 export type BlogArticleFormState = {
   id?: string;

@@ -1,8 +1,11 @@
 import React from "react";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
-import { ContentBlock, SeanceRow } from "../create-blog-article/blogArticleForm";
+import { ContentBlock, SeanceRow, BlockPartenaires } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import ImageUploader from "@/app/admin/components/ImageUploader";
+import { AdminTextField } from "@/app/admin/components/AdminTextField";
 
 type Props = {
   blocks: ContentBlock[];
@@ -84,6 +87,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
+      case "partenaires": return "Bloc partenaire";
       default: return `Bloc ${type}`;
     }
   };
@@ -104,6 +108,14 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             onDuplicate={() => duplicateBlock(index)}
             isFirst={isFirst}
             isLast={isLast}
+            headerActions={
+              block.type === "partenaires" ? (
+                <ToggleSwitch 
+                  checked={(block as BlockPartenaires).enabled} 
+                  onCheckedChange={(checked) => updateBlock(block.id, { enabled: checked })} 
+                />
+              ) : undefined
+            }
           >
             {/* Rendu spécifique selon le type */}
 
@@ -268,6 +280,71 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 />
 
               </>
+            )}
+
+            {block.type === "partenaires" && (
+              <div className="flex flex-col gap-[30px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <AdminTextField
+                    label="Surtitre"
+                    value={block.surtitre || ""}
+                    onChange={(val) => updateBlock(block.id, { surtitre: val })}
+                    placeholder="Surtitre du bloc"
+                  />
+                  <AdminTextField
+                    label="Titre"
+                    value={block.titre || ""}
+                    onChange={(val) => updateBlock(block.id, { titre: val })}
+                    placeholder="Titre du bloc"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  {block.slots.map((slot, sIdx) => {
+                    const position = sIdx + 1;
+                  return (
+                    <div key={sIdx} className="flex flex-col gap-[30px]">
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-baseline mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Partenaire {position}</span>
+                          <span className="text-[#C2BFC6] text-xs font-semibold">222px x 102px</span>
+                        </div>
+                        <ImageUploader
+                          value={slot.logo_url || ""}
+                          onChange={(url) => {
+                            const newSlots = [...block.slots];
+                            newSlots[sIdx] = { ...newSlots[sIdx], logo_url: url };
+                            updateBlock(block.id, { slots: newSlots });
+                          }}
+                          placeholder="Importer un fichier"
+                          bucket="partners"
+                          basePath=""
+                        />
+                      </div>
+                      <AdminTextField
+                        label={`Alt image partenaire ${position}`}
+                        value={slot.alt_text || ""}
+                        onChange={(val) => {
+                          const newSlots = [...block.slots];
+                          newSlots[sIdx] = { ...newSlots[sIdx], alt_text: val };
+                          updateBlock(block.id, { slots: newSlots });
+                        }}
+                        placeholder={`Alt partenaire ${position}`}
+                      />
+                      <AdminTextField
+                        label={`Lien partenaire ${position}`}
+                        value={slot.link_url || ""}
+                        onChange={(val) => {
+                          const newSlots = [...block.slots];
+                          newSlots[sIdx] = { ...newSlots[sIdx], link_url: val };
+                          updateBlock(block.id, { slots: newSlots });
+                        }}
+                        placeholder={`Lien partenaire ${position}`}
+                      />
+                    </div>
+                  );
+                })}
+                </div>
+              </div>
             )}
 
           </BlockAdminWrapper>
