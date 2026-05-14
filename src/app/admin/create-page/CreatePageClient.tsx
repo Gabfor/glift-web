@@ -265,7 +265,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               case "titre-texte": newBlock = { id: newId, type: "titre-texte", titre: "", ancreId: "", texte: "" }; break;
               case "titre": newBlock = { id: newId, type: "titre", titre: "" }; break;
               case "texte": newBlock = { id: newId, type: "texte", texte: "" }; break;
-              case "texte-image": newBlock = { id: newId, type: "texte-image", texte: "", image: "", alt: "" }; break;
+              case "texte-image": newBlock = { id: newId, type: "texte-image", imagePosition: "gauche", surtitre: "", titre: "", texte: "", image: "", alt: "", boutonType: "secondaire", boutonTexte: "", boutonLien: "" }; break;
               case "texte-1-1": newBlock = { id: newId, type: "texte-1-1", titre: "", texte: "" }; break;
               case "partenaires": 
                 newBlock = { 

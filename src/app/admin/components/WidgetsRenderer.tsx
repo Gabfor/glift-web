@@ -78,6 +78,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
   };
 
   const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150";
+  const textareaClass = "min-h-[100px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150 resize-y";
 
   const getBlockTitle = (type: string) => {
     switch (type) {
@@ -175,6 +176,90 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   />
                 </div>
               </>
+            )}
+
+            {block.type === "texte-image" && (
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col w-1/2 pr-4">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Position de l'image</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Position"
+                    selected={block.imagePosition === "droite" ? "Droite" : "Gauche"}
+                    onSelect={(v) => updateBlock(block.id, { imagePosition: v === "Droite" ? "droite" : "gauche" })}
+                    options={[{ value: "Gauche", label: "Gauche" }, { value: "Droite", label: "Droite" }]}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="flex flex-col">
+                    <div className="flex justify-between items-end mb-[5px]">
+                      <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
+                      <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
+                    </div>
+                    <ImageUploader 
+                      value={block.image || ""} 
+                      onChange={(url) => updateBlock(block.id, { image: url })} 
+                    />
+                  </div>
+                  <AdminTextField
+                    label="Alt image"
+                    placeholder="alt image"
+                    value={block.alt || ""}
+                    onChange={(val) => updateBlock(block.id, { alt: val })}
+                  />
+                  <AdminTextField
+                    label="Surtitre"
+                    placeholder="Surtitre"
+                    value={block.surtitre || ""}
+                    onChange={(val) => updateBlock(block.id, { surtitre: val })}
+                  />
+                  <AdminTextField
+                    label="Titre"
+                    placeholder="Titre"
+                    value={block.titre || ""}
+                    onChange={(val) => updateBlock(block.id, { titre: val })}
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
+                  <textarea
+                    placeholder="Texte"
+                    value={block.texte || ""}
+                    onChange={(e) => updateBlock(block.id, { texte: e.target.value })}
+                    className={textareaClass}
+                  />
+                </div>
+                <div className="flex flex-col w-1/2 pr-4">
+                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Type de bouton</label>
+                  <AdminDropdown
+                    label=""
+                    placeholder="Type"
+                    selected={block.boutonType === "primaire" ? "Primaire" : block.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
+                    onSelect={(v) => updateBlock(block.id, { boutonType: v.toLowerCase() as any })}
+                    options={[
+                      { value: "Primaire", label: "Primaire" },
+                      { value: "Secondaire", label: "Secondaire" },
+                      { value: "Aucune", label: "Aucune" }
+                    ]}
+                  />
+                </div>
+                {block.boutonType !== "aucune" && (
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                    <AdminTextField
+                      label="Texte du bouton"
+                      placeholder="Texte du bouton"
+                      value={block.boutonTexte || ""}
+                      onChange={(val) => updateBlock(block.id, { boutonTexte: val })}
+                    />
+                    <AdminTextField
+                      label="Lien du bouton"
+                      placeholder="Lien du bouton"
+                      value={block.boutonLien || ""}
+                      onChange={(val) => updateBlock(block.id, { boutonLien: val })}
+                    />
+                  </div>
+                )}
+              </div>
             )}
 
             {block.type === "texte-1-1" && (

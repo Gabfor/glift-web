@@ -107,9 +107,15 @@ export type BlockTitre = BaseBlock & {
 
 export type BlockTexteImage = BaseBlock & {
   type: "texte-image";
-  texte?: string;
+  imagePosition?: "gauche" | "droite";
   image?: string;
   alt?: string;
+  surtitre?: string;
+  titre?: string;
+  texte?: string;
+  boutonType?: "primaire" | "secondaire" | "aucune";
+  boutonTexte?: string;
+  boutonLien?: string;
 };
 
 export type ContentBlock = 
