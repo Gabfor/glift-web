@@ -275,6 +275,15 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   slots: Array(4).fill({ logo_url: "", alt_text: "", link_url: "" }) 
                 }; 
                 break;
+              case "boutons":
+                newBlock = {
+                  id: newId,
+                  type: "boutons",
+                  enabled: true,
+                  bouton1: { type: "primaire", texte: "Tester gratuitement", lien: "/inscription?plan=premium" },
+                  bouton2: { type: "secondaire", texte: "En savoir plus", lien: "#methode-glift" },
+                };
+                break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });
             setIsWidgetModalOpen(false);

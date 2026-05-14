@@ -6,6 +6,7 @@ import AdminSeanceTable from "./AdminSeanceTable";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
+import AdminDropdown from "@/app/admin/components/AdminDropdown";
 
 type Props = {
   blocks: ContentBlock[];
@@ -88,6 +89,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
       case "partenaires": return "Bloc partenaire";
+      case "boutons": return "Bloc boutons";
       default: return `Bloc ${type}`;
     }
   };
@@ -109,9 +111,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             isFirst={isFirst}
             isLast={isLast}
             headerActions={
-              block.type === "partenaires" ? (
+              block.type === "partenaires" || block.type === "boutons" ? (
                 <ToggleSwitch 
-                  checked={(block as BlockPartenaires).enabled} 
+                  checked={(block as any).enabled} 
                   onCheckedChange={(checked) => updateBlock(block.id, { enabled: checked })} 
                 />
               ) : undefined
@@ -343,6 +345,67 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     </div>
                   );
                 })}
+                </div>
+              </div>
+            )}
+
+            {block.type === "boutons" && (
+              <div className="flex flex-col gap-[30px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Bouton 1</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez un type de bouton"
+                      selected={block.bouton1.type === "primaire" ? "Bouton primaire" : block.bouton1.type === "secondaire" ? "Bouton secondaire" : ""}
+                      onSelect={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, type: val === "Bouton primaire" ? "primaire" : "secondaire" } })}
+                      options={[
+                        { value: "Bouton primaire", label: "Bouton primaire" },
+                        { value: "Bouton secondaire", label: "Bouton secondaire" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Bouton 2</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez un type de bouton"
+                      selected={block.bouton2.type === "primaire" ? "Bouton primaire" : block.bouton2.type === "secondaire" ? "Bouton secondaire" : ""}
+                      onSelect={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, type: val === "Bouton primaire" ? "primaire" : "secondaire" } })}
+                      options={[
+                        { value: "Bouton primaire", label: "Bouton primaire" },
+                        { value: "Bouton secondaire", label: "Bouton secondaire" },
+                      ]}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <AdminTextField
+                    label="Texte du bouton 1"
+                    value={block.bouton1.texte || ""}
+                    onChange={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, texte: val } })}
+                    placeholder="Texte du bouton 1"
+                  />
+                  <AdminTextField
+                    label="Texte du bouton 2"
+                    value={block.bouton2.texte || ""}
+                    onChange={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, texte: val } })}
+                    placeholder="Texte du bouton 2"
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <AdminTextField
+                    label="Lien du bouton 1"
+                    value={block.bouton1.lien || ""}
+                    onChange={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, lien: val } })}
+                    placeholder="Lien du bouton 1"
+                  />
+                  <AdminTextField
+                    label="Lien du bouton 2"
+                    value={block.bouton2.lien || ""}
+                    onChange={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, lien: val } })}
+                    placeholder="Lien du bouton 2"
+                  />
                 </div>
               </div>
             )}

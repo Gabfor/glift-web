@@ -67,6 +67,19 @@ export type BlockPartenaires = BaseBlock & {
   slots: PartnerSlot[];
 };
 
+export type BoutonConfig = {
+  type: "primaire" | "secondaire" | "";
+  texte: string;
+  lien: string;
+};
+
+export type BlockBoutons = BaseBlock & {
+  type: "boutons";
+  enabled: boolean;
+  bouton1: BoutonConfig;
+  bouton2: BoutonConfig;
+};
+
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
@@ -75,7 +88,8 @@ export type ContentBlock =
   | BlockProgramme 
   | BlockTelechargement 
   | BlockSeance
-  | BlockPartenaires;
+  | BlockPartenaires
+  | BlockBoutons;
 
 export type BlogArticleFormState = {
   id?: string;

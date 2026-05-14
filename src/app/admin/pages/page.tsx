@@ -100,7 +100,6 @@ export default function AdminPagesPage() {
 
   const handleDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Etes-vous sûr de vouloir supprimer ${selectedIds.length} page(s) ?`)) return;
     
     const { error } = await (supabase as any)
       .from("pages")

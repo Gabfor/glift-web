@@ -22,6 +22,8 @@ type ContentBlock = {
   surtitre?: string;
   enabled?: boolean;
   slots?: any[];
+  bouton1?: any;
+  bouton2?: any;
 };
 
 type Props = {
@@ -40,6 +42,18 @@ type Props = {
 
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
+  const [trialDays, setTrialDays] = useState(30);
+
+  useEffect(() => {
+    const fetchTrialDays = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.from("settings").select("value").eq("key", "trial_period_days").single();
+      if (data?.value) {
+        setTrialDays(parseFloat(data.value));
+      }
+    };
+    fetchTrialDays();
+  }, []);
 
   const firstSeanceId = React.useMemo(() => {
     const first = blocks.find(b => b.type === "seance");
@@ -328,6 +342,52 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                       Vous voulez devenir partenaire ? <Link href="/contact" className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
                     </div>
                   </section>
+                </div>
+              </React.Fragment>
+            );
+
+          case "boutons":
+            if (block.enabled === false) return null;
+            return (
+              <React.Fragment key={key}>
+                <div id={block.ancreId || undefined} className="flex flex-col items-center justify-center w-full scroll-mt-[100px]">
+                  <div className="flex justify-center gap-4 mb-4 flex-wrap">
+                    {block.bouton1 && block.bouton1.texte && (
+                      <Link
+                        href={block.bouton1.lien || "#"}
+                        className={block.bouton1.type === "primaire" 
+                          ? "bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
+                          : "border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
+                        }
+                      >
+                        {block.bouton1.texte}
+                        {block.bouton1.type === "primaire" && (
+                          <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
+                        )}
+                      </Link>
+                    )}
+                    {block.bouton2 && block.bouton2.texte && (
+                      <Link
+                        href={block.bouton2.lien || "#"}
+                        className={block.bouton2.type === "primaire" 
+                          ? "bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
+                          : "border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
+                        }
+                      >
+                        {block.bouton2.texte}
+                        {block.bouton2.type === "primaire" && (
+                          <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
+                        )}
+                      </Link>
+                    )}
+                  </div>
+                  <div className="flex justify-center items-center gap-2 text-[14px] text-[#5D6494] font-semibold">
+                    <span className="relative flex items-center justify-center w-2 h-2">
+                      <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
+                      <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
+                    </span>
+                    {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester gratuitement
+                  </div>
                 </div>
               </React.Fragment>
             );
