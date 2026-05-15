@@ -773,6 +773,87 @@ export interface Database {
         };
         Relationships: never[];
       };
+      pages: {
+        Row: {
+          id: string;
+          titre: string;
+          is_published: boolean;
+          langue: string;
+          created_at: string;
+          updated_at: string;
+          content_blocks: Json;
+          url: string;
+          surtitre: Nullable<string>;
+          description: Nullable<string>;
+        };
+        Insert: {
+          id?: string;
+          titre: string;
+          is_published?: boolean;
+          langue?: string;
+          created_at?: string;
+          updated_at?: string;
+          content_blocks?: Json;
+          url: string;
+          surtitre?: Nullable<string>;
+          description?: Nullable<string>;
+        };
+        Update: {
+          id?: string;
+          titre?: string;
+          is_published?: boolean;
+          langue?: string;
+          created_at?: string;
+          updated_at?: string;
+          content_blocks?: Json;
+          url?: string;
+          surtitre?: Nullable<string>;
+          description?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
+      blog_articles: {
+        Row: {
+          id: string;
+          titre: string;
+          is_published: boolean;
+          langue: string;
+          created_at: string;
+          updated_at: string;
+          content_blocks: Json;
+          url: string;
+          image: Nullable<string>;
+          category: Nullable<string>;
+          description: Nullable<string>;
+        };
+        Insert: {
+          id?: string;
+          titre: string;
+          is_published?: boolean;
+          langue?: string;
+          created_at?: string;
+          updated_at?: string;
+          content_blocks?: Json;
+          url: string;
+          image?: Nullable<string>;
+          category?: Nullable<string>;
+          description?: Nullable<string>;
+        };
+        Update: {
+          id?: string;
+          titre?: string;
+          is_published?: boolean;
+          langue?: string;
+          created_at?: string;
+          updated_at?: string;
+          content_blocks?: Json;
+          url?: string;
+          image?: Nullable<string>;
+          category?: Nullable<string>;
+          description?: Nullable<string>;
+        };
+        Relationships: never[];
+      };
     };
     Views: Record<string, never>;
     Functions: {

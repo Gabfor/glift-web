@@ -20,9 +20,10 @@ type PageData = {
   is_published: boolean;
   updated_at: string;
   langue: string;
+  url: string;
 };
 
-type SortableColumn = "is_published" | "titre" | "langue";
+type SortableColumn = "is_published" | "titre" | "langue" | "url";
 
 export default function AdminPagesPage() {
   const router = useRouter();
@@ -155,10 +156,13 @@ export default function AdminPagesPage() {
           comparison = (a.is_published === b.is_published) ? 0 : a.is_published ? -1 : 1;
           break;
         case "titre":
-          comparison = a.titre.localeCompare(b.titre);
+          comparison = (a.titre || "").localeCompare(b.titre || "");
+          break;
+        case "url":
+          comparison = (a.url || "").localeCompare(b.url || "");
           break;
         case "langue":
-          comparison = a.langue.localeCompare(b.langue);
+          comparison = (a.langue || "").localeCompare(b.langue || "");
           break;
         default:
           comparison = 0;
@@ -166,6 +170,11 @@ export default function AdminPagesPage() {
       return sortDirection === "asc" ? comparison : -comparison;
     });
   }, [pages, searchTerm, sortBy, sortDirection]);
+
+  const stripHtml = (html: string) => {
+    if (!html) return "";
+    return html.replace(/<[^>]*>?/gm, "");
+  };
 
   const renderHeaderCell = (
     label: string | React.ReactNode,
@@ -267,7 +276,8 @@ export default function AdminPagesPage() {
                     </div>
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
-                  {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("URL", "url", "w-[240px]")}
+                  {renderHeaderCell("Titre", "titre", "w-full")}
                   {renderHeaderCell("Langue", "langue", "w-[120px] px-3")}
                 </tr>
               </thead>
@@ -297,7 +307,8 @@ export default function AdminPagesPage() {
                     </button>
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
-                  {renderHeaderCell("Titre", "titre", "w-auto")}
+                  {renderHeaderCell("URL", "url", "w-[240px]")}
+                  {renderHeaderCell("Titre", "titre", "w-full")}
                   {renderHeaderCell("Langue", "langue", "w-[120px] px-3")}
                 </tr>
               </thead>
@@ -337,9 +348,14 @@ export default function AdminPagesPage() {
                           {a.is_published ? "ON" : "OFF"}
                         </span>
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`/admin/create-page?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
-                          {a.titre}
+                      <td className="w-[240px] px-4 align-middle font-semibold text-[#5D6494]">
+                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#2E3271] transition-colors cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis block">
+                          /{a.url}
+                        </Link>
+                      </td>
+                      <td className="px-4 font-semibold text-[#5D6494] align-middle w-full">
+                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#2E3271] transition-colors cursor-pointer">
+                          {stripHtml(a.titre)}
                         </Link>
                       </td>
                       <td className="w-[120px] px-4">

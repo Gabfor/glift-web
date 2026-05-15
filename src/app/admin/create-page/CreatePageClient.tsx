@@ -188,21 +188,18 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                       <div className="flex justify-between mb-[5px]">
                         <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
                       </div>
-                      <input
-                        type="text"
-                        placeholder="Titre de la page"
+                      <RichTextEditor
                         value={pageData.titre}
-                        onChange={(e) => setPageData({ ...pageData, titre: e.target.value })}
-                        className={inputClass}
+                        onChange={(val) => setPageData({ ...pageData, titre: val })}
+                        minHeight="80px"
                       />
                     </div>
                     <div className="flex flex-col">
                       <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description</label>
-                      <textarea
-                        placeholder="Description de la page"
+                      <RichTextEditor
                         value={pageData.description}
-                        onChange={(e) => setPageData({ ...pageData, description: e.target.value })}
-                        className={textareaClass}
+                        onChange={(val) => setPageData({ ...pageData, description: val })}
+                        minHeight="100px"
                       />
                     </div>
                     <div className="flex flex-col">

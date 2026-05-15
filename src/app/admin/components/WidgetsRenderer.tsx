@@ -232,11 +232,10 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 </div>
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
-                  <textarea
-                    placeholder="Texte"
+                  <RichTextEditor
                     value={block.texte || ""}
-                    onChange={(e) => updateBlock(block.id, { texte: e.target.value })}
-                    className={textareaClass}
+                    onChange={(val) => updateBlock(block.id, { texte: val })}
+                    minHeight="120px"
                   />
                 </div>
                 <div className="flex flex-col w-1/2 pr-4">
@@ -309,7 +308,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       containerClassName="min-h-[150px]"
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
                       label="Type de bouton 1"
                       placeholder="Type"
@@ -321,6 +320,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       selected={block.card1?.boutonType === "primaire" ? "Primaire" : block.card1?.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
                       onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val.toLowerCase() as any } })}
                     />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
                       label="Texte du bouton 1"
                       placeholder="Texte du bouton"
@@ -371,7 +372,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       containerClassName="min-h-[150px]"
                     />
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
                       label="Type de bouton 2"
                       placeholder="Type"
@@ -383,6 +384,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       selected={block.card2?.boutonType === "primaire" ? "Primaire" : block.card2?.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
                       onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val.toLowerCase() as any } })}
                     />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
                       label="Texte du bouton 2"
                       placeholder="Texte du bouton"
@@ -410,11 +413,10 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 />
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
-                  <textarea
-                    placeholder="Texte"
+                  <RichTextEditor
                     value={block.texte || ""}
-                    onChange={(e) => updateBlock(block.id, { texte: e.target.value })}
-                    className={textareaClass}
+                    onChange={(val) => updateBlock(block.id, { texte: val })}
+                    minHeight="120px"
                   />
                 </div>
               </div>

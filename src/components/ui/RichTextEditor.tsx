@@ -35,6 +35,7 @@ interface RichTextEditorProps {
     editorClassName?: string;
     containerClassName?: string;
     minimal?: boolean;
+    minHeight?: string;
 }
 
 const GlobalAttributes = Extension.create({
@@ -120,7 +121,8 @@ export default function RichTextEditor({
     withHelpLink = false, 
     editorClassName, 
     containerClassName,
-    minimal = false 
+    minimal = false,
+    minHeight
 }: RichTextEditorProps) {
     const editor = useEditor({
         extensions: [
@@ -154,8 +156,9 @@ export default function RichTextEditor({
         content: value,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'min-h-[345px] h-full'}`,
+                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'}`,
                 spellcheck: "true",
+                style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? 'min-height: 345px' : '',
             },
         },
         immediatelyRender: false,
@@ -276,7 +279,10 @@ export default function RichTextEditor({
         setIsHelpLinkModalOpen(true);
     };
     return (
-        <div className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto min-h-[345px]'}`}>
+        <div 
+            className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
+            style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
+        >
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleBold().run()}

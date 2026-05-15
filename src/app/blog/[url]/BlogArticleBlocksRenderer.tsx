@@ -181,74 +181,68 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             );
 
           case "texte-image":
-            const TextContent = () => (
-              <AnimatedSection>
-                <div className="w-full md:w-[466px] flex flex-col">
-                  {block.surtitre && (
-                    <p className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
-                      {block.surtitre}
-                    </p>
-                  )}
-                  {block.titre && (
-                    <h2 
-                      className="text-[24px] sm:text-[24px] font-bold text-[var(--color-brand-strong)] leading-tight mb-[10px]"
-                      dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
-                    />
-                  )}
-                  {block.texte && (
-                    <p className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold mb-[20px] whitespace-pre-line">
-                      {block.texte}
-                    </p>
-                  )}
-                  {block.boutonType && block.boutonType !== "aucune" && block.boutonTexte && (
-                    <Link
-                      href={block.boutonLien || "#"}
-                      className={
-                        block.boutonType === "primaire"
-                          ? "btn-primary w-[250px] flex justify-center items-center h-[55px]"
-                          : "px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
-                      }
-                    >
-                      {block.boutonTexte}
-                      {block.boutonType === "secondaire" && (
-                        <div className="relative w-[25px] h-[25px]">
-                          <Image src="/icons/arrow_blue.svg" alt="Flèche" fill className="object-contain transition-opacity group-hover:opacity-0" priority={false} />
-                          <Image src="/icons/arrow.svg" alt="Flèche" fill className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0" priority={false} />
-                        </div>
-                      )}
-                    </Link>
-                  )}
-                </div>
-              </AnimatedSection>
-            );
-
-            const ImageContent = () => (
-              <AnimatedSection>
-                <div className={`flex-shrink-0 ${block.imagePosition === "gauche" ? "order-1 md:order-none" : ""}`}>
-                  <Image
-                    src={block.image || "/images/illustration-creation.png"}
-                    alt={block.alt || ""}
-                    width={466}
-                    height={350}
-                    priority={false}
-                  />
-                </div>
-              </AnimatedSection>
-            );
-
+            const isRight = block.imagePosition === "droite";
             return (
               <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
-                {block.imagePosition === "droite" ? (
-                  <>
-                    <TextContent />
-                    <ImageContent />
-                  </>
-                ) : (
-                  <>
-                    <ImageContent />
-                    <TextContent />
-                  </>
-                )}
+                {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
+                {/* On mobile flex-col items-center will center them horizontally */}
+                
+                <div className={`flex items-center ${isRight ? "order-2 md:order-1" : "order-2"}`}>
+                  <AnimatedSection>
+                    <div className="w-full md:w-[466px] flex flex-col">
+                      {block.surtitre && (
+                        <p className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
+                          {block.surtitre}
+                        </p>
+                      )}
+                      {block.titre && (
+                        <h2 
+                          className="text-[24px] sm:text-[24px] font-bold text-[var(--color-brand-strong)] leading-tight mb-[10px]"
+                          dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
+                        />
+                      )}
+                      {block.texte && (
+                        <div 
+                          className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0"
+                          dangerouslySetInnerHTML={{ __html: block.texte }}
+                        />
+                      )}
+                      {block.boutonType && block.boutonType !== "aucune" && block.boutonTexte && (
+                        <Link
+                          href={block.boutonLien || "#"}
+                          className={
+                            block.boutonType === "primaire"
+                              ? "btn-primary w-[250px] flex justify-center items-center h-[55px]"
+                              : "px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+                          }
+                        >
+                          {block.boutonTexte}
+                          {block.boutonType === "secondaire" && (
+                            <div className="relative w-[25px] h-[25px]">
+                              <Image src="/icons/arrow_blue.svg" alt="Flèche" fill className="object-contain transition-opacity group-hover:opacity-0" priority={false} />
+                              <Image src="/icons/arrow.svg" alt="Flèche" fill className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0" priority={false} />
+                            </div>
+                          )}
+                        </Link>
+                      )}
+                    </div>
+                  </AnimatedSection>
+                </div>
+
+                <div className={`flex items-center ${isRight ? "order-1 md:order-2" : "order-1"}`}>
+                  <AnimatedSection>
+                    <div className="flex-shrink-0">
+                      <Image
+                        src={block.image || "/images/illustration-creation.png"}
+                        alt={block.alt || ""}
+                        width={466}
+                        height={350}
+                        priority={false}
+                        className="rounded-[15px] object-cover"
+                      />
+                    </div>
+                  </AnimatedSection>
+                </div>
               </div>
             );
 
