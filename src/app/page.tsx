@@ -37,12 +37,12 @@ export default async function Home() {
         {/* Hero Section from Page Data */}
         <section className="text-center mb-[20px]">
           {page.surtitre && (
-            <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
+            <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
               {page.surtitre}
-            </p>
+            </div>
           )}
 
-          <h1 
+          <div 
             className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px]"
             dangerouslySetInnerHTML={{ __html: page.titre }}
           />

@@ -176,12 +176,12 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             return (
               <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto pt-[50px]">
                 {block.surtitre && (
-                  <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
+                  <div className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
                     {block.surtitre}
-                  </p>
+                  </div>
                 )}
                 {block.titre && (
-                  <h2 
+                  <div 
                     className="text-[24px] sm:text-[32px] md:text-[30px] font-bold text-[var(--color-text-heading)] leading-snug"
                     dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
                   />
@@ -200,12 +200,12 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                   <AnimatedSection>
                     <div className="w-full md:w-[466px] flex flex-col">
                       {block.surtitre && (
-                        <p className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
+                        <div className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
                           {block.surtitre}
-                        </p>
+                        </div>
                       )}
                       {block.titre && (
-                        <h2 
+                        <div 
                           className="text-[24px] sm:text-[24px] font-bold text-[var(--color-brand-strong)] leading-tight mb-[10px]"
                           dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
                         />
@@ -285,7 +285,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                         )}
                         <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
                           <div className="pt-[10px] pr-[10px]">
-                            {card.titre && <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</h3>}
+                            {card.titre && <div className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</div>}
                             {card.texte && (
                               <div 
                                 className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[var(--color-text-heading)] [&_strong]:text-[var(--color-text-heading)]"
@@ -433,9 +433,9 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                     className="flex items-center justify-between cursor-pointer select-none"
                     onClick={() => toggleSeance(seanceKey, defaultCollapsed)}
                   >
-                    <h2 className="text-[20px] font-bold text-[#2E3271]">
+                    <div className="text-[20px] font-bold text-[#2E3271]">
                       {block.titre}
-                    </h2>
+                    </div>
                     <Image
                       src="/icons/chevron_down.svg"
                       alt="Toggle"

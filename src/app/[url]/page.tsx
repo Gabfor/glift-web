@@ -39,12 +39,12 @@ export default async function LegalPage({ params }: { params: { url: string } })
     <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
       <div className="max-w-[1152px] mx-auto px-4 md:px-0">
         {page.surtitre && (
-          <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
+          <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
             {page.surtitre}
-          </p>
+          </div>
         )}
-        <h1 
-          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"}`}
+        <div 
+          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles`}
           dangerouslySetInnerHTML={{ __html: page.titre }}
         />
 
@@ -56,9 +56,9 @@ export default async function LegalPage({ params }: { params: { url: string } })
         )}
 
         {!isGenericPage && page.updated_at && (
-          <p className="text-[14px] text-[#5D6494] font-semibold text-center mb-[40px]">
+          <div className="text-[14px] text-[#5D6494] font-semibold text-center mb-[40px]">
             Dernière mise à jour : {new Date(page.updated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-          </p>
+          </div>
         )}
 
         <article className="w-full">
