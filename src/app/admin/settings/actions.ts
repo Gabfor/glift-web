@@ -18,6 +18,25 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         // 1. Collect all used Image URLs from Database
         const usedUrls = new Set<string>();
 
+        // Helper to extract URLs from blocks
+        const extractUrlsFromBlocks = (blocks: any[]) => {
+            if (!Array.isArray(blocks)) return;
+            blocks.forEach(block => {
+                // Recursive check for all values in block
+                const findUrls = (obj: any) => {
+                    if (!obj || typeof obj !== 'object') return;
+                    Object.values(obj).forEach(val => {
+                        if (typeof val === 'string' && (val.startsWith('http') || val.includes('/storage/v1/object/public/'))) {
+                            usedUrls.add(val);
+                        } else if (typeof val === 'object') {
+                            findUrls(val);
+                        }
+                    });
+                };
+                findUrls(block);
+            });
+        };
+
         // A. Offer Shop
         const { data: offers } = await supabase
             .from("offer_shop")
@@ -72,7 +91,34 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             }
         });
 
-        // F. Avatars (Requires Admin Client)
+        // F. Pages (NEW)
+        const { data: pages } = await (supabase as any)
+            .from("pages")
+            .select("content_blocks");
+        
+        pages?.forEach((p: any) => {
+            if (p.content_blocks) extractUrlsFromBlocks(p.content_blocks as any[]);
+        });
+
+        // G. Blog Articles (NEW)
+        const { data: blogArticles } = await (supabase as any)
+            .from("blog_articles")
+            .select("content_blocks");
+        
+        blogArticles?.forEach((a: any) => {
+            if (a.content_blocks) extractUrlsFromBlocks(a.content_blocks as any[]);
+        });
+
+        // H. Legal Pages (NEW)
+        const { data: legalPages } = await (supabase as any)
+            .from("legal_pages")
+            .select("content_blocks");
+        
+        legalPages?.forEach((p: any) => {
+            if (p.content_blocks) extractUrlsFromBlocks(p.content_blocks as any[]);
+        });
+
+        // I. Avatars (Requires Admin Client)
         try {
             const adminClient = createAdminClient();
             let page = 1;
@@ -107,6 +153,10 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             const parts = url.split(`/${bucketName}/`);
             if (parts.length < 2) return null;
             let path = decodeURIComponent(parts[1]);
+            // Remove query params if any
+            if (path.includes('?')) {
+                path = path.split('?')[0];
+            }
             if (path.startsWith('/')) {
                 path = path.substring(1);
             }
@@ -115,30 +165,12 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
 
         // 2. Scan Buckets and Cleanup
         const cleanBucket = async (bucketName: string, folder: string = "") => {
-            // Note: Recurse into subfolders if necessary?
-            // "avatars" uses folder structure: {userId}/{filename}
-            // "program-images" uses "programmes/" and maybe root.
-
-            // For avatars, we need to list recursively if possible.
-            // But supabase storage list is flat per folder.
-            // If we list root of "avatars", we get folder names (user IDs) or files.
-            // We need a proper recursive strategy or assume structure.
-            // For now, let's keep it simple:
-            // "program-images" -> "programmes/" and root.
-            // "avatars" -> root gives folders. listing folders gives files. This is expensive recursively.
-            // Wait, "avatars" structure is `userId/filename`.
-            // Standard user buckets are hard to clean without recursive listing.
-            // If I just list root of avatars, I get folders.
-            // Does list() return folders as objects? Yes.
-
             // Recursive Lister for specific deep buckets like avatars
             if (bucketName === "avatars") {
                 const { data: rootItems } = await supabase.storage.from(bucketName).list();
                 if (rootItems) {
                     for (const item of rootItems) {
-                        if (!item.id) { // It's a folder (Supabase convention usually, or check mimetype?)
-                            // Actually list() returns files AND folders. Folders have `id: null` in some versions or we check distinctness.
-                            // Safest is to try listing content of 'item.name'
+                        if (!item.id) { // It's a folder
                             const { data: subFiles } = await supabase.storage.from(bucketName).list(item.name);
                             if (subFiles && subFiles.length > 0) {
                                 const subToDelete: string[] = [];
@@ -204,6 +236,8 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
 
         await cleanBucket("program-images", "programmes");
         await cleanBucket("partners", "");
+        await cleanBucket("blog-images", "pages"); // Added pages subfolder for blog-images
+        await cleanBucket("blog-images", ""); // Also check root
         // await cleanBucket("logos", ""); // Disabled for safety
 
         try {

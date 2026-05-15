@@ -113,7 +113,7 @@ export type BlockTexteImage = BaseBlock & {
   surtitre?: string;
   titre?: string;
   texte?: string;
-  boutonType?: "primaire" | "secondaire" | "aucune";
+  boutonType?: "primaire" | "secondaire" | "aucun";
   boutonTexte?: string;
   boutonLien?: string;
 };
@@ -125,7 +125,7 @@ export type BlockCard = BaseBlock & {
     alt?: string;
     titre?: string;
     texte?: string;
-    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonType?: "primaire" | "secondaire" | "aucun";
     boutonTexte?: string;
     boutonLien?: string;
   };
@@ -134,7 +134,7 @@ export type BlockCard = BaseBlock & {
     alt?: string;
     titre?: string;
     texte?: string;
-    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonType?: "primaire" | "secondaire" | "aucun";
     boutonTexte?: string;
     boutonLien?: string;
   };

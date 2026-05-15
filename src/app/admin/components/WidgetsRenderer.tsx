@@ -243,16 +243,16 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   <AdminDropdown
                     label=""
                     placeholder="Type"
-                    selected={block.boutonType === "primaire" ? "Primaire" : block.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
+                    selected={block.boutonType === "primaire" ? "Primaire" : block.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
                     onSelect={(v) => updateBlock(block.id, { boutonType: v.toLowerCase() as any })}
                     options={[
                       { value: "Primaire", label: "Primaire" },
                       { value: "Secondaire", label: "Secondaire" },
-                      { value: "Aucune", label: "Aucune" }
+                      { value: "Aucun", label: "Aucun" }
                     ]}
                   />
                 </div>
-                {block.boutonType !== "aucune" && (
+                {block.boutonType !== "aucun" && (
                   <div className="grid grid-cols-2 gap-x-8 gap-y-6">
                     <AdminTextField
                       label="Texte du bouton"
@@ -315,9 +315,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
-                        { label: "Aucune", value: "aucune" }
+                        { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card1?.boutonType === "primaire" ? "Primaire" : block.card1?.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
+                      selected={block.card1?.boutonType === "primaire" ? "Primaire" : block.card1?.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
                       onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val.toLowerCase() as any } })}
                     />
                   </div>
@@ -379,9 +379,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
-                        { label: "Aucune", value: "aucune" }
+                        { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card2?.boutonType === "primaire" ? "Primaire" : block.card2?.boutonType === "secondaire" ? "Secondaire" : "Aucune"}
+                      selected={block.card2?.boutonType === "primaire" ? "Primaire" : block.card2?.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
                       onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val.toLowerCase() as any } })}
                     />
                   </div>

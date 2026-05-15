@@ -12,6 +12,15 @@ import { createClient } from "@/lib/supabaseClient";
 import AdminSeanceTable from "@/app/admin/components/AdminSeanceTable";
 import AnimatedSection from "@/components/AnimatedSection";
 
+const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
+  <div 
+    style={{ width, height, minHeight: typeof height === 'number' ? `${height}px` : height }}
+    className={`bg-[#F2F1F6] text-[#D7D4DC] font-bold text-[32px] tracking-wider flex items-center justify-center rounded-[15px] ${className}`}
+  >
+    IMAGE
+  </div>
+);
+
 type ContentBlock = {
   id: string;
   type: string;
@@ -30,7 +39,7 @@ type ContentBlock = {
   texte1?: string;
   texte2?: string;
   imagePosition?: "gauche" | "droite";
-  boutonType?: "primaire" | "secondaire" | "aucune";
+  boutonType?: "primaire" | "secondaire" | "aucun";
   boutonTexte?: string;
   boutonLien?: string;
   card1?: {
@@ -38,7 +47,7 @@ type ContentBlock = {
     alt?: string;
     titre?: string;
     texte?: string;
-    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonType?: "primaire" | "secondaire" | "aucun";
     boutonTexte?: string;
     boutonLien?: string;
   };
@@ -47,7 +56,7 @@ type ContentBlock = {
     alt?: string;
     titre?: string;
     texte?: string;
-    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonType?: "primaire" | "secondaire" | "aucun";
     boutonTexte?: string;
     boutonLien?: string;
   };
@@ -207,7 +216,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                           dangerouslySetInnerHTML={{ __html: block.texte }}
                         />
                       )}
-                      {block.boutonType && block.boutonType !== "aucune" && block.boutonTexte && (
+                      {block.boutonType && block.boutonType !== "aucun" && block.boutonTexte && (
                         <Link
                           href={block.boutonLien || "#"}
                           className={
@@ -232,14 +241,18 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 <div className={`flex items-center ${isRight ? "order-1 md:order-2" : "order-1"}`}>
                   <AnimatedSection>
                     <div className="flex-shrink-0">
-                      <Image
-                        src={block.image || "/images/illustration-creation.png"}
-                        alt={block.alt || ""}
-                        width={466}
-                        height={350}
-                        priority={false}
-                        className="rounded-[15px] object-cover"
-                      />
+                      {block.image ? (
+                        <Image
+                          src={block.image}
+                          alt={block.alt || ""}
+                          width={466}
+                          height={350}
+                          priority={false}
+                          className="rounded-[15px] object-cover"
+                        />
+                      ) : (
+                        <PlaceholderImage width={466} height={350} />
+                      )}
                     </div>
                   </AnimatedSection>
                 </div>
@@ -255,7 +268,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                     if (!card) return null;
                     return (
                       <div key={idx} className="bg-white rounded-[20px] p-[20px] flex flex-col lg:flex-row gap-6 items-center lg:items-start border border-[#D7D4DC]">
-                        {card.image && (
+                        {card.image ? (
                           <div className="flex-shrink-0">
                             <Image
                               src={card.image}
@@ -264,6 +277,10 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                               height={221}
                               className="object-contain"
                             />
+                          </div>
+                        ) : (
+                          <div className="flex-shrink-0">
+                            <PlaceholderImage width={221} height={221} className="!rounded-[20px]" />
                           </div>
                         )}
                         <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
@@ -276,7 +293,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                               />
                             )}
                           </div>
-                          {card.boutonType !== "aucune" && card.boutonTexte && (
+                          {card.boutonType !== "aucun" && card.boutonTexte && (
                             <Link 
                               href={card.boutonLien || "#"} 
                               className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]"
@@ -468,14 +485,18 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 <section className="w-full relative text-center pt-[30px]">
                   {/* Mockups */}
                   <div className="flex justify-center">
-                    <Image
-                      src={block.image || "/images/mockups-app-site.png"}
-                      alt={block.alt || "Appareils"}
-                      priority={false}
-                      width={800}
-                      height={400}
-                      className="w-full max-w-[700px]"
-                    />
+                    {block.image ? (
+                      <Image
+                        src={block.image}
+                        alt={block.alt || "Appareils"}
+                        priority={false}
+                        width={800}
+                        height={400}
+                        className="w-full max-w-[700px] rounded-[15px]"
+                      />
+                    ) : (
+                      <PlaceholderImage width="100%" height={400} className="w-full max-w-[700px] rounded-[15px]" />
+                    )}
                   </div>
                   {/* Flèche + texte gauche */}
                   <div className="absolute left-[120px] top-[40%] -translate-y-1/2 hidden md:block pointer-events-none">
