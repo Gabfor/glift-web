@@ -36,7 +36,7 @@ export default async function LegalPage({ params }: { params: { url: string } })
   const page = pages[0];
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px]">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
       <div className="max-w-[1152px] mx-auto px-4 md:px-0">
         {page.surtitre && (
           <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">

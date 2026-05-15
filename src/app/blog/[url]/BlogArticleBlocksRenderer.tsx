@@ -33,6 +33,24 @@ type ContentBlock = {
   boutonType?: "primaire" | "secondaire" | "aucune";
   boutonTexte?: string;
   boutonLien?: string;
+  card1?: {
+    image?: string;
+    alt?: string;
+    titre?: string;
+    texte?: string;
+    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonTexte?: string;
+    boutonLien?: string;
+  };
+  card2?: {
+    image?: string;
+    alt?: string;
+    titre?: string;
+    texte?: string;
+    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonTexte?: string;
+    boutonLien?: string;
+  };
 };
 
 type Props = {
@@ -147,7 +165,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
         switch (block.type) {
           case "titre":
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto mb-[20px] pt-[50px]">
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto pt-[50px]">
                 {block.surtitre && (
                   <p className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
                     {block.surtitre}
@@ -165,7 +183,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
           case "texte-image":
             const TextContent = () => (
               <AnimatedSection>
-                <div className="max-w-[520px] flex flex-col">
+                <div className="w-full md:w-[466px] flex flex-col">
                   {block.surtitre && (
                     <p className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
                       {block.surtitre}
@@ -219,7 +237,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             );
 
             return (
-              <div key={key} id={block.ancreId || undefined} className="w-full flex flex-col md:flex-row items-center justify-between gap-10 py-[30px] scroll-mt-[100px]">
+              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
                 {block.imagePosition === "droite" ? (
                   <>
                     <TextContent />
@@ -233,6 +251,69 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 )}
               </div>
             );
+
+          case "card":
+            if (block.enabled === false) return null;
+            return (
+              <React.Fragment key={key}>
+                <div id={block.ancreId || undefined} className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-[10px] pb-0 scroll-mt-[100px] w-full">
+                  {[block.card1, block.card2].map((card, idx) => {
+                    if (!card) return null;
+                    return (
+                      <div key={idx} className="bg-white rounded-[20px] p-[20px] flex flex-col lg:flex-row gap-6 items-center lg:items-start border border-[#D7D4DC]">
+                        {card.image && (
+                          <div className="flex-shrink-0">
+                            <Image
+                              src={card.image}
+                              alt={card.alt || "Card image"}
+                              width={221}
+                              height={221}
+                              className="object-contain"
+                            />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
+                          <div className="pt-[10px] pr-[10px]">
+                            {card.titre && <h3 className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</h3>}
+                            {card.texte && (
+                              <div 
+                                className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[var(--color-text-heading)] [&_strong]:text-[var(--color-text-heading)]"
+                                dangerouslySetInnerHTML={{ __html: card.texte }}
+                              />
+                            )}
+                          </div>
+                          {card.boutonType !== "aucune" && card.boutonTexte && (
+                            <Link 
+                              href={card.boutonLien || "#"} 
+                              className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]"
+                            >
+                              {card.boutonTexte}
+                              <div className="relative w-[25px] h-[25px]">
+                                <Image
+                                  src="/icons/arrow_blue.svg"
+                                  alt="Flèche normale"
+                                  fill
+                                  className="object-contain transition-opacity group-hover:opacity-0"
+                                />
+                                <Image
+                                  src="/icons/arrow.svg"
+                                  alt="Flèche blanche"
+                                  fill
+                                  className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                                />
+                              </div>
+                            </Link>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </React.Fragment>
+            );
+
+          case "newsletter":
+            return null; // Pas encore de rendu public pour ces blocs
 
           case "titre-texte":
             return (
@@ -441,7 +522,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] my-[60px]">
+                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] pt-[50px]">
                   <section className="text-center px-4 w-full mx-auto">
                     {block.surtitre && (
                       <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">

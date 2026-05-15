@@ -12,9 +12,9 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
       open
       title="Ajouter un widget"
       onClose={onClose}
-      contentClassName="w-[660px] max-w-[95vw] !p-[40px]"
+      contentClassName="w-[880px] max-w-[95vw] !p-[40px]"
     >
-      <div className="grid grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-4 gap-6 mt-8">
         
         {articleType === "Page" ? (
           <>
@@ -26,9 +26,9 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc boutons
               </span>
-              <div className="w-[85%] flex gap-2 justify-center mt-2">
-                <div className="w-[80px] h-[30px] bg-[#F4F5FE] rounded-full" />
-                <div className="w-[80px] h-[30px] bg-[#F4F5FE] rounded-full" />
+              <div className="w-[85%] flex gap-2 justify-center mt-2 px-2">
+                <div className="w-full h-[30px] bg-[#F4F5FE] rounded-full" />
+                <div className="w-full h-[30px] bg-[#F4F5FE] rounded-full" />
               </div>
             </button>
             
@@ -40,27 +40,25 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Image principale
               </span>
-              <div className="w-[85%] h-[60px] bg-[#F4F5FE] rounded-[4px] flex items-center justify-center">
-                <div className="w-[30px] h-[30px] bg-white rounded-full opacity-50" />
-              </div>
+              <div className="w-[85%] h-[60px] bg-[#F4F5FE] rounded-[4px] mt-2" />
             </button>
-
+ 
             {/* 3. Bloc partenaire (Page) */}
             <button
               onClick={() => onSelect("partenaires")}
               className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
-                Bloc partenaire
+                Bloc partenaires
               </span>
-              <div className="w-[85%] grid grid-cols-2 gap-2">
+              <div className="w-[85%] grid grid-cols-2 gap-x-2 gap-y-3 mt-2">
                 <div className="w-full h-[15px] bg-[#F4F5FE] rounded-[4px]" />
                 <div className="w-full h-[15px] bg-[#F4F5FE] rounded-[4px]" />
                 <div className="w-full h-[15px] bg-[#F4F5FE] rounded-[4px]" />
                 <div className="w-full h-[15px] bg-[#F4F5FE] rounded-[4px]" />
               </div>
             </button>
-
+ 
             {/* 4. Bloc titre (Page) */}
             <button
               onClick={() => onSelect("titre")}
@@ -75,7 +73,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 <div className="w-[90%] h-[8px] bg-[#F4F5FE] rounded-full" />
               </div>
             </button>
-
+ 
             {/* 5. Bloc texte + image (Page) */}
             <button
               onClick={() => onSelect("texte-image")}
@@ -86,15 +84,43 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               </span>
               <div className="w-[85%] flex gap-[15px] items-center mt-2 px-2">
                 <div className="flex-1 flex flex-col gap-[6px]">
-                  <div className="w-[60%] h-[8px] bg-[#F4F5FE] rounded-full" />
+                  <div className="w-[80%] h-[8px] bg-[#F4F5FE] rounded-full" />
                   <div className="w-full h-[8px] bg-[#F4F5FE] rounded-full" />
                   <div className="w-full h-[8px] bg-[#F4F5FE] rounded-full" />
                 </div>
-                <div className="w-[45px] h-[45px] bg-[#F4F5FE] rounded-[4px]" />
+                <div className="w-[45px] h-[45px] bg-[#F4F5FE] rounded-[4px] shrink-0" />
               </div>
             </button>
-
-            {/* 6. Vide (Page) */}
+ 
+            {/* 6. Bloc card (Page) */}
+            <button
+              onClick={() => onSelect("card")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc card
+              </span>
+              <div className="w-[85%] flex gap-2 justify-center mt-2 px-2">
+                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
+                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
+              </div>
+            </button>
+ 
+            {/* 7. Bloc newsletter (Page) */}
+            <button
+              onClick={() => onSelect("newsletter")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc newsletter
+              </span>
+              <div className="w-[85%] flex gap-2 justify-center mt-2 px-2">
+                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
+                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
+              </div>
+            </button>
+ 
+            {/* 8. Vide (Page) */}
             <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
               <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
             </div>

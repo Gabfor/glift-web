@@ -118,6 +118,34 @@ export type BlockTexteImage = BaseBlock & {
   boutonLien?: string;
 };
 
+export type BlockCard = BaseBlock & {
+  type: "card";
+  card1: {
+    image?: string;
+    alt?: string;
+    titre?: string;
+    texte?: string;
+    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonTexte?: string;
+    boutonLien?: string;
+  };
+  card2: {
+    image?: string;
+    alt?: string;
+    titre?: string;
+    texte?: string;
+    boutonType?: "primaire" | "secondaire" | "aucune";
+    boutonTexte?: string;
+    boutonLien?: string;
+  };
+};
+
+export type BlockNewsletter = BaseBlock & {
+  type: "newsletter";
+  titre?: string;
+  texte?: string;
+};
+
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
@@ -130,7 +158,9 @@ export type ContentBlock =
   | BlockBoutons
   | BlockImagePrincipale
   | BlockTitre
-  | BlockTexteImage;
+  | BlockTexteImage
+  | BlockCard
+  | BlockNewsletter;
 
 export type BlogArticleFormState = {
   id?: string;
