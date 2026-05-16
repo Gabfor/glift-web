@@ -140,7 +140,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
             {pageId ? "Modifier la page légale" : "Créer une page légale"}
           </h2>
 
-          <div className="flex flex-col gap-[40px] w-full">
+          <div className="flex flex-col gap-[30px] w-full">
             {/* SECTION 0: STATUT DE LA PAGE */}
             <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
@@ -262,7 +262,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
             </div>
 
             {/* SECTION 1: INTRODUCTION */}
-            <div className="flex flex-col mt-[10px]">
+            <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Introduction
               </h3>
@@ -300,7 +300,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
             </div>
 
             {/* SECTION 2: CONTENU DE LA PAGE */}
-            <div className="flex flex-col mt-[10px]">
+            <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Contenu de la page
               </h3>
@@ -327,7 +327,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               </button>
             </div>
 
-            <div className="mt-[10px] flex justify-center">
+            <div className="flex justify-center">
               <CTAButton
                 onClick={handleSave}
                 disabled={!isFormValid || !isDirty || isSaving}

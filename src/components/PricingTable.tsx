@@ -17,9 +17,15 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
   const renderAbo = (abo: Subscription, isPremium?: boolean) => {
     return (
       <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] p-6 pb-[50px] md:p-8 md:pb-[50px] flex flex-col text-center w-full max-w-[466px] ${isPremium ? "min-h-[640px]" : ""}`}>
-        {isPremium && abo.badge && (
+        {isPremium && abo.badge && (abo.badgeStatus !== "OFF") && (
           <div className="absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
-            <div className="absolute bg-[#7069FA] text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-md">
+            <div
+              className="absolute text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-md"
+              style={{
+                backgroundColor: abo.badgeColor || "#7069FA",
+                color: abo.badgeTextColor || "#FFFFFF",
+              }}
+            >
               {abo.badge}
             </div>
           </div>
@@ -38,17 +44,28 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
           {abo.arguments.map((arg) => (
             <li key={arg.id} className={`flex items-start gap-2 ${!arg.active ? "text-[#B1BACC] line-through" : ""}`}>
               <Image 
-                src="/icons/inclus.svg" 
-                alt="Check" 
+                src={arg.active ? "/icons/inclus.svg" : "/icons/exclus.svg"} 
+                alt={arg.active ? "Check" : "Cross"} 
                 width={30} 
                 height={30} 
-                className={!arg.active ? "grayscale opacity-60" : ""}
-                style={arg.active ? { filter: "brightness(0) saturate(100%) invert(58%) sepia(91%) saturate(3025%) hue-rotate(120deg) brightness(95%) contrast(105%)" } : {}} // Green filter for active
+                className=""
               />
-              <div 
-                className="pt-[3px] prose prose-sm max-w-none [&_p]:mb-0 [&_b]:text-[#3A416F] [&_strong]:text-[#3A416F]"
-                dangerouslySetInnerHTML={{ __html: arg.texte }}
-              />
+              <>
+                <style>{`
+                  .pricing-arg-text a, .pricing-arg-text a * {
+                    color: #7069FA !important;
+                    text-decoration: none !important;
+                    transition: color 0.2s ease !important;
+                  }
+                  .pricing-arg-text a:hover, .pricing-arg-text a:hover * {
+                    color: #6660E4 !important;
+                  }
+                `}</style>
+                <div 
+                  className="pricing-arg-text pt-[3px] prose prose-sm max-w-none [&_p]:mb-0 [&_b]:text-[#3A416F] [&_strong]:text-[#3A416F]"
+                  dangerouslySetInnerHTML={{ __html: arg.texte }}
+                />
+              </>
             </li>
           ))}
         </ul>

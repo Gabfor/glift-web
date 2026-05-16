@@ -192,7 +192,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
             </div>
           )}
 
-          <div className="flex flex-col gap-[40px] w-full">
+          <div className="flex flex-col gap-[30px] w-full">
             {/* SECTION 0: STATUT DE L'ARTICLE */}
             <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
@@ -557,7 +557,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               </button>
             </div>
 
-            <div className="mt-[10px] flex justify-center">
+            <div className="flex justify-center">
               <CTAButton
                 onClick={handleSave}
                 disabled={!isFormValid || !isDirty || isSaving}

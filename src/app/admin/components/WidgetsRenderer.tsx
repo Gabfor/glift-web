@@ -737,7 +737,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   
                   return (
                     <div key={key} className="flex flex-col gap-6">
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-4">
                         <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Abonnement {num}</span>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <AdminTextField
@@ -768,7 +768,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         {abo.arguments.map((arg, argIdx) => (
                           <div key={arg.id} className="flex flex-col gap-4">
                              {/* Separator Argument - Identical to BlockAdminWrapper Header */}
-                             <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-[12px] z-10">
+                             <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-4 z-10">
                                 {/* Icônes de déplacement à gauche */}
                                 <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] py-2 pr-2">
                                   <button 
@@ -936,13 +936,38 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       </div>
 
                       {num === 2 && (
-                        <div className="pt-4 max-w-[400px]">
-                          <AdminTextField
-                            label="Badge (optionnel)"
-                            value={abo.badge || ""}
-                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, badge: val } })}
-                            placeholder="Plus populaire"
-                          />
+                        <div className="pt-4">
+                          <p className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-widest mb-4">BADGE</p>
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                            <AdminTextField
+                              label="Texte du badge"
+                              value={abo.badge || ""}
+                              onChange={(val) => updateBlock(block.id, { [key]: { ...abo, badge: val } })}
+                              placeholder="Texte du badge"
+                            />
+                            <AdminDropdown
+                              label="Statut badge"
+                              placeholder="Statut badge"
+                              options={[
+                                { value: "ON", label: "ON" },
+                                { value: "OFF", label: "OFF" }
+                              ]}
+                              selected={abo.badgeStatus || "ON"}
+                              onSelect={(val: string) => updateBlock(block.id, { [key]: { ...abo, badgeStatus: val as any } })}
+                            />
+                            <AdminTextField
+                              label="Couleur du badge"
+                              value={abo.badgeColor || ""}
+                              onChange={(val) => updateBlock(block.id, { [key]: { ...abo, badgeColor: val } })}
+                              placeholder="#7069FA"
+                            />
+                            <AdminTextField
+                              label="Couleur du texte"
+                              value={abo.badgeTextColor || ""}
+                              onChange={(val) => updateBlock(block.id, { [key]: { ...abo, badgeTextColor: val } })}
+                              placeholder="#FFFFFF"
+                            />
+                          </div>
                         </div>
                       )}
                     </div>

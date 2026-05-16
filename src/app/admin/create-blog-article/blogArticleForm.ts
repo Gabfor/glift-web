@@ -161,6 +161,9 @@ export type Subscription = {
   boutonTexte: string;
   boutonLien: string;
   badge?: string;
+  badgeStatus?: "ON" | "OFF";
+  badgeColor?: string;
+  badgeTextColor?: string;
 };
 
 export type BlockTarifs = BaseBlock & {

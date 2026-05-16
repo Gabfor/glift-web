@@ -13,6 +13,7 @@ import AdminSeanceTable from "@/app/admin/components/AdminSeanceTable";
 import AnimatedSection from "@/components/AnimatedSection";
 import PricingTable from "@/components/PricingTable";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
   <div 
@@ -82,6 +83,8 @@ type Props = {
 
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
+
+  const { trialDays } = useSiteSettings();
 
   const firstSeanceId = React.useMemo(() => {
     const first = blocks.find(b => b.type === "seance");
@@ -318,7 +321,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
           case "tarifs":
             if (block.enabled === false) return null;
             return (
-              <div key={key} className="w-full max-w-[1152px] mx-auto py-[40px] scroll-mt-[100px]" id={block.ancreId || undefined}>
+              <div key={key} className="w-full max-w-[1152px] mx-auto pt-[30px] pb-0 scroll-mt-[100px]" id={block.ancreId || undefined}>
                 <PricingTable 
                   abonnement1={block.abonnement1} 
                   abonnement2={block.abonnement2} 

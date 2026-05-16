@@ -140,7 +140,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               {pageId ? "Modifier la page" : "Créer une page"}
             </h2>
 
-            <div className="flex flex-col gap-[40px] w-full">
+            <div className="flex flex-col gap-[30px] w-full">
                 {/* Status Section */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Statut de la page</h3>
@@ -169,7 +169,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 </div>
 
                 {/* Introduction Section */}
-                <div className="flex flex-col mt-[10px]">
+                <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Introduction</h3>
                   <div className="flex flex-col gap-[30px]">
                     <div className="flex flex-col">
@@ -216,7 +216,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 </div>
 
                 {/* Content Section */}
-                <div className="flex flex-col mt-[10px]">
+                <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Contenu de la page</h3>
                   {pageData.content_blocks?.length > 0 && (
                     <div className="mb-[30px]">
@@ -237,7 +237,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   </button>
                 </div>
 
-                <div className="mt-[10px] flex justify-center">
+                <div className="flex justify-center">
                   <CTAButton
                     onClick={handleSavePage}
                     disabled={!isFormValid || !isPageDirty || saving}
@@ -293,6 +293,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                     boutonTexte: "Tester gratuitement",
                     boutonLien: "/inscription?plan=premium",
                     badge: "Plus populaire",
+                    badgeStatus: "ON",
+                    badgeColor: "#7069FA",
+                    badgeTextColor: "#FFFFFF",
                     arguments: [
                       { id: "b1", texte: "Un nombre illimité d'entraînements", active: true },
                       { id: "b2", texte: "Un nombre illimité d'exercices", active: true },
