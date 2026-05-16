@@ -87,7 +87,7 @@ export default function AdminMultiSelectDropdown({
 
   return (
     <div className={`flex flex-col relative transition-all duration-300 ${className}`} ref={menuRef}>
-      {label && <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>}
+      {label && <span className="text-[16px] text-[#3A416F] font-bold mb-[5px]">{label}</span>}
       <button
         ref={buttonRef}
         onClick={() => {

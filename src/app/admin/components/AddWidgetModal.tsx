@@ -127,7 +127,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc tarifs
               </span>
-              <div className="w-[85%] flex gap-2 justify-center mt-4 px-2 items-end">
+              <div className="w-[85%] flex gap-2 justify-center px-2 items-center">
                 <div className="w-[45%] h-[55px] bg-[#F4F5FE] rounded-[4px]" />
                 <div className="w-[45%] h-[75px] bg-[#F4F5FE] rounded-[4px]" />
               </div>

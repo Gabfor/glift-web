@@ -282,7 +282,7 @@ export default function AdminDropdown({
       ref={menuRef}
     >
       {(label || (clearable && !isShowingPlaceholder)) && (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-[5px]">
           <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
           {clearable && !isShowingPlaceholder && (
             <button
