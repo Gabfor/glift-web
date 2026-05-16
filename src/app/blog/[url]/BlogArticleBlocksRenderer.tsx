@@ -11,6 +11,8 @@ import DownloadAuthModal from "@/components/DownloadAuthModal";
 import { createClient } from "@/lib/supabaseClient";
 import AdminSeanceTable from "@/app/admin/components/AdminSeanceTable";
 import AnimatedSection from "@/components/AnimatedSection";
+import PricingTable from "@/components/PricingTable";
+import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
   <div 
@@ -60,6 +62,8 @@ type ContentBlock = {
     boutonTexte?: string;
     boutonLien?: string;
   };
+  abonnement1?: Subscription;
+  abonnement2?: Subscription;
 };
 
 type Props = {
@@ -78,18 +82,6 @@ type Props = {
 
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
-  const [trialDays, setTrialDays] = useState(30);
-
-  useEffect(() => {
-    const fetchTrialDays = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.from("settings").select("value").eq("key", "trial_period_days").single();
-      if (data?.value) {
-        setTrialDays(parseFloat(data.value));
-      }
-    };
-    fetchTrialDays();
-  }, []);
 
   const firstSeanceId = React.useMemo(() => {
     const first = blocks.find(b => b.type === "seance");
@@ -321,6 +313,17 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                   })}
                 </div>
               </React.Fragment>
+            );
+
+          case "tarifs":
+            if (block.enabled === false) return null;
+            return (
+              <div key={key} className="w-full max-w-[1152px] mx-auto py-[40px] scroll-mt-[100px]" id={block.ancreId || undefined}>
+                <PricingTable 
+                  abonnement1={block.abonnement1} 
+                  abonnement2={block.abonnement2} 
+                />
+              </div>
             );
 
           case "newsletter":

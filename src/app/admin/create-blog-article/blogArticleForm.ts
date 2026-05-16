@@ -146,6 +146,30 @@ export type BlockNewsletter = BaseBlock & {
   texte?: string;
 };
 
+export type SubscriptionArgument = {
+  id: string;
+  texte: string;
+  active: boolean;
+};
+
+export type Subscription = {
+  nom: string;
+  prix: string;
+  description: string;
+  arguments: SubscriptionArgument[];
+  boutonType: "primaire" | "secondaire" | "aucun";
+  boutonTexte: string;
+  boutonLien: string;
+  badge?: string;
+};
+
+export type BlockTarifs = BaseBlock & {
+  type: "tarifs";
+  enabled: boolean;
+  abonnement1: Subscription;
+  abonnement2: Subscription;
+};
+
 export type ContentBlock = 
   | BlockTitreTexte 
   | BlockTexte 
@@ -160,7 +184,8 @@ export type ContentBlock =
   | BlockTitre
   | BlockTexteImage
   | BlockCard
-  | BlockNewsletter;
+  | BlockNewsletter
+  | BlockTarifs;
 
 export type BlogArticleFormState = {
   id?: string;

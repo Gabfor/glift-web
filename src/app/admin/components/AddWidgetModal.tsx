@@ -114,16 +114,24 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc newsletter
               </span>
-              <div className="w-[85%] flex gap-2 justify-center mt-2 px-2">
-                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
-                <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
+              <div className="w-[85%] flex flex-col gap-2 justify-center mt-2 px-2 items-center">
+                <div className="w-full h-[40px] bg-[#F4F5FE] rounded-[4px]" />
               </div>
             </button>
  
-            {/* 8. Vide (Page) */}
-            <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-              <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-            </div>
+            {/* 8. Bloc tarifs (Page) */}
+            <button
+              onClick={() => onSelect("tarifs")}
+              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc tarifs
+              </span>
+              <div className="w-[85%] flex gap-2 justify-center mt-4 px-2 items-end">
+                <div className="w-[45%] h-[55px] bg-[#F4F5FE] rounded-[4px]" />
+                <div className="w-[45%] h-[75px] bg-[#F4F5FE] rounded-[4px]" />
+              </div>
+            </button>
           </>
         ) : (
           <>

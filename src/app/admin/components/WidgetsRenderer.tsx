@@ -1,4 +1,5 @@
 import React from "react";
+import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { ContentBlock, SeanceRow, BlockPartenaires } from "../create-blog-article/blogArticleForm";
@@ -727,6 +728,228 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
               </div>
             )}
 
+            {block.type === "tarifs" && (
+              <div className="flex flex-col gap-10">
+                {/* Abonnement 1 & 2 */}
+                {[1, 2].map((num) => {
+                  const key = `abonnement${num}` as "abonnement1" | "abonnement2";
+                  const abo = block[key];
+                  
+                  return (
+                    <div key={key} className="flex flex-col gap-6">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Abonnement {num}</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <AdminTextField
+                            label="Nom de l'abonnement"
+                            value={abo.nom}
+                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, nom: val } })}
+                            placeholder="Nom de l'abonnement"
+                          />
+                          <AdminTextField
+                            label="Prix de l'abonnement"
+                            value={abo.prix}
+                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, prix: val } })}
+                            placeholder="Prix de l'abonnement"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description de l'abonnement</label>
+                        <RichTextEditor
+                          value={abo.description}
+                          onChange={(val) => updateBlock(block.id, { [key]: { ...abo, description: val } })}
+                          minHeight="120px"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-6">
+                        {abo.arguments.map((arg, argIdx) => (
+                          <div key={arg.id} className="flex flex-col gap-4">
+                             {/* Separator Argument - Identical to BlockAdminWrapper Header */}
+                             <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-[12px] z-10">
+                                {/* Icônes de déplacement à gauche */}
+                                <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] py-2 pr-2">
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      if (argIdx < abo.arguments.length - 1) {
+                                        const newArgs = [...abo.arguments];
+                                        [newArgs[argIdx + 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx + 1]];
+                                        updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                      }
+                                    }} 
+                                    disabled={argIdx === abo.arguments.length - 1} 
+                                    className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === abo.arguments.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  >
+                                    <div className="relative w-full h-full">
+                                      <img src="/icons/move_down.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
+                                      <img src="/icons/move_down_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
+                                    </div>
+                                  </button>
+
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      if (argIdx > 0) {
+                                        const newArgs = [...abo.arguments];
+                                        [newArgs[argIdx - 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx - 1]];
+                                        updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                      }
+                                    }} 
+                                    disabled={argIdx === 0} 
+                                    className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  >
+                                    <div className="relative w-full h-full">
+                                      <img src="/icons/move_up.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
+                                      <img src="/icons/move_up_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
+                                    </div>
+                                  </button>
+
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      const newArgs = [...abo.arguments];
+                                      const newArg = { ...arg, id: uuidv4() };
+                                      newArgs.splice(argIdx + 1, 0, newArg);
+                                      updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                    }} 
+                                    className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
+                                  >
+                                    <div className="relative w-full h-full">
+                                      <img src="/icons/duplicate.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
+                                      <img src="/icons/duplicate_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
+                                    </div>
+                                  </button>
+                                </div>
+
+                                {/* Titre centré */}
+                                <div className="flex-1 flex justify-center items-center relative z-10">
+                                  <div className="bg-[#FBFCFE] px-4 text-[14px] text-[#D7D4DC] font-bold">
+                                    Argument {argIdx + 1}
+                                  </div>
+                                </div>
+
+                                {/* Poubelle à droite */}
+                                <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2">
+                                  <button 
+                                    type="button"
+                                    onClick={() => {
+                                      if (argIdx > 0) {
+                                        const newArgs = [...abo.arguments];
+                                        newArgs.splice(argIdx, 1);
+                                        updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                      }
+                                    }}
+                                    disabled={argIdx === 0}
+                                    className={`relative w-[20px] h-[20px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                  >
+                                    <div className="relative w-full h-full">
+                                      <img src="/icons/delete_grey.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
+                                      <img src="/icons/delete_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
+                                    </div>
+                                  </button>
+                                </div>
+
+                                {/* La ligne (séparateur) en dessous */}
+                                <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+                             </div>
+
+                             <RichTextEditor
+                               value={arg.texte}
+                               onChange={(val) => {
+                                 const newArgs = [...abo.arguments];
+                                 newArgs[argIdx] = { ...arg, texte: val };
+                                 updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                               }}
+                               minHeight="80px"
+                             />
+
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                               <AdminDropdown
+                                 label={`Statut argument ${argIdx + 1}`}
+                                 placeholder="Sélectionner un statut"
+                                 options={[
+                                   { label: "Activé", value: "true" },
+                                   { label: "Désactivé", value: "false" }
+                                 ]}
+                                 selected={arg.active ? "true" : "false"}
+                                 onSelect={(opt) => {
+                                   const newArgs = [...abo.arguments];
+                                   newArgs[argIdx] = { ...arg, active: opt === "true" };
+                                   updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                 }}
+                               />
+                             </div>
+                          </div>
+                        ))}
+                        
+                        <div className="pt-4">
+                          <button
+                            onClick={() => {
+                              const newArgs = [...abo.arguments, { id: uuidv4(), texte: "", active: true }];
+                              updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                            }}
+                            className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
+                          >
+                            <div className="relative w-[16px] h-[16px]">
+                              <img src="/icons/plus_grey.svg" alt="" className="object-contain w-full h-full" />
+                            </div>
+                            <span className="text-[16px] font-semibold text-[#D7D4DC]">Ajouter un argument</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col gap-6 pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="flex flex-col">
+                            <label className="text-[16px] text-[#2E3271] font-bold mb-[5px] block">Type de bouton</label>
+                            <AdminDropdown
+                              label=""
+                              placeholder="Sélectionner un type"
+                              options={[
+                                { label: "Primaire", value: "primaire" },
+                                { label: "Secondaire", value: "secondaire" },
+                                { label: "Aucun", value: "aucun" }
+                              ]}
+                              selected={abo.boutonType || "aucun"}
+                              onSelect={(val) => updateBlock(block.id, { [key]: { ...abo, boutonType: val.toLowerCase() as any } })}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <AdminTextField
+                            label="Texte du bouton"
+                            value={abo.boutonTexte}
+                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, boutonTexte: val } })}
+                            placeholder="Texte du bouton"
+                          />
+                          <AdminTextField
+                            label="Lien du bouton"
+                            value={abo.boutonLien}
+                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, boutonLien: val } })}
+                            placeholder="Lien du bouton"
+                          />
+                        </div>
+                      </div>
+
+                      {num === 2 && (
+                        <div className="pt-4 max-w-[400px]">
+                          <AdminTextField
+                            label="Badge (optionnel)"
+                            value={abo.badge || ""}
+                            onChange={(val) => updateBlock(block.id, { [key]: { ...abo, badge: val } })}
+                            placeholder="Plus populaire"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </BlockAdminWrapper>
         );
       })}

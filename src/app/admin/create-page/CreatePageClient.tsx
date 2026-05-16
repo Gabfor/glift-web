@@ -265,6 +265,45 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               case "texte-image": newBlock = { id: newId, type: "texte-image", imagePosition: "gauche", surtitre: "", titre: "", texte: "", image: "", alt: "", boutonType: "secondaire", boutonTexte: "", boutonLien: "" }; break;
               case "card": newBlock = { id: newId, type: "card", enabled: true, card1: { boutonType: "secondaire" }, card2: { boutonType: "secondaire" } }; break;
               case "newsletter": newBlock = { id: newId, type: "newsletter", enabled: true, titre: "", texte: "" }; break;
+              case "tarifs": 
+                newBlock = { 
+                  id: newId, 
+                  type: "tarifs", 
+                  enabled: true,
+                  abonnement1: {
+                    nom: "Starter",
+                    prix: "0,00",
+                    description: "Un abonnement pour ceux qui suivent toujours le même entraînement.",
+                    boutonType: "secondaire",
+                    boutonTexte: "Choisir cet abonnement",
+                    boutonLien: "/inscription?plan=starter",
+                    arguments: [
+                      { id: "a1", texte: "Un seul entraînement", active: true },
+                      { id: "a2", texte: "Un maximum de 10 exercices", active: true },
+                      { id: "a3", texte: "Un tableau de bord personnalisé", active: true },
+                      { id: "a4", texte: "Accès aux programmes du Glift Store", active: false },
+                      { id: "a5", texte: "Offres personnalisées dans la Glift Shop", active: false },
+                    ]
+                  },
+                  abonnement2: {
+                    nom: "Premium",
+                    prix: "2,49",
+                    description: "Un abonnement pour ceux qui suivent plusieurs entraînements.",
+                    boutonType: "primaire",
+                    boutonTexte: "Tester gratuitement",
+                    boutonLien: "/inscription?plan=premium",
+                    badge: "Plus populaire",
+                    arguments: [
+                      { id: "b1", texte: "Un nombre illimité d'entraînements", active: true },
+                      { id: "b2", texte: "Un nombre illimité d'exercices", active: true },
+                      { id: "b3", texte: "Un tableau de bord personnalisé", active: true },
+                      { id: "b4", texte: "Accès aux programmes du Glift Store", active: true },
+                      { id: "b5", texte: "Offres personnalisées dans la Glift Shop", active: true },
+                      { id: "b6", texte: "Annulation gratuite à tout moment", active: true },
+                    ]
+                  }
+                }; 
+                break;
               case "texte-1-1": newBlock = { id: newId, type: "texte-1-1", titre: "", texte: "" }; break;
               case "partenaires": 
                 newBlock = { 
