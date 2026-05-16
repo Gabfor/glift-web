@@ -5,7 +5,7 @@ export default function ShopHeader() {
       <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494]">
         Découvrez une sélection d’offres régulièrement mise à jour.
         <br/>
-        Pour en profiter, cliquez sur le bouton « Profiter de cette offre » et laissez-vous guider.
+        Pour en profiter, cliquez sur le bouton « En profiter » et laissez-vous guider.
       </p>
     </div>
   );
