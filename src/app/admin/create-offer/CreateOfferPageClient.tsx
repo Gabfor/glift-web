@@ -273,13 +273,13 @@ export default function CreateOfferPageClient({
             )}
 
             {!loading && (
-              <div className="flex flex-col gap-[30px]">
+              <div className="flex flex-col gap-5">
                 {/* STATUT DE L'OFFRE */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Statut de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Statut */}
                     <div className="flex flex-col">
                       <label className="text-[#3A416F] font-bold mb-1">
@@ -322,7 +322,7 @@ export default function CreateOfferPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Dates de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Date de début */}
                     <div className="flex flex-col">
                       <div className="flex items-center justify-between mb-1">
@@ -502,7 +502,7 @@ export default function CreateOfferPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Titres et description de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Titre avec compteur */}
                     <div className="flex flex-col">
                       <div className="flex justify-between mb-[5px]">
@@ -571,7 +571,7 @@ export default function CreateOfferPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Images de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Image principale (Site) */}
                     <div className="flex flex-col">
                       <div className="flex justify-between mb-[5px]">
@@ -671,7 +671,7 @@ export default function CreateOfferPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Détails de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Sexe */}
                     <div className="flex flex-col">
                       <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
@@ -758,7 +758,7 @@ export default function CreateOfferPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Informations de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Type de modale */}
                     <div className="flex flex-col">
                       <label className="text-[#3A416F] font-bold mb-1">

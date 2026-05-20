@@ -7,7 +7,6 @@ import { SettingsService } from "@/lib/services/settingsService";
 import CTAButton from "@/components/CTAButton";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import ImageUploader from "@/app/admin/components/ImageUploader";
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import GliftLoader from "@/components/ui/GliftLoader";
 import { cleanupOrphanedImages } from "./actions";
@@ -27,12 +26,9 @@ function SaveIcon({ fill }: { fill: string }) {
 export default function AdminSettingsPage() {
     const [logoUrl, setLogoUrl] = useState<string>("");
     const [altText, setAltText] = useState<string>("");
-    const [partnersEnabled, setPartnersEnabled] = useState(true);
-
     // Initial state for change detection
     const [initialLogoUrl, setInitialLogoUrl] = useState<string>("");
     const [initialAltText, setInitialAltText] = useState<string>("");
-    const [initialPartnersEnabled, setInitialPartnersEnabled] = useState(true);
 
     const [trialDays, setTrialDays] = useState<string>("30");
     const [initialTrialDays, setInitialTrialDays] = useState<string>("30");
@@ -59,18 +55,7 @@ export default function AdminSettingsPage() {
                 setInitialLogoUrl(currentLogoUrl);
                 setInitialAltText(currentAltText);
 
-                // Fetch Partners Toggle
-                const { data: siteSettings } = await supabase
-                    .from("site_settings")
-                    .select("value")
-                    .eq("key", "partners_enabled")
-                    .single();
 
-                if (siteSettings) {
-                    const enabled = siteSettings.value === true;
-                    setPartnersEnabled(enabled);
-                    setInitialPartnersEnabled(enabled);
-                }
 
                 // Fetch Trial Days
                 const trialDaysValue = settings["trial_period_days"] || "30";
@@ -91,7 +76,7 @@ export default function AdminSettingsPage() {
         fetchSettings();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (partnersEnabled !== initialPartnersEnabled) || (trialDays !== initialTrialDays) || (contactEmail !== initialContactEmail);
+    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (trialDays !== initialTrialDays) || (contactEmail !== initialContactEmail);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -101,17 +86,12 @@ export default function AdminSettingsPage() {
             }
             await settingsService.updateSetting("logo_alt", altText);
 
-            await supabase
-                .from("site_settings")
-                .upsert({ key: "partners_enabled", value: partnersEnabled, updated_at: new Date().toISOString() });
-
             await settingsService.updateSetting("trial_period_days", trialDays);
             await settingsService.updateSetting("contact_email", contactEmail);
 
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
-            setInitialPartnersEnabled(partnersEnabled);
             setInitialTrialDays(trialDays);
             setInitialContactEmail(contactEmail);
 
@@ -135,17 +115,10 @@ export default function AdminSettingsPage() {
                 </h2>
 
                 <div className="mb-8">
-                    {/* Header with Toggle */}
-                    <div className="flex justify-between items-center mb-[20px]">
-                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">BLOC PARTENAIRE</span>
-                        <ToggleSwitch
-                            checked={partnersEnabled}
-                            onCheckedChange={setPartnersEnabled}
-                        />
-                    </div>
+                    <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">LOGO</span>
 
                     {/* Inputs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                         {/* Logo Upload Section */}
                         <div className="flex flex-col gap-[10px]">
                             <div className="flex justify-between items-baseline mb-[5px]">
@@ -175,7 +148,7 @@ export default function AdminSettingsPage() {
                     {/* REGLAGES Section */}
                     <div className="mt-8">
                         <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">REGLAGES</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                             <div>
                                 <AdminDropdown
                                     label="Durée de la période d’essai"
@@ -197,7 +170,7 @@ export default function AdminSettingsPage() {
                     {/* EMAILS Section */}
                     <div className="mt-8">
                         <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">EMAILS</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                             {/* Contact Email Field */}
                             <div>
                                 <AdminTextField

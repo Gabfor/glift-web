@@ -281,7 +281,7 @@ export default function AdminSliderPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
                     Type de slider
@@ -318,7 +318,7 @@ export default function AdminSliderPage() {
                   SLIDER PRIORITAIRE
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
                       Nombre de slider prioritaire
@@ -333,7 +333,7 @@ export default function AdminSliderPage() {
                   </div>
 
                   {/* Slides Inputs */}
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-5">
                     {slides.slice(0, Number(priorityCount)).map((slide, index) => (
                       <div key={index} className="flex flex-col">
                         <div className="flex justify-between">
@@ -347,7 +347,7 @@ export default function AdminSliderPage() {
                           </span>
                         </div>
 
-                        <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-5">
                           <ImageUploader
                             value={slide.image}
                             onChange={(url) =>

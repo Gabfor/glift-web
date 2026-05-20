@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Program, Training } from "@/types/training";
-import { useRouter, notFound } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ProgramEditor from "@/components/ProgramEditor";
 import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
@@ -83,43 +83,6 @@ export default function EntrainementsPage() {
 
   const router = useRouter();
   const sensors = useSensors(useSensor(PointerSensor));
-
-  const [pageIntro, setPageIntro] = useState<{ surtitre: string; titre: string; description: string } | null>(null);
-  const [isPublished, setIsPublished] = useState<boolean | null>(null);
-
-  const supabaseClientForPage = useSupabaseClient();
-
-  useEffect(() => {
-    const fetchPageConfig = async () => {
-      const { data, error } = await supabaseClientForPage
-        .from("pages")
-        .select("surtitre, titre, description, is_published")
-        .eq("url", "entrainements")
-        .maybeSingle();
-
-      if (data && !error) {
-        if (!data.is_published) {
-          setIsPublished(false);
-        } else {
-          setIsPublished(true);
-          setPageIntro({
-            surtitre: data.surtitre || "",
-            titre: data.titre || "Entraînements",
-            description: data.description || `Gérez vos programmes et vos entraînements.<br class="hidden sm:block" />Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.`,
-          });
-        }
-      } else {
-        setIsPublished(true);
-        setPageIntro({
-          surtitre: "",
-          titre: "Entraînements",
-          description: `Gérez vos programmes et vos entraînements.<br class="hidden sm:block" />Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.`,
-        });
-      }
-    };
-
-    void fetchPageConfig();
-  }, [supabaseClientForPage]);
 
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
   const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
@@ -430,29 +393,17 @@ export default function EntrainementsPage() {
     });
   }
 
-  if (isPublished === false) {
-    notFound();
-  }
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div
         id="training-scroll-container"
         className="max-w-[1152px] mx-auto text-center flex flex-col items-center"
       >
-        {pageIntro?.surtitre && (
-          <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
-            {pageIntro.surtitre}
-          </div>
-        )}
-        <h1 
-          className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
-          dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Entraînements" }}
-        />
-        <div 
-          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px] text-center"
-          dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Gérez vos programmes et vos entraînements." }}
-        />
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Entraînements</h1>
+        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px]">
+          Gérez vos programmes et vos entraînements.<br className="hidden sm:block" />
+          Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.
+        </p>
 
         {showSkeleton ? (
           <ProgramsSkeleton />

@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { notFound } from "next/navigation";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
@@ -426,41 +425,6 @@ export default function DashboardPage() {
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
 
-  const [pageIntro, setPageIntro] = useState<{ surtitre: string; titre: string; description: string } | null>(null);
-  const [isPublished, setIsPublished] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const fetchPageConfig = async () => {
-      const { data, error } = await supabase
-        .from("pages")
-        .select("surtitre, titre, description, is_published")
-        .eq("url", "dashboard")
-        .maybeSingle();
-
-      if (data && !error) {
-        if (!data.is_published) {
-          setIsPublished(false);
-        } else {
-          setIsPublished(true);
-          setPageIntro({
-            surtitre: data.surtitre || "",
-            titre: data.titre || "Tableau de bord",
-            description: data.description || "Sélectionnez un programme et un entraînement pour suivre<br />votre progression par exercice et vous fixer des objectifs.",
-          });
-        }
-      } else {
-        setIsPublished(true);
-        setPageIntro({
-          surtitre: "",
-          titre: "Tableau de bord",
-          description: "Sélectionnez un programme et un entraînement pour suivre<br />votre progression par exercice et vous fixer des objectifs.",
-        });
-      }
-    };
-
-    void fetchPageConfig();
-  }, [supabase]);
-
   const [selectedProgram, setSelectedProgram] = useState("");
   const [selectedTraining, setSelectedTraining] = useState("");
   const [trainingExercises, setTrainingExercises] = useState<TrainingExercise[]>([]);
@@ -485,6 +449,35 @@ export default function DashboardPage() {
   const [goalCompletionMap, setGoalCompletionMap] = useState<Record<string, boolean>>({});
   const [hasLoadedDisplaySettings, setHasLoadedDisplaySettings] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+  const [pageContent, setPageContent] = useState<{ surtitre: string; titre: string; description: string } | null>(null);
+  const [isLoadingPageContent, setIsLoadingPageContent] = useState(true);
+
+  // Fetch dynamic page content
+  useEffect(() => {
+    let isMounted = true;
+    const fetchPageContent = async () => {
+      setIsLoadingPageContent(true);
+      const { data, error } = await supabase
+        .from("pages")
+        .select("surtitre, titre, description")
+        .eq("id", "59822297-b8b2-4041-bfa6-03793221fcf6")
+        .single();
+      
+      if (!isMounted) return;
+      if (data && !error) {
+        setPageContent({
+          surtitre: data.surtitre || "",
+          titre: data.titre || "",
+          description: data.description || "",
+        });
+      }
+      setIsLoadingPageContent(false);
+    };
+    void fetchPageContent();
+    return () => {
+      isMounted = false;
+    };
+  }, [supabase]);
 
   // Load display settings from LocalStorage
   useEffect(() => {
@@ -1121,27 +1114,36 @@ export default function DashboardPage() {
     };
   }, [selectedTraining, supabase, user?.id]);
 
-  if (isPublished === false) {
-    notFound();
-  }
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
-        <div className="text-center mb-4">
-          {pageIntro?.surtitre && (
-            <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
-              {pageIntro.surtitre}
-            </div>
+        <div className="text-center">
+          {isLoadingPageContent ? null : pageContent ? (
+            <>
+              {pageContent.surtitre && (
+                <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
+                  {pageContent.surtitre}
+                </div>
+              )}
+              <h1 
+                className="text-[30px] font-bold text-[#2E3271] mb-2 [&_p]:mb-0" 
+                dangerouslySetInnerHTML={{ __html: pageContent.titre }} 
+              />
+              <div 
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] [&_p]:mb-0" 
+                dangerouslySetInnerHTML={{ __html: pageContent.description }} 
+              />
+            </>
+          ) : (
+            <>
+              <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">Tableau de bord</h1>
+              <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494]">
+                Sélectionnez un programme et un entraînement pour suivre
+                <br />
+                votre progression par exercice et vous fixer des objectifs.
+              </p>
+            </>
           )}
-          <h1 
-            className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
-            dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Tableau de bord" }}
-          />
-          <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center"
-            dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Sélectionnez un programme et un entraînement pour suivrevotre progression par exercice et vous fixer des objectifs." }}
-          />
         </div>
 
         <div className="relative mt-8">

@@ -192,13 +192,13 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
             </div>
           )}
 
-          <div className="flex flex-col gap-[30px] w-full">
+          <div className="flex flex-col gap-5 w-full">
             {/* SECTION 0: STATUT DE L'ARTICLE */}
             <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Statut de l'article
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Statut (is_published) */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
@@ -230,7 +230,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               </div>
 
               {/* Langue */}
-              <div className="mt-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
                   <AdminDropdown
@@ -265,7 +265,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Introduction
               </h3>
-              <div className="flex flex-col gap-[30px]">
+              <div className="flex flex-col gap-5">
                 {/* Titre */}
                 <div className="flex flex-col">
                   <div className="flex justify-between mb-[5px]">
@@ -320,7 +320,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Tags
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Catégories & Sexe */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Catégories</label>
@@ -462,7 +462,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Images de l'offre
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Image principale */}
                 <div className="flex flex-col">
                   <div className="flex justify-between mb-[5px]">
@@ -494,7 +494,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Articles liés
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Article 1 */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 1</label>
@@ -527,7 +527,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               </h3>
               
               {article.content_blocks.length > 0 && (
-                <div className="mb-[30px]">
+                <div className="mb-5">
                   <WidgetsRenderer 
                     blocks={article.content_blocks} 
                     onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 

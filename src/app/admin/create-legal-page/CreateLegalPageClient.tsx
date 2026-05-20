@@ -140,13 +140,13 @@ export default function CreateLegalPageClient({ pageId }: Props) {
             {pageId ? "Modifier la page légale" : "Créer une page légale"}
           </h2>
 
-          <div className="flex flex-col gap-[30px] w-full">
+          <div className="flex flex-col gap-5 w-full">
             {/* SECTION 0: STATUT DE LA PAGE */}
             <div className="flex flex-col">
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Statut de la page
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                 {/* Statut (is_published) */}
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
@@ -266,7 +266,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
                 Introduction
               </h3>
-              <div className="flex flex-col gap-[30px]">
+              <div className="flex flex-col gap-5">
                 {/* Titre */}
                 <div className="flex flex-col">
                   <div className="flex justify-between mb-[5px]">
@@ -306,7 +306,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               </h3>
               
               {pageData.content_blocks && pageData.content_blocks.length > 0 && (
-                <div className="mb-[30px]">
+                <div className="mb-5">
                   <WidgetsRenderer 
                     blocks={pageData.content_blocks} 
                     onChangeBlocks={(blocks: ContentBlock[]) => setPageData({ ...pageData, content_blocks: blocks })} 

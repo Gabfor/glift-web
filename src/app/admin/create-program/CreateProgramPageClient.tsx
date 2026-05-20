@@ -189,13 +189,13 @@ export default function CreateProgramPageClient({
             </h2>
 
             {!loading && (
-              <div className="flex flex-col gap-[30px]">
+              <div className="flex flex-col gap-5">
                 {/* SECTION 1: STATUT DE L’OFFRE */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Statut de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Statut */}
                     <div className="flex flex-col">
                       <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
@@ -259,9 +259,9 @@ export default function CreateProgramPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Titres et description du programme
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Left Column: Title & Short Title */}
-                    <div className="flex flex-col gap-[30px]">
+                    <div className="flex flex-col gap-5">
                       {/* Titre */}
                       <div className="flex flex-col">
                         <div className="flex justify-between mb-[5px]">
@@ -327,7 +327,7 @@ export default function CreateProgramPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Images du programme
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Row 1 */}
                     {/* Image principale (Site) */}
                     <div className="flex flex-col">
@@ -401,7 +401,7 @@ export default function CreateProgramPageClient({
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
                     Détails du programme
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     {/* Row 1: Sexe | Objectif */}
                     <div className="flex flex-col">
                       <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>

@@ -140,11 +140,11 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               {pageId ? "Modifier la page" : "Créer une page"}
             </h2>
 
-            <div className="flex flex-col gap-[30px] w-full">
+            <div className="flex flex-col gap-5 w-full">
                 {/* Status Section */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Statut de la page</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                     <div className="flex flex-col">
                       <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
                       <AdminDropdown
@@ -171,7 +171,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 {/* Introduction Section */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Introduction</h3>
-                  <div className="flex flex-col gap-[30px]">
+                  <div className="flex flex-col gap-5">
                     <div className="flex flex-col">
                       <div className="flex justify-between mb-[5px]">
                         <span className="text-[16px] text-[#3A416F] font-bold">Surtitre</span>
@@ -219,7 +219,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Contenu de la page</h3>
                   {pageData.content_blocks?.length > 0 && (
-                    <div className="mb-[30px]">
+                    <div className="mb-5">
                       <WidgetsRenderer
                         blocks={pageData.content_blocks}
                         onChangeBlocks={(blocks) => setPageData({ ...pageData, content_blocks: blocks })}

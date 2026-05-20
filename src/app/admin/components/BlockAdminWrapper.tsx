@@ -16,7 +16,7 @@ type Props = {
 
 export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelete, onDuplicate, isFirst, isLast, headerActions, children }: Props) {
   return (
-    <div className={`flex flex-col relative w-full ${isLast ? 'mb-0' : 'mb-[30px]'}`}>
+    <div className={`flex flex-col relative w-full ${isLast ? 'mb-0' : 'mb-5'}`}>
       {/* HEADER WIDGET */}
       <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-[12px] z-10">
         
@@ -135,7 +135,7 @@ export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelet
       </div>
 
       {/* CONTENT WIDGET */}
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-5">
         {children}
       </div>
     </div>

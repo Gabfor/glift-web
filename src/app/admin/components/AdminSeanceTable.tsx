@@ -345,7 +345,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
       )}
 
       {/* Details des exercices */}
-      <div className="mt-[30px] flex flex-col gap-[30px]">
+      <div className="mt-5 flex flex-col gap-5">
         {(() => {
           const blocks: { type: 'superset' | 'single', rows: { row: any, index: number, hasConseils: boolean }[] }[] = [];
           let i = 0;
@@ -375,7 +375,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
               if (visibleRows.length === 0) return null;
 
               return (
-                <div key={`blk-${bIdx}`} className="flex flex-col pl-[15px] border-l-[3px] border-[#A1A5FD] gap-[30px]">
+                <div key={`blk-${bIdx}`} className="flex flex-col pl-[15px] border-l-[3px] border-[#A1A5FD] gap-5">
                   {visibleRows.map((r) => (
                     <div key={`details-${r.index}`} className="flex flex-col gap-[5px]">
                       <div className="text-[16px] font-bold text-[#3A416F] mb-[5px]">{r.row.exercice || "—"}</div>
@@ -400,7 +400,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
                   <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
                 </div>
 
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-5">
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Exercice</label>
                     <input 

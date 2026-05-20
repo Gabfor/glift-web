@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams, notFound } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import SearchBar from "@/components/SearchBar";
 import { Accordion } from "@/components/ui/accordion";
@@ -33,9 +33,6 @@ function AideContent() {
   const [loading, setLoading] = useState(true);
   const showSkeleton = useMinimumVisibility(loading, 400);
 
-  const [pageIntro, setPageIntro] = useState<{ surtitre: string; titre: string; description: string } | null>(null);
-  const [isPublished, setIsPublished] = useState<boolean | null>(null);
-
   const [isLogged, setIsLogged] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("");
@@ -50,34 +47,6 @@ function AideContent() {
       const { data: userData } = await supabase.auth.getUser();
       const logged = !!userData?.user;
       setIsLogged(logged);
-
-      // Fetch page intro and status
-      const { data: pageData, error: pageError } = await supabase
-        .from("pages")
-        .select("surtitre, titre, description, is_published")
-        .eq("url", "aide")
-        .maybeSingle();
-
-      if (pageData && !pageError) {
-        if (!pageData.is_published) {
-          setIsPublished(false);
-          setLoading(false);
-          return;
-        }
-        setIsPublished(true);
-        setPageIntro({
-          surtitre: pageData.surtitre || "",
-          titre: pageData.titre || "Aide",
-          description: pageData.description || "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
-        });
-      } else {
-        setIsPublished(true);
-        setPageIntro({
-          surtitre: "",
-          titre: "Aide",
-          description: "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
-        });
-      }
 
       const { data, error } = await supabase
         .from("help_questions")
@@ -167,42 +136,25 @@ function AideContent() {
     return filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredQuestions, currentPage]);
 
-  if (isPublished === false) {
-    notFound();
-  }
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
 
         {/* Header Section */}
-        {pageIntro?.surtitre && (
-          <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
-            {pageIntro.surtitre}
-          </div>
-        )}
-        <h1 
-          className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
-          dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Aide" }}
-        />
-        {pageIntro?.description ? (
-          <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px] text-center"
-            dangerouslySetInnerHTML={{ __html: pageIntro.description }}
-          />
-        ) : (
-          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
-            Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
-            <br />
-            Si vous avez d’autres questions,{" "}
-            <Link
-              href="/contact?from=aide"
-              className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
-            >
-              contactez-nous.
-            </Link>
-          </p>
-        )}
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
+          Aide
+        </h1>
+        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
+          Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
+          <br />
+          Si vous avez d’autres questions,{" "}
+          <Link
+            href="/contact?from=aide"
+            className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
+          >
+            contactez-nous.
+          </Link>
+        </p>
 
         {/* Search Bar */}
         <div className="mb-[40px] w-full max-w-[500px]">

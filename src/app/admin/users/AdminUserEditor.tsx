@@ -421,7 +421,7 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
 
         <form
           onSubmit={handleSubmit}
-          className={`${formContainerClass} grid grid-cols-1 place-items-center gap-1 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
+          className={`${formContainerClass} grid grid-cols-1 place-items-center gap-5 md:grid-cols-2 md:gap-x-8 md:place-items-start`}
         >
           <div className={fieldWrapperClass}>
             <TextField

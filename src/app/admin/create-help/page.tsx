@@ -147,9 +147,9 @@ function CreateHelpForm() {
                         {isEditing ? "Modifier l'aide" : "Créer une aide"}
                     </h2>
 
-                    <div className="flex flex-col gap-[30px]">
+                    <div className="flex flex-col gap-5">
                         {/* Row 1: Statut & Langue */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                             {/* Statut */}
                             <div className="flex flex-col">
                                 <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
@@ -181,7 +181,7 @@ function CreateHelpForm() {
                         </div>
 
                         {/* Row 2: Catégories */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                             <div className="flex flex-col">
                                 <label className="text-[#3A416F] font-bold mb-[5px]">Catégories</label>
                                 <AdminMultiSelectDropdown

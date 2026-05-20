@@ -88,7 +88,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "texte-1-1": return "Bloc texte 1.1";
       case "texte": return "Bloc texte";
       case "texte-image": return "Bloc texte + image";
-      case "card": return "Bloc card";
+      case "card": return "Bloc cards";
       case "newsletter": return "Bloc newsletter";
       case "source": return "Bloc source";
       case "programme": return "Bloc programme";
@@ -164,7 +164,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
 
             {block.type === "titre" && (
               <>
-                <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-5">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
                       label="Surtitre"
@@ -190,18 +190,18 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "texte-image" && (
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-5">
                 <div className="flex flex-col w-1/2 pr-4">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Position de l'image</label>
                   <AdminDropdown
                     label=""
                     placeholder="Position"
-                    selected={block.imagePosition === "droite" ? "Droite" : "Gauche"}
-                    onSelect={(v) => updateBlock(block.id, { imagePosition: v === "Droite" ? "droite" : "gauche" })}
-                    options={[{ value: "Gauche", label: "Gauche" }, { value: "Droite", label: "Droite" }]}
+                    selected={block.imagePosition || "gauche"}
+                    onSelect={(v) => updateBlock(block.id, { imagePosition: v as any })}
+                    options={[{ value: "gauche", label: "Gauche" }, { value: "droite", label: "Droite" }]}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   <div className="flex flex-col">
                     <div className="flex justify-between items-end mb-[5px]">
                       <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
@@ -244,17 +244,17 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   <AdminDropdown
                     label=""
                     placeholder="Type"
-                    selected={block.boutonType === "primaire" ? "Primaire" : block.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
-                    onSelect={(v) => updateBlock(block.id, { boutonType: v.toLowerCase() as any })}
+                    selected={block.boutonType || "aucun"}
+                    onSelect={(v) => updateBlock(block.id, { boutonType: v as any })}
                     options={[
-                      { value: "Primaire", label: "Primaire" },
-                      { value: "Secondaire", label: "Secondaire" },
-                      { value: "Aucun", label: "Aucun" }
+                      { value: "primaire", label: "Primaire" },
+                      { value: "secondaire", label: "Secondaire" },
+                      { value: "aucun", label: "Aucun" }
                     ]}
                   />
                 </div>
                 {block.boutonType !== "aucun" && (
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                     <AdminTextField
                       label="Texte du bouton"
                       placeholder="Texte du bouton"
@@ -273,13 +273,14 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "card" && (
-              <div className="flex flex-col gap-8">
+              <div className="flex flex-col gap-5">
                 {/* Card 1 */}
-                <div className="flex flex-col gap-4 border-b border-dashed border-[#D7D4DC] pb-8">
+                <div className="flex flex-col gap-4">
+                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Card 1</span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col">
                       <div className="flex justify-between items-end mb-[5px]">
-                        <label className="text-[16px] text-[#3A416F] font-bold">Image 1</label>
+                        <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
                         <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
                       </div>
                       <ImageUploader
@@ -288,20 +289,20 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       />
                     </div>
                     <AdminTextField
-                      label="Alt image 1"
+                      label="Alt image"
                       placeholder="alt image"
                       value={block.card1?.alt || ""}
                       onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, alt: val } })}
                     />
                   </div>
                   <AdminTextField
-                    label="Titre 1"
+                    label="Titre"
                     placeholder="Titre"
                     value={block.card1?.titre || ""}
                     onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, titre: val } })}
                   />
                   <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte 1</label>
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                     <RichTextEditor
                       value={block.card1?.texte || ""}
                       onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, texte: val } })}
@@ -311,26 +312,26 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   </div>
                   <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
-                      label="Type de bouton 1"
+                      label="Type de bouton"
                       placeholder="Type"
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
                         { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card1?.boutonType === "primaire" ? "Primaire" : block.card1?.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
-                      onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val.toLowerCase() as any } })}
+                      selected={block.card1?.boutonType || "aucun"}
+                      onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val as any } })}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
-                      label="Texte du bouton 1"
+                      label="Texte du bouton"
                       placeholder="Texte du bouton"
                       value={block.card1?.boutonTexte || ""}
                       onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonTexte: val } })}
                     />
                     <AdminTextField
-                      label="Lien du bouton 1"
+                      label="Lien du bouton"
                       placeholder="Lien du bouton"
                       value={block.card1?.boutonLien || ""}
                       onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonLien: val } })}
@@ -339,11 +340,12 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 </div>
 
                 {/* Card 2 */}
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 pt-[14px]">
+                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Card 2</span>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col">
                       <div className="flex justify-between items-end mb-[5px]">
-                        <label className="text-[16px] text-[#3A416F] font-bold">Image 2</label>
+                        <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
                         <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
                       </div>
                       <ImageUploader
@@ -352,20 +354,20 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       />
                     </div>
                     <AdminTextField
-                      label="Alt image 2"
+                      label="Alt image"
                       placeholder="alt image"
                       value={block.card2?.alt || ""}
                       onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, alt: val } })}
                     />
                   </div>
                   <AdminTextField
-                    label="Titre 2"
+                    label="Titre"
                     placeholder="Titre"
                     value={block.card2?.titre || ""}
                     onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, titre: val } })}
                   />
                   <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte 2</label>
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                     <RichTextEditor
                       value={block.card2?.texte || ""}
                       onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, texte: val } })}
@@ -375,26 +377,26 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   </div>
                   <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
-                      label="Type de bouton 2"
+                      label="Type de bouton"
                       placeholder="Type"
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
                         { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card2?.boutonType === "primaire" ? "Primaire" : block.card2?.boutonType === "secondaire" ? "Secondaire" : "Aucun"}
-                      onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val.toLowerCase() as any } })}
+                      selected={block.card2?.boutonType || "aucun"}
+                      onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val as any } })}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
-                      label="Texte du bouton 2"
+                      label="Texte du bouton"
                       placeholder="Texte du bouton"
                       value={block.card2?.boutonTexte || ""}
                       onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonTexte: val } })}
                     />
                     <AdminTextField
-                      label="Lien du bouton 2"
+                      label="Lien du bouton"
                       placeholder="Lien du bouton"
                       value={block.card2?.boutonLien || ""}
                       onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonLien: val } })}
@@ -553,8 +555,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "image-principale" && (
-              <div className="flex flex-col gap-8">
-                <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   {/* Image */}
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between items-center">
@@ -603,8 +605,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "partenaires" && (
-              <div className="flex flex-col gap-[30px]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   <AdminTextField
                     label="Surtitre"
                     value={block.surtitre || ""}
@@ -618,11 +620,11 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     placeholder="Titre du bloc"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   {block.slots.map((slot, sIdx) => {
                     const position = sIdx + 1;
                   return (
-                    <div key={sIdx} className="flex flex-col gap-[30px]">
+                    <div key={sIdx} className="flex flex-col gap-5">
                       <div className="flex flex-col">
                         <div className="flex justify-between items-baseline mb-[5px]">
                           <span className="text-[16px] text-[#3A416F] font-bold">Partenaire {position}</span>
@@ -668,18 +670,18 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "boutons" && (
-              <div className="flex flex-col gap-[30px]">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+              <div className="flex flex-col gap-5">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Bouton 1</label>
                     <AdminDropdown
                       label=""
                       placeholder="Sélectionnez un type de bouton"
-                      selected={block.bouton1.type === "primaire" ? "Bouton primaire" : block.bouton1.type === "secondaire" ? "Bouton secondaire" : ""}
-                      onSelect={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, type: val === "Bouton primaire" ? "primaire" : "secondaire" } })}
+                      selected={block.bouton1.type}
+                      onSelect={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, type: val as any } })}
                       options={[
-                        { value: "Bouton primaire", label: "Bouton primaire" },
-                        { value: "Bouton secondaire", label: "Bouton secondaire" },
+                        { value: "primaire", label: "Bouton primaire" },
+                        { value: "secondaire", label: "Bouton secondaire" },
                       ]}
                     />
                   </div>
@@ -688,16 +690,16 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     <AdminDropdown
                       label=""
                       placeholder="Sélectionnez un type de bouton"
-                      selected={block.bouton2.type === "primaire" ? "Bouton primaire" : block.bouton2.type === "secondaire" ? "Bouton secondaire" : ""}
-                      onSelect={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, type: val === "Bouton primaire" ? "primaire" : "secondaire" } })}
+                      selected={block.bouton2.type}
+                      onSelect={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, type: val as any } })}
                       options={[
-                        { value: "Bouton primaire", label: "Bouton primaire" },
-                        { value: "Bouton secondaire", label: "Bouton secondaire" },
+                        { value: "primaire", label: "Bouton primaire" },
+                        { value: "secondaire", label: "Bouton secondaire" },
                       ]}
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   <AdminTextField
                     label="Texte du bouton 1"
                     value={block.bouton1.texte || ""}
@@ -711,7 +713,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     placeholder="Texte du bouton 2"
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-[30px]">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                   <AdminTextField
                     label="Lien du bouton 1"
                     value={block.bouton1.lien || ""}
@@ -736,10 +738,10 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   const abo = block[key];
                   
                   return (
-                    <div key={key} className="flex flex-col gap-6">
+                    <div key={key} className="flex flex-col gap-5">
                       <div className="flex flex-col gap-4">
                         <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Abonnement {num}</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <AdminTextField
                             label="Nom de l'abonnement"
                             value={abo.nom}
@@ -764,7 +766,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         />
                       </div>
 
-                      <div className="flex flex-col gap-6">
+                      <div className="flex flex-col gap-5">
                         {abo.arguments.map((arg, argIdx) => (
                           <div key={arg.id} className="flex flex-col gap-4">
                              {/* Separator Argument - Identical to BlockAdminWrapper Header */}
@@ -866,7 +868,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                                minHeight="80px"
                              />
 
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                <AdminDropdown
                                  label={`Statut argument ${argIdx + 1}`}
                                  placeholder="Sélectionner un statut"
@@ -901,8 +903,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         </div>
                       </div>
 
-                      <div className="flex flex-col gap-6 pt-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="flex flex-col gap-5 pt-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="flex flex-col">
                             <label className="text-[16px] text-[#2E3271] font-bold mb-[5px] block">Type de bouton</label>
                             <AdminDropdown
@@ -914,12 +916,12 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                                 { label: "Aucun", value: "aucun" }
                               ]}
                               selected={abo.boutonType || "aucun"}
-                              onSelect={(val) => updateBlock(block.id, { [key]: { ...abo, boutonType: val.toLowerCase() as any } })}
+                              onSelect={(val) => updateBlock(block.id, { [key]: { ...abo, boutonType: val as any } })}
                             />
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <AdminTextField
                             label="Texte du bouton"
                             value={abo.boutonTexte}

@@ -14,7 +14,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
       onClose={onClose}
       contentClassName="w-[880px] max-w-[95vw] !p-[40px]"
     >
-      <div className="grid grid-cols-4 gap-6 mt-8">
+      <div className="grid grid-cols-4 gap-5 mt-8">
         
         {articleType === "Page" ? (
           <>
@@ -98,7 +98,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
               className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
-                Bloc card
+                Bloc cards
               </span>
               <div className="w-[85%] flex gap-2 justify-center mt-2 px-2">
                 <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />

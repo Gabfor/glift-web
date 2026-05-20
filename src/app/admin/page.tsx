@@ -97,7 +97,7 @@ export default function AdminDashboardPage() {
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
           Admin
         </h1>
-        <div className="flex flex-wrap gap-x-6 gap-y-6">
+        <div className="flex flex-wrap gap-x-6 gap-y-5">
           {adminLinks.map((link, index) => (
             <Link
               key={index}
