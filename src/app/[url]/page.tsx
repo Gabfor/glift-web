@@ -1,10 +1,12 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRenderer";
+import DashboardClient from "@/app/dashboard/DashboardClient";
 
 export const revalidate = 60;
 
-export default async function LegalPage({ params }: { params: { url: string } }) {
+export default async function LegalPage({ params }: { params: Promise<{ url: string }> }) {
+  const resolvedParams = await params;
   const supabase = await createServerClient();
   
   // 1. Fetch legal page
@@ -12,7 +14,7 @@ export default async function LegalPage({ params }: { params: { url: string } })
   let { data: pages, error } = await (supabase as any)
     .from("legal_pages")
     .select("*")
-    .eq("url", params.url)
+    .eq("url", resolvedParams.url)
     .eq("is_published", true)
     .limit(1);
 
@@ -21,7 +23,7 @@ export default async function LegalPage({ params }: { params: { url: string } })
     const { data: genericPages, error: genericError } = await (supabase as any)
       .from("pages")
       .select("*")
-      .eq("url", params.url)
+      .eq("url", resolvedParams.url)
       .eq("is_published", true)
       .limit(1);
 
@@ -34,6 +36,26 @@ export default async function LegalPage({ params }: { params: { url: string } })
   }
 
   const page = pages[0];
+
+  if (page.id === "59822297-b8b2-4041-bfa6-03793221fcf6") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/connexion");
+    }
+
+    return (
+      <DashboardClient
+        initialPageContent={{
+          surtitre: page.surtitre || "",
+          titre: page.titre || "",
+          description: page.description || "",
+        }}
+      />
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">

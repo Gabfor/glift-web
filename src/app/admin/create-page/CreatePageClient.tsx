@@ -51,6 +51,7 @@ const getDateParts = (value: string): [string, string, string] => {
 
 export default function CreatePageClient({ pageId }: { pageId: string | null }) {
   const router = useRouter();
+  const isDashboardPage = pageId === "59822297-b8b2-4041-bfa6-03793221fcf6";
   const supabaseFull = useMemo(() => createClient(), []);
 
   // --- Generic PAGE state ---
@@ -218,23 +219,34 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 {/* Content Section */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Contenu de la page</h3>
-                  {pageData.content_blocks?.length > 0 && (
-                    <div className="mb-5">
-                      <WidgetsRenderer
-                        blocks={pageData.content_blocks}
-                        onChangeBlocks={(blocks) => setPageData({ ...pageData, content_blocks: blocks })}
-                      />
+                  {isDashboardPage ? (
+                    <div className="w-full h-[45px] rounded-[5px] bg-[#F8F7FC] border border-dashed border-[#D7D4DC] flex items-center justify-center gap-2 select-none">
+                      <div className="relative w-[16px] h-[16px]">
+                        <Image src="/icons/locked.svg" alt="Verrouillé" fill className="object-contain" />
+                      </div>
+                      <span className="text-[16px] font-semibold text-[#D7D4DC] tracking-wide">Contenu verrouillé</span>
                     </div>
+                  ) : (
+                    <>
+                      {pageData.content_blocks?.length > 0 && (
+                        <div className="mb-5">
+                          <WidgetsRenderer
+                            blocks={pageData.content_blocks}
+                            onChangeBlocks={(blocks) => setPageData({ ...pageData, content_blocks: blocks })}
+                          />
+                        </div>
+                      )}
+                      <button
+                        onClick={() => setIsWidgetModalOpen(true)}
+                        className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
+                      >
+                        <div className="relative w-[16px] h-[16px]">
+                          <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                        </div>
+                        <span className="text-[16px] font-semibold text-[#D7D4DC]">Ajouter un bloc de contenu</span>
+                      </button>
+                    </>
                   )}
-                  <button
-                    onClick={() => setIsWidgetModalOpen(true)}
-                    className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
-                  >
-                    <div className="relative w-[16px] h-[16px]">
-                      <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
-                    </div>
-                    <span className="text-[16px] font-semibold text-[#D7D4DC]">Ajouter un bloc de contenu</span>
-                  </button>
                 </div>
 
                 <div className="flex justify-center">

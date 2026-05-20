@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabaseClient";
 import { SettingsService } from "@/lib/services/settingsService";
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
 const DEFAULT_GRACE_PERIOD_HOURS = 72;
@@ -24,6 +25,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const router = useRouter();
   const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
+  const { dashboardUrl } = useDashboardUrl();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -261,7 +263,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           {/* Logo */}
           <div className="flex items-center h-full">
             <Link
-              href={showAuthenticatedUI ? "/dashboard" : "/"}
+              href={showAuthenticatedUI ? dashboardUrl : "/"}
               className="flex items-center h-full pr-4"
             >
               <Image
@@ -281,9 +283,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
             {showAuthenticatedUI ? (
               <>
                 <Link
-                  href="/dashboard"
+                  href={dashboardUrl}
                   className={
-                    pathname === "/dashboard"
+                    pathname === dashboardUrl || pathname === "/dashboard"
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -565,7 +567,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
               {showAuthenticatedUI ? (
                 <>
                   <Link
-                    href="/dashboard"
+                    href={dashboardUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
