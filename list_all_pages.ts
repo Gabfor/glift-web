@@ -7,12 +7,23 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function list() {
-  const { data, error } = await supabase.from('pages').select('*').eq('id', 'eb40db10-0d10-47af-b102-62e2763bef86').single();
+async function insertContactPage() {
+  const contactPage = {
+    id: "c131a31e-4c74-4b53-bdf5-d41a87e5b61b",
+    url: "contact",
+    titre: "Contactez-nous",
+    surtitre: "",
+    description: "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
+    is_published: true,
+    langue: "Français",
+    content_blocks: []
+  };
+
+  const { data, error } = await supabase.from('pages').insert([contactPage]).select();
   if (error) {
-    console.error('Error fetching page:', error);
+    console.error('Error inserting Contact page:', error);
   } else {
-    console.log('Aide page row:', JSON.stringify(data, null, 2));
+    console.log('Successfully inserted Contact page:', JSON.stringify(data, null, 2));
   }
 }
-list();
+insertContactPage();

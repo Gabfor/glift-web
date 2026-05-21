@@ -14,6 +14,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 import PricingTable from "@/components/PricingTable";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
   <div 
@@ -84,6 +85,7 @@ type Props = {
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
+  const { contactUrl } = useDashboardUrl();
   const { trialDays } = useSiteSettings();
 
   const firstSeanceId = React.useMemo(() => {
@@ -590,7 +592,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                       })}
                     </div>
                     <div className="text-center text-[#2E3271] font-semibold text-[15px]">
-                      Vous voulez devenir partenaire ? <Link href="/contact" className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
+                      Vous voulez devenir partenaire ? <Link href={contactUrl} className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
                     </div>
                   </section>
                 </div>

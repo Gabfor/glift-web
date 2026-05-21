@@ -11,9 +11,11 @@ export type PageFormState = {
   updated_at: string;
   content_blocks: ContentBlock[];
   texte?: string;
+  description_aide?: string;
 };
 
 export const BLOG_PAGE_ID = "f9709b0b-b513-4d53-a6ef-d9cda3f0a706";
+export const CONTACT_PAGE_ID = "c131a31e-4c74-4b53-bdf5-d41a87e5b61b";
 const DEFAULT_BLOG_TEXT = "Que votre objectif soit la prise de masse musculaire, la perte de gras (sèche) ou le développement de votre force, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, passez au niveau supérieur.";
 
 export const emptyPage: PageFormState = {
@@ -26,6 +28,7 @@ export const emptyPage: PageFormState = {
   updated_at: "",
   content_blocks: [],
   texte: "",
+  description_aide: "",
 };
 
 export const mapPageRowToForm = (row: any): PageFormState => {
@@ -34,6 +37,13 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     const blocks = row.content_blocks || [];
     const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "texte") : null;
     texte = textBlock ? textBlock.texte || "" : DEFAULT_BLOG_TEXT;
+  }
+
+  let description_aide = "";
+  if (row.id === CONTACT_PAGE_ID) {
+    const blocks = row.content_blocks || [];
+    const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "description_aide") : null;
+    description_aide = textBlock ? textBlock.texte || "" : "Vous n'avez pas trouvé la réponse à votre question dans notre <a href=\"{{helpUrl}}\" class=\"text-[#7069FA] hover:text-[#6660E4] hover:no-underline transition-colors\">Aide</a> ?<br />Posez votre question ci-dessous et nous reviendrons vers vous.";
   }
 
   return {
@@ -47,6 +57,7 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     updated_at: row.updated_at || "",
     content_blocks: row.content_blocks || [],
     texte,
+    description_aide,
   };
 };
 
@@ -60,6 +71,8 @@ export const buildPagePayload = (form: PageFormState) => {
     langue: form.langue,
     content_blocks: form.id === BLOG_PAGE_ID
       ? [{ id: "blog-text", type: "texte", texte: form.texte || "" }]
+      : form.id === CONTACT_PAGE_ID
+      ? [{ id: "contact-desc-aide", type: "description_aide", texte: form.description_aide || "" }]
       : form.content_blocks,
   };
 

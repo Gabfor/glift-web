@@ -17,6 +17,7 @@ import StoreHeader from "@/components/store/StoreHeader";
 import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
 import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
+import ContactClient from "@/app/contact/ContactClient";
 
 export const revalidate = 60;
 
@@ -372,6 +373,21 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return <AideClient initialPageContent={helpPageContent} />;
+  }
+
+  if (page.id === "c131a31e-4c74-4b53-bdf5-d41a87e5b61b") {
+    const blocks = page.content_blocks || [];
+    const textBlock = Array.isArray(blocks) ? (blocks as any[]).find((b: any) => b.type === "description_aide") : null;
+    const description_aide = textBlock ? (textBlock as any).texte || "" : "";
+
+    const contactPageContent = {
+      surtitre: page.surtitre ?? "",
+      titre: page.titre || "Contactez-nous",
+      description: page.description ?? "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
+      description_aide,
+    };
+
+    return <ContactClient initialPageContent={contactPageContent} />;
   }
 
   return (

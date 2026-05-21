@@ -11,6 +11,7 @@ import DropdownFilter from "@/components/filters/DropdownFilter";
 import Pagination from "@/components/pagination/Pagination";
 import AideSkeleton from "@/components/aide/AideSkeleton";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 type HelpQuestion = {
   id: string;
@@ -29,6 +30,7 @@ function AideContent({
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
 }) {
+  const { contactUrl } = useDashboardUrl();
   const supabase = useMemo(() => createClient(), []);
   const searchParams = useSearchParams();
   const q = searchParams.get('q');
@@ -169,7 +171,7 @@ function AideContent({
             <br />
             Si vous avez d’autres questions,{" "}
             <Link
-              href="/contact?from=aide"
+              href={`${contactUrl}?from=aide`}
               className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
             >
               contactez-nous.
@@ -255,6 +257,7 @@ export default function AidePage({
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
 }) {
+  const { contactUrl } = useDashboardUrl();
   return (
     <Suspense fallback={
       <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] flex justify-center items-start">
@@ -280,7 +283,7 @@ export default function AidePage({
                 <br />
                 Si vous avez d’autres questions,{" "}
                 <Link
-                  href="/contact?from=aide"
+                  href={`${contactUrl}?from=aide`}
                   className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
                 >
                   contactez-nous.

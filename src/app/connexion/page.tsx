@@ -15,9 +15,11 @@ import ForgotPasswordModal from "@/components/auth/ForgotPasswordModal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 
 export default function ConnexionPage() {
+  const { contactUrl } = useDashboardUrl();
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
@@ -247,7 +249,7 @@ export default function ConnexionPage() {
                         {part}
                         {index < array.length - 1 && (
                           <Link
-                            href="/contact"
+                            href={contactUrl}
                             className="underline hover:text-[#C43636]"
                           >
                             contactez-nous

@@ -21,6 +21,7 @@ import {
   mapPageRowToForm,
   buildPagePayload,
   BLOG_PAGE_ID,
+  CONTACT_PAGE_ID,
 } from "./pageForm";
 import { ContentBlock } from "@/app/admin/create-blog-article/blogArticleForm";
 
@@ -58,6 +59,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
     pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062" || // Glift Store
     pageId === "90c6b3f6-1b46-4711-8882-28177874b51d" || // Trainings
     pageId === "eb40db10-0d10-47af-b102-62e2763bef86" || // Help / Aide
+    pageId === CONTACT_PAGE_ID || // Contact
     pageId === BLOG_PAGE_ID; // Blog
   const supabaseFull = useMemo(() => createClient(), []);
 
@@ -210,6 +212,16 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                         minHeight="100px"
                       />
                     </div>
+                    {pageId === CONTACT_PAGE_ID && (
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description (depuis Aide)</label>
+                        <RichTextEditor
+                          value={pageData.description_aide || ""}
+                          onChange={(val) => setPageData({ ...pageData, description_aide: val })}
+                          minHeight="100px"
+                        />
+                      </div>
+                    )}
                     {pageId === BLOG_PAGE_ID && (
                       <div className="flex flex-col">
                         <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
