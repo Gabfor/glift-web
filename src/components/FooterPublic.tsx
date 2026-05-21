@@ -14,7 +14,7 @@ import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 export default function Footer() {
   const { logoUrl, logoAlt, trialDays } = useSiteSettings();
   const { publishedUrls, isLoading } = useLegalPages();
-  const { shopUrl, storeUrl, blogUrl } = useDashboardUrl();
+  const { shopUrl, storeUrl, blogUrl, helpUrl } = useDashboardUrl();
 
   return (
     <footer className="mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[0px] pb-[30px]">
@@ -71,7 +71,7 @@ export default function Footer() {
         <div>
           <h4 className="text-[#3A416F] font-bold mb-2">AIDE</h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
-            <li><Link href="/aide" className="hover:text-[#3A416F] transition-colors">Questions</Link></li>
+            <li><Link href={helpUrl} className="hover:text-[#3A416F] transition-colors">Questions</Link></li>
             <li><Link href="/contact" className="hover:text-[#3A416F] transition-colors">Nous contacter</Link></li>
           </ul>
         </div>

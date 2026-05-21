@@ -16,6 +16,7 @@ import { StoreProfile } from "@/types/store";
 import StoreHeader from "@/components/store/StoreHeader";
 import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
 import BlogListClient from "@/app/blog/BlogListClient";
+import AideClient from "@/app/aide/AideClient";
 
 export const revalidate = 60;
 
@@ -362,6 +363,15 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         <BlogListClient initialArticles={articles || []} />
       </main>
     );
+  }
+  if (page.id === "eb40db10-0d10-47af-b102-62e2763bef86") {
+    const helpPageContent = {
+      surtitre: page.surtitre ?? "",
+      titre: page.titre || "Aide",
+      description: page.description ?? "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
+    };
+
+    return <AideClient initialPageContent={helpPageContent} />;
   }
 
   return (

@@ -1,269 +1,31 @@
-"use client";
+import { notFound, redirect } from "next/navigation";
+import { createServerClient } from "@/lib/supabaseServer";
+import AideClient from "./AideClient";
 
-import { useState, useEffect, useMemo, Suspense } from "react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { createClient } from "@/lib/supabaseClient";
-import SearchBar from "@/components/SearchBar";
-import { Accordion } from "@/components/ui/accordion";
-import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
-import DropdownFilter from "@/components/filters/DropdownFilter";
-import Pagination from "@/components/pagination/Pagination";
-import AideSkeleton from "@/components/aide/AideSkeleton";
-import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+export const dynamic = "force-dynamic";
 
-type HelpQuestion = {
-  id: string;
-  question: string;
-  answer: string;
-  categories: string[];
-  status: string;
-  top: number;
-  flop: number;
-  created_at: string;
-  display: string;
-};
+export default async function AidePage() {
+  const supabase = await createServerClient();
+  const { data } = await supabase
+    .from("pages")
+    .select("surtitre, titre, description, url, is_published")
+    .eq("id", "eb40db10-0d10-47af-b102-62e2763bef86")
+    .single();
 
-function AideContent() {
-  const supabase = useMemo(() => createClient(), []);
-  const searchParams = useSearchParams();
-  const q = searchParams.get('q');
-
-  const [questions, setQuestions] = useState<HelpQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
-  const showSkeleton = useMinimumVisibility(loading, 400);
-
-  const [isLogged, setIsLogged] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
-  const [openSection, setOpenSection] = useState<string>("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-
-      const { data: userData } = await supabase.auth.getUser();
-      const logged = !!userData?.user;
-      setIsLogged(logged);
-
-      const { data, error } = await supabase
-        .from("help_questions")
-        .select("*")
-        .eq("status", "ON")
-        .order("top", { ascending: false })
-        .order("created_at", { ascending: false });
-
-      if (data && !error) {
-        setQuestions(data as HelpQuestion[]);
-      } else {
-        console.error("Error fetching help questions:", error);
-      }
-      setLoading(false);
-    };
-
-    void fetchData();
-  }, [supabase]);
-
-  // Handle deep linking to a specific question via ?q=id
-  useEffect(() => {
-    if (!loading && questions.length > 0 && q) {
-      if (questions.some(question => question.id === q)) {
-        // Clear any filters so the question is definitely visible
-        setSearchTerm("");
-        setSelectedCategory("");
-
-        setOpenSection(q);
-
-        // Find the index of the question to determine the page
-        const questionIndex = questions.findIndex((question) => question.id === q);
-        if (questionIndex !== -1) {
-          const targetPage = Math.floor(questionIndex / ITEMS_PER_PAGE) + 1;
-          setCurrentPage(targetPage);
-        }
-
-        let attempts = 0;
-        const scrollInterval = setInterval(() => {
-          const el = document.getElementById(q);
-          if (el) {
-            // Found it, now scroll. Offset by 180 to account for the sticky header
-            const y = el.getBoundingClientRect().top + window.scrollY - 180;
-            window.scrollTo({ top: y, behavior: 'smooth' });
-            clearInterval(scrollInterval);
-          } else {
-            attempts++;
-            if (attempts > 30) {
-              clearInterval(scrollInterval); // stop trying after 3 seconds
-            }
-          }
-        }, 100);
-      }
+  if (data) {
+    if (data.is_published === false) {
+      notFound();
     }
-  }, [loading, questions, q]);
+    if (data.url && data.url !== "aide") {
+      redirect(`/${data.url}`);
+    }
+  }
 
-  // Extract unique categories from all live questions for the dropdown
-  const allCategories = useMemo(() => {
-    const cats = new Set<string>();
-    questions.forEach(q => {
-      if (q.categories) {
-        q.categories.forEach(c => cats.add(c));
-      }
-    });
-    return Array.from(cats).sort().map(cat => ({ value: cat, label: cat }));
-  }, [questions]);
+  const initialPageContent = {
+    surtitre: data?.surtitre ?? "",
+    titre: data?.titre || "Aide",
+    description: data?.description ?? "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
+  };
 
-  // Filter questions based on search term, category and user login state
-  const filteredQuestions = useMemo(() => {
-    return questions.filter(q => {
-      // 1. Check Affichage display mode
-      const displayMode = q.display || 'Les deux'; // legacy fallback
-      if (displayMode === 'Connecté' && !isLogged) return false;
-      if (displayMode === 'Non connecté' && isLogged) return false;
-
-      // 2. Check search and categories
-      const matchesSearch = q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        q.answer.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === "" ||
-        (q.categories && q.categories.includes(selectedCategory));
-      return matchesSearch && matchesCategory;
-    });
-  }, [questions, searchTerm, selectedCategory, isLogged]);
-
-  // Extract the current page items
-  const paginatedQuestions = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [filteredQuestions, currentPage]);
-
-  return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
-      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
-
-        {/* Header Section */}
-        <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
-          Aide
-        </h1>
-        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
-          Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
-          <br />
-          Si vous avez d’autres questions,{" "}
-          <Link
-            href="/contact?from=aide"
-            className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
-          >
-            contactez-nous.
-          </Link>
-        </p>
-
-        {/* Search Bar */}
-        <div className="mb-[40px] w-full max-w-[500px]">
-          <SearchBar
-            value={searchTerm}
-            onChange={(val) => {
-              setSearchTerm(val);
-              setCurrentPage(1);
-            }}
-            placeholder="Rechercher par mot-clé"
-          />
-        </div>
-
-        {showSkeleton ? (
-          <AideSkeleton />
-        ) : (
-          <div className="w-full max-w-[760px] text-left">
-            {/* Category Filter */}
-            {allCategories.length > 0 && (
-              <div className="mb-[30px] flex justify-start z-20 relative">
-                <DropdownFilter
-                  label="Catégorie"
-                  placeholder="Toutes les catégories"
-                  options={allCategories}
-                  allOptions={allCategories}
-                  selected={selectedCategory}
-                  onSelect={(val) => {
-                    setSelectedCategory(val);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-            )}
-
-            {/* Questions List */}
-            {filteredQuestions.length === 0 ? (
-              <div className="text-center text-[#5D6494] font-semibold mt-10">
-                Aucun résultat trouvé
-              </div>
-            ) : (
-              <>
-                <Accordion
-                  type="single"
-                  collapsible
-                  className="space-y-[20px]"
-                  value={openSection}
-                  onValueChange={setOpenSection}
-                >
-                  {paginatedQuestions.map(q => (
-                    <HelpQuestionItem
-                      key={q.id}
-                      questionId={q.id}
-                      question={q.question}
-                      answer={q.answer}
-                      searchTerm={searchTerm}
-                    />
-                  ))}
-                </Accordion>
-
-                <Pagination
-                  currentPage={currentPage}
-                  totalItems={filteredQuestions.length}
-                  onPageChange={setCurrentPage}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                />
-              </>
-            )}
-          </div>
-        )}
-      </div>
-    </main>
-  );
-}
-
-export default function AidePage() {
-  return (
-    <Suspense fallback={
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] flex justify-center items-start">
-        <div className="w-full max-w-[1152px] mx-auto text-center flex flex-col items-center">
-            {/* Header Section */}
-            <h1 className="text-[30px] font-bold text-[#2E3271] mb-2">
-            Aide
-            </h1>
-            <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
-            Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
-            <br />
-            Si vous avez d’autres questions,{" "}
-            <Link
-                href="/contact?from=aide"
-                className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
-            >
-                contactez-nous.
-            </Link>
-            </p>
-
-            {/* Search Bar */}
-            <div className="mb-[40px] w-full max-w-[500px]">
-            <SearchBar
-                value=""
-                onChange={() => {}}
-                placeholder="Rechercher par mot-clé"
-            />
-            </div>
-
-            <AideSkeleton />
-        </div>
-      </main>
-    }>
-      <AideContent />
-    </Suspense>
-  );
+  return <AideClient initialPageContent={initialPageContent} />;
 }

@@ -8,9 +8,11 @@ import { EmailField } from "@/components/forms/EmailField";
 import FileUploader from "@/components/forms/FileUploader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import { useUser } from "@/context/UserContext";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 function ContactForm() {
     const { user } = useUser();
+    const { helpUrl } = useDashboardUrl();
     const searchParams = useSearchParams();
     const fromAide = searchParams.get("from") === "aide";
 
@@ -71,7 +73,7 @@ function ContactForm() {
                 <p className="text-center text-[#5D6494] text-[16px] font-semibold max-w-[564px] mb-[40px]">
                     {fromAide ? (
                         <>
-                            Vous n&apos;avez pas trouvé la réponse à votre question dans notre <Link href="/aide" className="text-[#7069FA] hover:text-[#6660E4] hover:no-underline transition-colors">Aide</Link> ?<br />
+                            Vous n&apos;avez pas trouvé la réponse à votre question dans notre <Link href={helpUrl} className="text-[#7069FA] hover:text-[#6660E4] hover:no-underline transition-colors">Aide</Link> ?<br />
                             Posez votre question ci-dessous et nous reviendrons vers vous.
                         </>
                     ) : (

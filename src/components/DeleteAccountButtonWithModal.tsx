@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import clsx from 'clsx'
 import ConfirmationModal from '@/components/ui/ConfirmationModal'
+import { useDashboardUrl } from '@/hooks/useDashboardUrl'
 
 type Props = {
   /** Action custom si vous ne voulez pas utiliser /api/delete-account */
@@ -19,6 +20,7 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const { helpUrl } = useDashboardUrl()
 
   const handleConfirm = async () => {
     if (loading) return
@@ -84,7 +86,7 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
         </p>
         <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
           Si ce n’est pas ce que vous souhaitez faire, vous trouverez peut-être la solution à votre besoin dans la partie{' '}
-          <Link href="/aide" className="underline text-[#3A416F]">
+          <Link href={helpUrl} className="underline text-[#3A416F]">
             Aide
           </Link>{' '}
           du site.

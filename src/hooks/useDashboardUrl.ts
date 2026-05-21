@@ -9,6 +9,7 @@ export function useDashboardUrl() {
   const [storeUrl, setStoreUrl] = useState("/store");
   const [trainingsUrl, setTrainingsUrl] = useState("/entrainements");
   const [blogUrl, setBlogUrl] = useState("/blog");
+  const [helpUrl, setHelpUrl] = useState("/aide");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,7 +24,8 @@ export function useDashboardUrl() {
             "eb4e258a-0876-421e-b653-176c8c08ed3d", // Glift Shop
             "fd7e055c-bf17-4222-a8f8-c27b014d3062", // Glift Store
             "90c6b3f6-1b46-4711-8882-28177874b51d", // Trainings
-            "f9709b0b-b513-4d53-a6ef-d9cda3f0a706"  // Blog
+            "f9709b0b-b513-4d53-a6ef-d9cda3f0a706", // Blog
+            "eb40db10-0d10-47af-b102-62e2763bef86"  // Help / Aide
           ]);
 
         if (!error && data) {
@@ -38,6 +40,8 @@ export function useDashboardUrl() {
               setTrainingsUrl(`/${page.url}`);
             } else if (page.id === "f9709b0b-b513-4d53-a6ef-d9cda3f0a706" && page.url) {
               setBlogUrl(`/${page.url}`);
+            } else if (page.id === "eb40db10-0d10-47af-b102-62e2763bef86" && page.url) {
+              setHelpUrl(`/${page.url}`);
             }
           });
         }
@@ -51,5 +55,5 @@ export function useDashboardUrl() {
     fetchUrls();
   }, []);
 
-  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, isLoading };
+  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl, isLoading };
 }

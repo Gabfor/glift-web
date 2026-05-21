@@ -57,6 +57,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
     pageId === "eb4e258a-0876-421e-b653-176c8c08ed3d" || // Glift Shop
     pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062" || // Glift Store
     pageId === "90c6b3f6-1b46-4711-8882-28177874b51d" || // Trainings
+    pageId === "eb40db10-0d10-47af-b102-62e2763bef86" || // Help / Aide
     pageId === BLOG_PAGE_ID; // Blog
   const supabaseFull = useMemo(() => createClient(), []);
 
