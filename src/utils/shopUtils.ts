@@ -24,6 +24,7 @@ export type OfferQueryRow = Pick<
   | "boost"
   | "click_count"
   | "created_at"
+  | "sport"
 >;
 
 const parseOfferTypes = (value: unknown): string[] => {
@@ -66,4 +67,5 @@ export const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   boost: row.boost ?? false,
   click_count: row.click_count ?? 0,
   created_at: row.created_at ?? "",
+  sport: row.sport ?? [],
 });

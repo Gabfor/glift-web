@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import ShopPageClient from "./ShopPageClient";
 import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
@@ -10,6 +11,17 @@ import ShopHeader from "@/components/shop/ShopHeader";
 
 export default async function ShopPage() {
   const supabase = await createServerClient();
+  
+  // 0. Check custom URL redirection
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("surtitre, titre, description, url")
+    .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
+    .single();
+
+  if (pageConfig && pageConfig.url && pageConfig.url !== "shop") {
+    redirect(`/${pageConfig.url}`);
+  }
   
   // 1. Get user profile for relevance sorting
   const { data: { session } } = await supabase.auth.getSession();
@@ -56,7 +68,8 @@ export default async function ShopPage() {
       gender,
       boost,
       click_count,
-      created_at
+      created_at,
+      sport
     `)
     .eq("status", "ON");
 
@@ -145,14 +158,19 @@ export default async function ShopPage() {
     };
   }
 
+  const initialPageContent = {
+    surtitre: pageConfig?.surtitre ?? "",
+    titre: pageConfig?.titre || "Glift Shop",
+    description: pageConfig?.description ?? "Découvrez une sélection d'offres régulièrement mise à jour.<br/>Pour en profiter, cliquez sur le bouton « En profiter » et laissez-vous guider.",
+  };
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
-        <ShopHeader />
+        <ShopHeader initialPageContent={initialPageContent} />
       </div>
       <ShopPageClient 
         initialOffers={initialOffers} 
-        initialTotalCount={totalCount || 0}
         sliderConfig={sliderConfig}
       />
     </main>

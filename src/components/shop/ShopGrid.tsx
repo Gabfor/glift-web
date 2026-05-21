@@ -87,8 +87,15 @@ export default function ShopGrid({
   onCountChange?: (count: number) => void;
   initialOffers?: ShopOffer[];
 }) {
+  const isDefaultQuery =
+    currentPage === 1 &&
+    sortBy === "relevance" &&
+    filters.every((f) => f === "");
+
   const [offers, setOffers] = useState<ShopOffer[]>(initialOffers);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(
+    initialOffers.length === 0 || !isDefaultQuery
+  );
   const { profile, isLoading: isUserContextLoading } = useUser();
   
   const userProfile: ShopProfile | null = useMemo(() => profile ? {
@@ -106,6 +113,22 @@ export default function ShopGrid({
   } | null>(null);
 
   useEffect(() => {
+    // Si les offres SSR sont déjà disponibles pour la requête par défaut, pas besoin de re-fetcher
+    if (
+      initialOffers.length > 0 &&
+      isDefaultQuery &&
+      !hasLoadedOnceRef.current
+    ) {
+      hasLoadedOnceRef.current = true;
+      previousQueryRef.current = {
+        sortBy,
+        currentPage,
+        filters: [...filters],
+        userProfile: userProfile ? { ...userProfile } : null,
+      };
+      return;
+    }
+
     const previousQuery = previousQueryRef.current;
     const hasQueryChanged =
       !previousQuery ||

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import StorePageClient from "./StorePageClient";
 import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
@@ -10,6 +11,17 @@ import StoreHeader from "@/components/store/StoreHeader";
 
 export default async function StorePage() {
   const supabase = await createServerClient();
+  
+  // 0. Check custom URL redirection
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("surtitre, titre, description, url")
+    .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
+    .single();
+
+  if (pageConfig && pageConfig.url && pageConfig.url !== "store") {
+    redirect(`/${pageConfig.url}`);
+  }
   
   // 1. Get user profile for relevance sorting
   const { data: { session } } = await supabase.auth.getSession();
@@ -64,10 +76,16 @@ export default async function StorePage() {
   // Only send the first 8 for the initial page
   const initialPrograms = sortedPrograms.slice(0, 8);
 
+  const initialPageContent = {
+    surtitre: pageConfig?.surtitre ?? "",
+    titre: pageConfig?.titre || "Glift Store",
+    description: pageConfig?.description ?? "Téléchargez un programme pour l'utiliser directement dans Glift.",
+  };
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
-        <StoreHeader />
+        <StoreHeader initialPageContent={initialPageContent} />
       </div>
       <StorePageClient 
         initialPrograms={initialPrograms} 

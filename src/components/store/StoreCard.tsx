@@ -10,6 +10,7 @@ import CTAButton from "@/components/CTAButton";
 import { createClient } from "@/lib/supabaseClient";
 import { useEffect } from "react";
 import Tooltip from "@/components/Tooltip";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 type Props = {
   program: {
@@ -34,6 +35,7 @@ type Props = {
 
 export default function StoreCard({ program, isAuthenticated, subscriptionPlan }: Props) {
   const router = useRouter();
+  const { trainingsUrl } = useDashboardUrl();
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
@@ -48,7 +50,7 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
     if (newProgramId) {
       console.log("Programme téléchargé avec succès :", newProgramId);
       localStorage.setItem("newly_downloaded_program_id", newProgramId);
-      router.push("/entrainements");
+      router.push(trainingsUrl);
     }
   };
 

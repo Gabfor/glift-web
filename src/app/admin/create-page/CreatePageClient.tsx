@@ -51,7 +51,10 @@ const getDateParts = (value: string): [string, string, string] => {
 
 export default function CreatePageClient({ pageId }: { pageId: string | null }) {
   const router = useRouter();
-  const isDashboardPage = pageId === "59822297-b8b2-4041-bfa6-03793221fcf6";
+  const isLockedPage =
+    pageId === "59822297-b8b2-4041-bfa6-03793221fcf6" || // Dashboard
+    pageId === "eb4e258a-0876-421e-b653-176c8c08ed3d" || // Glift Shop
+    pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062"; // Glift Store
   const supabaseFull = useMemo(() => createClient(), []);
 
   // --- Generic PAGE state ---
@@ -219,7 +222,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 {/* Content Section */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Contenu de la page</h3>
-                  {isDashboardPage ? (
+                  {isLockedPage ? (
                     <div className="w-full h-[45px] rounded-[5px] bg-[#F8F7FC] border border-dashed border-[#D7D4DC] flex items-center justify-center gap-2 select-none">
                       <div className="relative w-[16px] h-[16px]">
                         <Image src="/icons/locked.svg" alt="Verrouillé" fill className="object-contain" />

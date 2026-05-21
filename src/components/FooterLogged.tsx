@@ -11,7 +11,7 @@ import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 export default function FooterConnected() {
   const { logoUrl, logoAlt } = useSiteSettings();
   const { publishedUrls, isLoading } = useLegalPages();
-  const { dashboardUrl } = useDashboardUrl();
+  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl } = useDashboardUrl();
 
   return (
     <footer className="mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[30px] pb-[30px]">
@@ -28,9 +28,9 @@ export default function FooterConnected() {
           <h4 className="text-[#3A416F] font-bold mb-2">GLIFT</h4>
           <ul className="text-[#5D6494] font-semibold space-y-1">
             <li><Link href={dashboardUrl} className="hover:text-[#3A416F] transition-colors">Tableau de bord</Link></li>
-            <li><Link href="/entrainements" className="hover:text-[#3A416F] transition-colors">Entraînements</Link></li>
-            <li><Link href="/store" className="hover:text-[#3A416F] transition-colors">Glift Store</Link></li>
-            <li><Link href="/shop" className="hover:text-[#3A416F] transition-colors">Glift Shop</Link></li>
+            <li><Link href={trainingsUrl} className="hover:text-[#3A416F] transition-colors">Entraînements</Link></li>
+            <li><Link href={storeUrl} className="hover:text-[#3A416F] transition-colors">Glift Store</Link></li>
+            <li><Link href={shopUrl} className="hover:text-[#3A416F] transition-colors">Glift Shop</Link></li>
             <li><Link href="/blog" className="hover:text-[#3A416F] transition-colors">Blog</Link></li>
           </ul>
         </div>

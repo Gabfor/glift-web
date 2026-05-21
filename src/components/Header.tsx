@@ -25,7 +25,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const router = useRouter();
   const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
-  const { dashboardUrl } = useDashboardUrl();
+  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl } = useDashboardUrl();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -293,9 +293,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Tableau de bord
                 </Link>
                 <Link
-                  href="/entrainements"
+                  href={trainingsUrl}
                   className={
-                    pathname?.startsWith("/entrainements")
+                    pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -303,9 +303,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Entraînements
                 </Link>
                 <Link
-                  href="/store"
+                  href={storeUrl}
                   className={
-                    pathname?.startsWith("/store")
+                    pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -313,9 +313,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Store
                 </Link>
                 <Link
-                  href="/shop"
+                  href={shopUrl}
                   className={
-                    pathname?.startsWith("/shop")
+                    pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -376,9 +376,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Tarifs
                 </Link>
                 <Link
-                  href="/store"
+                  href={storeUrl}
                   className={
-                    pathname?.startsWith("/store")
+                    pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -386,9 +386,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Store
                 </Link>
                 <Link
-                  href="/shop"
+                  href={shopUrl}
                   className={
-                    pathname?.startsWith("/shop")
+                    pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -574,21 +574,21 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     Tableau de bord
                   </Link>
                   <Link
-                    href="/entrainements"
+                    href={trainingsUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Entraînements
                   </Link>
                   <Link
-                    href="/store"
+                    href={storeUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
-                    href="/shop"
+                    href={shopUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -633,14 +633,14 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     Tarifs
                   </Link>
                   <Link
-                    href="/store"
+                    href={storeUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
-                    href="/shop"
+                    href={shopUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

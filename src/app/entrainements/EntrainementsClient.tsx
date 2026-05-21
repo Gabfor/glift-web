@@ -40,7 +40,11 @@ const wait = (duration: number) =>
 
 import TrainingDeleteWarningModal from "@/components/TrainingDeleteWarningModal";
 
-export default function EntrainementsPage() {
+export default function EntrainementsPage({
+  initialPageContent,
+}: {
+  initialPageContent: { surtitre: string; titre: string; description: string };
+}) {
   const {
     programs,
     isLoading,
@@ -84,42 +88,7 @@ export default function EntrainementsPage() {
   const router = useRouter();
   const sensors = useSensors(useSensor(PointerSensor));
 
-  const [pageIntro, setPageIntro] = useState<{ surtitre: string; titre: string; description: string } | null>(null);
-  const [isPublished, setIsPublished] = useState<boolean | null>(null);
-
-  const supabaseClientForPage = useSupabaseClient();
-
-  useEffect(() => {
-    const fetchPageConfig = async () => {
-      const { data, error } = await supabaseClientForPage
-        .from("pages")
-        .select("surtitre, titre, description, is_published")
-        .eq("url", "entrainements")
-        .maybeSingle();
-
-      if (data && !error) {
-        if (!data.is_published) {
-          setIsPublished(false);
-        } else {
-          setIsPublished(true);
-          setPageIntro({
-            surtitre: data.surtitre || "",
-            titre: data.titre || "Entraînements",
-            description: data.description || `Gérez vos programmes et vos entraînements.<br class="hidden sm:block" />Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.`,
-          });
-        }
-      } else {
-        setIsPublished(true);
-        setPageIntro({
-          surtitre: "",
-          titre: "Entraînements",
-          description: `Gérez vos programmes et vos entraînements.<br class="hidden sm:block" />Choisissez ceux que vous souhaitez retrouver dans l’app et sur votre tableau de bord.`,
-        });
-      }
-    };
-
-    void fetchPageConfig();
-  }, [supabaseClientForPage]);
+  const pageIntro = initialPageContent;
 
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
   const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
@@ -430,10 +399,6 @@ export default function EntrainementsPage() {
     });
   }
 
-  if (isPublished === false) {
-    notFound();
-  }
-
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
       <div
@@ -450,7 +415,7 @@ export default function EntrainementsPage() {
           dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Entraînements" }}
         />
         <div 
-          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px] text-center"
+          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px] text-center [&_p]:mb-0"
           dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Gérez vos programmes et vos entraînements." }}
         />
 

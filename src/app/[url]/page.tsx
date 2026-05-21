@@ -3,6 +3,19 @@ import { createServerClient } from "@/lib/supabaseServer";
 import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRenderer";
 import DashboardClient from "@/app/dashboard/DashboardClient";
 
+import ShopPageClient from "@/app/shop/ShopPageClient";
+import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
+import { sortOffersByRelevance } from "@/utils/sortingUtils";
+import { ShopProfile } from "@/types/shop";
+import ShopHeader from "@/components/shop/ShopHeader";
+
+import StorePageClient from "@/app/store/StorePageClient";
+import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
+import { sortProgramsByRelevance } from "@/utils/sortingUtils";
+import { StoreProfile } from "@/types/store";
+import StoreHeader from "@/components/store/StoreHeader";
+import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
+
 export const revalidate = 60;
 
 export default async function LegalPage({ params }: { params: Promise<{ url: string }> }) {
@@ -54,6 +67,249 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           description: page.description || "",
         }}
       />
+    );
+  }
+
+  if (page.id === "90c6b3f6-1b46-4711-8882-28177874b51d") {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/connexion");
+    }
+
+    return (
+      <EntrainementsClient
+        initialPageContent={{
+          surtitre: page.surtitre ?? "",
+          titre: page.titre || "Entraînements",
+          description: page.description ?? "Gérez vos programmes et vos entraînements.",
+        }}
+      />
+    );
+  }
+
+  if (page.id === "eb4e258a-0876-421e-b653-176c8c08ed3d") {
+    // 1. Get user profile for relevance sorting
+    const { data: { session } } = await supabase.auth.getSession();
+    let userProfile: ShopProfile | null = null;
+    
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("gender, main_goal, supplements")
+        .eq("id", session.user.id)
+        .single();
+      
+      if (profile) {
+        userProfile = profile as ShopProfile;
+      }
+    }
+
+    // 2. Fetch total count
+    const { count: totalCount } = await supabase
+      .from("offer_shop")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "ON");
+
+    // 3. Fetch offers for initial display (Default relevance sort)
+    const { data: rawOffers } = await supabase
+      .from("offer_shop")
+      .select(`
+        id,
+        name,
+        start_date,
+        end_date,
+        type,
+        code,
+        image,
+        image_alt,
+        brand_image,
+        brand_image_alt,
+        shop,
+        shop_website,
+        shop_link,
+        shipping,
+        modal,
+        condition,
+        gender,
+        boost,
+        click_count,
+        created_at,
+        sport
+      `)
+      .eq("status", "ON");
+
+    const mappedOffers = (rawOffers ?? []).map(row => mapOfferRowToOffer(row as OfferQueryRow));
+    const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile);
+    const initialOffers = sortedOffers.slice(0, 8);
+
+    // 4. Fetch Slider Configuration
+    const { data: adminConfig } = await supabase
+      .from("sliders_admin")
+      .select("*")
+      .single();
+
+    let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[] };
+
+    if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
+      const normalizeSlides = (value: any): any[] => {
+        if (!Array.isArray(value)) return [];
+        return value.map((slide) => {
+          if (typeof slide === "object" && slide !== null && !Array.isArray(slide)) {
+            return {
+              image: slide.image || "",
+              alt: slide.alt || "",
+              link: slide.link || "",
+            };
+          }
+          return { image: "", alt: "", link: "" };
+        });
+      };
+
+      const prioritySlides = normalizeSlides(adminConfig.slides);
+      const slotCount = adminConfig.slot_count || 1;
+      const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
+
+      let offerSlides: any[] = [];
+
+      if (slotsNeeded > 0) {
+        const { data: offers } = await supabase
+          .from("offer_shop")
+          .select(`
+            id, name, slider_image, image_alt, 
+            shop_link, shop_website, 
+            code, modal, condition, 
+            start_date, end_date, brand_image, type,
+            image
+          `)
+          .eq("status", "ON")
+          .neq("slider_image", null)
+          .limit(slotsNeeded + 2);
+
+        if (offers) {
+          offerSlides = (offers ?? [])
+            .filter((o) => o.slider_image)
+            .map((o) => ({
+              image: o.slider_image!,
+              alt: o.image_alt || o.name,
+              link: o.shop_link || o.shop_website || "",
+              offer: {
+                id: o.id,
+                name: o.name,
+                code: o.code ?? "",
+                modal: o.modal ?? "",
+                condition: o.condition ?? "",
+                start_date: o.start_date ?? "",
+                end_date: o.end_date ?? "",
+                shop_link: o.shop_link ?? "",
+                shop_website: o.shop_website ?? "",
+                brand_image: o.brand_image ?? "",
+                type: Array.isArray(o.type) ? o.type : [],
+                image: o.image || "",
+                image_alt: o.image_alt || "",
+                created_at: "",
+              }
+            }));
+        }
+      }
+
+      sliderConfig = {
+        type: adminConfig.type as "single" | "double",
+        slides: [...prioritySlides, ...offerSlides].slice(0, slotCount)
+      };
+    }
+
+    const shopPageContent = {
+      surtitre: page.surtitre ?? "",
+      titre: page.titre || "Glift Shop",
+      description: page.description ?? "Découvrez une sélection d'offres régulièrement mise à jour.<br/>Pour en profiter, cliquez sur le bouton « En profiter » et laissez-vous guider.",
+    };
+
+    return (
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+        <div className="max-w-[1152px] mx-auto">
+          <ShopHeader initialPageContent={shopPageContent} />
+        </div>
+        <ShopPageClient 
+          initialOffers={initialOffers} 
+          sliderConfig={sliderConfig}
+        />
+      </main>
+    );
+  }
+
+  if (page.id === "fd7e055c-bf17-4222-a8f8-c27b014d3062") {
+    // 1. Get user profile for relevance sorting
+    const { data: { session } } = await supabase.auth.getSession();
+    let userProfile: StoreProfile | null = null;
+    
+    if (session?.user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
+        .eq("id", session.user.id)
+        .single();
+      
+      if (profile) {
+        userProfile = profile as StoreProfile;
+      }
+    }
+
+    // 2. Fetch total count
+    const { count: totalCount } = await supabase
+      .from("program_store")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "ON");
+
+    // 3. Fetch first batch of programs for initial display (Default relevance sort)
+    const { data: rawPrograms } = await supabase
+      .from("program_store")
+      .select(`
+        id,
+        title,
+        level,
+        goal,
+        gender,
+        sessions,
+        duration,
+        description,
+        image,
+        image_alt,
+        partner_image,
+        partner_image_alt,
+        partner_link,
+        link,
+        downloads,
+        created_at,
+        plan,
+        location
+      `)
+      .eq("status", "ON");
+
+    const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
+    const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
+    const initialPrograms = sortedPrograms.slice(0, 8);
+
+    const storePageContent = {
+      surtitre: page.surtitre ?? "",
+      titre: page.titre || "Glift Store",
+      description: page.description ?? "Téléchargez un programme pour l'utiliser directement dans Glift.",
+    };
+
+    return (
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+        <div className="max-w-[1152px] mx-auto">
+          <StoreHeader initialPageContent={storePageContent} />
+        </div>
+        <StorePageClient 
+          initialPrograms={initialPrograms} 
+          initialTotalCount={totalCount || 0} 
+          initialUserProfile={userProfile}
+          initialIsAuthenticated={!!session?.user}
+        />
+      </main>
     );
   }
 
