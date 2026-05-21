@@ -186,13 +186,15 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
 
     return (
       <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
-        <div className="max-w-[1152px] mx-auto text-center">
-          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 uppercase">
+        <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0 uppercase">
             {categoryName}
           </h1>
-          <p className="text-[16px] font-semibold text-[#5D6494] mb-8">
-            Découvrez tous nos articles sur le thème <strong>{categoryName}</strong>.
-          </p>
+          <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
+            <p>
+              Découvrez tous nos articles sur le thème <strong>{categoryName}</strong>.
+            </p>
+          </div>
         </div>
 
         <BlogListClient initialArticles={allArticles || []} initialCategory={categoryName} />

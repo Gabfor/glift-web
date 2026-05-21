@@ -337,25 +337,25 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
 
     return (
       <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
-        <div className="max-w-[1152px] mx-auto text-center">
+        <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           {page.surtitre && (
             <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
               {page.surtitre}
             </div>
           )}
           <h1 
-            className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles"
+            className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: page.titre || "Blog" }}
           />
           {page.description && (
             <div 
-              className="text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[700px] mx-auto leading-relaxed"
+              className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[700px] mx-auto leading-relaxed [&_p]:m-0"
               dangerouslySetInnerHTML={{ __html: page.description }}
             />
           )}
           {extraText && (
             <div 
-              className="max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+              className="w-full max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-4 last:[&_p]:mb-0"
               dangerouslySetInnerHTML={{ __html: extraText }}
             />
           )}
@@ -398,14 +398,14 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             {page.surtitre}
           </div>
         )}
-        <div 
-          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles`}
+        <h1 
+          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
           dangerouslySetInnerHTML={{ __html: page.titre }}
         />
 
         {page.description && (
           <div 
-            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center"
+            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: page.description }}
           />
         )}

@@ -411,11 +411,11 @@ export default function EntrainementsPage({
           </div>
         )}
         <h1 
-          className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
+          className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
           dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Entraînements" }}
         />
         <div 
-          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px] text-center [&_p]:mb-0"
+          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
           dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Gérez vos programmes et vos entraînements." }}
         />
 

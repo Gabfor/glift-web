@@ -157,16 +157,16 @@ function AideContent({
           </div>
         )}
         <h1 
-          className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
+          className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
           dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Aide" }}
         />
         {pageIntro?.description ? (
           <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px] text-center"
+            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: pageIntro.description }}
           />
         ) : (
-          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
+          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
             Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
             <br />
             Si vous avez d’autres questions,{" "}
@@ -269,16 +269,16 @@ export default function AidePage({
               </div>
             )}
             <h1 
-              className="text-[30px] font-bold text-[#2E3271] mb-2 prose-titles"
+              className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
               dangerouslySetInnerHTML={{ __html: initialPageContent.titre || "Aide" }}
             />
             {initialPageContent.description ? (
               <div 
-                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px] text-center"
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
                 dangerouslySetInnerHTML={{ __html: initialPageContent.description }}
               />
             ) : (
-              <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-[30px]">
+              <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
                 Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
                 <br />
                 Si vous avez d’autres questions,{" "}

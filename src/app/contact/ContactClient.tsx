@@ -79,11 +79,11 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
                 )}
                 
                 <h1 
-                    className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[20px] prose-titles"
+                    className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
                     dangerouslySetInnerHTML={{ __html: initialPageContent.titre || "Contactez-nous" }}
                 />
                 
-                <div className="text-center text-[#5D6494] text-[16px] font-semibold max-w-[564px] mb-[40px] [&_a]:text-[#7069FA] [&_a]:hover:text-[#6660E4] [&_a]:hover:no-underline [&_a]:transition-colors">
+                <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:text-[#7069FA] [&_a]:hover:text-[#6660E4] [&_a]:hover:no-underline [&_a]:transition-colors">
                     {fromAide ? (
                         <div dangerouslySetInnerHTML={{ 
                             __html: (initialPageContent.description_aide || `Vous n'avez pas trouvé la réponse à votre question dans notre <a href="{{helpUrl}}">Aide</a> ?<br />Posez votre question ci-dessous et nous reviendrons vers vous.`)
@@ -207,11 +207,11 @@ export default function ContactClient({ initialPageContent }: ContactClientProps
                     )}
                     
                     <h1 
-                        className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[20px] prose-titles"
+                        className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
                         dangerouslySetInnerHTML={{ __html: initialPageContent.titre || "Contactez-nous" }}
                     />
                     
-                    <div className="text-center text-[#5D6494] text-[16px] font-semibold max-w-[564px] mb-[40px]">
+                    <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
                         <div dangerouslySetInnerHTML={{ __html: initialPageContent.description || "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous<br />et nous reviendrons vers vous rapidement." }} />
                     </div>
                 </div>

@@ -1102,18 +1102,18 @@ export default function DashboardClient({
                 </div>
               )}
               <h1 
-                className="text-[30px] font-bold text-[#2E3271] mb-2 [&_p]:mb-0" 
+                className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0" 
                 dangerouslySetInnerHTML={{ __html: pageContent.titre }} 
               />
               <div 
-                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] [&_p]:mb-0" 
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0" 
                 dangerouslySetInnerHTML={{ __html: pageContent.description }} 
               />
             </>
           )}
         </div>
 
-        <div className="relative mt-8">
+        <div className="relative">
           {/* CONTENT (mounted to allow data fetching but hidden if loading) */}
           <div
             className={`transition-opacity duration-200 ${
