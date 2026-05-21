@@ -10,7 +10,11 @@ export type PageFormState = {
   langue: string;
   updated_at: string;
   content_blocks: ContentBlock[];
+  texte?: string;
 };
+
+export const BLOG_PAGE_ID = "f9709b0b-b513-4d53-a6ef-d9cda3f0a706";
+const DEFAULT_BLOG_TEXT = "Que votre objectif soit la prise de masse musculaire, la perte de gras (sèche) ou le développement de votre force, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, passez au niveau supérieur.";
 
 export const emptyPage: PageFormState = {
   titre: "",
@@ -21,9 +25,17 @@ export const emptyPage: PageFormState = {
   langue: "Français",
   updated_at: "",
   content_blocks: [],
+  texte: "",
 };
 
 export const mapPageRowToForm = (row: any): PageFormState => {
+  let texte = "";
+  if (row.id === BLOG_PAGE_ID) {
+    const blocks = row.content_blocks || [];
+    const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "texte") : null;
+    texte = textBlock ? textBlock.texte || "" : DEFAULT_BLOG_TEXT;
+  }
+
   return {
     id: row.id,
     titre: row.titre || "",
@@ -34,6 +46,7 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     langue: row.langue || "Français",
     updated_at: row.updated_at || "",
     content_blocks: row.content_blocks || [],
+    texte,
   };
 };
 
@@ -45,7 +58,9 @@ export const buildPagePayload = (form: PageFormState) => {
     url: form.url,
     is_published: form.is_published,
     langue: form.langue,
-    content_blocks: form.content_blocks,
+    content_blocks: form.id === BLOG_PAGE_ID
+      ? [{ id: "blog-text", type: "texte", texte: form.texte || "" }]
+      : form.content_blocks,
   };
 
   if (form.updated_at) {

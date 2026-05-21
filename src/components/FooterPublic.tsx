@@ -14,7 +14,7 @@ import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 export default function Footer() {
   const { logoUrl, logoAlt, trialDays } = useSiteSettings();
   const { publishedUrls, isLoading } = useLegalPages();
-  const { shopUrl, storeUrl } = useDashboardUrl();
+  const { shopUrl, storeUrl, blogUrl } = useDashboardUrl();
 
   return (
     <footer className="mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] pt-[0px] pb-[30px]">
@@ -58,7 +58,7 @@ export default function Footer() {
             <li><Link href={storeUrl} className="hover:text-[#3A416F] transition-colors">Glift Store</Link></li>
             <li><Link href={shopUrl} className="hover:text-[#3A416F] transition-colors">Glift Shop</Link></li>
             <li><Link href="/tarifs" className="hover:text-[#3A416F] transition-colors">Tarifs</Link></li>
-            <li><Link href="/blog" className="hover:text-[#3A416F] transition-colors">Blog</Link></li>
+            <li><Link href={blogUrl} className="hover:text-[#3A416F] transition-colors">Blog</Link></li>
           </ul>
         </div>
         <div>

@@ -25,7 +25,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const router = useRouter();
   const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
-  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl } = useDashboardUrl();
+  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl } = useDashboardUrl();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -323,9 +323,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Shop
                 </Link>
                 <Link
-                  href="/blog"
+                  href={blogUrl}
                   className={
-                    pathname?.startsWith("/blog")
+                    pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -396,9 +396,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   Shop
                 </Link>
                 <Link
-                  href="/blog"
+                  href={blogUrl}
                   className={
-                    pathname?.startsWith("/blog")
+                    pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -595,7 +595,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     Shop
                   </Link>
                   <Link
-                    href="/blog"
+                    href={blogUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
@@ -647,7 +647,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     Shop
                   </Link>
                   <Link
-                    href="/blog"
+                    href={blogUrl}
                     className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >

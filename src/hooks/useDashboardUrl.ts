@@ -8,6 +8,7 @@ export function useDashboardUrl() {
   const [shopUrl, setShopUrl] = useState("/shop");
   const [storeUrl, setStoreUrl] = useState("/store");
   const [trainingsUrl, setTrainingsUrl] = useState("/entrainements");
+  const [blogUrl, setBlogUrl] = useState("/blog");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -21,7 +22,8 @@ export function useDashboardUrl() {
             "59822297-b8b2-4041-bfa6-03793221fcf6", // Dashboard
             "eb4e258a-0876-421e-b653-176c8c08ed3d", // Glift Shop
             "fd7e055c-bf17-4222-a8f8-c27b014d3062", // Glift Store
-            "90c6b3f6-1b46-4711-8882-28177874b51d"  // Trainings
+            "90c6b3f6-1b46-4711-8882-28177874b51d", // Trainings
+            "f9709b0b-b513-4d53-a6ef-d9cda3f0a706"  // Blog
           ]);
 
         if (!error && data) {
@@ -34,6 +36,8 @@ export function useDashboardUrl() {
               setStoreUrl(`/${page.url}`);
             } else if (page.id === "90c6b3f6-1b46-4711-8882-28177874b51d" && page.url) {
               setTrainingsUrl(`/${page.url}`);
+            } else if (page.id === "f9709b0b-b513-4d53-a6ef-d9cda3f0a706" && page.url) {
+              setBlogUrl(`/${page.url}`);
             }
           });
         }
@@ -47,5 +51,5 @@ export function useDashboardUrl() {
     fetchUrls();
   }, []);
 
-  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, isLoading };
+  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, isLoading };
 }

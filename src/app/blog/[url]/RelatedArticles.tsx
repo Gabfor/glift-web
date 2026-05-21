@@ -18,12 +18,23 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
 
   const idsToFetch = [articleLie1Id, articleLie2Id].filter(Boolean) as string[];
 
-  const { data: relatedArticles, error } = await supabase
-    .from("blog_articles")
-    .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe")
-    .in("id", idsToFetch)
-    .eq("is_published", true)
-    .limit(2);
+  // Fetch related articles and the blog config in parallel
+  const [articlesResult, blogConfigResult] = await Promise.all([
+    supabase
+      .from("blog_articles")
+      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe")
+      .in("id", idsToFetch)
+      .eq("is_published", true)
+      .limit(2),
+    supabase
+      .from("pages")
+      .select("url")
+      .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
+      .single()
+  ]);
+
+  const { data: relatedArticles, error } = articlesResult;
+  const blogUrl = blogConfigResult.data?.url ? `/${blogConfigResult.data.url}` : "/blog";
 
   if (error || !relatedArticles || relatedArticles.length === 0) {
     return null;
@@ -43,7 +54,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
           </p>
         </div>
         <Link
-          href="/blog"
+          href={blogUrl}
           className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer"
         >
           Voir tous les articles
@@ -73,6 +84,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
             article={article} 
             maxWidth="368px"
             imageHeight="245px"
+            blogUrl={blogUrl}
           />
         ))}
       </div>

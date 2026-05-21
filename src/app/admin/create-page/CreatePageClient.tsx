@@ -20,6 +20,7 @@ import {
   emptyPage,
   mapPageRowToForm,
   buildPagePayload,
+  BLOG_PAGE_ID,
 } from "./pageForm";
 import { ContentBlock } from "@/app/admin/create-blog-article/blogArticleForm";
 
@@ -54,7 +55,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
   const isLockedPage =
     pageId === "59822297-b8b2-4041-bfa6-03793221fcf6" || // Dashboard
     pageId === "eb4e258a-0876-421e-b653-176c8c08ed3d" || // Glift Shop
-    pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062"; // Glift Store
+    pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062" || // Glift Store
+    pageId === "90c6b3f6-1b46-4711-8882-28177874b51d" || // Trainings
+    pageId === BLOG_PAGE_ID; // Blog
   const supabaseFull = useMemo(() => createClient(), []);
 
   // --- Generic PAGE state ---
@@ -206,6 +209,16 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                         minHeight="100px"
                       />
                     </div>
+                    {pageId === BLOG_PAGE_ID && (
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
+                        <RichTextEditor
+                          value={pageData.texte || ""}
+                          onChange={(val) => setPageData({ ...pageData, texte: val })}
+                          minHeight="120px"
+                        />
+                      </div>
+                    )}
                     <div className="flex flex-col">
                       <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
                       <input

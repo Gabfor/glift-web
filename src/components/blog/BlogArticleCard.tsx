@@ -20,9 +20,10 @@ type Props = {
   };
   maxWidth?: string;
   imageHeight?: string;
+  blogUrl?: string;
 };
 
-export default function BlogArticleCard({ article, maxWidth = "270px", imageHeight = "180px" }: Props) {
+export default function BlogArticleCard({ article, maxWidth = "270px", imageHeight = "180px", blogUrl = "/blog" }: Props) {
   const isProgramme = article.type === "Programme";
 
   return (
@@ -30,7 +31,7 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
       className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full"
       style={{ maxWidth }}
     >
-      <Link href={`/blog/${article.url}`} className="block">
+      <Link href={`${blogUrl}/${article.url}`} className="block">
         <div 
           className="relative w-full bg-[#F4F5FE] cursor-pointer"
           style={{ height: imageHeight }}
@@ -112,7 +113,7 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
           {article.description}
         </p>
 
-        <Link href={`/blog/${article.url}`} className="mt-auto mx-auto">
+        <Link href={`${blogUrl}/${article.url}`} className="mt-auto mx-auto">
           <CTAButton
             className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center gap-2"
           >

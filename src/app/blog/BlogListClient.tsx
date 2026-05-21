@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
 import Pagination from "@/components/pagination/Pagination";
 import Link from "next/link";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 type Article = {
   id: string;
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export default function BlogListClient({ initialArticles, initialCategory = "Tous" }: Props) {
+  const { blogUrl } = useDashboardUrl();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 8;
@@ -55,10 +57,10 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
   const paginatedRecent = allRecent.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getCategoryUrl = (cat: string) => {
-    if (cat === "Tous") return "/blog";
+    if (cat === "Tous") return blogUrl;
     // Standardize URL: no accents, lowercase
     const slug = cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    return `/blog/${slug}`;
+    return `${blogUrl}/${slug}`;
   };
 
   return (
@@ -92,7 +94,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
             </h2>
             <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
               {featuredArticles.map((article) => (
-                <BlogArticleCard key={article.id} article={article} />
+                <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
               ))}
             </div>
           </section>
@@ -107,7 +109,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
               </h2>
               <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
                 {paginatedRecent.map((article) => (
-                  <BlogArticleCard key={article.id} article={article} />
+                  <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
                 ))}
               </div>
 
@@ -126,7 +128,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
               <p className="text-[#5D6494] text-[18px] font-semibold">
                 Aucun article ne correspond dans cette catégorie.
               </p>
-              <Link href="/blog">
+              <Link href={blogUrl}>
                 <button 
                   className="mt-4 text-[#7069FA] font-bold hover:underline"
                 >

@@ -1,13 +1,12 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabaseServer";
-import BlogArticleBlocksRenderer from "./BlogArticleBlocksRenderer";
-import RelatedArticles from "./RelatedArticles";
+import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRenderer";
+import RelatedArticles from "@/app/blog/[url]/RelatedArticles";
 import Tooltip from "@/components/Tooltip";
-import BlogListClient from "../BlogListClient";
+import BlogListClient from "@/app/blog/BlogListClient";
 
-// Next.js Route Cache & revalidation (opt-in)
 export const revalidate = 60;
 
 const categoryMapping: Record<string, string> = {
@@ -20,27 +19,34 @@ const categoryMapping: Record<string, string> = {
   "lifestyle": "Lifestyle"
 };
 
-export default async function BlogArticlePage({ params }: { params: { url: string } }) {
-  const supabase = await createServerClient();
-  const slug = decodeURIComponent(params.url).toLowerCase();
+export default async function BlogSubpathPage({
+  params,
+}: {
+  params: Promise<{ url: string; subpath: string }>;
+}) {
+  const resolvedParams = await params;
+  const { url: customUrl, subpath } = resolvedParams;
+  const slug = decodeURIComponent(subpath).toLowerCase();
 
-  // Fetch blog dynamic URL
-  const { data: blogConfig } = await supabase
+  const supabase = await createServerClient();
+
+  // 1. Fetch blog page config to verify URL
+  const { data: blogPage, error: blogPageError } = await supabase
     .from("pages")
-    .select("url")
+    .select("url, is_published")
     .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
     .single();
 
-  if (blogConfig?.url && blogConfig.url !== "blog") {
-    redirect(`/${blogConfig.url}/${params.url}`);
+  if (blogPageError || !blogPage || !blogPage.is_published || blogPage.url !== customUrl) {
+    notFound();
   }
 
-  const blogUrl = blogConfig?.url ? `/${blogConfig.url}` : "/blog";
+  const blogUrl = `/${blogPage.url}`;
 
-  // 1. Fetch article
+  // 2. Fetch article
   const { data: articles, error } = await (supabase.from("blog_articles") as any)
     .select("*")
-    .eq("url", params.url) // Use original param for article lookup
+    .eq("url", subpath)
     .eq("is_published", true)
     .limit(1);
 
@@ -162,7 +168,7 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
 
           </div>
 
-          {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
+          {/* Section articles liés */}
           <div className="bg-[#FBFCFE]">
             <div className="max-w-[760px] mx-auto px-4 md:px-0">
               <RelatedArticles
@@ -176,7 +182,7 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
     );
   }
 
-  // 2. Check if it's a category
+  // 3. Check if it's a category
   const categoryName = categoryMapping[slug];
   if (categoryName) {
     const { data: allArticles } = await (supabase.from("blog_articles") as any)

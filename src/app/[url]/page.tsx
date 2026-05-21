@@ -15,6 +15,7 @@ import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import { StoreProfile } from "@/types/store";
 import StoreHeader from "@/components/store/StoreHeader";
 import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
+import BlogListClient from "@/app/blog/BlogListClient";
 
 export const revalidate = 60;
 
@@ -309,6 +310,56 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           initialUserProfile={userProfile}
           initialIsAuthenticated={!!session?.user}
         />
+      </main>
+    );
+  }
+
+  if (page.id === "f9709b0b-b513-4d53-a6ef-d9cda3f0a706") {
+    // Fetch blog articles
+    const { data: articles } = await (supabase.from("blog_articles") as any)
+      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false });
+
+    const defaultBlogText = "Que votre objectif soit la <strong>prise de masse musculaire</strong>, la <strong>perte de gras (sèche)</strong> ou le <strong>développement de votre force</strong>, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, <strong>passez au niveau supérieur</strong>.";
+
+    // Extract extra text from content_blocks
+    let extraText = defaultBlogText;
+    if (page.content_blocks) {
+      const blocks = page.content_blocks || [];
+      const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "texte") : null;
+      if (textBlock && textBlock.texte) {
+        extraText = textBlock.texte;
+      }
+    }
+
+    return (
+      <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+        <div className="max-w-[1152px] mx-auto text-center">
+          {page.surtitre && (
+            <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
+              {page.surtitre}
+            </div>
+          )}
+          <h1 
+            className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles"
+            dangerouslySetInnerHTML={{ __html: page.titre || "Blog" }}
+          />
+          {page.description && (
+            <div 
+              className="text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[700px] mx-auto leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: page.description }}
+            />
+          )}
+          {extraText && (
+            <div 
+              className="max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+              dangerouslySetInnerHTML={{ __html: extraText }}
+            />
+          )}
+        </div>
+
+        <BlogListClient initialArticles={articles || []} />
       </main>
     );
   }
