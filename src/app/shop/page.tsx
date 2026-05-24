@@ -4,8 +4,38 @@ import ShopPageClient from "./ShopPageClient";
 import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
+import type { Metadata } from "next";
 
 export const revalidate = 60; // Mise à jour auto toutes les minutes
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createServerClient();
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
+    .single();
+
+  if (!pageConfig) return { title: "Shop" };
+
+  const title = pageConfig.seo_title || pageConfig.titre || "Glift Shop";
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = pageConfig.seo_description || pageConfig.description || "Découvrez une sélection d'offres de musculation régulièrement mise à jour.";
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+  const robots: any = {};
+  if (pageConfig.noindex) robots.index = false;
+  if (pageConfig.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: pageConfig.canonical_override || "/shop",
+    },
+  };
+}
 
 import ShopHeader from "@/components/shop/ShopHeader";
 

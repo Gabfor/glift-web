@@ -3,8 +3,38 @@ import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import BlogArticleBlocksRenderer from "./blog/[url]/BlogArticleBlocksRenderer";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createClient();
+  const { data: page } = await supabase
+    .from("pages")
+    .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("url", "concept")
+    .single();
+
+  if (!page) return {};
+
+  const title = page.seo_title || page.titre || "Accueil";
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = page.seo_description || page.description || "";
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+  const robots: any = {};
+  if (page.noindex) robots.index = false;
+  if (page.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: page.canonical_override || "/",
+    },
+  };
+}
 
 export default async function Home() {
   const supabase = await createClient();

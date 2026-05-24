@@ -1,10 +1,40 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogListClient from "./BlogListClient";
+import type { Metadata } from "next";
 
 export const revalidate = 60; // Mise à jour auto toutes les minutes
 
 const BLOG_PAGE_ID = "f9709b0b-b513-4d53-a6ef-d9cda3f0a706";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createServerClient();
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("id", BLOG_PAGE_ID)
+    .single();
+
+  if (!pageConfig) return { title: "Blog" };
+
+  const title = pageConfig.seo_title || pageConfig.titre || "Blog";
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = pageConfig.seo_description || pageConfig.description || "Découvrez nos articles et programmes de musculation.";
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+  const robots: any = {};
+  if (pageConfig.noindex) robots.index = false;
+  if (pageConfig.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: pageConfig.canonical_override || "/blog",
+    },
+  };
+}
 const DEFAULT_BLOG_TEXT = "Que votre objectif soit la <strong>prise de masse musculaire</strong>, la <strong>perte de gras (sèche)</strong> ou le <strong>développement de votre force</strong>, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, <strong>passez au niveau supérieur</strong>.";
 
 export default async function BlogPage() {

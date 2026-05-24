@@ -71,6 +71,27 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    status: false,
+    introduction: true,
+    seo: true,
+    content: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => {
+      const isCurrentlyCollapsed = prev[section];
+      const nextState: Record<string, boolean> = {};
+      Object.keys(prev).forEach(key => {
+        nextState[key] = true;
+      });
+      if (isCurrentlyCollapsed) {
+        nextState[section] = false;
+      }
+      return nextState;
+    });
+  };
+
   const fetchData = useCallback(async () => {
     setLoading(true);
 
@@ -150,131 +171,302 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               {pageId ? "Modifier la page" : "Créer une page"}
             </h2>
 
-            <div className="flex flex-col gap-5 w-full">
+            <div className="flex flex-col gap-8 w-full">
                 {/* Status Section */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Statut de la page</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Statut"
-                        selected={pageData.is_published ? "ON" : "OFF"}
-                        onSelect={(v) => setPageData({ ...pageData, is_published: v === "ON" })}
-                        options={[{ value: "ON", label: "ON" }, { value: "OFF", label: "OFF" }]}
+                  <div 
+                    onClick={() => toggleSection("status")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">Statut de la page</h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image 
+                        src="/icons/chevron_bloc.svg" 
+                        alt="Chevron" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} group-hover:hidden`} 
                       />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Langue"
-                        selected={pageData.langue}
-                        onSelect={(v) => setPageData({ ...pageData, langue: v })}
-                        options={[{ value: "Français", label: "Français", iconSrc: "/flags/france.svg" }]}
+                      <Image 
+                        src="/icons/chevron_bloc_hover.svg" 
+                        alt="Chevron Hover" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} hidden group-hover:block`} 
                       />
                     </div>
                   </div>
+                  
+                  {!collapsedSections.status && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Statut"
+                          selected={pageData.is_published ? "ON" : "OFF"}
+                          onSelect={(v) => setPageData({ ...pageData, is_published: v === "ON" })}
+                          options={[{ value: "ON", label: "ON" }, { value: "OFF", label: "OFF" }]}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Langue"
+                          selected={pageData.langue}
+                          onSelect={(v) => setPageData({ ...pageData, langue: v })}
+                          options={[{ value: "Français", label: "Français", iconSrc: "/flags/france.svg" }]}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Introduction Section */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Introduction</h3>
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Surtitre</span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Surtitre de la page"
-                        value={pageData.surtitre}
-                        onChange={(e) => setPageData({ ...pageData, surtitre: e.target.value })}
-                        className={inputClass}
+                  <div 
+                    onClick={() => toggleSection("introduction")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">Introduction</h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image 
+                        src="/icons/chevron_bloc.svg" 
+                        alt="Chevron" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} group-hover:hidden`} 
                       />
-                    </div>
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                      </div>
-                      <RichTextEditor
-                        value={pageData.titre}
-                        onChange={(val) => setPageData({ ...pageData, titre: val })}
-                        minHeight="80px"
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description</label>
-                      <RichTextEditor
-                        value={pageData.description}
-                        onChange={(val) => setPageData({ ...pageData, description: val })}
-                        minHeight="100px"
-                      />
-                    </div>
-                    {pageId === CONTACT_PAGE_ID && (
-                      <div className="flex flex-col">
-                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description (depuis Aide)</label>
-                        <RichTextEditor
-                          value={pageData.description_aide || ""}
-                          onChange={(val) => setPageData({ ...pageData, description_aide: val })}
-                          minHeight="100px"
-                        />
-                      </div>
-                    )}
-                    {pageId === BLOG_PAGE_ID && (
-                      <div className="flex flex-col">
-                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
-                        <RichTextEditor
-                          value={pageData.texte || ""}
-                          onChange={(val) => setPageData({ ...pageData, texte: val })}
-                          minHeight="120px"
-                        />
-                      </div>
-                    )}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
-                      <input
-                        type="text"
-                        placeholder="Url de la page"
-                        value={pageData.url}
-                        onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
-                        className={inputClass}
+                      <Image 
+                        src="/icons/chevron_bloc_hover.svg" 
+                        alt="Chevron Hover" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} hidden group-hover:block`} 
                       />
                     </div>
                   </div>
+                  
+                  {!collapsedSections.introduction && (
+                    <div className="flex flex-col gap-5 mt-[10px]">
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Surtitre</span>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Surtitre de la page"
+                          value={pageData.surtitre}
+                          onChange={(e) => setPageData({ ...pageData, surtitre: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                        </div>
+                        <RichTextEditor
+                          value={pageData.titre}
+                          onChange={(val) => setPageData({ ...pageData, titre: val })}
+                          minHeight="80px"
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description</label>
+                        <RichTextEditor
+                          value={pageData.description}
+                          onChange={(val) => setPageData({ ...pageData, description: val })}
+                          minHeight="100px"
+                        />
+                      </div>
+                      {pageId === CONTACT_PAGE_ID && (
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Description (depuis Aide)</label>
+                          <RichTextEditor
+                            value={pageData.description_aide || ""}
+                            onChange={(val) => setPageData({ ...pageData, description_aide: val })}
+                            minHeight="100px"
+                          />
+                        </div>
+                      )}
+                      {pageId === BLOG_PAGE_ID && (
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
+                          <RichTextEditor
+                            value={pageData.texte || ""}
+                            onChange={(val) => setPageData({ ...pageData, texte: val })}
+                            minHeight="120px"
+                          />
+                        </div>
+                      )}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
+                        <input
+                          type="text"
+                          placeholder="Url de la page"
+                          value={pageData.url}
+                          onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* SEO Section (NEW) */}
+                <div className="flex flex-col">
+                  <div 
+                    onClick={() => toggleSection("seo")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">SEO</h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image 
+                        src="/icons/chevron_bloc.svg" 
+                        alt="Chevron" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} group-hover:hidden`} 
+                      />
+                      <Image 
+                        src="/icons/chevron_bloc_hover.svg" 
+                        alt="Chevron Hover" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} hidden group-hover:block`} 
+                      />
+                    </div>
+                  </div>
+
+                  {!collapsedSections.seo && (
+                    <div className="flex flex-col gap-5 mt-[10px]">
+                      {/* Meta title */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Meta title</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {pageData.seo_title.length}/60
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Meta title"
+                          value={pageData.seo_title}
+                          onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value.slice(0, 60) })}
+                          className={inputClass}
+                          maxLength={60}
+                        />
+                      </div>
+
+                      {/* Meta description */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
+                          </span>
+                        </div>
+                        <RichTextEditor
+                          value={pageData.seo_description}
+                          onChange={(val) => setPageData({ ...pageData, seo_description: val })}
+                          minHeight="100px"
+                        />
+                      </div>
+
+                      {/* No index & No follow */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No index</label>
+                          <AdminDropdown
+                            label=""
+                            placeholder="Sélectionnez"
+                            selected={pageData.noindex ? "OUI" : "NON"}
+                            onSelect={(v) => setPageData({ ...pageData, noindex: v === "OUI" })}
+                            options={[
+                              { value: "NON", label: "NON" },
+                              { value: "OUI", label: "OUI" }
+                            ]}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No follow</label>
+                          <AdminDropdown
+                            label=""
+                            placeholder="Sélectionnez"
+                            selected={pageData.nofollow ? "OUI" : "NON"}
+                            onSelect={(v) => setPageData({ ...pageData, nofollow: v === "OUI" })}
+                            options={[
+                              { value: "NON", label: "NON" },
+                              { value: "OUI", label: "OUI" }
+                            ]}
+                          />
+                        </div>
+                      </div>
+
+                      {/* URL Canonique */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL Canonique</label>
+                        <input
+                          type="text"
+                          placeholder="Url canonique"
+                          value={pageData.canonical_override}
+                          onChange={(e) => setPageData({ ...pageData, canonical_override: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Content Section */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">Contenu de la page</h3>
-                  {isLockedPage ? (
-                    <div className="w-full h-[45px] rounded-[5px] bg-[#F8F7FC] border border-dashed border-[#D7D4DC] flex items-center justify-center gap-2 select-none">
-                      <div className="relative w-[16px] h-[16px]">
-                        <Image src="/icons/locked.svg" alt="Verrouillé" fill className="object-contain" />
-                      </div>
-                      <span className="text-[16px] font-semibold text-[#D7D4DC] tracking-wide">Contenu verrouillé</span>
+                  <div 
+                    onClick={() => toggleSection("content")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">Contenu de la page</h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image 
+                        src="/icons/chevron_bloc.svg" 
+                        alt="Chevron" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} group-hover:hidden`} 
+                      />
+                      <Image 
+                        src="/icons/chevron_bloc_hover.svg" 
+                        alt="Chevron Hover" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} hidden group-hover:block`} 
+                      />
                     </div>
-                  ) : (
-                    <>
-                      {pageData.content_blocks?.length > 0 && (
-                        <div className="mb-5">
-                          <WidgetsRenderer
-                            blocks={pageData.content_blocks}
-                            onChangeBlocks={(blocks) => setPageData({ ...pageData, content_blocks: blocks })}
-                          />
+                  </div>
+                  
+                  {!collapsedSections.content && (
+                    <div className="mt-[10px]">
+                      {isLockedPage ? (
+                        <div className="w-full h-[45px] rounded-[5px] bg-[#F8F7FC] border border-dashed border-[#D7D4DC] flex items-center justify-center gap-2 select-none">
+                          <div className="relative w-[16px] h-[16px]">
+                            <Image src="/icons/locked.svg" alt="Verrouillé" fill className="object-contain" />
+                          </div>
+                          <span className="text-[16px] font-semibold text-[#D7D4DC] tracking-wide">Contenu verrouillé</span>
                         </div>
+                      ) : (
+                        <>
+                          {pageData.content_blocks?.length > 0 && (
+                            <div className="mb-5">
+                              <WidgetsRenderer
+                                blocks={pageData.content_blocks}
+                                onChangeBlocks={(blocks) => setPageData({ ...pageData, content_blocks: blocks })}
+                              />
+                            </div>
+                          )}
+                          <button
+                            onClick={() => setIsWidgetModalOpen(true)}
+                            className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
+                          >
+                            <div className="relative w-[16px] h-[16px]">
+                              <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                            </div>
+                            <span className="text-[16px] font-semibold text-[#D7D4DC]">Ajouter un bloc de contenu</span>
+                          </button>
+                        </>
                       )}
-                      <button
-                        onClick={() => setIsWidgetModalOpen(true)}
-                        className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
-                      >
-                        <div className="relative w-[16px] h-[16px]">
-                          <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
-                        </div>
-                        <span className="text-[16px] font-semibold text-[#D7D4DC]">Ajouter un bloc de contenu</span>
-                      </button>
-                    </>
+                    </div>
                   )}
                 </div>
 

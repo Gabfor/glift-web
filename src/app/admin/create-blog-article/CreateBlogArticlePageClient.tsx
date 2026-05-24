@@ -12,6 +12,7 @@ import { BlogArticleFormState, emptyBlogArticle } from "./blogArticleForm";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
 import { ContentBlock } from "./blogArticleForm";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 
 type Props = {
   articleId: string | null;
@@ -22,6 +23,30 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   const [article, setArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
   const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    status: false,
+    introduction: true,
+    seo: true,
+    tags: true,
+    images: true,
+    related: true,
+    content: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => {
+      const isCurrentlyCollapsed = prev[section];
+      const nextState: Record<string, boolean> = {};
+      Object.keys(prev).forEach(key => {
+        nextState[key] = true;
+      });
+      if (isCurrentlyCollapsed) {
+        nextState[section] = false;
+      }
+      return nextState;
+    });
+  };
 
   const isDirty = useMemo(
     () => JSON.stringify(article) !== JSON.stringify(baseArticle),
@@ -75,6 +100,11 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           is_published: !!data.is_published,
           is_featured: !!data.is_featured,
           is_ai_generated: !!data.is_ai_generated,
+          seo_title: data.seo_title || "",
+          seo_description: data.seo_description || "",
+          noindex: !!data.noindex,
+          nofollow: !!data.nofollow,
+          canonical_override: data.canonical_override || "",
         };
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
@@ -112,6 +142,11 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         is_published: article.is_published,
         is_featured: article.is_featured,
         is_ai_generated: article.is_ai_generated,
+        seo_title: article.seo_title || null,
+        seo_description: article.seo_description || null,
+        noindex: article.noindex,
+        nofollow: article.nofollow,
+        canonical_override: article.canonical_override || null,
       };
       
       let reqError;
@@ -192,369 +227,602 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
             </div>
           )}
 
-          <div className="flex flex-col gap-5 w-full">
+          <div className="flex flex-col gap-8 w-full">
             {/* SECTION 0: STATUT DE L'ARTICLE */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Statut de l'article
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                {/* Statut (is_published) */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez le statut"
-                    selected={article.is_published ? "ON" : "OFF"}
-                    onSelect={(value) => setArticle({ ...article, is_published: value === "ON" })}
-                    options={[
-                      { value: "ON", label: "ON" },
-                      { value: "OFF", label: "OFF" },
-                    ]}
+              <div 
+                onClick={() => toggleSection("status")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Statut de l'article
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-                {/* Mis en avant (is_featured) */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Mis en avant</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez"
-                    selected={article.is_featured ? "OUI" : "NON"}
-                    onSelect={(value) => setArticle({ ...article, is_featured: value === "OUI" })}
-                    options={[
-                      { value: "OUI", label: "OUI" },
-                      { value: "NON", label: "NON" },
-                    ]}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
               </div>
 
-              {/* Langue */}
-              <div className="mt-5 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez la langue"
-                    selected={article.langue}
-                    onSelect={(value) => setArticle({ ...article, langue: value })}
-                    options={[
-                      { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
-                    ]}
-                  />
+              {!collapsedSections.status && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Statut (is_published) */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez le statut"
+                      selected={article.is_published ? "ON" : "OFF"}
+                      onSelect={(value) => setArticle({ ...article, is_published: value === "ON" })}
+                      options={[
+                        { value: "ON", label: "ON" },
+                        { value: "OFF", label: "OFF" },
+                      ]}
+                    />
+                  </div>
+                  {/* Mis en avant (is_featured) */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Mis en avant</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez"
+                      selected={article.is_featured ? "OUI" : "NON"}
+                      onSelect={(value) => setArticle({ ...article, is_featured: value === "OUI" })}
+                      options={[
+                        { value: "OUI", label: "OUI" },
+                        { value: "NON", label: "NON" },
+                      ]}
+                    />
+                  </div>
+                  {/* Langue */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez la langue"
+                      selected={article.langue}
+                      onSelect={(value) => setArticle({ ...article, langue: value })}
+                      options={[
+                        { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
+                      ]}
+                    />
+                  </div>
+                  {/* Généré par IA */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez"
+                      selected={article.is_ai_generated ? "OUI" : "NON"}
+                      onSelect={(value) => setArticle({ ...article, is_ai_generated: value === "OUI" })}
+                      options={[
+                        { value: "OUI", label: "OUI" },
+                        { value: "NON", label: "NON" },
+                      ]}
+                    />
+                  </div>
                 </div>
-                {/* Généré par IA */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez"
-                    selected={article.is_ai_generated ? "OUI" : "NON"}
-                    onSelect={(value) => setArticle({ ...article, is_ai_generated: value === "OUI" })}
-                    options={[
-                      { value: "OUI", label: "OUI" },
-                      { value: "NON", label: "NON" },
-                    ]}
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             {/* SECTION 1: INTRODUCTION */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Introduction
-              </h3>
-              <div className="flex flex-col gap-5">
-                {/* Titre */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {article.titre.length}/52
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Titre de l'article"
-                    value={article.titre || ""}
-                    onChange={(e) => setArticle({ ...article, titre: e.target.value })}
-                    className={inputClass}
-                    maxLength={52}
+              <div 
+                onClick={() => toggleSection("introduction")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Introduction
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-
-                {/* Description */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {article.description.length}/169
-                    </span>
-                  </div>
-                  <textarea
-                    placeholder="Description de l'article"
-                    value={article.description || ""}
-                    onChange={(e) => setArticle({ ...article, description: e.target.value })}
-                    className={textareaClass}
-                    maxLength={169}
-                  />
-                </div>
-
-                {/* URL */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
-                  <input
-                    type="text"
-                    placeholder="Url de l'article"
-                    value={article.url || ""}
-                    onChange={(e) => setArticle({ ...article, url: e.target.value })}
-                    className={inputClass}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
               </div>
+
+              {!collapsedSections.introduction && (
+                <div className="flex flex-col gap-5 mt-[10px]">
+                  {/* Titre */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {article.titre.length}/52
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Titre de l'article"
+                      value={article.titre || ""}
+                      onChange={(e) => setArticle({ ...article, titre: e.target.value })}
+                      className={inputClass}
+                      maxLength={52}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {article.description.length}/169
+                      </span>
+                    </div>
+                    <textarea
+                      placeholder="Description de l'article"
+                      value={article.description || ""}
+                      onChange={(e) => setArticle({ ...article, description: e.target.value })}
+                      className={textareaClass}
+                      maxLength={169}
+                    />
+                  </div>
+
+                  {/* URL */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
+                    <input
+                      type="text"
+                      placeholder="Url de l'article"
+                      value={article.url || ""}
+                      onChange={(e) => setArticle({ ...article, url: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION: SEO (NEW) */}
+            <div className="flex flex-col">
+              <div 
+                onClick={() => toggleSection("seo")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">SEO</h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} group-hover:hidden`} 
+                  />
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} hidden group-hover:block`} 
+                  />
+                </div>
+              </div>
+
+              {!collapsedSections.seo && (
+                <div className="flex flex-col gap-5 mt-[10px]">
+                  {/* Meta title */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Meta title</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {article.seo_title.length}/60
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Meta title"
+                      value={article.seo_title}
+                      onChange={(e) => setArticle({ ...article, seo_title: e.target.value.slice(0, 60) })}
+                      className={inputClass}
+                      maxLength={60}
+                    />
+                  </div>
+
+                  {/* Meta description */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {article.seo_description.replace(/<[^>]*>/g, "").length}/155
+                      </span>
+                    </div>
+                    <RichTextEditor
+                      value={article.seo_description}
+                      onChange={(val) => setArticle({ ...article, seo_description: val })}
+                      minHeight="100px"
+                    />
+                  </div>
+
+                  {/* No index & No follow */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                    <div className="flex flex-col">
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No index</label>
+                      <AdminDropdown
+                        label=""
+                        placeholder="Sélectionnez"
+                        selected={article.noindex ? "OUI" : "NON"}
+                        onSelect={(v) => setArticle({ ...article, noindex: v === "OUI" })}
+                        options={[
+                          { value: "NON", label: "NON" },
+                          { value: "OUI", label: "OUI" }
+                        ]}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No follow</label>
+                      <AdminDropdown
+                        label=""
+                        placeholder="Sélectionnez"
+                        selected={article.nofollow ? "OUI" : "NON"}
+                        onSelect={(v) => setArticle({ ...article, nofollow: v === "OUI" })}
+                        options={[
+                          { value: "NON", label: "NON" },
+                          { value: "OUI", label: "OUI" }
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* URL Canonique */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL Canonique</label>
+                    <input
+                      type="text"
+                      placeholder="Url canonique"
+                      value={article.canonical_override}
+                      onChange={(e) => setArticle({ ...article, canonical_override: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SECTION 2: TAGS */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Tags
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                {/* Catégories & Sexe */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Catégories</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez la catégorie"
-                    selected={article.categorie}
-                    onSelect={(value) => setArticle({ ...article, categorie: value })}
-                    options={[
-                      { value: "Nutrition", label: "Nutrition" },
-                      { value: "Entraînement", label: "Entraînement" },
-                      { value: "Santé", label: "Santé" },
-                      { value: "Motivation", label: "Motivation" },
-                      { value: "Lifestyle", label: "Lifestyle" },
-                    ]}
+              <div 
+                onClick={() => toggleSection("tags")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Tags
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.tags ? "rotate-180" : ""} group-hover:hidden`} 
+                  />
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.tags ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez le sexe"
-                    selected={article.sexe}
-                    onSelect={(value) => setArticle({ ...article, sexe: value })}
-                    options={[
-                      { value: "Tous", label: "Tous" },
-                      { value: "Homme", label: "Homme" },
-                      { value: "Femme", label: "Femme" },
-                    ]}
-                  />
-                </div>
-
-                {/* Niveau & Objectif */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez le niveau"
-                    selected={article.niveau}
-                    onSelect={(value) => setArticle({ ...article, niveau: value })}
-                    sortStrategy="none"
-                    options={[
-                      { value: "Débutant", label: "Débutant" },
-                      { value: "Intermédiaire", label: "Intermédiaire" },
-                      { value: "Confirmé", label: "Confirmé" },
-                      { value: "Tous", label: "Tous" },
-                    ]}
-                  />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez un objectif"
-                    selected={article.objectif}
-                    onSelect={(value) => setArticle({ ...article, objectif: value })}
-                    options={[
-                      { value: "Tous", label: "Tous" },
-                      { value: "Prise de muscle", label: "Prise de muscle" },
-                      { value: "Perte de graisse", label: "Perte de graisse" },
-                      { value: "Gain de force", label: "Gain de force" },
-                      { value: "Performance", label: "Performance" },
-                    ]}
-                  />
-                </div>
-
-                {article.type === "Programme" && (
-                  <>
-                    {/* Nombre de séances & Durée moyenne */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
-                      <input
-                        type="number"
-                        placeholder="Nombre de séances"
-                        value={article.nombre_seances || ""}
-                        onChange={(e) => setArticle({ ...article, nombre_seances: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée moyenne</label>
-                      <input
-                        type="text"
-                        placeholder="Durée moyenne"
-                        value={article.duree_moyenne || ""}
-                        onChange={(e) => setArticle({ ...article, duree_moyenne: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* Nombre de semaines & Lieu */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de semaines</label>
-                      <input
-                        type="text"
-                        placeholder="Nombre de semaines"
-                        value={article.nombre_semaines || ""}
-                        onChange={(e) => setArticle({ ...article, nombre_semaines: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le lieu"
-                        selected={article.lieu}
-                        onSelect={(value) => setArticle({ ...article, lieu: value })}
-                        options={[
-                          { value: "Salle", label: "Salle" },
-                          { value: "Domicile", label: "Domicile" },
-                        ]}
-                      />
-                    </div>
-
-                    {/* Intensité */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Intensité</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez l'intensité"
-                        selected={article.intensite}
-                        onSelect={(value) => setArticle({ ...article, intensite: value })}
-                        sortStrategy="none"
-                        options={[
-                          { value: "Faible", label: "Faible" },
-                          { value: "Modérée", label: "Modérée" },
-                          { value: "Élevée", label: "Élevée" },
-                        ]}
-                      />
-                    </div>
-                  </>
-                )}
               </div>
+
+              {!collapsedSections.tags && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Catégories & Sexe */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Catégories</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez la catégorie"
+                      selected={article.categorie}
+                      onSelect={(value) => setArticle({ ...article, categorie: value })}
+                      options={[
+                        { value: "Nutrition", label: "Nutrition" },
+                        { value: "Entraînement", label: "Entraînement" },
+                        { value: "Santé", label: "Santé" },
+                        { value: "Motivation", label: "Motivation" },
+                        { value: "Lifestyle", label: "Lifestyle" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez le sexe"
+                      selected={article.sexe}
+                      onSelect={(value) => setArticle({ ...article, sexe: value })}
+                      options={[
+                        { value: "Tous", label: "Tous" },
+                        { value: "Homme", label: "Homme" },
+                        { value: "Femme", label: "Femme" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Niveau & Objectif */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez le niveau"
+                      selected={article.niveau}
+                      onSelect={(value) => setArticle({ ...article, niveau: value })}
+                      sortStrategy="none"
+                      options={[
+                        { value: "Débutant", label: "Débutant" },
+                        { value: "Intermédiaire", label: "Intermédiaire" },
+                        { value: "Confirmé", label: "Confirmé" },
+                        { value: "Tous", label: "Tous" },
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez un objectif"
+                      selected={article.objectif}
+                      onSelect={(value) => setArticle({ ...article, objectif: value })}
+                      options={[
+                        { value: "Tous", label: "Tous" },
+                        { value: "Prise de muscle", label: "Prise de muscle" },
+                        { value: "Perte de graisse", label: "Perte de graisse" },
+                        { value: "Gain de force", label: "Gain de force" },
+                        { value: "Performance", label: "Performance" },
+                      ]}
+                    />
+                  </div>
+
+                  {article.type === "Programme" && (
+                    <>
+                      {/* Nombre de séances & Durée moyenne */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
+                        <input
+                          type="number"
+                          placeholder="Nombre de séances"
+                          value={article.nombre_seances || ""}
+                          onChange={(e) => setArticle({ ...article, nombre_seances: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée moyenne</label>
+                        <input
+                          type="text"
+                          placeholder="Durée moyenne"
+                          value={article.duree_moyenne || ""}
+                          onChange={(e) => setArticle({ ...article, duree_moyenne: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {/* Nombre de semaines & Lieu */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de semaines</label>
+                        <input
+                          type="text"
+                          placeholder="Nombre de semaines"
+                          value={article.nombre_semaines || ""}
+                          onChange={(e) => setArticle({ ...article, nombre_semaines: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le lieu"
+                          selected={article.lieu}
+                          onSelect={(value) => setArticle({ ...article, lieu: value })}
+                          options={[
+                            { value: "Salle", label: "Salle" },
+                            { value: "Domicile", label: "Domicile" },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Intensité */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Intensité</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez l'intensité"
+                          selected={article.intensite}
+                          onSelect={(value) => setArticle({ ...article, intensite: value })}
+                          sortStrategy="none"
+                          options={[
+                            { value: "Faible", label: "Faible" },
+                            { value: "Modérée", label: "Modérée" },
+                            { value: "Élevée", label: "Élevée" },
+                          ]}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* SECTION 3: IMAGES DE L'OFFRE / ARTICLE */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Images de l'offre
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                {/* Image principale */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Image principale</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">760px x 400px</span>
-                  </div>
-                  <ImageUploader
-                    value={article.image || ""}
-                    onChange={(url) => setArticle({ ...article, image: url })}
-                    placeholder="Importer un fichier"
+              <div 
+                onClick={() => toggleSection("images")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Images de l'offre
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.images ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-                {/* Alt image */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image</label>
-                  <input
-                    type="text"
-                    placeholder="Alt de l'image"
-                    value={article.image_alt || ""}
-                    onChange={(e) => setArticle({ ...article, image_alt: e.target.value })}
-                    className={inputClass}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.images ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
               </div>
+
+              {!collapsedSections.images && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Image principale */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">760px x 400px</span>
+                    </div>
+                    <ImageUploader
+                      value={article.image || ""}
+                      onChange={(url) => setArticle({ ...article, image: url })}
+                      placeholder="Importer un fichier"
+                    />
+                  </div>
+                  {/* Alt image */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image</label>
+                    <input
+                      type="text"
+                      placeholder="Alt de l'image"
+                      value={article.image_alt || ""}
+                      onChange={(e) => setArticle({ ...article, image_alt: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SECTION 4: ARTICLES LIÉS */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Articles liés
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                {/* Article 1 */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 1</label>
-                  <input
-                    type="text"
-                    placeholder="Id de l’article"
-                    value={article.article_lie_1 || ""}
-                    onChange={(e) => setArticle({ ...article, article_lie_1: e.target.value })}
-                    className={inputClass}
+              <div 
+                onClick={() => toggleSection("related")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Articles liés
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.related ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-                {/* Article 2 */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 2</label>
-                  <input
-                    type="text"
-                    placeholder="Id de l’article"
-                    value={article.article_lie_2 || ""}
-                    onChange={(e) => setArticle({ ...article, article_lie_2: e.target.value })}
-                    className={inputClass}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.related ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
               </div>
+
+              {!collapsedSections.related && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Article 1 */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 1</label>
+                    <input
+                      type="text"
+                      placeholder="Id de l’article"
+                      value={article.article_lie_1 || ""}
+                      onChange={(e) => setArticle({ ...article, article_lie_1: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                  {/* Article 2 */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Article 2</label>
+                    <input
+                      type="text"
+                      placeholder="Id de l’article"
+                      value={article.article_lie_2 || ""}
+                      onChange={(e) => setArticle({ ...article, article_lie_2: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SECTION 5: CONTENU DE L'ARTICLE */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Contenu de l'article
-              </h3>
-              
-              {article.content_blocks.length > 0 && (
-                <div className="mb-5">
-                  <WidgetsRenderer 
-                    blocks={article.content_blocks} 
-                    onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 
-                    currentNiveau={article.niveau}
-                    currentSexe={article.sexe}
-                    currentIntensite={article.intensite}
+              <div 
+                onClick={() => toggleSection("content")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Contenu de l'article
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} group-hover:hidden`} 
+                  />
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
-              )}
+              </div>
+              
+              {!collapsedSections.content && (
+                <div className="mt-[10px]">
+                  {article.content_blocks.length > 0 && (
+                    <div className="mb-5">
+                      <WidgetsRenderer 
+                        blocks={article.content_blocks} 
+                        onChangeBlocks={(blocks: ContentBlock[]) => setArticle({ ...article, content_blocks: blocks })} 
+                        currentNiveau={article.niveau}
+                        currentSexe={article.sexe}
+                        currentIntensite={article.intensite}
+                      />
+                    </div>
+                  )}
 
-              <button
-                onClick={() => {
-                  if (article.type === "Conseil") {
-                    setIsWidgetModalOpen(true);
-                  } else {
-                    setIsWidgetModalOpen(true);
-                  }
-                }}
-                className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
-              >
-                <div className="relative w-[16px] h-[16px]">
-                  <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                  <button
+                    onClick={() => {
+                      if (article.type === "Conseil") {
+                        setIsWidgetModalOpen(true);
+                      } else {
+                        setIsWidgetModalOpen(true);
+                      }
+                    }}
+                    className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
+                  >
+                    <div className="relative w-[16px] h-[16px]">
+                      <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                    </div>
+                    <span className="text-[16px] font-semibold text-[#D7D4DC] transition-colors">
+                      Ajouter un bloc de contenu
+                    </span>
+                  </button>
                 </div>
-                <span className="text-[16px] font-semibold text-[#D7D4DC] transition-colors">
-                  Ajouter un bloc de contenu
-                </span>
-              </button>
+              )}
             </div>
 
             <div className="flex justify-center">

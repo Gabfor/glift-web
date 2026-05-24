@@ -4,8 +4,38 @@ import StorePageClient from "./StorePageClient";
 import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import { StoreProfile } from "@/types/store";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createServerClient();
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
+    .single();
+
+  if (!pageConfig) return { title: "Store" };
+
+  const title = pageConfig.seo_title || pageConfig.titre || "Glift Store";
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = pageConfig.seo_description || pageConfig.description || "Téléchargez des programmes de musculation professionnels.";
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+  const robots: any = {};
+  if (pageConfig.noindex) robots.index = false;
+  if (pageConfig.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: pageConfig.canonical_override || "/store",
+    },
+  };
+}
 
 import StoreHeader from "@/components/store/StoreHeader";
 

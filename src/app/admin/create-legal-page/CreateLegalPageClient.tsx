@@ -9,6 +9,7 @@ import BackLink from "@/components/BackLink";
 import Image from "next/image";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import {
   LegalPageFormState,
   emptyLegalPage,
@@ -55,6 +56,27 @@ export default function CreateLegalPageClient({ pageId }: Props) {
   const [basePageData, setBasePageData] = useState<LegalPageFormState>(emptyLegalPage);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    status: false,
+    introduction: true,
+    seo: true,
+    content: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections(prev => {
+      const isCurrentlyCollapsed = prev[section];
+      const nextState: Record<string, boolean> = {};
+      Object.keys(prev).forEach(key => {
+        nextState[key] = true;
+      });
+      if (isCurrentlyCollapsed) {
+        nextState[section] = false;
+      }
+      return nextState;
+    });
+  };
 
   const isDirty = useMemo(
     () => JSON.stringify(pageData) !== JSON.stringify(basePageData),
@@ -143,188 +165,358 @@ export default function CreateLegalPageClient({ pageId }: Props) {
           <div className="flex flex-col gap-5 w-full">
             {/* SECTION 0: STATUT DE LA PAGE */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Statut de la page
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                {/* Statut (is_published) */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez le statut"
-                    selected={pageData.is_published ? "ON" : "OFF"}
-                    onSelect={(value) => setPageData({ ...pageData, is_published: value === "ON" })}
-                    options={[
-                      { value: "ON", label: "ON" },
-                      { value: "OFF", label: "OFF" },
-                    ]}
+              <div 
+                onClick={() => toggleSection("status")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Statut de la page
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-                
-                {/* Langue */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
-                  <AdminDropdown
-                    label=""
-                    placeholder="Sélectionnez la langue"
-                    selected={pageData.langue}
-                    onSelect={(value) => setPageData({ ...pageData, langue: value })}
-                    options={[
-                      { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
-                    ]}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
-                </div>
-
-                {/* Date MAJ */}
-                <div className="flex flex-col md:col-span-1">
-                  <div className="flex items-center justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Date MAJ</span>
-                    {pageData.updated_at && (
-                      <button
-                        type="button"
-                        onClick={() => setPageData({ ...pageData, updated_at: "" })}
-                        className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
-                      >
-                        Effacer
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <>
-                      {/* Jour */}
-                      <AdminDropdown
-                        className="w-[88px]"
-                        label=""
-                        placeholder="Jour"
-                        selected={updatedDay || ""}
-                        onSelect={(day) => {
-                          setPageData({
-                            ...pageData,
-                            updated_at: `${updatedYear || ""}-${updatedMonth || ""}-${day}`,
-                          });
-                        }}
-                        options={days.map((day) => ({
-                          value: day,
-                          label: day,
-                        }))}
-                        allowTyping
-                        digitsOnly
-                        inputLength={2}
-                        padWithZero
-                      />
-
-                      {/* Mois */}
-                      <AdminDropdown
-                        className="w-[154px]"
-                        label=""
-                        placeholder="Mois"
-                        selected={updatedMonth || ""}
-                        onSelect={(month) => {
-                          setPageData({
-                            ...pageData,
-                            updated_at: `${updatedYear || ""}-${month}-${updatedDay || ""}`,
-                          });
-                        }}
-                        options={months}
-                        allowTyping
-                        digitsOnly
-                        inputLength={2}
-                        padWithZero
-                        sortStrategy="month"
-                      />
-
-                      {/* Année */}
-                      <AdminDropdown
-                        className="w-[111px]"
-                        label=""
-                        placeholder="Année"
-                        selected={updatedYear || ""}
-                        onSelect={(year) => {
-                          setPageData({
-                            ...pageData,
-                            updated_at: `${year}-${updatedMonth || ""}-${updatedDay || ""}`,
-                          });
-                        }}
-                        options={years.map((year) => ({
-                          value: year,
-                          label: year,
-                        }))}
-                        allowTyping
-                        digitsOnly
-                        inputLength={4}
-                        sortStrategy="none"
-                      />
-                    </>
-                  </div>
                 </div>
               </div>
+
+              {!collapsedSections.status && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Statut (is_published) */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez le statut"
+                      selected={pageData.is_published ? "ON" : "OFF"}
+                      onSelect={(value) => setPageData({ ...pageData, is_published: value === "ON" })}
+                      options={[
+                        { value: "ON", label: "ON" },
+                        { value: "OFF", label: "OFF" },
+                      ]}
+                    />
+                  </div>
+                  
+                  {/* Langue */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Langue</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez la langue"
+                      selected={pageData.langue}
+                      onSelect={(value) => setPageData({ ...pageData, langue: value })}
+                      options={[
+                        { value: "Français", label: "Français", iconSrc: "/flags/france.svg" },
+                      ]}
+                    />
+                  </div>
+
+                  {/* Date MAJ */}
+                  <div className="flex flex-col md:col-span-1">
+                    <div className="flex items-center justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Date MAJ</span>
+                      {pageData.updated_at && (
+                        <button
+                          type="button"
+                          onClick={() => setPageData({ ...pageData, updated_at: "" })}
+                          className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+                        >
+                          Effacer
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
+                      <>
+                        {/* Jour */}
+                        <AdminDropdown
+                          className="w-[88px]"
+                          label=""
+                          placeholder="Jour"
+                          selected={updatedDay || ""}
+                          onSelect={(day) => {
+                            setPageData({
+                              ...pageData,
+                              updated_at: `${updatedYear || ""}-${updatedMonth || ""}-${day}`,
+                            });
+                          }}
+                          options={days.map((day) => ({
+                            value: day,
+                            label: day,
+                          }))}
+                          allowTyping
+                          digitsOnly
+                          inputLength={2}
+                          padWithZero
+                        />
+
+                        {/* Mois */}
+                        <AdminDropdown
+                          className="w-[154px]"
+                          label=""
+                          placeholder="Mois"
+                          selected={updatedMonth || ""}
+                          onSelect={(month) => {
+                            setPageData({
+                              ...pageData,
+                              updated_at: `${updatedYear || ""}-${month}-${updatedDay || ""}`,
+                            });
+                          }}
+                          options={months}
+                          allowTyping
+                          digitsOnly
+                          inputLength={2}
+                          padWithZero
+                          sortStrategy="month"
+                        />
+
+                        {/* Année */}
+                        <AdminDropdown
+                          className="w-[111px]"
+                          label=""
+                          placeholder="Année"
+                          selected={updatedYear || ""}
+                          onSelect={(year) => {
+                            setPageData({
+                              ...pageData,
+                              updated_at: `${year}-${updatedMonth || ""}-${updatedDay || ""}`,
+                            });
+                          }}
+                          options={years.map((year) => ({
+                            value: year,
+                            label: year,
+                          }))}
+                          allowTyping
+                          digitsOnly
+                          inputLength={4}
+                          sortStrategy="none"
+                        />
+                      </>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SECTION 1: INTRODUCTION */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Introduction
-              </h3>
-              <div className="flex flex-col gap-5">
-                {/* Titre */}
-                <div className="flex flex-col">
-                  <div className="flex justify-between mb-[5px]">
-                    <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                    <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                      {pageData.titre.length}/52
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Titre de la page"
-                    value={pageData.titre}
-                    onChange={(e) => setPageData({ ...pageData, titre: e.target.value })}
-                    className={inputClass}
-                    maxLength={52}
+              <div 
+                onClick={() => toggleSection("introduction")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Introduction
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} group-hover:hidden`} 
                   />
-                </div>
-
-                {/* URL */}
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
-                  <input
-                    type="text"
-                    placeholder="Url de la page"
-                    value={pageData.url}
-                    onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
-                    className={inputClass}
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.introduction ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
               </div>
+
+              {!collapsedSections.introduction && (
+                <div className="flex flex-col gap-5 mt-[10px]">
+                  {/* Titre */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {pageData.titre.length}/52
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Titre de la page"
+                      value={pageData.titre}
+                      onChange={(e) => setPageData({ ...pageData, titre: e.target.value })}
+                      className={inputClass}
+                      maxLength={52}
+                    />
+                  </div>
+
+                  {/* URL */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL</label>
+                    <input
+                      type="text"
+                      placeholder="Url de la page"
+                      value={pageData.url}
+                      onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION: SEO (NEW) */}
+            <div className="flex flex-col">
+              <div 
+                onClick={() => toggleSection("seo")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">SEO</h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} group-hover:hidden`} 
+                  />
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} hidden group-hover:block`} 
+                  />
+                </div>
+              </div>
+
+              {!collapsedSections.seo && (
+                <div className="flex flex-col gap-5 mt-[10px]">
+                  {/* Meta title */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Meta title</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {pageData.seo_title.length}/60
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Meta title"
+                      value={pageData.seo_title}
+                      onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value.slice(0, 60) })}
+                      className={inputClass}
+                      maxLength={60}
+                    />
+                  </div>
+
+                  {/* Meta description */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
+                      </span>
+                    </div>
+                    <RichTextEditor
+                      value={pageData.seo_description}
+                      onChange={(val) => setPageData({ ...pageData, seo_description: val })}
+                      minHeight="100px"
+                    />
+                  </div>
+
+                  {/* No index & No follow */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                    <div className="flex flex-col">
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No index</label>
+                      <AdminDropdown
+                        label=""
+                        placeholder="Sélectionnez"
+                        selected={pageData.noindex ? "OUI" : "NON"}
+                        onSelect={(v) => setPageData({ ...pageData, noindex: v === "OUI" })}
+                        options={[
+                          { value: "NON", label: "NON" },
+                          { value: "OUI", label: "OUI" }
+                        ]}
+                      />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No follow</label>
+                      <AdminDropdown
+                        label=""
+                        placeholder="Sélectionnez"
+                        selected={pageData.nofollow ? "OUI" : "NON"}
+                        onSelect={(v) => setPageData({ ...pageData, nofollow: v === "OUI" })}
+                        options={[
+                          { value: "NON", label: "NON" },
+                          { value: "OUI", label: "OUI" }
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  {/* URL Canonique */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL Canonique</label>
+                    <input
+                      type="text"
+                      placeholder="Url canonique"
+                      value={pageData.canonical_override}
+                      onChange={(e) => setPageData({ ...pageData, canonical_override: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* SECTION 2: CONTENU DE LA PAGE */}
             <div className="flex flex-col">
-              <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px] tracking-wide">
-                Contenu de la page
-              </h3>
-              
-              {pageData.content_blocks && pageData.content_blocks.length > 0 && (
-                <div className="mb-5">
-                  <WidgetsRenderer 
-                    blocks={pageData.content_blocks} 
-                    onChangeBlocks={(blocks: ContentBlock[]) => setPageData({ ...pageData, content_blocks: blocks })} 
+              <div 
+                onClick={() => toggleSection("content")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Contenu de la page
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image 
+                    src="/icons/chevron_bloc.svg" 
+                    alt="Chevron" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} group-hover:hidden`} 
+                  />
+                  <Image 
+                    src="/icons/chevron_bloc_hover.svg" 
+                    alt="Chevron Hover" 
+                    fill 
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.content ? "rotate-180" : ""} hidden group-hover:block`} 
                   />
                 </div>
-              )}
+              </div>
+              
+              {!collapsedSections.content && (
+                <div className="mt-[10px]">
+                  {pageData.content_blocks && pageData.content_blocks.length > 0 && (
+                    <div className="mb-5">
+                      <WidgetsRenderer 
+                        blocks={pageData.content_blocks} 
+                        onChangeBlocks={(blocks: ContentBlock[]) => setPageData({ ...pageData, content_blocks: blocks })} 
+                      />
+                    </div>
+                  )}
 
-              <button
-                onClick={() => setIsWidgetModalOpen(true)}
-                className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
-              >
-                <div className="relative w-[16px] h-[16px]">
-                  <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                  <button
+                    onClick={() => setIsWidgetModalOpen(true)}
+                    className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
+                  >
+                    <div className="relative w-[16px] h-[16px]">
+                      <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                    </div>
+                    <span className="text-[16px] font-semibold text-[#D7D4DC] transition-colors">
+                      Ajouter un bloc de contenu
+                    </span>
+                  </button>
                 </div>
-                <span className="text-[16px] font-semibold text-[#D7D4DC] transition-colors">
-                  Ajouter un bloc de contenu
-                </span>
-              </button>
+              )}
             </div>
 
             <div className="flex justify-center">

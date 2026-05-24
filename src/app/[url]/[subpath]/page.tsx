@@ -19,6 +19,78 @@ const categoryMapping: Record<string, string> = {
   "lifestyle": "Lifestyle"
 };
 
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ url: string; subpath: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const { url: customUrl, subpath } = resolvedParams;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+  const slug = decodeURIComponent(subpath).toLowerCase();
+
+  const supabase = await createServerClient();
+
+  // 1. Tente de récupérer un article de blog
+  const { data: articles } = await (supabase.from("blog_articles") as any)
+    .select("titre, description, image_url, image_alt, langue, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("url", subpath)
+    .eq("is_published", true)
+    .limit(1);
+
+  if (articles && articles.length > 0) {
+    const article = articles[0];
+    const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en' : 'fr';
+    
+    const languages: Record<string, string> = {};
+    if (isoLang === 'fr') {
+      languages['fr'] = `${siteUrl}/${customUrl}/${subpath}`;
+      languages['en'] = `${siteUrl}/en/${customUrl}/${subpath}`;
+    } else {
+      languages['en'] = `${siteUrl}/${customUrl}/${subpath}`;
+      languages['fr'] = `${siteUrl}/fr/${customUrl}/${subpath}`;
+    }
+
+    const title = article.seo_title || article.titre || "";
+    const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+    const description = article.seo_description || article.description || "";
+    const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+    const robots: any = {};
+    if (article.noindex) robots.index = false;
+    if (article.nofollow) robots.follow = false;
+
+    return {
+      title: plainTitle,
+      description: plainDescription,
+      robots: Object.keys(robots).length > 0 ? robots : undefined,
+      alternates: {
+        canonical: article.canonical_override || `/${customUrl}/${subpath}`,
+        languages: languages,
+      },
+      openGraph: article.image_url ? {
+        images: [{ url: article.image_url, alt: article.image_alt || article.titre }],
+      } : undefined,
+    };
+  }
+
+  // 2. Tente de voir si c'est une catégorie
+  const categoryName = categoryMapping[slug];
+  if (categoryName) {
+    return {
+      title: `Conseils & Programmes ${categoryName}`,
+      description: `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`,
+      alternates: {
+        canonical: `/${customUrl}/${subpath}`,
+      },
+    };
+  }
+
+  return {};
+}
+
 export default async function BlogSubpathPage({
   params,
 }: {
@@ -52,8 +124,46 @@ export default async function BlogSubpathPage({
 
   if (!error && articles && articles.length > 0) {
     const article = articles[0];
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+    const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
+
+    // Détermine l'auteur : utilise article.auteur si la colonne existe plus tard, sinon "Glift"
+    const authorName = (article as any).auteur || "Glift";
+
     return (
       <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              "headline": article.titre,
+              "description": article.description,
+              "inLanguage": isoLang,
+              "image": article.image_url ? [article.image_url] : [],
+              "datePublished": article.created_at,
+              "dateModified": article.updated_at || article.created_at,
+              "author": {
+                "@type": "Organization",
+                "name": authorName,
+                "url": siteUrl
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "Glift",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": `${siteUrl}/logo-glift.svg`
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `${siteUrl}/${customUrl}/${subpath}`
+              }
+            })
+          }}
+        />
         <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto px-4 mb-[20px]">

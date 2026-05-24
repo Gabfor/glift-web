@@ -2,6 +2,67 @@ import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRenderer";
 import DashboardClient from "@/app/dashboard/DashboardClient";
+import type { Metadata } from "next";
+
+export async function generateMetadata({ params }: { params: Promise<{ url: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+  const supabase = await createServerClient();
+  
+  // 1. Cherche dans les pages juridiques
+  let { data: pages } = await (supabase as any)
+    .from("legal_pages")
+    .select("titre, description, langue, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("url", resolvedParams.url)
+    .eq("is_published", true)
+    .limit(1);
+
+  if (!pages || pages.length === 0) {
+    // 2. Cherche dans les pages génériques
+    const { data: genericPages } = await (supabase as any)
+      .from("pages")
+      .select("titre, description, langue, seo_title, seo_description, noindex, nofollow, canonical_override")
+      .eq("url", resolvedParams.url)
+      .eq("is_published", true)
+      .limit(1);
+    
+    pages = genericPages;
+  }
+
+  if (!pages || pages.length === 0) return {};
+
+  const page = pages[0];
+  const title = page.seo_title || page.titre || "";
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = page.seo_description || page.description || "";
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+  
+  const isoLang = page.langue && page.langue.toLowerCase().includes('ang') ? 'en' : 'fr';
+
+  // Préparation des alternatives de langues (hreflang)
+  const languages: Record<string, string> = {};
+  if (isoLang === 'fr') {
+    languages['fr'] = `${siteUrl}/${resolvedParams.url}`;
+    languages['en'] = `${siteUrl}/en/${resolvedParams.url}`;
+  } else {
+    languages['en'] = `${siteUrl}/${resolvedParams.url}`;
+    languages['fr'] = `${siteUrl}/fr/${resolvedParams.url}`;
+  }
+
+  const robots: any = {};
+  if (page.noindex) robots.index = false;
+  if (page.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: page.canonical_override || `/${resolvedParams.url}`,
+      languages: languages,
+    },
+  };
+}
 
 import ShopPageClient from "@/app/shop/ShopPageClient";
 import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";

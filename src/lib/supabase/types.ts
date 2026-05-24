@@ -785,6 +785,11 @@ export interface Database {
           url: string;
           surtitre: Nullable<string>;
           description: Nullable<string>;
+          seo_title: Nullable<string>;
+          seo_description: Nullable<string>;
+          noindex: boolean;
+          nofollow: boolean;
+          canonical_override: Nullable<string>;
         };
         Insert: {
           id?: string;
@@ -797,6 +802,11 @@ export interface Database {
           url: string;
           surtitre?: Nullable<string>;
           description?: Nullable<string>;
+          seo_title?: Nullable<string>;
+          seo_description?: Nullable<string>;
+          noindex?: boolean;
+          nofollow?: boolean;
+          canonical_override?: Nullable<string>;
         };
         Update: {
           id?: string;
@@ -809,6 +819,11 @@ export interface Database {
           url?: string;
           surtitre?: Nullable<string>;
           description?: Nullable<string>;
+          seo_title?: Nullable<string>;
+          seo_description?: Nullable<string>;
+          noindex?: boolean;
+          nofollow?: boolean;
+          canonical_override?: Nullable<string>;
         };
         Relationships: never[];
       };
@@ -825,6 +840,11 @@ export interface Database {
           image: Nullable<string>;
           category: Nullable<string>;
           description: Nullable<string>;
+          seo_title: Nullable<string>;
+          seo_description: Nullable<string>;
+          noindex: boolean;
+          nofollow: boolean;
+          canonical_override: Nullable<string>;
         };
         Insert: {
           id?: string;
@@ -838,6 +858,11 @@ export interface Database {
           image?: Nullable<string>;
           category?: Nullable<string>;
           description?: Nullable<string>;
+          seo_title?: Nullable<string>;
+          seo_description?: Nullable<string>;
+          noindex?: boolean;
+          nofollow?: boolean;
+          canonical_override?: Nullable<string>;
         };
         Update: {
           id?: string;
@@ -851,6 +876,11 @@ export interface Database {
           image?: Nullable<string>;
           category?: Nullable<string>;
           description?: Nullable<string>;
+          seo_title?: Nullable<string>;
+          seo_description?: Nullable<string>;
+          noindex?: boolean;
+          nofollow?: boolean;
+          canonical_override?: Nullable<string>;
         };
         Relationships: never[];
       };

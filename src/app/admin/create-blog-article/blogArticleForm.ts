@@ -214,6 +214,11 @@ export type BlogArticleFormState = {
   is_published: boolean;
   is_featured: boolean;
   is_ai_generated: boolean;
+  seo_title: string;
+  seo_description: string;
+  noindex: boolean;
+  nofollow: boolean;
+  canonical_override: string;
 };
 
 export const emptyBlogArticle: BlogArticleFormState = {
@@ -239,4 +244,9 @@ export const emptyBlogArticle: BlogArticleFormState = {
   is_published: false,
   is_featured: false,
   is_ai_generated: false,
+  seo_title: "",
+  seo_description: "",
+  noindex: false,
+  nofollow: false,
+  canonical_override: "",
 };

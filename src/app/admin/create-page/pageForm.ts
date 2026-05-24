@@ -12,6 +12,11 @@ export type PageFormState = {
   content_blocks: ContentBlock[];
   texte?: string;
   description_aide?: string;
+  seo_title: string;
+  seo_description: string;
+  noindex: boolean;
+  nofollow: boolean;
+  canonical_override: string;
 };
 
 export const BLOG_PAGE_ID = "f9709b0b-b513-4d53-a6ef-d9cda3f0a706";
@@ -29,6 +34,11 @@ export const emptyPage: PageFormState = {
   content_blocks: [],
   texte: "",
   description_aide: "",
+  seo_title: "",
+  seo_description: "",
+  noindex: false,
+  nofollow: false,
+  canonical_override: "",
 };
 
 export const mapPageRowToForm = (row: any): PageFormState => {
@@ -58,6 +68,11 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     content_blocks: row.content_blocks || [],
     texte,
     description_aide,
+    seo_title: row.seo_title || "",
+    seo_description: row.seo_description || "",
+    noindex: !!row.noindex,
+    nofollow: !!row.nofollow,
+    canonical_override: row.canonical_override || "",
   };
 };
 
@@ -74,6 +89,11 @@ export const buildPagePayload = (form: PageFormState) => {
       : form.id === CONTACT_PAGE_ID
       ? [{ id: "contact-desc-aide", type: "description_aide", texte: form.description_aide || "" }]
       : form.content_blocks,
+    seo_title: form.seo_title || null,
+    seo_description: form.seo_description || null,
+    noindex: form.noindex,
+    nofollow: form.nofollow,
+    canonical_override: form.canonical_override || null,
   };
 
   if (form.updated_at) {
