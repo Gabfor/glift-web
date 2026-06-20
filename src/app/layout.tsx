@@ -11,12 +11,16 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://glift.io"),
   title: {
     default: "Glift - Musculation & Fitness",
     template: "%s | Glift",
   },
   description: "Digitalisez vos programmes de musculation, suivez vos performances et progressez efficacement avec Glift.",
   manifest: "/manifest.webmanifest",
+  authors: [{ name: "Glift" }],
+  publisher: "Glift",
+  creator: "Glift",
   icons: {
     icon: "/favicons/front/favicon-32x32.png",
     apple: "/favicons/front/apple-touch-icon.png",

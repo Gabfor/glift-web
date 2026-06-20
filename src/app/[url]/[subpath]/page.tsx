@@ -35,7 +35,7 @@ export async function generateMetadata({
 
   // 1. Tente de récupérer un article de blog
   const { data: articles } = await (supabase.from("blog_articles") as any)
-    .select("titre, description, image_url, image_alt, langue, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .select("titre, description, image_url, image_alt, langue, seo_title, seo_description, noindex, nofollow, canonical_override, auteur")
     .eq("url", subpath)
     .eq("is_published", true)
     .limit(1);
@@ -62,9 +62,13 @@ export async function generateMetadata({
     if (article.noindex) robots.index = false;
     if (article.nofollow) robots.follow = false;
 
+    const authorName = (article as any).auteur || "Glift";
+
     return {
       title: plainTitle,
       description: plainDescription,
+      authors: [{ name: authorName }],
+      publisher: "Glift",
       robots: Object.keys(robots).length > 0 ? robots : undefined,
       alternates: {
         canonical: article.canonical_override || `/${customUrl}/${subpath}`,

@@ -6,6 +6,7 @@ import BlogArticleBlocksRenderer from "./BlogArticleBlocksRenderer";
 import RelatedArticles from "./RelatedArticles";
 import Tooltip from "@/components/Tooltip";
 import BlogListClient from "../BlogListClient";
+import type { Metadata } from "next";
 
 // Next.js Route Cache & revalidation (opt-in)
 export const revalidate = 60;
@@ -20,9 +21,85 @@ const categoryMapping: Record<string, string> = {
   "lifestyle": "Lifestyle"
 };
 
-export default async function BlogArticlePage({ params }: { params: { url: string } }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ url: string }>;
+}): Promise<Metadata> {
+  const resolvedParams = await params;
+  const { url } = resolvedParams;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+  const slug = decodeURIComponent(url).toLowerCase();
+
   const supabase = await createServerClient();
-  const slug = decodeURIComponent(params.url).toLowerCase();
+
+  // 1. Tente de récupérer un article de blog
+  const { data: articles } = await (supabase.from("blog_articles") as any)
+    .select("titre, description, image_url, image_alt, langue, seo_title, seo_description, noindex, nofollow, canonical_override, auteur")
+    .eq("url", url)
+    .eq("is_published", true)
+    .limit(1);
+
+  if (articles && articles.length > 0) {
+    const article = articles[0];
+    const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en' : 'fr';
+    
+    const languages: Record<string, string> = {};
+    if (isoLang === 'fr') {
+      languages['fr'] = `${siteUrl}/blog/${url}`;
+      languages['en'] = `${siteUrl}/en/blog/${url}`;
+    } else {
+      languages['en'] = `${siteUrl}/blog/${url}`;
+      languages['fr'] = `${siteUrl}/fr/blog/${url}`;
+    }
+
+    const title = article.seo_title || article.titre || "";
+    const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+    const description = article.seo_description || article.description || "";
+    const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+    const robots: any = {};
+    if (article.noindex) robots.index = false;
+    if (article.nofollow) robots.follow = false;
+
+    const authorName = (article as any).auteur || "Glift";
+
+    return {
+      title: plainTitle,
+      description: plainDescription,
+      authors: [{ name: authorName }],
+      publisher: "Glift",
+      robots: Object.keys(robots).length > 0 ? robots : undefined,
+      alternates: {
+        canonical: article.canonical_override || `/blog/${url}`,
+        languages: languages,
+      },
+      openGraph: article.image_url ? {
+        images: [{ url: article.image_url, alt: article.image_alt || article.titre }],
+      } : undefined,
+    };
+  }
+
+  // 2. Tente de voir si c'est une catégorie
+  const categoryName = categoryMapping[slug];
+  if (categoryName) {
+    return {
+      title: `Conseils & Programmes ${categoryName}`,
+      description: `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`,
+      alternates: {
+        canonical: `/blog/${url}`,
+      },
+    };
+  }
+
+  return {};
+}
+
+export default async function BlogArticlePage({ params }: { params: Promise<{ url: string }> }) {
+  const resolvedParams = await params;
+  const { url } = resolvedParams;
+  const supabase = await createServerClient();
+  const slug = decodeURIComponent(url).toLowerCase();
 
   // Fetch blog dynamic URL
   const { data: blogConfig } = await supabase
@@ -32,7 +109,7 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
     .single();
 
   if (blogConfig?.url && blogConfig.url !== "blog") {
-    redirect(`/${blogConfig.url}/${params.url}`);
+    redirect(`/${blogConfig.url}/${url}`);
   }
 
   const blogUrl = blogConfig?.url ? `/${blogConfig.url}` : "/blog";
@@ -40,14 +117,50 @@ export default async function BlogArticlePage({ params }: { params: { url: strin
   // 1. Fetch article
   const { data: articles, error } = await (supabase.from("blog_articles") as any)
     .select("*")
-    .eq("url", params.url) // Use original param for article lookup
+    .eq("url", url) // Use original param for article lookup
     .eq("is_published", true)
     .limit(1);
 
   if (!error && articles && articles.length > 0) {
     const article = articles[0];
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+    const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
+    const authorName = (article as any).auteur || "Glift";
+
     return (
       <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BlogPosting",
+              "headline": article.titre,
+              "description": article.description,
+              "inLanguage": isoLang,
+              "image": article.image_url ? [article.image_url] : [],
+              "datePublished": article.created_at,
+              "dateModified": article.updated_at || article.created_at,
+              "author": {
+                "@type": "Organization",
+                "name": authorName,
+                "url": siteUrl
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "Glift",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": `${siteUrl}/logo-glift.svg`
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `${siteUrl}/blog/${url}`
+              }
+            })
+          }}
+        />
         <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto px-4 mb-[20px]">
