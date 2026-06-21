@@ -41,8 +41,8 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
   }
 
   return (
-    <div className="mt-[50px]">
-      <div className="w-full h-[1px] bg-[#E7E8EA] mb-[40px]" />
+    <div>
+      <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
       
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-[20px] gap-6">
         <div className="flex flex-col gap-1">

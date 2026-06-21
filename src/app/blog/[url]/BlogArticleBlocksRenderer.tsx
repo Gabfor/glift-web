@@ -386,7 +386,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                 <div className="w-full h-[1px] bg-[#E7E8EA]" />
                 <div
                   id={block.ancreId || undefined}
-                  className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px]"
+                  className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px]"
                 >
                 {block.titre && (
                   <h3 className="text-[14px] font-bold text-[#2E3271]">
