@@ -473,7 +473,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
 
         {!isGenericPage && page.updated_at && (
           <div className="text-[14px] text-[#5D6494] font-semibold text-center mb-[40px]">
-            Dernière mise à jour : {new Date(page.updated_at).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+            Dernière mise à jour : {new Date(page.updated_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
           </div>
         )}
 
