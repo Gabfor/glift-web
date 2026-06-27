@@ -110,6 +110,10 @@ export interface Database {
           show_repos: boolean;
           show_link: boolean;
           show_notes: boolean;
+          show_suivi: boolean;
+          show_superset: boolean;
+          show_summary: boolean;
+          show_goals: boolean;
           default_session_count: number | null;
         };
         Insert: {
@@ -129,6 +133,12 @@ export interface Database {
           show_effort?: boolean;
           show_materiel?: boolean;
           show_repos?: boolean;
+          show_link?: boolean;
+          show_notes?: boolean;
+          show_suivi?: boolean;
+          show_superset?: boolean;
+          show_summary?: boolean;
+          show_goals?: boolean;
           default_session_count?: number | null;
         };
         Update: {
@@ -148,6 +158,12 @@ export interface Database {
           show_effort?: boolean;
           show_materiel?: boolean;
           show_repos?: boolean;
+          show_link?: boolean;
+          show_notes?: boolean;
+          show_suivi?: boolean;
+          show_superset?: boolean;
+          show_summary?: boolean;
+          show_goals?: boolean;
           default_session_count?: number | null;
         };
         Relationships: never[];
