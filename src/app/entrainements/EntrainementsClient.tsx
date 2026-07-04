@@ -65,9 +65,9 @@ export default function EntrainementsPage({
     handleDuplicateProgram,
   } = usePrograms();
 
-  const showSkeleton = useMinimumVisibility(isLoading, 400); // 400ms masks the very fast client fetch to match SSR feeling
+  const { isPremiumUser, isUserDataLoaded } = useUser();
 
-  const { isPremiumUser } = useUser();
+  const showSkeleton = useMinimumVisibility(isLoading || !isUserDataLoaded, 400); // 400ms masks the very fast client fetch to match SSR feeling
 
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [showProgramDeleteModal, setShowProgramDeleteModal] = useState(false);
@@ -123,7 +123,7 @@ export default function EntrainementsPage({
   // Sync 'locked' column with subscription status and position
   const supabase = useSupabaseClient();
   useEffect(() => {
-    if (isLoading || !programs) return;
+    if (isLoading || !programs || !isUserDataLoaded) return;
 
     const syncLocks = async () => {
       const toLock: string[] = [];
@@ -208,7 +208,7 @@ export default function EntrainementsPage({
     };
 
     syncLocks();
-  }, [programs, isPremiumUser, isLoading, supabase]);
+  }, [programs, isPremiumUser, isLoading, isUserDataLoaded, supabase]);
 
   const handleTrainingNavigation = useCallback(
     async (trainingId: string) => {
