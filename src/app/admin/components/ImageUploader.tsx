@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabaseClient";
+import { compressImage } from "@/lib/imageCompression";
 
 type Props = {
   value: string;
@@ -29,18 +30,21 @@ export default function ImageUploader({
 
     setLoading(true);
     try {
-      // Nom de fichier unique
-      const fileExt = file.name.split('.').pop();
+      // Compression de l'image côté client
+      const compressedFile = await compressImage(file);
+
+      // Nom de fichier unique avec l'extension du fichier potentiellement compressé
+      const fileExt = compressedFile.name.split('.').pop();
       const fileName = `${Date.now()}.${fileExt}`;
 
       // Chemin dans le bucket
       const filePath = basePath ? `${basePath}/${fileName}` : fileName;
 
-      // Upload dans Supabase Storage
+      // Upload dans Supabase Storage du fichier compressé
       const { error } = await supabase
         .storage
         .from(bucket)
-        .upload(filePath, file, { upsert: true });
+        .upload(filePath, compressedFile, { upsert: true });
 
       if (error) {
         console.error("Supabase Storage error:", error);
