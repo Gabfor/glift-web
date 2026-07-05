@@ -10,6 +10,7 @@ const adminLinks = [
 
   { title: "Cartes Shop", href: "/admin/offer-shop", visual: "shop" },
   { title: "Blog", href: "/admin/content-blog", visual: "blog" },
+  { title: "Auteurs", href: "/admin/auteurs", visual: "authors" },
   { title: "Aide", href: "/admin/help", visual: "help" },
   { title: "Utilisateurs", href: "/admin/users", visual: "users" },
   { title: "Pages légales", href: "/admin/legal", visual: "legal" },
@@ -60,6 +61,7 @@ function CardVisual({ type }: { type: string }) {
     case "blog":
     case "users":
     case "legal":
+    case "authors":
       return (
         <>
           <div className={`${base} w-[60px] h-[8px] mb-3`} />
