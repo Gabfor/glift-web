@@ -53,6 +53,54 @@ export default function CreateAuteurClient({ auteurId }: Props) {
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Initial state for change detection (isDirty)
+  const [initialAuthorState, setInitialAuthorState] = useState({
+    prenom: "",
+    nom: "",
+    poste_actuel: "",
+    image_url: "",
+    image_alt: "",
+    experience: "",
+    expertise: "",
+    description_courte: "",
+    description: "",
+    liens_sociaux: [{ platform: "", url: "" }] as SocialLink[],
+    statut: true,
+    langue: "Français",
+  });
+
+  const currentAuthorState = useMemo(() => ({
+    prenom,
+    nom,
+    poste_actuel: posteActuel,
+    image_url: imageUrl,
+    image_alt: imageAlt,
+    experience,
+    expertise,
+    description_courte: descriptionCourte,
+    description,
+    liens_sociaux: socialLinks,
+    statut,
+    langue,
+  }), [
+    prenom,
+    nom,
+    posteActuel,
+    imageUrl,
+    imageAlt,
+    experience,
+    expertise,
+    descriptionCourte,
+    description,
+    socialLinks,
+    statut,
+    langue,
+  ]);
+
+  const isDirty = useMemo(() => {
+    return JSON.stringify(currentAuthorState) !== JSON.stringify(initialAuthorState);
+  }, [currentAuthorState, initialAuthorState]);
+
   // Fetch author data in edit mode
   useEffect(() => {
     if (!auteurId) return;
@@ -66,21 +114,37 @@ export default function CreateAuteurClient({ auteurId }: Props) {
         .single();
 
       if (data && !error) {
-        setPrenom(data.prenom || "");
-        setNom(data.nom || "");
-        setPosteActuel(data.poste_actuel || "");
-        setImageUrl(data.image_url || "");
-        setImageAlt(data.image_alt || "");
-        setExperience(data.experience || "");
-        setExpertise(data.expertise || "");
-        setDescriptionCourte(data.description_courte || "");
-        setDescription(data.description || "");
-        setStatut(data.statut !== undefined ? data.statut : true);
-        setLangue(data.langue || "Français");
+        const loadedState = {
+          prenom: data.prenom || "",
+          nom: data.nom || "",
+          poste_actuel: data.poste_actuel || "",
+          image_url: data.image_url || "",
+          image_alt: data.image_alt || "",
+          experience: data.experience || "",
+          expertise: data.expertise || "",
+          description_courte: data.description_courte || "",
+          description: data.description || "",
+          liens_sociaux: (Array.isArray(data.liens_sociaux) && data.liens_sociaux.length > 0)
+            ? (data.liens_sociaux as SocialLink[])
+            : [{ platform: "", url: "" }],
+          statut: data.statut !== undefined ? data.statut : true,
+          langue: data.langue || "Français",
+        };
 
-        if (Array.isArray(data.liens_sociaux) && data.liens_sociaux.length > 0) {
-          setSocialLinks(data.liens_sociaux as SocialLink[]);
-        }
+        setPrenom(loadedState.prenom);
+        setNom(loadedState.nom);
+        setPosteActuel(loadedState.poste_actuel);
+        setImageUrl(loadedState.image_url);
+        setImageAlt(loadedState.image_alt);
+        setExperience(loadedState.experience);
+        setExpertise(loadedState.expertise);
+        setDescriptionCourte(loadedState.description_courte);
+        setDescription(loadedState.description);
+        setSocialLinks(loadedState.liens_sociaux);
+        setStatut(loadedState.statut);
+        setLangue(loadedState.langue);
+
+        setInitialAuthorState(loadedState);
       } else {
         console.error("Erreur lors du chargement de l'auteur :", error);
       }
@@ -147,6 +211,7 @@ export default function CreateAuteurClient({ auteurId }: Props) {
 
       if (error) throw error;
 
+      setInitialAuthorState(currentAuthorState);
       router.push("/admin/auteurs");
     } catch (err: any) {
       console.error("Erreur lors de la sauvegarde :", err);
@@ -405,10 +470,11 @@ export default function CreateAuteurClient({ auteurId }: Props) {
               <CTAButton
                 type="button"
                 onClick={handleSave}
-                disabled={!isFormValid || isSaving}
-                loading={isSaving}
+                disabled={!isFormValid || !isDirty || isSaving}
+                variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
+                className="font-semibold"
               >
-                {auteurId ? "Sauvegarder" : "Ajouter l'auteur"}
+                {isSaving ? "Sauvegarde en cours..." : auteurId ? "Mettre à jour" : "Créer l'auteur"}
               </CTAButton>
             </div>
           </div>
