@@ -10,6 +10,7 @@ import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import { TrashHoverIcon, TrashIcon } from "@/components/icons/TrashIcons";
 
 type SocialLink = {
   platform: string;
@@ -369,11 +370,14 @@ export default function CreateAuteurClient({ auteurId }: Props) {
                       {socialLinks.length > 1 && (
                         <button
                           onClick={() => handleRemoveSocial(index)}
-                          className="p-2 text-[#EF4F4E] hover:text-[#BA2524] transition-colors shrink-0"
+                          className="relative w-[20px] h-[20px] transition duration-300 ease-in-out shrink-0"
                           type="button"
-                          title="Supprimer"
+                          aria-label="Supprimer"
                         >
-                          <Image src="/icons/delete.svg" alt="Delete" width={20} height={20} />
+                          <div className="relative w-full h-full">
+                            <TrashIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0" />
+                            <TrashHoverIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100" />
+                          </div>
                         </button>
                       )}
                     </div>
