@@ -136,7 +136,6 @@ export default function AdminAuteursPage() {
 
   const handleDelete = async () => {
     if (selectedIds.length === 0) return;
-    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${selectedIds.length} auteur(s) ?`)) return;
 
     const idsToDelete = selectedIds.filter((id) => id !== "1");
     if (idsToDelete.length > 0) {
