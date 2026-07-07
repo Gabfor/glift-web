@@ -62,7 +62,7 @@ export async function generateMetadata({
     if (article.noindex) robots.index = false;
     if (article.nofollow) robots.follow = false;
 
-    const authorName = (article as any).auteur || "Glift";
+    const authorName = (article as any).auteur || "Gabriel Fort";
 
     return {
       title: plainTitle,
@@ -125,11 +125,11 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
     const article = articles[0];
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
     const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
-    const authorName = (article as any).auteur || "Glift";
+    const authorName = (article as any).auteur || "Gabriel Fort";
 
     // Fetch author details
     let authorDetails: any = null;
-    if (authorName && authorName !== "Glift") {
+    if (authorName) {
       const parts = authorName.trim().split(/\s+/);
       const prenom = parts[0];
       const nom = parts.slice(1).join(" ");

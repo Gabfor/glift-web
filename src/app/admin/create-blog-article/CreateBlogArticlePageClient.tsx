@@ -81,13 +81,10 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   }, [supabase]);
 
   const authorOptions = useMemo(() => {
-    return [
-      { value: "Glift", label: "Glift" },
-      ...authors.map((a) => {
-        const fullName = `${a.prenom} ${a.nom}`;
-        return { value: fullName, label: fullName };
-      }),
-    ];
+    return authors.map((a) => {
+      const fullName = `${a.prenom} ${a.nom}`;
+      return { value: fullName, label: fullName };
+    });
   }, [authors]);
 
   useEffect(() => {
@@ -174,7 +171,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         noindex: article.noindex,
         nofollow: article.nofollow,
         canonical_override: article.canonical_override || null,
-        auteur: article.auteur || "Glift",
+        auteur: article.auteur || "Gabriel Fort",
       };
       
       let reqError;
@@ -344,7 +341,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     <AdminDropdown
                       label=""
                       placeholder="Sélectionnez l'auteur"
-                      selected={article.auteur || "Glift"}
+                      selected={article.auteur || "Gabriel Fort"}
                       onSelect={(value) => setArticle({ ...article, auteur: value })}
                       options={authorOptions}
                     />

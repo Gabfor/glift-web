@@ -79,7 +79,7 @@ export default async function AuteursPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -131,18 +131,33 @@ export default async function AuteursPage() {
                   <p className="text-[14px] font-semibold text-[#3a416f] mb-4">
                     {author.poste_actuel}
                   </p>
-                  <div
-                    className="text-[14px] text-[#5D6494] font-semibold leading-relaxed mb-5 [&_p]:m-0"
-                    dangerouslySetInnerHTML={{
-                      __html: author.description_courte || author.description,
-                    }}
-                  />
+                  {(() => {
+                    const desc = (author.description_courte || author.description || "").trim();
+                    const suffix = "Découvrez son parcours et ses motivations.";
+                    let finalDesc = desc;
+                    if (desc && !desc.includes(suffix)) {
+                      const sentence = " " + suffix;
+                      if (desc.endsWith("</p>")) {
+                        finalDesc = desc.slice(0, -4) + sentence + "</p>";
+                      } else {
+                        finalDesc = desc + sentence;
+                      }
+                    }
+                    return (
+                      <div
+                        className="text-[14px] text-[#5D6494] font-semibold leading-relaxed mb-5 [&_p]:m-0"
+                        dangerouslySetInnerHTML={{
+                          __html: finalDesc,
+                        }}
+                      />
+                    );
+                  })()}
                 </div>
                 <div>
                   <CTAButton
                     href={`/blog/auteurs/${getAuthorSlug(author.prenom, author.nom)}`}
                   >
-                    Voir les articles {getDePreposition(author.prenom)}{author.prenom} {author.nom}
+                    Voir le profil {getDePreposition(author.prenom)}{author.prenom}
                     <Image
                       src="/icons/arrow.svg"
                       alt="Flèche"
