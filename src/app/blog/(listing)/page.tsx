@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
-import BlogListClient from "./BlogListClient";
+import BlogListClient from "../BlogListClient";
 import type { Metadata } from "next";
 
 export const revalidate = 60; // Mise à jour auto toutes les minutes

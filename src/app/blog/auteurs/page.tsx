@@ -81,7 +81,7 @@ export default async function AuteursPage() {
   return (
     <main className="min-h-screen bg-[#FBFCFE] pt-[140px] pb-[100px] px-4">
       {/* Fil d'ariane (Breadcrumbs) */}
-      <div className="max-w-[1152px] mx-auto mb-6">
+      <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
           <Link href="/blog" className="hover:text-[#2E3271] transition-colors">
             Blog
@@ -93,10 +93,10 @@ export default async function AuteursPage() {
 
       {/* Header text content */}
       <div className="max-w-[1152px] mx-auto text-center mb-12 flex flex-col items-center">
-        <h1 className="text-[30px] sm:text-[34px] font-bold text-[#2E3271] mb-3">
+        <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
           Auteurs
         </h1>
-        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] max-w-[700px] leading-relaxed">
+        <p className="text-[15px] font-semibold text-[#5D6494] max-w-[700px] leading-relaxed">
           Découvrez les profils de nos auteurs et parcourez leurs derniers articles.
         </p>
       </div>
@@ -132,7 +132,7 @@ export default async function AuteursPage() {
                     {author.poste_actuel}
                   </p>
                   <div
-                    className="text-[14px] sm:text-[15px] text-[#5D6494] font-semibold leading-relaxed mb-5 [&_p]:m-0"
+                    className="text-[14px] text-[#5D6494] font-semibold leading-relaxed mb-5 [&_p]:m-0"
                     dangerouslySetInnerHTML={{
                       __html: author.description_courte || author.description,
                     }}

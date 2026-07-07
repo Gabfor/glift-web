@@ -219,6 +219,7 @@ export type BlogArticleFormState = {
   noindex: boolean;
   nofollow: boolean;
   canonical_override: string;
+  auteur: string;
 };
 
 export const emptyBlogArticle: BlogArticleFormState = {
@@ -249,4 +250,5 @@ export const emptyBlogArticle: BlogArticleFormState = {
   noindex: false,
   nofollow: false,
   canonical_override: "",
+  auteur: "",
 };

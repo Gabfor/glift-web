@@ -205,13 +205,13 @@ export default async function AuthorDetailPage({ params }: Props) {
         <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
           {authorFullName}
         </h1>
-        <p className="text-[16px] text-[#3a416f] font-semibold mb-[20px]">
+        <p className="text-[16px] text-[#5D6494] font-semibold mb-[20px]">
           {author.poste_actuel}
         </p>
       </div>
 
       {/* Profile Details Section */}
-      <div className="max-w-[1152px] mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start mb-12">
+      <div className="max-w-[1152px] mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start mb-[30px]">
         {/* Left Column: Image + Socials */}
         <div className="w-full md:w-[270px] flex flex-col items-center shrink-0">
           <div className="relative w-[270px] h-[270px] rounded-[20px] overflow-hidden border border-[#ECE9F1]">
@@ -263,7 +263,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           <div className="flex flex-col gap-0 mb-[10px]">
             {author.experience && (
               <>
-                <div className="flex items-center gap-4 text-[14px] sm:text-[15px] font-semibold">
+                <div className="flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
                     <Image
                       src="/icons/experience.svg"
@@ -285,7 +285,7 @@ export default async function AuthorDetailPage({ params }: Props) {
             )}
             {author.expertise && (
               <>
-                <div className="flex items-center gap-4 text-[14px] sm:text-[15px] font-semibold">
+                <div className="flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
                     <Image
                       src="/icons/expertise.svg"
@@ -318,7 +318,7 @@ export default async function AuthorDetailPage({ params }: Props) {
       </div>
 
       {/* Separation line */}
-      <div className="max-w-[1152px] mx-auto w-full h-[1px] bg-[#ECE9F1] my-12" />
+      <div className="max-w-[1152px] mx-auto w-full h-[1px] bg-[#ECE9F1] my-[30px]" />
 
       {/* Articles Grid Section */}
       <div className="max-w-[1152px] mx-auto">

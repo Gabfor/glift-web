@@ -127,6 +127,32 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
     const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
     const authorName = (article as any).auteur || "Glift";
 
+    // Fetch author details
+    let authorDetails: any = null;
+    if (authorName && authorName !== "Glift") {
+      const parts = authorName.trim().split(/\s+/);
+      const prenom = parts[0];
+      const nom = parts.slice(1).join(" ");
+      const { data: authorData } = await supabase
+        .from("auteurs")
+        .select("*")
+        .ilike("prenom", prenom)
+        .ilike("nom", nom)
+        .maybeSingle();
+      authorDetails = authorData;
+    }
+
+    if (!authorDetails && authorName === "Gabriel Fort") {
+      authorDetails = {
+        prenom: "Gabriel",
+        nom: "Fort",
+        image_url: "/images/gabriel_fort.png",
+        description_courte: "Passionné de musculation depuis l'adolescence et pratiquant régulier depuis plus de 11 ans , Gabriel Fort a créé l'outil qu'il aurait aimé avoir lorsqu'il a décidé de se lancer sérieusement dans la musculation.",
+        description: "Passionné de musculation depuis l'adolescence et pratiquant régulier depuis plus de 11 ans , Gabriel Fort a créé l'outil qu'il aurait aimé avoir lorsqu'il a décidé de se lancer sérieusement dans la musculation.",
+        poste_actuel: "Fondateur de Glift"
+      };
+    }
+
     return (
       <>
         <script
@@ -282,6 +308,39 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 articleLie1Id={article.article_lie_1_id}
                 articleLie2Id={article.article_lie_2_id}
               />
+
+              {authorDetails && (
+                <div className="mt-[30px]">
+                  <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
+                  <div className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
+                    <div className="relative w-[80px] h-[80px] rounded-[10px] overflow-hidden shrink-0 border border-[#ECE9F1]">
+                      <Image
+                        src={authorDetails.image_url || "/images/gabriel_fort.png"}
+                        alt={authorDetails.image_alt || `${authorDetails.prenom} ${authorDetails.nom}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
+                      <h4 className="text-[14px] font-bold text-[#2E3271] mb-1">
+                        Article rédigé par {authorDetails.prenom} {authorDetails.nom}
+                      </h4>
+                      <div
+                        className="text-[12px] text-[#5D6494] font-semibold leading-relaxed mb-3 [&_p]:m-0"
+                        dangerouslySetInnerHTML={{
+                          __html: authorDetails.description_courte || authorDetails.description,
+                        }}
+                      />
+                      <Link
+                        href={`/blog/auteurs/${getAuthorSlug(authorDetails.prenom, authorDetails.nom)}`}
+                        className="text-[12px] text-[#5D6494] hover:text-[#3A416F] font-semibold underline transition-colors"
+                      >
+                        Voir les articles {getDePreposition(authorDetails.prenom)}{authorDetails.prenom} {authorDetails.nom}
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </main>
@@ -316,4 +375,21 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
   }
 
   notFound();
+}
+
+function getAuthorSlug(prenom: string, nom: string): string {
+  return `${prenom}-${nom}`
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getDePreposition(name: string): string {
+  if (!name) return "de ";
+  const firstLetter = name.charAt(0).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const elisionLetters = ["a", "e", "i", "o", "u", "y", "h"];
+  return elisionLetters.includes(firstLetter) ? "d'" : "de ";
 }

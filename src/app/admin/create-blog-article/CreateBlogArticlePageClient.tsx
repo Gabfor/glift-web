@@ -62,7 +62,33 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   );
 
   const [isSaving, setIsSaving] = useState(false);
+  const [authors, setAuthors] = useState<any[]>([]);
   const supabase = useMemo(() => createClient(), []);
+
+  useEffect(() => {
+    const fetchAuthors = async () => {
+      const { data, error } = await supabase
+        .from("auteurs")
+        .select("prenom, nom")
+        .order("prenom", { ascending: true });
+      if (data && !error) {
+        setAuthors(data);
+      } else {
+        console.error("Erreur lors de la récupération des auteurs:", error);
+      }
+    };
+    void fetchAuthors();
+  }, [supabase]);
+
+  const authorOptions = useMemo(() => {
+    return [
+      { value: "Glift", label: "Glift" },
+      ...authors.map((a) => {
+        const fullName = `${a.prenom} ${a.nom}`;
+        return { value: fullName, label: fullName };
+      }),
+    ];
+  }, [authors]);
 
   useEffect(() => {
     if (!articleId) return;
@@ -105,6 +131,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           noindex: !!data.noindex,
           nofollow: !!data.nofollow,
           canonical_override: data.canonical_override || "",
+          auteur: data.auteur || "",
         };
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
@@ -147,6 +174,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         noindex: article.noindex,
         nofollow: article.nofollow,
         canonical_override: article.canonical_override || null,
+        auteur: article.auteur || "Glift",
       };
       
       let reqError;
@@ -308,6 +336,17 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                         { value: "OUI", label: "OUI" },
                         { value: "NON", label: "NON" },
                       ]}
+                    />
+                  </div>
+                  {/* Auteur */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Auteur</label>
+                    <AdminDropdown
+                      label=""
+                      placeholder="Sélectionnez l'auteur"
+                      selected={article.auteur || "Glift"}
+                      onSelect={(value) => setArticle({ ...article, auteur: value })}
+                      options={authorOptions}
                     />
                   </div>
                 </div>
