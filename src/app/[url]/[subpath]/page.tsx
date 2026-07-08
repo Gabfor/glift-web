@@ -179,9 +179,9 @@ export default async function BlogSubpathPage({
               "datePublished": article.created_at,
               "dateModified": article.updated_at || article.created_at,
               "author": {
-                "@type": "Organization",
+                "@type": "Person",
                 "name": authorName,
-                "url": siteUrl
+                "url": `${siteUrl}/blog/auteurs/${authorSlug}`
               },
               "publisher": {
                 "@type": "Organization",

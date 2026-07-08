@@ -7,8 +7,8 @@ import CTAButton from "@/components/CTAButton";
 export const revalidate = 60; // Auto-update cache every minute
 
 export const metadata: Metadata = {
-  title: "Auteurs",
-  description: "Découvrez les profils de nos auteurs et parcourez leurs derniers articles.",
+  title: "Nos experts et auteurs musculation & fitness | Glift",
+  description: "Découvrez les profils de nos coachs et auteurs d'articles de musculation et nutrition. Apprenez de leur expérience et parcours pour progresser.",
   alternates: {
     canonical: "/blog/auteurs",
   },

@@ -180,8 +180,27 @@ export default async function AuthorDetailPage({ params }: Props) {
     console.warn("Could not query blog_articles for author:", err);
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfilePage",
+            "mainEntity": {
+              "@type": "Person",
+              "name": authorFullName,
+              "jobTitle": author.poste_actuel,
+              "image": author.image_url ? (author.image_url.startsWith('http') ? author.image_url : `${siteUrl}${author.image_url}`) : undefined,
+              "description": author.description_courte
+            }
+          })
+        }}
+      />
+      <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -348,5 +367,6 @@ export default async function AuthorDetailPage({ params }: Props) {
         )}
       </div>
     </main>
+    </>
   );
 }
