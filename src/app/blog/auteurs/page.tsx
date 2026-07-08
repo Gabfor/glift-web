@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabaseServer";
@@ -6,13 +7,45 @@ import CTAButton from "@/components/CTAButton";
 
 export const revalidate = 60; // Auto-update cache every minute
 
-export const metadata: Metadata = {
-  title: "Nos experts et auteurs musculation & fitness | Glift",
-  description: "Découvrez les profils de nos coachs et auteurs d'articles de musculation et nutrition. Apprenez de leur expérience et parcours pour progresser.",
-  alternates: {
-    canonical: "/blog/auteurs",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const supabase = await createServerClient();
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
+    .eq("url", "blog/auteurs")
+    .maybeSingle();
+
+  const defaultTitle = "Nos experts et auteurs musculation & fitness | Glift";
+  const defaultDesc = "Découvrez les profils de nos coachs et auteurs d'articles de musculation et nutrition. Apprenez de leur expérience et parcours pour progresser.";
+
+  if (!pageConfig) {
+    return {
+      title: defaultTitle,
+      description: defaultDesc,
+      alternates: {
+        canonical: "/blog/auteurs",
+      },
+    };
+  }
+
+  const title = pageConfig.seo_title || pageConfig.titre || defaultTitle;
+  const plainTitle = title.replace(/<[^>]*>/g, "").trim();
+  const description = pageConfig.seo_description || pageConfig.description || defaultDesc;
+  const plainDescription = description.replace(/<[^>]*>/g, "").trim();
+
+  const robots: any = {};
+  if (pageConfig.noindex) robots.index = false;
+  if (pageConfig.nofollow) robots.follow = false;
+
+  return {
+    title: plainTitle,
+    description: plainDescription,
+    robots: Object.keys(robots).length > 0 ? robots : undefined,
+    alternates: {
+      canonical: pageConfig.canonical_override || "/blog/auteurs",
+    },
+  };
+}
 
 type Author = {
   id: string;
@@ -44,6 +77,17 @@ function getAuthorSlug(prenom: string, nom: string): string {
 export default async function AuteursPage() {
   const supabase = await createServerClient();
   let authors: Author[] = [];
+
+  // Fetch page configuration
+  const { data: pageConfig } = await supabase
+    .from("pages")
+    .select("is_published, titre, description")
+    .eq("url", "blog/auteurs")
+    .maybeSingle();
+
+  if (pageConfig && !pageConfig.is_published) {
+    notFound();
+  }
 
   try {
     const { data: dbAuthors } = await (supabase as any)
@@ -94,11 +138,20 @@ export default async function AuteursPage() {
       {/* Header text content */}
       <div className="max-w-[1152px] mx-auto text-center mb-12 flex flex-col items-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
-          Auteurs
+          {pageConfig?.titre || "Auteurs"}
         </h1>
-        <p className="text-[15px] font-semibold text-[#5D6494] max-w-[700px] leading-relaxed">
-          Découvrez les profils de nos auteurs et parcourez leurs derniers articles.
-        </p>
+        {pageConfig?.description ? (
+          <div
+            className="text-[15px] font-semibold text-[#5D6494] max-w-[700px] leading-relaxed [&_p]:m-0"
+            dangerouslySetInnerHTML={{
+              __html: pageConfig.description,
+            }}
+          />
+        ) : (
+          <p className="text-[15px] font-semibold text-[#5D6494] max-w-[700px] leading-relaxed">
+            Découvrez les profils de nos auteurs et parcourez leurs derniers articles.
+          </p>
+        )}
       </div>
 
       {/* Authors list container */}
