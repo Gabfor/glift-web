@@ -131,13 +131,19 @@ export default async function BlogSubpathPage({
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
     const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
     const authorName = (article as any).auteur || "Gabriel Fort";
+    const parts = authorName.trim().split(/\s+/);
+    const prenom = parts[0];
+    const nom = parts.slice(1).join(" ") || "";
+    const authorSlug = getAuthorSlug(prenom, nom);
+
+    const isUpdated = article.updated_at && 
+      new Date(article.updated_at).getTime() > new Date(article.created_at).getTime() + 60000;
+    const dateToDisplay = isUpdated ? article.updated_at : article.created_at;
+    const dateLabel = isUpdated ? "mise à jour le" : "mis en ligne le";
 
     // Fetch author details
     let authorDetails: any = null;
     if (authorName) {
-      const parts = authorName.trim().split(/\s+/);
-      const prenom = parts[0];
-      const nom = parts.slice(1).join(" ");
       const { data: authorData } = await supabase
         .from("auteurs")
         .select("*")
@@ -207,11 +213,22 @@ export default async function BlogSubpathPage({
           </div>
 
           <div className="max-w-[760px] mx-auto px-4 md:px-0">
-            <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px] text-center">
+            <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
 
-            <p className="text-[16px] text-[#5D6494] font-semibold mb-[20px] text-left">
+            <div className="text-[14px] font-semibold text-[#5D6494] mb-[15px] text-left">
+              Par{" "}
+              <Link
+                href={`/blog/auteurs/${authorSlug}`}
+                className="text-[#7069FA] hover:text-[#5b54e0] transition-colors"
+              >
+                {authorName}
+              </Link>
+              , {dateLabel} {formatArticleDate(dateToDisplay)}
+            </div>
+
+            <p className="text-[14px] text-[#5D6494] font-semibold mb-[20px] text-left">
               {article.description}
             </p>
 
@@ -397,4 +414,30 @@ function getDePreposition(name: string): string {
   const firstLetter = name.charAt(0).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const elisionLetters = ["a", "e", "i", "o", "u", "y", "h"];
   return elisionLetters.includes(firstLetter) ? "d'" : "de ";
+}
+
+function formatArticleDate(dateStr: string): string {
+  if (!dateStr) return "";
+  try {
+    const date = new Date(dateStr);
+    const formatter = new Intl.DateTimeFormat("fr-FR", {
+      timeZone: "Europe/Paris",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(date);
+    const day = parts.find(p => p.type === "day")?.value || "";
+    const month = parts.find(p => p.type === "month")?.value || "";
+    const year = parts.find(p => p.type === "year")?.value || "";
+    const hour = parts.find(p => p.type === "hour")?.value || "";
+    const minute = parts.find(p => p.type === "minute")?.value || "";
+    
+    return `${day}/${month}/${year} à ${hour}:${minute}`;
+  } catch (e) {
+    return "";
+  }
 }
