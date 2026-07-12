@@ -272,10 +272,9 @@ input:checked+.slider:before {
 }
 
 .input-admin {
-  @apply h-[45px] w-full text-[16px] font-semibold px-[15px] rounded-[5px] bg-white border focus:border-transparent focus:outline-none focus:ring-2 transition-all duration-150;
+  @apply h-[45px] w-full text-[16px] font-semibold px-[15px] rounded-[5px] bg-white border focus:outline-none focus:ring-2 transition-all duration-150;
   color: var(--color-text-body);
   border-color: var(--color-border-soft);
-  box-shadow: inset 0 0 0 1px transparent;
   caret-color: var(--color-brand-primary);
 }
 
@@ -289,8 +288,8 @@ input:checked+.slider:before {
 }
 
 .input-admin:focus {
-  box-shadow: 0 0 0 2px var(--color-focus-ring);
-  border-color: transparent;
+  border-color: var(--color-brand-primary) !important;
+  box-shadow: 0 0 0 2px var(--color-focus-ring) !important;
 }
 
 .scrollable-dropdown {
@@ -423,6 +422,56 @@ input:checked+.slider:before {
   [aria-disabled="true"],
   [style*="cursor: not-allowed"] {
     cursor: default !important;
+  }
+
+  /* Prevent disabled elements and inactive CTAs from having white text */
+  button:disabled,
+  button[disabled],
+  input[type="button"]:disabled,
+  input[type="submit"]:disabled,
+  [aria-disabled="true"],
+  .disabled {
+    color: var(--color-border-soft) !important;
+  }
+
+  /* Ensure descendants also inherit the disabled text color (like spans inside buttons) */
+  button:disabled *,
+  button[disabled] *,
+  [aria-disabled="true"] *,
+  .disabled * {
+    color: inherit !important;
+  }
+
+  /* Align disabled .btn-primary and .btn-outline states to the default inactive CTA style */
+  .btn-primary:disabled,
+  .btn-primary[disabled],
+  .btn-primary.disabled,
+  .btn-outline:disabled,
+  .btn-outline[disabled],
+  .btn-outline.disabled {
+    background-color: var(--color-surface-muted) !important;
+    border-color: transparent !important;
+    color: var(--color-border-soft) !important;
+  }
+
+  /* Ensure smooth border transitions on focus for all inputs, textareas and selects */
+  input,
+  textarea,
+  select {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out !important;
+  }
+
+  /* Override focus:border-transparent to transition border color smoothly to the focus ring color */
+  input.focus\:border-transparent:focus:not(.border-\[\#EF4444\]),
+  textarea.focus\:border-transparent:focus:not(.border-\[\#EF4444\]),
+  select.focus\:border-transparent:focus:not(.border-\[\#EF4444\]) {
+    border-color: var(--color-focus-ring) !important;
+  }
+
+  /* Transition the error border color to red on focus instead of transparent */
+  input.focus\:border-transparent:focus.border-\[\#EF4444\],
+  textarea.focus\:border-transparent:focus.border-\[\#EF4444\] {
+    border-color: #EF4444 !important;
   }
 }
 
