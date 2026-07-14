@@ -95,8 +95,9 @@ export async function middleware(req: NextRequest) {
   if (isAdminSubdomain) {
     // Si l'URL contient déjà le préfixe /admin, on le supprime (redirection propre)
     // Par exemple: /admin/connexion -> /connexion
-    if (pathname.startsWith("/admin")) {
-      const cleanPath = pathname.slice(6) || "/";
+    const hasAdminPrefix = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (hasAdminPrefix) {
+      const cleanPath = pathname === "/admin" ? "/" : pathname.slice(6);
       const redirectRes = NextResponse.redirect(new URL(`${cleanPath}${req.nextUrl.search}`, req.url));
       copyCookies(res, redirectRes);
       return redirectRes;
@@ -106,8 +107,10 @@ export async function middleware(req: NextRequest) {
       "/connexion",
       "/deconnexion",
       "/reinitialiser-mot-de-passe",
+      "/administrateurs",
       "/auteurs",
       "/content-blog",
+      "/create-admin",
       "/create-auteur",
       "/create-blog-article",
       "/create-help",
@@ -199,8 +202,9 @@ export async function middleware(req: NextRequest) {
   // ==========================================
   else {
     // Rediriger toute tentative d'accès à l'administration vers le sous-domaine admin en enlevant le préfixe /admin
-    if (pathname.startsWith("/admin")) {
-      const cleanPath = pathname.slice(6) || "/";
+    const hasAdminPrefix = pathname === "/admin" || pathname.startsWith("/admin/");
+    if (hasAdminPrefix) {
+      const cleanPath = pathname === "/admin" ? "/" : pathname.slice(6);
       const target = getSubdomainUrl("admin", `${cleanPath}${req.nextUrl.search}`);
       const redirectRes = new NextResponse(null, {
         status: 307,

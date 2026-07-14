@@ -3,18 +3,19 @@
 import Link from "next/link";
 
 const adminLinks = [
-  { title: "Pages", href: "/admin/pages", visual: "legal" },
-  { title: "Programmes", href: "/admin/program", visual: "program" },
-  { title: "Cartes Store", href: "/admin/program-store", visual: "store" },
-  { title: "Slider", href: "/admin/slider", visual: "slider" },
+  { title: "Pages", href: "/pages", visual: "legal" },
+  { title: "Programmes", href: "/program", visual: "program" },
+  { title: "Cartes Store", href: "/program-store", visual: "store" },
+  { title: "Slider", href: "/slider", visual: "slider" },
 
-  { title: "Cartes Shop", href: "/admin/offer-shop", visual: "shop" },
-  { title: "Blog", href: "/admin/content-blog", visual: "blog" },
-  { title: "Auteurs", href: "/admin/auteurs", visual: "authors" },
-  { title: "Aide", href: "/admin/help", visual: "help" },
-  { title: "Utilisateurs", href: "/admin/users", visual: "users" },
-  { title: "Pages légales", href: "/admin/legal", visual: "legal" },
-  { title: "Paramètres", href: "/admin/settings", visual: "settings" },
+  { title: "Cartes Shop", href: "/offer-shop", visual: "shop" },
+  { title: "Blog", href: "/content-blog", visual: "blog" },
+  { title: "Auteurs", href: "/auteurs", visual: "authors" },
+  { title: "Aide", href: "/help", visual: "help" },
+  { title: "Utilisateurs", href: "/users", visual: "users" },
+  { title: "Pages légales", href: "/legal", visual: "legal" },
+  { title: "Admin", href: "/administrateurs", visual: "users" },
+  { title: "Paramètres", href: "/settings", visual: "settings" },
 ];
 
 function CardVisual({ type }: { type: string }) {

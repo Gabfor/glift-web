@@ -20,7 +20,14 @@ export const ensureAdmin = async (): Promise<
     return { status: 401, error: "not-authenticated" };
   }
 
-  if (!user.user_metadata?.is_admin) {
+  // Option A: verify role in database profiles table
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (profileError || !profile || !profile.is_admin) {
     return { status: 403, error: "forbidden" };
   }
 

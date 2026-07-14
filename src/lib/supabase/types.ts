@@ -43,6 +43,9 @@ export interface Database {
           premium_trial_end_at: Nullable<string>;
           premium_end_at: Nullable<string>;
           trial: boolean;
+          is_admin: boolean;
+          statut: boolean;
+          langue: string;
         };
         Insert: {
           id: string;
@@ -65,6 +68,9 @@ export interface Database {
           cancellation?: boolean;
           premium_trial_end_at?: Nullable<string>;
           trial?: boolean;
+          is_admin?: boolean;
+          statut?: boolean;
+          langue?: string;
         };
         Update: {
           id?: string;
@@ -87,6 +93,9 @@ export interface Database {
           cancellation?: boolean;
           premium_trial_end_at?: Nullable<string>;
           trial?: boolean;
+          is_admin?: boolean;
+          statut?: boolean;
+          langue?: string;
         };
         Relationships: never[];
       };

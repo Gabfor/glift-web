@@ -48,7 +48,14 @@ export default async function AdminLayout({
     redirect("/connexion");
   }
 
-  if (!user.user_metadata?.is_admin) {
+  // Option A: verify role in database profiles table
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.is_admin) {
     redirect("/");
   }
 
