@@ -6,9 +6,10 @@ import { cn } from "@/lib/utils";
 interface GliftLoaderProps {
   className?: string;
   onShow?: () => void;
+  isAdmin?: boolean;
 }
 
-export default function GliftLoader({ className, onShow }: GliftLoaderProps) {
+export default function GliftLoader({ className, onShow, isAdmin }: GliftLoaderProps) {
   const hasTriggeredShowRef = useRef(false);
 
   useEffect(() => {
@@ -29,14 +30,14 @@ export default function GliftLoader({ className, onShow }: GliftLoaderProps) {
     >
       <div className="flex flex-col items-center -translate-y-[100px]">
         <Image
-          src="/logo-glift.svg"
+          src={isAdmin ? "/logo-glift-admin.svg" : "/logo-glift.svg"}
           alt="Glift"
           width={150}
           height={57}
           className="mb-6"
         />
         <div className="relative h-[3px] w-[100px] overflow-hidden rounded-full bg-gray-200">
-          <div className="animate-bar-loader absolute inset-0 bg-[#7069FA]" />
+          <div className={cn("animate-bar-loader absolute inset-0", isAdmin ? "bg-[#3A416F]" : "bg-[#7069FA]")} />
         </div>
       </div>
       <style jsx>{`

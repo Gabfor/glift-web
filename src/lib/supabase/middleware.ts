@@ -1,25 +1,9 @@
-import {
-  CookieAuthStorageAdapter,
-  type CookieOptions,
-  type CookieOptionsWithName,
-  createSupabaseClient,
-  parseCookies,
-  serializeCookie,
-  type SupabaseClientOptionsWithoutAuth,
-} from "@supabase/auth-helpers-shared";
-import authHelpersPackage from "@supabase/auth-helpers-nextjs/package.json";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
-import { splitCookiesString } from "set-cookie-parser";
-import type { SerializeOptions as CookieSerializeOptions } from "cookie";
-
 import type { NextRequest } from "next/server";
-import type { GenericSchema } from "@supabase/supabase-js/dist/module/lib/types";
-import type { SupabaseClient } from "@supabase/supabase-js";
-
 import type { Database } from "./types";
-
-const PACKAGE_NAME = authHelpersPackage.name;
-const PACKAGE_VERSION = authHelpersPackage.version;
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { CookieOptions } from "@supabase/ssr/dist/module/types";
 
 const shouldPersistSession = (req: NextRequest) => {
   const rememberPreference = req.cookies.get("glift-remember");
@@ -27,136 +11,60 @@ const shouldPersistSession = (req: NextRequest) => {
 };
 
 const sanitizeCookieOptions = (
-  options: CookieSerializeOptions | undefined,
+  options: CookieOptions | undefined,
   persist: boolean,
 ) => {
   if (!options || persist) {
     return options;
   }
 
-  if (options.maxAge === 0) {
+  // Si maxAge est défini à 0 ou négatif, c'est pour expirer le cookie (déconnexion)
+  // Il faut le garder tel quel pour que le cookie soit supprimé du navigateur.
+  if (options.maxAge !== undefined && options.maxAge <= 0) {
     return options;
   }
 
-  const sanitized: CookieSerializeOptions = { ...options };
+  const sanitized: CookieOptions = { ...options };
   delete sanitized.maxAge;
   delete sanitized.expires;
 
   return sanitized;
 };
 
-class RememberMiddlewareAuthStorageAdapter extends CookieAuthStorageAdapter {
-  constructor(
-    private readonly context: { req: NextRequest; res: NextResponse },
-    private readonly persistSession: boolean,
-    cookieOptions?: CookieOptions,
-  ) {
-    super(cookieOptions);
-  }
-
-  protected getCookie(name: string): string | null | undefined {
-    const responseCookies = splitCookiesString(
-      this.context.res.headers.get("set-cookie")?.toString() ?? "",
-    ).map<string | undefined>((cookieString: string) =>
-      parseCookies(cookieString)[name],
-    );
-
-    const setCookie = responseCookies.find(
-      (cookieValue: string | undefined): cookieValue is string | undefined =>
-        Boolean(cookieValue),
-    );
-
-    if (setCookie) {
-      return setCookie;
-    }
-
-    const cookies = parseCookies(
-      this.context.req.headers.get("cookie") ?? "",
-    );
-
-    return cookies[name];
-  }
-
-  protected setCookie(name: string, value: string): void {
-    this.setCookieWithOptions(name, value);
-  }
-
-  protected deleteCookie(name: string): void {
-    this.setCookieWithOptions(name, "", {
-      maxAge: 0,
-    });
-  }
-
-  private setCookieWithOptions(
-    name: string,
-    value: string,
-    options?: CookieSerializeOptions,
-  ) {
-    const combinedOptions: CookieSerializeOptions = {
-      ...(this.cookieOptions ?? {}),
-      ...(options ?? {}),
-      httpOnly: false,
-    };
-
-    const sanitizedOptions = sanitizeCookieOptions(
-      combinedOptions,
-      this.persistSession,
-    );
-
-    const newSession = serializeCookie(name, value, sanitizedOptions);
-
-    if (this.context.res.headers) {
-      this.context.res.headers.append("set-cookie", newSession);
-    }
-  }
-}
-
-export function createRememberingMiddlewareClient<
-  SchemaName extends string & keyof Database = "public" extends keyof Database
-    ? "public"
-    : Extract<keyof Database, string>,
-  Schema extends GenericSchema = Database[SchemaName],
->(
-  context: { req: NextRequest; res: NextResponse },
-  {
-    supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL,
-    supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    options,
-    cookieOptions,
-  }: {
-    supabaseUrl?: string;
-    supabaseKey?: string;
-    options?: SupabaseClientOptionsWithoutAuth<SchemaName>;
-    cookieOptions?: CookieOptionsWithName;
-  } = {},
-): SupabaseClient<Database, SchemaName, Schema> {
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error(
-      "either NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY env variables or supabaseUrl and supabaseKey are required!",
-    );
-  }
-
+export function createRememberingMiddlewareClient(
+  context: { req: NextRequest; res: NextResponse; requestHeaders?: Headers }
+): SupabaseClient<Database> {
   const persistSession = shouldPersistSession(context.req);
 
-  return createSupabaseClient<Database, SchemaName, Schema>(
-    supabaseUrl,
-    supabaseKey,
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      ...options,
-      global: {
-        ...options?.global,
-        headers: {
-          ...options?.global?.headers,
-          "X-Client-Info": `${PACKAGE_NAME}@${PACKAGE_VERSION}`,
+      cookies: {
+        getAll() {
+          return context.req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            // Appliquer la logique de "Rester connecté"
+            const sanitizedOptions = sanitizeCookieOptions(options, persistSession);
+
+            // Mettre à jour les cookies sur la requête (pour les middlewares/components en aval)
+            context.req.cookies.set(name, value);
+
+            // Mettre à jour les cookies sur la réponse (pour le navigateur)
+            context.res.cookies.set(name, value, sanitizedOptions);
+          });
+
+          // Synchroniser l'en-tête "Cookie" de la requête pour les Server Components / Layouts en aval (utile pour les rewrites)
+          if (context.requestHeaders) {
+            const cookieHeaderValue = context.req.cookies.getAll()
+              .map(c => `${c.name}=${c.value}`)
+              .join('; ');
+            context.requestHeaders.set("Cookie", cookieHeaderValue);
+          }
         },
       },
-      auth: {
-        storage: new RememberMiddlewareAuthStorageAdapter(
-          context,
-          persistSession,
-          cookieOptions,
-        ),
-      },
-    },
+    }
   );
 }

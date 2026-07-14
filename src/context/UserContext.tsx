@@ -81,6 +81,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // triggers the Supabase warning. We rely fully on fetchUser() via Supabase Auth server.
 
   const fetchUser = useCallback(async (background = false) => {
+    console.log("[UserContext] fetchUser started. Background:", background);
     if (!background) {
       setIsLoading(true);
     }
@@ -89,6 +90,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         data: { user },
         error,
       } = await supabase.auth.getUser();
+      console.log("[UserContext] fetchUser getUser finished. User:", user?.email, "Error:", error?.message);
 
       if (error) {
         if (isAuthSessionMissingError(error)) {

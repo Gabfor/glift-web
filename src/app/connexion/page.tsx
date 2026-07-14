@@ -146,6 +146,7 @@ export default function ConnexionPage() {
 
     setError(null);
     setLoading(true);
+    console.log("[CLIENT LOGIN] Form submitted. Attempting signInWithPassword...");
 
     try {
       persistRememberPreference(rememberMe);
@@ -154,15 +155,20 @@ export default function ConnexionPage() {
         password,
       });
 
+      console.log("[CLIENT LOGIN] signInWithPassword finished. Error:", error?.message, "User:", data.user?.email);
+
       if (!error) {
         setShowTransitionLoader(true);
         // Validation de la période de grâce
         if (data.user?.id) {
+          console.log("[CLIENT LOGIN] Fetching user profile from DB...");
           const { data: profile } = await supabase
             .from("profiles")
             .select("email_verified, grace_expires_at")
             .eq("id", data.user.id)
             .single();
+
+          console.log("[CLIENT LOGIN] Profile fetched:", profile);
 
           if (
             profile &&
@@ -173,6 +179,7 @@ export default function ConnexionPage() {
             const graceExpiresAt = new Date(profile.grace_expires_at);
 
             if (graceExpiresAt < now) {
+              console.log("[CLIENT LOGIN] Grace period expired!");
               // La période de grâce a expiré et l'email n'est pas vérifié
               await supabase.auth.signOut();
               setError({
@@ -188,11 +195,12 @@ export default function ConnexionPage() {
           }
         }
 
+        console.log("[CLIENT LOGIN] Setting session...");
         if (data?.session) {
           await supabase.auth.setSession(data.session);
         }
-        router.push(sanitizedNextParam ?? "/dashboard");
-        router.refresh();
+        console.log("[CLIENT LOGIN] Session set. Redirecting...");
+        window.location.href = sanitizedNextParam ?? "/dashboard";
       } else if (error.message === "Invalid login credentials") {
         setError({
           type: "invalid-credentials",
@@ -200,6 +208,7 @@ export default function ConnexionPage() {
           description:
             "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
+        setLoading(false);
       } else {
         setError({
           type: "generic",
@@ -207,16 +216,16 @@ export default function ConnexionPage() {
           description:
             "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
         });
+        setLoading(false);
       }
     } catch (unknownError) {
-      console.error("Erreur lors de la connexion", unknownError);
+      console.error("[CLIENT LOGIN] Unexpected error caught:", unknownError);
       setError({
         type: "generic",
         title: "Une erreur est survenue.",
         description:
           "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
       });
-    } finally {
       setLoading(false);
     }
   };

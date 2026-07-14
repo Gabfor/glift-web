@@ -48,13 +48,13 @@ export default function AdminHeader() {
           : "bg-[#FBFCFE]"
           }`}
       >
-        <div className="max-w-[1152px] mx-auto px-4 md:px-0 py-4 flex items-center justify-between">
+        <div className="max-w-[1152px] mx-auto px-4 md:px-0 h-[72px] flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/admin" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <Image
-                src={logoUrl || "/logo_beta.svg"}
-                alt={logoAlt || "Logo Glift Admin"}
+                src="/logo_admin.svg"
+                alt="Logo Glift Admin"
                 width={0}
                 height={0}
                 sizes="100vw"
@@ -67,10 +67,13 @@ export default function AdminHeader() {
           {/* Admin Navigation */}
           <nav className="flex-1 flex justify-center gap-6 text-[16px] text-[#5D6494] font-semibold">
             <Link
-              href="/admin/program"
+              href="/program"
               className={
-                pathname === "/admin/program" ||
+                pathname === "/program" ||
+                  pathname === "/admin/program" ||
+                  pathname?.startsWith("/program?") ||
                   pathname?.startsWith("/admin/program?") ||
+                  pathname?.startsWith("/entrainements") ||
                   pathname?.startsWith("/admin/entrainements")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
@@ -79,9 +82,11 @@ export default function AdminHeader() {
               Programmes
             </Link>
             <Link
-              href="/admin/program-store"
+              href="/program-store"
               className={
-                pathname?.startsWith("/admin/program-store") ||
+                pathname?.startsWith("/program-store") ||
+                  pathname?.startsWith("/admin/program-store") ||
+                  pathname?.startsWith("/create-program") ||
                   pathname?.startsWith("/admin/create-program")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
@@ -91,9 +96,11 @@ export default function AdminHeader() {
             </Link>
 
             <Link
-              href="/admin/offer-shop"
+              href="/offer-shop"
               className={
-                pathname?.startsWith("/admin/offer-shop") ||
+                pathname?.startsWith("/offer-shop") ||
+                  pathname?.startsWith("/admin/offer-shop") ||
+                  pathname?.startsWith("/create-offer") ||
                   pathname?.startsWith("/admin/create-offer")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
@@ -102,9 +109,10 @@ export default function AdminHeader() {
               Shop
             </Link>
             <Link
-              href="/admin/content-blog"
+              href="/content-blog"
               className={
-                pathname?.startsWith("/admin/content-blog")
+                pathname?.startsWith("/content-blog") ||
+                  pathname?.startsWith("/admin/content-blog")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
@@ -112,9 +120,11 @@ export default function AdminHeader() {
               Blog
             </Link>
             <Link
-              href="/admin/help"
+              href="/help"
               className={
-                pathname?.startsWith("/admin/help") ||
+                pathname?.startsWith("/help") ||
+                  pathname?.startsWith("/admin/help") ||
+                  pathname?.startsWith("/create-help") ||
                   pathname?.startsWith("/admin/create-help")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
@@ -123,9 +133,10 @@ export default function AdminHeader() {
               Aide
             </Link>
             <Link
-              href="/admin/users"
+              href="/users"
               className={
-                pathname?.startsWith("/admin/users")
+                pathname?.startsWith("/users") ||
+                  pathname?.startsWith("/admin/users")
                   ? "text-[#7069FA]"
                   : "hover:text-[#3A416F]"
               }
@@ -140,7 +151,7 @@ export default function AdminHeader() {
                 onClick={() => setDropdownOpen(!dropdownOpen)}
                 className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
               >
-                <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#7069FA] text-white flex items-center justify-center font-semibold">
+                <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#3A416F] text-white flex items-center justify-center font-semibold">
                   {user.user_metadata?.name?.charAt(0).toUpperCase() || "?"}
                 </div>
                 {user.user_metadata?.name || "Profil"}

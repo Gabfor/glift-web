@@ -10,15 +10,19 @@ import { Session } from "@supabase/supabase-js";
 export default function ClientLayoutWrapper({
   children,
   initialSession,
+  isAdminSubdomain,
 }: {
   children: React.ReactNode;
   initialSession: Session | null;
+  isAdminSubdomain: boolean;
 }) {
   const pathname = usePathname();
 
   const isAuthPage =
     pathname?.startsWith("/connexion") ||
-    pathname === "/reinitialiser-mot-de-passe";
+    pathname === "/reinitialiser-mot-de-passe" ||
+    pathname?.startsWith("/admin/connexion") ||
+    pathname === "/admin/reinitialiser-mot-de-passe";
 
   const isOnboardingAccountStep = pathname === "/inscription";
 
@@ -34,6 +38,6 @@ export default function ClientLayoutWrapper({
   }, []);
 
   return (
-    <ClientLayout disconnected={shouldUsePublicHeader} initialSession={initialSession}>{children}</ClientLayout>
+    <ClientLayout disconnected={shouldUsePublicHeader} initialSession={initialSession} isAdminSubdomain={isAdminSubdomain}>{children}</ClientLayout>
   );
 }

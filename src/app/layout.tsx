@@ -49,6 +49,7 @@ export const metadata: Metadata = {
 };
 
 import { createClient } from "@/lib/supabase/server";
+import { headers } from "next/headers";
 
 export default async function RootLayout({
   children,
@@ -61,13 +62,17 @@ export default async function RootLayout({
   const locale = resolvedParams?.lang || "fr";
   const supabase = await createClient();
 
+  const headersList = await headers();
+  const host = headersList.get("host") || "";
+  const isAdminSubdomain = host.startsWith("admin.");
+
   // On passe initialSession={null} pour éviter le warning serveur de Supabase (getSession).
   // Le client gérera sa propre session via SupabaseProvider et getUser().
   return (
     <html lang={locale}>
       <body className={quicksand.className}>
         <UnlockScroll />
-        <ClientLayoutWrapper initialSession={null}>{children}</ClientLayoutWrapper>
+        <ClientLayoutWrapper initialSession={null} isAdminSubdomain={isAdminSubdomain}>{children}</ClientLayoutWrapper>
       </body>
     </html>
   );

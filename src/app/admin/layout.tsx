@@ -21,11 +21,24 @@ export const metadata: Metadata = {
   },
 };
 
+import { headers } from "next/headers";
+
 export default async function AdminLayout({
   children,
 }: {
   children: ReactNode;
 }) {
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") || "";
+
+  const isAdminAuthPage =
+    pathname === "/admin/connexion" ||
+    pathname === "/admin/reinitialiser-mot-de-passe";
+
+  if (isAdminAuthPage) {
+    return <div className={quicksand.className}>{children}</div>;
+  }
+
   const supabase = await createServerClient();
   const {
     data: { user },

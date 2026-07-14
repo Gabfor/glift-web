@@ -104,7 +104,7 @@ export default function AdminSettingsPage() {
     };
 
     if (isLoading) {
-        return <GliftLoader />;
+        return <GliftLoader isAdmin />;
     }
 
     return (

@@ -12,6 +12,7 @@ interface ForgotPasswordModalProps {
   open: boolean
   onClose: () => void
   initialEmail?: string
+  resetPath?: string
 }
 
 const RESET_PASSWORD_REDIRECT_URL =
@@ -29,6 +30,7 @@ export default function ForgotPasswordModal({
   open,
   onClose,
   initialEmail,
+  resetPath,
 }: ForgotPasswordModalProps) {
   const [email, setEmail] = useState("")
   const [loading, setLoading] = useState(false)
@@ -124,10 +126,12 @@ export default function ForgotPasswordModal({
         const fallbackOrigin =
           typeof window !== "undefined" ? window.location.origin : null
 
+        const targetPath = resetPath || "/reinitialiser-mot-de-passe"
+
         const ensureResetPath = (value: string) => {
           try {
             const url = new URL(value)
-            url.pathname = "/reinitialiser-mot-de-passe"
+            url.pathname = targetPath
             url.search = ""
             url.hash = ""
             return url.toString()
@@ -135,12 +139,12 @@ export default function ForgotPasswordModal({
             if (fallbackOrigin) {
               try {
                 const url = new URL(value, fallbackOrigin)
-                url.pathname = "/reinitialiser-mot-de-passe"
+                url.pathname = targetPath
                 url.search = ""
                 url.hash = ""
                 return url.toString()
               } catch {
-                return `${fallbackOrigin}/reinitialiser-mot-de-passe`
+                return `${fallbackOrigin}${targetPath}`
               }
             }
             return null
@@ -155,7 +159,7 @@ export default function ForgotPasswordModal({
         }
 
         if (fallbackOrigin) {
-          return `${fallbackOrigin}/reinitialiser-mot-de-passe`
+          return `${fallbackOrigin}${targetPath}`
         }
 
         return null

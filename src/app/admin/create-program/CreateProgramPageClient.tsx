@@ -177,7 +177,7 @@ export default function CreateProgramPageClient({
 
   return (
     <>
-      {showLoader && <GliftLoader onShow={handleLoaderShow} />}
+      {showLoader && <GliftLoader onShow={handleLoaderShow} isAdmin />}
       <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
         <div className="max-w-[1152px] mx-auto w-full">
           <BackLink href="/admin/program-store" className="mb-6">

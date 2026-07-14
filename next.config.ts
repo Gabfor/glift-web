@@ -9,6 +9,13 @@ const nextConfig = {
       },
     ], // ✅ domaine Supabase autorisé
   },
+  experimental: {
+    allowedDevOrigins: [
+      'localhost:3000',
+      'admin.localhost:3000',
+      'app.localhost:3000',
+    ],
+  },
 };
 
 module.exports = nextConfig;
