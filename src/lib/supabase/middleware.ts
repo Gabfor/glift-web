@@ -11,20 +11,37 @@ const shouldPersistSession = (req: NextRequest) => {
 };
 
 const sanitizeCookieOptions = (
+  name: string,
   options: CookieOptions | undefined,
   persist: boolean,
+  req: NextRequest,
 ) => {
-  if (!options || persist) {
-    return options;
+  const sanitized: CookieOptions = options ? { ...options } : {};
+
+  // Forcer path à "/" si non défini
+  if (!sanitized.path) {
+    sanitized.path = "/";
+  }
+
+  // Forcer secure à false en HTTP local pour éviter le rejet des cookies
+  // sur les sous-domaines (ex: http://admin.localhost:3000)
+  if (req.nextUrl.protocol === "http:") {
+    delete sanitized.secure;
+  }
+
+  // Ne pas briser la persistance du code-verifier PKCE
+  const isCodeVerifier = name.includes("code-verifier");
+
+  if (persist || isCodeVerifier) {
+    return sanitized;
   }
 
   // Si maxAge est défini à 0 ou négatif, c'est pour expirer le cookie (déconnexion)
   // Il faut le garder tel quel pour que le cookie soit supprimé du navigateur.
-  if (options.maxAge !== undefined && options.maxAge <= 0) {
-    return options;
+  if (options && options.maxAge !== undefined && options.maxAge <= 0) {
+    return sanitized;
   }
 
-  const sanitized: CookieOptions = { ...options };
   delete sanitized.maxAge;
   delete sanitized.expires;
 
@@ -47,7 +64,7 @@ export function createRememberingMiddlewareClient(
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) => {
             // Appliquer la logique de "Rester connecté"
-            const sanitizedOptions = sanitizeCookieOptions(options, persistSession);
+            const sanitizedOptions = sanitizeCookieOptions(name, options, persistSession, context.req);
 
             // Mettre à jour les cookies sur la requête (pour les middlewares/components en aval)
             context.req.cookies.set(name, value);

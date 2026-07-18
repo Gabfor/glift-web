@@ -21,15 +21,31 @@ const readCookie = (name: string) => {
 };
 
 const sanitizeCookieOptions = (
+  name: string,
   options: CookieOptions | undefined,
   shouldPersist: boolean,
   isRemoval: boolean,
 ) => {
-  if (!options || shouldPersist || isRemoval) {
-    return options;
+  const sanitized: CookieOptions = options ? { ...options } : {};
+
+  // Forcer path à "/" si non défini
+  if (!sanitized.path) {
+    sanitized.path = "/";
   }
 
-  const sanitized = { ...options };
+  // Forcer secure à false en HTTP local pour éviter le rejet des cookies
+  // sur les sous-domaines (ex: http://admin.localhost:3000)
+  if (typeof window !== "undefined" && window.location.protocol === "http:") {
+    delete sanitized.secure;
+  }
+
+  // Ne pas briser la persistance du code-verifier PKCE (crucial pour le changement de mot de passe)
+  const isCodeVerifier = name.includes("code-verifier");
+
+  if (shouldPersist || isRemoval || isCodeVerifier) {
+    return sanitized;
+  }
+
   delete sanitized.maxAge;
   delete sanitized.expires;
 
@@ -59,6 +75,7 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
 
     cookies.forEach(({ name, value, options }) => {
       const sanitizedOptions = sanitizeCookieOptions(
+        name,
         options,
         shouldPersist,
         value === "",

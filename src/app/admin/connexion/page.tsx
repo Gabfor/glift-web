@@ -262,7 +262,7 @@ export default function AdminConnexionPage() {
       <ForgotPasswordModal
         open={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
-        resetPath="/reinitialiser-mot-de-passe"
+        resetPath="/admin/reinitialiser-mot-de-passe"
       />
     </main>
   );

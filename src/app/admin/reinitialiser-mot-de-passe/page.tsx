@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -110,6 +110,19 @@ export default function AdminResetPasswordPage() {
   const isPasswordValid = passwordValidation.isValid;
   const isConfirmValid = confirmValidation.isValid;
 
+  const stageRef = useRef(stage);
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
+  useEffect(() => {
+    return () => {
+      if (stageRef.current === "reset") {
+        supabase.auth.signOut({ scope: "local" });
+      }
+    };
+  }, [supabase]);
+
   useEffect(() => {
     if (stage !== "verify") {
       return;
@@ -142,31 +155,78 @@ export default function AdminResetPasswordPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, _session) => {
         if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-          supabase.auth.getUser().then(({ data }) => {
-            if (data?.user) {
-              handleRecoverySession({ user: data.user });
-            }
-          });
+          const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
+          const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
+          const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
+
+          if (isFreshReset) {
+            supabase.auth.getUser().then(({ data }) => {
+              if (data?.user) {
+                handleRecoverySession({ user: data.user });
+              }
+            });
+          }
         }
       }
     );
 
     const verifySession = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error) {
-          throw error;
+        const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
+        const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
+        const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
+
+        // 1. Essayer de récupérer l'utilisateur existant (s'il y a déjà une session active)
+        let { data: initialData } = await supabase.auth.getUser();
+        let user = initialData?.user ?? null;
+
+        if (!user && isFreshReset) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          const { data: retryData } = await supabase.auth.getUser();
+          user = retryData?.user ?? null;
         }
 
-        if (data.user?.email) {
-          handleRecoverySession({ user: data.user });
+        if (!isFreshReset) {
+          if (user) {
+            router.push("/");
+            return;
+          }
+          if (!cancelled) {
+            setStage("error");
+          }
+          return;
+        }
+
+        // 2. Si pas de session active mais qu'un code PKCE est présent dans l'URL, tenter l'échange
+        if (!user) {
+          const code = searchParams?.get("code");
+          if (code) {
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            if (exchangeError) {
+              throw exchangeError;
+            }
+            // Récupérer l'utilisateur après l'échange réussi
+            const { data: postExchangeData, error: postExchangeError } = await supabase.auth.getUser();
+            if (postExchangeError) {
+              throw postExchangeError;
+            }
+            user = postExchangeData?.user ?? null;
+          }
+        }
+
+        // 3. Valider qu'on a bien un utilisateur connecté
+        if (user?.email) {
+          handleRecoverySession({ user });
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("glift-reset-timestamp");
+          }
         } else if (!cancelled) {
-          errorTimeout = setTimeout(() => {
-            setStage((current) => (current === "verify" ? "error" : current));
-          }, 2000);
+          await supabase.auth.signOut({ scope: "local" });
+          setStage("error");
         }
       } catch (unknownError) {
-        console.error("Erreur lors de la vérification du lien admin", unknownError);
+        console.error("Erreur lors de la vérification du lien", unknownError);
+        await supabase.auth.signOut({ scope: "local" });
         if (!cancelled) {
           setStage("error");
         }
@@ -186,7 +246,7 @@ export default function AdminResetPasswordPage() {
       }
       authListener.subscription.unsubscribe();
     };
-  }, [stage, supabase]);
+  }, [stage, supabase, searchParams]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
   const passwordCriteriaRenderer = useCallback<CriteriaRenderer>(
@@ -261,18 +321,6 @@ export default function AdminResetPasswordPage() {
       setStage("error");
     } finally {
       setSubmitting(false);
-      if (!hasCheckedSession) {
-        return;
-      }
-
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch (signOutError) {
-        console.error(
-          "Erreur lors de la déconnexion après soumission admin",
-          signOutError
-        );
-      }
     }
   };
 
@@ -288,88 +336,123 @@ export default function AdminResetPasswordPage() {
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]">
         <div className="w-full flex flex-col items-center px-4 sm:px-0">
           <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
-            Modification du mot de passe Admin
+            Modification du mot de passe
           </h1>
 
           {stage === "error" && (
             <div className="w-[564px] max-w-full mx-auto mb-6">
               <ModalMessage
                 variant="warning"
-                title="Lien invalide ou expiré"
-                description="Merci de relancer une demande depuis « Mot de passe oublié ? » sur l'interface d'administration."
-              />
-            </div>
-          )}
-
-          {stage === "done" && (
-            <div className="w-[564px] max-w-full mx-auto mb-6">
-              <ModalMessage
-                variant="success"
-                title="Mot de passe modifié !"
-                description="Votre nouveau mot de passe administrateur a bien été enregistré. Redirection en cours..."
+                title="Impossible de vous identifier"
+                description="Nous sommes désolés mais nous n'avons pas réussi à vous identifier. Merci de relancer une demande depuis « Mot de passe oublié ? »."
               />
             </div>
           )}
 
           {stage === "reset" && (
+            <>
+              <div className="w-[564px] max-w-full mx-auto mb-6">
+                <ModalMessage
+                  variant="info"
+                  title="Modification de votre mot de passe"
+                  description="Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
+                  className="px-6 py-5"
+                />
+              </div>
+              {formError ? (
+                <div className="w-[564px] max-w-full mx-auto mb-6">
+                  <ErrorMessage title={formError} />
+                </div>
+              ) : null}
+            </>
+          )}
+
+          {(stage === "reset" || stage === "error") && (
             <form
-              className="flex flex-col w-full max-w-[564px] gap-4"
+              className="flex flex-col items-center w-full max-w-[368px]"
               onSubmit={handleSubmit}
+              autoComplete="on"
+              name="reset-password"
             >
-              {formError && <ErrorMessage title={formError} />}
-
-              {email && (
-                <div className="text-center text-[14px] font-semibold text-[#5D6494] mb-2">
-                  Compte : {email}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-0">
-                <div className="w-full flex justify-center">
-                  <PasswordField
-                    id="password"
-                    value={password}
-                    onChange={setPassword}
-                    label="Nouveau mot de passe"
-                    containerClassName="w-full max-w-[368px]"
-                    messageContainerClassName="mt-2 text-[13px] font-medium"
-                    criteriaRenderer={passwordCriteriaRenderer}
-                    autoComplete="new-password"
-                  />
-                </div>
-
-                <div className="w-full flex justify-center">
-                  <PasswordField
-                    id="confirmPassword"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    label="Confirmer le mot de passe"
-                    containerClassName="w-full max-w-[368px]"
-                    messageContainerClassName="mt-2 text-[13px] font-medium"
-                    criteriaRenderer={confirmCriteriaRenderer}
-                    autoComplete="new-password"
-                  />
-                </div>
+              {/* Email */}
+              <div className="w-full mb-[30px]">
+                <label
+                  htmlFor="email"
+                  className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="username"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="username"
+                  placeholder="john.doe@email.com"
+                  value={email}
+                  disabled
+                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
+                />
               </div>
 
-              <div className="w-full flex justify-center mt-[15px]">
+              {/* Nouveau mot de passe */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="password"
+                  name="new-password"
+                  label="Nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  disabled={stage === "error"}
+                  value={password}
+                  onChange={setPassword}
+                  validate={(value) =>
+                    getPasswordValidationState(value).isValid
+                  }
+                  errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
+                  successMessage="Mot de passe valide"
+                  containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={passwordCriteriaRenderer}
+                  blurDelay={100}
+                />
+              </div>
+
+              {/* Confirmation */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="confirm"
+                  name="confirm-password"
+                  label="Répéter le nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  disabled={stage === "error"}
+                  onPaste={(e) => e.preventDefault()}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  validate={(value) => {
+                    const state = getPasswordValidationState(value);
+                    return state.isValid && value === password;
+                  }}
+                  errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
+                  successMessage="Confirmation du mot de passe valide"
+                  containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={confirmCriteriaRenderer}
+                  blurDelay={100}
+                />
+              </div>
+
+              {/* CTA */}
+              <div className="w-full flex justify-center mt-[5px]">
                 <CTAButton
                   type="submit"
-                  className="w-full max-w-[200px] font-semibold"
-                  disabled={!isFormValid || submitting}
+                  className="font-semibold"
+                  disabled={stage === "error" || !isFormValid}
                   loading={submitting}
-                  loadingText="Enregistrement..."
+                  loadingText="En cours..."
                 >
-                  <>
-                    <Image
-                      src="/icons/cadena_defaut.svg"
-                      alt="Cadenas"
-                      width={20}
-                      height={20}
-                      className={isFormValid && !submitting ? "invert brightness-0" : ""}
-                    />
-                    Enregistrer
-                  </>
+                  Enregistrer
                 </CTAButton>
               </div>
             </form>

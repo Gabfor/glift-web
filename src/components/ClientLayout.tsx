@@ -68,7 +68,7 @@ function ClientLayoutContent({
   const { isLoading, isAuthenticated } = useUser();
   const { isGlobalLoading } = useGlobalLoader();
   const pathname = usePathname();
-  const shouldForceDisconnected = disconnected && !isAuthenticated;
+  const shouldForceDisconnected = disconnected || !isAuthenticated;
 
   // Combine auth loading and manual global loading
   const showLoader = useMinimumVisibility(isLoading || isGlobalLoading);
@@ -86,7 +86,7 @@ function ClientLayoutContent({
         <GliftLoader className={isComptePage ? "bg-white" : undefined} isAdmin={isAdminPage} />
       ) : null}
       {isAdminPage ? (
-        isAdminAuthPage ? (
+        isAdminAuthPage || !isAuthenticated ? (
           <AdminHeaderSimple />
         ) : (
           <AdminHeader />

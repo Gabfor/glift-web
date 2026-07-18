@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 
@@ -110,6 +110,19 @@ export default function ResetPasswordPage() {
   const isPasswordValid = passwordValidation.isValid;
   const isConfirmValid = confirmValidation.isValid;
 
+  const stageRef = useRef(stage);
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
+  useEffect(() => {
+    return () => {
+      if (stageRef.current === "reset") {
+        supabase.auth.signOut({ scope: "local" });
+      }
+    };
+  }, [supabase]);
+
   useEffect(() => {
     if (stage !== "verify") {
       return;
@@ -142,31 +155,78 @@ export default function ResetPasswordPage() {
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, _session) => {
         if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-          supabase.auth.getUser().then(({ data }) => {
-            if (data?.user) {
-              handleRecoverySession({ user: data.user });
-            }
-          });
+          const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
+          const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
+          const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
+
+          if (isFreshReset) {
+            supabase.auth.getUser().then(({ data }) => {
+              if (data?.user) {
+                handleRecoverySession({ user: data.user });
+              }
+            });
+          }
         }
       }
     );
 
     const verifySession = async () => {
       try {
-        const { data, error } = await supabase.auth.getUser();
-        if (error) {
-          throw error;
+        const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
+        const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
+        const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
+
+        // 1. Essayer de récupérer l'utilisateur existant (s'il y a déjà une session active)
+        let { data: initialData } = await supabase.auth.getUser();
+        let user = initialData?.user ?? null;
+
+        if (!user && isFreshReset) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          const { data: retryData } = await supabase.auth.getUser();
+          user = retryData?.user ?? null;
         }
 
-        if (data.user?.email) {
-          handleRecoverySession({ user: data.user });
+        if (!isFreshReset) {
+          if (user) {
+            router.push("/dashboard");
+            return;
+          }
+          if (!cancelled) {
+            setStage("error");
+          }
+          return;
+        }
+
+        // 2. Si pas de session active mais qu'un code PKCE est présent dans l'URL, tenter l'échange
+        if (!user) {
+          const code = searchParams?.get("code");
+          if (code) {
+            const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+            if (exchangeError) {
+              throw exchangeError;
+            }
+            // Récupérer l'utilisateur après l'échange réussi
+            const { data: postExchangeData, error: postExchangeError } = await supabase.auth.getUser();
+            if (postExchangeError) {
+              throw postExchangeError;
+            }
+            user = postExchangeData?.user ?? null;
+          }
+        }
+
+        // 3. Valider qu'on a bien un utilisateur connecté
+        if (user?.email) {
+          handleRecoverySession({ user });
+          if (typeof window !== "undefined") {
+            sessionStorage.removeItem("glift-reset-timestamp");
+          }
         } else if (!cancelled) {
-          errorTimeout = setTimeout(() => {
-            setStage((current) => (current === "verify" ? "error" : current));
-          }, 2000);
+          await supabase.auth.signOut({ scope: "local" });
+          setStage("error");
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
+        await supabase.auth.signOut({ scope: "local" });
         if (!cancelled) {
           setStage("error");
         }
@@ -186,7 +246,7 @@ export default function ResetPasswordPage() {
       }
       authListener.subscription.unsubscribe();
     };
-  }, [stage, supabase]);
+  }, [stage, supabase, searchParams]);
 
   const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
   const passwordCriteriaRenderer = useCallback<CriteriaRenderer>(
@@ -262,18 +322,6 @@ export default function ResetPasswordPage() {
       setStage("error");
     } finally {
       setSubmitting(false);
-      if (!hasCheckedSession) {
-        return;
-      }
-
-      try {
-        await supabase.auth.signOut({ scope: "local" });
-      } catch (signOutError) {
-        console.error(
-          "Erreur lors de la déconnexion après soumission",
-          signOutError
-        );
-      }
     }
   };
 
@@ -296,8 +344,8 @@ export default function ResetPasswordPage() {
             <div className="w-[564px] max-w-full mx-auto mb-6">
               <ModalMessage
                 variant="warning"
-                title="Lien invalide ou expiré"
-                description="Merci de relancer une demande depuis « Mot de passe oublié ? »."
+                title="Impossible de vous identifier"
+                description="Nous sommes désolés mais nous n'avons pas réussi à vous identifier. Merci de relancer une demande depuis « Mot de passe oublié ? »."
               />
             </div>
           )}
@@ -317,93 +365,98 @@ export default function ResetPasswordPage() {
                   <ErrorMessage title={formError} />
                 </div>
               ) : null}
-
-              <form
-                className="flex flex-col items-center w-full max-w-[368px]"
-                onSubmit={handleSubmit}
-                autoComplete="on"
-                name="reset-password"
-              >
-                {/* Email */}
-                <div className="w-full mb-[30px]">
-                  <label
-                    htmlFor="email"
-                    className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
-                  >
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="username"
-                    type="email"
-                    inputMode="email"
-                    autoComplete="username"
-                    placeholder="john.doe@email.com"
-                    value={email}
-                    disabled
-                    className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
-                  />
-                </div>
-
-                {/* Nouveau mot de passe */}
-                <div className="w-full mb-[5px]">
-                  <PasswordField
-                    id="password"
-                    name="new-password"
-                    label="Nouveau mot de passe"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                    value={password}
-                    onChange={setPassword}
-                    validate={(value) =>
-                      getPasswordValidationState(value).isValid
-                    }
-                    errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
-                    successMessage="Mot de passe valide"
-                    containerClassName="w-full"
-                    messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                    criteriaRenderer={passwordCriteriaRenderer}
-                    blurDelay={100}
-                  />
-                </div>
-
-                {/* Confirmation */}
-                <div className="w-full mb-[5px]">
-                  <PasswordField
-                    id="confirm"
-                    name="confirm-password"
-                    label="Répéter le nouveau mot de passe"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    validate={(value) => {
-                      const state = getPasswordValidationState(value);
-                      return state.isValid && value === password;
-                    }}
-                    errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
-                    successMessage="Confirmation du mot de passe valide"
-                    containerClassName="w-full"
-                    messageContainerClassName="mt-[5px] text-[13px] font-medium"
-                    criteriaRenderer={confirmCriteriaRenderer}
-                    blurDelay={100}
-                  />
-                </div>
-
-                {/* CTA */}
-                <div className="w-full flex justify-center mt-[5px]">
-                  <CTAButton
-                    type="submit"
-                    className="font-semibold"
-                    disabled={!isFormValid}
-                    loading={submitting}
-                    loadingText="En cours..."
-                  >
-                    Enregistrer
-                  </CTAButton>
-                </div>
-              </form>
             </>
+          )}
+
+          {(stage === "reset" || stage === "error") && (
+            <form
+              className="flex flex-col items-center w-full max-w-[368px]"
+              onSubmit={handleSubmit}
+              autoComplete="on"
+              name="reset-password"
+            >
+              {/* Email */}
+              <div className="w-full mb-[30px]">
+                <label
+                  htmlFor="email"
+                  className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
+                >
+                  Email
+                </label>
+                <input
+                  id="email"
+                  name="username"
+                  type="email"
+                  inputMode="email"
+                  autoComplete="username"
+                  placeholder="john.doe@email.com"
+                  value={email}
+                  disabled
+                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
+                />
+              </div>
+
+              {/* Nouveau mot de passe */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="password"
+                  name="new-password"
+                  label="Nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  disabled={stage === "error"}
+                  value={password}
+                  onChange={setPassword}
+                  validate={(value) =>
+                    getPasswordValidationState(value).isValid
+                  }
+                  errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
+                  successMessage="Mot de passe valide"
+                  containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={passwordCriteriaRenderer}
+                  blurDelay={100}
+                />
+              </div>
+
+              {/* Confirmation */}
+              <div className="w-full mb-[5px]">
+                <PasswordField
+                  id="confirm"
+                  name="confirm-password"
+                  label="Répéter le nouveau mot de passe"
+                  placeholder="••••••••"
+                  autoComplete="new-password"
+                  disabled={stage === "error"}
+                  onPaste={(e) => e.preventDefault()}
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  validate={(value) => {
+                    const state = getPasswordValidationState(value);
+                    return state.isValid && value === password;
+                  }}
+                  errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
+                  successMessage="Confirmation du mot de passe valide"
+                  containerClassName="w-full"
+                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  criteriaRenderer={confirmCriteriaRenderer}
+                  blurDelay={100}
+                />
+              </div>
+
+              {/* CTA */}
+              <div className="w-full flex justify-center mt-[5px]">
+                <CTAButton
+                  type="submit"
+                  className="font-semibold"
+                  disabled={stage === "error" || !isFormValid}
+                  loading={submitting}
+                  loadingText="En cours..."
+                >
+                  Enregistrer
+                </CTAButton>
+              </div>
+            </form>
           )}
         </div>
       </main>
