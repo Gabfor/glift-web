@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import CTAButton from "@/components/CTAButton";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
@@ -12,6 +12,8 @@ import { IconCheckbox } from "@/components/ui/IconCheckbox";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 import { useUser } from "@/context/UserContext";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import Modal from "@/components/ui/Modal";
+import ModalMessage from "@/components/ui/ModalMessage";
 
 import StepIndicator from "./components/StepIndicator";
 import { getNextStepPath, getStepMetadata, parsePlan } from "./constants";
@@ -44,6 +46,16 @@ const AccountCreationPage = () => {
   const [email, setEmail] = useState("");
 
   const [password, setPassword] = useState("");
+
+  // OTP Verification States
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [otpToken, setOtpToken] = useState<string | null>(null);
+  const [otpCode, setOtpCode] = useState<string[]>(["", "", "", "", "", ""]);
+  const [otpError, setOtpError] = useState<{ title: string; description: string } | null>(null);
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpSuccessMessage, setOtpSuccessMessage] = useState<string | null>(null);
+
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const isPrenomFormatValid = /^[a-zA-ZÀ-ÿ\s-]+$/.test(prenom.trim());
   const isPrenomFieldValid = prenom.trim().length > 0 && isPrenomFormatValid;
@@ -92,12 +104,12 @@ const AccountCreationPage = () => {
   }, [searchParamsString]);
 
   useEffect(() => {
-    if (isLoading || !isAuthenticated || !plan || !nextStepPath) {
+    if (isLoading || !isAuthenticated || !plan || !nextStepPath || showVerificationModal) {
       return;
     }
 
     router.replace(nextStepPath);
-  }, [isAuthenticated, isLoading, nextStepPath, plan, router]);
+  }, [isAuthenticated, isLoading, nextStepPath, plan, router, showVerificationModal]);
 
   const handleEmailChange = (nextEmail: string) => {
     setEmail(nextEmail);
@@ -149,13 +161,13 @@ const AccountCreationPage = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!isFormValid || !plan || !nextStepPath) return;
+    if (!isFormValid || !plan) return;
 
     setError(null);
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/signup", {
+      const response = await fetch("/api/auth/send-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -173,6 +185,54 @@ const AccountCreationPage = () => {
         return;
       }
 
+      setOtpToken(result.token);
+      setOtpCode(["", "", "", "", "", ""]);
+      setOtpError(null);
+      setOtpSuccessMessage(null);
+      setShowVerificationModal(true);
+      
+      // Auto focus first input after modal opens
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+
+    } catch (submitError) {
+      console.error(submitError);
+      setError(normalizeErrorMessage("Une erreur réseau est survenue."));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const fullCode = otpCode.join("");
+    if (fullCode.length !== 6 || !otpToken || !plan || !nextStepPath) return;
+
+    setOtpError(null);
+    setOtpSuccessMessage(null);
+    setOtpLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/verify-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: fullCode,
+          token: otpToken,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setOtpError({
+          title: "Code invalide ou expiré",
+          description:
+            "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier votre code ou de renvoyer un nouveau code.",
+        });
+        return;
+      }
+
       const sessionPayload = result.session as
         | { access_token: string; refresh_token: string }
         | null
@@ -185,78 +245,136 @@ const AccountCreationPage = () => {
         });
 
         if (sessionError) {
-          setError(
-            normalizeErrorMessage(
-              sessionError.message ||
-              "Connexion impossible après la création du compte.",
-            ),
-          );
+          setOtpError({
+            title: "Connexion impossible",
+            description: sessionError.message || "Connexion impossible après la validation.",
+          });
           return;
         }
 
         await refreshUser();
-        if (plan === 'premium') {
+        if (plan === "premium") {
           setOptimisticPremium(true);
-        }
-      } else {
-        try {
-          const response = await fetch("/api/auth/provisional-session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password }),
-          });
-
-          const provisionalResult: {
-            success?: boolean;
-            session?: { access_token: string; refresh_token: string } | null;
-            error?: string;
-          } = await response.json();
-
-          if (response.ok && provisionalResult.success && provisionalResult.session) {
-            const { error: sessionError } = await supabase.auth.setSession({
-              access_token: provisionalResult.session.access_token,
-              refresh_token: provisionalResult.session.refresh_token,
-            });
-
-            if (sessionError) {
-              setError(
-                normalizeErrorMessage(
-                  sessionError.message ||
-                  "Connexion impossible après la création du compte.",
-                ),
-              );
-              return;
-            }
-
-            await refreshUser();
-            if (plan === 'premium') {
-              setOptimisticPremium(true);
-            }
-          } else if (!response.ok) {
-            setError(
-              normalizeErrorMessage(
-                provisionalResult.error ||
-                "Nous n'avons pas pu finaliser votre inscription. Merci de vérifier votre email.",
-              ),
-            );
-            return;
-          }
-        } catch (provisionalError) {
-          console.error(
-            "Impossible de récupérer une session provisoire après inscription",
-            provisionalError,
-          );
         }
       }
 
+      setShowVerificationModal(false);
       router.replace(nextStepPath);
-    } catch (submitError) {
-      console.error(submitError);
-      setError(normalizeErrorMessage("Une erreur réseau est survenue."));
+    } catch (err) {
+      console.error(err);
+      setOtpError({
+        title: "Une erreur est survenue",
+        description: "Une erreur réseau est survenue. Merci de réessayer ultérieurement.",
+      });
     } finally {
-      setLoading(false);
+      setOtpLoading(false);
     }
   };
+
+  const handleResendCode = async () => {
+    setOtpError(null);
+    setOtpSuccessMessage(null);
+    setOtpLoading(true);
+
+    try {
+      const response = await fetch("/api/auth/send-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          name: prenom,
+          plan,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        setOtpError({
+          title: "Une erreur est survenue",
+          description: result.error || "Impossible de renvoyer le code.",
+        });
+        return;
+      }
+
+      setOtpToken(result.token);
+      setOtpCode(["", "", "", "", "", ""]);
+      setOtpSuccessMessage("Un nouveau code a été envoyé par e-mail.");
+      
+      // Auto focus first input again
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+
+    } catch (err) {
+      console.error(err);
+      setOtpError({
+        title: "Une erreur est survenue",
+        description: "Une erreur réseau est survenue.",
+      });
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  const handleOtpChange = (value: string, index: number) => {
+    if (otpError) {
+      setOtpError(null);
+    }
+    const cleanValue = value.replace(/[^0-9]/g, "");
+    if (!cleanValue) {
+      const newOtpCode = [...otpCode];
+      newOtpCode[index] = "";
+      setOtpCode(newOtpCode);
+      return;
+    }
+
+    const newOtpCode = [...otpCode];
+    newOtpCode[index] = cleanValue.slice(-1);
+    setOtpCode(newOtpCode);
+
+    if (index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (otpError) {
+      setOtpError(null);
+    }
+    if (e.key === "Backspace") {
+      if (!otpCode[index] && index > 0) {
+        const newOtpCode = [...otpCode];
+        newOtpCode[index - 1] = "";
+        setOtpCode(newOtpCode);
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        const newOtpCode = [...otpCode];
+        newOtpCode[index] = "";
+        setOtpCode(newOtpCode);
+      }
+    }
+  };
+
+  const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    if (otpError) {
+      setOtpError(null);
+    }
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/[^0-9]/g, "").slice(0, 6);
+    if (pastedData.length > 0) {
+      const newOtpCode = [...otpCode];
+      for (let i = 0; i < 6; i++) {
+        newOtpCode[i] = pastedData[i] || "";
+      }
+      setOtpCode(newOtpCode);
+      const focusIndex = Math.min(pastedData.length, 5);
+      inputRefs.current[focusIndex]?.focus();
+    }
+  };
+
+  const isOtpComplete = otpCode.every((digit) => digit !== "");
 
   const PasswordCriteriaItem = ({
     valid,
@@ -440,6 +558,103 @@ const AccountCreationPage = () => {
             </Link>
           </p>
         </form>
+
+        {/* OTP Code Validation Modal matching Forgot Password flow */}
+        <Modal
+          open={showVerificationModal}
+          title="Code de validation"
+          onClose={() => setShowVerificationModal(false)}
+          closeDisabled={otpLoading}
+          footer={
+            <div className="flex justify-center gap-3">
+              <CTAButton
+                type="button"
+                variant="secondary"
+                onClick={() => setShowVerificationModal(false)}
+                disabled={otpLoading}
+              >
+                Annuler
+              </CTAButton>
+              <CTAButton
+                type="button"
+                onClick={handleVerifyOTP}
+                variant={isOtpComplete ? "active" : "inactive"}
+                disabled={!isOtpComplete}
+                loading={otpLoading}
+                loadingText="En cours"
+                keepWidthWhileLoading={false}
+                className="px-[30px]"
+              >
+                Valider
+              </CTAButton>
+            </div>
+          }
+        >
+          <div className="flex flex-col items-center gap-6 w-full">
+            <div className="w-full max-w-[504px] space-y-4">
+              {otpError ? (
+                <ModalMessage
+                  variant="warning"
+                  title={otpError.title}
+                  description={otpError.description}
+                />
+              ) : otpSuccessMessage ? (
+                <ModalMessage
+                  variant="success"
+                  title="Code renvoyé"
+                  description={otpSuccessMessage}
+                />
+              ) : (
+                <ModalMessage
+                  variant="info"
+                  title="Finalisez votre inscription"
+                  description="Pour confirmer votre identité et finaliser la création de votre compte, saisissez le code que vous avez reçu dans votre email d'inscription."
+                />
+              )}
+            </div>
+
+            <div className="flex flex-col items-center gap-1.5 w-full max-w-[338px]">
+              <label className="text-[16px] font-bold text-[#3A416F] text-left w-full block">
+                Code reçu par email
+              </label>
+
+              <div className="flex justify-start gap-2.5 w-full mt-1">
+                {otpCode.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={1}
+                    value={digit}
+                    placeholder="0"
+                    onChange={(e) => handleOtpChange(e.target.value, index)}
+                    onKeyDown={(e) => handleOtpKeyDown(e, index)}
+                    onPaste={handleOtpPaste}
+                    className={`w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 ${
+                      otpError
+                        ? "border-[#EF4444]"
+                        : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleResendCode}
+                disabled={otpLoading}
+                className="text-[13px] font-bold text-[#7069FA] hover:text-[#6660E4] transition-colors mt-3 disabled:opacity-50"
+              >
+                Renvoyer le code
+              </button>
+            </div>
+          </div>
+        </Modal>
+
       </div>
     </main>
   );

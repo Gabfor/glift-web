@@ -227,8 +227,13 @@ export default function ForgotPasswordModal({
   }
 
   const handleOtpKeyDown = (index: number, event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Backspace" && !otp[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
+    if (event.key === "Backspace") {
+      if (error) {
+        setError(null)
+      }
+      if (!otp[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus()
+      }
     }
   }
 
@@ -359,12 +364,12 @@ export default function ForgotPasswordModal({
             )}
           </div>
 
-          <div className="flex flex-col items-center gap-1.5 w-full max-w-[368px]">
-            <label className="text-[16px] font-bold text-[#3A416F] text-center block">
+          <div className="flex flex-col items-center gap-1.5 w-full max-w-[338px]">
+            <label className="text-[16px] font-bold text-[#3A416F] text-left w-full block">
               Code reçu par email
             </label>
 
-            <div className="flex justify-center gap-2.5 w-full mt-1">
+            <div className="flex justify-start gap-2.5 w-full mt-1">
               {otp.map((digit, index) => (
                 <input
                   key={index}

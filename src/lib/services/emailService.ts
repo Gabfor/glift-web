@@ -104,7 +104,53 @@ export class EmailService {
       return data;
     } catch (error) {
       console.error("EmailService error:", error);
-      throw error; // Throw so the API can return a 500 error
+      throw error;
+    }
+  }
+
+  async sendOTPCodeEmail(email: string, code: string) {
+    if (!process.env.RESEND_API_KEY) {
+      console.log("----------------------------------------");
+      console.log("📧 [EmailService] OTP Verification Code:");
+      console.log(`To: ${email}`);
+      console.log(`Code: ${code}`);
+      console.log("----------------------------------------");
+      return;
+    }
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: "Glift <onboarding@resend.dev>", // TODO: Replace with your verified domain in production
+        to: email,
+        subject: "Votre code de validation Glift",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; text-align: center; border: 1px solid #D7D4DC; padding: 30px; border-radius: 8px;">
+            <h1 style="color: #2E3271;">Finalisez votre inscription</h1>
+            <p style="color: #5D6494; font-size: 16px;">
+              Pour confirmer votre identité et finaliser la création de votre compte, veuillez saisir le code de validation ci-dessous :
+            </p>
+            <div style="margin: 30px 0;">
+              <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #7069FA; background-color: #F3F4F6; padding: 10px 20px; border-radius: 5px; border: 1px dashed #7069FA;">
+                ${code}
+              </span>
+            </div>
+            <p style="color: #9CA3AF; font-size: 14px;">
+              Ce code est valable pendant 15 minutes. Si vous n'avez pas demandé ce code, vous pouvez ignorer cet e-mail.
+            </p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error("Error sending OTP email via Resend:", error);
+        throw new Error("Failed to send OTP email");
+      }
+
+      return data;
+    } catch (error) {
+      console.error("EmailService error:", error);
+      throw error;
     }
   }
 }
+
