@@ -18,16 +18,19 @@ import ModalMessage from "@/components/ui/ModalMessage";
 import StepIndicator from "./components/StepIndicator";
 import { getNextStepPath, getStepMetadata, parsePlan } from "./constants";
 
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+
 const AccountCreationPage = () => {
   const { supabaseClient } = useSessionContext();
   const supabase = supabaseClient;
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refreshUser, isAuthenticated, isLoading, setOptimisticPremium } = useUser();
+  const siteSettings = useSiteSettings();
 
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
-  const stepMetadata = getStepMetadata(plan, "account");
+  const stepMetadata = getStepMetadata(plan, "account", siteSettings.isPremiumPaymentStepEnabled);
 
   const [accepted, setAccepted] = useState(false);
   type NormalizedError = {
@@ -54,6 +57,7 @@ const AccountCreationPage = () => {
   const [otpError, setOtpError] = useState<{ title: string; description: string } | null>(null);
   const [otpLoading, setOtpLoading] = useState(false);
   const [otpSuccessMessage, setOtpSuccessMessage] = useState<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -78,8 +82,8 @@ const AccountCreationPage = () => {
     }
 
     const params = new URLSearchParams(searchParamsString);
-    return getNextStepPath(plan, "account", params);
-  }, [plan, searchParamsString]);
+    return getNextStepPath(plan, "account", params, siteSettings.isPremiumPaymentStepEnabled);
+  }, [plan, searchParamsString, siteSettings.isPremiumPaymentStepEnabled]);
 
 
 
@@ -236,8 +240,13 @@ const AccountCreationPage = () => {
         if (plan === "premium") {
           setOptimisticPremium(true);
         }
+        
+        setIsRedirecting(true);
+        router.replace(nextStepPath);
+        return; // Exit here so we don't hit finally (wait, finally STILL runs in JS, so it's fine, we rely on isRedirecting)
       }
 
+      // If we somehow reach here without success (e.g. sessionPayload missing but response.ok)
       setShowVerificationModal(false);
       router.replace(nextStepPath);
     } catch (err) {
@@ -403,7 +412,7 @@ const AccountCreationPage = () => {
         <StepIndicator
           totalSteps={stepMetadata.totalSteps}
           currentStep={stepMetadata.currentStep}
-          className="mb-6"
+          className={`mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
         />
 
         {error ? (
@@ -544,14 +553,14 @@ const AccountCreationPage = () => {
           open={showVerificationModal}
           title="Code de validation"
           onClose={() => setShowVerificationModal(false)}
-          closeDisabled={otpLoading}
+          closeDisabled={otpLoading || isRedirecting}
           footer={
             <div className="flex justify-center gap-3">
               <CTAButton
                 type="button"
                 variant="secondary"
                 onClick={() => setShowVerificationModal(false)}
-                disabled={otpLoading}
+                disabled={otpLoading || isRedirecting}
               >
                 Annuler
               </CTAButton>
@@ -559,8 +568,8 @@ const AccountCreationPage = () => {
                 type="button"
                 onClick={handleVerifyOTP}
                 variant={isOtpComplete ? "active" : "inactive"}
-                disabled={!isOtpComplete}
-                loading={otpLoading}
+                disabled={!isOtpComplete || isRedirecting}
+                loading={otpLoading || isRedirecting}
                 loadingText="En cours"
                 keepWidthWhileLoading={false}
                 className="px-[30px]"

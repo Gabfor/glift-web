@@ -212,9 +212,20 @@ export class PaymentService {
 
         // Update profile plan if premium was requested (optimistic)
         if (plan === 'premium') {
+            // Calculate trial end for DB to match Stripe
+            const { data: trialSetting } = await this.supabase
+                .from('settings')
+                .select('value')
+                .eq('key', 'trial_period_days')
+                .single();
+            const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
+            const trialEndDate = new Date(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000).toISOString();
+
             await this.supabase.from('profiles').update({ 
                 subscription_plan: 'premium',
-                trial: true 
+                trial: true,
+                premium_end_at: trialEndDate,
+                premium_trial_end_at: trialEndDate
             }).eq('id', userId);
         }
 

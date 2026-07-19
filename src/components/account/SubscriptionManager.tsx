@@ -231,7 +231,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const fetchPaymentMethod = async () => {
         try {
             console.log("Fetching payment methods...");
-            const res = await fetch('/api/user/payment-methods');
+            const res = await fetch('/api/user/payment-methods', { cache: 'no-store' });
             if (res.ok) {
                 const json = await res.json();
                 if (json.data && json.data.length > 0) {

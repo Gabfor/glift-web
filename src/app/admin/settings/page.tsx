@@ -36,6 +36,9 @@ export default function AdminSettingsPage() {
     const [contactEmail, setContactEmail] = useState<string>("");
     const [initialContactEmail, setInitialContactEmail] = useState<string>("");
 
+    const [premiumPaymentStep, setPremiumPaymentStep] = useState<string>("disabled");
+    const [initialPremiumPaymentStep, setInitialPremiumPaymentStep] = useState<string>("disabled");
+
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isCleaning, setIsCleaning] = useState(false);
@@ -67,6 +70,11 @@ export default function AdminSettingsPage() {
                 setContactEmail(contactEmailValue);
                 setInitialContactEmail(contactEmailValue);
 
+                // Fetch Premium Payment Step
+                const premiumPaymentStepValue = settings["premium_payment_step"] || "disabled";
+                setPremiumPaymentStep(premiumPaymentStepValue);
+                setInitialPremiumPaymentStep(premiumPaymentStepValue);
+
             } catch (error) {
                 console.error("Failed to load settings", error);
             } finally {
@@ -76,7 +84,7 @@ export default function AdminSettingsPage() {
         fetchSettings();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (trialDays !== initialTrialDays) || (contactEmail !== initialContactEmail);
+    const hasChanges = (logoUrl !== initialLogoUrl) || (altText !== initialAltText) || (trialDays !== initialTrialDays) || (contactEmail !== initialContactEmail) || (premiumPaymentStep !== initialPremiumPaymentStep);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -88,12 +96,14 @@ export default function AdminSettingsPage() {
 
             await settingsService.updateSetting("trial_period_days", trialDays);
             await settingsService.updateSetting("contact_email", contactEmail);
+            await settingsService.updateSetting("premium_payment_step", premiumPaymentStep);
 
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
             setInitialTrialDays(trialDays);
             setInitialContactEmail(contactEmail);
+            setInitialPremiumPaymentStep(premiumPaymentStep);
 
         } catch (error) {
             console.error("Save failed", error);
@@ -162,6 +172,19 @@ export default function AdminSettingsPage() {
                                     ]}
                                     selected={trialDays}
                                     onSelect={setTrialDays}
+                                />
+                            </div>
+                            <div>
+                                <AdminDropdown
+                                    label="Étape de paiement (premium)"
+                                    placeholder="Sélectionner"
+                                    sortStrategy="none"
+                                    options={[
+                                        { value: "enabled", label: "Activée" },
+                                        { value: "disabled", label: "Désactivée" },
+                                    ]}
+                                    selected={premiumPaymentStep}
+                                    onSelect={setPremiumPaymentStep}
                                 />
                             </div>
                         </div>

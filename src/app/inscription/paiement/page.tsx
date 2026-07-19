@@ -24,9 +24,12 @@ const PaymentPage = () => {
   const pathname = usePathname() ?? "/inscription/paiement";
   const searchParams = useSearchParams();
 
+  const siteSettings = useSiteSettings();
+  const { trialDays, isPremiumPaymentStepEnabled } = siteSettings;
+
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
-  const stepMetadata = plan ? getStepMetadata(plan, "payment") : null;
+  const stepMetadata = plan ? getStepMetadata(plan, "payment", isPremiumPaymentStepEnabled) : null;
 
   const searchParamsString = searchParams?.toString() ?? "";
 
@@ -52,7 +55,6 @@ const PaymentPage = () => {
     };
   }, [pathname, searchParamsString]);
 
-  const { trialDays } = useSiteSettings();
   const trialEndParam = searchParams?.get("trialEnd") ?? null;
 
   const trialEndLabel = useMemo(() => {
@@ -107,7 +109,7 @@ const PaymentPage = () => {
           <span className="font-bold text-[#5D6494]">{trialEndLabel}</span>.
         </p>
         <StepDots
-          className="my-5"
+          className={`my-5 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
           totalSteps={stepMetadata.totalSteps}
           currentStep={stepMetadata.currentStep}
         />

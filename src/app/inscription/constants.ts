@@ -25,9 +25,11 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
   },
 };
 
-const STEP_SEQUENCE: Record<PlanType, StepKey[]> = {
-  starter: ["account", "profile"],
-  premium: ["account", "profile"], // "payment" commenté temporairement
+const getStepSequence = (plan: PlanType, isPaymentEnabled: boolean): StepKey[] => {
+  if (plan === "premium" && isPaymentEnabled) {
+    return ["account", "payment", "profile"];
+  }
+  return ["account", "profile"];
 };
 
 export const parsePlan = (value: string | null): PlanType | null => {
@@ -38,12 +40,12 @@ export const parsePlan = (value: string | null): PlanType | null => {
   return null;
 };
 
-export const getStepMetadata = (plan: PlanType | null, step: StepKey): StepMetadata | null => {
+export const getStepMetadata = (plan: PlanType | null, step: StepKey, isPaymentEnabled: boolean = false): StepMetadata | null => {
   if (!plan) {
     return null;
   }
 
-  const sequence = STEP_SEQUENCE[plan];
+  const sequence = getStepSequence(plan, isPaymentEnabled);
   const index = sequence.indexOf(step);
 
   if (index === -1) {
@@ -60,15 +62,19 @@ export const getStepMetadata = (plan: PlanType | null, step: StepKey): StepMetad
   };
 };
 
-export const getNextStepPath = (plan: PlanType, step: StepKey, searchParams: URLSearchParams) => {
+export const getNextStepPath = (plan: PlanType, step: StepKey, searchParams: URLSearchParams, isPaymentEnabled: boolean = false) => {
   const query = searchParams.toString();
   const suffix = query ? `?${query}` : "";
 
-  if (step === "account") {
-    return `/inscription/informations${suffix}`;
+  const sequence = getStepSequence(plan, isPaymentEnabled);
+  const currentIndex = sequence.indexOf(step);
+  const nextStep = sequence[currentIndex + 1];
+
+  if (nextStep === "payment") {
+    return `/inscription/paiement${suffix}`;
   }
 
-  if (step === "payment") {
+  if (nextStep === "profile") {
     return `/inscription/informations${suffix}`;
   }
 

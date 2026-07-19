@@ -118,7 +118,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   useEffect(() => {
     if (showAuthenticatedUI && isPremiumUser && hasPaymentMethod === null) {
-      fetch("/api/user/payment-methods")
+      fetch("/api/user/payment-methods", { cache: "no-store" })
         .then(res => res.json())
         .then(data => {
           if (data && Array.isArray(data.data)) {

@@ -8,6 +8,7 @@ interface SiteSettings {
     logoUrl: string;
     logoAlt: string;
     trialDays: number;
+    isPremiumPaymentStepEnabled: boolean;
     isLoading: boolean;
 }
 
@@ -16,6 +17,7 @@ export function useSiteSettings(): SiteSettings {
         logoUrl: "/logo_beta.svg",
         logoAlt: "Logo Glift",
         trialDays: 30, // Default
+        isPremiumPaymentStepEnabled: false, // Default to disabled to be safe
         isLoading: true,
     });
 
@@ -30,6 +32,7 @@ export function useSiteSettings(): SiteSettings {
                     logoUrl: settings["logo_url"] || "/logo_beta.svg",
                     logoAlt: settings["logo_alt"] || "Logo Glift",
                     trialDays: settings["trial_period_days"] ? parseInt(settings["trial_period_days"], 10) : 30,
+                    isPremiumPaymentStepEnabled: settings["premium_payment_step"] === "enabled",
                     isLoading: false,
                 });
             } catch (error) {

@@ -13,6 +13,7 @@ import FieldRow from "@/components/account/fields/FieldRow";
 import { useProfileSubmit } from "@/components/account/MesInformationsForm/hooks/useProfileSubmit";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import { useUser } from "@/context/UserContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 import { getStepMetadata, parsePlan } from "../constants";
 import { validateDateParts } from "@/utils/dateValidation";
@@ -50,12 +51,17 @@ const InformationsPage = () => {
   useEffect(() => {
     if (searchParams?.get("payment_success") === "true") {
       refreshUser();
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("paymentMethodUpdated"));
+      }
     }
   }, [searchParams, refreshUser]);
 
+  const siteSettings = useSiteSettings();
+
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
-  const stepMetadata = plan ? getStepMetadata(plan, "profile") : null;
+  const stepMetadata = plan ? getStepMetadata(plan, "profile", siteSettings.isPremiumPaymentStepEnabled) : null;
 
   const [gender, setGender] = useState("");
   const [birthDay, setBirthDay] = useState("");
@@ -272,7 +278,7 @@ const InformationsPage = () => {
           Vous pouvez dès à présent commencer à utiliser la plateforme.
         </p>
         <StepDots
-          className="mt-4 mb-6"
+          className={`mt-4 mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
           totalSteps={stepMetadata.totalSteps}
           currentStep={stepMetadata.currentStep}
         />
