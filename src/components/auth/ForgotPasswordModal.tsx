@@ -385,8 +385,8 @@ export default function ForgotPasswordModal({
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleOtpKeyDown(index, e)}
                   onPaste={handleOtpPaste}
-                  className={`w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] ${
-                    error ? "border-[#EF4444]" : "border-[#D7D4DC]"
+                  className={`w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 focus:outline-none focus:!border-transparent focus:ring-2 focus:ring-[#A1A5FD] ${
+                    error ? "border-[#EF4444]" : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                   }`}
                 />
               ))}
