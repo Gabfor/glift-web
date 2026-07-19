@@ -13,7 +13,7 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
   account: {
     title: "Création de votre compte",
     subtitle:
-      "Créez un compte en moins d’une minute pour commencer à utiliser la plateforme Glift.",
+      "Créer un compte en moins de 30 secondes pour utiliser la plateforme.\nAucun moyen de paiement n'est nécessaire à l'inscription.",
   },
   payment: {
     title: "Mode de paiement",
@@ -21,7 +21,7 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
   },
   profile: {
     title: "Inscription terminée !",
-    subtitle: "Complétez votre profil pour personnaliser vos entraînements.",
+    subtitle: "Nous sommes ravis de vous compter parmi nous.\nVous pouvez dès à présent commencer à vous entrainer avec Glift.",
   },
 };
 
@@ -52,7 +52,15 @@ export const getStepMetadata = (plan: PlanType | null, step: StepKey, isPaymentE
     return null;
   }
 
-  const { title, subtitle } = STEP_DETAILS[step];
+  let { title, subtitle } = STEP_DETAILS[step];
+
+  if (step === "account") {
+    if (plan === "premium" && isPaymentEnabled) {
+      subtitle = "Créer un compte en moins d'une minute pour commencer à utiliser Glift.";
+    } else {
+      subtitle = "Créer un compte en moins de 30 secondes pour commencer à utiliser Glift.\nAucun moyen de paiement n'est nécessaire à l'inscription.";
+    }
+  }
 
   return {
     title,

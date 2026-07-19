@@ -170,16 +170,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
   return (
     <>
       {shouldShowPaymentBanner && (
-        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60] gap-1">
+        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60]">
           <p className="text-white text-[14px] font-semibold">
-            ⚠️ N'oubliez pas d'ajouter un moyen de paiement pour ne pas perdre vos avantages Premium.
+            ⚠️ N'oubliez pas d'ajouter un moyen de paiement pour ne pas perdre vos avantages Premium.{" "}
+            <Link
+              href="/compte#mon-abonnement"
+              className="underline"
+            >
+              Ajouter maintenant.
+            </Link>
           </p>
-          <Link
-            href="/compte#mon-abonnement"
-            className="text-white text-[14px] font-semibold hover:underline transition-colors ml-1"
-          >
-            Ajouter
-          </Link>
         </div>
       )}
 

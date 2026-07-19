@@ -405,7 +405,7 @@ const AccountCreationPage = () => {
     <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]">
       <div className="w-full max-w-3xl flex flex-col items-center">
         <h1 className="text-center text-[26px] sm:text-[30px] font-bold text-[#2E3271]">{stepMetadata.title}</h1>
-        <p className="mt-2 text-center text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
+        <p className="mt-2 text-center text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug whitespace-pre-line">
           {stepMetadata.subtitle}
         </p>
 
@@ -636,7 +636,7 @@ const AccountCreationPage = () => {
                 type="button"
                 onClick={handleResendCode}
                 disabled={otpLoading}
-                className="text-[13px] font-bold text-[#7069FA] hover:text-[#6660E4] transition-colors mt-3 disabled:opacity-50"
+                className="text-[13px] font-semibold text-[#7069FA] hover:text-[#6660E4] transition-colors mt-3 disabled:opacity-50"
               >
                 Renvoyer le code
               </button>

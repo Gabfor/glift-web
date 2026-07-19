@@ -12,7 +12,7 @@ import StripeWrapper from "@/components/stripe/StripeWrapper";
 import { useUser } from "@/context/UserContext";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 
-import { getStepMetadata, parsePlan } from "../constants";
+import { getStepMetadata, parsePlan, getNextStepPath } from "../constants";
 
 function formatFr(date: Date) {
   return date.toLocaleDateString("fr-FR");
@@ -30,6 +30,10 @@ const PaymentPage = () => {
   const planParam = searchParams?.get("plan") ?? null;
   const plan = parsePlan(planParam);
   const stepMetadata = plan ? getStepMetadata(plan, "payment", isPremiumPaymentStepEnabled) : null;
+
+  const nextPath = plan
+    ? getNextStepPath(plan, "payment", searchParams || new URLSearchParams(), isPremiumPaymentStepEnabled)
+    : "/entrainements";
 
   const searchParamsString = searchParams?.toString() ?? "";
 
@@ -105,7 +109,9 @@ const PaymentPage = () => {
       </div>
       <div className="w-full max-w-2xl flex flex-col items-center px-4 sm:px-0">
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center leading-snug">
-          Pour activer votre essai gratuit, nous avons besoin de vos informations de paiement. Vous ne serez pas facturé avant le{" "}
+          Vous pouvez ajouter un mode de paiement dès maintenant.
+          <br />
+          Vous ne serez pas facturé avant le{" "}
           <span className="font-bold text-[#5D6494]">{trialEndLabel}</span>.
         </p>
         <StepDots
@@ -128,13 +134,23 @@ const PaymentPage = () => {
         </div>
       </div>
 
-      <div className="w-full max-w-[564px] mt-8">
+      <div className="w-full max-w-[564px] mt-8 flex flex-col items-center mb-8">
         <StripeWrapper
           priceLabel={priceLabel}
           plan={plan}
           email={user?.email || ""}
           userId={user?.id || ""}
         />
+
+        <button
+          type="button"
+          onClick={() => {
+            router.push(nextPath);
+          }}
+          className="mt-5 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
+        >
+          Ignorer pour le moment
+        </button>
       </div>
     </main>
   );

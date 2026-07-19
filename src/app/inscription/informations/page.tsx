@@ -271,11 +271,11 @@ const InformationsPage = () => {
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] flex flex-col items-center">
       <div className="w-full max-w-[760px] text-center">
-        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Bienvenue&nbsp;!</h1>
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Inscription terminée !</h1>
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
           Nous sommes ravis de vous compter parmi nous.
           <br />
-          Vous pouvez dès à présent commencer à utiliser la plateforme.
+          Vous pouvez dès à présent commencer à vous entrainer avec Glift.
         </p>
         <StepDots
           className={`mt-4 mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
