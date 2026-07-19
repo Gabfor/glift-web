@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     callbackUrlWithEmail.searchParams.set("email", email);
     const emailRedirectTo = callbackUrlWithEmail.toString();
 
-    const supabasePlan = "starter"; // Always starter initially
+    const supabasePlan = plan === "premium" ? "premium" : "starter";
 
     const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email,

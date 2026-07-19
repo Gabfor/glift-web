@@ -27,7 +27,7 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
 
 const STEP_SEQUENCE: Record<PlanType, StepKey[]> = {
   starter: ["account", "profile"],
-  premium: ["account", "payment", "profile"],
+  premium: ["account", "profile"], // "payment" commenté temporairement
 };
 
 export const parsePlan = (value: string | null): PlanType | null => {
@@ -65,7 +65,7 @@ export const getNextStepPath = (plan: PlanType, step: StepKey, searchParams: URL
   const suffix = query ? `?${query}` : "";
 
   if (step === "account") {
-    return plan === "premium" ? `/inscription/paiement${suffix}` : `/inscription/informations${suffix}`;
+    return `/inscription/informations${suffix}`;
   }
 
   if (step === "payment") {

@@ -31,8 +31,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [isSticky, setIsSticky] = useState(false);
   const [allowTransition, setAllowTransition] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [remainingVerificationHours, setRemainingVerificationHours] =
-    useState<number | null>(null);
+  const [hasPaymentMethod, setHasPaymentMethod] = useState<boolean | null>(null);
 
   const { logoUrl, logoAlt } = useSiteSettings();
 
@@ -48,10 +47,8 @@ export default function Header({ disconnected = false }: HeaderProps) {
   // Forcer le mode déconnecté si `disconnected` est vrai
   const showAuthenticatedUI =
     isAuthenticated && !isRecoverySession && !disconnected;
-  const shouldShowEmailVerificationBanner =
-    showAuthenticatedUI &&
-    (isEmailVerified === false ||
-      (isEmailVerified === null && !user?.email_confirmed_at));
+  
+  const shouldShowPaymentBanner = showAuthenticatedUI && isPremiumUser && hasPaymentMethod === false;
 
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
@@ -120,54 +117,29 @@ export default function Header({ disconnected = false }: HeaderProps) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
-    if (!shouldShowEmailVerificationBanner) {
-      setRemainingVerificationHours(null);
-      return;
+    if (showAuthenticatedUI && isPremiumUser && hasPaymentMethod === null) {
+      fetch("/api/user/payment-methods")
+        .then(res => res.json())
+        .then(data => {
+          if (data && Array.isArray(data.data)) {
+            setHasPaymentMethod(data.data.length > 0);
+          } else {
+            setHasPaymentMethod(false); // Fallback si le format est inattendu
+          }
+        })
+        .catch(err => {
+          console.error("Failed to fetch payment methods for banner", err);
+        });
     }
+  }, [showAuthenticatedUI, isPremiumUser, hasPaymentMethod]);
 
-    const computeRemainingHours = () => {
-      const expiryInput = gracePeriodExpiresAt ?? null;
-
-      let expiryTimestamp = expiryInput ? Date.parse(expiryInput) : Number.NaN;
-
-      if (Number.isNaN(expiryTimestamp) && user?.created_at) {
-        const createdTimestamp = Date.parse(user.created_at);
-
-        if (!Number.isNaN(createdTimestamp)) {
-          expiryTimestamp =
-            createdTimestamp + DEFAULT_GRACE_PERIOD_HOURS * HOUR_IN_MS;
-        }
-      }
-
-      if (Number.isNaN(expiryTimestamp)) {
-        return null;
-      }
-
-      const diffMs = expiryTimestamp - Date.now();
-
-      if (diffMs <= 0) {
-        return 0;
-      }
-
-      return Math.ceil(diffMs / HOUR_IN_MS);
+  useEffect(() => {
+    const handlePaymentMethodUpdated = () => {
+      setHasPaymentMethod(null); // Force refresh
     };
-
-    const updateRemainingHours = () => {
-      setRemainingVerificationHours(computeRemainingHours());
-    };
-
-    updateRemainingHours();
-
-    const intervalId = window.setInterval(updateRemainingHours, 60 * 1000);
-
-    return () => {
-      window.clearInterval(intervalId);
-    };
-  }, [
-    gracePeriodExpiresAt,
-    shouldShowEmailVerificationBanner,
-    user?.created_at,
-  ]);
+    window.addEventListener("paymentMethodUpdated", handlePaymentMethodUpdated);
+    return () => window.removeEventListener("paymentMethodUpdated", handlePaymentMethodUpdated);
+  }, []);
 
   const handleAccountLinkClick = (
     event: ReactMouseEvent<HTMLAnchorElement>,
@@ -195,66 +167,24 @@ export default function Header({ disconnected = false }: HeaderProps) {
     setIsMobileMenuOpen(false);
   };
 
-  const remainingHoursForBanner =
-    remainingVerificationHours ?? DEFAULT_GRACE_PERIOD_HOURS;
-  const safeHoursForBanner = Math.max(1, remainingHoursForBanner);
-  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-
-  const handleResendEmail = async () => {
-    if (resendStatus === "loading" || resendStatus === "success") return;
-
-    setResendStatus("loading");
-    try {
-      const response = await fetch("/api/auth/resend-verification", {
-        method: "POST",
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        console.error("Resend API failed:", data);
-        throw new Error(data.error || "Failed to resend");
-      }
-
-      setResendStatus("success");
-      // Reset success message after 5 seconds to allow sending again if needed
-      setTimeout(() => setResendStatus("idle"), 5000);
-    } catch (error) {
-      console.error("Error resending email:", error);
-      setResendStatus("error");
-      setTimeout(() => setResendStatus("idle"), 3000);
-    }
-  };
-
-  const verificationCountdownMessage = `⚠️ Il vous reste ${safeHoursForBanner} ${safeHoursForBanner > 1 ? "heures" : "heure"} pour finaliser votre inscription en cliquant sur le lien reçu dans votre boîte mail.`;
-
   return (
     <>
-      {shouldShowEmailVerificationBanner && (
+      {shouldShowPaymentBanner && (
         <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60] gap-1">
           <p className="text-white text-[14px] font-semibold">
-            {verificationCountdownMessage}
+            ⚠️ N'oubliez pas d'ajouter un moyen de paiement pour ne pas perdre vos avantages Premium.
           </p>
-          {resendStatus === "success" ? (
-            <span className="text-white text-[14px] font-semibold ml-1 flex items-center gap-1">
-              Email envoyé !
-              <Image src="/icons/check.svg" alt="Succès" width={14} height={14} />
-            </span>
-          ) : resendStatus === "error" ? (
-            <span className="text-[var(--color-accent-danger)] text-[14px] font-bold ml-1">Erreur lors de l'envoi</span>
-          ) : (
-            <button
-              onClick={handleResendEmail}
-              disabled={resendStatus === "loading"}
-              className="text-white text-[14px] font-semibold hover:underline transition-colors"
-            >
-              {resendStatus === "loading" ? "Envoi..." : "Renvoyer l'email."}
-            </button>
-          )}
+          <Link
+            href="/compte#mon-abonnement"
+            className="text-white text-[14px] font-semibold hover:underline transition-colors ml-1"
+          >
+            Ajouter
+          </Link>
         </div>
       )}
 
       <header
-        className={`fixed ${shouldShowEmailVerificationBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
+        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
           : "bg-[var(--color-surface-primary)]"
           }`}

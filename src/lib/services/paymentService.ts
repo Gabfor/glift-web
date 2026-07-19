@@ -212,7 +212,10 @@ export class PaymentService {
 
         // Update profile plan if premium was requested (optimistic)
         if (plan === 'premium') {
-            await this.supabase.from('profiles').update({ subscription_plan: 'premium' }).eq('id', userId);
+            await this.supabase.from('profiles').update({ 
+                subscription_plan: 'premium',
+                trial: true 
+            }).eq('id', userId);
         }
 
         console.log("PaymentService: Updated Supabase auth metadata and profile");

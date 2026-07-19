@@ -337,7 +337,7 @@ export default function DashboardProgramFilters(
     return "Sélectionnez un programme";
   })();
 
-  const isProgramDisabled = programOptions.length === 0 && !loadingPrograms;
+  const isProgramDisabled = loadingPrograms || programOptions.length === 0;
 
   const trainingPlaceholder = (() => {
     if (selectedProgram && loadingTrainings) {
@@ -351,7 +351,7 @@ export default function DashboardProgramFilters(
     return "Sélectionnez un entraînement";
   })();
 
-  const isTrainingDisabled = selectedProgram === "";
+  const isTrainingDisabled = selectedProgram === "" || loadingTrainings || trainingOptions.length === 0;
   const exercisePlaceholder = (() => {
     if (!selectedTraining) {
       return "Sélectionnez un exercice";
@@ -367,7 +367,7 @@ export default function DashboardProgramFilters(
 
     return "Sélectionnez un exercice";
   })();
-  const isExerciseDisabled = selectedTraining === "" || loadingExercises;
+  const isExerciseDisabled = selectedTraining === "" || loadingExercises || exerciseOptions.length === 0;
 
   return (
     <div className="mt-[40px] flex flex-wrap items-center gap-4">

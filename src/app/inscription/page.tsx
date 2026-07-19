@@ -81,27 +81,7 @@ const AccountCreationPage = () => {
     return getNextStepPath(plan, "account", params);
   }, [plan, searchParamsString]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
 
-    const enforceSamePage = () => {
-      window.history.pushState(null, "", window.location.href);
-    };
-
-    enforceSamePage();
-
-    const handlePopState = () => {
-      enforceSamePage();
-    };
-
-    window.addEventListener("popstate", handlePopState);
-
-    return () => {
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [searchParamsString]);
 
   useEffect(() => {
     if (isLoading || !isAuthenticated || !plan || !nextStepPath || showVerificationModal) {
@@ -518,11 +498,11 @@ const AccountCreationPage = () => {
               />
               <span className="mt-[-3px]">
                 J’accepte la{" "}
-                <Link href="/politique-de-confidentialite" className="text-[#7069FA] hover:text-[#6660E4]">
+                <Link href="/politique-de-confidentialite" className="text-[#7069FA] hover:text-[#6660E4]" target="_blank" rel="noopener noreferrer">
                   Politique de confidentialité
                 </Link>{" "}
                 et les{" "}
-                <Link href="/cgu" className="text-[#7069FA] hover:text-[#6660E4]">
+                <Link href="/cgu" className="text-[#7069FA] hover:text-[#6660E4]" target="_blank" rel="noopener noreferrer">
                   Conditions générales d’utilisation
                 </Link>{" "}
                 de Glift.

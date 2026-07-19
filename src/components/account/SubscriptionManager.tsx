@@ -517,6 +517,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 // Or better, let's trigger a refresh or check.
                 setShowDeleteModal(false);
                 setPaymentMethod(null);
+                window.dispatchEvent(new Event('paymentMethodUpdated'));
 
                 // Fetch updated subscription details to enable success banner with date
                 fetch(`/api/user/subscription-details?t=${Date.now()}`)
@@ -791,6 +792,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                         await fetchPaymentMethod();
                                                         // Trigger update to sync subscription status immediately
                                                         await refreshUser();
+                                                        window.dispatchEvent(new Event('paymentMethodUpdated'));
 
                                                         if (paymentMethod) {
                                                             // Updated existing
