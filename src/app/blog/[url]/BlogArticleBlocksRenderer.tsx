@@ -164,7 +164,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
   if (!blocks || blocks.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-[30px] w-full text-[15px] text-[#5D6494] leading-[1.7]">
+    <div className="flex flex-col gap-[30px] w-full text-[15px] text-[#5D6494] leading-[1.7] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       {blocks.map((block, index) => {
         const key = block.id;
 
@@ -189,7 +189,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
           case "texte-image":
             const isRight = block.imagePosition === "droite";
             return (
-              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
+              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px] my-[25px]">
                 {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
                 {/* On mobile flex-col items-center will center them horizontally */}
                 
@@ -209,7 +209,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                       )}
                       {block.texte && (
                         <div 
-                          className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0"
+                          className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                           dangerouslySetInnerHTML={{ __html: block.texte }}
                         />
                       )}
@@ -260,7 +260,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-[10px] pb-0 scroll-mt-[100px] w-full">
+                <div id={block.ancreId || undefined} className="grid grid-cols-1 md:grid-cols-2 gap-6 my-[25px] scroll-mt-[100px] w-full">
                   {[block.card1, block.card2].map((card, idx) => {
                     if (!card) return null;
                     return (
@@ -285,7 +285,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                             {card.titre && <div className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</div>}
                             {card.texte && (
                               <div 
-                                className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[var(--color-text-heading)] [&_strong]:text-[var(--color-text-heading)]"
+                                className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[#3A416F] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                                 dangerouslySetInnerHTML={{ __html: card.texte }}
                               />
                             )}

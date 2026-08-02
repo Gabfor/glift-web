@@ -478,6 +478,11 @@ input:checked+.slider:before {
 @layer components {
 
   /* Rich Text (Tiptap / Prose) Custom Styles */
+  .prose strong,
+  .prose b {
+    color: #3A416F;
+  }
+
   .prose > *:last-child {
     margin-bottom: 0 !important;
   }

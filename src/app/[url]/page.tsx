@@ -79,6 +79,7 @@ import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
 import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/contact/ContactClient";
+import BackLink from "@/components/BackLink";
 
 export const revalidate = 60;
 
@@ -452,8 +453,11 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       <div className="max-w-[1152px] mx-auto px-4 md:px-0">
+        <BackLink href="/concept" className="mb-[30px]">
+          Accueil
+        </BackLink>
         {page.surtitre && (
           <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
             {page.surtitre}
@@ -466,7 +470,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
 
         {page.description && (
           <div 
-            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center [&_p]:m-0"
+            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
             dangerouslySetInnerHTML={{ __html: page.description }}
           />
         )}
@@ -477,7 +481,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           </div>
         )}
 
-        <article className="w-full">
+        <article className="w-full [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
           <BlogArticleBlocksRenderer 
             blocks={page.content_blocks || []} 
             articleMeta={{}}
