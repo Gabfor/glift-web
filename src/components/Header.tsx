@@ -170,7 +170,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   return (
     <>
       {shouldShowPaymentBanner && (
-        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[60]">
+        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[110]">
           <p className="text-white text-[14px] font-semibold">
             ⚠️ N'oubliez pas d'ajouter un moyen de paiement pour ne pas perdre vos avantages Premium.{" "}
             <Link
@@ -184,7 +184,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
       )}
 
       <header
-        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-50 ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
+        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
           : "bg-[var(--color-surface-primary)]"
           }`}
@@ -441,7 +441,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
             </button>
 
             {dropdownOpen && showAuthenticatedUI && (
-              <div className="absolute top-full right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] py-2 z-50 border border-[var(--color-surface-subtle)]">
+              <div className="absolute top-full right-[-4px] w-[180px] bg-white rounded-[5px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
                 <Link
                   href="/compte#mes-informations"

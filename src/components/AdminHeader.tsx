@@ -43,7 +43,7 @@ export default function AdminHeader() {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isSticky
+        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isSticky
           ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
           : "bg-[#FBFCFE]"
           }`}
@@ -145,11 +145,11 @@ export default function AdminHeader() {
             </Link>
           </nav>
           {/* User Zone */}
-          <div className="relative ml-[18px]" ref={dropdownRef}>
+          <div className="relative ml-[18px] flex items-center h-full" ref={dropdownRef}>
             {user && (
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="group flex items-center gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
+                className="group flex items-center h-full px-4 gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
               >
                 <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#3A416F] text-white flex items-center justify-center font-semibold">
                   {user.user_metadata?.name?.charAt(0).toUpperCase() || "?"}
@@ -176,7 +176,7 @@ export default function AdminHeader() {
             )}
 
             {dropdownOpen && (
-              <div className="absolute right-[-20px] mt-2 w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
+              <div className="absolute top-full right-[-4px] w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
                 <button
                   onClick={() => {
