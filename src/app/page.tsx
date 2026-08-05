@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/server";
 import BlogArticleBlocksRenderer from "./blog/[url]/BlogArticleBlocksRenderer";
 import type { Metadata } from "next";
 
+import ConceptGradientBackground from "@/components/ConceptGradientBackground";
+
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -46,12 +48,16 @@ export default async function Home() {
     redirect("/entrainements");
   }
 
-  // Fetch the page designated as the homepage (url: 'concept')
-  const { data: page } = await supabase
-    .from("pages")
-    .select("*")
-    .eq("url", "concept")
-    .single();
+  // Fetch settings & homepage data (url: 'concept')
+  const [{ data: page }, { data: settingsData }] = await Promise.all([
+    supabase.from("pages").select("*").eq("url", "concept").single(),
+    supabase.from("settings").select("key, value"),
+  ]);
+
+  const settings: Record<string, string> = {};
+  settingsData?.forEach((item) => {
+    settings[item.key] = item.value;
+  });
 
   if (!page) {
     return (
@@ -62,8 +68,11 @@ export default async function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
-      <div className="max-w-[1152px] mx-auto px-4 md:px-0">
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[140px] overflow-x-hidden">
+      {/* Fond dégradé dynamique style ClickUp */}
+      <ConceptGradientBackground initialSettings={settings} />
+
+      <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
         {/* Hero Section from Page Data */}
         <section className="text-center mb-[20px]">
           {page.surtitre && (

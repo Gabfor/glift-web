@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRenderer";
 import DashboardClient from "@/app/dashboard/DashboardClient";
+import ConceptGradientBackground from "@/components/ConceptGradientBackground";
 import type { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: Promise<{ url: string }> }): Promise<Metadata> {
@@ -453,8 +454,10 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
-      <div className="max-w-[1152px] mx-auto px-4 md:px-0">
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[140px] overflow-x-hidden [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
+      {/* Fond dégradé style ClickUp en haut de la page concept uniquement */}
+      {page.url === "concept" && <ConceptGradientBackground />}
+      <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
         <BackLink href="/concept" className="mb-[30px]">
           Accueil
         </BackLink>

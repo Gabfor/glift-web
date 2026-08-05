@@ -66,7 +66,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   useLayoutEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 0);
+      setIsSticky(window.scrollY > 10);
     };
 
     // Initial check
@@ -77,7 +77,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
       setAllowTransition(true);
     }, 100);
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
       clearTimeout(timer);
@@ -184,8 +184,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
       )}
 
       <header
-        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-shadow duration-300" : ""} ${isSticky
+        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
+          : (pathname === "/" || pathname === "/concept")
+          ? "bg-transparent shadow-none"
           : "bg-[var(--color-surface-primary)]"
           }`}
       >
