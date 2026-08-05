@@ -508,7 +508,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                     )}
                   </div>
                   {/* Flèche + texte gauche */}
-                  <div className="absolute left-[120px] top-[40%] -translate-y-1/2 hidden md:block pointer-events-none">
+                  <div className="absolute left-[120px] top-[40%] -translate-y-1/2 hidden md:block pointer-events-none animate-float">
                     <p 
                       className="text-[var(--color-text-strong)] text-[14px] font-bold rotate-[-10deg] origin-left w-[180px]"
                       dangerouslySetInnerHTML={{ __html: (block.texte1 || "").replace(/\n/g, '<br />') }}
@@ -524,7 +524,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                   </div>
 
                   {/* Flèche + texte droite */}
-                  <div className="absolute right-[150px] top-[25%] -translate-y-1/2 hidden md:block pointer-events-none">
+                  <div className="absolute right-[150px] top-[25%] -translate-y-1/2 hidden md:block pointer-events-none animate-float-delayed">
                     <p 
                       className="text-[var(--color-text-strong)] text-[14px] font-bold rotate-[8deg] origin-right w-[180px] ml-auto"
                       dangerouslySetInnerHTML={{ __html: (block.texte2 || "").replace(/\n/g, '<br />') }}
