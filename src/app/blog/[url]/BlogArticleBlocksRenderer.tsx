@@ -70,6 +70,7 @@ type ContentBlock = {
 
 type Props = {
   blocks: ContentBlock[];
+  isConceptPage?: boolean;
   articleMeta?: {
     objectif?: string;
     nombre_seances?: string;
@@ -82,7 +83,7 @@ type Props = {
   };
 };
 
-export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props) {
+export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConceptPage = false }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
   const { contactUrl } = useDashboardUrl();
@@ -164,7 +165,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
   if (!blocks || blocks.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-[30px] w-full text-[15px] text-[#5D6494] leading-[1.7] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
+    <div className={`flex flex-col gap-[30px] w-full ${isConceptPage ? "text-[16px]" : "text-[15px]"} text-[#5D6494] leading-[1.7] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}>
       {blocks.map((block, index) => {
         const key = block.id;
 
@@ -209,7 +210,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                       )}
                       {block.texte && (
                         <div 
-                          className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                          className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
                           dangerouslySetInnerHTML={{ __html: block.texte }}
                         />
                       )}
@@ -285,7 +286,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                             {card.titre && <div className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</div>}
                             {card.texte && (
                               <div 
-                                className="text-[var(--color-text-body)] text-[15px] leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[#3A416F] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                                className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[#3A416F] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
                                 dangerouslySetInnerHTML={{ __html: card.texte }}
                               />
                             )}
@@ -639,7 +640,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta }: Props
                       <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
                       <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
                     </span>
-                    {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester gratuitement
+                    {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester • Sans engagement
                   </div>
                 </div>
               </React.Fragment>

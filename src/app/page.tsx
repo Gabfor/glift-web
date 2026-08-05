@@ -86,7 +86,7 @@ export default async function Home() {
         </section>
 
         {/* Dynamic Blocks */}
-        <BlogArticleBlocksRenderer blocks={page.content_blocks as any[]} />
+        <BlogArticleBlocksRenderer blocks={page.content_blocks as any[]} isConceptPage={true} />
       </div>
       
     </main>

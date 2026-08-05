@@ -485,6 +485,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           <BlogArticleBlocksRenderer 
             blocks={page.content_blocks || []} 
             articleMeta={{}}
+            isConceptPage={page.url === "concept"}
           />
         </article>
       </div>
