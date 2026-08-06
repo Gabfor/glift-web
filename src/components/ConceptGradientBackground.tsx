@@ -43,12 +43,10 @@ export default function ConceptGradientBackground({ initialSettings }: ConceptGr
   const rgba2 = hexToRgba(color2, opacity2);
   const rgba3 = hexToRgba(color3, opacity3);
 
-  const backgroundStyle = {
-    background: `
-      radial-gradient(ellipse 70% 90% at 0% -10%, ${rgba1} 0%, rgba(251, 252, 254, 0) 65%),
-      radial-gradient(ellipse 70% 90% at 100% -10%, ${rgba2} 0%, rgba(251, 252, 254, 0) 65%),
-      radial-gradient(ellipse 60% 60% at 50% -20%, ${rgba3} 0%, rgba(251, 252, 254, 0) 80%)
-    `,
+  const backgroundStyle: React.CSSProperties = {
+    background: `linear-gradient(115deg, ${rgba1} 0%, ${rgba3} 45%, ${rgba2} 100%)`,
+    WebkitMaskImage: "linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 100%)",
+    maskImage: "linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 100%)",
   };
 
   return (

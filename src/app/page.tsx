@@ -1,4 +1,4 @@
-mb - 4import Link from "next/link";
+import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -74,7 +74,7 @@ export default async function Home() {
 
       <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
         {/* Hero Section from Page Data */}
-        <section className="text-center mb-[20px]">
+        <section className="text-center mb-[30px]">
           {page.surtitre && (
             <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
               {page.surtitre}

@@ -172,7 +172,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
         switch (block.type) {
           case "titre":
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto pt-[50px]">
+              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto">
                 {block.surtitre && (
                   <div className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
                     {block.surtitre}
@@ -190,7 +190,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
           case "texte-image":
             const isRight = block.imagePosition === "droite";
             return (
-              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px] my-[25px]">
+              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
                 {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
                 {/* On mobile flex-col items-center will center them horizontally */}
                 
@@ -273,7 +273,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
               <React.Fragment key={key}>
                 <div 
                   id={block.ancreId || undefined} 
-                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[100px] my-[100px] scroll-mt-[100px]"
+                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[100px] scroll-mt-[100px]"
                   style={{
                     background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
                   }}
@@ -388,7 +388,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
           case "tarifs":
             if (block.enabled === false) return null;
             return (
-              <div key={key} className="w-full max-w-[1152px] mx-auto pt-[30px] pb-0 scroll-mt-[100px]" id={block.ancreId || undefined}>
+              <div key={key} className="w-full max-w-[1152px] mx-auto scroll-mt-[100px]" id={block.ancreId || undefined}>
                 <PricingTable 
                   abonnement1={block.abonnement1} 
                   abonnement2={block.abonnement2} 
@@ -418,7 +418,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
 
           case "texte-1-1":
             return (
-              <div key={key} className={`flex flex-col gap-[10px] scroll-mt-[100px] ${index > 0 ? "-mt-[20px]" : ""}`}>
+              <div key={key} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[16px] font-bold text-[#2E3271]">
                     {block.titre}
@@ -555,7 +555,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <section className="w-full relative text-center pt-[30px]">
+                <section className="w-full relative text-center my-[25px]">
                   {/* Mockups */}
                   <div className="flex justify-center">
                     {block.image ? (
@@ -610,7 +610,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] pt-[50px]">
+                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] mt-[25px]">
                   <section className="text-center px-4 w-full mx-auto">
                     {block.surtitre && (
                       <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
