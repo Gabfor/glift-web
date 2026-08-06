@@ -120,6 +120,9 @@ export type BlockTexteImage = BaseBlock & {
 
 export type BlockCard = BaseBlock & {
   type: "card";
+  surtitre?: string;
+  titre?: string;
+  texte?: string;
   card1: {
     image?: string;
     alt?: string;

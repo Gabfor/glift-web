@@ -273,43 +273,58 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             )}
 
             {block.type === "card" && (
-              <div className="flex flex-col gap-5">
-                {/* Card 1 */}
+              <div className="flex flex-col gap-6">
+                {/* Section INTRODUCTION */}
                 <div className="flex flex-col gap-4">
-                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Card 1</span>
+                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">INTRODUCTION</span>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-end mb-[5px]">
-                        <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
-                        <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
-                      </div>
-                      <ImageUploader
-                        value={block.card1?.image || ""}
-                        onChange={(url) => updateBlock(block.id, { card1: { ...block.card1, image: url } })}
-                      />
-                    </div>
                     <AdminTextField
-                      label="Alt image"
-                      placeholder="alt image"
-                      value={block.card1?.alt || ""}
-                      onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, alt: val } })}
+                      label="Surtitre"
+                      placeholder="Surtitre"
+                      value={block.surtitre || ""}
+                      onChange={(val) => updateBlock(block.id, { surtitre: val })}
+                    />
+                    <AdminTextField
+                      label="Titre"
+                      placeholder="Titre"
+                      value={block.titre || ""}
+                      onChange={(val) => updateBlock(block.id, { titre: val })}
                     />
                   </div>
+
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
+                    <RichTextEditor
+                      value={block.texte || ""}
+                      onChange={(val) => updateBlock(block.id, { texte: val })}
+                      editorClassName="min-h-[120px] h-full"
+                      containerClassName="min-h-[120px]"
+                    />
+                  </div>
+                </div>
+
+                {/* Section CARD 1 */}
+                <div className="flex flex-col gap-4 pt-[14px]">
+                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">CARD 1</span>
+                  
                   <AdminTextField
                     label="Titre"
                     placeholder="Titre"
                     value={block.card1?.titre || ""}
                     onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, titre: val } })}
                   />
+
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                     <RichTextEditor
                       value={block.card1?.texte || ""}
                       onChange={(val) => updateBlock(block.id, { card1: { ...block.card1, texte: val } })}
-                      editorClassName="min-h-[150px] h-full"
-                      containerClassName="min-h-[150px]"
+                      editorClassName="min-h-[120px] h-full"
+                      containerClassName="min-h-[120px]"
                     />
                   </div>
+
                   <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
                       label="Type de bouton"
@@ -319,10 +334,11 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         { label: "Secondaire", value: "secondaire" },
                         { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card1?.boutonType || "aucun"}
+                      selected={block.card1?.boutonType || "secondaire"}
                       onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val as any } })}
                     />
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
                       label="Texte du bouton"
@@ -339,42 +355,27 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   </div>
                 </div>
 
-                {/* Card 2 */}
+                {/* Section CARD 2 */}
                 <div className="flex flex-col gap-4 pt-[14px]">
-                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">Card 2</span>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <div className="flex justify-between items-end mb-[5px]">
-                        <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
-                        <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
-                      </div>
-                      <ImageUploader
-                        value={block.card2?.image || ""}
-                        onChange={(url) => updateBlock(block.id, { card2: { ...block.card2, image: url } })}
-                      />
-                    </div>
-                    <AdminTextField
-                      label="Alt image"
-                      placeholder="alt image"
-                      value={block.card2?.alt || ""}
-                      onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, alt: val } })}
-                    />
-                  </div>
+                  <span className="text-[12px] font-bold text-[#D7D4DC] uppercase tracking-wider">CARD 2</span>
+                  
                   <AdminTextField
                     label="Titre"
                     placeholder="Titre"
                     value={block.card2?.titre || ""}
                     onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, titre: val } })}
                   />
+
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                     <RichTextEditor
                       value={block.card2?.texte || ""}
                       onChange={(val) => updateBlock(block.id, { card2: { ...block.card2, texte: val } })}
-                      editorClassName="min-h-[150px] h-full"
-                      containerClassName="min-h-[150px]"
+                      editorClassName="min-h-[120px] h-full"
+                      containerClassName="min-h-[120px]"
                     />
                   </div>
+
                   <div className="flex flex-col w-1/2 pr-4">
                     <AdminDropdown
                       label="Type de bouton"
@@ -384,10 +385,11 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         { label: "Secondaire", value: "secondaire" },
                         { label: "Aucun", value: "aucun" }
                       ]}
-                      selected={block.card2?.boutonType || "aucun"}
+                      selected={block.card2?.boutonType || "secondaire"}
                       onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val as any } })}
                     />
                   </div>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <AdminTextField
                       label="Texte du bouton"

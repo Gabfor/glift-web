@@ -86,7 +86,7 @@ type Props = {
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConceptPage = false }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
-  const { contactUrl } = useDashboardUrl();
+  const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
   const { trialDays } = useSiteSettings();
 
   const firstSeanceId = React.useMemo(() => {
@@ -258,65 +258,129 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             );
 
           case "card":
+          case "bonus":
             if (block.enabled === false) return null;
+
+            const card1Data = block.card1 || {};
+            const card2Data = block.card2 || {};
+
+            const cleanText = (raw?: string) => {
+              if (!raw) return "";
+              return raw.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+            };
+
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="grid grid-cols-1 md:grid-cols-2 gap-6 my-[25px] scroll-mt-[100px] w-full">
-                  {[block.card1, block.card2].map((card, idx) => {
-                    if (!card) return null;
-                    return (
-                      <div key={idx} className="bg-white rounded-[20px] p-[20px] flex flex-col lg:flex-row gap-6 items-center lg:items-start border border-[#D7D4DC]">
-                        {card.image ? (
-                          <div className="flex-shrink-0">
-                            <Image
-                              src={card.image}
-                              alt={card.alt || "Card image"}
-                              width={221}
-                              height={221}
-                              className="object-contain"
-                            />
-                          </div>
-                        ) : (
-                          <div className="flex-shrink-0">
-                            <PlaceholderImage width={221} height={221} className="!rounded-[20px]" />
-                          </div>
-                        )}
-                        <div className="flex flex-col gap-4 items-center lg:items-start text-center lg:text-left h-full justify-center">
-                          <div className="pt-[10px] pr-[10px]">
-                            {card.titre && <div className="text-[var(--color-brand-strong)] text-[24px] font-bold mb-2">{card.titre}</div>}
-                            {card.texte && (
-                              <div 
-                                className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold prose prose-sm max-w-none [&_span.font-bold]:text-[#3A416F] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
-                                dangerouslySetInnerHTML={{ __html: card.texte }}
-                              />
-                            )}
-                          </div>
-                          {card.boutonType !== "aucun" && card.boutonTexte && (
-                            <Link 
-                              href={card.boutonLien || "#"} 
-                              className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer mt-auto mb-[10px]"
-                            >
-                              {card.boutonTexte}
-                              <div className="relative w-[25px] h-[25px]">
-                                <Image
-                                  src="/icons/arrow_blue.svg"
-                                  alt="Flèche normale"
-                                  fill
-                                  className="object-contain transition-opacity group-hover:opacity-0"
-                                />
-                                <Image
-                                  src="/icons/arrow.svg"
-                                  alt="Flèche blanche"
-                                  fill
-                                  className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                                />
-                              </div>
-                            </Link>
-                          )}
-                        </div>
+                <div 
+                  id={block.ancreId || undefined} 
+                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[100px] my-[100px] scroll-mt-[100px]"
+                  style={{
+                    background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
+                  }}
+                >
+                  <div className="max-w-[1152px] mx-auto px-4 md:px-0 grid grid-cols-1 lg:grid-cols-[1fr_1.35fr] gap-8 lg:gap-10 items-center">
+                    
+                    {/* Colonne gauche (Texte + Bonus épuré) */}
+                    <div className="flex flex-col justify-center">
+                      {/* Icône Plus */}
+                      <div className="w-[30px] h-[30px] rounded-full border-2 border-[#2E3271] text-[#2E3271] flex items-center justify-center font-bold text-[16px] mb-3">
+                        +
                       </div>
-                    );
-                  })}
+
+                      {/* Surtitre */}
+                      <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
+                        {cleanText(block.surtitre) || "BONUS"}
+                      </p>
+
+                      {/* Titre */}
+                      <h2 className="text-[28px] font-bold text-[#2E3271] leading-tight mb-[10px]">
+                        {cleanText(block.titre) || "Glift, c'est bien plus"}
+                      </h2>
+
+                      {/* Texte descriptif épuré (sans traces de code) */}
+                      <p className="text-[#5D6494] font-semibold text-[16px] leading-relaxed max-w-[440px]">
+                        {cleanText(block.texte) || "Glift n'est pas seulement un écosystème qui te permet de créer, organiser et suivre tes programmes de musculation."}
+                      </p>
+                    </div>
+
+                    {/* Colonne droite (2 Cards sans image : Store et Shop - 368px chacun, séparés par 24px) */}
+                    <div className="flex flex-col sm:flex-row gap-[24px] items-stretch justify-end w-full">
+                      
+                      {/* Card 1: Glift Store */}
+                      <div className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0">
+                        <div className="mb-[20px]">
+                          <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
+                            {cleanText(card1Data.titre) || "Le Glift Store"}
+                          </h3>
+
+                          <p className="text-[#5D6494] font-semibold text-[16px] leading-relaxed">
+                            {cleanText(card1Data.texte) || "En seulement un clic, télécharge des programmes de musculation, complets, clé en main, correspondant à ton profil et à tes objectifs."}
+                          </p>
+                        </div>
+
+                        {card1Data.boutonType !== "aucun" && (
+                          <Link
+                            href={card1Data.boutonLien || storeUrl || "/store"}
+                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center gap-2 cursor-pointer mt-auto w-full sm:w-fit"
+                          >
+                            {cleanText(card1Data.boutonTexte) || "Découvrir le Store"}
+                            <div className="relative w-[20px] h-[20px]">
+                              <Image
+                                src="/icons/arrow_blue.svg"
+                                alt="Flèche"
+                                fill
+                                className="object-contain transition-opacity group-hover:opacity-0"
+                              />
+                              <Image
+                                src="/icons/arrow.svg"
+                                alt="Flèche"
+                                fill
+                                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                              />
+                            </div>
+                          </Link>
+                        )}
+                      </div>
+
+                      {/* Card 2: Glift Shop */}
+                      <div className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0">
+                        <div className="mb-[20px]">
+                          <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
+                            {cleanText(card2Data.titre) || "La Glift Shop"}
+                          </h3>
+
+                          <p className="text-[#5D6494] font-semibold text-[16px] leading-relaxed">
+                            {cleanText(card2Data.texte) || "Accède aux meilleures réductions du moment pour faire des économies sur tes achats dans l'univers de la musculation, du sport et du bien être."}
+                          </p>
+                        </div>
+
+                        {card2Data.boutonType !== "aucun" && (
+                          <Link
+                            href={card2Data.boutonLien || shopUrl || "/shop"}
+                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center gap-2 cursor-pointer mt-auto w-full sm:w-fit"
+                          >
+                            {cleanText(card2Data.boutonTexte) || "Découvrir le Shop"}
+                            <div className="relative w-[20px] h-[20px]">
+                              <Image
+                                src="/icons/arrow_blue.svg"
+                                alt="Flèche"
+                                fill
+                                className="object-contain transition-opacity group-hover:opacity-0"
+                              />
+                              <Image
+                                src="/icons/arrow.svg"
+                                alt="Flèche"
+                                fill
+                                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                              />
+                            </div>
+                          </Link>
+                        )}
+                      </div>
+
+                    </div>
+
+                  </div>
                 </div>
               </React.Fragment>
             );

@@ -1,4 +1,4 @@
-import Link from "next/link";
+mb - 4import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -81,13 +81,13 @@ export default async function Home() {
             </div>
           )}
 
-          <div 
+          <div
             className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px]"
             dangerouslySetInnerHTML={{ __html: page.titre }}
           />
 
           {page.description && (
-            <div 
+            <div
               className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[20px] prose prose-sm max-w-none [&_p]:mb-0"
               dangerouslySetInnerHTML={{ __html: page.description }}
             />
@@ -97,7 +97,7 @@ export default async function Home() {
         {/* Dynamic Blocks */}
         <BlogArticleBlocksRenderer blocks={page.content_blocks as any[]} isConceptPage={true} />
       </div>
-      
+
     </main>
   );
 }
