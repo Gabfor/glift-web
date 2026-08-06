@@ -111,7 +111,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
           {isPremium && (
             <div className="flex flex-wrap items-center justify-center gap-2 text-[#5D6494] text-[14px] font-semibold">
               <span className="relative flex items-center justify-center w-2 h-2">
-                <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
+                <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
                 <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
               </span>
               <span>{trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester</span>

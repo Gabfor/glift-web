@@ -40,11 +40,11 @@ export default function Footer() {
           </CTAButton>
           {/* Texte centré sous le CTA */}
           <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center gap-2">
-            <span className="relative w-[8px] h-[8px]">
+            <span className="relative flex items-center justify-center w-2 h-2">
               {/* Onde accentuée */}
-              <span className="absolute inset-0 rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
+              <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
               {/* Point central */}
-              <span className="relative w-[8px] h-[8px] rounded-full bg-[#00D591] block"></span>
+              <span className="relative w-2 h-2 rounded-full bg-[#00D591] block"></span>
             </span>
             {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester
           </span>

@@ -27,6 +27,21 @@ const PlaceholderImage = ({ width, height, className = "" }: { width: number | s
   </div>
 );
 
+function hexToRgba(hex: string, opacityPercent: number = 100): string {
+  let cleanHex = (hex || "#FBFCFE").replace("#", "").trim();
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split("").map((c) => c + c).join("");
+  }
+  if (cleanHex.length !== 6) {
+    cleanHex = "FBFCFE";
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+  const alpha = Math.min(100, Math.max(0, isNaN(opacityPercent) ? 65 : opacityPercent)) / 100;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
 type ContentBlock = {
   id: string;
   type: string;
@@ -85,7 +100,7 @@ type Props = {
   };
 };
 
-function NewsletterBlockComponent({ block }: { block: any }) {
+function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradientStyle?: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -140,7 +155,7 @@ function NewsletterBlockComponent({ block }: { block: any }) {
       id={block.ancreId || undefined}
       className="w-full max-w-[1152px] mx-auto rounded-[20px] p-[2.5rem] scroll-mt-[100px] my-[25px]"
       style={{
-        background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
+        background: gradientStyle || "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
       }}
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
@@ -241,7 +256,25 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
   const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
-  const { trialDays } = useSiteSettings();
+  const siteSettings = useSiteSettings();
+  const {
+    trialDays,
+    gradientEnabled,
+    gradientColor1,
+    gradientOpacity1,
+    gradientColor2,
+    gradientOpacity2,
+    gradientColor3,
+    gradientOpacity3,
+  } = siteSettings;
+
+  const rgba1 = hexToRgba(gradientColor1 || "#F6E9F9", gradientOpacity1 ?? 65);
+  const rgba2 = hexToRgba(gradientColor2 || "#E4ECFF", gradientOpacity2 ?? 65);
+  const rgba3 = hexToRgba(gradientColor3 || "#F0EBFF", gradientOpacity3 ?? 80);
+
+  const dynamicGradient = gradientEnabled
+    ? `linear-gradient(115deg, ${rgba1} 0%, ${rgba3} 45%, ${rgba2} 100%)`
+    : "none";
 
   const firstSeanceId = React.useMemo(() => {
     const first = blocks.find(b => b.type === "seance");
@@ -429,7 +462,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                   id={block.ancreId || undefined} 
                   className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[100px] scroll-mt-[100px]"
                   style={{
-                    background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
+                    background: dynamicGradient,
                   }}
                 >
                   <div className="max-w-[1152px] mx-auto px-4 md:px-0 grid grid-cols-1 lg:grid-cols-[1fr_1.35fr] gap-8 lg:gap-10 items-center">
@@ -461,7 +494,13 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                     <div className="flex flex-col sm:flex-row gap-[24px] items-stretch justify-end w-full">
                       
                       {/* Card 1: Glift Store */}
-                      <div className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0">
+                      <motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
+                      >
                         <div className="mb-[20px]">
                           <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
                             {cleanText(card1Data.titre) || "Le Glift Store"}
@@ -494,10 +533,16 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                             </div>
                           </Link>
                         )}
-                      </div>
+                      </motion.div>
 
                       {/* Card 2: Glift Shop */}
-                      <div className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0">
+                      <motion.div
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, amount: 0.3 }}
+                        transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
+                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
+                      >
                         <div className="mb-[20px]">
                           <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
                             {cleanText(card2Data.titre) || "La Glift Shop"}
@@ -530,7 +575,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                             </div>
                           </Link>
                         )}
-                      </div>
+                      </motion.div>
 
                     </div>
 
@@ -552,7 +597,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
 
           case "newsletter":
             if (block.enabled === false) return null;
-            return <NewsletterBlockComponent key={key} block={block} />;
+            return <NewsletterBlockComponent key={key} block={block} gradientStyle={dynamicGradient} />;
 
           case "titre-texte":
             return (
@@ -856,7 +901,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                   </div>
                   <div className="flex justify-center items-center gap-2 text-[14px] text-[#5D6494] font-semibold">
                     <span className="relative flex items-center justify-center w-2 h-2">
-                      <span className="absolute w-full h-full rounded-full bg-[#00D591] opacity-50 animate-ping"></span>
+                      <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
                       <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
                     </span>
                     {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester • Sans engagement
