@@ -17,12 +17,13 @@ type BlogArticle = {
   id: string;
   titre: string;
   is_published: boolean;
-  is_featured: boolean;
-  top: number;
-  flop: number;
+  is_featured?: boolean;
+  top?: number;
+  flop?: number;
   created_at: string;
   langue?: string;
   categorie?: string;
+  url?: string;
 };
 
 type SortableColumn = "is_published" | "is_featured" | "titre" | "created_at" | "langue" | "top" | "flop" | "id";
@@ -456,7 +457,7 @@ export default function AdminContentBlogPage() {
                       <td className="px-4 align-middle">
                         <div className="flex items-center justify-center">
                           <button
-                            onClick={() => handleToggleFeatured(a.id, a.is_featured)}
+                            onClick={() => handleToggleFeatured(a.id, a.is_featured ?? false)}
                             onMouseEnter={() => setHoveredFeaturedId(a.id)}
                             onMouseLeave={() => setHoveredFeaturedId(null)}
                             className="relative w-[20px] h-[20px] flex items-center justify-center transition-opacity"

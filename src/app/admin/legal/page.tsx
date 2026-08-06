@@ -146,7 +146,7 @@ export default function AdminLegalPage() {
     const term = searchTerm.trim().toLowerCase();
     
     const filtered = pages.filter((p) => {
-      return !term || p.titre?.toLowerCase().includes(term) || p.url?.toLowerCase().includes(term);
+      return !term || p.titre?.toLowerCase().includes(term);
     });
 
     return [...filtered].sort((a, b) => {

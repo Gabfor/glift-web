@@ -383,42 +383,44 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                 
                 <div className={`flex items-center ${isRight ? "order-2 md:order-1" : "order-2"}`}>
                   <AnimatedSection>
-                    <div className="w-full md:w-[466px] flex flex-col">
-                      {block.surtitre && (
-                        <div className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
-                          {block.surtitre}
-                        </div>
-                      )}
-                      {block.titre && (
-                        <div 
-                          className="text-[24px] sm:text-[24px] font-bold text-[var(--color-brand-strong)] leading-tight mb-[10px]"
-                          dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
-                        />
-                      )}
-                      {block.texte && (
-                        <div 
-                          className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
-                          dangerouslySetInnerHTML={{ __html: block.texte }}
-                        />
-                      )}
-                      {block.boutonType && block.boutonType !== "aucun" && block.boutonTexte && (
-                        <Link
-                          href={block.boutonLien || "#"}
-                          className={
-                            block.boutonType === "primaire"
-                              ? "btn-primary w-[250px] flex justify-center items-center h-[55px]"
-                              : "px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
-                          }
-                        >
-                          {block.boutonTexte}
-                          {block.boutonType === "secondaire" && (
-                            <div className="relative w-[25px] h-[25px]">
-                              <Image src="/icons/arrow_blue.svg" alt="Flèche" fill className="object-contain transition-opacity group-hover:opacity-0" priority={false} />
-                              <Image src="/icons/arrow.svg" alt="Flèche" fill className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0" priority={false} />
-                            </div>
-                          )}
-                        </Link>
-                      )}
+                    <div className="w-full md:w-[466px] flex flex-col items-center">
+                      <div className="w-full max-w-[400px] flex flex-col items-start text-left">
+                        {block.surtitre && (
+                          <div className="text-[var(--color-brand-primary)] text-xs font-bold uppercase tracking-wide mb-[10px]">
+                            {block.surtitre}
+                          </div>
+                        )}
+                        {block.titre && (
+                          <div 
+                            className="text-[24px] sm:text-[24px] font-bold text-[var(--color-brand-strong)] leading-tight mb-[10px]"
+                            dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
+                          />
+                        )}
+                        {block.texte && (
+                          <div 
+                            className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
+                            dangerouslySetInnerHTML={{ __html: block.texte }}
+                          />
+                        )}
+                        {block.boutonType && block.boutonType !== "aucun" && block.boutonTexte && (
+                          <Link
+                            href={block.boutonLien || "#"}
+                            className={
+                              block.boutonType === "primaire"
+                                ? "btn-primary w-[250px] flex justify-center items-center h-[55px]"
+                                : "px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+                            }
+                          >
+                            {block.boutonTexte}
+                            {block.boutonType === "secondaire" && (
+                              <div className="relative w-[25px] h-[25px]">
+                                <Image src="/icons/arrow_blue.svg" alt="Flèche" fill className="object-contain transition-opacity group-hover:opacity-0" priority={false} />
+                                <Image src="/icons/arrow.svg" alt="Flèche" fill className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0" priority={false} />
+                              </div>
+                            )}
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </AnimatedSection>
                 </div>
