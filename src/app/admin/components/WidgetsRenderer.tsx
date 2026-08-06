@@ -118,9 +118,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             isFirst={isFirst}
             isLast={isLast}
             headerActions={
-              block.type === "partenaires" || block.type === "boutons" || block.type === "image-principale" ? (
+              block.type === "partenaires" || block.type === "boutons" || block.type === "image-principale" || block.type === "newsletter" ? (
                 <ToggleSwitch 
-                  checked={(block as any).enabled} 
+                  checked={(block as any).enabled !== false} 
                   onCheckedChange={(checked) => updateBlock(block.id, { enabled: checked })} 
                 />
               ) : undefined
@@ -410,18 +410,37 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
 
             {block.type === "newsletter" && (
               <div className="flex flex-col gap-4">
-                <AdminTextField
-                  label="Titre"
-                  placeholder="Inscrivez-vous à la newsletter"
-                  value={block.titre || ""}
-                  onChange={(val) => updateBlock(block.id, { titre: val })}
-                />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AdminTextField
+                    label="Surtitre"
+                    placeholder="Surtitre"
+                    value={block.surtitre || ""}
+                    onChange={(val) => updateBlock(block.id, { surtitre: val })}
+                  />
+                  <AdminTextField
+                    label="Titre"
+                    placeholder="Titre"
+                    value={block.titre || ""}
+                    onChange={(val) => updateBlock(block.id, { titre: val })}
+                  />
+                </div>
+
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                   <RichTextEditor
                     value={block.texte || ""}
                     onChange={(val) => updateBlock(block.id, { texte: val })}
-                    minHeight="120px"
+                    editorClassName="min-h-[120px] h-full"
+                    containerClassName="min-h-[120px]"
+                  />
+                </div>
+
+                <div className="w-1/2 pr-4">
+                  <AdminTextField
+                    label="Texte du bouton"
+                    placeholder="Texte du bouton"
+                    value={block.boutonTexte || ""}
+                    onChange={(val) => updateBlock(block.id, { boutonTexte: val })}
                   />
                 </div>
               </div>

@@ -497,7 +497,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               case "texte": newBlock = { id: newId, type: "texte", texte: "" }; break;
               case "texte-image": newBlock = { id: newId, type: "texte-image", imagePosition: "gauche", surtitre: "", titre: "", texte: "", image: "", alt: "", boutonType: "secondaire", boutonTexte: "", boutonLien: "" }; break;
               case "card": newBlock = { id: newId, type: "card", enabled: true, card1: { boutonType: "secondaire" }, card2: { boutonType: "secondaire" } }; break;
-              case "newsletter": newBlock = { id: newId, type: "newsletter", enabled: true, titre: "", texte: "" }; break;
+              case "newsletter": newBlock = { id: newId, type: "newsletter", enabled: true, surtitre: "NEWSLETTER", titre: "Reste informé", texte: "Abonne-toi à notre newsletter et sois le premier informé des nouveautés, des offres spéciales et plein d'autres choses ! Lien de désabonnement dans chaque email.", boutonTexte: "S'abonner" }; break;
               case "tarifs": 
                 newBlock = { 
                   id: newId, 

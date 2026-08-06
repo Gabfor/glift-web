@@ -15,6 +15,8 @@ import PricingTable from "@/components/PricingTable";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
+import { EmailField, isValidEmail } from "@/components/forms/EmailField";
+import { motion } from "framer-motion";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
   <div 
@@ -82,6 +84,130 @@ type Props = {
     niveau?: string;
   };
 };
+
+function NewsletterBlockComponent({ block }: { block: any }) {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [message, setMessage] = useState("");
+
+  const isValid = isValidEmail(email);
+
+  const cleanText = (raw?: string) => {
+    if (!raw) return "";
+    return raw.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").trim();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValid) return;
+
+    setStatus("loading");
+    setMessage("");
+
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus("success");
+        setMessage(data.message || "Merci pour ton inscription !");
+        setEmail("");
+      } else {
+        setStatus("error");
+        setMessage(data.error || "Une erreur est survenue.");
+      }
+    } catch (err) {
+      setStatus("error");
+      setMessage("Une erreur réseau est survenue.");
+    }
+  };
+
+  return (
+    <div
+      id={block.ancreId || undefined}
+      className="w-full max-w-[1152px] mx-auto rounded-[20px] p-[2.5rem] scroll-mt-[100px] shadow-[0_4px_20px_rgba(93,100,148,0.04)] my-[25px]"
+      style={{
+        background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
+      }}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
+        {/* Colonne gauche (Surtitre, Titre, Texte + Icône Enveloppe) */}
+        <div className="flex flex-col justify-center">
+          {/* Icône Enveloppe dans un cercle */}
+          <div className="w-[30px] h-[30px] rounded-full border-2 border-[#2E3271] text-[#2E3271] flex items-center justify-center mb-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2"/>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+            </svg>
+          </div>
+
+          {/* Surtitre */}
+          <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">
+            {cleanText(block.surtitre) || "NEWSLETTER"}
+          </p>
+
+          {/* Titre */}
+          <h2 className="text-[28px] font-bold text-[#2E3271] leading-tight mb-[10px]">
+            {cleanText(block.titre) || "Reste informé"}
+          </h2>
+
+          {/* Texte */}
+          <p className="text-[#5D6494] font-semibold text-[16px] leading-relaxed max-w-[440px]">
+            {cleanText(block.texte) || "Abonne-toi à notre newsletter et sois le premier informé des nouveautés, des offres spéciales et plein d'autres choses ! Lien de désabonnement dans chaque email."}
+          </p>
+        </div>
+
+        {/* Colonne droite (Carte blanche avec EmailField & CTAButton - Animation de la droite vers la gauche au scroll) */}
+        <motion.div
+          initial={{ opacity: 0, x: 50 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="bg-white rounded-[20px] p-6 sm:p-8 border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)]"
+        >
+          <form onSubmit={handleSubmit} className="flex flex-col">
+            <div className="flex flex-col sm:flex-row items-end gap-3 w-full">
+              <div className="flex-1 w-full">
+                <EmailField
+                  value={email}
+                  onChange={setEmail}
+                  label="Email"
+                  placeholder="john.doe@email.com"
+                  hideSuccessMessage={true}
+                  messageContainerClassName="hidden min-h-0 mt-0 h-0"
+                  disabled={status === "loading"}
+                />
+              </div>
+              <CTAButton
+                type="submit"
+                variant={isValid ? "active" : "inactive"}
+                disabled={!isValid || status === "loading"}
+                loading={status === "loading"}
+                loadingText="Inscription..."
+                className="w-full sm:w-auto h-[45px] px-6"
+              >
+                {cleanText(block.boutonTexte) || "S'abonner"}
+              </CTAButton>
+            </div>
+
+            {status === "success" && (
+              <p className="text-[#10B981] font-semibold text-[14px] mt-2">{message}</p>
+            )}
+
+            {status === "error" && (
+              <p className="text-[#EF4444] font-semibold text-[14px] mt-2">{message}</p>
+            )}
+          </form>
+        </motion.div>
+      </div>
+    </div>
+  );
+}
 
 export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConceptPage = false }: Props) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
@@ -397,7 +523,8 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             );
 
           case "newsletter":
-            return null; // Pas encore de rendu public pour ces blocs
+            if (block.enabled === false) return null;
+            return <NewsletterBlockComponent key={key} block={block} />;
 
           case "titre-texte":
             return (
@@ -610,7 +737,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             if (block.enabled === false) return null;
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] mt-[25px]">
+                <div id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] my-[25px]">
                   <section className="text-center px-4 w-full mx-auto">
                     {block.surtitre && (
                       <p className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide">

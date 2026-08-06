@@ -145,8 +145,10 @@ export type BlockCard = BaseBlock & {
 
 export type BlockNewsletter = BaseBlock & {
   type: "newsletter";
+  surtitre?: string;
   titre?: string;
   texte?: string;
+  boutonTexte?: string;
 };
 
 export type SubscriptionArgument = {
