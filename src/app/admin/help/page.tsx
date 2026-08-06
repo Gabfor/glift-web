@@ -273,8 +273,41 @@ export default function AdminContentHelpPage() {
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
         ) : sortedAndFilteredQuestions.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12">
-            Aucune question pour le moment.
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-[#ECE9F1] h-[60px]">
+                <tr>
+                  <th className="px-4 w-[48px]">
+                    <div className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
+                      <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} />
+                    </div>
+                  </th>
+                  {renderHeaderCell("Statut", "status", "w-[82px]")}
+                  {renderHeaderCell("Questions", "question", "w-auto")}
+                  {renderHeaderCell("ID de la question", "id", "w-[330px]")}
+                  {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
+                  {renderHeaderCell(
+                    <div className="flex justify-center w-[20px]">
+                      <Image src="/icons/oui_vert.svg" alt="Top" width={20} height={20} />
+                    </div>,
+                    "top",
+                    "w-[80px]"
+                  )}
+                  {renderHeaderCell(
+                    <div className="flex justify-center w-[20px]">
+                      <Image src="/icons/non_rouge.svg" alt="Flop" width={20} height={20} />
+                    </div>,
+                    "flop",
+                    "w-[80px]"
+                  )}
+                </tr>
+              </thead>
+            </table>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Aucune question pour le moment.
+              </div>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">

@@ -221,6 +221,109 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   )}
                 </div>
 
+                {/* SEO Section (NEW) */}
+                <div className="flex flex-col">
+                  <div 
+                    onClick={() => toggleSection("seo")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">SEO</h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image 
+                        src="/icons/chevron_bloc.svg" 
+                        alt="Chevron" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} group-hover:hidden`}
+                      />
+                      <Image 
+                        src="/icons/chevron_bloc_hover.svg" 
+                        alt="Chevron Hover" 
+                        fill 
+                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} hidden group-hover:block`}
+                      />
+                    </div>
+                  </div>
+
+                  {!collapsedSections.seo && (
+                    <div className="flex flex-col gap-5 mt-[10px]">
+                      {/* Meta title */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Meta title</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {pageData.seo_title.length}/60
+                          </span>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Meta title"
+                          value={pageData.seo_title}
+                          onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value.slice(0, 60) })}
+                          className={inputClass}
+                          maxLength={60}
+                        />
+                      </div>
+
+                      {/* Meta description */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
+                          </span>
+                        </div>
+                        <RichTextEditor
+                          value={pageData.seo_description}
+                          onChange={(val) => setPageData({ ...pageData, seo_description: val })}
+                          minHeight="100px"
+                        />
+                      </div>
+
+                      {/* No index & No follow */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No index</label>
+                          <AdminDropdown
+                            label=""
+                            placeholder="Sélectionnez"
+                            selected={pageData.noindex ? "OUI" : "NON"}
+                            onSelect={(v) => setPageData({ ...pageData, noindex: v === "OUI" })}
+                            options={[
+                              { value: "NON", label: "NON" },
+                              { value: "OUI", label: "OUI" }
+                            ]}
+                          />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No follow</label>
+                          <AdminDropdown
+                            label=""
+                            placeholder="Sélectionnez"
+                            selected={pageData.nofollow ? "OUI" : "NON"}
+                            onSelect={(v) => setPageData({ ...pageData, nofollow: v === "OUI" })}
+                            options={[
+                              { value: "NON", label: "NON" },
+                              { value: "OUI", label: "OUI" }
+                            ]}
+                          />
+                        </div>
+                      </div>
+
+                      {/* URL Canonique */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL Canonique</label>
+                        <input
+                          type="text"
+                          placeholder="Url canonique"
+                          value={pageData.canonical_override}
+                          onChange={(e) => setPageData({ ...pageData, canonical_override: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
                 {/* Introduction Section */}
                 <div className="flex flex-col">
                   <div 
@@ -303,109 +406,6 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                           placeholder="Url de la page"
                           value={pageData.url}
                           onChange={(e) => setPageData({ ...pageData, url: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* SEO Section (NEW) */}
-                <div className="flex flex-col">
-                  <div 
-                    onClick={() => toggleSection("seo")}
-                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
-                  >
-                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">SEO</h3>
-                    <div className="relative w-[18px] h-[18px]">
-                      <Image 
-                        src="/icons/chevron_bloc.svg" 
-                        alt="Chevron" 
-                        fill 
-                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} group-hover:hidden`} 
-                      />
-                      <Image 
-                        src="/icons/chevron_bloc_hover.svg" 
-                        alt="Chevron Hover" 
-                        fill 
-                        className={`object-contain transition-transform duration-200 ${!collapsedSections.seo ? "rotate-180" : ""} hidden group-hover:block`} 
-                      />
-                    </div>
-                  </div>
-
-                  {!collapsedSections.seo && (
-                    <div className="flex flex-col gap-5 mt-[10px]">
-                      {/* Meta title */}
-                      <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Meta title</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {pageData.seo_title.length}/60
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Meta title"
-                          value={pageData.seo_title}
-                          onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value.slice(0, 60) })}
-                          className={inputClass}
-                          maxLength={60}
-                        />
-                      </div>
-
-                      {/* Meta description */}
-                      <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
-                          </span>
-                        </div>
-                        <RichTextEditor
-                          value={pageData.seo_description}
-                          onChange={(val) => setPageData({ ...pageData, seo_description: val })}
-                          minHeight="100px"
-                        />
-                      </div>
-
-                      {/* No index & No follow */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                        <div className="flex flex-col">
-                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No index</label>
-                          <AdminDropdown
-                            label=""
-                            placeholder="Sélectionnez"
-                            selected={pageData.noindex ? "OUI" : "NON"}
-                            onSelect={(v) => setPageData({ ...pageData, noindex: v === "OUI" })}
-                            options={[
-                              { value: "NON", label: "NON" },
-                              { value: "OUI", label: "OUI" }
-                            ]}
-                          />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">No follow</label>
-                          <AdminDropdown
-                            label=""
-                            placeholder="Sélectionnez"
-                            selected={pageData.nofollow ? "OUI" : "NON"}
-                            onSelect={(v) => setPageData({ ...pageData, nofollow: v === "OUI" })}
-                            options={[
-                              { value: "NON", label: "NON" },
-                              { value: "OUI", label: "OUI" }
-                            ]}
-                          />
-                        </div>
-                      </div>
-
-                      {/* URL Canonique */}
-                      <div className="flex flex-col">
-                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">URL Canonique</label>
-                        <input
-                          type="text"
-                          placeholder="Url canonique"
-                          value={pageData.canonical_override}
-                          onChange={(e) => setPageData({ ...pageData, canonical_override: e.target.value })}
                           className={inputClass}
                         />
                       </div>

@@ -304,8 +304,8 @@ export default function AdminAuteursPage() {
         {isLoading ? (
           <AuteursTableSkeleton />
         ) : sortedAuthors.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12 bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
-            <table className="min-w-full text-left text-sm opacity-50">
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+            <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
                   <th className="w-[47px] px-4">
@@ -329,9 +329,11 @@ export default function AdminAuteursPage() {
                 </tr>
               </thead>
             </table>
-            <div className="py-12">
-              Aucun auteur trouvé.
-            </div>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Aucun auteur trouvé.
+              </div>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">

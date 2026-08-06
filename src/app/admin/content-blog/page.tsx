@@ -147,7 +147,7 @@ export default function AdminContentBlogPage() {
 
     // Filtre
     const filtered = articles.filter((a) => {
-      const matchesSearch = !term || a.titre?.toLowerCase().includes(term);
+      const matchesSearch = !term || a.titre?.toLowerCase().includes(term) || a.url?.toLowerCase().includes(term);
       const matchesCategory = !categoryFilter || a.categorie === categoryFilter;
       return matchesSearch && matchesCategory;
     });
@@ -359,8 +359,8 @@ export default function AdminContentBlogPage() {
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
         ) : sortedAndFilteredArticles.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12 bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
-            <table className="min-w-full text-left text-sm opacity-50">
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+            <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
                   <th className="px-4 w-[48px]">
@@ -377,9 +377,11 @@ export default function AdminContentBlogPage() {
                 </tr>
               </thead>
             </table>
-            <div className="py-12">
-              Pour le moment nous n&apos;avons pas d&apos;articles de créer.
-            </div>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Pour le moment nous n&apos;avons pas d&apos;articles de créer.
+              </div>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">

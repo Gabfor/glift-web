@@ -278,8 +278,33 @@ export default function OfferShopPage() {
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
-        ) : offers.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12">Aucune offre pour le moment.</div>
+        ) : filteredOffers.length === 0 ? (
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-[#ECE9F1] h-[60px]">
+                <tr>
+                  <th className="px-4 w-[48px]">
+                    <div className="flex items-center justify-center h-[60px]">
+                      <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} />
+                    </div>
+                  </th>
+                  {renderHeaderCell("Statut", "status", "w-[60px] px-3")}
+                  {renderHeaderCell("Début", "start_date", "w-[94px] px-3")}
+                  {renderHeaderCell("Fin", "end_date", "w-[94px] px-3")}
+                  {renderHeaderCell("Nom de l'offre", "name", "px-3")}
+                  {renderHeaderCell("Partenaire", "shop", "w-[120px] px-3")}
+                  {renderHeaderCell("Sexe", "gender", "w-[60px] px-3")}
+                  {renderHeaderCell("Pays", "pays", "w-[60px] px-3")}
+                  {renderHeaderCell("Utilisation", "click_count", "w-[85px] px-3")}
+                </tr>
+              </thead>
+            </table>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Aucune offre pour le moment.
+              </div>
+            )}
+          </div>
         ) : (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
             <table className="min-w-full text-left text-sm">

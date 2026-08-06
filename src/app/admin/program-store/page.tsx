@@ -333,9 +333,33 @@ export default function ProgramStorePage() {
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
-        ) : programs.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12">
-            Aucun programme pour le moment.
+        ) : filteredPrograms.length === 0 ? (
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+            <table className="min-w-full text-left text-sm">
+              <thead className="border-b border-[#ECE9F1] h-[60px]">
+                <tr>
+                  <th className="px-4 w-[47px]">
+                    <div className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
+                      <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} style={{ marginTop: "5px" }} />
+                    </div>
+                  </th>
+                  {renderHeaderCell("Statut", "status")}
+                  {renderHeaderCell("Sexe", "gender")}
+                  {renderHeaderCell("Nom du programme", "title")}
+                  {renderHeaderCell("Difficulté", "level")}
+                  {renderHeaderCell("Séances", "sessions")}
+                  {renderHeaderCell("Durée", "duration")}
+                  {renderHeaderCell("Partenaire", "partner_name")}
+                  {renderHeaderCell("Downloads", "downloads")}
+                  {renderHeaderCell("Actifs", "actifs")}
+                </tr>
+              </thead>
+            </table>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Aucun programme pour le moment.
+              </div>
+            )}
           </div>
         ) : (
           <div

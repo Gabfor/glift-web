@@ -146,7 +146,7 @@ export default function AdminLegalPage() {
     const term = searchTerm.trim().toLowerCase();
     
     const filtered = pages.filter((p) => {
-      return !term || p.titre?.toLowerCase().includes(term);
+      return !term || p.titre?.toLowerCase().includes(term) || p.url?.toLowerCase().includes(term);
     });
 
     return [...filtered].sort((a, b) => {
@@ -260,9 +260,9 @@ export default function AdminLegalPage() {
         {isLoading ? (
           <LegalTableSkeleton />
         ) : sortedPages.length === 0 ? (
-          <div className="text-center text-[#5D6494] mt-12 bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
 
-            <table className="min-w-full text-left text-sm opacity-50">
+            <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
                   <th className="w-[47px] px-4">
@@ -277,9 +277,11 @@ export default function AdminLegalPage() {
                 </tr>
               </thead>
             </table>
-            <div className="py-12">
-              Pour le moment nous n&apos;avons pas de pages légales créées.
-            </div>
+            {!searchTerm.trim() && (
+              <div className="py-12">
+                Pour le moment nous n&apos;avons pas de pages légales créées.
+              </div>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
