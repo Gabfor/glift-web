@@ -16,7 +16,7 @@ import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
   <div 
@@ -117,9 +117,17 @@ function NewsletterBlockComponent({ block }: { block: any }) {
         setStatus("success");
         setMessage(data.message || "Merci pour ton inscription !");
         setEmail("");
+        setTimeout(() => {
+          setStatus("idle");
+          setMessage("");
+        }, 3000);
       } else {
         setStatus("error");
         setMessage(data.error || "Une erreur est survenue.");
+        setTimeout(() => {
+          setStatus("idle");
+          setMessage("");
+        }, 3000);
       }
     } catch (err) {
       setStatus("error");
@@ -195,13 +203,33 @@ function NewsletterBlockComponent({ block }: { block: any }) {
               </CTAButton>
             </div>
 
-            {status === "success" && (
-              <p className="text-[#10B981] font-semibold text-[14px] mt-2">{message}</p>
-            )}
+            <AnimatePresence>
+              {status === "success" && (
+                <motion.p
+                  key="success-msg"
+                  initial={{ opacity: 0, y: -6, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -6, height: 0 }}
+                  transition={{ duration: 0.35, ease: "easeInOut" }}
+                  className="text-[#10B981] font-semibold text-[14px] mt-2 overflow-hidden"
+                >
+                  {message}
+                </motion.p>
+              )}
 
-            {status === "error" && (
-              <p className="text-[#EF4444] font-semibold text-[14px] mt-2">{message}</p>
-            )}
+              {status === "error" && (
+                <motion.p
+                  key="error-msg"
+                  initial={{ opacity: 0, y: -6, height: 0 }}
+                  animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -6, height: 0 }}
+                  transition={{ duration: 0.35, ease: "easeInOut" }}
+                  className="text-[#EF4444] font-semibold text-[14px] mt-2 overflow-hidden"
+                >
+                  {message}
+                </motion.p>
+              )}
+            </AnimatePresence>
           </form>
         </motion.div>
       </div>
