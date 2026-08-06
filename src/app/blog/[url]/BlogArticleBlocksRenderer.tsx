@@ -359,7 +359,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
         switch (block.type) {
           case "titre":
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px] text-center w-full max-w-[760px] mx-auto">
+              <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] text-center w-full ${isConceptPage ? 'max-w-[500px]' : 'max-w-[760px]'} mx-auto`}>
                 {block.surtitre && (
                   <div className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
                     {block.surtitre}
@@ -637,7 +637,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
 
           case "texte":
             return (
-              <div key={key} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
+              <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] ${isConceptPage ? 'max-w-[500px] mx-auto text-center' : ''}`}>
                 {block.texte && (
                   <div
                     className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
@@ -871,13 +871,13 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
             return (
               <React.Fragment key={key}>
                 <div id={block.ancreId || undefined} className="flex flex-col items-center justify-center w-full scroll-mt-[100px]">
-                  <div className="flex justify-center gap-4 mb-4 flex-wrap">
+                  <div className="flex flex-col sm:flex-row justify-center w-full sm:w-auto gap-4 mb-4">
                     {block.bouton1 && block.bouton1.texte && (
                       <Link
                         href={block.bouton1.lien || "#"}
                         className={block.bouton1.type === "primaire" 
-                          ? "bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
-                          : "border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
+                          ? "w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
+                          : "w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
                         }
                       >
                         {block.bouton1.texte}
@@ -890,8 +890,8 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                       <Link
                         href={block.bouton2.lien || "#"}
                         className={block.bouton2.type === "primaire" 
-                          ? "bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
-                          : "border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center gap-2 transition"
+                          ? "w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
+                          : "w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
                         }
                       >
                         {block.bouton2.texte}

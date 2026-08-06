@@ -462,18 +462,18 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           Accueil
         </BackLink>
         {page.surtitre && (
-          <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
+          <div className={`uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center ${page.url === "concept" ? "max-w-[500px] mx-auto" : ""}`}>
             {page.surtitre}
           </div>
         )}
         <h1 
-          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center max-w-[760px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center ${page.url === "concept" ? "max-w-[500px]" : "max-w-[760px]"} mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
           dangerouslySetInnerHTML={{ __html: page.titre }}
         />
 
         {page.description && (
           <div 
-            className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[700px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+            className={`text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed ${page.url === "concept" ? "max-w-[500px]" : "max-w-[700px]"} mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
             dangerouslySetInnerHTML={{ __html: page.description }}
           />
         )}
