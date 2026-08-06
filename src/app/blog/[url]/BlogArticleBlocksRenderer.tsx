@@ -138,7 +138,7 @@ function NewsletterBlockComponent({ block }: { block: any }) {
   return (
     <div
       id={block.ancreId || undefined}
-      className="w-full max-w-[1152px] mx-auto rounded-[20px] p-[2.5rem] scroll-mt-[100px] shadow-[0_4px_20px_rgba(93,100,148,0.04)] my-[25px]"
+      className="w-full max-w-[1152px] mx-auto rounded-[20px] p-[2.5rem] scroll-mt-[100px] my-[25px]"
       style={{
         background: "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
       }}
