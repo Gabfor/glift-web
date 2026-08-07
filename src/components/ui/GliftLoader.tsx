@@ -28,7 +28,7 @@ export default function GliftLoader({ className, onShow, isAdmin }: GliftLoaderP
         className,
       )}
     >
-      <div className="flex flex-col items-center -translate-y-[100px]">
+      <div className="flex flex-col items-center translate-y-0 md:-translate-y-[100px]">
         <Image
           src={isAdmin ? "/logo-glift-admin.svg" : "/logo-glift.svg"}
           alt="Glift"
