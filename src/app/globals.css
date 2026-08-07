@@ -16,6 +16,7 @@ html,
 body {
   background-color: var(--color-surface-primary);
   color: var(--color-text-strong);
+  overflow-x: clip;
   @apply font-sans antialiased;
 }
 

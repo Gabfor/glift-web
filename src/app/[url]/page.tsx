@@ -82,7 +82,8 @@ import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/contact/ContactClient";
 import BackLink from "@/components/BackLink";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function LegalPage({ params }: { params: Promise<{ url: string }> }) {
   const resolvedParams = await params;
@@ -453,27 +454,29 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     return <ContactClient initialPageContent={contactPageContent} />;
   }
 
+  const isFeaturePage = ["creation-programmes", "suivi-seances", "notation-ressenti", "visualisation-progression"].includes(page.url);
+
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-hidden [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
-      {/* Fond dégradé style ClickUp en haut de la page concept uniquement */}
-      {page.url === "concept" && <ConceptGradientBackground />}
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
+      {/* Fond dégradé en haut de la page concept et des 4 pages de fonctionnalités */}
+      {(page.url === "concept" || isFeaturePage) && <ConceptGradientBackground />}
       <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
-        <BackLink href="/concept" className="mb-[30px]">
+        <BackLink href="/concept" className="hidden md:inline-flex mb-[30px]">
           Accueil
         </BackLink>
         {page.surtitre && (
-          <div className={`uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center ${page.url === "concept" ? "max-w-[500px] mx-auto" : ""}`}>
+          <div className={`uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center ${page.url === "concept" || isFeaturePage ? "max-w-[650px] mx-auto" : ""}`}>
             {page.surtitre}
           </div>
         )}
         <h1 
-          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center ${page.url === "concept" ? "max-w-[500px]" : "max-w-[760px]"} mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+          className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center ${page.url === "concept" || isFeaturePage ? "max-w-[650px]" : "max-w-[760px]"} mx-auto ${page.description ? "mb-[10px]" : "mb-0"} prose-titles [&_p]:m-0`}
           dangerouslySetInnerHTML={{ __html: page.titre }}
         />
 
         {page.description && (
           <div 
-            className={`text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed ${page.url === "concept" ? "max-w-[500px]" : "max-w-[700px]"} mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
+            className={`text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed ${page.url === "concept" || isFeaturePage ? "max-w-[650px]" : "max-w-[700px]"} mx-auto mb-[30px] md:mb-[50px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
             dangerouslySetInnerHTML={{ __html: page.description }}
           />
         )}
@@ -489,6 +492,8 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             blocks={page.content_blocks || []} 
             articleMeta={{}}
             isConceptPage={page.url === "concept"}
+            isFeaturePage={isFeaturePage}
+            pageUrl={page.url}
           />
         </article>
       </div>

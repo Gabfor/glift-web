@@ -12,20 +12,20 @@ interface BackLinkProps {
 export default function BackLink({ children, href, onClick, className = '' }: BackLinkProps) {
     const content = (
         <>
-            <Image
-                src="/icons/chevron_left.svg"
-                alt="Retour"
-                width={12}
-                height={12}
-                className="h-3 w-2 mr-2 group-hover:hidden"
-            />
-            <Image
-                src="/icons/chevron_left_hover.svg"
-                alt="Retour (hover)"
-                width={12}
-                height={12}
-                className="h-3 w-2 mr-2 hidden group-hover:inline"
-            />
+            <div className="relative w-2 h-3 mr-2 flex-shrink-0">
+                <Image
+                    src="/icons/chevron_left.svg"
+                    alt="Retour"
+                    fill
+                    className="object-contain transition-opacity duration-150 group-hover:opacity-0"
+                />
+                <Image
+                    src="/icons/chevron_left_hover.svg"
+                    alt="Retour (hover)"
+                    fill
+                    className="object-contain opacity-0 transition-opacity duration-150 group-hover:opacity-100 absolute top-0 left-0"
+                />
+            </div>
             {children}
         </>
     );

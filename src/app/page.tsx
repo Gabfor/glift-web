@@ -68,7 +68,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-hidden">
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip">
       {/* Fond dégradé dynamique style ClickUp */}
       <ConceptGradientBackground initialSettings={settings} />
 
@@ -76,19 +76,19 @@ export default async function Home() {
         {/* Hero Section from Page Data */}
         <section className="text-center mb-[30px]">
           {page.surtitre && (
-            <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide max-w-[500px] mx-auto">
+            <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide max-w-[650px] mx-auto">
               {page.surtitre}
             </div>
           )}
 
           <div
-            className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px] max-w-[500px] mx-auto"
+            className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px] max-w-[650px] mx-auto"
             dangerouslySetInnerHTML={{ __html: page.titre }}
           />
 
           {page.description && (
             <div
-              className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[500px] mx-auto mb-[20px] prose prose-sm [&_p]:mb-0"
+              className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[650px] mx-auto mb-[30px] md:mb-[50px] prose prose-sm [&_p]:mb-0"
               dangerouslySetInnerHTML={{ __html: page.description }}
             />
           )}

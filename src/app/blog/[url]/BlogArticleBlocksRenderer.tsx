@@ -18,9 +18,13 @@ import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PlaceholderImage = ({ width, height, className = "" }: { width: number | string, height: number | string, className?: string }) => (
+const PlaceholderImage = ({ width, height, className = "" }: { width?: number | string, height?: number | string, className?: string }) => (
   <div 
-    style={{ width, height, minHeight: typeof height === 'number' ? `${height}px` : height }}
+    style={{
+      width: typeof width === 'number' ? `${width}px` : width,
+      height: typeof height === 'number' ? `${height}px` : height,
+      minHeight: typeof height === 'number' ? `${height}px` : height,
+    }}
     className={`bg-[#F2F1F6] text-[#D7D4DC] font-bold text-[32px] tracking-wider flex items-center justify-center rounded-[15px] ${className}`}
   >
     IMAGE
@@ -153,7 +157,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
   return (
     <div
       id={block.ancreId || undefined}
-      className="w-full max-w-[1152px] mx-auto rounded-[20px] px-[20px] py-[2.5rem] sm:p-[2.5rem] scroll-mt-[100px] my-[25px]"
+      className="w-full max-w-[1152px] mx-auto rounded-[20px] px-[20px] py-[2.5rem] sm:p-[2.5rem] scroll-mt-[100px] my-0"
       style={{
         background: gradientStyle || "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
       }}
@@ -252,7 +256,21 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
   );
 }
 
-export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConceptPage = false }: Props) {
+interface BlogArticleBlocksRendererProps {
+  blocks: any[];
+  articleMeta?: any;
+  isConceptPage?: boolean;
+  isFeaturePage?: boolean;
+  pageUrl?: string;
+}
+
+export default function BlogArticleBlocksRenderer({
+  blocks,
+  articleMeta,
+  isConceptPage = false,
+  isFeaturePage = false,
+  pageUrl,
+}: BlogArticleBlocksRendererProps) {
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
   const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
@@ -377,12 +395,12 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
           case "texte-image":
             const isRight = block.imagePosition === "droite";
             return (
-              <div key={key} id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
-                {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
-                {/* On mobile flex-col items-center will center them horizontally */}
-                
-                <div className={`flex items-center ${isRight ? "order-2 md:order-1" : "order-2"}`}>
-                  <AnimatedSection>
+              <AnimatedSection key={key} className="w-full">
+                <div id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
+                  {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
+                  {/* On mobile flex-col items-center will center them horizontally */}
+                  
+                  <div className={`flex items-center ${isRight ? "order-2 md:order-1" : "order-2"}`}>
                     <div className="w-full md:w-[466px] flex flex-col items-center">
                       <div className="w-full max-w-[400px] flex flex-col items-start text-left">
                         {block.surtitre && (
@@ -398,7 +416,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                         )}
                         {block.texte && (
                           <div 
-                            className={`text-[var(--color-text-body)] ${isConceptPage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
+                            className={`text-[var(--color-text-body)] ${isConceptPage || isFeaturePage ? "text-[16px]" : "text-[15px]"} leading-relaxed font-semibold mb-[20px] prose prose-sm max-w-none [&_p]:mb-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
                             dangerouslySetInnerHTML={{ __html: block.texte }}
                           />
                         )}
@@ -422,12 +440,10 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                         )}
                       </div>
                     </div>
-                  </AnimatedSection>
-                </div>
+                  </div>
 
-                <div className={`flex items-center ${isRight ? "order-1 md:order-2" : "order-1"}`}>
-                  <AnimatedSection>
-                    <div className="flex-shrink-0">
+                  <div className={`w-full md:w-auto flex items-center justify-center ${isRight ? "order-1 md:order-2" : "order-1"}`}>
+                    <div className="flex-shrink-0 w-full max-w-[466px] md:w-[466px] flex items-center justify-center">
                       {block.image ? (
                         <Image
                           src={block.image}
@@ -435,15 +451,15 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                           width={466}
                           height={350}
                           priority={false}
-                          className="rounded-[15px] object-cover"
+                          className="w-full max-w-[466px] md:w-[466px] h-auto md:h-[350px] rounded-[15px] object-cover"
                         />
                       ) : (
-                        <PlaceholderImage width={466} height={350} />
+                        <PlaceholderImage width={466} height={350} className="w-full max-w-[466px] md:w-[466px] h-[260px] md:h-[350px]" />
                       )}
                     </div>
-                  </AnimatedSection>
+                  </div>
                 </div>
-              </div>
+              </AnimatedSection>
             );
 
           case "card":
@@ -462,7 +478,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
               <React.Fragment key={key}>
                 <div 
                   id={block.ancreId || undefined} 
-                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[50px] md:py-[100px] scroll-mt-[100px]"
+                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] mt-[25px] md:mt-0 py-[50px] md:py-[100px] scroll-mt-[100px]"
                   style={{
                     background: dynamicGradient,
                   }}

@@ -162,14 +162,14 @@ export default function Footer() {
       </div>
 
       {/* Social Logos & Copyright */}
-      <div className="max-w-[1152px] mx-auto mt-[30px] flex flex-col items-center justify-center text-[#5D6494] text-sm gap-4 font-semibold">
-        <div className="flex items-center justify-center gap-[20px]">
+      <div className="max-w-[1152px] mx-auto mt-[30px] md:mt-[20px] flex flex-col md:flex-row justify-between items-center text-[#5D6494] text-sm gap-4 md:gap-[20px] font-semibold">
+        <p className="order-2 md:order-1 text-center md:text-left">Copyright © 2026 Glift. Tous droits réservés.</p>
+        <div className="order-1 md:order-2 flex items-center justify-center gap-[20px] md:gap-[15px]">
           <Link href="#" aria-label="Facebook"><FontAwesomeIcon icon={faFacebookF} className="text-[#3A416F] hover:text-[#7069FA] transition-colors !w-[18px] !h-[18px]" /></Link>
           <Link href="#" aria-label="X (Twitter)"><FontAwesomeIcon icon={faXTwitter} className="text-[#3A416F] hover:text-[#7069FA] transition-colors !w-[18px] !h-[18px]" /></Link>
           <Link href="#" aria-label="Instagram"><FontAwesomeIcon icon={faInstagram} className="text-[#3A416F] hover:text-[#7069FA] transition-colors !w-[18px] !h-[18px]" /></Link>
           <Link href="#" aria-label="Youtube"><FontAwesomeIcon icon={faYoutube} className="text-[#3A416F] hover:text-[#7069FA] transition-colors !w-[18px] !h-[18px]" /></Link>
         </div>
-        <p className="text-center">Copyright © 2026 Glift. Tous droits réservés.</p>
       </div>
     </footer>
   );
