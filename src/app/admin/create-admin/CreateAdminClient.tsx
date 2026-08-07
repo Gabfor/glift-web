@@ -128,14 +128,14 @@ export default function CreateAdminClient({ adminId }: Props) {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px] flex items-center justify-center">
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex items-center justify-center">
         <div className="text-center text-[#5D6494] font-semibold">Chargement...</div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto w-full">
         <BackLink href="/administrateurs" className="mb-6">
           Administrateurs

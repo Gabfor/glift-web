@@ -294,7 +294,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
         <div className="max-w-[1152px] mx-auto">
           <ShopHeader initialPageContent={shopPageContent} />
         </div>
@@ -365,7 +365,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
         <div className="max-w-[1152px] mx-auto">
           <StoreHeader initialPageContent={storePageContent} />
         </div>
@@ -399,7 +399,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     }
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           {page.surtitre && (
             <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -454,7 +454,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   }
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[140px] overflow-x-hidden [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-hidden [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       {/* Fond dégradé style ClickUp en haut de la page concept uniquement */}
       {page.url === "concept" && <ConceptGradientBackground />}
       <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">

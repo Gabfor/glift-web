@@ -113,7 +113,7 @@ export default async function StorePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <StoreHeader initialPageContent={initialPageContent} />
       </div>

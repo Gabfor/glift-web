@@ -73,7 +73,7 @@ export default async function BlogPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
         {pageConfig?.surtitre && (
           <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">

@@ -68,7 +68,7 @@ export default async function Home() {
   }
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[140px] overflow-x-hidden">
+    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-hidden">
       {/* Fond dégradé dynamique style ClickUp */}
       <ConceptGradientBackground initialSettings={settings} />
 

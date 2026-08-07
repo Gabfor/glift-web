@@ -184,19 +184,39 @@ export default function Header({ disconnected = false }: HeaderProps) {
       )}
 
       <header
-        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky
+        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky || isMobileMenuOpen
           ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
-          : (pathname === "/" || pathname === "/concept")
-          ? "bg-transparent shadow-none"
-          : "bg-[var(--color-surface-primary)]"
+          : "bg-transparent shadow-none"
           }`}
       >
         <div className="max-w-[1152px] mx-auto h-[72px] flex items-center justify-between px-4 md:px-0 relative">
+          {/* Burger button (Mobile Left) */}
+          <button
+            type="button"
+            className="md:hidden flex flex-col justify-center items-center w-8 h-8 text-[#3A416F] focus:outline-none z-20 cursor-pointer"
+            aria-label="Ouvrir le menu"
+            aria-expanded={isMobileMenuOpen}
+            onClick={() => setIsMobileMenuOpen((current) => !current)}
+          >
+            <span
+              className={`block h-[2px] w-[20px] rounded-full bg-[#3A416F] transition-transform duration-200 ${isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
+                }`}
+            />
+            <span
+              className={`block h-[2px] w-[20px] rounded-full bg-[#3A416F] my-[4px] transition-opacity duration-200 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"
+                }`}
+            />
+            <span
+              className={`block h-[2px] w-[20px] rounded-full bg-[#3A416F] transition-transform duration-200 ${isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
+                }`}
+            />
+          </button>
+
           {/* Logo */}
-          <div className="flex items-center h-full">
+          <div className="flex items-center h-full max-md:absolute max-md:left-1/2 max-md:-translate-x-1/2 max-md:top-1/2 max-md:-translate-y-1/2">
             <Link
               href={showAuthenticatedUI ? dashboardUrl : "/"}
-              className="flex items-center h-full pr-4"
+              className="flex items-center h-full md:pr-4"
             >
               <Image
                 src={logoUrl}
@@ -352,7 +372,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </nav>
 
           {/* User Zone */}
-          <div className="relative flex items-center h-full" ref={dropdownRef}>
+          <div className="hidden md:flex relative items-center h-full" ref={dropdownRef}>
             {showAuthenticatedUI ? (
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -421,27 +441,6 @@ export default function Header({ disconnected = false }: HeaderProps) {
               </div>
             )}
 
-            <button
-              type="button"
-              className="md:hidden flex flex-col justify-center items-center w-10 h-10 rounded-full border border-[var(--color-surface-subtle)] bg-white text-[var(--color-text-body)] hover:text-[var(--color-text-heading)]"
-              aria-label="Ouvrir le menu"
-              aria-expanded={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen((current) => !current)}
-            >
-              <span
-                className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${isMobileMenuOpen ? "translate-y-[6px] rotate-45" : ""
-                  }`}
-              />
-              <span
-                className={`block h-[2px] w-[18px] rounded-full bg-current my-[6px] transition-opacity duration-200 ${isMobileMenuOpen ? "opacity-0" : "opacity-100"
-                  }`}
-              />
-              <span
-                className={`block h-[2px] w-[18px] rounded-full bg-current transition-transform duration-200 ${isMobileMenuOpen ? "-translate-y-[6px] -rotate-45" : ""
-                  }`}
-              />
-            </button>
-
             {dropdownOpen && showAuthenticatedUI && (
               <div className="absolute top-full right-[-4px] w-[180px] bg-white rounded-[5px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
@@ -486,56 +485,116 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </div>
         </div>
 
-        {isMobileMenuOpen && (
-          <div className="md:hidden fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px]" />
-        )}
-
+        {/* Mobile Menu Backdrop Overlay (glift-mobile barrierColor) */}
         <div
-          className={`md:hidden fixed top-[72px] left-0 w-full z-50 transition-transform duration-300 ${isMobileMenuOpen ? "translate-y-0" : "-translate-y-[120%]"
+          className={`md:hidden fixed inset-0 z-40 bg-[#2E3142]/60 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Mobile Menu Slide-in Drawer */}
+        <div
+          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-[82vw] max-w-[310px] h-full bg-white shadow-2xl overflow-y-auto p-6 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
         >
-          <div className="mx-4 rounded-[12px] bg-white shadow-[var(--shadow-card-hover)] border border-[var(--color-surface-subtle)] p-5 space-y-4">
-            <nav className="flex flex-col gap-3 text-[16px] text-[var(--color-text-heading)] font-semibold">
+          <div className="flex flex-col">
+            {/* Drawer Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-[#F0F2F6]">
+              <Image
+                src={logoUrl}
+                alt={logoAlt}
+                width={0}
+                height={0}
+                sizes="100vw"
+                className="w-auto h-[32px]"
+                priority
+              />
+              <button
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-1 text-[#3A416F] hover:opacity-75 focus:outline-none cursor-pointer"
+                aria-label="Fermer le menu"
+              >
+                <svg
+                  className="w-5 h-5 stroke-[#3A416F]"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Navigation Links */}
+            <nav className="flex flex-col py-4 border-b border-[#F0F2F6]">
               {showAuthenticatedUI ? (
                 <>
                   <Link
                     href={dashboardUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname === dashboardUrl || pathname === "/dashboard"
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Tableau de bord
                   </Link>
                   <Link
                     href={trainingsUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Entraînements
                   </Link>
                   <Link
                     href={storeUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
                     href={shopUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Shop
                   </Link>
                   <Link
                     href={blogUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Blog
                   </Link>
                   <Link
                     href={helpUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Aide
@@ -545,49 +604,77 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/"
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname === "/" || pathname === "/concept"
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Concept
                   </Link>
                   <Link
                     href="/apps"
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname === "/apps"
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Apps
                   </Link>
                   <Link
                     href="/tarifs"
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname === "/tarifs"
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Tarifs
                   </Link>
                   <Link
                     href={storeUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Store
                   </Link>
                   <Link
                     href={shopUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Shop
                   </Link>
                   <Link
                     href={blogUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Blog
                   </Link>
                   <Link
                     href={helpUrl}
-                    className="block w-full py-2 hover:text-[var(--color-brand-primary)]"
+                    className={
+                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                    }
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Aide
@@ -596,27 +683,43 @@ export default function Header({ disconnected = false }: HeaderProps) {
               )}
             </nav>
 
-            <div className="flex flex-col gap-3">
+            {/* Actions (Directly under second line) */}
+            <div className="flex flex-col gap-3 pt-6">
               {showAuthenticatedUI ? (
-                <button
-                  className="flex items-center justify-between rounded-[10px] border border-[var(--color-surface-subtle)] bg-[var(--color-surface-highlight)] px-4 py-3 text-[15px] font-semibold text-[var(--color-text-heading)]"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  {userDisplayName}
-                  <span className="text-[13px] text-[var(--color-text-body)]">Profil</span>
-                </button>
+                <>
+                  <Link
+                    href="/compte"
+                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] font-semibold text-[16px] flex items-center justify-center hover:bg-[#3A416F]/5 transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    {userDisplayName}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      router.push("/deconnexion");
+                    }}
+                    className="w-full h-[44px] rounded-full bg-[#7069FA] hover:bg-[#6058F8] text-white font-semibold text-[16px] flex items-center justify-center transition-colors cursor-pointer"
+                  >
+                    Déconnexion
+                  </button>
+                </>
               ) : (
                 <>
                   <Link
                     href="/connexion"
-                    className="text-[var(--color-text-heading)] text-[16px] font-semibold text-center border border-[var(--color-surface-subtle)] rounded-full h-[44px] flex items-center justify-center"
+                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] font-semibold text-[16px] flex items-center justify-center hover:bg-[#3A416F]/5 transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Connexion
                   </Link>
-                  <CTAButton href="/tarifs" className="w-full" disableAutoLoading>
+                  <Link
+                    href="/tarifs"
+                    className="w-full h-[44px] rounded-full bg-[#7069FA] hover:bg-[#6058F8] text-white font-semibold text-[16px] flex items-center justify-center transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
                     Inscription
-                  </CTAButton>
+                  </Link>
                 </>
               )}
             </div>

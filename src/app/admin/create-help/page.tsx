@@ -137,7 +137,7 @@ function CreateHelpForm() {
     };
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
+        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
             <div className="max-w-[1152px] mx-auto w-full">
                 <BackLink href="/admin/help" className="mb-6">
                     Aide
@@ -275,7 +275,7 @@ function CreateHelpForm() {
 
 export default function CreateHelpPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]" />}>
             <CreateHelpForm />
         </Suspense>
     );

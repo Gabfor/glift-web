@@ -2,7 +2,7 @@ import BlogListSkeleton from "@/components/blog/BlogListSkeleton";
 
 export default function BlogLoading() {
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
           Blog

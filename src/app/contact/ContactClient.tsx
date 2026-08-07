@@ -70,7 +70,7 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
     const isFormValid = email.trim() !== "" && subject.trim() !== "" && description.trim() !== "";
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]">
+        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
             <div className="w-full flex flex-col items-center px-4 sm:px-0">
                 {initialPageContent.surtitre && (
                     <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -198,7 +198,7 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
 export default function ContactClient({ initialPageContent }: ContactClientProps) {
     return (
         <Suspense fallback={
-            <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[140px]">
+            <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
                 <div className="w-full flex flex-col items-center px-4 sm:px-0">
                     {initialPageContent.surtitre && (
                         <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">

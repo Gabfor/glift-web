@@ -152,7 +152,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
 
   return (
     <>
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px] pb-[100px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto w-full">
         <BackLink href="/admin/legal" className="mb-6">
           Pages légales

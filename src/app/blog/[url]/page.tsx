@@ -193,7 +193,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             })
           }}
         />
-        <main className="min-h-screen bg-[#FBFCFE] pt-[140px]">
+        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto px-4 md:px-0 mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -374,7 +374,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
       .order("created_at", { ascending: false });
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0 uppercase">
             {categoryName}

@@ -123,7 +123,7 @@ export default async function AuteursPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[140px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">

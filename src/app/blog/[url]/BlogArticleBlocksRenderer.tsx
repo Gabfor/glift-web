@@ -153,7 +153,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
   return (
     <div
       id={block.ancreId || undefined}
-      className="w-full max-w-[1152px] mx-auto rounded-[20px] p-[2.5rem] scroll-mt-[100px] my-[25px]"
+      className="w-full max-w-[1152px] mx-auto rounded-[20px] px-[20px] py-[2.5rem] sm:p-[2.5rem] scroll-mt-[100px] my-[25px]"
       style={{
         background: gradientStyle || "linear-gradient(115deg, rgba(246, 233, 249, 0.65) 0%, rgba(240, 235, 255, 0.65) 45%, rgba(228, 236, 255, 0.65) 100%)",
       }}
@@ -194,7 +194,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
           className="bg-white rounded-[20px] p-6 sm:p-8 border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)]"
         >
           <form onSubmit={handleSubmit} className="flex flex-col">
-            <div className="flex flex-col sm:flex-row items-end gap-3 w-full">
+            <div className="flex flex-col sm:flex-row items-end gap-[20px] sm:gap-3 w-full">
               <div className="flex-1 w-full">
                 <EmailField
                   value={email}
@@ -407,8 +407,8 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                             href={block.boutonLien || "#"}
                             className={
                               block.boutonType === "primaire"
-                                ? "btn-primary w-[250px] flex justify-center items-center h-[55px]"
-                                : "px-[30px] h-[44px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+                                ? "btn-primary w-full sm:w-[250px] flex justify-center items-center h-[55px]"
+                                : "w-full sm:w-fit px-[30px] h-[44px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
                             }
                           >
                             {block.boutonTexte}
@@ -462,7 +462,7 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
               <React.Fragment key={key}>
                 <div 
                   id={block.ancreId || undefined} 
-                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[100px] scroll-mt-[100px]"
+                  className="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-[50px] md:py-[100px] scroll-mt-[100px]"
                   style={{
                     background: dynamicGradient,
                   }}
@@ -859,7 +859,11 @@ export default function BlogArticleBlocksRenderer({ blocks, articleMeta, isConce
                       })}
                     </div>
                     <div className="text-center text-[#2E3271] font-semibold text-[15px]">
-                      Vous voulez devenir partenaire ? <Link href={contactUrl} className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">Contactez-nous</Link>
+                      Vous voulez devenir partenaire ?{" "}
+                      <br className="sm:hidden" />
+                      <Link href={contactUrl} className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">
+                        Contactez-nous
+                      </Link>
                     </div>
                   </section>
                 </div>

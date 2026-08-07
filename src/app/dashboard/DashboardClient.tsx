@@ -1091,7 +1091,7 @@ export default function DashboardClient({
   }, [selectedTraining, supabase, user?.id]);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
       <div className="max-w-[1152px] mx-auto">
         <div className="text-center">
           {pageContent && (
