@@ -504,9 +504,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   type: "tarifs", 
                   enabled: true,
                   abonnement1: {
-                    nom: "Starter",
+                    nom: "Abonnement Starter",
                     prix: "0,00",
-                    description: "Un abonnement pour ceux qui suivent toujours le même entraînement.",
+                    description: "Idéal si tu te concentres sur un programme unique et ciblé.",
                     boutonType: "secondaire",
                     boutonTexte: "Choisir cet abonnement",
                     boutonLien: "/inscription?plan=starter",
@@ -519,9 +519,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                     ]
                   },
                   abonnement2: {
-                    nom: "Premium",
+                    nom: "Abonnement Premium",
                     prix: "2,49",
-                    description: "Un abonnement pour ceux qui suivent plusieurs entraînements.",
+                    description: "Idéal si tu veux varier tes entraînements, alterner tes cycles et progresser sans limites",
                     boutonType: "primaire",
                     boutonTexte: "Tester gratuitement",
                     boutonLien: "/inscription?plan=premium",

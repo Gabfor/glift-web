@@ -16,13 +16,15 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
 
   const renderAbo = (abo: Subscription, isPremium?: boolean) => {
     return (
-      <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] p-6 pb-[50px] md:p-8 md:pb-[50px] flex flex-col text-center w-full max-w-[466px] ${isPremium ? "min-h-[640px]" : ""}`}>
+      <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden p-[20px] md:p-[30px] flex flex-col text-center w-full max-w-[466px] ${isPremium ? "order-1 md:order-2 md:min-h-[630px] shadow-[0_4px_20px_rgba(93,100,148,0.06)]" : "order-2 md:order-1"}`}>
         {isPremium && abo.badge && (abo.badgeStatus !== "OFF") && (
-          <div className="absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
+          <div className="hidden md:block absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
             <div
               className="absolute text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-md"
               style={{
-                backgroundColor: abo.badgeColor || "#7069FA",
+                background: (!abo.badgeColor || abo.badgeColor === "#7069FA")
+                  ? "linear-gradient(90deg, #BF6AB7 0%, #5D63FC 100%)"
+                  : abo.badgeColor,
                 color: abo.badgeTextColor || "#FFFFFF",
               }}
             >
@@ -31,24 +33,50 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
           </div>
         )}
 
-        <h2 className="uppercase text-[#3A416F] font-bold text-[20px] pt-[20px]">{abo.nom}</h2>
-        <p className="text-[#2E3271] font-bold text-[40px] leading-tight pt-[15px] pb-[15px]">
-          {abo.prix} €<span className="text-[20px] font-semibold">/mois</span>
+        <div className="flex justify-center items-center h-[35px] mb-[10px]">
+          <Image
+            src={isPremium ? "/icons/diamant_premium_big.svg" : "/icons/diamant_starter_big.svg"}
+            alt={isPremium ? "Abonnement Premium" : "Abonnement Starter"}
+            width={42}
+            height={35}
+            className="object-contain"
+          />
+        </div>
+
+        <h2 className="text-[#3A416F] font-bold text-[18px]">
+          {abo.nom?.toLowerCase() === "starter"
+            ? "Abonnement Starter"
+            : abo.nom?.toLowerCase() === "premium"
+            ? "Abonnement Premium"
+            : abo.nom}
+        </h2>
+        <p className="text-[#2E3271] font-bold text-[36px] leading-tight pt-[10px] pb-[10px]">
+          {abo.prix} €<span className="text-[15px] md:text-[16px] font-semibold">/mois</span>
         </p>
         <div 
-          className="text-[#5D6494] text-[16px] font-semibold leading-relaxed pb-[30px] prose prose-sm max-w-none [&_p]:mb-0"
-          dangerouslySetInnerHTML={{ __html: abo.description }}
+          className="text-[#5D6494] text-[14px] md:text-[16px] font-semibold leading-relaxed pb-[20px] prose prose-sm max-w-[350px] mx-auto [&_p]:mb-0"
+          dangerouslySetInnerHTML={{
+            __html: abo.description
+              ?.replace(
+                /Un abonnement pour ceux qui suivent toujours le m[êe]me entra[îi]nement\.?/gi,
+                "Idéal si tu te concentres sur un programme unique et ciblé."
+              )
+              ?.replace(
+                /Un abonnement pour ceux qui suivent plusieurs entra[îi]nements\.?/gi,
+                "Idéal si tu veux varier tes entraînements, alterner tes cycles et progresser sans limites"
+              ) || abo.description
+          }}
         />
 
-        <ul className="text-[#5D6494] text-left text-[16px] space-y-3 font-semibold">
+        <ul className="text-[#5D6494] text-left text-[14px] md:text-[16px] space-y-3 font-semibold">
           {abo.arguments.map((arg) => (
-            <li key={arg.id} className={`flex items-start gap-2 ${!arg.active ? "text-[#B1BACC] line-through" : ""}`}>
+            <li key={arg.id} className={`flex items-start gap-[5px] md:gap-2 ${!arg.active ? "text-[#B1BACC] line-through" : ""}`}>
               <Image 
                 src={arg.active ? "/icons/inclus.svg" : "/icons/exclus.svg"} 
                 alt={arg.active ? "Check" : "Cross"} 
                 width={30} 
                 height={30} 
-                className=""
+                className="w-[26px] h-[26px] md:w-[30px] md:h-[30px] flex-shrink-0 object-contain"
               />
               <>
                 <style>{`
@@ -62,7 +90,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
                   }
                 `}</style>
                 <div 
-                  className="pricing-arg-text pt-[3px] prose prose-sm max-w-none [&_p]:mb-0 [&_b]:text-[#3A416F] [&_strong]:text-[#3A416F]"
+                  className="pricing-arg-text pt-[2px] md:pt-[3px] prose prose-sm max-w-none [&_p]:mb-0 [&_b]:text-[#3A416F] [&_strong]:text-[#3A416F]"
                   dangerouslySetInnerHTML={{ __html: arg.texte }}
                 />
               </>

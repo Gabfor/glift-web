@@ -454,31 +454,80 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     return <ContactClient initialPageContent={contactPageContent} />;
   }
 
-  const isFeaturePage = ["creation-programmes", "suivi-seances", "notation-ressenti", "visualisation-progression"].includes(page.url);
+  const currentUrl = (resolvedParams.url || page.url || "").replace(/^\//, "").trim();
+  const isFeaturePage = ["creation-programmes", "suivi-seances", "notation-ressenti", "visualisation-progression"].includes(currentUrl);
+  const isConceptPage = currentUrl === "concept";
+  const isTarifsPage = currentUrl === "tarifs";
+  const isAppsPage = currentUrl === "apps";
 
   return (
     <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
-      {/* Fond dégradé en haut de la page concept et des 4 pages de fonctionnalités */}
-      {(page.url === "concept" || isFeaturePage) && <ConceptGradientBackground />}
+      {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités et de la page tarifs */}
+      {(isConceptPage || isTarifsPage || isFeaturePage) && <ConceptGradientBackground />}
       <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
-        <BackLink href="/concept" className="hidden md:inline-flex mb-[30px]">
-          Accueil
-        </BackLink>
-        {page.surtitre && (
-          <div className={`uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center ${page.url === "concept" || isFeaturePage ? "max-w-[650px] mx-auto" : ""}`}>
-            {page.surtitre}
-          </div>
+        {!isConceptPage && !isTarifsPage && !isAppsPage && (
+          <BackLink href="/concept" className="hidden md:inline-flex mb-[30px]">
+            Accueil
+          </BackLink>
         )}
-        <h1 
-          className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center ${page.url === "concept" || isFeaturePage ? "max-w-[650px]" : "max-w-[760px]"} mx-auto ${page.description ? "mb-[10px]" : "mb-0"} prose-titles [&_p]:m-0`}
-          dangerouslySetInnerHTML={{ __html: page.titre }}
-        />
 
-        {page.description && (
-          <div 
-            className={`text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed ${page.url === "concept" || isFeaturePage ? "max-w-[650px]" : "max-w-[700px]"} mx-auto mb-[30px] md:mb-[50px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}
-            dangerouslySetInnerHTML={{ __html: page.description }}
-          />
+        {/* --- 1. Template Spécial : Pages Détails / Fonctionnalités --- */}
+        {isFeaturePage ? (
+          <>
+            {page.surtitre && (
+              <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center max-w-[650px] mx-auto">
+                {page.surtitre}
+              </div>
+            )}
+            <h1 
+              className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center max-w-[650px] mx-auto ${page.description ? "mb-[10px]" : "mb-0"} prose-titles [&_p]:m-0`}
+              dangerouslySetInnerHTML={{ __html: page.titre }}
+            />
+            {page.description && (
+              <div 
+                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed max-w-[650px] mx-auto mb-[30px] md:mb-[50px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                dangerouslySetInnerHTML={{ __html: page.description }}
+              />
+            )}
+          </>
+        ) : isConceptPage ? (
+          /* --- 2. Template Page Concept --- */
+          <>
+            {page.surtitre && (
+              <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
+                {page.surtitre}
+              </div>
+            )}
+            <h1 
+              className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              dangerouslySetInnerHTML={{ __html: page.titre }}
+            />
+            {page.description && (
+              <div 
+                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[20px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                dangerouslySetInnerHTML={{ __html: page.description }}
+              />
+            )}
+          </>
+        ) : (
+          /* --- 3. Template Standard / Générique (Tarifs, Apps, Pages légales, etc.) --- */
+          <>
+            {page.surtitre && (
+              <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
+                {page.surtitre}
+              </div>
+            )}
+            <h1 
+              className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              dangerouslySetInnerHTML={{ __html: page.titre }}
+            />
+            {page.description && (
+              <div 
+                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                dangerouslySetInnerHTML={{ __html: page.description }}
+              />
+            )}
+          </>
         )}
 
         {!isGenericPage && page.updated_at && (
