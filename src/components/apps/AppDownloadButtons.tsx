@@ -15,7 +15,7 @@ export default function AppDownloadButtons({
   className = "",
 }: AppDownloadButtonsProps) {
   return (
-    <div className={`flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 w-full max-w-[500px] mx-auto px-4 sm:px-0 ${className}`}>
+    <div className={`flex flex-col sm:flex-row items-center justify-center gap-4 w-full max-w-[500px] mx-auto px-4 sm:px-0 ${className}`}>
       {/* 1. Bouton Android (Pleine largeur sur mobile, auto sur desktop) */}
       <Link
         href={androidUrl}

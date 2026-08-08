@@ -888,46 +888,97 @@ export default function BlogArticleBlocksRenderer({
 
           case "boutons":
             if (block.enabled === false) return null;
+            const isAppButtons = block.bouton1?.type === "google" || block.bouton1?.type === "apple" || block.bouton2?.type === "google" || block.bouton2?.type === "apple";
+
+            const renderBtn = (btn?: { type?: string; texte?: string; lien?: string }) => {
+              if (!btn || !btn.texte) return null;
+              const href = btn.lien || "#";
+              const isExternal = href.startsWith("http");
+
+              if (btn.type === "google") {
+                return (
+                  <Link
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="inline-flex items-center justify-center gap-3 h-[44px] w-full sm:w-auto px-[28px] sm:px-[30px] rounded-full border border-black bg-white text-black font-semibold text-[15px] sm:text-[16px] whitespace-nowrap select-none cursor-pointer"
+                    aria-label={btn.texte}
+                  >
+                    <svg
+                      viewBox="0 0 512 512"
+                      className="h-[20px] w-auto shrink-0"
+                      aria-hidden="true"
+                    >
+                      <path fill="#EA4335" d="M325.3 234.3L104.6 13l280.8 161.2-60.1 60.1z" />
+                      <path fill="#4285F4" d="M47 0C34 6.8 25.3 19.2 25.3 35.3v441.3c0 16.1 8.7 28.5 21.7 35.3l256.6-256L47 0z" />
+                      <path fill="#FBBC04" d="M472.2 225.6l-58.9-34.1-65.7 64.5 65.7 64.5 60.1-34.1c18-14.3 18-46.5-1.2-60.8z" />
+                      <path fill="#34A853" d="M104.6 499l280.8-161.2-60.1-60.1L104.6 499z" />
+                    </svg>
+                    <span>{btn.texte}</span>
+                  </Link>
+                );
+              }
+
+              if (btn.type === "apple") {
+                return (
+                  <Link
+                    href={href}
+                    target={isExternal ? "_blank" : undefined}
+                    rel={isExternal ? "noopener noreferrer" : undefined}
+                    className="inline-flex items-center justify-center gap-3 h-[44px] w-full sm:w-auto px-[28px] sm:px-[30px] rounded-full bg-black text-white font-semibold text-[15px] sm:text-[16px] whitespace-nowrap select-none cursor-pointer"
+                    aria-label={btn.texte}
+                  >
+                    <svg
+                      viewBox="0 0 384 512"
+                      fill="#FFFFFF"
+                      className="h-[20px] w-auto shrink-0 -mt-0.5"
+                      aria-hidden="true"
+                    >
+                      <path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z" />
+                    </svg>
+                    <span>{btn.texte}</span>
+                  </Link>
+                );
+              }
+
+              if (btn.type === "primaire") {
+                return (
+                  <Link
+                    href={href}
+                    className="w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
+                  >
+                    {btn.texte}
+                    <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
+                  </Link>
+                );
+              }
+
+              return (
+                <Link
+                  href={href}
+                  className="w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
+                >
+                  {btn.texte}
+                </Link>
+              );
+            };
+
             return (
               <React.Fragment key={key}>
                 <div id={block.ancreId || undefined} className="flex flex-col items-center justify-center w-full scroll-mt-[100px]">
-                  <div className="flex flex-col sm:flex-row justify-center w-full sm:w-auto gap-4 mb-4">
-                    {block.bouton1 && block.bouton1.texte && (
-                      <Link
-                        href={block.bouton1.lien || "#"}
-                        className={block.bouton1.type === "primaire" 
-                          ? "w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
-                          : "w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
-                        }
-                      >
-                        {block.bouton1.texte}
-                        {block.bouton1.type === "primaire" && (
-                          <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
-                        )}
-                      </Link>
-                    )}
-                    {block.bouton2 && block.bouton2.texte && (
-                      <Link
-                        href={block.bouton2.lien || "#"}
-                        className={block.bouton2.type === "primaire" 
-                          ? "w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition" 
-                          : "w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
-                        }
-                      >
-                        {block.bouton2.texte}
-                        {block.bouton2.type === "primaire" && (
-                          <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
-                        )}
-                      </Link>
-                    )}
+                  <div className={`flex flex-col sm:flex-row items-center justify-center w-full max-w-[500px] gap-4 ${!isAppButtons ? "mb-4" : ""}`}>
+                    {renderBtn(block.bouton1)}
+                    {renderBtn(block.bouton2)}
                   </div>
-                  <div className="flex justify-center items-center gap-2 text-[14px] text-[#5D6494] font-semibold">
-                    <span className="relative flex items-center justify-center w-2 h-2">
-                      <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
-                      <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
-                    </span>
-                    {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester • Sans engagement
-                  </div>
+                  {!isAppButtons && (
+                    <div className="flex justify-center items-center gap-2 text-[14px] text-[#5D6494] font-semibold">
+                      <span className="relative flex items-center justify-center w-2 h-2">
+                        <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
+                        <span className="relative w-2 h-2 rounded-full bg-[#00D591]"></span>
+                      </span>
+                      {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester • Sans engagement
+                    </div>
+                  )}
                 </div>
               </React.Fragment>
             );

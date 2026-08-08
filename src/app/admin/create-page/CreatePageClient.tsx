@@ -552,12 +552,17 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 }; 
                 break;
               case "boutons":
+                const isApps = pageData.url === "apps";
                 newBlock = {
                   id: newId,
                   type: "boutons",
                   enabled: true,
-                  bouton1: { type: "primaire", texte: "Tester gratuitement", lien: "/inscription?plan=premium" },
-                  bouton2: { type: "secondaire", texte: "En savoir plus", lien: "#methode-glift" },
+                  bouton1: isApps
+                    ? { type: "google", texte: "Télécharger sur Android", lien: "" }
+                    : { type: "primaire", texte: "Tester gratuitement", lien: "/inscription?plan=premium" },
+                  bouton2: isApps
+                    ? { type: "apple", texte: "Télécharger sur IOS", lien: "" }
+                    : { type: "secondaire", texte: "En savoir plus", lien: "#methode-glift" },
                 };
                 break;
               case "image-principale":

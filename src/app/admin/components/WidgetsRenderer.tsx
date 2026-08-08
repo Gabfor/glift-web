@@ -244,12 +244,15 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   <AdminDropdown
                     label=""
                     placeholder="Type"
+                    sortStrategy="none"
                     selected={block.boutonType || "aucun"}
                     onSelect={(v) => updateBlock(block.id, { boutonType: v as any })}
                     options={[
                       { value: "primaire", label: "Primaire" },
                       { value: "secondaire", label: "Secondaire" },
-                      { value: "aucun", label: "Aucun" }
+                      { value: "google", label: "Bouton Google" },
+                      { value: "apple", label: "Bouton Apple" },
+                      { value: "aucun", label: "Aucun" },
                     ]}
                   />
                 </div>
@@ -329,10 +332,13 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     <AdminDropdown
                       label="Type de bouton"
                       placeholder="Type"
+                      sortStrategy="none"
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
-                        { label: "Aucun", value: "aucun" }
+                        { label: "Bouton Google", value: "google" },
+                        { label: "Bouton Apple", value: "apple" },
+                        { label: "Aucun", value: "aucun" },
                       ]}
                       selected={block.card1?.boutonType || "secondaire"}
                       onSelect={(val) => updateBlock(block.id, { card1: { ...block.card1, boutonType: val as any } })}
@@ -380,10 +386,13 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     <AdminDropdown
                       label="Type de bouton"
                       placeholder="Type"
+                      sortStrategy="none"
                       options={[
                         { label: "Primaire", value: "primaire" },
                         { label: "Secondaire", value: "secondaire" },
-                        { label: "Aucun", value: "aucun" }
+                        { label: "Bouton Google", value: "google" },
+                        { label: "Bouton Apple", value: "apple" },
+                        { label: "Aucun", value: "aucun" },
                       ]}
                       selected={block.card2?.boutonType || "secondaire"}
                       onSelect={(val) => updateBlock(block.id, { card2: { ...block.card2, boutonType: val as any } })}
@@ -698,9 +707,12 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     <AdminDropdown
                       label=""
                       placeholder="Sélectionnez un type de bouton"
+                      sortStrategy="none"
                       selected={block.bouton1.type}
                       onSelect={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, type: val as any } })}
                       options={[
+                        { value: "google", label: "Bouton Google" },
+                        { value: "apple", label: "Bouton Apple" },
                         { value: "primaire", label: "Bouton primaire" },
                         { value: "secondaire", label: "Bouton secondaire" },
                       ]}
@@ -711,9 +723,12 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     <AdminDropdown
                       label=""
                       placeholder="Sélectionnez un type de bouton"
+                      sortStrategy="none"
                       selected={block.bouton2.type}
                       onSelect={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, type: val as any } })}
                       options={[
+                        { value: "apple", label: "Bouton Apple" },
+                        { value: "google", label: "Bouton Google" },
                         { value: "primaire", label: "Bouton primaire" },
                         { value: "secondaire", label: "Bouton secondaire" },
                       ]}
@@ -739,13 +754,25 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                     label="Lien du bouton 1"
                     value={block.bouton1.lien || ""}
                     onChange={(val) => updateBlock(block.id, { bouton1: { ...block.bouton1, lien: val } })}
-                    placeholder="Lien du bouton 1"
+                    placeholder={
+                      block.bouton1.type === "google"
+                        ? "ex: https://play.google.com/..."
+                        : block.bouton1.type === "apple"
+                        ? "ex: https://apps.apple.com/..."
+                        : "Lien du bouton 1"
+                    }
                   />
                   <AdminTextField
                     label="Lien du bouton 2"
                     value={block.bouton2.lien || ""}
                     onChange={(val) => updateBlock(block.id, { bouton2: { ...block.bouton2, lien: val } })}
-                    placeholder="Lien du bouton 2"
+                    placeholder={
+                      block.bouton2.type === "google"
+                        ? "ex: https://play.google.com/..."
+                        : block.bouton2.type === "apple"
+                        ? "ex: https://apps.apple.com/..."
+                        : "Lien du bouton 2"
+                    }
                   />
                 </div>
               </div>

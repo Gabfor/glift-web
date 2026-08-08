@@ -81,7 +81,6 @@ import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/contact/ContactClient";
 import BackLink from "@/components/BackLink";
-import AppDownloadButtons from "@/components/apps/AppDownloadButtons";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -524,14 +523,9 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             />
             {page.description && (
               <div 
-                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                className="text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                 dangerouslySetInnerHTML={{ __html: page.description }}
               />
-            )}
-            {isAppsPage && (
-              <div className="mb-[40px]">
-                <AppDownloadButtons />
-              </div>
             )}
           </>
         ) : (
@@ -548,7 +542,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             />
             {page.description && (
               <div 
-                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                className="text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
                 dangerouslySetInnerHTML={{ __html: page.description }}
               />
             )}

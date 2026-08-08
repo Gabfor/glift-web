@@ -67,8 +67,10 @@ export type BlockPartenaires = BaseBlock & {
   slots: PartnerSlot[];
 };
 
+export type ButtonType = "primaire" | "secondaire" | "google" | "apple";
+
 export type BoutonConfig = {
-  type: "primaire" | "secondaire" | "";
+  type: ButtonType | "";
   texte: string;
   lien: string;
 };
@@ -77,13 +79,14 @@ export type BlockBoutons = {
   id: string;
   type: "boutons";
   enabled: boolean;
+  ancreId?: string;
   bouton1: {
-    type: "primaire" | "secondaire";
+    type: ButtonType;
     texte: string;
     lien: string;
   };
   bouton2: {
-    type: "primaire" | "secondaire";
+    type: ButtonType;
     texte: string;
     lien: string;
   };
