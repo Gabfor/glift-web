@@ -38,16 +38,25 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import ShopHeader from "@/components/shop/ShopHeader";
+import ConceptGradientBackground from "@/components/ConceptGradientBackground";
 
 export default async function ShopPage() {
   const supabase = await createServerClient();
   
-  // 0. Check custom URL redirection
-  const { data: pageConfig } = await supabase
-    .from("pages")
-    .select("surtitre, titre, description, url")
-    .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
-    .single();
+  // 0. Check custom URL redirection & settings
+  const [{ data: pageConfig }, { data: settingsData }] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("surtitre, titre, description, url")
+      .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
+      .single(),
+    supabase.from("settings").select("key, value"),
+  ]);
+
+  const settings: Record<string, string> = {};
+  settingsData?.forEach((item) => {
+    settings[item.key] = item.value;
+  });
 
   if (pageConfig && pageConfig.url && pageConfig.url !== "shop") {
     redirect(`/${pageConfig.url}`);
@@ -195,14 +204,19 @@ export default async function ShopPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
-      <div className="max-w-[1152px] mx-auto">
+    <main className="relative min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] overflow-x-clip">
+      {/* Fond dégradé dynamique */}
+      <ConceptGradientBackground initialSettings={settings} />
+
+      <div className="relative z-10 max-w-[1152px] mx-auto">
         <ShopHeader initialPageContent={initialPageContent} />
       </div>
-      <ShopPageClient 
-        initialOffers={initialOffers} 
-        sliderConfig={sliderConfig}
-      />
+      <div className="relative z-10">
+        <ShopPageClient 
+          initialOffers={initialOffers} 
+          sliderConfig={sliderConfig}
+        />
+      </div>
     </main>
   );
 }

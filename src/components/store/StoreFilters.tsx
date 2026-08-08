@@ -443,7 +443,7 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
       onFilterChange={handleFilterChange}
       storageKey="glift_store"
       rightContent={
-        isUserDataLoaded && !isPremiumUser ? (
+        isUserDataLoaded && isAuthenticated && !isPremiumUser ? (
           <div className="flex items-center gap-[10px]">
             <span className="text-[16px] font-semibold text-[#3A416F]">
               Masquer les programmes bloqués

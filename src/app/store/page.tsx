@@ -38,16 +38,25 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 import StoreHeader from "@/components/store/StoreHeader";
+import ConceptGradientBackground from "@/components/ConceptGradientBackground";
 
 export default async function StorePage() {
   const supabase = await createServerClient();
   
-  // 0. Check custom URL redirection
-  const { data: pageConfig } = await supabase
-    .from("pages")
-    .select("surtitre, titre, description, url")
-    .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
-    .single();
+  // 0. Check custom URL redirection & settings
+  const [{ data: pageConfig }, { data: settingsData }] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("surtitre, titre, description, url")
+      .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
+      .single(),
+    supabase.from("settings").select("key, value"),
+  ]);
+
+  const settings: Record<string, string> = {};
+  settingsData?.forEach((item) => {
+    settings[item.key] = item.value;
+  });
 
   if (pageConfig && pageConfig.url && pageConfig.url !== "store") {
     redirect(`/${pageConfig.url}`);
@@ -113,16 +122,21 @@ export default async function StorePage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
-      <div className="max-w-[1152px] mx-auto">
+    <main className="relative min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] overflow-x-clip">
+      {/* Fond dégradé dynamique */}
+      <ConceptGradientBackground initialSettings={settings} />
+
+      <div className="relative z-10 max-w-[1152px] mx-auto">
         <StoreHeader initialPageContent={initialPageContent} />
       </div>
-      <StorePageClient 
-        initialPrograms={initialPrograms} 
-        initialTotalCount={totalCount || 0} 
-        initialUserProfile={userProfile}
-        initialIsAuthenticated={!!session?.user}
-      />
+      <div className="relative z-10">
+        <StorePageClient 
+          initialPrograms={initialPrograms} 
+          initialTotalCount={totalCount || 0} 
+          initialUserProfile={userProfile}
+          initialIsAuthenticated={!!session?.user}
+        />
+      </div>
     </main>
   );
 }

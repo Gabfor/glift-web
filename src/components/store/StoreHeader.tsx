@@ -23,7 +23,7 @@ export default function StoreHeader({ initialPageContent }: StoreHeaderProps) {
         dangerouslySetInnerHTML={{ __html: titre }}
       />
       <div 
-        className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+        className="text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-[30px] [&_p]:m-0"
         dangerouslySetInnerHTML={{ __html: description }}
       />
     </div>

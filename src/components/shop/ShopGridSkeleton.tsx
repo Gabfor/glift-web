@@ -6,7 +6,7 @@ export default function ShopGridSkeleton() {
       {skeletonItems.map((_, index) => (
         <div
           key={index}
-          className="relative w-full max-w-[270px] bg-white rounded-[8px] border border-[#D7D4DC] overflow-hidden flex flex-col animate-pulse"
+          className="relative w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)] animate-pulse"
         >
           <div className="absolute top-0 right-0 overflow-hidden w-[110px] h-[110px]">
             <div className="absolute bg-[#E6E8F5] rotate-45 w-[150px] h-[24px] right-[-30px] top-[30px]" />
