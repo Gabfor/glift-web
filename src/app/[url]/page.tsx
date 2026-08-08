@@ -81,6 +81,7 @@ import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/contact/ContactClient";
 import BackLink from "@/components/BackLink";
+import AppDownloadButtons from "@/components/apps/AppDownloadButtons";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -462,8 +463,8 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
 
   return (
     <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
-      {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités et de la page tarifs */}
-      {(isConceptPage || isTarifsPage || isFeaturePage) && <ConceptGradientBackground />}
+      {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités, de la page tarifs et de la page apps */}
+      {(isConceptPage || isTarifsPage || isFeaturePage || isAppsPage) && <ConceptGradientBackground />}
       <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
         {!isConceptPage && !isTarifsPage && !isAppsPage && (
           <BackLink href="/concept" className="hidden md:inline-flex mb-[30px]">
@@ -509,8 +510,32 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
               />
             )}
           </>
+        ) : (isTarifsPage || isAppsPage) ? (
+          /* --- 3. Template Pages Tarifs & Apps --- */
+          <>
+            {page.surtitre && (
+              <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
+                {page.surtitre}
+              </div>
+            )}
+            <h1 
+              className={`text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              dangerouslySetInnerHTML={{ __html: page.titre }}
+            />
+            {page.description && (
+              <div 
+                className="text-[15px] sm:text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[30px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                dangerouslySetInnerHTML={{ __html: page.description }}
+              />
+            )}
+            {isAppsPage && (
+              <div className="mb-[40px]">
+                <AppDownloadButtons />
+              </div>
+            )}
+          </>
         ) : (
-          /* --- 3. Template Standard / Générique (Tarifs, Apps, Pages légales, etc.) --- */
+          /* --- 4. Template Standard / Générique (Pages légales, etc.) --- */
           <>
             {page.surtitre && (
               <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
