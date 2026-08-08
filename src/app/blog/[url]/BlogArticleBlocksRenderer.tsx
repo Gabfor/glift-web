@@ -965,7 +965,7 @@ export default function BlogArticleBlocksRenderer({
 
             return (
               <React.Fragment key={key}>
-                <div id={block.ancreId || undefined} className="flex flex-col items-center justify-center w-full scroll-mt-[100px]">
+                <div id={block.ancreId || undefined} className={`flex flex-col items-center justify-center w-full scroll-mt-[100px] ${isAppButtons ? "mb-[30px] sm:mb-[50px]" : ""}`}>
                   <div className={`flex flex-col sm:flex-row items-center justify-center w-full max-w-[500px] gap-4 ${!isAppButtons ? "mb-4" : ""}`}>
                     {renderBtn(block.bouton1)}
                     {renderBtn(block.bouton2)}
