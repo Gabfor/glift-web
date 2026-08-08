@@ -394,8 +394,9 @@ export default function BlogArticleBlocksRenderer({
 
           case "texte-image":
             const isRight = block.imagePosition === "droite";
+            const isFirstBlock = index === 0 || (index === 1 && blocks[0]?.type === "boutons");
             return (
-              <AnimatedSection key={key} className="w-full">
+              <AnimatedSection key={key} className="w-full" isFirst={isFirstBlock}>
                 <div id={block.ancreId || undefined} className="w-full max-w-[956px] mx-auto flex flex-col md:flex-row items-center justify-between gap-[24px] scroll-mt-[100px]">
                   {/* Order on mobile is always Image then Text if not specified, but here we respect imagePosition */}
                   {/* On mobile flex-col items-center will center them horizontally */}
