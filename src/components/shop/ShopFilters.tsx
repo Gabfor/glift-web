@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabaseClient";
 import FiltersPanel, {
   type FilterGroup,
   type SortOption,
 } from "@/components/filters/FiltersPanel";
-import { type FilterOption } from "@/components/filters/DropdownFilter";
+import DropdownFilter, { type FilterOption } from "@/components/filters/DropdownFilter";
 
 type Props = {
   sortBy: string;
@@ -283,6 +284,26 @@ export default function ShopFilters({
     },
   ];
 
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [openMobileSortMenu, setOpenMobileSortMenu] = useState(false);
+  const mobileSortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!openMobileSortMenu) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (mobileSortRef.current && !mobileSortRef.current.contains(event.target as Node)) {
+        setOpenMobileSortMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [openMobileSortMenu]);
+
+  const selectedSortLabel =
+    sortOptions.find((option) => option.value === sortBy)?.label ?? "";
+
+  const hasAnyFilterActive = selectedFilters.some((f) => f && f.trim() !== "");
+
   const handleFilterChange = (index: number, value: string) => {
     const newFilters = [...selectedFilters];
     newFilters[index] = value;
@@ -291,14 +312,111 @@ export default function ShopFilters({
   };
 
   return (
-    <FiltersPanel
-      sortBy={sortBy}
-      sortOptions={sortOptions}
-      onSortChange={onSortChange}
-      filters={filterOptions}
-      selectedFilters={selectedFilters}
-      onFilterChange={handleFilterChange}
-      storageKey="glift_shop"
-    />
+    <>
+      {/* --- VUE DESKTOP (md:) --- */}
+      <div className="hidden md:block">
+        <FiltersPanel
+          sortBy={sortBy}
+          sortOptions={sortOptions}
+          onSortChange={onSortChange}
+          filters={filterOptions}
+          selectedFilters={selectedFilters}
+          onFilterChange={handleFilterChange}
+          storageKey="glift_shop"
+        />
+      </div>
+
+      {/* --- VUE MOBILE (< md) STYLE GLIFT-MOBILE --- */}
+      <div className="md:hidden mb-6">
+        <div className="flex items-center gap-[10px]">
+          {/* Menu déroulant de tri : 2/3 de largeur */}
+          <div className="flex-[2] relative" ref={mobileSortRef}>
+            <button
+              type="button"
+              onClick={() => setOpenMobileSortMenu(!openMobileSortMenu)}
+              className={`w-full h-10 border ${
+                openMobileSortMenu
+                  ? "border-[#A1A5FD] ring-2 ring-[#A1A5FD]"
+                  : "border-[#D7D4DC]"
+              } rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition`}
+            >
+              <div className="flex items-center gap-2 pr-[10px] truncate">
+                <Image src="/icons/tri.svg" alt="" width={16} height={14} />
+                <span className="truncate">{selectedSortLabel}</span>
+              </div>
+              <Image
+                src="/icons/chevron.svg"
+                alt=""
+                width={8.73}
+                height={6.13}
+                style={{
+                  transform: openMobileSortMenu ? "rotate(-180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  transformOrigin: "center 45%",
+                }}
+              />
+            </button>
+
+            {openMobileSortMenu && (
+              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]">
+                <div className="flex flex-col">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        onSortChange(option.value);
+                        setOpenMobileSortMenu(false);
+                      }}
+                      className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
+                        option.value === sortBy
+                          ? "text-[#7069FA]"
+                          : "text-[#5D6494] hover:text-[#3A416F]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Bouton filtre : 1/3 de largeur avec texte "Filtres" */}
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            className="flex-[1] h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center gap-2 px-3 cursor-pointer hover:border-[#C2BFC6] transition text-[16px] font-semibold text-[#3A416F]"
+            aria-label="Ouvrir les filtres"
+          >
+            <Image
+              src={hasAnyFilterActive ? "/icons/filtres_green.svg" : "/icons/filtres_red.svg"}
+              alt=""
+              width={16}
+              height={16}
+            />
+            <span>Filtres</span>
+          </button>
+        </div>
+
+        {/* Panneau des filtres déplié sur mobile */}
+        {showMobileFilters && (
+          <div className="mt-4 flex flex-col gap-3">
+            {filterOptions.map((filter, index) => (
+              <DropdownFilter
+                key={`${filter.label}-${index}`}
+                label={filter.label}
+                placeholder={filter.placeholder}
+                options={filter.options}
+                allOptions={filter.allOptions}
+                selected={selectedFilters[index] ?? ""}
+                onSelect={(value) => handleFilterChange(index, value)}
+                disabled={filter.options.length === 0}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

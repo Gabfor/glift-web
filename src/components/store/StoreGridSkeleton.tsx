@@ -12,7 +12,7 @@ export default function StoreGridSkeleton() {
           <div className="flex justify-center -mt-8">
             <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-[#E6E8F5]" />
           </div>
-          <div className="p-[15px] flex-1 flex flex-col gap-3">
+          <div className="p-[15px] pb-[20px] md:p-[10px] md:pb-[20px] flex-1 flex flex-col gap-3">
             <div className="h-4 bg-[#E6E8F5] rounded" />
             <div className="flex flex-wrap gap-[5px]">
               <span className="w-[60px] h-[22px] bg-[#F0F1FB] rounded" />
@@ -25,7 +25,7 @@ export default function StoreGridSkeleton() {
               <div className="h-3 bg-[#E6E8F5] rounded w-3/4" />
             </div>
             <div className="mt-auto">
-              <div className="h-10 bg-[#E6E8F5] rounded-full" />
+              <div className="h-10 bg-[#E6E8F5] rounded-full w-full md:w-[170px] md:mx-auto" />
               <div className="h-3 bg-[#E6E8F5] rounded mt-3 w-1/2 mx-auto" />
             </div>
           </div>

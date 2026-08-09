@@ -20,7 +20,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
   const title = pageConfig.seo_title || pageConfig.titre || "Glift Shop";
   const plainTitle = title.replace(/<[^>]*>/g, "").trim();
-  const description = pageConfig.seo_description || pageConfig.description || "Découvrez une sélection d'offres de musculation régulièrement mise à jour.";
+  const description = pageConfig.seo_description || pageConfig.description || "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.";
   const plainDescription = description.replace(/<[^>]*>/g, "").trim();
 
   const robots: any = {};
@@ -199,7 +199,7 @@ export default async function ShopPage() {
   const initialPageContent = {
     surtitre: pageConfig?.surtitre ?? "",
     titre: pageConfig?.titre || "Glift Shop",
-    description: pageConfig?.description ?? "Découvrez une sélection d'offres régulièrement mise à jour.<br/>Pour en profiter, cliquez sur le bouton « En profiter » et laissez-vous guider.",
+    description: pageConfig?.description ?? "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.",
   };
 
   return (

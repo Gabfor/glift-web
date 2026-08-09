@@ -291,7 +291,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     const shopPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Glift Shop",
-      description: page.description ?? "Découvrez une sélection d'offres régulièrement mise à jour.<br/>Pour en profiter, cliquez sur le bouton « En profiter » et laissez-vous guider.",
+      description: page.description ?? "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.",
     };
 
     return (

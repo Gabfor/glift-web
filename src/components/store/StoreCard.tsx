@@ -136,7 +136,7 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
       )}
 
       {/* CONTENU TEXTE */}
-      <div className="p-[15px] flex-1 flex flex-col justify-between">
+      <div className="p-[15px] pb-[20px] md:p-[10px] md:pb-[20px] flex-1 flex flex-col justify-between">
         <div>
           <h3 className="text-[#3A416F] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 md:min-h-[48px]">
             {program.title}
@@ -176,12 +176,12 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
         </div>
 
         {/* BOUTON TÉLÉCHARGER & LIEN */}
-          <div>
+          <div className="flex justify-center">
             {isAuthenticated && !isRestricted ? (
               <CTAButton
                 onClick={handleDownload}
                 loading={loading}
-                className="w-full text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none"
+                className="w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
               >
                 <span className="inline-flex items-center gap-2">
                   <Image src="/icons/download.svg" alt="" width={20} height={20} />
@@ -192,7 +192,7 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
               <CTAButton
                 onClick={() => setShowModal(true)}
                 variant="inactive"
-                className="group w-full text-[16px] font-bold rounded-full h-[44px] flex items-center justify-center bg-[#F2F1F6] text-[#D7D4DC] shadow-none"
+                className="group w-full md:w-auto text-[16px] font-bold rounded-full h-[44px] flex items-center justify-center bg-[#F2F1F6] text-[#D7D4DC] shadow-none md:px-[30px]"
               >
                 <span className="inline-flex items-center gap-2">
                   <div className="relative w-[15px] h-[15px]">

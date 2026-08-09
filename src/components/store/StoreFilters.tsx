@@ -608,9 +608,9 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
 
       {/* --- VUE MOBILE (< md) STYLE GLIFT-MOBILE --- */}
       <div className="md:hidden mb-6">
-        <div className="flex items-center gap-2.5">
-          {/* Menu déroulant de tri */}
-          <div className="flex-1 relative" ref={mobileSortRef}>
+        <div className="flex items-center gap-[10px]">
+          {/* Menu déroulant de tri : 2/3 de largeur */}
+          <div className="flex-[2] relative" ref={mobileSortRef}>
             <button
               type="button"
               onClick={() => setOpenMobileSortMenu(!openMobileSortMenu)}
@@ -662,19 +662,20 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
             )}
           </div>
 
-          {/* Bouton filtre circulaire */}
+          {/* Bouton filtre : 1/3 de largeur avec texte "Filtres" */}
           <button
             type="button"
             onClick={() => setIsMobileDrawerOpen(true)}
-            className="w-10 h-10 rounded-full border border-[#D7D4DC] bg-white flex items-center justify-center cursor-pointer hover:border-[#C2BFC6] transition shadow-sm shrink-0"
+            className="flex-[1] h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center gap-2 px-3 cursor-pointer hover:border-[#C2BFC6] transition text-[16px] font-semibold text-[#3A416F]"
             aria-label="Ouvrir les filtres"
           >
             <Image
               src={hasAnyFilterActive ? "/icons/filtres_green.svg" : "/icons/filtres_red.svg"}
-              alt="Filtres"
+              alt=""
               width={16}
               height={16}
             />
+            <span>Filtres</span>
           </button>
         </div>
       </div>

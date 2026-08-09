@@ -164,10 +164,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
   };
 
   return (
-    <div
-      className={`mx-auto mb-12 ${isDouble ? "max-w-[1152px]" : "w-[1152px]"
-        }`}
-    >
+    <div className="mx-auto mb-12 w-full max-w-[1152px]">
       <Swiper
         modules={[Pagination, Autoplay]}
         // si hideControls, on passe false pour désactiver pagination/autoplay
@@ -197,24 +194,33 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
           }
         }}
         loop={!hideControls}
-        spaceBetween={24}
-        slidesPerView={isDouble ? 2 : 1}
-        slidesPerGroup={isDouble ? 2 : 1}
+        slidesPerGroup={1}
         speed={600}
+        className="!py-3 !-my-3"
+        breakpoints={{
+          0: {
+            slidesPerView: 1,
+            spaceBetween: 16,
+          },
+          768: {
+            slidesPerView: isDouble ? 2 : 1,
+            spaceBetween: 24,
+          },
+        }}
       >
         {slides.map((slide, idx) => (
           <SwiperSlide key={idx}>
             {slide.offer && onOfferClick ? (
               <div
                 onClick={() => onOfferClick(slide.offer!)}
-                className="cursor-pointer block relative group"
+                className="cursor-pointer block relative group rounded-[20px] border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)] overflow-hidden"
               >
                 <Image
                   src={slide.image}
                   alt={slide.alt || `Slider ${idx + 1}`}
                   width={width}
                   height={height}
-                  className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
+                  className="rounded-[20px] object-cover w-full h-[180px] sm:h-[220px] md:h-[250px] transition-transform duration-500"
                 />
               </div>
             ) : (
@@ -222,14 +228,14 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
                 href={slide.link || "#"}
                 target={slide.link ? "_blank" : undefined}
                 rel={slide.link ? "noopener noreferrer" : undefined}
-                className="block relative"
+                className="block relative rounded-[20px] border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)] overflow-hidden"
               >
                 <Image
                   src={slide.image}
                   alt={slide.alt || `Slider ${idx + 1}`}
                   width={width}
                   height={height}
-                  className="rounded-[20px] object-cover w-full h-[250px] transition-transform duration-500"
+                  className="rounded-[20px] object-cover w-full h-[180px] sm:h-[220px] md:h-[250px] transition-transform duration-500"
                 />
               </a>
             )}
