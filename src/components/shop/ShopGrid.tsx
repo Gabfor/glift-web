@@ -32,6 +32,7 @@ type OfferQueryRow = {
   click_count: number | null;
   created_at: string | null;
   sport: string | string[] | null;
+  image_mobile: string | null;
 };
 
 const normalizeToArray = (value: unknown): string[] => {
@@ -70,6 +71,7 @@ const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   gender: row.gender ?? undefined,
   boost: row.boost === true || row.boost === "true",
   created_at: row.created_at ?? undefined,
+  image_mobile: row.image_mobile ?? undefined,
 });
 
 export default function ShopGrid({
@@ -92,7 +94,8 @@ export default function ShopGrid({
     sortBy === "relevance" &&
     filters.every((f) => f === "");
 
-  const [offers, setOffers] = useState<ShopOffer[]>(initialOffers);
+  const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
+  const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, 8));
   const [loading, setLoading] = useState(
     initialOffers.length === 0 || !isDefaultQuery
   );
@@ -161,7 +164,7 @@ export default function ShopGrid({
         .select(`
           id, name, start_date, end_date, type, code, image, image_alt, 
           brand_image, brand_image_alt, shop, shop_website, shop_link, 
-          shipping, modal, condition, gender, boost, click_count, created_at, sport
+          shipping, modal, condition, gender, boost, click_count, created_at, sport, image_mobile
         `)
         .eq("status", "ON");
 
@@ -182,6 +185,7 @@ export default function ShopGrid({
 
       if (error) {
         console.error("Erreur fetch offers:", error.message);
+        setAllOffers([]);
         setOffers([]);
         if (onCountChange) onCountChange(0);
         setLoading(false);
@@ -240,6 +244,7 @@ export default function ShopGrid({
       const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
       const paginated = normalized.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
+      setAllOffers(normalized);
       setOffers(paginated);
       setLoading(false);
       hasLoadedOnceRef.current = true;
@@ -258,13 +263,21 @@ export default function ShopGrid({
         <ShopGridSkeleton />
       ) : (
         <div className="relative mt-8">
-          {offers.length === 0 && !loading && (
+          {allOffers.length === 0 && !loading && (
             <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
               Aucune offre disponible{"\n"}avec ces filtres...
             </p>
           )}
 
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+          {/* Vue Mobile (< md) : Toutes les offres en défilement continu */}
+          <div className="flex flex-col gap-5 md:hidden">
+            {allOffers.map((offer) => (
+              <ShopCard key={offer.id} offer={offer} onOfferClick={onOfferClick} />
+            ))}
+          </div>
+
+          {/* Vue Desktop (md:) : Grille paginée */}
+          <div className="hidden md:grid md:gap-6 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {offers.map((offer) => (
               <ShopCard key={offer.id} offer={offer} onOfferClick={onOfferClick} />
             ))}

@@ -464,7 +464,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités, de la page tarifs et de la page apps */}
       {(isConceptPage || isTarifsPage || isFeaturePage || isAppsPage) && <ConceptGradientBackground />}
-      <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
+      <div className="relative z-10 max-w-[1152px] mx-auto px-5 md:px-0">
         {!isConceptPage && !isTarifsPage && !isAppsPage && (
           <BackLink href="/concept" className="hidden md:inline-flex mb-[30px]">
             Accueil

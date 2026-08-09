@@ -105,15 +105,14 @@ export default async function StorePage() {
       downloads,
       created_at,
       plan,
-      location
+      location,
+      image_mobile
     `)
     .eq("status", "ON");
 
   const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
   const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
-  
-  // Only send the first 8 for the initial page
-  const initialPrograms = sortedPrograms.slice(0, 8);
+  const initialPrograms = sortedPrograms;
 
   const initialPageContent = {
     surtitre: pageConfig?.surtitre ?? "",
@@ -122,7 +121,7 @@ export default async function StorePage() {
   };
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] overflow-x-clip">
+    <main className="relative min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] overflow-x-clip">
       {/* Fond dégradé dynamique */}
       <ConceptGradientBackground initialSettings={settings} />
 

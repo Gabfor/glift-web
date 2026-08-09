@@ -18,6 +18,7 @@ export interface StoreProgram {
   partner_name: string;
   plan: "starter" | "premium";
   location: string;
+  image_mobile?: string;
 }
 
 export interface StoreProfile {

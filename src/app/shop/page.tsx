@@ -108,7 +108,8 @@ export default async function ShopPage() {
       boost,
       click_count,
       created_at,
-      sport
+      sport,
+      image_mobile
     `)
     .eq("status", "ON");
 
@@ -116,9 +117,7 @@ export default async function ShopPage() {
   
   // Perform relevance sorting on the server
   const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile);
-  
-  // Only send the first 8 for the initial page
-  const initialOffers = sortedOffers.slice(0, 8);
+  const initialOffers = sortedOffers;
 
   // 4. Fetch Slider Configuration
   const { data: adminConfig } = await supabase
@@ -204,7 +203,7 @@ export default async function ShopPage() {
   };
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] overflow-x-clip">
+    <main className="relative min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] overflow-x-clip">
       {/* Fond dégradé dynamique */}
       <ConceptGradientBackground initialSettings={settings} />
 

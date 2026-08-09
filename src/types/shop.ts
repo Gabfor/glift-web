@@ -16,6 +16,7 @@ export interface ShopOffer {
   modal?: string;
   condition?: string;
   gender?: string;
+  image_mobile?: string;
   boost?: boolean;
   click_count?: number;
   created_at?: string;

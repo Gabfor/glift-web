@@ -23,6 +23,7 @@ export type ProgramQueryRow = Pick<
   | "partner_name"
   | "plan"
   | "location"
+  | "image_mobile"
 >;
 
 export const mapProgramRowToCard = (row: ProgramQueryRow): StoreProgram => ({
@@ -45,4 +46,5 @@ export const mapProgramRowToCard = (row: ProgramQueryRow): StoreProgram => ({
   partner_name: row.partner_name ?? "",
   plan: (row.plan as "starter" | "premium") ?? "starter",
   location: row.location ?? "",
+  image_mobile: row.image_mobile ?? "",
 });

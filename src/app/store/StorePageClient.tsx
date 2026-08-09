@@ -75,13 +75,25 @@ export default function StorePageClient({
 
       // appliquer les filtres s'ils sont actifs
       if (genderFilter) {
-        query = query.in("gender", [genderFilter, "Tous"]);
+        const genders = genderFilter.split(",").map((s) => s.trim());
+        if (genders.length === 1) {
+          query = query.or(`gender.eq.${genders[0]},gender.eq.Tous,gender.eq.Mixte`);
+        }
       }
-      if (goalFilter) query = query.eq("goal", goalFilter);
+      if (goalFilter) {
+        const goals = goalFilter.split(",").map((s) => s.trim());
+        if (goals.length === 1) query = query.eq("goal", goals[0]);
+        else query = query.in("goal", goals);
+      }
       if (levelFilter) {
-        query = query.in("level", [levelFilter, "Tous niveaux"]);
+        const levels = levelFilter.split(",").map((s) => s.trim());
+        query = query.in("level", [...levels, "Tous niveaux"]);
       }
-      if (locationFilter) query = query.eq("location", locationFilter);
+      if (locationFilter) {
+        const locations = locationFilter.split(",").map((s) => s.trim());
+        if (locations.length === 1) query = query.eq("location", locations[0]);
+        else query = query.in("location", locations);
+      }
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) {
@@ -89,11 +101,17 @@ export default function StorePageClient({
         }
       }
       if (partnerFilter) {
-        query = query.eq("partner_name", partnerFilter);
+        const partners = partnerFilter.split(",").map((s) => s.trim());
+        if (partners.length === 1) query = query.eq("partner_name", partners[0]);
+        else query = query.in("partner_name", partners);
       }
       if (availabilityFilter === "Oui") {
         if (!user || !isPremiumUser) {
           query = query.eq("plan", "starter");
+        }
+      } else if (availabilityFilter === "Non") {
+        if (!user || !isPremiumUser) {
+          query = query.eq("plan", "premium");
         }
       }
 
@@ -135,11 +153,13 @@ export default function StorePageClient({
         initialIsAuthenticated={initialIsAuthenticated}
       />
       {!loadingCount && (
-        <Pagination
-          currentPage={currentPage}
-          totalItems={totalPrograms}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
+        <div className="hidden md:block">
+          <Pagination
+            currentPage={currentPage}
+            totalItems={totalPrograms}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </div>
       )}
     </div>
   );

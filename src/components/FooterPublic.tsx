@@ -76,7 +76,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="mt-[50px] md:mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] px-4 md:px-0 pt-[0px] pb-[30px]">
+    <footer className="mt-[50px] md:mt-[100px] mb-[3px] max-w-[1152px] mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] px-5 md:px-0 pt-[0px] pb-[30px]">
       {/* Top Section */}
       <div className="mt-[20px] max-w-[1152px] mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-[30px] lg:gap-10 border-b border-[#ECE9F1] pb-[30px]">
         {/* Left - Logo + Description */}

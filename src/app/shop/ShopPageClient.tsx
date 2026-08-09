@@ -69,11 +69,13 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
           initialOffers={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" ? initialOffers : undefined}
         />
         {totalItems > 8 && (
-          <Pagination
-            currentPage={currentPage}
-            totalItems={totalItems}
-            onPageChange={(page: number) => setCurrentPage(page)}
-          />
+          <div className="hidden md:block">
+            <Pagination
+              currentPage={currentPage}
+              totalItems={totalItems}
+              onPageChange={(page: number) => setCurrentPage(page)}
+            />
+          </div>
         )}
       </div>
 

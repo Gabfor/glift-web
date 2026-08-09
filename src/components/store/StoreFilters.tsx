@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
 import { type FilterOption } from "@/components/filters/DropdownFilter";
 import FiltersPanel, {
   type FilterGroup,
   type SortOption,
 } from "@/components/filters/FiltersPanel";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
+import StoreMobileFilterDrawer, {
+  type FilterSectionData,
+} from "@/components/store/StoreMobileFilterDrawer";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
+import { StoreProgram } from "@/types/store";
+import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
 
 type Props = {
   sortBy: string;
@@ -70,71 +76,6 @@ const normalizeProgram = (
 
 const isUniversalValue = (value: string | null, universal: string) =>
   Boolean(value && value.trim().toLowerCase() === universal.toLowerCase());
-
-const matchesFilters = (
-  program: NormalizedProgramStoreField,
-  filters: string[],
-  skipIndex: number
-) => {
-  const [
-    genderFilter,
-    goalFilter,
-    levelFilter,
-    locationFilter,
-    durationFilter,
-    partnerFilter,
-    availabilityFilter,
-  ] = filters;
-
-  if (skipIndex !== 0 && genderFilter) {
-    if (
-      !program.gender ||
-      (program.gender.trim().toLowerCase() !== genderFilter.trim().toLowerCase() &&
-        !isUniversalValue(program.gender, "Tous"))
-    ) {
-      return false;
-    }
-  }
-
-  if (skipIndex !== 1 && goalFilter) {
-    if (!program.goal || program.goal.trim().toLowerCase() !== goalFilter.trim().toLowerCase()) {
-      return false;
-    }
-  }
-
-  if (skipIndex !== 2 && levelFilter) {
-    if (
-      !program.level ||
-      (program.level.trim().toLowerCase() !== levelFilter.trim().toLowerCase() &&
-        !isUniversalValue(program.level, "Tous niveaux"))
-    ) {
-      return false;
-    }
-  }
-
-  if (skipIndex !== 3 && locationFilter) {
-    if (!program.location || program.location.trim().toLowerCase() !== locationFilter.trim().toLowerCase()) {
-      return false;
-    }
-  }
-
-  if (skipIndex !== 4 && durationFilter) {
-    const maxDuration = Number.parseInt(durationFilter, 10);
-    if (!Number.isNaN(maxDuration)) {
-      if (!program.duration || program.duration > maxDuration) {
-        return false;
-      }
-    }
-  }
-
-  if (skipIndex !== 5 && partnerFilter) {
-    if (!program.partner || program.partner.trim().toLowerCase() !== partnerFilter.trim().toLowerCase()) {
-      return false;
-    }
-  }
-
-  return true;
-};
 
 const ensureFilterSelection = (values: Set<string>, selected: string) => {
   if (!selected) return;
@@ -203,9 +144,34 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     } catch { /* ignore */ }
     return [];
   });
+
+  const [rawPrograms, setRawPrograms] = useState<StoreProgram[]>(() => {
+    try {
+      const cached = sessionStorage.getItem("glift_store_programs_raw_cache");
+      if (cached) return JSON.parse(cached);
+    } catch { /* ignore */ }
+    return [];
+  });
+
   const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", "", "", "", ""]);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [openMobileSortMenu, setOpenMobileSortMenu] = useState(false);
+  const mobileSortRef = useRef<HTMLDivElement>(null);
+
   const { user, isPremiumUser, isUserDataLoaded } = useUser();
   const isAuthenticated = !!user;
+
+  // Close mobile sort dropdown on outside click
+  useEffect(() => {
+    if (!openMobileSortMenu) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (mobileSortRef.current && !mobileSortRef.current.contains(e.target as Node)) {
+        setOpenMobileSortMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, [openMobileSortMenu]);
 
   useEffect(() => {
     let isActive = true;
@@ -215,13 +181,18 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
 
       const { data, error } = await supabase
         .from("program_store")
-        .select("gender, goal, level, location, duration, plan, partner_name")
+        .select(`
+          id, title, level, goal, gender, sessions, duration, description, 
+          image, image_alt, partner_image, partner_image_alt, partner_link, 
+          link, downloads, created_at, plan, location, partner_name, image_mobile
+        `)
         .eq("status", "ON");
 
       if (error) {
         console.error("Erreur fetch filtres store:", error.message);
         if (isActive) {
           setPrograms([]);
+          setRawPrograms([]);
         }
         return;
       }
@@ -229,8 +200,15 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
       if (!isActive) return;
 
       const normalized = (data ?? []).map((item) => normalizeProgram(item));
+      const mapped = (data ?? []).map((row) => mapProgramRowToCard(row as ProgramQueryRow));
+
       setPrograms(normalized);
-      try { sessionStorage.setItem("glift_store_programs_cache", JSON.stringify(normalized)); } catch { /* ignore */ }
+      setRawPrograms(mapped);
+
+      try {
+        sessionStorage.setItem("glift_store_programs_cache", JSON.stringify(normalized));
+        sessionStorage.setItem("glift_store_programs_raw_cache", JSON.stringify(mapped));
+      } catch { /* ignore */ }
     };
 
     void fetchPrograms();
@@ -267,7 +245,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     const checkAvailability = (program: NormalizedProgramStoreField) => {
       if (!isAuthenticated) return false;
       if (isPremiumUser) return true;
-      // Basic plan
       return program.plan === "starter";
     };
 
@@ -277,7 +254,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
       return filterValue === "Oui" ? isAvailable : !isAvailable;
     };
 
-    // Global values for width calculation
     const allGenderValues = new Set<string>();
     const allGoalValues = new Set<string>();
     const allLevelValues = new Set<string>();
@@ -287,20 +263,12 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     const allPartnerValues = new Set<string>();
 
     programs.forEach((program) => {
-      // Collect ALL possible values
       if (program.gender) allGenderValues.add(program.gender);
       if (program.goal) allGoalValues.add(program.goal);
       if (program.level) allLevelValues.add(program.level);
       if (program.location) allLocationValues.add(program.location);
       if (program.duration) allDurationValues.push(program.duration);
       if (program.partner) allPartnerValues.add(program.partner);
-
-      // Match common filters logic (replicated partly here or we rely on matchesFilters?) 
-      // We need to use matchesFilters but inject the check for availability options
-      // CAUTION: matchesFilters defined outside doesn't know about userAuth.
-      // We need to implement availability check here inside the loop.
-
-      // Re-implement matchesFilters roughly or pass current availability:
 
       let matches = true;
       // Index 0: Gender
@@ -332,15 +300,10 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
         program.partner.trim().toLowerCase() !== selectedFilters[5].trim().toLowerCase()) matches = false;
 
       if (matches) {
-        // Check availability for option generation (if we are NOT filtering by availability OR if we allow it)
-        // Actually, we want to know: "Given other filters, what availabilities are present?"
-        // So we skip index 6 check for availabilityValues.
-
         const isAvail = checkAvailability(program);
         availabilityValues.add(isAvail ? "Oui" : "Non");
       }
 
-      // Now for other options, we MUST respect availability filter
       if (matches && selectedFilters[6] && !isAvailableMatch(program, selectedFilters[6])) {
         matches = false;
       }
@@ -362,7 +325,6 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     ensureFilterSelection(partnerValues, selectedFilters[5] ?? "");
     ensureFilterSelection(availabilityValues, selectedFilters[6] ?? "");
 
-    // For all locations, we don't force selection, just return options
     const allLocationFallback = () => {
       if (allLocationValues.size > 0) return toStringOptions(allLocationValues);
       return toStringOptions(new Set(["Salle", "Domicile"]));
@@ -426,6 +388,121 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     },
   ];
 
+  // Build drawer sections
+  const drawerSections: FilterSectionData[] = useMemo(() => {
+    const sections: FilterSectionData[] = [
+      {
+        title: "Sexe",
+        options: ["Femme", "Homme"],
+      },
+      {
+        title: "Objectif",
+        options: allGoalOptions.map((o) => o.value),
+      },
+      {
+        title: "Niveau",
+        options: allLevelOptions.map((o) => o.value),
+      },
+      {
+        title: "Lieu",
+        options: allLocationOptions.map((o) => o.value),
+      },
+      {
+        title: "Durée max.",
+        options: allDurationOptions.map((o) => o.value),
+      },
+      {
+        title: "Partenaire",
+        options: allPartnerOptions.map((o) => o.value),
+      },
+    ];
+
+    if (isUserDataLoaded && isAuthenticated && !isPremiumUser) {
+      sections.push({
+        title: "Disponibilité",
+        options: ["Téléchargeable", "Non téléchargeable"],
+      });
+    }
+
+    return sections;
+  }, [
+    allGoalOptions,
+    allLevelOptions,
+    allLocationOptions,
+    allDurationOptions,
+    allPartnerOptions,
+    isUserDataLoaded,
+    isAuthenticated,
+    isPremiumUser,
+  ]);
+
+  // Convert selectedFilters array to drawer Map<string, Set<string>>
+  const drawerSelectedFilters = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+
+    // Sexe (index 0)
+    if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
+    else if (selectedFilters[0] === "Femme") map["Sexe"] = new Set(["Femme"]);
+    else map["Sexe"] = new Set(["Femme", "Homme"]);
+
+    // Objectif (index 1)
+    if (selectedFilters[1]) {
+      map["Objectif"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
+    } else {
+      map["Objectif"] = new Set(allGoalOptions.map((o) => o.value));
+    }
+
+    // Niveau (index 2)
+    if (selectedFilters[2]) {
+      map["Niveau"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
+    } else {
+      map["Niveau"] = new Set(allLevelOptions.map((o) => o.value));
+    }
+
+    // Lieu (index 3)
+    if (selectedFilters[3]) {
+      map["Lieu"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
+    } else {
+      map["Lieu"] = new Set(allLocationOptions.map((o) => o.value));
+    }
+
+    // Durée max. (index 4)
+    if (selectedFilters[4]) {
+      const max = parseInt(selectedFilters[4], 10);
+      const activeDurations = allDurationOptions
+        .filter((o) => parseInt(o.value, 10) <= max)
+        .map((o) => o.value);
+      map["Durée max."] = new Set(activeDurations);
+    } else {
+      map["Durée max."] = new Set(allDurationOptions.map((o) => o.value));
+    }
+
+    // Partenaire (index 5)
+    if (selectedFilters[5]) {
+      map["Partenaire"] = new Set(selectedFilters[5].split(",").map((s) => s.trim()));
+    } else {
+      map["Partenaire"] = new Set(allPartnerOptions.map((o) => o.value));
+    }
+
+    // Disponibilité (index 6)
+    if (selectedFilters[6] === "Oui") {
+      map["Disponibilité"] = new Set(["Téléchargeable"]);
+    } else if (selectedFilters[6] === "Non") {
+      map["Disponibilité"] = new Set(["Non téléchargeable"]);
+    } else {
+      map["Disponibilité"] = new Set(["Téléchargeable", "Non téléchargeable"]);
+    }
+
+    return map;
+  }, [
+    selectedFilters,
+    allGoalOptions,
+    allLevelOptions,
+    allLocationOptions,
+    allDurationOptions,
+    allPartnerOptions,
+  ]);
+
   const handleFilterChange = (index: number, value: string) => {
     const newFilters = [...selectedFilters];
     newFilters[index] = value;
@@ -433,28 +510,187 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
     onFiltersChange(newFilters);
   };
 
+  // When drawer applies
+  const handleDrawerApply = (newDrawerFilters: Record<string, Set<string>>) => {
+    const newFilters = ["", "", "", "", "", "", ""];
+
+    // Sexe (index 0)
+    const sexSet = newDrawerFilters["Sexe"] || new Set();
+    if (sexSet.size === 1) {
+      newFilters[0] = Array.from(sexSet)[0];
+    } else {
+      newFilters[0] = "";
+    }
+
+    // Objectif (index 1)
+    const goalSet = newDrawerFilters["Objectif"] || new Set();
+    if (goalSet.size > 0 && goalSet.size < allGoalOptions.length) {
+      newFilters[1] = Array.from(goalSet).join(",");
+    } else {
+      newFilters[1] = "";
+    }
+
+    // Niveau (index 2)
+    const levelSet = newDrawerFilters["Niveau"] || new Set();
+    if (levelSet.size > 0 && levelSet.size < allLevelOptions.length) {
+      newFilters[2] = Array.from(levelSet).join(",");
+    } else {
+      newFilters[2] = "";
+    }
+
+    // Lieu (index 3)
+    const locSet = newDrawerFilters["Lieu"] || new Set();
+    if (locSet.size > 0 && locSet.size < allLocationOptions.length) {
+      newFilters[3] = Array.from(locSet).join(",");
+    } else {
+      newFilters[3] = "";
+    }
+
+    // Durée max. (index 4)
+    const durSet = newDrawerFilters["Durée max."] || new Set();
+    if (durSet.size > 0 && durSet.size < allDurationOptions.length) {
+      const maxVal = Math.max(...Array.from(durSet).map((s) => parseInt(s, 10) || 0));
+      newFilters[4] = String(maxVal);
+    } else {
+      newFilters[4] = "";
+    }
+
+    // Partenaire (index 5)
+    const partnerSet = newDrawerFilters["Partenaire"] || new Set();
+    if (partnerSet.size > 0 && partnerSet.size < allPartnerOptions.length) {
+      newFilters[5] = Array.from(partnerSet).join(",");
+    } else {
+      newFilters[5] = "";
+    }
+
+    // Disponibilité (index 6)
+    const availSet = newDrawerFilters["Disponibilité"] || new Set();
+    if (availSet.size === 1) {
+      newFilters[6] = availSet.has("Téléchargeable") ? "Oui" : "Non";
+    } else {
+      newFilters[6] = "";
+    }
+
+    setSelectedFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
+  const hasAnyFilterActive = selectedFilters.some((val) => val !== "");
+  const selectedSortLabel = sortOptions.find((o) => o.value === sortBy)?.label || "Pertinence";
+
   return (
-    <FiltersPanel
-      sortBy={sortBy}
-      sortOptions={sortOptions}
-      onSortChange={onSortChange}
-      filters={filterOptions}
-      selectedFilters={selectedFilters}
-      onFilterChange={handleFilterChange}
-      storageKey="glift_store"
-      rightContent={
-        isUserDataLoaded && isAuthenticated && !isPremiumUser ? (
-          <div className="flex items-center gap-[10px]">
-            <span className="text-[16px] font-semibold text-[#3A416F]">
-              Masquer les programmes bloqués
-            </span>
-            <ToggleSwitch
-              checked={selectedFilters[6] === "Oui"}
-              onCheckedChange={(checked) => handleFilterChange(6, checked ? "Oui" : "")}
-            />
+    <>
+      {/* --- VUE DESKTOP (md et +) --- */}
+      <div className="hidden md:block">
+        <FiltersPanel
+          sortBy={sortBy}
+          sortOptions={sortOptions}
+          onSortChange={onSortChange}
+          filters={filterOptions}
+          selectedFilters={selectedFilters}
+          onFilterChange={handleFilterChange}
+          storageKey="glift_store"
+          rightContent={
+            isUserDataLoaded && isAuthenticated && !isPremiumUser ? (
+              <div className="flex items-center gap-[10px]">
+                <span className="text-[16px] font-semibold text-[#3A416F]">
+                  Masquer les programmes bloqués
+                </span>
+                <ToggleSwitch
+                  checked={selectedFilters[6] === "Oui"}
+                  onCheckedChange={(checked) => handleFilterChange(6, checked ? "Oui" : "")}
+                />
+              </div>
+            ) : undefined
+          }
+        />
+      </div>
+
+      {/* --- VUE MOBILE (< md) STYLE GLIFT-MOBILE --- */}
+      <div className="md:hidden mb-6">
+        <div className="flex items-center gap-2.5">
+          {/* Menu déroulant de tri */}
+          <div className="flex-1 relative" ref={mobileSortRef}>
+            <button
+              type="button"
+              onClick={() => setOpenMobileSortMenu(!openMobileSortMenu)}
+              className={`w-full h-10 border ${
+                openMobileSortMenu
+                  ? "border-[#A1A5FD] ring-2 ring-[#A1A5FD]"
+                  : "border-[#D7D4DC]"
+              } rounded-[5px] px-3 py-2 flex items-center justify-between text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition`}
+            >
+              <div className="flex items-center gap-2 pr-[10px] truncate">
+                <Image src="/icons/tri.svg" alt="" width={16} height={14} />
+                <span className="truncate">{selectedSortLabel}</span>
+              </div>
+              <Image
+                src="/icons/chevron.svg"
+                alt=""
+                width={8.73}
+                height={6.13}
+                style={{
+                  transform: openMobileSortMenu ? "rotate(-180deg)" : "rotate(0deg)",
+                  transition: "transform 0.2s ease",
+                  transformOrigin: "center 45%",
+                }}
+              />
+            </button>
+
+            {openMobileSortMenu && (
+              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]">
+                <div className="flex flex-col">
+                  {sortOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        onSortChange(option.value);
+                        setOpenMobileSortMenu(false);
+                      }}
+                      className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
+                        option.value === sortBy
+                          ? "text-[#7069FA]"
+                          : "text-[#5D6494] hover:text-[#3A416F]"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        ) : undefined
-      }
-    />
+
+          {/* Bouton filtre circulaire */}
+          <button
+            type="button"
+            onClick={() => setIsMobileDrawerOpen(true)}
+            className="w-10 h-10 rounded-full border border-[#D7D4DC] bg-white flex items-center justify-center cursor-pointer hover:border-[#C2BFC6] transition shadow-sm shrink-0"
+            aria-label="Ouvrir les filtres"
+          >
+            <Image
+              src={hasAnyFilterActive ? "/icons/filtres_green.svg" : "/icons/filtres_red.svg"}
+              alt="Filtres"
+              width={16}
+              height={16}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* --- TIROIR LATÉRAL DE FILTRES MOBILE --- */}
+      <StoreMobileFilterDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        sections={drawerSections}
+        selectedFilters={drawerSelectedFilters}
+        onApply={handleDrawerApply}
+        allPrograms={rawPrograms}
+        isPremiumUser={isPremiumUser}
+        isAuthenticated={isAuthenticated}
+      />
+    </>
   );
 }
+

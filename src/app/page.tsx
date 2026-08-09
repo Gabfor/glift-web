@@ -72,7 +72,7 @@ export default async function Home() {
       {/* Fond dégradé dynamique style ClickUp */}
       <ConceptGradientBackground initialSettings={settings} />
 
-      <div className="relative z-10 max-w-[1152px] mx-auto px-4 md:px-0">
+      <div className="relative z-10 max-w-[1152px] mx-auto px-5 md:px-0">
         {/* Hero Section from Page Data */}
         <section className="text-center mb-[30px]">
           {page.surtitre && (

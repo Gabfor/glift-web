@@ -189,7 +189,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
           : "bg-transparent shadow-none"
           }`}
       >
-        <div className="max-w-[1152px] mx-auto h-[72px] flex items-center justify-between px-4 md:px-0 relative">
+        <div className="max-w-[1152px] mx-auto h-[72px] flex items-center justify-between px-5 md:px-0 relative">
           {/* Burger button (Mobile Left) */}
           <button
             type="button"

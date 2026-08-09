@@ -28,7 +28,8 @@ export default function StoreGrid({
   initialUserProfile?: StoreProfile | null;
   initialIsAuthenticated?: boolean;
 }) {
-  const [programs, setPrograms] = useState<StoreProgram[]>(initialPrograms);
+  const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
+  const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, 8));
   const [loading, setLoading] = useState(initialPrograms.length === 0);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(initialPrograms.length > 0);
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
@@ -151,43 +152,60 @@ export default function StoreGrid({
       const start = (currentPage - 1) * 8;
       const end = start + 7;
       const order = getOrderForSortBy(sortBy);
-      const isClientSideSort = sortBy === 'relevance';
 
       let query = supabase
         .from("program_store")
         .select(`
           id, title, level, goal, gender, sessions, duration, description, 
           image, image_alt, partner_image, partner_image_alt, partner_link, 
-          link, downloads, created_at, plan, location
+          link, downloads, created_at, plan, location, image_mobile
         `)
         .eq("status", "ON");
 
       const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, partnerFilter, availabilityFilter] = filters;
 
-      if (genderFilter) query = query.or(`gender.eq.${genderFilter},gender.eq.Tous`);
-      if (goalFilter) query = query.eq("goal", goalFilter);
-      if (levelFilter) query = query.in("level", [levelFilter, "Tous niveaux"]);
-      if (locationFilter) query = query.eq("location", locationFilter);
+      if (genderFilter) {
+        const genders = genderFilter.split(",").map((s) => s.trim());
+        if (genders.length === 1) {
+          query = query.or(`gender.eq.${genders[0]},gender.eq.Tous,gender.eq.Mixte`);
+        }
+      }
+      if (goalFilter) {
+        const goals = goalFilter.split(",").map((s) => s.trim());
+        if (goals.length === 1) query = query.eq("goal", goals[0]);
+        else query = query.in("goal", goals);
+      }
+      if (levelFilter) {
+        const levels = levelFilter.split(",").map((s) => s.trim());
+        query = query.in("level", [...levels, "Tous niveaux"]);
+      }
+      if (locationFilter) {
+        const locations = locationFilter.split(",").map((s) => s.trim());
+        if (locations.length === 1) query = query.eq("location", locations[0]);
+        else query = query.in("location", locations);
+      }
       if (durationFilter) {
         const maxDuration = Number.parseInt(durationFilter, 10);
         if (!Number.isNaN(maxDuration)) query = query.lte("duration", maxDuration);
       }
       if (partnerFilter) {
-        query = query.eq("partner_name", partnerFilter);
+        const partners = partnerFilter.split(",").map((s) => s.trim());
+        if (partners.length === 1) query = query.eq("partner_name", partners[0]);
+        else query = query.in("partner_name", partners);
       }
       if (availabilityFilter === "Oui") {
         if (!isAuthenticated || userProfile?.subscription_plan === "starter") {
           query = query.eq("plan", "starter");
+        }
+      } else if (availabilityFilter === "Non") {
+        if (!isAuthenticated || userProfile?.subscription_plan === "starter") {
+          query = query.eq("plan", "premium");
         }
       }
 
       let finalQuery = query;
       if (order.column) {
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
-      }
-
-      if (!isClientSideSort) {
-        finalQuery = finalQuery.range(start, end);
       }
 
       const { data, error } = await finalQuery.returns<ProgramQueryRow[]>();
@@ -203,11 +221,8 @@ export default function StoreGrid({
           mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
         }
 
-        if (isClientSideSort) {
-          setPrograms(mappedPrograms.slice(start, end + 1));
-        } else {
-          setPrograms(mappedPrograms);
-        }
+        setAllPrograms(mappedPrograms);
+        setPrograms(mappedPrograms.slice(start, end + 1));
       }
 
       setHasLoadedOnce(true);
@@ -224,17 +239,30 @@ export default function StoreGrid({
 
   return (
     <>
-      {loading && (!hasLoadedOnce || programs.length > 0) ? (
+      {loading && (!hasLoadedOnce || allPrograms.length > 0) ? (
         <StoreGridSkeleton />
       ) : (
         <div className="relative mt-8">
-          {programs.length === 0 && !loading && (
+          {allPrograms.length === 0 && !loading && (
             <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
               Aucun programme disponible{"\n"}avec ces filtres...
             </p>
           )}
 
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+          {/* Vue Mobile (< md) : Tous les programmes en défilement continu */}
+          <div className="flex flex-col gap-5 md:hidden">
+            {allPrograms.map((program) => (
+              <StoreCard
+                key={program.id}
+                program={program}
+                isAuthenticated={isAuthenticated}
+                subscriptionPlan={userProfile?.subscription_plan ?? null}
+              />
+            ))}
+          </div>
+
+          {/* Vue Desktop (md:) : Grille paginée */}
+          <div className="hidden md:grid md:gap-6 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {programs.map((program) => (
               <StoreCard
                 key={program.id}

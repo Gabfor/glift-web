@@ -27,7 +27,13 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
     return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
   });
 
-  const handleClick = () => {
+  const handleClick = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.rpc("increment_offer_click", { offer_id: offer.id });
+    } catch {
+      // ignore tracking error
+    }
     if (onOfferClick) {
       onOfferClick(offer);
     }
@@ -80,17 +86,41 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
   }, [offer.end_date]);
 
   return (
-    <div className="relative w-full max-w-[270px] bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
 
-      <div className="relative w-full h-[180px]">
-        <Image
-          src={offer.image || "/placeholder.jpg"}
-          alt={offer.image_alt || offer.name}
-          fill
-          className="object-cover rounded-t-[15px]"
-          unoptimized
-        />
-      </div>
+      {/* IMAGE PRINCIPALE (Responsive Mobile / Desktop) */}
+      {offer.image_mobile ? (
+        <>
+          <div className="relative w-full h-[180px] md:hidden">
+            <Image
+              src={offer.image_mobile}
+              alt={offer.image_alt || offer.name}
+              fill
+              className="object-cover rounded-t-[15px]"
+              unoptimized
+            />
+          </div>
+          <div className="relative w-full h-[180px] hidden md:block">
+            <Image
+              src={offer.image || "/placeholder.jpg"}
+              alt={offer.image_alt || offer.name}
+              fill
+              className="object-cover rounded-t-[15px]"
+              unoptimized
+            />
+          </div>
+        </>
+      ) : (
+        <div className="relative w-full h-[180px]">
+          <Image
+            src={offer.image || "/placeholder.jpg"}
+            alt={offer.image_alt || offer.name}
+            fill
+            className="object-cover rounded-t-[15px]"
+            unoptimized
+          />
+        </div>
+      )}
 
       {offer.brand_image && (
         <div className="flex justify-center -mt-8 relative z-10">
@@ -122,13 +152,14 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
         </div>
       )}
 
-      <div className="pt-2.5 px-2.5 flex-1 flex flex-col">
-        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words h-[48px]">
-          {offer.name}
-        </h3>
+      <div className="p-[15px] flex-1 flex flex-col justify-between">
+        <div>
+          <h3 className="text-[#3A416F] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words md:min-h-[48px]">
+            {offer.name}
+          </h3>
 
         {/* Tags */}
-        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px] min-h-[32px]">
+        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
           {(() => {
             const tags: string[] = [];
 
@@ -320,21 +351,22 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
             );
           })()}
         </div>
+        </div>
 
-        <div className="min-h-[84px] flex items-center justify-center">
-            <CTAButton
+        <div className="mt-[15px]">
+          <CTAButton
             onClick={handleClick}
-            className="mt-[20px] mb-[20px] mx-auto"
-            >
+            className="w-full text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none"
+          >
             En profiter
             <Image
-                src="/icons/arrow.svg"
-                alt="Flèche"
-                width={25}
-                height={25}
-                className="ml-[-5px]"
+              src="/icons/arrow.svg"
+              alt="Flèche"
+              width={25}
+              height={25}
+              className="ml-[-5px]"
             />
-            </CTAButton>
+          </CTAButton>
         </div>
       </div>
     </div>
