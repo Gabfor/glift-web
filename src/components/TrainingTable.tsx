@@ -328,13 +328,13 @@ export default function TrainingTable({
               zIndex: 5,
               pointerEvents: "none",
               width: "100%",
-              borderColor: group.locked ? "#D7D4DC" : "#7069FA",
+              borderColor: group.locked ? "#D7D4DC" : "#3A416F",
               height: `${(group.end - group.start + 1) * 40 + 1}px`,
               backgroundImage:
-                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
-                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
-                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px), ` +
-                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#7069FA"} 4px, transparent 4px)`,
+                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#3A416F"} 4px, transparent 4px), ` +
+                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#3A416F"} 4px, transparent 4px), ` +
+                `linear-gradient(to right, ${group.locked ? "#D7D4DC" : "#3A416F"} 4px, transparent 4px), ` +
+                `linear-gradient(to bottom, ${group.locked ? "#D7D4DC" : "#3A416F"} 4px, transparent 4px)`,
               backgroundRepeat: "repeat-x, repeat-y, repeat-x, repeat-y",
               backgroundPosition: "top left, top right, bottom left, top left",
               backgroundSize: "8px 2px, 2px 8px, 8px 2px, 2px 8px"
@@ -363,7 +363,7 @@ export default function TrainingTable({
               marginBottom: isLastSupersetAtBottom ? "1px" : "0px"
             }}
           >
-            <thead className="bg-[#7069FA] text-white text-left h-10">
+            <thead className="bg-[#3A416F] text-white text-left h-10">
               <tr style={{ height: "40px" }}>
                 {!readOnly && (
                   <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
@@ -419,10 +419,10 @@ export default function TrainingTable({
                     width: "100%",
                     height: `${dragGroup.length * 40 + 1}px`,
                     backgroundImage:
-                      "linear-gradient(to right, #7069FA 4px, transparent 4px), " +
-                      "linear-gradient(to bottom, #7069FA 4px, transparent 4px), " +
-                      "linear-gradient(to right, #7069FA 4px, transparent 4px), " +
-                      "linear-gradient(to bottom, #7069FA 4px, transparent 4px)",
+                      "linear-gradient(to right, #3A416F 4px, transparent 4px), " +
+                      "linear-gradient(to bottom, #3A416F 4px, transparent 4px), " +
+                      "linear-gradient(to right, #3A416F 4px, transparent 4px), " +
+                      "linear-gradient(to bottom, #3A416F 4px, transparent 4px)",
                     backgroundRepeat: "repeat-x, repeat-y, repeat-x, repeat-y",
                     backgroundPosition: "top left, top right, bottom left, top left",
                     backgroundSize: "8px 2px, 2px 8px, 8px 2px, 2px 8px"

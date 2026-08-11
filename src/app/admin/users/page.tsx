@@ -930,8 +930,8 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
-      <div className="w-full max-w-6xl">
+    <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
+      <div className="w-full max-w-6xl relative z-10">
         {editingUserId ? (
           <AdminUserEditor
             userId={editingUserId}
@@ -1235,7 +1235,7 @@ export default function AdminUsersPage() {
                                 hover:bg-[#FAFAFF]
                                 transition-colors duration-150
                                 ${rowsPerPage === option
-                                  ? "text-[#7069FA]"
+                                  ? "text-[#3A416F] font-bold"
                                   : "text-[#5D6494] hover:text-[#3A416F]"
                                 }
                               `}

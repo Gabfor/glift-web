@@ -45,7 +45,7 @@ export default function AdminHeader() {
       <header
         className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isSticky
           ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
-          : "bg-[#FBFCFE]"
+          : "bg-transparent"
           }`}
       >
         <div className="max-w-[1152px] mx-auto px-4 md:px-0 h-[72px] flex items-center justify-between">
@@ -75,7 +75,7 @@ export default function AdminHeader() {
                   pathname?.startsWith("/admin/program?") ||
                   pathname?.startsWith("/entrainements") ||
                   pathname?.startsWith("/admin/entrainements")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >
@@ -88,7 +88,7 @@ export default function AdminHeader() {
                   pathname?.startsWith("/admin/program-store") ||
                   pathname?.startsWith("/create-program") ||
                   pathname?.startsWith("/admin/create-program")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >
@@ -102,7 +102,7 @@ export default function AdminHeader() {
                   pathname?.startsWith("/admin/offer-shop") ||
                   pathname?.startsWith("/create-offer") ||
                   pathname?.startsWith("/admin/create-offer")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >
@@ -113,7 +113,7 @@ export default function AdminHeader() {
               className={
                 pathname?.startsWith("/content-blog") ||
                   pathname?.startsWith("/admin/content-blog")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >
@@ -126,7 +126,7 @@ export default function AdminHeader() {
                   pathname?.startsWith("/admin/help") ||
                   pathname?.startsWith("/create-help") ||
                   pathname?.startsWith("/admin/create-help")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >
@@ -137,7 +137,7 @@ export default function AdminHeader() {
               className={
                 pathname?.startsWith("/users") ||
                   pathname?.startsWith("/admin/users")
-                  ? "text-[#7069FA]"
+                  ? "text-[#3A416F]"
                   : "hover:text-[#3A416F]"
               }
             >

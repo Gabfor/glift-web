@@ -149,7 +149,7 @@ export default function AdminConnexionPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
+    <main className="min-h-screen bg-transparent flex justify-center px-4 pt-[100px] md:pt-[140px]">
       {showLoader ? <GliftLoader onShow={handleTransitionLoaderShow} isAdmin /> : null}
       <div className="w-full max-w-[564px] flex flex-col items-center">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
@@ -209,7 +209,7 @@ export default function AdminConnexionPage() {
                   <button
                     type="button"
                     onClick={() => setShowForgotPassword(true)}
-                    className="text-[#7069FA] text-[10px] pt-[6px] font-medium hover:text-[#6660E4]"
+                    className="text-[#3A416F] text-[10px] pt-[6px] font-medium hover:text-[#2E3271]"
                   >
                     Mot de passe oublié ?
                   </button>

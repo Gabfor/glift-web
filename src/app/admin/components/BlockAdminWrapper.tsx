@@ -18,17 +18,17 @@ export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelet
   return (
     <div className={`flex flex-col relative w-full ${isLast ? 'mb-0' : 'mb-5'}`}>
       {/* HEADER WIDGET */}
-      <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-[12px] z-10">
+      <div className="relative flex items-center justify-between bg-transparent h-[50px] mb-[12px] z-10">
         
         {/* Conteneur du nom centré avec z-index pour passer au-dessus de la ligne */}
         <div className="flex-1 flex justify-center items-center relative z-10">
-          <div className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]">
+          <div className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition bg-transparent p-2 hover:text-[#C2BFC6]">
             <span>{title}</span>
           </div>
         </div>
 
         {/* Icônes de déplacement à gauche avec fond pour masquer la ligne */}
-        <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] p-2">
+        <div className="flex items-center absolute left-0 z-10 bg-transparent p-2">
           
           <Tooltip content="Descendre">
             <button 
@@ -113,7 +113,7 @@ export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelet
         </div>
 
         {/* Poubelle à droite avec fond pour masquer la ligne */}
-        <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2 gap-3">
+        <div className="flex items-center absolute right-0 z-10 bg-transparent py-2 pl-2 gap-3">
           {headerActions}
           <Tooltip content="Supprimer">
             <button 
@@ -130,8 +130,9 @@ export default function BlockAdminWrapper({ title, onMoveUp, onMoveDown, onDelet
           </Tooltip>
         </div>
 
-        {/* La ligne (séparateur) en dessous de tout */}
-        <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+        {/* 2 lignes séparées (gauche et droite) pour ne pas croiser le texte au centre */}
+        <div className="absolute top-[25px] left-0 w-[calc(50%-130px)] h-[1px] bg-[#ECE9F1] z-0" />
+        <div className="absolute top-[25px] right-0 w-[calc(50%-130px)] h-[1px] bg-[#ECE9F1] z-0" />
       </div>
 
       {/* CONTENT WIDGET */}

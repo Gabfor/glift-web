@@ -298,7 +298,7 @@ export default function ProgramEditor({
 
   return (
     <div
-      className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-2"
+      className="relative flex items-center justify-between bg-transparent h-[50px] mb-2"
       style={{ zIndex }}
     >
       {/* Conteneur du nom du programme centré avec z-index pour passer au-dessus de la ligne */}
@@ -357,7 +357,7 @@ export default function ProgramEditor({
           </div>
         ) : (
           <div
-            className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-[#FBFCFE] p-2 hover:text-[#C2BFC6]"
+            className="group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer bg-transparent p-2 hover:text-[#C2BFC6]"
             onClick={handleStartEditClick}
           >
             <span>{name || DEFAULT_PROGRAM_NAME}</span>
@@ -388,7 +388,7 @@ export default function ProgramEditor({
 
       {/* Icônes alignées à gauche avec z-index pour passer au-dessus de la ligne */}
       {!adminMode && (
-        <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] p-2">
+        <div className="flex items-center absolute left-0 z-10 bg-transparent p-2">
           {trainingsData.length > 0 ? (
             <>
               <Tooltip content="Descendre">
@@ -536,7 +536,7 @@ export default function ProgramEditor({
 
       {/* Icônes alignées à droite avec z-index pour passer au-dessus de la ligne */}
       {!adminMode && (
-        <div className="flex items-center gap-3 absolute right-0 z-10 bg-[#FBFCFE] p-2">
+        <div className="flex items-center gap-3 absolute right-0 z-10 bg-transparent p-2">
           {trainingsData.length > 0 ? (
             <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
               <button
@@ -693,8 +693,9 @@ export default function ProgramEditor({
           )}
         </div>
       )}
-      {/* Nouvelle div pour la ligne sous la barre, z-index 0 pour être en dessous */}
-      <div className="absolute bottom-6 left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+      {/* 2 lignes séparées (gauche et droite) pour ne pas croiser le texte au centre */}
+      <div className="absolute bottom-6 left-0 w-[calc(50%-140px)] h-[1px] bg-[#ECE9F1] z-0" />
+      <div className="absolute bottom-6 right-0 w-[calc(50%-140px)] h-[1px] bg-[#ECE9F1] z-0" />
 
       <ProgramHideWarningModal
         show={showHideWarningModal}

@@ -393,11 +393,12 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
               <div key={`details-${r.index}`} className="flex flex-col">
                 <div className="relative flex items-center h-[50px] mb-[12px]">
                   <div className="flex-1 flex justify-center items-center relative z-10">
-                    <div className="text-[16px] text-[#D7D4DC] font-semibold bg-[#FBFCFE] px-4">
+                    <div className="text-[16px] text-[#D7D4DC] font-semibold bg-transparent px-4">
                       Exercice
                     </div>
                   </div>
-                  <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0"></div>
+                  <div className="absolute top-[25px] left-0 w-[calc(50%-80px)] h-[1px] bg-[#ECE9F1] z-0" />
+                  <div className="absolute top-[25px] right-0 w-[calc(50%-80px)] h-[1px] bg-[#ECE9F1] z-0" />
                 </div>
 
                 <div className="flex flex-col gap-5">

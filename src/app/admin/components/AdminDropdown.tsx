@@ -401,7 +401,7 @@ export default function AdminDropdown({
                   hover:bg-[#FAFAFF]
                   transition-colors duration-150
                   ${selected === option.value
-                      ? "text-[#7069FA]"
+                      ? "text-[#3A416F] font-bold"
                       : "text-[#5D6494] hover:text-[#3A416F]"
                     }
                 `}

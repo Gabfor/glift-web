@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import {
   AnchorHTMLAttributes,
@@ -28,6 +28,7 @@ type BaseProps = {
   loadingText?: string;
   keepWidthWhileLoading?: boolean;
   disableAutoLoading?: boolean;
+  isAdmin?: boolean;
   onClick?: (event: MouseEvent<CTAElement>) => void | Promise<void>;
 };
 
@@ -46,6 +47,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       loadingText = "En cours...",
       keepWidthWhileLoading = true,
       disableAutoLoading = false,
+      isAdmin,
       onClick,
       type = "button",
       variant = "active",
@@ -57,6 +59,24 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
     ref
   ) => {
     const router = useRouter();
+    const pathname = usePathname();
+    const isPageAdmin =
+      isAdmin ??
+      (pathname?.startsWith("/admin") ||
+        pathname?.startsWith("/program") ||
+        pathname?.startsWith("/program-store") ||
+        pathname?.startsWith("/offer-shop") ||
+        pathname?.startsWith("/content-blog") ||
+        pathname?.startsWith("/help") ||
+        pathname?.startsWith("/users") ||
+        pathname?.startsWith("/entrainements") ||
+        pathname?.startsWith("/create-") ||
+        pathname?.startsWith("/slider") ||
+        pathname?.startsWith("/legal") ||
+        pathname?.startsWith("/pages") ||
+        pathname?.startsWith("/administrateurs") ||
+        pathname?.startsWith("/auteurs") ||
+        pathname?.startsWith("/settings"));
     const elementRef = useRef<CTAElement>(null);
     useImperativeHandle(ref, () => elementRef.current as CTAElement);
 
@@ -144,7 +164,9 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       "inline-flex items-center justify-center gap-2 h-[44px] px-[30px] rounded-full font-semibold text-[16px] whitespace-nowrap",
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
-      "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]",
+      (isPageAdmin
+        ? "bg-[#3A416F] text-white hover:bg-[#2E3271] focus-visible:ring-[#3A416F]"
+        : "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]"),
       resolvedVariant === "inactive" &&
       "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&

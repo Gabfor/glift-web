@@ -58,6 +58,8 @@ interface ClientLayoutContentProps {
   isAdminSubdomain: boolean;
 }
 
+import MatrixRainBackground from "@/components/ui/MatrixRainBackground";
+
 function ClientLayoutContent({
   children,
   disconnected,
@@ -85,6 +87,7 @@ function ClientLayoutContent({
       {showLoader ? (
         <GliftLoader className={isComptePage ? "bg-white" : undefined} isAdmin={isAdminPage} />
       ) : null}
+      {isAdminPage && <MatrixRainBackground opacity={0.25} />}
       {isAdminPage ? (
         isAdminAuthPage || !isAuthenticated ? (
           <AdminHeaderSimple />
