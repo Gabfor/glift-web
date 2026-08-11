@@ -28,6 +28,7 @@ export default function ToggleSwitch({
   const isPageAdmin =
     isAdmin ??
     (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) ||
       pathname?.startsWith("/program") ||
       pathname?.startsWith("/program-store") ||
       pathname?.startsWith("/offer-shop") ||
@@ -40,8 +41,7 @@ export default function ToggleSwitch({
       pathname?.startsWith("/legal") ||
       pathname?.startsWith("/administrateurs") ||
       pathname?.startsWith("/auteurs") ||
-      pathname?.startsWith("/settings") ||
-      pathname?.startsWith("/connexion"))
+      pathname?.startsWith("/settings"))
 
   return (
     <label

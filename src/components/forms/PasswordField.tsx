@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export { PASSWORD_MIN_LENGTH, getPasswordValidationState } from "@/utils/password";
@@ -25,6 +26,7 @@ export interface PasswordFieldProps
   blurDelay?: number;
   defaultShowPassword?: boolean;
   statusOverride?: "neutral" | "success" | "error";
+  isAdmin?: boolean;
 }
 
 export function PasswordField({
@@ -51,8 +53,14 @@ export function PasswordField({
   onBlur,
   onFocus,
   onKeyDown,
+  isAdmin,
   ...rest
 }: PasswordFieldProps) {
+  const pathname = usePathname();
+  const isPageAdmin =
+    isAdmin ??
+    (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
   const [showPassword, setShowPassword] = React.useState(defaultShowPassword);
   const [touched, setTouched] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
@@ -155,7 +163,10 @@ export function PasswordField({
               ? "border-[#EF4444]"
               : showSuccess
               ? "border-[#00D591]"
-              : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]",
+              : cn(
+                  "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2",
+                  isPageAdmin ? "focus:ring-[#5D6494]" : "focus:ring-[#A1A5FD]"
+                ),
             inputClassName,
           )}
           aria-invalid={showError}

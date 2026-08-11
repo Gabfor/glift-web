@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ export interface EmailFieldProps
   containerClassName?: string;
   inputClassName?: string;
   messageContainerClassName?: string;
+  isAdmin?: boolean;
 }
 
 export function EmailField({
@@ -40,8 +42,15 @@ export function EmailField({
   messageContainerClassName,
   onBlur,
   onFocus,
+  isAdmin,
   ...rest
 }: EmailFieldProps) {
+  const pathname = usePathname();
+  const isPageAdmin =
+    isAdmin ??
+    (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
+
   const [touched, setTouched] = React.useState(false);
   const [focused, setFocused] = React.useState(false);
 
@@ -94,7 +103,10 @@ export function EmailField({
             ? "border-[#EF4444]"
             : showSuccess
             ? "border-[#00D591]"
-            : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]",
+            : cn(
+                "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2",
+                isPageAdmin ? "focus:ring-[#5D6494]" : "focus:ring-[#A1A5FD]"
+              ),
           inputClassName,
         )}
         aria-invalid={showError}

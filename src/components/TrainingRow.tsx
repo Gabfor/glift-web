@@ -179,7 +179,7 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : "text-[#3A416F] pointer-events-auto"
+            className={`w-full block px-3 border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : adminMode ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
               } ${!readOnly ? "border-l" : ""}`}
             style={{
               backgroundColor: "transparent",
