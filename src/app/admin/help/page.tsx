@@ -215,8 +215,8 @@ export default function AdminContentHelpPage() {
   const handleAdd = () => router.push("/admin/create-help");
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
-      <div className="w-full max-w-6xl">
+    <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
+      <div className="w-full max-w-6xl relative z-10">
         <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
           Aide
         </h2>
@@ -310,7 +310,7 @@ export default function AdminContentHelpPage() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+          <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>

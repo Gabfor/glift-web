@@ -94,7 +94,7 @@ export default function RichTextLinkModal({ initialText, initialLink = "", onCan
                     type="text"
                     value={textInput}
                     onChange={(e) => setTextInput(e.target.value)}
-                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
+                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]"
                 />
             </div>
 
@@ -106,7 +106,7 @@ export default function RichTextLinkModal({ initialText, initialLink = "", onCan
                     value={link}
                     onChange={(e) => setLink(e.target.value)}
                     placeholder="Insérez votre lien ici"
-                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] transition-all duration-150 placeholder-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
+                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] transition-all duration-150 placeholder-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]"
                 />
             </div>
         </Modal>

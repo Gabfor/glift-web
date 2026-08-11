@@ -1012,7 +1012,7 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+                <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
                   <table className="min-w-full text-left text-sm">
                     <thead className="border-b border-[#ECE9F1] h-[60px]">
                       <tr>
@@ -1168,7 +1168,7 @@ export default function AdminUsersPage() {
                         min-w-[70px]
                         border
                         ${isRowsDropdownOpen
-                          ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+                          ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#5D6494]"
                           : "border-[#D7D4DC]"
                         }
                         rounded-[5px]

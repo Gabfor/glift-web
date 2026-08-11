@@ -249,6 +249,11 @@ input:checked+.slider {
   background-color: var(--color-focus-ring);
 }
 
+.switch-admin input:checked+.slider {
+  border-color: #3A416F !important;
+  background-color: #3A416F !important;
+}
+
 .slider:before {
   position: absolute;
   content: "";
@@ -273,24 +278,22 @@ input:checked+.slider:before {
 }
 
 .input-admin {
-  @apply h-[45px] w-full text-[16px] font-semibold px-[15px] rounded-[5px] bg-white border focus:outline-none focus:ring-2 transition-all duration-150;
-  color: var(--color-text-body);
-  border-color: var(--color-border-soft);
-  caret-color: var(--color-brand-primary);
+  @apply h-[45px] w-full text-[16px] font-semibold px-[15px] rounded-[5px] bg-white border border-[#D7D4DC] text-[#3A416F] focus:outline-none transition-all duration-150;
+  caret-color: #3A416F;
 }
 
 .input-admin::placeholder {
-  color: var(--color-border-soft);
+  color: #D7D4DC;
   font-weight: 600;
 }
 
 .input-admin:hover {
-  border-color: var(--color-border-strong);
+  border-color: #C2BFC6 !important;
 }
 
 .input-admin:focus {
-  border-color: var(--color-brand-primary) !important;
-  box-shadow: 0 0 0 2px var(--color-focus-ring) !important;
+  border-color: transparent !important;
+  box-shadow: 0 0 0 2px #5D6494 !important;
 }
 
 .scrollable-dropdown {

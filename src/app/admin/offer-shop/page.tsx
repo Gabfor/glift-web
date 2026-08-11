@@ -306,7 +306,7 @@ export default function OfferShopPage() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+          <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>

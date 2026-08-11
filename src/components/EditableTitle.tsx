@@ -112,7 +112,7 @@ function EditableTitle({
             onKeyDown={(e) => {
               if (e.key === "Enter") inputRef.current?.blur();
             }}
-            className="text-[16px] sm:text-[18px] text-[#3A416F] placeholder-[#D7D4DC] font-semibold border border-[#D7D4DC] rounded-[5px] px-4 py-2 pr-10 text-left w-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] transition"
+            className="text-[16px] sm:text-[18px] text-[#3A416F] placeholder-[#D7D4DC] font-semibold border border-[#D7D4DC] rounded-[5px] px-4 py-2 pr-10 text-left w-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494] transition"
             placeholder="Nom de l'entraînement"
           />
           {programName && (

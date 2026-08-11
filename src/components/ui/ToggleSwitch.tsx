@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 type ToggleSwitchProps = {
@@ -10,6 +11,7 @@ type ToggleSwitchProps = {
   id?: string
   className?: string
   ariaLabel?: string
+  isAdmin?: boolean
 }
 
 export default function ToggleSwitch({
@@ -20,11 +22,32 @@ export default function ToggleSwitch({
   id,
   className,
   ariaLabel,
+  isAdmin,
 }: ToggleSwitchProps) {
+  const pathname = usePathname()
+  const isPageAdmin =
+    isAdmin ??
+    (pathname?.startsWith("/admin") ||
+      pathname?.startsWith("/program") ||
+      pathname?.startsWith("/program-store") ||
+      pathname?.startsWith("/offer-shop") ||
+      pathname?.startsWith("/content-blog") ||
+      pathname?.startsWith("/help") ||
+      pathname?.startsWith("/users") ||
+      pathname?.startsWith("/entrainements") ||
+      pathname?.startsWith("/create-") ||
+      pathname?.startsWith("/slider") ||
+      pathname?.startsWith("/legal") ||
+      pathname?.startsWith("/administrateurs") ||
+      pathname?.startsWith("/auteurs") ||
+      pathname?.startsWith("/settings") ||
+      pathname?.startsWith("/connexion"))
+
   return (
     <label
       className={cn(
         "switch",
+        isPageAdmin && "switch-admin",
         disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
         className,
       )}

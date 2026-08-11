@@ -72,7 +72,7 @@ export default function RichTextImageModal({ isOpen, onClose, onSave }: RichText
                     value={alt}
                     onChange={(e) => setAlt(e.target.value)}
                     placeholder="Insérez votre texte alternatif ici"
-                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] transition-all duration-150 placeholder-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
+                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] transition-all duration-150 placeholder-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]"
                 />
             </div>
 
@@ -85,7 +85,7 @@ export default function RichTextImageModal({ isOpen, onClose, onSave }: RichText
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Description de l'image"
-                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] transition-all duration-150 placeholder-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
+                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] hover:border-[#C2BFC6] transition-all duration-150 placeholder-[#D7D4DC] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]"
                 />
             </div>
         </Modal>

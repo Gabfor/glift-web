@@ -363,7 +363,7 @@ export default function ProgramStorePage() {
           </div>
         ) : (
           <div
-            className="overflow-x-auto rounded-[8px] bg-white"
+            className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC]"
             style={{
               boxShadow: '0 3px 6px rgba(93, 100, 148, 0.15)',
             }}

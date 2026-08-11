@@ -155,7 +155,7 @@ export function PasswordField({
               ? "border-[#EF4444]"
               : showSuccess
               ? "border-[#00D591]"
-              : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]",
+              : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6494]",
             inputClassName,
           )}
           aria-invalid={showError}

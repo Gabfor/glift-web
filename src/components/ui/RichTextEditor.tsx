@@ -280,7 +280,7 @@ export default function RichTextEditor({
     };
     return (
         <div 
-            className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#A1A5FD] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
+            className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#5D6494] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
             style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
         >
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">

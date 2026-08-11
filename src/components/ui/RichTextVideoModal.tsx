@@ -71,7 +71,7 @@ export default function RichTextVideoModal({ onCancel, onSave }: RichTextVideoMo
                     value={url}
                     onChange={(e) => setUrl(e.target.value)}
                     placeholder="Insérez l'url ici"
-                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] transition-all duration-150 placeholder-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
+                    className="h-[45px] w-full rounded-[5px] border border-[#D7D4DC] px-[15px] text-[16px] font-semibold text-[#5D6494] transition-all duration-150 placeholder-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]"
                 />
             </div>
         </Modal>

@@ -100,7 +100,7 @@ export default function AdminMultiSelectDropdown({
           h-[45px] w-full
           border
           ${open
-            ? "border-transparent focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+            ? "border-transparent focus:border-transparent focus:outline-none ring-2 ring-[#5D6494]"
             : "border-[#D7D4DC]"
           }
           rounded-[5px]

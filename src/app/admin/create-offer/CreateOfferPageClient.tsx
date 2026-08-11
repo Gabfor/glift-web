@@ -256,8 +256,8 @@ export default function CreateOfferPageClient({
   return (
     <>
       {showLoader && <GliftLoader onShow={handleLoaderShow} isAdmin />}
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
-        <div className="max-w-[1152px] mx-auto w-full">
+      <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px]">
+        <div className="max-w-[1152px] mx-auto w-full relative z-10">
           <BackLink href="/admin/offer-shop" className="mb-6">
             Shop
           </BackLink>
@@ -522,7 +522,7 @@ export default function CreateOfferPageClient({
                         }
                         className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
                                  border border-[#D7D4DC] hover:border-[#C2BFC6]
-                                 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
+                                 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
                                  transition-all duration-150"
                       />
                     </div>
@@ -558,7 +558,7 @@ export default function CreateOfferPageClient({
                         }
                         className="w-full h-[100px] text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494]
                                 border border-[#D7D4DC] hover:border-[#C2BFC6]
-                                focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
+                                focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
                                 transition-all duration-150"
                         placeholder="Conditions de l’offre"
                       />

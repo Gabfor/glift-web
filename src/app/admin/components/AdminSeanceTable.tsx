@@ -409,7 +409,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
                       value={r.row.exercice} 
                       onChange={(e) => handleUpdateRow(r.index, { exercice: e.target.value })}
                       placeholder="Nom de l'exercice"
-                      className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD] transition-all duration-150"
+                      className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150"
                     />
                   </div>
 

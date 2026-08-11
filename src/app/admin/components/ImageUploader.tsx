@@ -81,7 +81,7 @@ export default function ImageUploader({
         className="h-[45px] w-full px-[15px] rounded-[5px] bg-white cursor-pointer
                    border border-dashed border-[#D7D4DC]
                    hover:border-[#C2BFC6]
-                   focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#A1A5FD]
+                   focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]
                    transition-all duration-150 flex items-center justify-between"
       >
         <span className="text-[16px] font-semibold text-[#D7D4DC]">

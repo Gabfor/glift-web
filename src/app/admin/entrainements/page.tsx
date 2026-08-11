@@ -414,8 +414,8 @@ export default function AdminSingleProgramPage() {
   const isEditing = !!searchParams?.get("edit");
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
-      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+    <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px]">
+      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center relative z-10">
         <BackLink
           className="mb-6 self-start"
           onClick={() => router.push("/admin/program")}

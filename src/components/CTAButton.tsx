@@ -73,10 +73,11 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         pathname?.startsWith("/create-") ||
         pathname?.startsWith("/slider") ||
         pathname?.startsWith("/legal") ||
-        pathname?.startsWith("/pages") ||
         pathname?.startsWith("/administrateurs") ||
         pathname?.startsWith("/auteurs") ||
-        pathname?.startsWith("/settings"));
+        pathname?.startsWith("/settings") ||
+        pathname?.startsWith("/connexion") ||
+        pathname?.startsWith("/reinitialiser-mot-de-passe"));
     const elementRef = useRef<CTAElement>(null);
     useImperativeHandle(ref, () => elementRef.current as CTAElement);
 
@@ -165,14 +166,14 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
       (isPageAdmin
-        ? "bg-[#3A416F] text-white hover:bg-[#2E3271] focus-visible:ring-[#3A416F]"
+        ? "bg-[#3A416F] text-white hover:bg-[#2E3271] focus-visible:ring-[#5D6494]"
         : "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]"),
       resolvedVariant === "inactive" &&
       "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]",
       resolvedVariant === "danger" &&
       "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       resolvedVariant === "secondary" &&
-      "border border-[#3A416F] bg-transparent text-[#3A416F] hover:bg-[#3A416F] hover:text-white focus-visible:ring-[#3A416F]",
+      "border border-[#3A416F] bg-transparent text-[#3A416F] hover:bg-[#3A416F] hover:text-white focus-visible:ring-[#5D6494]",
       isDisabledOrLoading && "cursor-not-allowed opacity-100",
       className
     );

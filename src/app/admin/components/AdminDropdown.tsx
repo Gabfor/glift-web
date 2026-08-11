@@ -134,7 +134,7 @@ export default function AdminDropdown({
 
   // Définir bordure normale (hors succès)
   const defaultBorder =
-    "border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]";
+    "border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#5D6494]";
 
   const maxInputLength = useMemo(() => {
     if (inputLength) {
