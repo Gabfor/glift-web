@@ -213,7 +213,7 @@ export default function TrainingRow({
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full border-t border-l border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? "text-[#5D6494] pointer-events-none" : "text-[#5D6494]"
+            className={`w-full border-t border-l border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{ backgroundColor: "transparent", height: "40px", lineHeight: "40px" }}
             placeholder="Nom de l’exercice"
@@ -240,7 +240,7 @@ export default function TrainingRow({
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? "text-[#5D6494] pointer-events-none" : "text-[#5D6494]"
+            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{ backgroundColor: "transparent", lineHeight: "40px" }}
             placeholder="Matériel"
@@ -254,7 +254,7 @@ export default function TrainingRow({
             type="number"
             value={row.series}
             disabled
-            className={`w-9 h-8 border-none px-2 py-1 rounded-md focus:outline-none training-input-series ${readOnly ? "text-center" : "text-left"} ${row.locked ? "!text-[#D7D4DC]" : "text-[#5D6494]"
+            className={`w-9 h-8 border-none px-2 py-1 rounded-md focus:outline-none training-input-series ${readOnly ? "text-center" : "text-left"} ${row.locked ? "!text-[#D7D4DC]" : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
@@ -301,7 +301,7 @@ export default function TrainingRow({
                     : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
+                color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
               }}
               value={rep || ""}
               placeholder="0"
@@ -337,7 +337,7 @@ export default function TrainingRow({
                     : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: row.locked ? "#D7D4DC" : getEffortTextColor(row.effort[subIndex]),
+                color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
               }}
               value={weight || ""}
               placeholder="0"
@@ -362,7 +362,7 @@ export default function TrainingRow({
             type="number"
             readOnly={readOnly}
             disabled={row.locked}
-            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? "text-[#5D6494] pointer-events-none" : "text-[#5D6494]"
+            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{ backgroundColor: "transparent" }}
             value={row.repos}
