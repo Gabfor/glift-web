@@ -516,7 +516,7 @@ export default function AdminEntrainementDetailPage() {
               columns={columns}
               setIsEditing={setIsEditing}
               onDragActiveChange={setDragActive}
-              adminMode={false}
+              adminMode={isAdminRoute || isAdminTraining}
             />
           )}
         </div>
