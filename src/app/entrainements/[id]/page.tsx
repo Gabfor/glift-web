@@ -78,6 +78,7 @@ export default function AdminEntrainementDetailPage() {
   const [, setHoveredSuperset] = useState(false);
   const [showLockedModal, setShowLockedModal] = useState(false);
   const [parentProgramId, setParentProgramId] = useState<string | null>(null);
+  const [isAdminTraining, setIsAdminTraining] = useState<boolean>(isAdminRoute);
 
   // ✅ Refs used in access control and cleanup
   const isNewTrainingRef = useRef(isNewParam);
@@ -94,8 +95,6 @@ export default function AdminEntrainementDetailPage() {
     async () => ({ trainingDeleted: false, programDeleted: false })
   );
 
-
-
   // 🔒 ACCESS CONTROL
   const [accessChecked, setAccessChecked] = useState(false);
 
@@ -107,6 +106,8 @@ export default function AdminEntrainementDetailPage() {
         .eq("id", trainingId)
         .maybeSingle();
 
+      let detectedAdmin = isAdminRoute;
+
       if (!training) {
         const altTable = isAdminRoute ? "trainings" : "trainings_admin";
         const { data: altTraining } = await supabase
@@ -117,6 +118,12 @@ export default function AdminEntrainementDetailPage() {
 
         if (altTraining) {
           training = altTraining;
+          detectedAdmin = !isAdminRoute;
+          setIsAdminTraining(detectedAdmin);
+          if (detectedAdmin && !isAdminRoute) {
+            const currentQuery = window.location.search;
+            window.history.replaceState(null, "", `/admin/entrainements/${trainingId}${currentQuery}`);
+          }
         }
       }
 
@@ -130,7 +137,7 @@ export default function AdminEntrainementDetailPage() {
 
       setParentProgramId(training.program_id);
 
-      if (isAdminRoute || isPremiumUser) {
+      if (detectedAdmin || isAdminRoute || isPremiumUser) {
         setAccessChecked(true);
         return;
       }
@@ -408,14 +415,15 @@ export default function AdminEntrainementDetailPage() {
         <BackLink
           className="mb-6"
           onClick={async () => {
-            let adminProgramId: string | null = null;
+            const isEffectiveAdmin = isAdminRoute || isAdminTraining;
+            let adminProgramId: string | null = parentProgramId;
 
-            if (isAdminRoute) {
+            if (isEffectiveAdmin) {
               const { data, error } = await supabase
                 .from("trainings_admin")
                 .select("program_id")
                 .eq("id", trainingId)
-                .single();
+                .maybeSingle();
 
               if (!error && data?.program_id) {
                 adminProgramId = data.program_id;
@@ -424,7 +432,7 @@ export default function AdminEntrainementDetailPage() {
 
             const { programDeleted } = await deleteEmptyTraining();
 
-            if (isAdminRoute) {
+            if (isEffectiveAdmin) {
               if (adminProgramId && !programDeleted) {
                 router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
               } else {
