@@ -8,7 +8,9 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const isNew = searchParams?.get("new") === "1";
-  const isAdmin = pathname?.includes("/admin");
+  const isAdmin =
+    (pathname?.includes("/admin") ?? false) ||
+    (typeof window !== "undefined" && window.location.host.startsWith("admin."));
 
   const tableName = isAdmin ? "trainings_admin" : "trainings";
 

@@ -27,8 +27,9 @@ const TOGGLABLE_COLUMNS: ColumnSetting[] = [
 export function useTrainingColumns(trainingId: string | undefined) {
   const supabase = useSupabaseClient();
   const { user } = useUser();
-  const pathname = usePathname();
-  const isAdmin = (pathname ?? "").includes("/admin");
+  const isAdmin =
+    (pathname?.includes("/admin") ?? false) ||
+    (typeof window !== "undefined" && window.location.host.startsWith("admin."));
   const tableName = isAdmin ? "trainings_admin" : "trainings";
 
   const [columns, setColumnsState] = useState<ColumnSetting[]>([

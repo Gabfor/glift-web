@@ -67,7 +67,14 @@ export default function AdminEntrainementDetailPage() {
   const supabase = useSupabaseClient();
   const pathname = usePathname();
 
-  const isAdminRoute = pathname?.startsWith("/admin") ?? false;
+  const [isAdminDomain, setIsAdminDomain] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.host.startsWith("admin.")) {
+      setIsAdminDomain(true);
+    }
+  }, []);
+
+  const isAdminRoute = (pathname?.startsWith("/admin") ?? false) || isAdminDomain;
   const trainingsTableName = isAdminRoute ? "trainings_admin" : "trainings";
   const trainingRowsTableName = isAdminRoute ? "training_rows_admin" : "training_rows";
   const isNewParam = searchParams?.get("new") === "1";
@@ -434,10 +441,15 @@ export default function AdminEntrainementDetailPage() {
             const { programDeleted } = await deleteEmptyTraining();
 
             if (isEffectiveAdmin) {
+              const isAdminSubdomain = typeof window !== "undefined" && window.location.host.startsWith("admin.");
               if (adminProgramId && !programDeleted) {
-                router.push(`/admin/entrainements?id=${adminProgramId}&edit=1`);
+                const url = isAdminSubdomain
+                  ? `/entrainements?id=${adminProgramId}&edit=1`
+                  : `/admin/entrainements?id=${adminProgramId}&edit=1`;
+                router.push(url);
               } else {
-                router.push("/admin/entrainements");
+                const url = isAdminSubdomain ? "/entrainements" : "/admin/entrainements";
+                router.push(url);
               }
             } else {
               router.push("/entrainements");

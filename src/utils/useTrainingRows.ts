@@ -22,8 +22,9 @@ export function useTrainingRows(trainingId: string, user: User | null) {
   const previousIdsRef = useRef<string[]>([]);
   const hasEverLoadedRef = useRef(false);
 
-  const pathname = usePathname();
-  const isAdmin = pathname?.includes("/admin");
+  const isAdmin =
+    (pathname?.includes("/admin") ?? false) ||
+    (typeof window !== "undefined" && window.location.host.startsWith("admin."));
   const tableName = isAdmin ? "training_rows_admin" : "training_rows";
   const effectiveTableNameRef = useRef<string>(tableName);
 
