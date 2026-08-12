@@ -204,8 +204,9 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         setRows([]);
         setFullyLoaded(false);
 
+        const activeTable = effectiveTableNameRef.current || currentTable;
         await supabase
-          .from(tableName)
+          .from(activeTable)
           .update({ checked: false })
           .eq("training_id", trainingId);
 
@@ -215,7 +216,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         setHasClearedCheckedOnce(true);
 
         const { data: refreshedData, error: refreshError } = await supabase
-          .from(tableName)
+          .from(activeTable)
           .select("*")
           .eq("training_id", trainingId)
           .order("order", { ascending: true });
@@ -227,28 +228,32 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           return;
         }
 
-        setRows(
-          refreshedData.map((row) => ({
-            id: row.id,
-            series: row.series,
-            repetitions: row.repetitions,
-            poids: row.poids,
-            repos: row.repos,
-            effort: row.effort,
-            checked: row.checked,
-            iconHovered: false,
-            exercice: row.exercice,
-            materiel: row.materiel,
-            superset_id: row.superset_id,
-            link: row.link,
-            note: row.note,
-            locked: row.locked,
-            superset_id_locked: row.superset_id_locked,
-          }))
-        );
+        if (!refreshedData || refreshedData.length === 0) {
+          setRows([optimisticRow]);
+        } else {
+          setRows(
+            refreshedData.map((row) => ({
+              id: row.id,
+              series: row.series,
+              repetitions: row.repetitions,
+              poids: row.poids,
+              repos: row.repos,
+              effort: row.effort,
+              checked: row.checked,
+              iconHovered: false,
+              exercice: row.exercice,
+              materiel: row.materiel,
+              superset_id: row.superset_id,
+              link: row.link,
+              note: row.note,
+              locked: row.locked ?? false,
+              superset_id_locked: row.superset_id_locked ?? false,
+            }))
+          );
+          previousIdsRef.current = refreshedData.map((row) => row.id);
+        }
 
         setSelectedRowIds([]);
-        previousIdsRef.current = refreshedData.map((row) => row.id);
         setFullyLoaded(true);
         hasEverLoadedRef.current = true;
         return;

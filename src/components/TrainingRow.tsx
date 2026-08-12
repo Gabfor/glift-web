@@ -173,14 +173,14 @@ export default function TrainingRow({
         </td>
       )}
 
-      <td className={`px-0 py-0 ${readOnly ? "border-l-0" : ""}`} style={{ height: "40px", padding: "0" }}>
+      <td className="px-0 py-0" style={{ height: "40px", padding: "0" }}>
         {row.link ? (
           <a
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : adminMode ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
-              } ${!readOnly ? "border-l" : ""}`}
+            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : adminMode ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
+              }`}
             style={{
               backgroundColor: "transparent",
               height: "40px",
@@ -207,8 +207,8 @@ export default function TrainingRow({
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? "text-[#5D6494] pointer-events-none" : "text-[#5D6494]"
-              } ${!readOnly ? "border-l" : ""}`}
+            className={`w-full border-t border-l border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? "text-[#5D6494] pointer-events-none" : "text-[#5D6494]"
+              }`}
             style={{ backgroundColor: "transparent", height: "40px", lineHeight: "40px" }}
             placeholder="Nom de l’exercice"
             title={row.exercice || undefined}
@@ -381,7 +381,7 @@ export default function TrainingRow({
         <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
           <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
             {row.effort.map((eff, subIndex) => (
-              <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l h-10">
+              <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l border-[#ECE9F1] h-10">
                 <div className="flex justify-center items-center w-full">
                   <img
                     src={
