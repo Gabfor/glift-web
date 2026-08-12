@@ -45,12 +45,10 @@ export function useTrainingColumns(trainingId: string | undefined) {
         .from(tableName)
         .select("columns_settings")
         .eq("id", trainingId)
-        .single();
+        .maybeSingle();
 
       if (error) {
-        console.error("❌ Erreur chargement columns_settings:", error);
-        setLoading(false);
-        return;
+        console.warn("⚠️ Information columns_settings non trouvée ou indisponible:", error);
       }
 
       if (data?.columns_settings) {
