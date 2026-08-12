@@ -438,6 +438,7 @@ export default function TrainingTable({
                       key={row.id ?? `temp-${index}`}
                       row={row}
                       columns={columns}
+                      adminMode={adminMode}
                     />
                   ))}
                 </tbody>

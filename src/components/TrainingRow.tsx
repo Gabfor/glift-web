@@ -161,7 +161,13 @@ export default function TrainingRow({
                 style={{ width: "15px", height: "15px" }}
               >
                 <Image
-                  src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
+                  src={
+                    row.checked
+                      ? adminMode
+                        ? "/icons/admin_checkbox_checked.svg"
+                        : "/icons/checkbox_checked.svg"
+                      : "/icons/checkbox_unchecked.svg"
+                  }
                   alt={row.checked ? "Coché" : "Non coché"}
                   width={15}
                   height={15}

@@ -13,9 +13,10 @@ type Props = {
     label: string;
     visible: boolean;
   }[];
+  adminMode?: boolean;
 };
 
-export default function TrainingRowOverlay({ row, columns }: Props) {
+export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
 
   return (
@@ -43,7 +44,13 @@ export default function TrainingRowOverlay({ row, columns }: Props) {
             style={{ display: "block" }}
           />
           <Image
-            src={row.checked ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"}
+            src={
+              row.checked
+                ? adminMode
+                  ? "/icons/admin_checkbox_checked.svg"
+                  : "/icons/checkbox_checked.svg"
+                : "/icons/checkbox_unchecked.svg"
+            }
             alt={row.checked ? "Coché" : "Non coché"}
             width={15}
             height={15}
