@@ -41,14 +41,21 @@ export function useTrainingColumns(trainingId: string | undefined) {
     const fetchColumnsSettings = async () => {
       if (!trainingId) return;
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from(tableName)
         .select("columns_settings")
         .eq("id", trainingId)
         .maybeSingle();
 
-      if (error) {
-        console.warn("⚠️ Information columns_settings non trouvée ou indisponible:", error);
+      if (!data && !isAdmin) {
+        const { data: adminData } = await supabase
+          .from("trainings_admin")
+          .select("columns_settings")
+          .eq("id", trainingId)
+          .maybeSingle();
+        if (adminData) {
+          data = adminData;
+        }
       }
 
       if (data?.columns_settings) {

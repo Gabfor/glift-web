@@ -25,6 +25,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
   const pathname = usePathname();
   const isAdmin = pathname?.includes("/admin");
   const tableName = isAdmin ? "training_rows_admin" : "training_rows";
+  const effectiveTableNameRef = useRef<string>(tableName);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -57,11 +58,26 @@ export function useTrainingRows(trainingId: string, user: User | null) {
     setFullyLoaded(false);
 
     const fetchRows = async () => {
-      const { data, error } = await supabase
-        .from(tableName)
+      let currentTable = tableName;
+      let { data, error } = await supabase
+        .from(currentTable)
         .select("*")
         .eq("training_id", trainingId)
         .order("order", { ascending: true });
+
+      if ((!data || data.length === 0) && !isAdmin) {
+        const { data: adminData } = await supabase
+          .from("training_rows_admin")
+          .select("*")
+          .eq("training_id", trainingId)
+          .order("order", { ascending: true });
+
+        if (adminData && adminData.length > 0) {
+          data = adminData;
+          currentTable = "training_rows_admin";
+          effectiveTableNameRef.current = "training_rows_admin";
+        }
+      }
 
       if (error) {
         console.error("❌ Erreur chargement lignes :", error);
@@ -382,9 +398,11 @@ export function useTrainingRows(trainingId: string, user: User | null) {
       const deletedIds = previousIdsRef.current.filter(id => !currentIds.includes(id));
       previousIdsRef.current = currentIds;
 
+      const targetTable = effectiveTableNameRef.current || tableName;
+
       if (deletedIds.length > 0) {
         await supabase
-          .from(tableName)
+          .from(targetTable)
           .delete()
           .in("id", deletedIds);
       }
@@ -393,7 +411,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
 
       if (newRows.length > 0) {
         const { data: insertedData, error: insertError } = await supabase
-          .from(tableName)
+          .from(targetTable)
           .insert(newRows)
           .select("id, order");
 
@@ -405,7 +423,7 @@ export function useTrainingRows(trainingId: string, user: User | null) {
       }
 
       if (existingRows.length > 0) {
-        const { error: upsertError } = await supabase.from(tableName).upsert(existingRows);
+        const { error: upsertError } = await supabase.from(targetTable).upsert(existingRows);
         if (upsertError) {
           console.error("❌ Erreur mise à jour lignes entraînement :", upsertError);
         }

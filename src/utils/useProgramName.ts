@@ -28,25 +28,25 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
     }
 
     const fetchName = async () => {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from(tableName)
         .select("name")
         .eq("id", trainingId)
-        .single();
+        .maybeSingle();
 
-      if (error) {
-        const { code, message } = error as PostgrestError;
-        const isMissingRowError =
-          code === "PGRST116" || message?.toLowerCase().includes("0 rows");
-
-        if (isMissingRowError) {
-          // Le programme vient probablement d'être supprimé (ex: entraînement vide).
-          setProgramName(DEFAULT_TRAINING_NAME);
-          setLoading(false);
-          return;
+      if (!data && !isAdmin) {
+        const { data: adminData } = await supabase
+          .from("trainings_admin")
+          .select("name")
+          .eq("id", trainingId)
+          .maybeSingle();
+        if (adminData) {
+          data = adminData;
         }
+      }
 
-        console.error("❌ Erreur chargement nom entraînement :", error);
+      if (!data) {
+        setProgramName(DEFAULT_TRAINING_NAME);
         setLoading(false);
         return;
       }
@@ -60,7 +60,7 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
     };
 
     fetchName();
-  }, [trainingId, supabase, isNew, tableName]);
+  }, [trainingId, supabase, isNew, tableName, isAdmin]);
 
   const handleBlur = async () => {
     setEditing(false);
@@ -75,14 +75,32 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { error } = await supabase
+    let query = supabase
       .from(tableName)
       .update({ name: finalName, app: true, dashboard: true })
-      .eq("id", trainingId)
-      .eq("user_id", user.id);
+      .eq("id", trainingId);
 
-    if (error) {
-      console.error("❌ Erreur enregistrement nom :", error);
+    if (!isAdmin) {
+      query = query.eq("user_id", user.id);
+    }
+
+    const { data: updatedData, error } = await query.select();
+
+    if (error || !updatedData || updatedData.length === 0) {
+      if (!isAdmin) {
+        const { error: adminError } = await supabase
+          .from("trainings_admin")
+          .update({ name: finalName, app: true, dashboard: true })
+          .eq("id", trainingId);
+
+        if (adminError) {
+          console.error("❌ Erreur enregistrement nom :", adminError);
+        } else {
+          console.log("✅ Nom enregistré dans trainings_admin :", finalName);
+        }
+      } else {
+        console.error("❌ Erreur enregistrement nom :", error);
+      }
     } else {
       console.log("✅ Nom enregistré :", finalName);
     }

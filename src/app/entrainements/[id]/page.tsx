@@ -101,13 +101,26 @@ export default function AdminEntrainementDetailPage() {
 
   useEffect(() => {
     const fetchTrainingInfo = async () => {
-      const { data: training, error } = await supabase
+      let { data: training, error } = await supabase
         .from(trainingsTableName)
         .select("id, locked, user_id, program_id")
         .eq("id", trainingId)
-        .single();
+        .maybeSingle();
 
-      if (error || !training) {
+      if (!training) {
+        const altTable = isAdminRoute ? "trainings" : "trainings_admin";
+        const { data: altTraining } = await supabase
+          .from(altTable)
+          .select("id, locked, user_id, program_id")
+          .eq("id", trainingId)
+          .maybeSingle();
+
+        if (altTraining) {
+          training = altTraining;
+        }
+      }
+
+      if (!training) {
         if (!isAdminRoute && !isPremiumUser) {
           shouldDeleteRef.current = false;
           router.replace("/entrainements");
