@@ -248,6 +248,7 @@ export default function AdminEntrainementDetailPage() {
   }, [programName, rows]);
 
   const deleteEmptyTraining = useCallback(async () => {
+    if (isAdminRoute || isAdminTraining) return { trainingDeleted: false, programDeleted: false };
     if (hasDeletedRef.current) return { trainingDeleted: false, programDeleted: false };
     if (!isNewTrainingRef.current) return { trainingDeleted: false, programDeleted: false };
     if (!shouldDeleteRef.current) return { trainingDeleted: false, programDeleted: false };
@@ -349,7 +350,7 @@ export default function AdminEntrainementDetailPage() {
       console.error("❌ Erreur inattendue lors de la suppression automatique :", error);
       return { trainingDeleted: false, programDeleted: false };
     }
-  }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id, parentProgramId, isAdminRoute]);
+  }, [supabase, trainingId, trainingRowsTableName, trainingsTableName, user?.id, parentProgramId, isAdminRoute, isAdminTraining]);
 
   useEffect(() => {
     deleteEmptyTrainingRef.current = deleteEmptyTraining;
