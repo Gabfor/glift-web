@@ -152,7 +152,7 @@ function EditableTitle({
           onClick={handleEnterEditMode}
           className="group flex justify-center items-center gap-2 cursor-pointer w-fit mx-auto hover:text-[#3A416F] transition"
         >
-          <p className="text-[30px] sm:text-[30px] font-bold text-[#2E3271] group-hover:text-[#3A416F]">
+          <p className="text-[30px] sm:text-[30px] font-bold text-[#3A416F] group-hover:text-[#3A416F]">
             {getDisplayName(programName)}
           </p>
 
