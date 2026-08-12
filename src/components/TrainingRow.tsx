@@ -194,17 +194,26 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : isEffectiveAdmin ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
+            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : isEffectiveAdmin ? "!text-[#3A416F] pointer-events-auto" : "!text-[#7069FA] pointer-events-auto"
               }`}
             style={{
               backgroundColor: "transparent",
               height: "40px",
               lineHeight: "40px",
-              color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA")
+              color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
             }}
             title={row.exercice || undefined}
           >
-            <span className="block truncate">{row.exercice || "Nom de l’exercice"}</span>
+            <span
+              className="block truncate"
+              style={{
+                color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              }}
+            >
+              {row.exercice || "Nom de l’exercice"}
+            </span>
           </a>
         ) : (
           <input
