@@ -17,7 +17,7 @@ type Props = {
 };
 
 export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Props) {
-  const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
   const adminColumns = [
@@ -258,11 +258,11 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
                       src={
                         selectedRow?.link
                           ? hoveredLink
-                            ? "/icons/lien_active_hover.svg"
-                            : "/icons/lien_active.svg"
+                            ? "/icons/admin_lien_active_hover.svg"
+                            : "/icons/admin_lien_active.svg"
                           : hoveredLink
-                            ? "/icons/lien_hover.svg"
-                            : "/icons/lien.svg"
+                            ? "/icons/admin_lien_hover.svg"
+                            : "/icons/admin_lien.svg"
                       }
                       alt={selectedRow?.link ? "Modifier le lien" : "Ajouter un lien"}
                       width={20}
@@ -286,11 +286,11 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
                       src={
                         isFullSupersetSelected
                           ? hoveredSuperset
-                            ? "/icons/superset_desactivate_hover.svg"
-                            : "/icons/superset_desactivate.svg"
+                            ? "/icons/admin_superset_desactivate_hover.svg"
+                            : "/icons/admin_superset_desactivate.svg"
                           : hoveredSuperset
-                            ? "/icons/superset_hover.svg"
-                            : "/icons/superset.svg"
+                            ? "/icons/admin_superset_hover.svg"
+                            : "/icons/admin_superset.svg"
                       }
                       alt={isFullSupersetSelected ? "Dissocier le superset" : "Créer un superset"}
                       width={20}
@@ -310,7 +310,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
                   onMouseLeave={() => setHoveredDelete(false)}
                 >
                   <Image
-                    src={hoveredDelete ? "/icons/delete_hover.svg" : "/icons/delete.svg"}
+                    src={hoveredDelete ? "/icons/admin_delete_hover.svg" : "/icons/admin_delete.svg"}
                     alt="Supprimer"
                     width={20}
                     height={20}
@@ -320,6 +320,21 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
               </Tooltip>
             </>
           )}
+          <Tooltip content="Ajouter un exercice">
+            <button
+              onClick={handleAddRow}
+              onMouseEnter={() => setPlusIcon("/icons/admin_plus_hover.svg")}
+              onMouseLeave={() => setPlusIcon("/icons/admin_plus.svg")}
+            >
+              <Image
+                src={plusIcon}
+                alt="Ajouter un exercice"
+                width={20}
+                height={20}
+                className="w-5 h-5 transition-all duration-200"
+              />
+            </button>
+          </Tooltip>
         </div>
       </div>
       )}

@@ -338,14 +338,14 @@ export default function AdminUsersManagementPage() {
               aria-label="Ajouter un administrateur"
             >
               <Image
-                src="/icons/plus.svg"
+                src="/icons/admin_plus.svg"
                 alt="Ajouter"
                 width={20}
                 height={20}
                 className="block group-hover:hidden"
               />
               <Image
-                src="/icons/plus_hover.svg"
+                src="/icons/admin_plus_hover.svg"
                 alt="Ajouter"
                 width={20}
                 height={20}
