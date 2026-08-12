@@ -194,22 +194,22 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : isEffectiveAdmin ? "!text-[#3A416F] pointer-events-auto" : "!text-[#7069FA] pointer-events-auto"
+            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : !row.exercice ? "!text-[#D7D4DC] pointer-events-auto" : isEffectiveAdmin ? "!text-[#3A416F] pointer-events-auto" : "!text-[#7069FA] pointer-events-auto"
               }`}
             style={{
               backgroundColor: "transparent",
               height: "40px",
               lineHeight: "40px",
-              color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
-              WebkitTextFillColor: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              color: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
             }}
             title={row.exercice || undefined}
           >
             <span
               className="block truncate"
               style={{
-                color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
-                WebkitTextFillColor: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+                color: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
               }}
             >
               {row.exercice || "Nom de l’exercice"}
@@ -238,9 +238,12 @@ export default function TrainingRow({
               backgroundColor: "transparent",
               height: "40px",
               lineHeight: "40px",
-              color: row.locked ? "#D7D4DC" : activeTextColor,
-              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
-              opacity: 1,
+              ...(row.exercice
+                ? {
+                    color: row.locked ? "#D7D4DC" : activeTextColor,
+                    WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+                  }
+                : {}),
             }}
             placeholder="Nom de l’exercice"
             title={row.exercice || undefined}
@@ -271,9 +274,12 @@ export default function TrainingRow({
             style={{
               backgroundColor: "transparent",
               lineHeight: "40px",
-              color: row.locked ? "#D7D4DC" : activeTextColor,
-              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
-              opacity: 1,
+              ...(row.materiel
+                ? {
+                    color: row.locked ? "#D7D4DC" : activeTextColor,
+                    WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+                  }
+                : {}),
             }}
             placeholder="Matériel"
           />
@@ -295,7 +301,6 @@ export default function TrainingRow({
               MozAppearance: "textfield",
               color: row.locked ? "#D7D4DC" : activeTextColor,
               WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
-              opacity: 1,
             }}
           />
           {!readOnly && (
@@ -336,9 +341,12 @@ export default function TrainingRow({
                     : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                opacity: 1,
+                ...(rep
+                  ? {
+                      color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                      WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                    }
+                  : {}),
               }}
               value={rep || ""}
               placeholder="0"
@@ -374,9 +382,12 @@ export default function TrainingRow({
                     : !row.locked && row.checked
                       ? "#F4F5FE"
                       : "transparent",
-                color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                opacity: 1,
+                ...(weight
+                  ? {
+                      color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                      WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                    }
+                  : {}),
               }}
               value={weight || ""}
               placeholder="0"
@@ -405,9 +416,12 @@ export default function TrainingRow({
               }`}
             style={{
               backgroundColor: "transparent",
-              color: row.locked ? "#D7D4DC" : activeTextColor,
-              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
-              opacity: 1,
+              ...(row.repos
+                ? {
+                    color: row.locked ? "#D7D4DC" : activeTextColor,
+                    WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+                  }
+                : {}),
             }}
             value={row.repos}
             onFocus={() => !readOnly && setIsEditing(true)}
