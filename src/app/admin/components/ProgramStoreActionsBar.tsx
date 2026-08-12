@@ -23,17 +23,17 @@ export default function ProgramStoreActionsBar({
   onToggleStatus,
   onAdd,
 }: Props) {
-  const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
-  const [deleteIcon, setDeleteIcon] = useState("/icons/delete.svg");
-  const [duplicateIcon, setDuplicateIcon] = useState("/icons/duplicate_program.svg");
-  const [editIcon, setEditIcon] = useState("/icons/edit_program_purple.svg");
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+  const [deleteIcon, setDeleteIcon] = useState("/icons/admin_delete.svg");
+  const [duplicateIcon, setDuplicateIcon] = useState("/icons/admin_duplicate_program.svg");
+  const [editIcon, setEditIcon] = useState("/icons/admin_edit_program_purple.svg");
   const [toggleHovered, setToggleHovered] = useState(false);
 
   const getToggleIcon = () => {
     if (selectedStatus === "ON") {
-      return toggleHovered ? "/icons/OFF_hover.svg" : "/icons/OFF.svg";
+      return toggleHovered ? "/icons/admin_OFF_hover.svg" : "/icons/admin_OFF.svg";
     } else {
-      return toggleHovered ? "/icons/ON_hover.svg" : "/icons/ON.svg";
+      return toggleHovered ? "/icons/admin_ON_hover.svg" : "/icons/admin_ON.svg";
     }
   };
 
@@ -54,8 +54,8 @@ export default function ProgramStoreActionsBar({
           <Tooltip content="Éditer">
             <button
               onClick={onEdit}
-              onMouseEnter={() => setEditIcon("/icons/edit_program_purple_hover.svg")}
-              onMouseLeave={() => setEditIcon("/icons/edit_program_purple.svg")}
+              onMouseEnter={() => setEditIcon("/icons/admin_edit_program_purple_hover.svg")}
+              onMouseLeave={() => setEditIcon("/icons/admin_edit_program_purple.svg")}
             >
               <Image src={editIcon} alt="Edit" width={20} height={20} />
             </button>
@@ -64,8 +64,8 @@ export default function ProgramStoreActionsBar({
           <Tooltip content="Dupliquer">
             <button
               onClick={onDuplicate}
-              onMouseEnter={() => setDuplicateIcon("/icons/duplicate_program_hover.svg")}
-              onMouseLeave={() => setDuplicateIcon("/icons/duplicate_program.svg")}
+              onMouseEnter={() => setDuplicateIcon("/icons/admin_duplicate_program_hover.svg")}
+              onMouseLeave={() => setDuplicateIcon("/icons/admin_duplicate_program.svg")}
             >
               <Image src={duplicateIcon} alt="Duplicate" width={20} height={20} />
             </button>
@@ -77,8 +77,8 @@ export default function ProgramStoreActionsBar({
         <Tooltip content="Supprimer">
           <button
             onClick={onDelete}
-            onMouseEnter={() => setDeleteIcon("/icons/delete_hover.svg")}
-            onMouseLeave={() => setDeleteIcon("/icons/delete.svg")}
+            onMouseEnter={() => setDeleteIcon("/icons/admin_delete_hover.svg")}
+            onMouseLeave={() => setDeleteIcon("/icons/admin_delete.svg")}
           >
             <Image src={deleteIcon} alt="Delete" width={20} height={20} />
           </button>
@@ -90,8 +90,8 @@ export default function ProgramStoreActionsBar({
       <Tooltip content="Ajouter une carte">
         <button
           onClick={onAdd}
-          onMouseEnter={() => setPlusIcon("/icons/plus_hover.svg")}
-          onMouseLeave={() => setPlusIcon("/icons/plus.svg")}
+          onMouseEnter={() => setPlusIcon("/icons/admin_plus_hover.svg")}
+          onMouseLeave={() => setPlusIcon("/icons/admin_plus.svg")}
         >
           <Image src={plusIcon} alt="Add" width={20} height={20} />
         </button>

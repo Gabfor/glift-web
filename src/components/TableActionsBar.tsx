@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Tooltip from "@/components/Tooltip";
 import ColumnMenu from "@/components/ColumnMenu";
 import { Row } from "@/types/training";
@@ -36,6 +37,7 @@ type Props = {
     label: string;
     visible: boolean;
   }[]) => Promise<void>;
+  adminMode?: boolean;
 };
 
 export default function TableActionsBar({
@@ -51,7 +53,16 @@ export default function TableActionsBar({
   onLinkClick,
   onNoteClick,
   saveColumnsInSupabase,
+  adminMode,
 }: Props) {
+  const pathname = usePathname();
+  const isPageAdmin =
+    adminMode ??
+    (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
+
+  const prefix = isPageAdmin ? "/icons/admin_" : "/icons/";
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredSuperset, setHoveredSuperset] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(false);
@@ -145,11 +156,11 @@ export default function TableActionsBar({
               src={
                 isFullSupersetSelected
                   ? hoveredSuperset
-                    ? "/icons/superset_desactivate_hover.svg"
-                    : "/icons/superset_desactivate.svg"
+                    ? `${prefix}superset_desactivate_hover.svg`
+                    : `${prefix}superset_desactivate.svg`
                   : hoveredSuperset
-                    ? "/icons/superset_hover.svg"
-                    : "/icons/superset.svg"
+                    ? `${prefix}superset_hover.svg`
+                    : `${prefix}superset.svg`
               }
               alt={isFullSupersetSelected ? "Dissocier le superset" : "Créer un superset"}
               width={20}
@@ -172,11 +183,11 @@ export default function TableActionsBar({
                 src={
                   selectedRow?.link
                     ? hoveredLink
-                      ? "/icons/lien_active_hover.svg"
-                      : "/icons/lien_active.svg"
+                      ? `${prefix}lien_active_hover.svg`
+                      : `${prefix}lien_active.svg`
                     : hoveredLink
-                      ? "/icons/lien_hover.svg"
-                      : "/icons/lien.svg"
+                      ? `${prefix}lien_hover.svg`
+                      : `${prefix}lien.svg`
                 }
                 alt={selectedRow?.link ? "Modifier le lien" : "Ajouter un lien"}
                 width={20}
@@ -196,11 +207,11 @@ export default function TableActionsBar({
                 src={
                   hasNote
                     ? hoveredNote
-                      ? "/icons/note_active_hover.svg"
-                      : "/icons/note_active.svg"
+                      ? `${prefix}note_active_hover.svg`
+                      : `${prefix}note_active.svg`
                     : hoveredNote
-                      ? "/icons/note_hover.svg"
-                      : "/icons/note.svg"
+                      ? `${prefix}note_hover.svg`
+                      : `${prefix}note.svg`
                 }
                 alt={selectedRow?.note ? "Modifier la note" : "Ajouter une note"}
                 width={20}
@@ -223,7 +234,7 @@ export default function TableActionsBar({
             onMouseLeave={() => setHoveredDelete(false)}
           >
             <Image
-              src={hoveredDelete ? "/icons/delete_hover.svg" : "/icons/delete.svg"}
+              src={hoveredDelete ? `${prefix}delete_hover.svg` : `${prefix}delete.svg`}
               alt="Supprimer"
               width={20}
               height={20}
@@ -237,10 +248,10 @@ export default function TableActionsBar({
         <Tooltip content="Colonnes">
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
-            onMouseEnter={() => setIconSrc("/icons/colonne_hover.svg")}
-            onMouseLeave={() => setIconSrc("/icons/colonne.svg")}
+            onMouseEnter={() => setIconSrc(`${prefix}colonne_hover.svg`)}
+            onMouseLeave={() => setIconSrc(`${prefix}colonne.svg`)}
           >
-            <Image src={iconSrc} alt="Colonnes" width={20} height={20} className="w-5 h-5" />
+            <Image src={iconSrc.includes("admin_") || !isPageAdmin ? iconSrc : iconSrc.replace("/icons/", "/icons/admin_")} alt="Colonnes" width={20} height={20} className="w-5 h-5" />
           </button>
         </Tooltip>
 

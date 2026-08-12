@@ -21,16 +21,16 @@ export default function BlogAdminActionsBar({
     onToggleStatus,
     onAdd,
 }: Props) {
-    const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
-    const [deleteIcon, setDeleteIcon] = useState("/icons/delete.svg");
-    const [editIcon, setEditIcon] = useState("/icons/edit_program_purple.svg");
+    const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+    const [deleteIcon, setDeleteIcon] = useState("/icons/admin_delete.svg");
+    const [editIcon, setEditIcon] = useState("/icons/admin_edit_program_purple.svg");
     const [toggleHovered, setToggleHovered] = useState(false);
 
     const getToggleIcon = () => {
         if (selectedStatus === true) {
-            return toggleHovered ? "/icons/OFF_hover.svg" : "/icons/OFF.svg";
+            return toggleHovered ? "/icons/admin_OFF_hover.svg" : "/icons/admin_OFF.svg";
         } else {
-            return toggleHovered ? "/icons/ON_hover.svg" : "/icons/ON.svg";
+            return toggleHovered ? "/icons/admin_ON_hover.svg" : "/icons/admin_ON.svg";
         }
     };
 
@@ -53,8 +53,8 @@ export default function BlogAdminActionsBar({
                 <Tooltip content="Modifier" delay={0}>
                     <button
                         onClick={onEdit}
-                        onMouseEnter={() => setEditIcon("/icons/edit_program_purple_hover.svg")}
-                        onMouseLeave={() => setEditIcon("/icons/edit_program_purple.svg")}
+                        onMouseEnter={() => setEditIcon("/icons/admin_edit_program_purple_hover.svg")}
+                        onMouseLeave={() => setEditIcon("/icons/admin_edit_program_purple.svg")}
                         className="mr-2"
                     >
                         <Image src={editIcon} alt="Edit" width={20} height={20} />
@@ -66,8 +66,8 @@ export default function BlogAdminActionsBar({
                 <Tooltip content="Supprimer" delay={0}>
                     <button
                         onClick={onDelete}
-                        onMouseEnter={() => setDeleteIcon("/icons/delete_hover.svg")}
-                        onMouseLeave={() => setDeleteIcon("/icons/delete.svg")}
+                        onMouseEnter={() => setDeleteIcon("/icons/admin_delete_hover.svg")}
+                        onMouseLeave={() => setDeleteIcon("/icons/admin_delete.svg")}
                     >
                         <Image src={deleteIcon} alt="Delete" width={20} height={20} />
                     </button>
@@ -79,8 +79,8 @@ export default function BlogAdminActionsBar({
             <Tooltip content="Créer un article" delay={0}>
                 <button
                     onClick={onAdd}
-                    onMouseEnter={() => setPlusIcon("/icons/plus_hover.svg")}
-                    onMouseLeave={() => setPlusIcon("/icons/plus.svg")}
+                    onMouseEnter={() => setPlusIcon("/icons/admin_plus_hover.svg")}
+                    onMouseLeave={() => setPlusIcon("/icons/admin_plus.svg")}
                 >
                     <Image src={plusIcon} alt="Add" width={20} height={20} />
                 </button>

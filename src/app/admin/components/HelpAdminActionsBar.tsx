@@ -19,10 +19,10 @@ export default function HelpAdminActionsBar({
     onReset,
     onAdd,
 }: Props) {
-    const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
-    const [deleteIcon, setDeleteIcon] = useState("/icons/delete.svg");
-    const [editIcon, setEditIcon] = useState("/icons/edit_program_purple.svg");
-    const [resetIcon, setResetIcon] = useState("/icons/erase.svg");
+    const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+    const [deleteIcon, setDeleteIcon] = useState("/icons/admin_delete.svg");
+    const [editIcon, setEditIcon] = useState("/icons/admin_edit_program_purple.svg");
+    const [resetIcon, setResetIcon] = useState("/icons/admin_erase.svg");
 
     return (
         <div className="flex justify-end items-center mb-4 gap-4 relative z-10 w-full">
@@ -30,8 +30,8 @@ export default function HelpAdminActionsBar({
                 <Tooltip content="Remettre à zéro" delay={0}>
                     <button
                         onClick={onReset}
-                        onMouseEnter={() => setResetIcon("/icons/erase_hover.svg")}
-                        onMouseLeave={() => setResetIcon("/icons/erase.svg")}
+                        onMouseEnter={() => setResetIcon("/icons/admin_erase_hover.svg")}
+                        onMouseLeave={() => setResetIcon("/icons/admin_erase.svg")}
                         className="mr-2"
                     >
                         <Image src={resetIcon} alt="Reset" width={20} height={20} />
@@ -43,8 +43,8 @@ export default function HelpAdminActionsBar({
                 <Tooltip content="Modifier" delay={0}>
                     <button
                         onClick={onEdit}
-                        onMouseEnter={() => setEditIcon("/icons/edit_program_purple_hover.svg")}
-                        onMouseLeave={() => setEditIcon("/icons/edit_program_purple.svg")}
+                        onMouseEnter={() => setEditIcon("/icons/admin_edit_program_purple_hover.svg")}
+                        onMouseLeave={() => setEditIcon("/icons/admin_edit_program_purple.svg")}
                         className="mr-2"
                     >
                         <Image src={editIcon} alt="Edit" width={20} height={20} />
@@ -56,8 +56,8 @@ export default function HelpAdminActionsBar({
                 <Tooltip content="Supprimer" delay={0}>
                     <button
                         onClick={onDelete}
-                        onMouseEnter={() => setDeleteIcon("/icons/delete_hover.svg")}
-                        onMouseLeave={() => setDeleteIcon("/icons/delete.svg")}
+                        onMouseEnter={() => setDeleteIcon("/icons/admin_delete_hover.svg")}
+                        onMouseLeave={() => setDeleteIcon("/icons/admin_delete.svg")}
                     >
                         <Image src={deleteIcon} alt="Delete" width={20} height={20} />
                     </button>
@@ -69,8 +69,8 @@ export default function HelpAdminActionsBar({
             <Tooltip content="Créer une aide" delay={0}>
                 <button
                     onClick={onAdd}
-                    onMouseEnter={() => setPlusIcon("/icons/plus_hover.svg")}
-                    onMouseLeave={() => setPlusIcon("/icons/plus.svg")}
+                    onMouseEnter={() => setPlusIcon("/icons/admin_plus_hover.svg")}
+                    onMouseLeave={() => setPlusIcon("/icons/admin_plus.svg")}
                 >
                     <Image src={plusIcon} alt="Add" width={20} height={20} />
                 </button>

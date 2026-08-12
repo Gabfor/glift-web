@@ -19,10 +19,10 @@ export default function ProgramAdminActionsBar({
   onEdit,
   onAdd,
 }: Props) {
-  const [plusIcon, setPlusIcon] = useState("/icons/plus.svg");
-  const [deleteIcon, setDeleteIcon] = useState("/icons/delete.svg");
-  const [duplicateIcon, setDuplicateIcon] = useState("/icons/duplicate_program.svg");
-  const [editIcon, setEditIcon] = useState("/icons/edit_program_purple.svg");
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+  const [deleteIcon, setDeleteIcon] = useState("/icons/admin_delete.svg");
+  const [duplicateIcon, setDuplicateIcon] = useState("/icons/admin_duplicate_program.svg");
+  const [editIcon, setEditIcon] = useState("/icons/admin_edit_program_purple.svg");
 
   return (
     <div className="flex justify-end items-center mb-4 gap-4">
@@ -31,8 +31,8 @@ export default function ProgramAdminActionsBar({
           <Tooltip content="Éditer" delay={0}>
             <button
               onClick={onEdit}
-              onMouseEnter={() => setEditIcon("/icons/edit_program_purple_hover.svg")}
-              onMouseLeave={() => setEditIcon("/icons/edit_program_purple.svg")}
+              onMouseEnter={() => setEditIcon("/icons/admin_edit_program_purple_hover.svg")}
+              onMouseLeave={() => setEditIcon("/icons/admin_edit_program_purple.svg")}
             >
               <Image src={editIcon} alt="Edit" width={20} height={20} />
             </button>
@@ -41,8 +41,8 @@ export default function ProgramAdminActionsBar({
           <Tooltip content="Dupliquer" delay={0}>
             <button
               onClick={onDuplicate}
-              onMouseEnter={() => setDuplicateIcon("/icons/duplicate_program_hover.svg")}
-              onMouseLeave={() => setDuplicateIcon("/icons/duplicate_program.svg")}
+              onMouseEnter={() => setDuplicateIcon("/icons/admin_duplicate_program_hover.svg")}
+              onMouseLeave={() => setDuplicateIcon("/icons/admin_duplicate_program.svg")}
             >
               <Image src={duplicateIcon} alt="Duplicate" width={20} height={20} />
             </button>
@@ -54,8 +54,8 @@ export default function ProgramAdminActionsBar({
         <Tooltip content="Supprimer" delay={0}>
           <button
             onClick={onDelete}
-            onMouseEnter={() => setDeleteIcon("/icons/delete_hover.svg")}
-            onMouseLeave={() => setDeleteIcon("/icons/delete.svg")}
+            onMouseEnter={() => setDeleteIcon("/icons/admin_delete_hover.svg")}
+            onMouseLeave={() => setDeleteIcon("/icons/admin_delete.svg")}
           >
             <Image src={deleteIcon} alt="Delete" width={20} height={20} />
           </button>
@@ -67,8 +67,8 @@ export default function ProgramAdminActionsBar({
       <Tooltip content="Ajouter un programme" delay={0}>
         <button
           onClick={onAdd}
-          onMouseEnter={() => setPlusIcon("/icons/plus_hover.svg")}
-          onMouseLeave={() => setPlusIcon("/icons/plus.svg")}
+          onMouseEnter={() => setPlusIcon("/icons/admin_plus_hover.svg")}
+          onMouseLeave={() => setPlusIcon("/icons/admin_plus.svg")}
         >
           <Image src={plusIcon} alt="Add" width={20} height={20} />
         </button>
