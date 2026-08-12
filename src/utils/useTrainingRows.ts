@@ -94,26 +94,31 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         setRows([optimisticRow]);
         setSelectedRowIds([]);
 
+        const insertPayload: Record<string, any> = {
+          training_id: trainingId,
+          user_id: user.id,
+          order: 0,
+          series: optimisticRow.series,
+          repetitions: optimisticRow.repetitions,
+          poids: optimisticRow.poids,
+          repos: optimisticRow.repos,
+          effort: optimisticRow.effort,
+          checked: optimisticRow.checked,
+          exercice: optimisticRow.exercice,
+          materiel: optimisticRow.materiel,
+          superset_id: optimisticRow.superset_id,
+          link: optimisticRow.link,
+          note: optimisticRow.note,
+        };
+
+        if (!isAdmin) {
+          insertPayload.locked = optimisticRow.locked;
+          insertPayload.superset_id_locked = optimisticRow.superset_id_locked;
+        }
+
         const { data: newRow, error: insertError } = await supabase
           .from(tableName)
-          .insert({
-            training_id: trainingId,
-            user_id: user.id,
-            order: 0,
-            series: optimisticRow.series,
-            repetitions: optimisticRow.repetitions,
-            poids: optimisticRow.poids,
-            repos: optimisticRow.repos,
-            effort: optimisticRow.effort,
-            checked: optimisticRow.checked,
-            exercice: optimisticRow.exercice,
-            materiel: optimisticRow.materiel,
-            superset_id: optimisticRow.superset_id,
-            link: optimisticRow.link,
-            note: optimisticRow.note,
-            locked: optimisticRow.locked,
-            superset_id_locked: optimisticRow.superset_id_locked,
-          })
+          .insert(insertPayload)
           .select()
           .single();
 
@@ -138,8 +143,8 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           superset_id: newRow.superset_id,
           link: newRow.link,
           note: newRow.note,
-          locked: newRow.locked,
-          superset_id_locked: newRow.superset_id_locked,
+          locked: newRow.locked ?? false,
+          superset_id_locked: newRow.superset_id_locked ?? false,
         }]);
 
         previousIdsRef.current = [newRow.id];
@@ -296,44 +301,54 @@ export function useTrainingRows(trainingId: string, user: User | null) {
       const newRowsWithOrder = rowsWithSupersetLock.filter((row) => !row.id);
       const existingRowsWithOrder = rowsWithSupersetLock.filter((row) => !!row.id);
 
-      const newRows = newRowsWithOrder.map((row) => ({
-        training_id: trainingId,
-        user_id: user.id,
-        order: row._finalOrder,
-        series: row.series,
-        repetitions: row.repetitions,
-        poids: row.poids,
-        repos: row.repos,
-        effort: row.effort,
-        checked: row.checked,
-        exercice: row.exercice,
-        materiel: row.materiel,
-        superset_id: row.superset_id,
-        link: row.link,
-        note: row.note,
-        locked: row.locked ?? false,
-        superset_id_locked: row.superset_id_locked ?? false,
-      }));
+      const newRows = newRowsWithOrder.map((row) => {
+        const payload: Record<string, any> = {
+          training_id: trainingId,
+          user_id: user.id,
+          order: row._finalOrder,
+          series: row.series,
+          repetitions: row.repetitions,
+          poids: row.poids,
+          repos: row.repos,
+          effort: row.effort,
+          checked: row.checked,
+          exercice: row.exercice,
+          materiel: row.materiel,
+          superset_id: row.superset_id,
+          link: row.link,
+          note: row.note,
+        };
+        if (!isAdmin) {
+          payload.locked = row.locked ?? false;
+          payload.superset_id_locked = row.superset_id_locked ?? false;
+        }
+        return payload;
+      });
 
-      const existingRows = existingRowsWithOrder.map((row) => ({
-        id: row.id!,
-        training_id: trainingId,
-        user_id: user.id,
-        order: row._finalOrder,
-        series: row.series,
-        repetitions: row.repetitions,
-        poids: row.poids,
-        repos: row.repos,
-        effort: row.effort,
-        checked: row.checked,
-        exercice: row.exercice,
-        materiel: row.materiel,
-        superset_id: row.superset_id,
-        link: row.link,
-        note: row.note,
-        locked: row.locked ?? false,
-        superset_id_locked: row.superset_id_locked ?? false,
-      }));
+      const existingRows = existingRowsWithOrder.map((row) => {
+        const payload: Record<string, any> = {
+          id: row.id!,
+          training_id: trainingId,
+          user_id: user.id,
+          order: row._finalOrder,
+          series: row.series,
+          repetitions: row.repetitions,
+          poids: row.poids,
+          repos: row.repos,
+          effort: row.effort,
+          checked: row.checked,
+          exercice: row.exercice,
+          materiel: row.materiel,
+          superset_id: row.superset_id,
+          link: row.link,
+          note: row.note,
+        };
+        if (!isAdmin) {
+          payload.locked = row.locked ?? false;
+          payload.superset_id_locked = row.superset_id_locked ?? false;
+        }
+        return payload;
+      });
 
       const currentIds = rows.filter(r => r.id).map(r => r.id as string);
       const deletedIds = previousIdsRef.current.filter(id => !currentIds.includes(id));
