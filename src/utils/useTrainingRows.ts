@@ -123,7 +123,35 @@ export function useTrainingRows(trainingId: string, user: User | null) {
           .single();
 
         if (insertError) {
-          console.error("❌ Erreur création première ligne :", insertError);
+          console.warn("⚠️ Création première ligne ignorée ou déjà existante:", insertError.message || insertError);
+          const { data: retryData } = await supabase
+            .from(tableName)
+            .select("*")
+            .eq("training_id", trainingId)
+            .order("order", { ascending: true });
+
+          if (retryData && retryData.length > 0) {
+            setRows(
+              retryData.map((row) => ({
+                id: row.id,
+                series: row.series,
+                repetitions: row.repetitions,
+                poids: row.poids,
+                repos: row.repos,
+                effort: row.effort,
+                checked: row.checked,
+                iconHovered: false,
+                exercice: row.exercice,
+                materiel: row.materiel,
+                superset_id: row.superset_id,
+                link: row.link,
+                note: row.note,
+                locked: row.locked ?? false,
+                superset_id_locked: row.superset_id_locked ?? false,
+              }))
+            );
+            previousIdsRef.current = retryData.map((row) => row.id);
+          }
           setFullyLoaded(true);
           hasEverLoadedRef.current = true;
           return;
