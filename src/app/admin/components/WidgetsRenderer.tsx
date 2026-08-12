@@ -818,9 +818,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                         {abo.arguments.map((arg, argIdx) => (
                           <div key={arg.id} className="flex flex-col gap-4">
                              {/* Separator Argument - Identical to BlockAdminWrapper Header */}
-                             <div className="relative flex items-center justify-between bg-transparent h-[50px] mb-4 z-10">
+                             <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-4 z-10">
                                 {/* Icônes de déplacement à gauche */}
-                                <div className="flex items-center absolute left-0 z-10 bg-transparent py-2 pr-2">
+                                <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] py-2 pr-2">
                                   <button 
                                     type="button"
                                     onClick={() => {
@@ -876,13 +876,13 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
 
                                 {/* Titre centré */}
                                 <div className="flex-1 flex justify-center items-center relative z-10">
-                                  <div className="bg-transparent px-4 text-[14px] text-[#D7D4DC] font-bold">
+                                  <div className="bg-[#FBFCFE] px-4 text-[14px] text-[#D7D4DC] font-bold">
                                     Argument {argIdx + 1}
                                   </div>
                                 </div>
 
                                 {/* Poubelle à droite */}
-                                <div className="flex items-center absolute right-0 z-10 bg-transparent py-2 pl-2">
+                                <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2">
                                   <button 
                                     type="button"
                                     onClick={() => {
@@ -902,9 +902,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                                   </button>
                                 </div>
 
-                                 {/* 2 lignes séparées (gauche et droite) pour ne pas croiser le texte au centre */}
-                                 <div className="absolute top-[25px] left-0 w-[calc(50%-100px)] h-[1px] bg-[#ECE9F1] z-0" />
-                                 <div className="absolute top-[25px] right-0 w-[calc(50%-100px)] h-[1px] bg-[#ECE9F1] z-0" />
+                                {/* La ligne (séparateur) en dessous */}
+                                <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0" />
                              </div>
 
                              <RichTextEditor
