@@ -75,32 +75,30 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    let query = supabase
-      .from(tableName)
-      .update({ name: finalName, app: true, dashboard: true })
-      .eq("id", trainingId);
-
-    if (!isAdmin) {
-      query = query.eq("user_id", user.id);
+    const updatePayload: Record<string, any> = { name: finalName, app: true };
+    if (tableName === "trainings") {
+      updatePayload.dashboard = true;
     }
 
-    const { data: updatedData, error } = await query.select();
+    let { data: updatedData, error } = await supabase
+      .from(tableName)
+      .update(updatePayload)
+      .eq("id", trainingId)
+      .select();
 
-    if (error || !updatedData || updatedData.length === 0) {
-      if (!isAdmin) {
-        const { error: adminError } = await supabase
-          .from("trainings_admin")
-          .update({ name: finalName, app: true, dashboard: true })
-          .eq("id", trainingId);
+    if ((error || !updatedData || updatedData.length === 0) && !isAdmin) {
+      const { error: adminError } = await supabase
+        .from("trainings_admin")
+        .update({ name: finalName, app: true })
+        .eq("id", trainingId);
 
-        if (adminError) {
-          console.error("❌ Erreur enregistrement nom :", adminError);
-        } else {
-          console.log("✅ Nom enregistré dans trainings_admin :", finalName);
-        }
+      if (adminError) {
+        console.warn("⚠️ Impossible de mettre à jour le nom dans trainings_admin:", adminError.message || adminError);
       } else {
-        console.error("❌ Erreur enregistrement nom :", error);
+        console.log("✅ Nom enregistré dans trainings_admin :", finalName);
       }
+    } else if (error) {
+      console.warn("⚠️ Impossible de mettre à jour le nom:", error.message || error);
     } else {
       console.log("✅ Nom enregistré :", finalName);
     }
