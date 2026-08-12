@@ -137,7 +137,9 @@ export default function DroppableProgram(props: Props) {
                 "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-[270px] h-[60px] transition",
                 !isAddEnabled
                   ? "border-[#D7D4DC] text-[#D7D4DC] cursor-pointer" // Gray but clickable
-                  : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
+                  : adminMode
+                    ? "border-[#5D6494] text-[#5D6494] hover:border-[#3A416F] hover:text-[#3A416F]"
+                    : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               )}
               onClick={() => {
                 if (isAddEnabled) {
