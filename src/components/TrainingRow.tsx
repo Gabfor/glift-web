@@ -110,12 +110,12 @@ export default function TrainingRow({
   };
 
   const isEffectiveAdmin = adminMode || (typeof window !== "undefined" && window.location.host.startsWith("admin."));
-  const activeTextColor = isEffectiveAdmin ? "#3A416F" : "#5D6494";
-  const defaultTextClass = isEffectiveAdmin ? "text-[#3A416F]" : "text-[#5D6494]";
+  const activeTextColor = "#5D6494";
+  const defaultTextClass = "text-[#5D6494]";
   const getCellTextColor = (effort: string) => {
     if (effort === "trop facile") return "#57AE5B";
     if (effort === "trop dur") return "#EF4F4E";
-    return activeTextColor;
+    return "#5D6494";
   };
 
   return (
