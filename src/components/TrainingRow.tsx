@@ -109,6 +109,13 @@ export default function TrainingRow({
     ...transitionStyles,
   };
 
+  const defaultTextClass = adminMode ? "text-[#3A416F]" : "text-[#5D6494]";
+  const getCellTextColor = (effort: string) => {
+    if (effort === "trop facile") return "#57AE5B";
+    if (effort === "trop dur") return "#EF4F4E";
+    return adminMode ? "#3A416F" : "#5D6494";
+  };
+
   return (
     <tr
       ref={setNodeRef}
