@@ -109,8 +109,14 @@ export default function TrainingRow({
     ...transitionStyles,
   };
 
-  const defaultTextClass = "text-[#5D6494]";
-  const getCellTextColor = (effort: string) => getEffortTextColor(effort);
+  const isEffectiveAdmin = adminMode || (typeof window !== "undefined" && window.location.host.startsWith("admin."));
+  const activeTextColor = isEffectiveAdmin ? "#3A416F" : "#5D6494";
+  const defaultTextClass = isEffectiveAdmin ? "text-[#3A416F]" : "text-[#5D6494]";
+  const getCellTextColor = (effort: string) => {
+    if (effort === "trop facile") return "#57AE5B";
+    if (effort === "trop dur") return "#EF4F4E";
+    return activeTextColor;
+  };
 
   return (
     <tr
@@ -129,7 +135,7 @@ export default function TrainingRow({
       {!readOnly && (
         <td
           className="px-0 py-0 border-l-0"
-          style={{ maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
+          style={{ maxWidth: isEffectiveAdmin ? "40px" : "60px", width: isEffectiveAdmin ? "40px" : "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
         >
           <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
             {row.locked ? (
@@ -144,7 +150,7 @@ export default function TrainingRow({
                   onClick={onUnlockClick}
                 />
               </Tooltip>
-            ) : !adminMode && (
+            ) : !isEffectiveAdmin && (
               <Image
                 {...dragListeners}
                 src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
@@ -166,7 +172,7 @@ export default function TrainingRow({
                 <Image
                   src={
                     row.checked
-                      ? adminMode
+                      ? isEffectiveAdmin
                         ? "/icons/admin_checkbox_checked.svg"
                         : "/icons/checkbox_checked.svg"
                       : "/icons/checkbox_unchecked.svg"
@@ -188,12 +194,13 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : adminMode ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
+            className={`w-full block px-3 border-t border-l border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : isEffectiveAdmin ? "text-[#3A416F] pointer-events-auto" : "text-[#7069FA] pointer-events-auto"
               }`}
             style={{
               backgroundColor: "transparent",
               height: "40px",
-              lineHeight: "40px"
+              lineHeight: "40px",
+              color: row.locked ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA")
             }}
             title={row.exercice || undefined}
           >
@@ -218,7 +225,7 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full border-t border-l border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent", height: "40px", lineHeight: "40px" }}
+            style={{ backgroundColor: "transparent", height: "40px", lineHeight: "40px", color: row.locked ? "#D7D4DC" : activeTextColor }}
             placeholder="Nom de l’exercice"
             title={row.exercice || undefined}
           />
@@ -245,7 +252,7 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent", lineHeight: "40px" }}
+            style={{ backgroundColor: "transparent", lineHeight: "40px", color: row.locked ? "#D7D4DC" : activeTextColor }}
             placeholder="Matériel"
           />
         </td>
@@ -264,6 +271,7 @@ export default function TrainingRow({
               border: "none",
               WebkitAppearance: "none",
               MozAppearance: "textfield",
+              color: row.locked ? "#D7D4DC" : activeTextColor,
             }}
           />
           {!readOnly && (
@@ -367,7 +375,7 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent" }}
+            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : activeTextColor }}
             value={row.repos}
             onFocus={() => !readOnly && setIsEditing(true)}
             onBlur={() => !readOnly && setIsEditing(false)}
