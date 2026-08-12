@@ -312,7 +312,7 @@ export default function OfferShopPage() {
                 <tr>
                   <th className="px-4 w-[48px]">
                     <button onClick={toggleAll} className="flex items-center justify-center h-[60px]">
-                      <Image src={allSelected ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"} alt="Checkbox" width={15} height={15} />
+                      <Image src={allSelected ? "/icons/admin_checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"} alt="Checkbox" width={15} height={15} />
                     </button>
                   </th>
                   {renderHeaderCell("Statut", "status", "w-[60px] px-3")}
@@ -335,7 +335,7 @@ export default function OfferShopPage() {
                     <tr key={offer.id} className="border-b border-[#ECE9F1] h-[60px]">
                       <td className="px-4">
                         <button onClick={() => toggleCheckbox(offer.id)} className="flex items-center justify-center h-[60px]">
-                          <Image src={isSelected ? "/icons/checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"} alt="Checkbox" width={15} height={15} />
+                          <Image src={isSelected ? "/icons/admin_checkbox_checked.svg" : "/icons/checkbox_unchecked.svg"} alt="Checkbox" width={15} height={15} />
                         </button>
                       </td>
                       <td className="px-4">

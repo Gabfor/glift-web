@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
-import CheckboxChecked from "/public/icons/checkbox_checked.svg";
+import CheckboxChecked from "/public/icons/admin_checkbox_checked.svg";
 import CheckboxUnchecked from "/public/icons/checkbox_unchecked.svg";
 
 export type MultiDropdownOption = {

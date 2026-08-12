@@ -319,7 +319,7 @@ export default function AdminContentHelpPage() {
                       <Image
                         src={
                           questions.length === selectedIds.length && questions.length > 0
-                            ? "/icons/checkbox_checked.svg"
+                            ? "/icons/admin_checkbox_checked.svg"
                             : "/icons/checkbox_unchecked.svg"
                         }
                         alt="Checkbox"
@@ -358,7 +358,7 @@ export default function AdminContentHelpPage() {
                           <Image
                             src={
                               isSelected
-                                ? "/icons/checkbox_checked.svg"
+                                ? "/icons/admin_checkbox_checked.svg"
                                 : "/icons/checkbox_unchecked.svg"
                             }
                             alt="checkbox"

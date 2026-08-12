@@ -374,7 +374,7 @@ export default function AdminProgramPage() {
                       <Image
                         src={
                           programs.length === selectedIds.length
-                            ? "/icons/checkbox_checked.svg"
+                            ? "/icons/admin_checkbox_checked.svg"
                             : "/icons/checkbox_unchecked.svg"
                         }
                         alt="Checkbox"
@@ -405,7 +405,7 @@ export default function AdminProgramPage() {
                           <Image
                             src={
                               isSelected
-                                ? "/icons/checkbox_checked.svg"
+                                ? "/icons/admin_checkbox_checked.svg"
                                 : "/icons/checkbox_unchecked.svg"
                             }
                             alt="checkbox"

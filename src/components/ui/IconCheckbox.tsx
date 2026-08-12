@@ -2,16 +2,28 @@
 
 import * as React from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 import { cn } from "@/lib/utils";
 
 export type IconCheckboxProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & {
   size?: number;
   containerClassName?: string;
+  isAdmin?: boolean;
 };
 
 const IconCheckbox = React.forwardRef<HTMLInputElement, IconCheckboxProps>(
-  ({ size = 16, containerClassName, className, ...props }, ref) => {
+  ({ size = 16, containerClassName, className, isAdmin, ...props }, ref) => {
+    const pathname = usePathname();
+    const isPageAdmin =
+      isAdmin ??
+      (pathname?.startsWith("/admin") ||
+        (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
+
+    const checkedSrc = isPageAdmin
+      ? "/icons/admin_checkbox_checked.svg"
+      : "/icons/checkbox_checked.svg";
+
     return (
       <span
         className={cn("relative inline-flex shrink-0", containerClassName)}
@@ -34,7 +46,7 @@ const IconCheckbox = React.forwardRef<HTMLInputElement, IconCheckboxProps>(
           className="pointer-events-none absolute inset-0 h-full w-full peer-checked:hidden"
         />
         <Image
-          src="/icons/checkbox_checked.svg"
+          src={checkedSrc}
           alt=""
           width={size}
           height={size}

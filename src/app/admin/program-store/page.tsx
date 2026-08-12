@@ -378,7 +378,7 @@ export default function ProgramStorePage() {
                       <Image
                         src={
                           allSelected
-                            ? "/icons/checkbox_checked.svg"
+                            ? "/icons/admin_checkbox_checked.svg"
                             : "/icons/checkbox_unchecked.svg"
                         }
                         alt="Checkbox"
@@ -416,7 +416,7 @@ export default function ProgramStorePage() {
                           <Image
                             src={
                               isSelected
-                                ? "/icons/checkbox_checked.svg"
+                                ? "/icons/admin_checkbox_checked.svg"
                                 : "/icons/checkbox_unchecked.svg"
                             }
                             alt="Checkbox"

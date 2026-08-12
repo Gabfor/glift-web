@@ -67,6 +67,21 @@ export default function AdminHeader() {
           {/* Admin Navigation */}
           <nav className="flex-1 flex justify-center gap-6 text-[16px] text-[#5D6494] font-semibold">
             <Link
+              href="/pages"
+              className={
+                pathname === "/pages" ||
+                  pathname === "/admin/pages" ||
+                  pathname?.startsWith("/pages") ||
+                  pathname?.startsWith("/admin/pages") ||
+                  pathname?.startsWith("/create-page") ||
+                  pathname?.startsWith("/admin/create-page")
+                  ? "text-[#3A416F]"
+                  : "hover:text-[#3A416F]"
+              }
+            >
+              Pages
+            </Link>
+            <Link
               href="/program"
               className={
                 pathname === "/program" ||

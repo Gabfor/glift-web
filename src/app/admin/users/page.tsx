@@ -1021,7 +1021,7 @@ export default function AdminUsersPage() {
                             <Image
                               src={
                                 users.length > 0 && users.length === selectedIds.length
-                                  ? "/icons/checkbox_checked.svg"
+                                  ? "/icons/admin_checkbox_checked.svg"
                                   : "/icons/checkbox_unchecked.svg"
                               }
                               alt="Checkbox"
@@ -1070,7 +1070,7 @@ export default function AdminUsersPage() {
                                 <Image
                                   src={
                                     isSelected
-                                      ? "/icons/checkbox_checked.svg"
+                                      ? "/icons/admin_checkbox_checked.svg"
                                       : "/icons/checkbox_unchecked.svg"
                                   }
                                   alt="checkbox"
