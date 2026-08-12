@@ -81,33 +81,33 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         }
       }
 
+      const optimisticRow: Row = {
+        id: undefined,
+        series: 4,
+        repetitions: Array(4).fill(""),
+        poids: Array(4).fill(""),
+        repos: "",
+        effort: Array(4).fill("parfait"),
+        checked: false,
+        iconHovered: false,
+        exercice: "",
+        materiel: "",
+        superset_id: null,
+        link: "",
+        note: "",
+        locked: false,
+        superset_id_locked: false,
+      };
+
       if (error) {
         console.error("❌ Erreur chargement lignes :", error);
         setFullyLoaded(true);
         return;
       }
 
-      if (data.length === 0 && !hasInsertedFirstRow.current) {
+      if ((!data || data.length === 0) && !hasInsertedFirstRow.current) {
         console.log("ℹ️ Aucun training_row trouvé → création auto");
         hasInsertedFirstRow.current = true;
-
-        const optimisticRow: Row = {
-          id: undefined,
-          series: 4,
-          repetitions: Array(4).fill(""),
-          poids: Array(4).fill(""),
-          repos: "",
-          effort: Array(4).fill("parfait"),
-          checked: false,
-          iconHovered: false,
-          exercice: "",
-          materiel: "",
-          superset_id: null,
-          link: "",
-          note: "",
-          locked: false,
-          superset_id_locked: false,
-        };
 
         setRows([optimisticRow]);
         setSelectedRowIds([]);
@@ -261,28 +261,30 @@ export function useTrainingRows(trainingId: string, user: User | null) {
         return;
       }
 
-      setRows(
-        data.map((row) => ({
-          id: row.id,
-          series: row.series,
-          repetitions: row.repetitions,
-          poids: row.poids,
-          repos: row.repos,
-          effort: row.effort,
-          checked: row.checked,
-          iconHovered: false,
-          exercice: row.exercice,
-          materiel: row.materiel,
-          superset_id: row.superset_id,
-          link: row.link,
-          note: row.note,
-          locked: row.locked,
-          superset_id_locked: row.superset_id_locked,
-        }))
-      );
+      if (data && data.length > 0) {
+        setRows(
+          data.map((row) => ({
+            id: row.id,
+            series: row.series,
+            repetitions: row.repetitions,
+            poids: row.poids,
+            repos: row.repos,
+            effort: row.effort,
+            checked: row.checked,
+            iconHovered: false,
+            exercice: row.exercice,
+            materiel: row.materiel,
+            superset_id: row.superset_id,
+            link: row.link,
+            note: row.note,
+            locked: row.locked,
+            superset_id_locked: row.superset_id_locked,
+          }))
+        );
 
-      setSelectedRowIds([]);
-      previousIdsRef.current = data.map((row) => row.id);
+        setSelectedRowIds([]);
+        previousIdsRef.current = data.map((row) => row.id);
+      }
       setFullyLoaded(true);
       hasEverLoadedRef.current = true;
     };
