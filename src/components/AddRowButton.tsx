@@ -10,9 +10,18 @@ type Props = {
   onClick: () => void;
   disabled?: boolean;
   locked?: boolean;
+  adminMode?: boolean;
 };
 
-export default function AddRowButton({ icon, setIcon, onClick, disabled, locked }: Props) {
+export default function AddRowButton({ icon, setIcon, onClick, disabled, locked, adminMode }: Props) {
+  const isEffectiveAdmin = adminMode || (typeof window !== "undefined" && window.location.host.startsWith("admin."));
+  const defaultPlusIcon = isEffectiveAdmin ? "/icons/admin_plus.svg" : "/icons/plus.svg";
+  const hoverPlusIcon = isEffectiveAdmin ? "/icons/admin_plus_hover.svg" : "/icons/plus_hover.svg";
+
+  const currentIcon = (icon === "/icons/plus.svg" || icon === "/icons/plus_hover.svg") && isEffectiveAdmin
+    ? (icon === "/icons/plus_hover.svg" ? hoverPlusIcon : defaultPlusIcon)
+    : icon;
+
   if (locked) {
     return (
       <div className="flex justify-center mt-4">
@@ -41,13 +50,13 @@ export default function AddRowButton({ icon, setIcon, onClick, disabled, locked 
     <div className="flex justify-center mt-4">
       <Tooltip content={disabled ? "Chargement..." : "Ajouter une ligne"} placement="bottom" delay={500}>
         <Image
-          src={icon}
+          src={currentIcon}
           alt="Ajouter une ligne"
           width={20}
           height={20}
           onClick={() => !disabled && onClick()}
-          onMouseEnter={() => !disabled && setIcon("/icons/plus_hover.svg")}
-          onMouseLeave={() => !disabled && setIcon("/icons/plus.svg")}
+          onMouseEnter={() => !disabled && setIcon(hoverPlusIcon)}
+          onMouseLeave={() => !disabled && setIcon(defaultPlusIcon)}
           className={`w-5 h-5 ${disabled ? "opacity-30 cursor-default grayscale" : "cursor-pointer"}`}
         />
       </Tooltip>

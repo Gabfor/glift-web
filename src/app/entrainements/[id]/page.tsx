@@ -524,6 +524,7 @@ export default function AdminEntrainementDetailPage() {
         <AddRowButton
           icon={icon}
           setIcon={setIcon}
+          adminMode={isAdminRoute || isAdminTraining}
           onClick={() => {
             if (rowsLoading) return;
 
