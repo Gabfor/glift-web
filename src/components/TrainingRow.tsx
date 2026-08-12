@@ -225,7 +225,14 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full border-t border-l border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent", height: "40px", lineHeight: "40px", color: row.locked ? "#D7D4DC" : activeTextColor }}
+            style={{
+              backgroundColor: "transparent",
+              height: "40px",
+              lineHeight: "40px",
+              color: row.locked ? "#D7D4DC" : activeTextColor,
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+              opacity: 1,
+            }}
             placeholder="Nom de l’exercice"
             title={row.exercice || undefined}
           />
@@ -252,7 +259,13 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent", lineHeight: "40px", color: row.locked ? "#D7D4DC" : activeTextColor }}
+            style={{
+              backgroundColor: "transparent",
+              lineHeight: "40px",
+              color: row.locked ? "#D7D4DC" : activeTextColor,
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+              opacity: 1,
+            }}
             placeholder="Matériel"
           />
         </td>
@@ -272,6 +285,8 @@ export default function TrainingRow({
               WebkitAppearance: "none",
               MozAppearance: "textfield",
               color: row.locked ? "#D7D4DC" : activeTextColor,
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+              opacity: 1,
             }}
           />
           {!readOnly && (
@@ -313,6 +328,8 @@ export default function TrainingRow({
                       ? "#F4F5FE"
                       : "transparent",
                 color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                opacity: 1,
               }}
               value={rep || ""}
               placeholder="0"
@@ -349,6 +366,8 @@ export default function TrainingRow({
                       ? "#F4F5FE"
                       : "transparent",
                 color: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                opacity: 1,
               }}
               value={weight || ""}
               placeholder="0"
@@ -375,7 +394,12 @@ export default function TrainingRow({
             disabled={row.locked}
             className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
-            style={{ backgroundColor: "transparent", color: row.locked ? "#D7D4DC" : activeTextColor }}
+            style={{
+              backgroundColor: "transparent",
+              color: row.locked ? "#D7D4DC" : activeTextColor,
+              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+              opacity: 1,
+            }}
             value={row.repos}
             onFocus={() => !readOnly && setIsEditing(true)}
             onBlur={() => !readOnly && setIsEditing(false)}
