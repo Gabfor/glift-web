@@ -1,6 +1,8 @@
 "use client";
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useUser } from "@/context/UserContext";
+import { usePathname } from "next/navigation";
 
 function hexToRgba(hex: string, opacityPercent: number = 100): string {
   let cleanHex = (hex || "#FBFCFE").replace("#", "").trim();
@@ -21,8 +23,38 @@ interface ConceptGradientBackgroundProps {
   initialSettings?: Record<string, string>;
 }
 
+const ALLOWED_DISCONNECTED_PATHS = [
+  "/",
+  "/concept",
+  "/concepts",
+  "/app",
+  "/apps",
+  "/tarifs",
+  "/creation-programmes",
+  "/suivi-seances",
+  "/notation-ressenti",
+  "/visualisation-progression",
+];
+
 export default function ConceptGradientBackground({ initialSettings }: ConceptGradientBackgroundProps) {
+  const { isAuthenticated } = useUser();
+  const pathname = usePathname();
   const siteSettings = useSiteSettings();
+
+  // 1. Ne pas afficher le dégradé en mode connecté
+  if (isAuthenticated) {
+    return null;
+  }
+
+  // 2. En mode déconnecté, afficher uniquement sur les pages autorisées
+  const rawPath = pathname || "/";
+  const cleanPath = rawPath.replace(/\/$/, "") || "/";
+  const normalizedPath = cleanPath.replace(/^\/(fr|en)(\/|$)/, "$2") || "/";
+
+  const isAllowedPath = ALLOWED_DISCONNECTED_PATHS.includes(normalizedPath);
+  if (!isAllowedPath) {
+    return null;
+  }
 
   const enabled = initialSettings
     ? initialSettings["gradient_enabled"] !== "false"

@@ -475,8 +475,8 @@ export default function AdminProgramPage() {
                                   copiedId === program.id
                                     ? "/icons/check.svg"
                                     : hoveredId === program.id
-                                      ? "/icons/copy_hover.svg"
-                                      : "/icons/copy.svg"
+                                      ? "/icons/admin_copy_hover.svg"
+                                      : "/icons/admin_copy.svg"
                                 }
                                 alt="Copier"
                                 width={20}

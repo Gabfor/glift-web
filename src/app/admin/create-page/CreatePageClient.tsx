@@ -146,7 +146,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
+      <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
         <div className="w-full max-w-3xl text-center text-[#5D6494] font-semibold">
           Chargement...
         </div>

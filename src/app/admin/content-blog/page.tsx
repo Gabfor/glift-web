@@ -497,8 +497,8 @@ export default function AdminContentBlogPage() {
                                   copiedId === a.id
                                     ? "/icons/check.svg"
                                     : hoveredId === a.id
-                                      ? "/icons/copy_hover.svg"
-                                      : "/icons/copy.svg"
+                                      ? "/icons/admin_copy_hover.svg"
+                                      : "/icons/admin_copy.svg"
                                 }
                                 alt="Copier"
                                 width={20}

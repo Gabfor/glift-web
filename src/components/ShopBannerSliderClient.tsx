@@ -63,7 +63,7 @@ const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
 
 export default function ShopBannerSliderClient({ onOfferClick, initialType = "none", initialSlides = [] }: Props) {
   const supabase = createClient();
-  const paginationRef = useRef<HTMLDivElement | null>(null);
+  const [paginationEl, setPaginationEl] = useState<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperClass | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(true);
@@ -142,19 +142,34 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
     }
   }, [supabase, slides.length]);
 
-  // si aucun slider ou type "none", on n'affiche rien
-  if (type === "none" || slides.length === 0) return null;
-
-  const isDouble = type === "double";
-  const width = isDouble ? 564 : 1152;
-  const height = 250;
-
   // on cache la pagination/play si :
   // - single && slides ≤ 1 (une grande image)
   // - double && slides ≤ 2 (deux petites)
   const hideControls =
     (type === "single" && slides.length <= 1) ||
     (type === "double" && slides.length <= 2);
+
+  useEffect(() => {
+    if (swiperRef.current && paginationEl && !hideControls) {
+      if (
+        swiperRef.current.params.pagination &&
+        typeof swiperRef.current.params.pagination !== "boolean"
+      ) {
+        swiperRef.current.params.pagination.el = paginationEl;
+        swiperRef.current.pagination.destroy();
+        swiperRef.current.pagination.init();
+        swiperRef.current.pagination.render();
+        swiperRef.current.pagination.update();
+      }
+    }
+  }, [paginationEl, slides.length, hideControls]);
+
+  // si aucun slider ou type "none", on n'affiche rien
+  if (type === "none" || slides.length === 0) return null;
+
+  const isDouble = type === "double";
+  const width = isDouble ? 564 : 1152;
+  const height = 250;
 
   const toggleAutoplay = () => {
     if (!swiperRef.current) return;
@@ -167,7 +182,6 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
     <div className="mx-auto mb-12 w-full max-w-[1152px]">
       <Swiper
         modules={[Pagination, Autoplay]}
-        // si hideControls, on passe false pour désactiver pagination/autoplay
         autoplay={
           hideControls
             ? false
@@ -180,18 +194,12 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
           hideControls
             ? false
             : {
-              el: paginationRef.current,
+              el: paginationEl,
               clickable: true,
             }
         }
-        onBeforeInit={(swiper) => {
+        onSwiper={(swiper) => {
           swiperRef.current = swiper;
-          if (
-            swiper.params.pagination &&
-            typeof swiper.params.pagination !== "boolean"
-          ) {
-            swiper.params.pagination.el = paginationRef.current;
-          }
         }}
         loop={!hideControls}
         slidesPerGroup={1}
@@ -248,7 +256,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
           <div className="mt-5 flex justify-center">
             <div className="flex items-center justify-center gap-[3px] mr-[6px]">
               <div
-                ref={paginationRef}
+                ref={setPaginationEl}
                 className="flex items-center justify-center"
               />
               <button
@@ -274,6 +282,10 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
               background-color: #ece9f1;
               opacity: 1;
               margin: 0 6px;
+              border-radius: 50%;
+              display: inline-block;
+              cursor: pointer;
+              transition: background-color 0.2s ease;
             }
             .swiper-pagination-bullet-active {
               background-color: #a1a5fd;

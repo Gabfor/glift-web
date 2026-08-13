@@ -226,7 +226,7 @@ export default function CreateAuteurClient({ auteurId }: Props) {
 
   if (isLoading) {
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex items-center justify-center">
+      <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex items-center justify-center">
         <div className="text-center text-[#5D6494] font-semibold">Chargement...</div>
       </main>
     );

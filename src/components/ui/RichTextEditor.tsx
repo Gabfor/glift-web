@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { usePathname } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Extension, Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -49,8 +50,12 @@ const GlobalAttributes = Extension.create({
                         default: null,
                         parseHTML: element => element.getAttribute('class'),
                         renderHTML: attributes => {
-                            if (!attributes.class) return {};
-                            return { class: attributes.class };
+                            if (!attributes.class) {
+                                return {};
+                            }
+                            return {
+                                class: attributes.class,
+                            };
                         },
                     },
                     style: {
@@ -86,12 +91,13 @@ const ImageCaption = Node.create({
     content: 'inline*',
     parseHTML() {
         return [
-            { tag: 'p.image-caption' },
-            { tag: 'figcaption' },
+            {
+                tag: 'span.image-caption',
+            },
         ];
     },
     renderHTML({ HTMLAttributes }) {
-        return ['p', mergeAttributes(HTMLAttributes, { class: 'image-caption' }), 0];
+        return ['span', mergeAttributes(HTMLAttributes, { class: 'image-caption' }), 0];
     },
 });
 
@@ -124,6 +130,25 @@ export default function RichTextEditor({
     minimal = false,
     minHeight
 }: RichTextEditorProps) {
+    const pathname = usePathname();
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const isPageAdmin =
+        pathname?.startsWith("/admin") ||
+        hostname.startsWith("admin.") ||
+        hostname.includes("admin") ||
+        pathname?.startsWith("/program") ||
+        pathname?.startsWith("/program-store") ||
+        pathname?.startsWith("/offer-shop") ||
+        pathname?.startsWith("/content-blog") ||
+        pathname?.startsWith("/help") ||
+        pathname?.startsWith("/users") ||
+        pathname?.startsWith("/create-") ||
+        pathname?.startsWith("/slider") ||
+        pathname?.startsWith("/legal") ||
+        pathname?.startsWith("/administrateurs") ||
+        pathname?.startsWith("/auteurs") ||
+        pathname?.startsWith("/settings");
+
     const editor = useEditor({
         extensions: [
             StarterKit,
@@ -139,7 +164,9 @@ export default function RichTextEditor({
             Link.configure({
                 openOnClick: false,
                 HTMLAttributes: {
-                    class: 'text-[#7069FA] no-underline cursor-pointer hover:text-[#6660E4] transition-colors',
+                    class: isPageAdmin
+                        ? 'text-[#5D6494] no-underline cursor-pointer hover:text-[#3A416F] transition-colors'
+                        : 'text-[#7069FA] no-underline cursor-pointer hover:text-[#6660E4] transition-colors',
                 },
                 validate: (href) => /^https?:\/\//.test(href) || href.startsWith('#') || href.startsWith('/'),
             }),
@@ -280,7 +307,11 @@ export default function RichTextEditor({
     };
     return (
         <div 
-            className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#5D6494] flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
+            className={`border border-[#D7D4DC] rounded-[5px] bg-white hover:border-[#C2BFC6] transition-colors ${
+                isPageAdmin
+                    ? "focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]"
+                    : "focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#5D6494]"
+            } flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
             style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
         >
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
@@ -483,14 +514,18 @@ export default function RichTextEditor({
             margin: 0;
             font-size: 14px;
         }
-        .ProseMirror a {
-            color: #7069FA;
+        .ProseMirror a,
+        .ProseMirror a[class*="text-"],
+        .ProseMirror a span {
+            color: ${isPageAdmin ? '#5D6494 !important' : '#7069FA'};
             text-decoration: none;
             cursor: pointer;
             transition: color 0.15s ease;
         }
-        .ProseMirror a:hover {
-            color: #6660E4;
+        .ProseMirror a:hover,
+        .ProseMirror a:hover *,
+        .ProseMirror a[class*="text-"]:hover {
+            color: ${isPageAdmin ? '#3A416F !important' : '#6660E4'};
         }
         .ProseMirror iframe {
             max-width: 100%;

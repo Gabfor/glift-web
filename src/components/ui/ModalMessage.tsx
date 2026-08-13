@@ -1,5 +1,8 @@
+"use client"
+
 import clsx from "clsx"
 import { ReactNode } from "react"
+import { usePathname } from "next/navigation"
 
 type ModalMessageVariant = "warning" | "info" | "success" | "error"
 
@@ -50,7 +53,34 @@ export default function ModalMessage({
   className,
   onClose,
 }: ModalMessageProps) {
-  const styles = VARIANT_STYLES[variant]
+  const pathname = usePathname()
+  const hostname = typeof window !== "undefined" ? window.location.hostname : ""
+  const isPageAdmin =
+    pathname?.startsWith("/admin") ||
+    hostname.startsWith("admin.") ||
+    hostname.includes("admin") ||
+    pathname?.startsWith("/program") ||
+    pathname?.startsWith("/program-store") ||
+    pathname?.startsWith("/offer-shop") ||
+    pathname?.startsWith("/content-blog") ||
+    pathname?.startsWith("/help") ||
+    pathname?.startsWith("/users") ||
+    pathname?.startsWith("/create-") ||
+    pathname?.startsWith("/slider") ||
+    pathname?.startsWith("/legal") ||
+    pathname?.startsWith("/administrateurs") ||
+    pathname?.startsWith("/auteurs") ||
+    pathname?.startsWith("/settings")
+
+  const baseStyles = VARIANT_STYLES[variant]
+  const styles = isPageAdmin && variant === "info"
+    ? {
+        ...baseStyles,
+        titleColor: "#3A416F",
+        textColor: "#5D6494",
+        barColor: "#5D6494",
+      }
+    : baseStyles
 
   return (
     <div

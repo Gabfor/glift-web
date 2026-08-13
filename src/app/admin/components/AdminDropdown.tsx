@@ -288,7 +288,7 @@ export default function AdminDropdown({
             <button
               type="button"
               onClick={handleClear}
-              className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+              className="text-[12px] mt-[3px] text-[#5D6494] font-semibold hover:text-[#3A416F] transition-colors"
             >
               {clearLabel}
             </button>

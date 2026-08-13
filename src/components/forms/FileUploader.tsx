@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
 type Props = {
@@ -14,6 +15,24 @@ export default function FileUploader({
     onChange,
     accept,
 }: Props) {
+    const pathname = usePathname();
+    const hostname = typeof window !== "undefined" ? window.location.hostname : "";
+    const isPageAdmin =
+        pathname?.startsWith("/admin") ||
+        hostname.startsWith("admin.") ||
+        hostname.includes("admin") ||
+        pathname?.startsWith("/program") ||
+        pathname?.startsWith("/program-store") ||
+        pathname?.startsWith("/offer-shop") ||
+        pathname?.startsWith("/content-blog") ||
+        pathname?.startsWith("/help") ||
+        pathname?.startsWith("/users") ||
+        pathname?.startsWith("/create-") ||
+        pathname?.startsWith("/slider") ||
+        pathname?.startsWith("/legal") ||
+        pathname?.startsWith("/administrateurs") ||
+        pathname?.startsWith("/auteurs") ||
+        pathname?.startsWith("/settings");
     const [loading, setLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const supabase = useMemo(() => createClient(), []);
@@ -118,14 +137,18 @@ export default function FileUploader({
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`h-[45px] w-full flex items-center justify-center rounded-[5px] bg-white border border-dashed text-[14px] cursor-pointer transition-all duration-150 ${isDragging ? "border-[#A1A5FD] bg-[#F4F3FF]" : "border-[#D7D4DC] hover:border-[#C2BFC6]"
+                className={`h-[45px] w-full flex items-center justify-center rounded-[5px] bg-white border border-dashed text-[14px] cursor-pointer transition-all duration-150 ${isDragging
+                    ? isPageAdmin
+                        ? "border-[#5D6494] bg-[#F4F5FE]"
+                        : "border-[#A1A5FD] bg-[#F4F3FF]"
+                    : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                     }`}
             >
                 {loading ? (
                     <span className="text-[#5D6494] font-semibold">Téléchargement en cours...</span>
                 ) : (
                     <span className="text-[#5D6494] font-semibold">
-                        <span className="text-[#7069FA] font-semibold">Ajouter vos fichiers</span>{" "}
+                        <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajouter vos fichiers</span>{" "}
                         ou faites glisser vos fichiers ici
                     </span>
                 )}
@@ -136,26 +159,16 @@ export default function FileUploader({
                 <div className="flex flex-wrap gap-2 w-full mt-3">
                     {value.map((url, index) => {
                         const fileName = url.split('/').pop() || `Fichier ${index + 1}`;
-                        // The uploaded file is formatted as: `[timestamp]-[random].[originalExt]`
-                        // To get the closest to the original name, we can just extract everything after the first dash "-", 
-                        // and then the second dash "-" because of the `Math.random().toString(36).substring(7)` part...
-                        // Wait, actually earlier we just used `file.name.split('.').pop()` to get the extension. 
-                        // The original filename INCLUDES the extension inside Supabase. Let's fix the upload logic to append the full original name.
-
-                        // For the display, since we currently only uploaded `timestamp-random.ext`, the original name is lost in the DB.
-                        // I will update the upload logic ABOVE so it includes the original name, and decode it here correctly.
                         const nameParts = decodeURIComponent(fileName).split('-');
-                        // If it follows new format: timestamp-random-originalname.pdf
-                        // We slice from index 2 onwards.
                         const displayFileName = nameParts.length > 2 ? nameParts.slice(2).join('-') : decodeURIComponent(fileName);
 
                         return (
-                            <div key={index} className="flex items-center gap-2 text-[#A1A5FD] font-semibold text-[12px] bg-[#F4F3FF] px-3 py-[6px] rounded-full">
+                            <div key={index} className={`flex items-center gap-2 font-semibold text-[12px] px-3 py-[6px] rounded-full ${isPageAdmin ? "text-[#5D6494] bg-[#F4F5FE]" : "text-[#A1A5FD] bg-[#F4F3FF]"}`}>
                                 <span className="truncate max-w-[150px]">{displayFileName}</span>
                                 <button
                                     type="button"
                                     onClick={(e) => handleRemove(e, index)}
-                                    className="text-[#A1A5FD] hover:text-[#7069FA] transition-colors leading-none font-bold text-[14px]"
+                                    className={isPageAdmin ? "text-[#5D6494] hover:text-[#3A416F] transition-colors leading-none font-bold text-[14px]" : "text-[#A1A5FD] hover:text-[#7069FA] transition-colors leading-none font-bold text-[14px]"}
                                     aria-label="Remove file"
                                 >
                                     ✕

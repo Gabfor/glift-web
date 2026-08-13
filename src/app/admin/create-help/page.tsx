@@ -275,7 +275,7 @@ function CreateHelpForm() {
 
 export default function CreateHelpPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]" />}>
+        <Suspense fallback={<div className="min-h-screen bg-transparent flex justify-center px-4 pt-[100px] md:pt-[140px]" />}>
             <CreateHelpForm />
         </Suspense>
     );

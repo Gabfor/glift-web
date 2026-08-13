@@ -270,9 +270,9 @@ export default function AdminPagesPage() {
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
-                  <th className="w-[47px] px-4">
+                  <th className="px-4 w-[48px]">
                     <div className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
-                      <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} style={{ marginTop: "5px" }} />
+                      <Image src="/icons/checkbox_unchecked.svg" alt="Checkbox" width={15} height={15} />
                     </div>
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
@@ -293,8 +293,8 @@ export default function AdminPagesPage() {
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
-                  <th className="w-[47px] px-4">
-                    <button onClick={toggleAll}>
+                  <th className="px-4 w-[48px]">
+                    <button onClick={toggleAll} className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
                       <Image
                         src={
                           pages.length === selectedIds.length && pages.length > 0
@@ -304,7 +304,6 @@ export default function AdminPagesPage() {
                         alt="Checkbox"
                         width={15}
                         height={15}
-                        style={{ marginTop: "5px" }}
                       />
                     </button>
                   </th>
@@ -319,8 +318,8 @@ export default function AdminPagesPage() {
                   const isSelected = selectedIds.includes(a.id);
                   return (
                     <tr key={a.id} className="border-b border-[#ECE9F1] h-[60px]">
-                      <td className="w-[47px] px-4 align-middle">
-                        <button onClick={() => toggleCheckbox(a.id)}>
+                      <td className="px-4 align-middle">
+                        <button onClick={() => toggleCheckbox(a.id)} className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
                           <Image
                             src={
                               isSelected
@@ -330,7 +329,6 @@ export default function AdminPagesPage() {
                             alt="checkbox"
                             width={15}
                             height={15}
-                            style={{ marginTop: "5px" }}
                           />
                         </button>
                       </td>

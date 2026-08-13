@@ -412,13 +412,15 @@ export default function AdminEntrainementDetailPage() {
     });
   };
 
+  const isEffectiveAdmin = isAdminRoute || isAdminDomain || isAdminTraining;
+
   if (!isAdminRoute && !isPremiumUser && !accessChecked) {
-    return <div className="min-h-screen bg-[#FBFCFE]" />;
+    return <div className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"}`} />;
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
-      <div className="max-w-[1152px] mx-auto">
+    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-4 pt-[100px] md:pt-[140px]`}>
+      <div className="max-w-[1152px] mx-auto relative z-10">
 
         <BackLink
           className="mb-6"

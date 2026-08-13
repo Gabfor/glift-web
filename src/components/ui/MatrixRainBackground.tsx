@@ -125,7 +125,7 @@ export default function MatrixRainBackground({
 
   return (
     <div
-      className={`absolute top-0 left-0 right-0 w-full h-[340px] sm:h-[420px] md:h-[480px] pointer-events-none -z-10 overflow-hidden ${className}`}
+      className={`absolute top-0 left-0 right-0 w-full h-[340px] sm:h-[420px] md:h-[480px] pointer-events-none z-0 overflow-hidden ${className}`}
       style={{
         background:
           "linear-gradient(115deg, rgba(246, 233, 249, 0.85) 0%, rgba(240, 235, 255, 0.85) 45%, rgba(228, 236, 255, 0.85) 100%)",
@@ -134,7 +134,7 @@ export default function MatrixRainBackground({
         maskImage:
           "linear-gradient(to bottom, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0) 100%)",
         opacity,
-        zIndex: -10,
+        zIndex: 0,
       }}
     >
       <canvas ref={canvasRef} className="w-full h-full block" />
