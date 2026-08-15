@@ -13,7 +13,7 @@ import {
 
 type ModalProps = PropsWithChildren<{
   open: boolean
-  title: string
+  title: ReactNode
   onClose?: () => void
   closeDisabled?: boolean
   footer?: ReactNode
