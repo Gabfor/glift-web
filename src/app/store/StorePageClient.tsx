@@ -29,6 +29,7 @@ export default function StorePageClient({
   });
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [filters, setFilters] = useState<string[]>(() => {
     try {
       const saved = sessionStorage.getItem("glift_store_filters");
@@ -47,94 +48,16 @@ export default function StorePageClient({
     } catch { /* ignore */ }
   }, [sortBy, filters, currentPage]);
 
-  // Fetch total count of ON programs once (or when sort/filter changes)
-  useEffect(() => {
-    // Skip initial fetch since it's provided by SSR
-    if (currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance") {
-      return;
-    }
-
-    const fetchTotalCount = async () => {
-      setLoadingCount(true);
-      const supabase = createClient();
-
-      let query = supabase
-        .from("program_store")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "ON");
-
-      const [
-        genderFilter,
-        goalFilter,
-        levelFilter,
-        locationFilter,
-        durationFilter,
-        partnerFilter,
-        availabilityFilter,
-      ] = filters;
-
-      // appliquer les filtres s'ils sont actifs
-      if (genderFilter) {
-        const genders = genderFilter.split(",").map((s) => s.trim());
-        if (genders.length === 1) {
-          query = query.or(`gender.eq.${genders[0]},gender.eq.Tous,gender.eq.Mixte`);
-        }
-      }
-      if (goalFilter) {
-        const goals = goalFilter.split(",").map((s) => s.trim());
-        if (goals.length === 1) query = query.eq("goal", goals[0]);
-        else query = query.in("goal", goals);
-      }
-      if (levelFilter) {
-        const levels = levelFilter.split(",").map((s) => s.trim());
-        query = query.in("level", [...levels, "Tous niveaux"]);
-      }
-      if (locationFilter) {
-        const locations = locationFilter.split(",").map((s) => s.trim());
-        if (locations.length === 1) query = query.eq("location", locations[0]);
-        else query = query.in("location", locations);
-      }
-      if (durationFilter) {
-        const maxDuration = Number.parseInt(durationFilter, 10);
-        if (!Number.isNaN(maxDuration)) {
-          query = query.lte("duration", maxDuration);
-        }
-      }
-      if (partnerFilter) {
-        const partners = partnerFilter.split(",").map((s) => s.trim());
-        if (partners.length === 1) query = query.eq("partner_name", partners[0]);
-        else query = query.in("partner_name", partners);
-      }
-      if (availabilityFilter === "Oui") {
-        if (!user || !isPremiumUser) {
-          query = query.eq("plan", "starter");
-        }
-      } else if (availabilityFilter === "Non") {
-        if (!user || !isPremiumUser) {
-          query = query.eq("plan", "premium");
-        }
-      }
-
-      const { count, error } = await query;
-
-      if (error) {
-        console.error("Erreur lors du comptage des programmes :", error.message);
-        setTotalPrograms(0);
-      } else {
-        setTotalPrograms(count || 0);
-      }
-
-      setLoadingCount(false);
-    };
-
-    fetchTotalCount();
-  }, [sortBy, filters, user, isPremiumUser, currentPage]);
-
   return (
     <div className="max-w-[1152px] mx-auto">
       <StoreFilters
         sortBy={sortBy}
         initialFilters={filters}
+        favoritesOnly={favoritesOnly}
+        onFavoritesOnlyToggle={() => {
+          setFavoritesOnly((prev) => !prev);
+          setCurrentPage(1);
+        }}
         onSortChange={(value) => {
           setSortBy(value);
           setCurrentPage(1);
@@ -148,11 +71,13 @@ export default function StorePageClient({
         sortBy={sortBy}
         currentPage={currentPage}
         filters={filters}
-        initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" ? initialPrograms : undefined}
+        favoritesOnly={favoritesOnly}
+        onCountChange={setTotalPrograms}
+        initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialPrograms : undefined}
         initialUserProfile={initialUserProfile}
         initialIsAuthenticated={initialIsAuthenticated}
       />
-      {!loadingCount && (
+      {totalPrograms > 8 && (
         <div className="hidden md:block">
           <Pagination
             currentPage={currentPage}

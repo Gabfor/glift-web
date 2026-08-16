@@ -4,10 +4,19 @@ import { ShopOffer, ShopProfile } from "@/types/shop";
 /**
  * Calcule le score de pertinence pour un programme selon le profil utilisateur
  */
-export function calculateProgramRelevance(program: StoreProgram, userProfile: StoreProfile | null): number {
-  if (!userProfile) return 0;
-  
+export function calculateProgramRelevance(
+  program: StoreProgram,
+  userProfile: StoreProfile | null,
+  isFavorite: boolean = false
+): number {
   let score = 0;
+
+  // 0. Favorite Rule (+10 points)
+  if (isFavorite) {
+    score += 10;
+  }
+
+  if (!userProfile) return score;
 
   // 1. Gender Rule
   const userGender = userProfile.gender?.toString().trim().toLowerCase();
@@ -69,10 +78,16 @@ export function calculateProgramRelevance(program: StoreProgram, userProfile: St
 /**
  * Trie les programmes par pertinence
  */
-export function sortProgramsByRelevance(programs: StoreProgram[], userProfile: StoreProfile | null): StoreProgram[] {
+export function sortProgramsByRelevance(
+  programs: StoreProgram[],
+  userProfile: StoreProfile | null,
+  favorites: string[] = []
+): StoreProgram[] {
   return [...programs].sort((a, b) => {
-    const scoreA = calculateProgramRelevance(a, userProfile);
-    const scoreB = calculateProgramRelevance(b, userProfile);
+    const isFavA = favorites.includes(a.id);
+    const isFavB = favorites.includes(b.id);
+    const scoreA = calculateProgramRelevance(a, userProfile, isFavA);
+    const scoreB = calculateProgramRelevance(b, userProfile, isFavB);
 
     if (scoreA !== scoreB) {
       return scoreB - scoreA;

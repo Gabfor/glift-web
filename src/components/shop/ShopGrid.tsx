@@ -7,6 +7,7 @@ import ShopGridSkeleton from "./ShopGridSkeleton";
 import { ShopOffer, ShopProfile } from "@/types/shop";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { useUser } from "@/context/UserContext";
+import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
 const ITEMS_PER_PAGE = 8;
 

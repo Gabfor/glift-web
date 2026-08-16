@@ -21,6 +21,8 @@ type Props = {
   onSortChange: (sortBy: string) => void;
   onFiltersChange: (filters: string[]) => void;
   initialFilters?: string[];
+  favoritesOnly?: boolean;
+  onFavoritesOnlyToggle?: () => void;
 };
 
 type ProgramStoreField = {
@@ -129,7 +131,14 @@ const buildDurationOptions = (durations: number[], selected: string) => {
   return options.sort((a, b) => Number.parseInt(a.value, 10) - Number.parseInt(b.value, 10));
 };
 
-export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, initialFilters }: Props) {
+export default function StoreFilters({
+  sortBy,
+  onSortChange,
+  onFiltersChange,
+  initialFilters,
+  favoritesOnly = false,
+  onFavoritesOnlyToggle,
+}: Props) {
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
     { value: "popularity", label: "Popularité" },
@@ -590,6 +599,11 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
           selectedFilters={selectedFilters}
           onFilterChange={handleFilterChange}
           storageKey="glift_store"
+          favoritesOnly={favoritesOnly}
+          onFavoritesOnlyToggle={onFavoritesOnlyToggle}
+          isAuthenticated={isAuthenticated}
+          favoriteIconActive="/icons/coeur_red.svg"
+          favoriteIconInactive="/icons/coeur_grey.svg"
           rightContent={
             isUserDataLoaded && isAuthenticated && !isPremiumUser ? (
               <div className="flex items-center gap-[10px]">
@@ -677,6 +691,23 @@ export default function StoreFilters({ sortBy, onSortChange, onFiltersChange, in
             />
             <span>Filtres</span>
           </button>
+
+          {/* Bouton Favoris (Mobile) */}
+          {user && onFavoritesOnlyToggle && (
+            <button
+              type="button"
+              onClick={onFavoritesOnlyToggle}
+              className="w-10 h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center p-0 shrink-0 cursor-pointer hover:border-[#C2BFC6] transition"
+              aria-label="Filtrer par favoris"
+            >
+              <Image
+                src={favoritesOnly ? "/icons/coeur_red.svg" : "/icons/coeur_grey.svg"}
+                alt=""
+                width={24}
+                height={24}
+              />
+            </button>
+          )}
         </div>
       </div>
 

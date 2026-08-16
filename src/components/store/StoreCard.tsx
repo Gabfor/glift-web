@@ -32,14 +32,29 @@ type Props = {
   };
   isAuthenticated: boolean;
   subscriptionPlan: string | null;
+  isFavorite?: boolean;
+  onToggleFavorite?: (programId: string) => void;
 };
 
-export default function StoreCard({ program, isAuthenticated, subscriptionPlan }: Props) {
+export default function StoreCard({
+  program,
+  isAuthenticated,
+  subscriptionPlan,
+  isFavorite = false,
+  onToggleFavorite,
+}: Props) {
   const router = useRouter();
   const { trainingsUrl } = useDashboardUrl();
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!onToggleFavorite) return;
+    onToggleFavorite(program.id);
+  };
+
   // Logic: Restricted if user is starter AND program is premium.
   const isRestricted = isAuthenticated && subscriptionPlan === 'starter' && program.plan === 'premium';
 
@@ -65,7 +80,24 @@ export default function StoreCard({ program, isAuthenticated, subscriptionPlan }
           : [];
 
   return (
-    <div className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+      {/* BOUTON FAVORI (15px du haut et 15px de la droite) - Seulement si utilisateur connecté */}
+      {isAuthenticated && onToggleFavorite && (
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+          className="absolute top-[15px] right-[15px] z-20 cursor-pointer focus:outline-none"
+        >
+          <Image
+            src={isFavorite ? "/icons/coeur_red.svg" : "/icons/coeur_grey.svg"}
+            alt="Favori"
+            width={24}
+            height={24}
+            unoptimized
+          />
+        </button>
+      )}
       {/* IMAGE PRINCIPALE (Responsive Mobile / Desktop) */}
       {program.image_mobile ? (
         <>
