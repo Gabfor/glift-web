@@ -22,6 +22,7 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
   const [sortBy, setSortBy] = useState("relevance");
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState(["", "", "", ""]);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
@@ -53,6 +54,11 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
         <ShopFilters
           sortBy={sortBy}
           initialFilters={filters}
+          favoritesOnly={favoritesOnly}
+          onFavoritesOnlyToggle={() => {
+            setFavoritesOnly((prev) => !prev);
+            setCurrentPage(1);
+          }}
           onSortChange={(value: string) => {
             setSortBy(value);
             setCurrentPage(1);
@@ -66,9 +72,10 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
           sortBy={sortBy}
           currentPage={currentPage}
           filters={filters}
+          favoritesOnly={favoritesOnly}
           onOfferClick={handleOfferClick}
           onCountChange={setTotalItems}
-          initialOffers={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" ? initialOffers : undefined}
+          initialOffers={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
         />
         {totalItems > 8 && (
           <div className="hidden md:block">

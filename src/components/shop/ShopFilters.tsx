@@ -8,12 +8,15 @@ import FiltersPanel, {
   type SortOption,
 } from "@/components/filters/FiltersPanel";
 import DropdownFilter, { type FilterOption } from "@/components/filters/DropdownFilter";
+import { useUser } from "@/context/UserContext";
 
 type Props = {
   sortBy: string;
   onSortChange: (sortBy: string) => void;
   onFiltersChange: (filters: string[]) => void;
   initialFilters?: string[];
+  favoritesOnly?: boolean;
+  onFavoritesOnlyToggle?: () => void;
 };
 
 type OfferShopField = {
@@ -177,7 +180,10 @@ export default function ShopFilters({
   onSortChange,
   onFiltersChange,
   initialFilters,
+  favoritesOnly = false,
+  onFavoritesOnlyToggle,
 }: Props) {
+  const { user } = useUser();
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
     { value: "popularity", label: "Popularité" },
@@ -323,13 +329,16 @@ export default function ShopFilters({
           selectedFilters={selectedFilters}
           onFilterChange={handleFilterChange}
           storageKey="glift_shop"
+          favoritesOnly={favoritesOnly}
+          onFavoritesOnlyToggle={onFavoritesOnlyToggle}
+          isAuthenticated={Boolean(user)}
         />
       </div>
 
       {/* --- VUE MOBILE (< md) STYLE GLIFT-MOBILE --- */}
       <div className="md:hidden mb-6">
         <div className="flex items-center gap-[10px]">
-          {/* Menu déroulant de tri : 2/3 de largeur */}
+          {/* Menu déroulant de tri */}
           <div className="flex-[2] relative" ref={mobileSortRef}>
             <button
               type="button"
@@ -382,7 +391,7 @@ export default function ShopFilters({
             )}
           </div>
 
-          {/* Bouton filtre : 1/3 de largeur avec texte "Filtres" */}
+          {/* Bouton filtre */}
           <button
             type="button"
             onClick={() => setShowMobileFilters(!showMobileFilters)}
@@ -397,6 +406,23 @@ export default function ShopFilters({
             />
             <span>Filtres</span>
           </button>
+
+          {/* Bouton Favoris (Mobile) */}
+          {user && onFavoritesOnlyToggle && (
+            <button
+              type="button"
+              onClick={onFavoritesOnlyToggle}
+              className="h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center gap-2 px-3 cursor-pointer hover:border-[#C2BFC6] transition text-[16px] font-semibold text-[#3A416F]"
+              aria-label="Filtrer par favoris"
+            >
+              <Image
+                src={favoritesOnly ? "/icons/coeur_rouge.svg" : "/icons/coeur_gris.svg"}
+                alt=""
+                width={18}
+                height={18}
+              />
+            </button>
+          )}
         </div>
 
         {/* Panneau des filtres déplié sur mobile */}

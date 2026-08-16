@@ -81,6 +81,7 @@ export default function ShopGrid({
   onOfferClick,
   onCountChange,
   initialOffers = [],
+  favoritesOnly = false,
 }: {
   sortBy: string;
   currentPage: number;
@@ -88,11 +89,13 @@ export default function ShopGrid({
   onOfferClick: (offer: ShopOffer) => void;
   onCountChange?: (count: number) => void;
   initialOffers?: ShopOffer[];
+  favoritesOnly?: boolean;
 }) {
   const isDefaultQuery =
     currentPage === 1 &&
     sortBy === "relevance" &&
-    filters.every((f) => f === "");
+    filters.every((f) => f === "") &&
+    !favoritesOnly;
 
   const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
   const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, 8));
@@ -206,6 +209,7 @@ export default function ShopGrid({
     currentPage: number;
     filters: string[];
     userProfile: ShopProfile | null;
+    favoritesOnly: boolean;
   } | null>(null);
 
   useEffect(() => {
@@ -220,6 +224,7 @@ export default function ShopGrid({
         currentPage,
         filters: [...filters],
         userProfile: userProfile ? { ...userProfile } : null,
+        favoritesOnly,
       };
       setLoading(false);
       return;
@@ -230,6 +235,7 @@ export default function ShopGrid({
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
       previousQuery.currentPage !== currentPage ||
+      previousQuery.favoritesOnly !== favoritesOnly ||
       previousQuery.userProfile?.gender !== userProfile?.gender ||
       previousQuery.userProfile?.supplements !== userProfile?.supplements ||
       previousQuery.userProfile?.main_goal !== userProfile?.main_goal ||
@@ -245,6 +251,7 @@ export default function ShopGrid({
       currentPage,
       filters: [...filters],
       userProfile: userProfile ? { ...userProfile } : null,
+      favoritesOnly,
     };
 
     let isActive = true;
@@ -284,7 +291,7 @@ export default function ShopGrid({
       }
 
       const rawOffers = (data || []) as OfferQueryRow[];
-      const normalized: ShopOffer[] = rawOffers.map((row) => ({
+      let normalized: ShopOffer[] = rawOffers.map((row) => ({
         id: row.id,
         name: row.name,
         start_date: row.start_date ?? "",
@@ -308,6 +315,10 @@ export default function ShopGrid({
         sport: normalizeToArray(row.sport),
         image_mobile: row.image_mobile ?? undefined,
       }));
+
+      if (favoritesOnly) {
+        normalized = normalized.filter((offer) => favorites.includes(offer.id));
+      }
 
       if (sortBy === "relevance") {
         const sorted = sortOffersByRelevance(normalized, userProfile, favorites);
@@ -348,7 +359,7 @@ export default function ShopGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile, isUserContextLoading]);
+  }, [sortBy, currentPage, filters, userProfile, isUserContextLoading, favoritesOnly, favorites]);
 
   return (
     <>
@@ -358,7 +369,9 @@ export default function ShopGrid({
         <div className="relative mt-8">
           {allOffers.length === 0 && !loading && (
             <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
-              Aucune offre disponible{"\n"}avec ces filtres...
+              {favoritesOnly
+                ? "Aucune offre enregistrée en favori pour le moment."
+                : "Aucune offre disponible\navec ces filtres..."}
             </p>
           )}
 

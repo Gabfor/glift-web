@@ -31,6 +31,9 @@ type FiltersPanelProps = {
   onFilterChange: (index: number, value: string) => void;
   rightContent?: React.ReactNode;
   storageKey?: string;
+  favoritesOnly?: boolean;
+  onFavoritesOnlyToggle?: () => void;
+  isAuthenticated?: boolean;
 };
 
 export default function FiltersPanel({
@@ -42,6 +45,9 @@ export default function FiltersPanel({
   onFilterChange,
   rightContent,
   storageKey,
+  favoritesOnly = false,
+  onFavoritesOnlyToggle,
+  isAuthenticated = false,
 }: FiltersPanelProps) {
   const [showFilters, setShowFilters] = useState(() => {
     if (!storageKey) return false;
@@ -195,6 +201,22 @@ export default function FiltersPanel({
                 />
                 <span>{showFilters ? "Masquer les filtres" : "Afficher les filtres"}</span>
               </div>
+            </button>
+          )}
+
+          {isAuthenticated && onFavoritesOnlyToggle && (
+            <button
+              type="button"
+              onClick={onFavoritesOnlyToggle}
+              className="h-10 border border-[#D7D4DC] rounded-[5px] px-3.5 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+            >
+              <Image
+                src={favoritesOnly ? "/icons/coeur_rouge.svg" : "/icons/coeur_gris.svg"}
+                alt=""
+                width={20}
+                height={20}
+              />
+              <span>Favoris</span>
             </button>
           )}
         </div>
