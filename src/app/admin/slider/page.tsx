@@ -79,6 +79,7 @@ export default function AdminSliderPage() {
 
   // State
   const [isActive, setIsActive] = useState(true);
+  const [isMobileActive, setIsMobileActive] = useState(true);
   const [type, setType] = useState("none");
   const [slotCount, setSlotCount] = useState("1"); // Total slots
   const [priorityCount, setPriorityCount] = useState("1"); // Priority (Manual) slots
@@ -88,6 +89,7 @@ export default function AdminSliderPage() {
 
   // Initial state for change detection
   const [initialIsActive, setInitialIsActive] = useState(true);
+  const [initialIsMobileActive, setInitialIsMobileActive] = useState(true);
   const [initialType, setInitialType] = useState("none");
   const [initialSlotCount, setInitialSlotCount] = useState("1");
   const [initialPriorityCount, setInitialPriorityCount] = useState("1");
@@ -110,6 +112,7 @@ export default function AdminSliderPage() {
     if (data) {
       setType(data.type ?? "none");
       setIsActive(data.is_active ?? true);
+      setIsMobileActive((data as any).is_mobile_active ?? true);
       setSlotCount(String(data.slot_count ?? 1));
 
       const slidesValue = Array.isArray(data.slides) ? data.slides : [];
@@ -128,6 +131,7 @@ export default function AdminSliderPage() {
       // Set initial values
       setInitialType(data.type ?? "none");
       setInitialIsActive(data.is_active ?? true);
+      setInitialIsMobileActive((data as any).is_mobile_active ?? true);
       setInitialSlotCount(String(data.slot_count ?? 1));
       setInitialPriorityCount(String(normalizedSlides.length > 0 ? normalizedSlides.length : 1));
       setInitialSlides(paddedSlides);
@@ -135,12 +139,14 @@ export default function AdminSliderPage() {
       // Defaults
       setType("none");
       setIsActive(true);
+      setIsMobileActive(true);
       setSlotCount("1");
       setPriorityCount("1");
       setSlides(Array.from({ length: 6 }, () => ({ ...emptySlide })));
 
       setInitialType("none");
       setInitialIsActive(true);
+      setInitialIsMobileActive(true);
       setInitialSlotCount("1");
       setInitialPriorityCount("1");
       setInitialSlides(Array.from({ length: 6 }, () => ({ ...emptySlide })));
@@ -184,10 +190,11 @@ export default function AdminSliderPage() {
     );
 
     const slidesPayload = trimmedSlides as unknown as SliderInsert["slides"];
-    const payload: SliderInsert = {
+    const payload: SliderInsert & { is_mobile_active?: boolean } = {
       type,
       slides: slidesPayload,
       is_active: isActive,
+      is_mobile_active: isMobileActive,
       slot_count: Number(slotCount),
     };
 
@@ -203,12 +210,29 @@ export default function AdminSliderPage() {
       return;
     }
 
-    const { error: saveError } = existing?.id
+    let { error: saveError } = existing?.id
       ? await supabase
         .from("sliders_admin")
         .update({ ...payload } as SliderUpdate)
         .eq("id", existing.id)
       : await supabase.from("sliders_admin").insert([payload]);
+
+    if (saveError && (saveError.code === "42703" || saveError.message?.includes("is_mobile_active") || saveError.details?.includes("is_mobile_active"))) {
+      console.warn("La colonne is_mobile_active n'existe pas encore dans Supabase. Sauvegarde sans is_mobile_active...");
+      const fallbackPayload = {
+        type,
+        slides: slidesPayload,
+        is_active: isActive,
+        slot_count: Number(slotCount),
+      };
+      const fallbackRes = existing?.id
+        ? await supabase
+          .from("sliders_admin")
+          .update({ ...fallbackPayload } as SliderUpdate)
+          .eq("id", existing.id)
+        : await supabase.from("sliders_admin").insert([fallbackPayload]);
+      saveError = fallbackRes.error;
+    }
 
     if (saveError) {
       console.error("Erreur sauvegarde slider :", saveError);
@@ -216,6 +240,7 @@ export default function AdminSliderPage() {
       // Update initial state after save
       setInitialType(type);
       setInitialIsActive(isActive);
+      setInitialIsMobileActive(isMobileActive);
       setInitialSlotCount(slotCount);
       setInitialPriorityCount(priorityCount);
       setInitialSlides([...slides]); // Clone 
@@ -246,6 +271,7 @@ export default function AdminSliderPage() {
     if (loading) return false;
     if (type !== initialType) return true;
     if (isActive !== initialIsActive) return true;
+    if (isMobileActive !== initialIsMobileActive) return true;
     if (slotCount !== initialSlotCount) return true;
     if (priorityCount !== initialPriorityCount) return true;
 
@@ -256,7 +282,7 @@ export default function AdminSliderPage() {
     const initialRelevant = initialSlides.slice(0, maxCount);
 
     return JSON.stringify(currentRelevant) !== JSON.stringify(initialRelevant);
-  }, [loading, type, initialType, isActive, initialIsActive, slotCount, initialSlotCount, priorityCount, initialPriorityCount, slides, initialSlides]);
+  }, [loading, type, initialType, isActive, initialIsActive, isMobileActive, initialIsMobileActive, slotCount, initialSlotCount, priorityCount, initialPriorityCount, slides, initialSlides]);
 
   return (
     <main className="min-h-screen bg-transparent flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[100px]">
@@ -307,6 +333,19 @@ export default function AdminSliderPage() {
                     options={getSliderCountOptions()}
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* SLIDER MOBILE BLOCK */}
+            <div className="flex flex-col">
+              <div className="flex justify-between items-center">
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase">
+                  SLIDER MOBILE
+                </h3>
+                <ToggleSwitch
+                  checked={isMobileActive}
+                  onCheckedChange={setIsMobileActive}
+                />
               </div>
             </div>
 

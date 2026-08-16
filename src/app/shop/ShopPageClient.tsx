@@ -14,6 +14,7 @@ type Props = {
   sliderConfig: {
     type: string;
     slides: any[];
+    isMobileActive?: boolean;
   };
 };
 
@@ -45,6 +46,7 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
         onOfferClick={handleOfferClick} 
         initialType={(sliderConfig.type as "none" | "single" | "double") || "none"}
         initialSlides={sliderConfig.slides}
+        initialIsMobileActive={sliderConfig.isMobileActive ?? true}
       />
 
       <div className="max-w-[1152px] mx-auto">

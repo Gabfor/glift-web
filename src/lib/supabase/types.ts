@@ -564,6 +564,7 @@ export interface Database {
           created_at: Nullable<string>;
           updated_at: Nullable<string>;
           is_active: boolean; // New column
+          is_mobile_active?: boolean;
           slot_count: number; // New column
         };
         Insert: {
@@ -573,6 +574,7 @@ export interface Database {
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
           is_active?: boolean;
+          is_mobile_active?: boolean;
           slot_count?: number;
         };
         Update: {
@@ -582,6 +584,7 @@ export interface Database {
           created_at?: Nullable<string>;
           updated_at?: Nullable<string>;
           is_active?: boolean;
+          is_mobile_active?: boolean;
           slot_count?: number;
         };
         Relationships: never[];

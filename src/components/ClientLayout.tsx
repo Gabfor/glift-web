@@ -97,7 +97,11 @@ function ClientLayoutContent({
       ) : (
         <Header disconnected={shouldForceDisconnected} />
       )}
-      {children}
+      {isAdminPage ? (
+        <div className="relative z-10">{children}</div>
+      ) : (
+        children
+      )}
       {!isAdminPage && <Footer />}
       {process.env.NODE_ENV === "development" && <AuthDebug />}
     </>

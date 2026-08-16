@@ -218,7 +218,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       .select("*")
       .single();
 
-    let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[] };
+    let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[], isMobileActive: true };
 
     if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
       const normalizeSlides = (value: any): any[] => {
@@ -284,7 +284,8 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
 
       sliderConfig = {
         type: adminConfig.type as "single" | "double",
-        slides: [...prioritySlides, ...offerSlides].slice(0, slotCount)
+        slides: [...prioritySlides, ...offerSlides].slice(0, slotCount),
+        isMobileActive: adminConfig.is_mobile_active ?? true,
       };
     }
 

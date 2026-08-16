@@ -40,6 +40,7 @@ type Props = {
   onOfferClick?: (offer: ShopOffer) => void;
   initialType?: "none" | "single" | "double";
   initialSlides?: Slide[];
+  initialIsMobileActive?: boolean;
 };
 
 const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
@@ -61,7 +62,12 @@ const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
   });
 };
 
-export default function ShopBannerSliderClient({ onOfferClick, initialType = "none", initialSlides = [] }: Props) {
+export default function ShopBannerSliderClient({
+  onOfferClick,
+  initialType = "none",
+  initialSlides = [],
+  initialIsMobileActive = true,
+}: Props) {
   const supabase = createClient();
   const [paginationEl, setPaginationEl] = useState<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperClass | null>(null);
@@ -69,6 +75,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
   const [isPlaying, setIsPlaying] = useState(true);
   const [type, setType] = useState<"none" | "single" | "double">(initialType);
   const [slides, setSlides] = useState<Slide[]>(initialSlides);
+  const [isMobileActive, setIsMobileActive] = useState(initialIsMobileActive);
 
   useEffect(() => {
     const fetchSliderConfig = async () => {
@@ -83,6 +90,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
         return;
       }
 
+      setIsMobileActive((adminConfig as any).is_mobile_active ?? true);
       const prioritySlides = normalizeSlides(adminConfig.slides);
       const slotCount = adminConfig.slot_count || 1;
       const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
@@ -170,6 +178,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
   const isDouble = type === "double";
   const width = isDouble ? 564 : 1152;
   const height = 250;
+  const aspectRatioClass = isDouble ? "aspect-[564/250]" : "aspect-[1152/250]";
 
   const toggleAutoplay = () => {
     if (!swiperRef.current) return;
@@ -179,7 +188,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
   };
 
   return (
-    <div className="mx-auto mb-12 w-full max-w-[1152px]">
+    <div className={`mx-auto mb-[30px] w-full max-w-[1152px] ${!isMobileActive ? "hidden md:block" : ""}`}>
       <Swiper
         modules={[Pagination, Autoplay]}
         autoplay={
@@ -228,7 +237,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
                   alt={slide.alt || `Slider ${idx + 1}`}
                   width={width}
                   height={height}
-                  className="rounded-[20px] object-cover w-full h-[180px] sm:h-[220px] md:h-[250px] transition-transform duration-500"
+                  className={`rounded-[20px] object-cover w-full h-auto ${aspectRatioClass} transition-transform duration-500`}
                 />
               </div>
             ) : (
@@ -243,7 +252,7 @@ export default function ShopBannerSliderClient({ onOfferClick, initialType = "no
                   alt={slide.alt || `Slider ${idx + 1}`}
                   width={width}
                   height={height}
-                  className="rounded-[20px] object-cover w-full h-[180px] sm:h-[220px] md:h-[250px] transition-transform duration-500"
+                  className={`rounded-[20px] object-cover w-full h-auto ${aspectRatioClass} transition-transform duration-500`}
                 />
               </a>
             )}

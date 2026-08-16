@@ -125,7 +125,7 @@ export default async function ShopPage() {
     .select("*")
     .single();
 
-  let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[] };
+  let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[], isMobileActive: true };
 
   if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
     // 4a. Normalize priority slides
@@ -192,7 +192,8 @@ export default async function ShopPage() {
 
     sliderConfig = {
       type: adminConfig.type as "single" | "double",
-      slides: [...prioritySlides, ...offerSlides].slice(0, slotCount)
+      slides: [...prioritySlides, ...offerSlides].slice(0, slotCount),
+      isMobileActive: adminConfig.is_mobile_active ?? true,
     };
   }
 
