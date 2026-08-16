@@ -14,9 +14,13 @@ import { ShopOffer } from "@/types/shop";
 type Props = {
   offer: ShopOffer;
   onOfferClick?: (offer: ShopOffer) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (offerId: string) => void;
+  isAuthenticated?: boolean;
 };
 
-export default function ShopCard({ offer, onOfferClick }: Props) {
+export default function ShopCard({ offer, onOfferClick, isFavorite = false, onToggleFavorite, isAuthenticated = false }: Props) {
+  const [animateHeartbeat, setAnimateHeartbeat] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(() => {
     if (!offer.end_date || !offer.end_date.includes("-")) {
       return null;
@@ -26,6 +30,17 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
     const parsedEndDate = new Date(`${offer.end_date}T00:00:00`).getTime();
     return Number.isNaN(parsedEndDate) ? null : parsedEndDate - Date.now();
   });
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isFavorite) {
+      setAnimateHeartbeat(true);
+      setTimeout(() => setAnimateHeartbeat(false), 450);
+    }
+    if (onToggleFavorite) {
+      onToggleFavorite(offer.id);
+    }
+  };
 
   const handleClick = async () => {
     try {
@@ -87,6 +102,39 @@ export default function ShopCard({ offer, onOfferClick }: Props) {
 
   return (
     <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+      {/* CSS Keyframe for Heartbeat animation */}
+      <style>{`
+        @keyframes heartbeat {
+          0% { transform: scale(1); }
+          25% { transform: scale(1.35); }
+          45% { transform: scale(1.05); }
+          70% { transform: scale(1.22); }
+          100% { transform: scale(1); }
+        }
+        .animate-heartbeat {
+          animation: heartbeat 0.45s ease-in-out;
+        }
+      `}</style>
+
+      {/* BOUTON FAVORI (15px du haut et 15px de la droite) - Seulement si utilisateur connecté */}
+      {isAuthenticated && onToggleFavorite && (
+        <button
+          type="button"
+          onClick={handleToggleFavorite}
+          aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+          className={`absolute top-[15px] right-[15px] z-20 cursor-pointer focus:outline-none ${
+            animateHeartbeat ? "animate-heartbeat" : ""
+          }`}
+        >
+          <Image
+            src={isFavorite ? "/icons/coeur_rouge.svg" : "/icons/coeur_gris.svg"}
+            alt="Favori"
+            width={24}
+            height={24}
+            unoptimized
+          />
+        </button>
+      )}
 
       {/* IMAGE PRINCIPALE (Responsive Mobile / Desktop) */}
       {offer.image_mobile ? (

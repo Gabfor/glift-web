@@ -91,10 +91,21 @@ export function sortProgramsByRelevance(programs: StoreProgram[], userProfile: S
 /**
  * Calcule le score de pertinence pour une offre selon le profil utilisateur
  */
-export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfile | null, now?: number): number {
-  if (!userProfile) return 0;
-
+export function calculateOfferRelevance(
+  offer: ShopOffer,
+  userProfile: ShopProfile | null,
+  now?: number,
+  isFavorite?: boolean
+): number {
   let score = 0;
+
+  // 0. Favorite Rule (+15 points)
+  if (isFavorite) {
+    score += 15;
+  }
+
+  if (!userProfile) return score;
+
   const gender = userProfile.gender?.toLowerCase();
   const supplements = userProfile.supplements;
 
@@ -144,11 +155,17 @@ export function calculateOfferRelevance(offer: ShopOffer, userProfile: ShopProfi
 /**
  * Trie les offres par pertinence
  */
-export function sortOffersByRelevance(offers: ShopOffer[], userProfile: ShopProfile | null): ShopOffer[] {
+export function sortOffersByRelevance(
+  offers: ShopOffer[],
+  userProfile: ShopProfile | null,
+  favoriteOfferIds: string[] = []
+): ShopOffer[] {
   const now = Date.now();
+  const favoriteSet = new Set(favoriteOfferIds);
+
   return [...offers].sort((a, b) => {
-    const scoreA = calculateOfferRelevance(a, userProfile, now);
-    const scoreB = calculateOfferRelevance(b, userProfile, now);
+    const scoreA = calculateOfferRelevance(a, userProfile, now, favoriteSet.has(a.id));
+    const scoreB = calculateOfferRelevance(b, userProfile, now, favoriteSet.has(b.id));
 
     if (scoreA !== scoreB) {
       return scoreB - scoreA;
