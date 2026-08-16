@@ -412,14 +412,14 @@ export default function ShopFilters({
             <button
               type="button"
               onClick={onFavoritesOnlyToggle}
-              className="h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center gap-2 px-3 cursor-pointer hover:border-[#C2BFC6] transition text-[16px] font-semibold text-[#3A416F]"
+              className="w-10 h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center p-0 shrink-0 cursor-pointer hover:border-[#C2BFC6] transition"
               aria-label="Filtrer par favoris"
             >
               <Image
                 src={favoritesOnly ? "/icons/coeur_rouge.svg" : "/icons/coeur_gris.svg"}
                 alt=""
-                width={18}
-                height={18}
+                width={24}
+                height={24}
               />
             </button>
           )}

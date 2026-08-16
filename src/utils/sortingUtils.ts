@@ -99,9 +99,9 @@ export function calculateOfferRelevance(
 ): number {
   let score = 0;
 
-  // 0. Favorite Rule (+15 points)
+  // 0. Favorite Rule (+10 points)
   if (isFavorite) {
-    score += 15;
+    score += 10;
   }
 
   if (!userProfile) return score;

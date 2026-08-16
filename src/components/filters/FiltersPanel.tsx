@@ -213,8 +213,8 @@ export default function FiltersPanel({
               <Image
                 src={favoritesOnly ? "/icons/coeur_rouge.svg" : "/icons/coeur_gris.svg"}
                 alt=""
-                width={20}
-                height={20}
+                width={24}
+                height={24}
               />
               <span>Favoris</span>
             </button>
