@@ -7,8 +7,12 @@ import FiltersPanel, {
   type FilterGroup,
   type SortOption,
 } from "@/components/filters/FiltersPanel";
-import DropdownFilter, { type FilterOption } from "@/components/filters/DropdownFilter";
+import { type FilterOption } from "@/components/filters/DropdownFilter";
 import { useUser } from "@/context/UserContext";
+import { ShopOffer } from "@/types/shop";
+import ShopMobileFilterDrawer, {
+  type FilterSectionData,
+} from "@/components/shop/ShopMobileFilterDrawer";
 
 type Props = {
   sortBy: string;
@@ -75,14 +79,6 @@ const normalizeToArray = (value: unknown): string[] => {
 
 const normalizeSport = (value: unknown): string | null => {
   if (Array.isArray(value)) {
-    // If it's an array, take the first element or join them? 
-    // For filters, usually we want distinct values. 
-    // If the DB has ["Boxe", "MMA"], ideally we'd want both.
-    // But existing logic treats sport as a single string. 
-    // Let's just take the first one for now to match strict typing or join.
-    // Actually, looking at usages, it seems we just want a string.
-    // If it returns multiple, we might need a different approach.
-    // Safe fallback:
     return value.length > 0 && typeof value[0] === 'string' ? value[0] : null;
   }
   if (typeof value !== "string") return null;
@@ -192,6 +188,7 @@ export default function ShopFilters({
   ];
 
   const [offers, setOffers] = useState<NormalizedOfferShopField[]>([]);
+  const [rawOffers, setRawOffers] = useState<ShopOffer[]>([]);
 
   useEffect(() => {
     let isActive = true;
@@ -200,6 +197,10 @@ export default function ShopFilters({
       const cached = sessionStorage.getItem("glift_shop_offers_cache");
       if (cached) {
         setOffers(JSON.parse(cached));
+      }
+      const rawCached = sessionStorage.getItem("glift_shop_raw_offers_cache");
+      if (rawCached) {
+        setRawOffers(JSON.parse(rawCached));
       }
     } catch {
       // ignore
@@ -210,13 +211,14 @@ export default function ShopFilters({
 
       const { data, error } = await supabase
         .from("offer_shop")
-        .select("gender, shop, type, sport")
+        .select("*")
         .eq("status", "ON");
 
       if (error) {
         console.error("Erreur fetch filtres shop:", error.message);
         if (isActive) {
           setOffers([]);
+          setRawOffers([]);
         }
         return;
       }
@@ -225,7 +227,40 @@ export default function ShopFilters({
 
       const normalizedOffers = (data ?? []).map((item) => normalizeOffer(item));
       setOffers(normalizedOffers);
-      try { sessionStorage.setItem("glift_shop_offers_cache", JSON.stringify(normalizedOffers)); } catch { /* ignore */ }
+
+      const rawList: ShopOffer[] = (data ?? []).map((row) => ({
+        id: row.id,
+        name: row.name,
+        start_date: row.start_date ?? "",
+        end_date: row.end_date ?? "",
+        type: normalizeToArray(row.type),
+        code: row.code ?? "",
+        image: row.image || "/placeholder.jpg",
+        image_alt: row.image_alt ?? "",
+        brand_image: row.brand_image ?? undefined,
+        brand_image_alt: row.brand_image_alt ?? undefined,
+        shop: row.shop ?? undefined,
+        shop_website: row.shop_website ?? undefined,
+        shop_link: row.shop_link ?? undefined,
+        shipping: row.shipping ? String(row.shipping) : undefined,
+        modal: row.modal ?? undefined,
+        condition: row.condition ?? undefined,
+        description: row.description ?? undefined,
+        gender: row.gender ?? undefined,
+        boost: Boolean(row.boost),
+        click_count: row.click_count ?? 0,
+        created_at: row.created_at ?? undefined,
+        sport: normalizeToArray(row.sport),
+        image_mobile: row.image_mobile ?? undefined,
+      }));
+      setRawOffers(rawList);
+
+      try {
+        sessionStorage.setItem("glift_shop_offers_cache", JSON.stringify(normalizedOffers));
+        sessionStorage.setItem("glift_shop_raw_offers_cache", JSON.stringify(rawList));
+      } catch {
+        // ignore
+      }
     };
 
     void fetchFilterOptions();
@@ -236,6 +271,9 @@ export default function ShopFilters({
   }, []);
 
   const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", ""]);
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [openMobileSortMenu, setOpenMobileSortMenu] = useState(false);
+  const mobileSortRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (initialFilters && JSON.stringify(initialFilters) !== JSON.stringify(selectedFilters)) {
@@ -243,6 +281,30 @@ export default function ShopFilters({
     }
   }, [initialFilters]);
 
+  // Full unique options for the mobile drawer
+  const allCategoryOptions = useMemo(() => {
+    const set = new Set<string>();
+    rawOffers.forEach((o) => o.type.forEach((t) => t && set.add(t.trim())));
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [rawOffers]);
+
+  const allSportOptions = useMemo(() => {
+    const set = new Set<string>();
+    rawOffers.forEach((o) => o.sport.forEach((s) => s && set.add(s.trim())));
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [rawOffers]);
+
+  const allShopOptions = useMemo(() => {
+    const set = new Set<string>();
+    rawOffers.forEach((o) => {
+      if (o.shop && o.shop.trim().toLowerCase() !== "tous") {
+        set.add(o.shop.trim());
+      }
+    });
+    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
+  }, [rawOffers]);
+
+  // Desktop dropdown options (filtered dynamically by cross-dependencies)
   const { genderOptions, goalOptions, sportOptions, partnerOptions } = useMemo(() => {
     const genderValues = new Set<string>();
     const goalValues = new Set<string>();
@@ -299,9 +361,85 @@ export default function ShopFilters({
     },
   ];
 
-  const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [openMobileSortMenu, setOpenMobileSortMenu] = useState(false);
-  const mobileSortRef = useRef<HTMLDivElement>(null);
+  // Drawer Sections
+  const drawerSections: FilterSectionData[] = useMemo(() => [
+    { title: "Sexe", options: ["Femme", "Homme"] },
+    { title: "Catégorie", options: allCategoryOptions },
+    { title: "Sport", options: allSportOptions },
+    { title: "Boutique", options: allShopOptions },
+  ], [allCategoryOptions, allSportOptions, allShopOptions]);
+
+  // Drawer selected filters map
+  const drawerSelectedFilters = useMemo(() => {
+    const map: Record<string, Set<string>> = {};
+
+    // Sexe (index 0)
+    if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
+    else if (selectedFilters[0] === "Femme") map["Sexe"] = new Set(["Femme"]);
+    else map["Sexe"] = new Set(["Femme", "Homme"]);
+
+    // Catégorie (index 1)
+    if (selectedFilters[1]) {
+      map["Catégorie"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
+    } else {
+      map["Catégorie"] = new Set(allCategoryOptions);
+    }
+
+    // Sport (index 2)
+    if (selectedFilters[2]) {
+      map["Sport"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
+    } else {
+      map["Sport"] = new Set(allSportOptions);
+    }
+
+    // Boutique (index 3)
+    if (selectedFilters[3]) {
+      map["Boutique"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
+    } else {
+      map["Boutique"] = new Set(allShopOptions);
+    }
+
+    return map;
+  }, [selectedFilters, allCategoryOptions, allSportOptions, allShopOptions]);
+
+  const handleDrawerApply = (newDrawerFilters: Record<string, Set<string>>) => {
+    const newFilters = ["", "", "", ""];
+
+    // Sexe (index 0)
+    const sexSet = newDrawerFilters["Sexe"] || new Set();
+    if (sexSet.size === 1) {
+      newFilters[0] = Array.from(sexSet)[0];
+    } else {
+      newFilters[0] = "";
+    }
+
+    // Catégorie (index 1)
+    const catSet = newDrawerFilters["Catégorie"] || new Set();
+    if (catSet.size > 0 && catSet.size < allCategoryOptions.length) {
+      newFilters[1] = Array.from(catSet).join(",");
+    } else {
+      newFilters[1] = "";
+    }
+
+    // Sport (index 2)
+    const sportSet = newDrawerFilters["Sport"] || new Set();
+    if (sportSet.size > 0 && sportSet.size < allSportOptions.length) {
+      newFilters[2] = Array.from(sportSet).join(",");
+    } else {
+      newFilters[2] = "";
+    }
+
+    // Boutique (index 3)
+    const shopSet = newDrawerFilters["Boutique"] || new Set();
+    if (shopSet.size > 0 && shopSet.size < allShopOptions.length) {
+      newFilters[3] = Array.from(shopSet).join(",");
+    } else {
+      newFilters[3] = "";
+    }
+
+    setSelectedFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
 
   useEffect(() => {
     if (!openMobileSortMenu) return;
@@ -405,7 +543,7 @@ export default function ShopFilters({
           {/* Bouton filtre */}
           <button
             type="button"
-            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            onClick={() => setIsMobileDrawerOpen(true)}
             className="flex-[1] h-10 rounded-[5px] border border-[#D7D4DC] bg-white flex items-center justify-center gap-2 px-3 cursor-pointer hover:border-[#C2BFC6] transition text-[16px] font-semibold text-[#3A416F]"
             aria-label="Ouvrir les filtres"
           >
@@ -435,25 +573,18 @@ export default function ShopFilters({
             </button>
           )}
         </div>
-
-        {/* Panneau des filtres déplié sur mobile */}
-        {showMobileFilters && (
-          <div className="mt-4 flex flex-col gap-3">
-            {filterOptions.map((filter, index) => (
-              <DropdownFilter
-                key={`${filter.label}-${index}`}
-                label={filter.label}
-                placeholder={filter.placeholder}
-                options={filter.options}
-                allOptions={filter.allOptions}
-                selected={selectedFilters[index] ?? ""}
-                onSelect={(value) => handleFilterChange(index, value)}
-                disabled={filter.options.length === 0}
-              />
-            ))}
-          </div>
-        )}
       </div>
+
+      {/* --- TIROIR LATÉRAL DE FILTRES MOBILE --- */}
+      <ShopMobileFilterDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        sections={drawerSections}
+        selectedFilters={drawerSelectedFilters}
+        onApply={handleDrawerApply}
+        allOffers={rawOffers}
+      />
     </>
   );
 }
+

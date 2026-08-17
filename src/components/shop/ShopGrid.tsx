@@ -335,10 +335,10 @@ export default function ShopGrid({
       normalized = normalized.filter((offer) => {
         // 1. Sexe
         if (genderFilter && genderFilter.trim() !== "" && genderFilter.toLowerCase() !== "tous") {
-          const target = genderFilter.trim().toLowerCase();
+          const targets = genderFilter.split(",").map((s) => s.trim().toLowerCase());
           const offerGender = (offer.gender || "").trim().toLowerCase();
           const isUniversal = ["tous", "mixte", "unisexe"].includes(offerGender);
-          if (!isUniversal && offerGender !== target) {
+          if (!isUniversal && !targets.includes(offerGender)) {
             return false;
           }
         }
@@ -350,9 +350,12 @@ export default function ShopGrid({
           categoryFilter.toLowerCase() !== "tous" &&
           categoryFilter.toLowerCase() !== "toutes les catégories"
         ) {
-          const target = categoryFilter.trim().toLowerCase();
-          const types = offer.type.map((t) => t.toLowerCase());
-          if (!types.some((t) => t.includes(target) || target.includes(t))) {
+          const targets = categoryFilter.split(",").map((s) => s.trim().toLowerCase());
+          const types = offer.type.map((t) => t.toLowerCase().trim());
+          const hasMatch = targets.some((target) =>
+            types.some((t) => t.includes(target) || target.includes(t))
+          );
+          if (!hasMatch) {
             return false;
           }
         }
@@ -364,9 +367,12 @@ export default function ShopGrid({
           sportFilter.toLowerCase() !== "tous" &&
           sportFilter.toLowerCase() !== "tous les sports"
         ) {
-          const target = sportFilter.trim().toLowerCase();
-          const sports = offer.sport.map((s) => s.toLowerCase());
-          if (!sports.some((s) => s.includes(target) || target.includes(s))) {
+          const targets = sportFilter.split(",").map((s) => s.trim().toLowerCase());
+          const sports = offer.sport.map((s) => s.toLowerCase().trim());
+          const hasMatch = targets.some((target) =>
+            sports.some((s) => s.includes(target) || target.includes(s))
+          );
+          if (!hasMatch) {
             return false;
           }
         }
@@ -378,10 +384,16 @@ export default function ShopGrid({
           shopFilter.toLowerCase() !== "tous" &&
           shopFilter.toLowerCase() !== "toutes les boutiques"
         ) {
-          const target = shopFilter.trim().toLowerCase();
-          const offerShop = (offer.shop || "").trim().toLowerCase();
-          if (offerShop !== target && !offerShop.includes(target)) {
-            return false;
+          const targets = shopFilter.split(",").map((s) => s.trim().toLowerCase());
+          const offerShop = (offer.shop || "").toLowerCase().trim();
+          const isUniversal = !offerShop || offerShop === "tous";
+          if (!isUniversal) {
+            const hasMatch = targets.some((target) =>
+              offerShop === target || offerShop.includes(target)
+            );
+            if (!hasMatch) {
+              return false;
+            }
           }
         }
 
