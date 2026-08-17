@@ -82,6 +82,9 @@ export default function ShopGrid({
   onOfferClick,
   onCountChange,
   initialOffers = [],
+  initialUserProfile = null,
+  initialIsAuthenticated = false,
+  initialFavorites = [],
   favoritesOnly = false,
 }: {
   sortBy: string;
@@ -90,6 +93,9 @@ export default function ShopGrid({
   onOfferClick: (offer: ShopOffer) => void;
   onCountChange?: (count: number) => void;
   initialOffers?: ShopOffer[];
+  initialUserProfile?: ShopProfile | null;
+  initialIsAuthenticated?: boolean;
+  initialFavorites?: string[];
   favoritesOnly?: boolean;
 }) {
   const isDefaultQuery =
@@ -105,21 +111,25 @@ export default function ShopGrid({
   );
   const { user, profile, isLoading: isUserContextLoading } = useUser();
   
-  const userProfile: ShopProfile | null = useMemo(() => profile ? {
-    gender: profile.gender || null,
-    supplements: profile.supplements || null,
-    main_goal: profile.main_goal || null
-  } : null, [profile]);
+  const userProfile: ShopProfile | null = useMemo(() => {
+    if (profile) {
+      return {
+        gender: profile.gender || null,
+        supplements: profile.supplements || null,
+        main_goal: profile.main_goal || null,
+      };
+    }
+    return initialUserProfile;
+  }, [profile, initialUserProfile]);
 
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const initialSortedRef = useRef(false);
+  const [favorites, setFavorites] = useState<string[]>(initialFavorites);
 
-  // Load favorites from Supabase DB (or localStorage fallback) on client mount and sort initial offers once
+  // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
     let isCancelled = false;
 
     async function loadFavorites() {
-      let loadedFavs: string[] = [];
+      let loadedFavs: string[] = initialFavorites;
 
       // 1. First read local cache
       try {
@@ -139,7 +149,7 @@ export default function ShopGrid({
             .eq("user_id", user.id);
 
           if (!error && data) {
-            loadedFavs = (data as Array<{ offer_id: string }>).map((item) => item.offer_id);
+            loadedFavs = (data as Array<{ offer_id: string }>).map((item) => String(item.offer_id));
             try {
               localStorage.setItem("glift_favorite_offers", JSON.stringify(loadedFavs));
             } catch {
@@ -152,13 +162,19 @@ export default function ShopGrid({
       }
 
       if (!isCancelled) {
-        setFavorites(loadedFavs);
+        const areFavsSame = (a: string[], b: string[]) => {
+          if (a.length !== b.length) return false;
+          const setA = new Set(a);
+          return b.every((item) => setA.has(item));
+        };
 
-        if (initialOffers.length > 0 && sortBy === "relevance" && !initialSortedRef.current) {
-          initialSortedRef.current = true;
-          const sorted = sortOffersByRelevance(initialOffers, userProfile, loadedFavs);
-          setAllOffers(sorted);
-          setOffers(sorted.slice(0, ITEMS_PER_PAGE));
+        if (!areFavsSame(favorites, loadedFavs)) {
+          setFavorites(loadedFavs);
+          if (sortBy === "relevance") {
+            const sorted = sortOffersByRelevance(allOffers, userProfile, loadedFavs);
+            setAllOffers(sorted);
+            setOffers(sorted.slice(0, ITEMS_PER_PAGE));
+          }
         }
       }
     }
@@ -168,7 +184,7 @@ export default function ShopGrid({
     return () => {
       isCancelled = true;
     };
-  }, [user?.id, initialOffers, sortBy, userProfile]);
+  }, [user?.id]);
 
   const handleToggleFavorite = useCallback(
     async (offerId: string) => {
@@ -204,14 +220,24 @@ export default function ShopGrid({
     [favorites, user?.id]
   );
 
-  const hasLoadedOnceRef = useRef(false);
+  const hasLoadedOnceRef = useRef(initialOffers.length > 0 && isDefaultQuery);
   const previousQueryRef = useRef<{
     sortBy: string;
     currentPage: number;
     filters: string[];
     userProfile: ShopProfile | null;
     favoritesOnly: boolean;
-  } | null>(null);
+  } | null>(
+    initialOffers.length > 0 && isDefaultQuery
+      ? {
+          sortBy,
+          currentPage,
+          filters: [...filters],
+          userProfile: initialUserProfile,
+          favoritesOnly,
+        }
+      : null
+  );
 
   useEffect(() => {
     if (

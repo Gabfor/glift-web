@@ -134,7 +134,8 @@ export default function FiltersPanel({
                   : "border-[#D7D4DC]"
                 }
               rounded-[5px]
-              px-3
+              pl-[8px]
+              pr-3
               py-2
               flex items-center
               justify-between
@@ -194,7 +195,7 @@ export default function FiltersPanel({
           {filters.length > 0 && (
             <button
               onClick={handleToggleFilters}
-              className="h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+              className="h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] pl-[8px] pr-3 flex items-center text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
             >
               <div className="flex items-center gap-2">
                 <Image
@@ -212,13 +213,13 @@ export default function FiltersPanel({
             <button
               type="button"
               onClick={onFavoritesOnlyToggle}
-              className="h-10 border border-[#D7D4DC] rounded-[5px] px-3.5 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+              className="h-10 border border-[#D7D4DC] rounded-[5px] pl-[8px] pr-3.5 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
             >
               <Image
                 src={favoritesOnly ? favoriteIconActive : favoriteIconInactive}
                 alt=""
-                width={24}
-                height={24}
+                width={20}
+                height={20}
               />
               <span>Favoris</span>
             </button>

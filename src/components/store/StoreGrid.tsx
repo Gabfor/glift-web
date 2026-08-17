@@ -21,6 +21,7 @@ export default function StoreGrid({
   initialPrograms = [],
   initialUserProfile = null,
   initialIsAuthenticated = false,
+  initialFavorites = [],
   favoritesOnly = false,
   onCountChange,
 }: {
@@ -30,6 +31,7 @@ export default function StoreGrid({
   initialPrograms?: StoreProgram[];
   initialUserProfile?: StoreProfile | null;
   initialIsAuthenticated?: boolean;
+  initialFavorites?: string[];
   favoritesOnly?: boolean;
   onCountChange?: (count: number) => void;
 }) {
@@ -46,10 +48,9 @@ export default function StoreGrid({
   );
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
   const [userProfile, setUserProfile] = useState<StoreProfile | null>(initialUserProfile);
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const initialSortedRef = useRef(false);
+  const [favorites, setFavorites] = useState<string[]>(initialFavorites);
 
-  const hasLoadedOnceRef = useRef(false);
+  const hasLoadedOnceRef = useRef(initialPrograms.length > 0 && isDefaultQuery);
 
   const previousQueryRef = useRef<{
     sortBy: string;
@@ -58,7 +59,18 @@ export default function StoreGrid({
     isAuthenticated: boolean;
     userProfile: StoreProfile | null;
     favoritesOnly: boolean;
-  } | null>(null);
+  } | null>(
+    initialPrograms.length > 0 && isDefaultQuery
+      ? {
+          sortBy,
+          currentPage,
+          filters: [...filters],
+          isAuthenticated: initialIsAuthenticated,
+          userProfile: initialUserProfile,
+          favoritesOnly,
+        }
+      : null
+  );
 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
@@ -77,12 +89,12 @@ export default function StoreGrid({
   // ➜ UserContext provides auth state and computed premium status
   const { user, isPremiumUser, isLoading: isUserContextLoading } = useUser();
 
-  // Load favorites from Supabase DB (or localStorage fallback) on client mount and sort initial programs once
+  // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
     let isCancelled = false;
 
     async function loadFavorites() {
-      let loadedFavs: string[] = [];
+      let loadedFavs: string[] = initialFavorites;
 
       // 1. First read local cache
       try {
@@ -117,13 +129,19 @@ export default function StoreGrid({
       }
 
       if (!isCancelled) {
-        setFavorites(loadedFavs);
+        const areFavsSame = (a: string[], b: string[]) => {
+          if (a.length !== b.length) return false;
+          const setA = new Set(a);
+          return b.every((item) => setA.has(item));
+        };
 
-        if (initialPrograms.length > 0 && sortBy === "relevance" && !initialSortedRef.current) {
-          initialSortedRef.current = true;
-          const sorted = sortProgramsByRelevance(initialPrograms, userProfile, loadedFavs);
-          setAllPrograms(sorted);
-          setPrograms(sorted.slice(0, 8));
+        if (!areFavsSame(favorites, loadedFavs)) {
+          setFavorites(loadedFavs);
+          if (sortBy === "relevance") {
+            const sorted = sortProgramsByRelevance(allPrograms, userProfile, loadedFavs);
+            setAllPrograms(sorted);
+            setPrograms(sorted.slice(0, 8));
+          }
         }
       }
     }
@@ -133,7 +151,7 @@ export default function StoreGrid({
     return () => {
       isCancelled = true;
     };
-  }, [user?.id, initialPrograms, sortBy, userProfile]);
+  }, [user?.id]);
 
   const handleToggleFavorite = useCallback(
     async (programId: string) => {
@@ -189,13 +207,19 @@ export default function StoreGrid({
           .single();
         if (data) {
           const effectivePlan = isPremiumUser ? 'premium' : 'starter';
-          setUserProfile({
+          const nextProfile = {
             ...data,
-            subscription_plan: effectivePlan
-          } as any);
+            subscription_plan: effectivePlan,
+          } as any;
+          setUserProfile((prev) => {
+            if (JSON.stringify(prev) === JSON.stringify(nextProfile)) {
+              return prev;
+            }
+            return nextProfile;
+          });
         }
       } else {
-        setUserProfile(null);
+        setUserProfile((prev) => (prev === null ? prev : null));
       }
     };
 

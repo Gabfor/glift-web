@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ShopBannerSliderClient from "@/components/ShopBannerSliderClient";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
 import Pagination from "@/components/pagination/Pagination";
 import OfferCodeModal from "@/components/OfferCodeModal";
 import { createClient } from "@/lib/supabaseClient";
-import { ShopOffer } from "@/types/shop";
+import { ShopOffer, ShopProfile } from "@/types/shop";
 
 type Props = {
   initialOffers: ShopOffer[];
@@ -16,16 +16,63 @@ type Props = {
     slides: any[];
     isMobileActive?: boolean;
   };
+  initialUserProfile?: ShopProfile | null;
+  initialIsAuthenticated?: boolean;
+  initialFavorites?: string[];
 };
 
-export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
-  const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState(["", "", "", ""]);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+export default function ShopPageClient({
+  initialOffers,
+  sliderConfig,
+  initialUserProfile = null,
+  initialIsAuthenticated = false,
+  initialFavorites = [],
+}: Props) {
+  const [sortBy, setSortBy] = useState(() => {
+    try {
+      return sessionStorage.getItem("glift_shop_sortBy") || "relevance";
+    } catch {
+      return "relevance";
+    }
+  });
+  const [currentPage, setCurrentPage] = useState(() => {
+    try {
+      return Number.parseInt(sessionStorage.getItem("glift_shop_page") || "1", 10) || 1;
+    } catch {
+      return 1;
+    }
+  });
+  const [filters, setFilters] = useState<string[]>(() => {
+    try {
+      const saved = sessionStorage.getItem("glift_shop_filters");
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // ignore
+    }
+    return ["", "", "", ""];
+  });
+  const [favoritesOnly, setFavoritesOnly] = useState(() => {
+    try {
+      return sessionStorage.getItem("glift_shop_favoritesOnly") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
+
+  // Save to sessionStorage on every change
+  useEffect(() => {
+    try {
+      sessionStorage.setItem("glift_shop_sortBy", sortBy);
+      sessionStorage.setItem("glift_shop_filters", JSON.stringify(filters));
+      sessionStorage.setItem("glift_shop_page", currentPage.toString());
+      sessionStorage.setItem("glift_shop_favoritesOnly", String(favoritesOnly));
+    } catch {
+      // ignore
+    }
+  }, [sortBy, filters, currentPage, favoritesOnly]);
 
   const handleOfferClick = (offer: ShopOffer) => {
     setSelectedOffer(offer);
@@ -76,6 +123,9 @@ export default function ShopPageClient({ initialOffers, sliderConfig }: Props) {
           onOfferClick={handleOfferClick}
           onCountChange={setTotalItems}
           initialOffers={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
+          initialUserProfile={initialUserProfile}
+          initialIsAuthenticated={initialIsAuthenticated}
+          initialFavorites={initialFavorites}
         />
         {totalItems > 8 && (
           <div className="hidden md:block">

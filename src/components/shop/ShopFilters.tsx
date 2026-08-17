@@ -332,6 +332,8 @@ export default function ShopFilters({
           favoritesOnly={favoritesOnly}
           onFavoritesOnlyToggle={onFavoritesOnlyToggle}
           isAuthenticated={Boolean(user)}
+          favoriteIconActive="/icons/coeur_rouge.svg"
+          favoriteIconInactive="/icons/coeur_gris.svg"
         />
       </div>
 

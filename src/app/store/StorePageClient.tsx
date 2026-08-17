@@ -13,13 +13,15 @@ interface StorePageClientProps {
   initialTotalCount: number;
   initialUserProfile: StoreProfile | null;
   initialIsAuthenticated: boolean;
+  initialFavorites?: string[];
 }
 
 export default function StorePageClient({
   initialPrograms,
   initialTotalCount,
   initialUserProfile,
-  initialIsAuthenticated
+  initialIsAuthenticated,
+  initialFavorites = [],
 }: StorePageClientProps) {
   const [sortBy, setSortBy] = useState(() => {
     try { return sessionStorage.getItem("glift_store_sortBy") || "relevance"; } catch { return "relevance"; }
@@ -29,7 +31,13 @@ export default function StorePageClient({
   });
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [favoritesOnly, setFavoritesOnly] = useState(() => {
+    try {
+      return sessionStorage.getItem("glift_store_favoritesOnly") === "true";
+    } catch {
+      return false;
+    }
+  });
   const [filters, setFilters] = useState<string[]>(() => {
     try {
       const saved = sessionStorage.getItem("glift_store_filters");
@@ -45,8 +53,9 @@ export default function StorePageClient({
       sessionStorage.setItem("glift_store_sortBy", sortBy);
       sessionStorage.setItem("glift_store_filters", JSON.stringify(filters));
       sessionStorage.setItem("glift_store_page", currentPage.toString());
+      sessionStorage.setItem("glift_store_favoritesOnly", String(favoritesOnly));
     } catch { /* ignore */ }
-  }, [sortBy, filters, currentPage]);
+  }, [sortBy, filters, currentPage, favoritesOnly]);
 
   return (
     <div className="max-w-[1152px] mx-auto">
@@ -76,6 +85,7 @@ export default function StorePageClient({
         initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialPrograms : undefined}
         initialUserProfile={initialUserProfile}
         initialIsAuthenticated={initialIsAuthenticated}
+        initialFavorites={initialFavorites}
       />
       {totalPrograms > 8 && (
         <div className="hidden md:block">

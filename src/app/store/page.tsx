@@ -62,19 +62,29 @@ export default async function StorePage() {
     redirect(`/${pageConfig.url}`);
   }
   
-  // 1. Get user profile for relevance sorting
-  const { data: { session } } = await supabase.auth.getSession();
+  // 1. Get user profile and favorites for relevance sorting
+  const { data: { user } } = await supabase.auth.getUser();
   let userProfile: StoreProfile | null = null;
+  let initialFavorites: string[] = [];
   
-  if (session?.user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
-      .eq("id", session.user.id)
-      .single();
+  if (user) {
+    const [profileRes, favsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("user_store_favorites" as any)
+        .select("program_id")
+        .eq("user_id", user.id),
+    ]);
     
-    if (profile) {
-      userProfile = profile as StoreProfile;
+    if (profileRes.data) {
+      userProfile = profileRes.data as StoreProfile;
+    }
+    if (favsRes.data) {
+      initialFavorites = (favsRes.data as unknown as Array<{ program_id: string }>).map((item) => String(item.program_id));
     }
   }
 
@@ -106,12 +116,13 @@ export default async function StorePage() {
       created_at,
       plan,
       location,
-      image_mobile
+      image_mobile,
+      partner_name
     `)
     .eq("status", "ON");
 
   const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
-  const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
+  const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, initialFavorites);
   const initialPrograms = sortedPrograms;
 
   const initialPageContent = {
@@ -133,7 +144,8 @@ export default async function StorePage() {
           initialPrograms={initialPrograms} 
           initialTotalCount={totalCount || 0} 
           initialUserProfile={userProfile}
-          initialIsAuthenticated={!!session?.user}
+          initialIsAuthenticated={!!user}
+          initialFavorites={initialFavorites}
         />
       </div>
     </main>

@@ -6,7 +6,7 @@ import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import type { Metadata } from "next";
 
-export const revalidate = 60; // Mise à jour auto toutes les minutes
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createServerClient();
@@ -62,19 +62,29 @@ export default async function ShopPage() {
     redirect(`/${pageConfig.url}`);
   }
   
-  // 1. Get user profile for relevance sorting
-  const { data: { session } } = await supabase.auth.getSession();
+  // 1. Get user profile and favorites for relevance sorting
+  const { data: { user } } = await supabase.auth.getUser();
   let userProfile: ShopProfile | null = null;
+  let initialFavorites: string[] = [];
   
-  if (session?.user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("gender, main_goal, supplements")
-      .eq("id", session.user.id)
-      .single();
+  if (user) {
+    const [profileRes, favsRes] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("gender, main_goal, supplements")
+        .eq("id", user.id)
+        .single(),
+      supabase
+        .from("user_shop_favorites" as any)
+        .select("offer_id")
+        .eq("user_id", user.id),
+    ]);
     
-    if (profile) {
-      userProfile = profile as ShopProfile;
+    if (profileRes.data) {
+      userProfile = profileRes.data as ShopProfile;
+    }
+    if (favsRes.data) {
+      initialFavorites = (favsRes.data as unknown as Array<{ offer_id: string }>).map((item) => String(item.offer_id));
     }
   }
 
@@ -116,7 +126,7 @@ export default async function ShopPage() {
   const mappedOffers = (rawOffers ?? []).map(row => mapOfferRowToOffer(row as OfferQueryRow));
   
   // Perform relevance sorting on the server
-  const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile);
+  const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile, initialFavorites);
   const initialOffers = sortedOffers;
 
   // 4. Fetch Slider Configuration
@@ -215,6 +225,9 @@ export default async function ShopPage() {
         <ShopPageClient 
           initialOffers={initialOffers} 
           sliderConfig={sliderConfig}
+          initialUserProfile={userProfile}
+          initialIsAuthenticated={!!user}
+          initialFavorites={initialFavorites}
         />
       </div>
     </main>
