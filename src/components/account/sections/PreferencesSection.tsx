@@ -118,7 +118,7 @@ const COMMUNICATION_FIELD_TO_DB: Record<CommunicationKey, keyof PreferencesRow> 
 }
 
 const createStateFromPreferences = (
-  row: PreferencesRow | null,
+  row: Partial<PreferencesRow> | null,
 ): PreferencesState => {
   const base = createInitialState()
   if (!row) {
@@ -135,8 +135,8 @@ const createStateFromPreferences = (
   )
 
   return {
-    weightUnit: WEIGHT_UNIT_FROM_DB[row.weight_unit] ?? base.weightUnit,
-    defaultCurve: CURVE_FROM_DB[row.curve] ?? base.defaultCurve,
+    weightUnit: (row.weight_unit && WEIGHT_UNIT_FROM_DB[row.weight_unit]) ?? base.weightUnit,
+    defaultCurve: (row.curve && CURVE_FROM_DB[row.curve]) ?? base.defaultCurve,
     showEffort: row.show_effort ?? base.showEffort,
     showMateriel: row.show_materiel ?? base.showMateriel,
     showRepos: row.show_repos ?? base.showRepos,

@@ -11,7 +11,6 @@ export async function GET(request: Request) {
         const { data: { users }, error: userError } = await adminSupabase.auth.admin.listUsers({
             page: 1,
             perPage: 5,
-            sortBy: { property: 'created_at', direction: 'desc' }
         });
 
         return NextResponse.json({

@@ -65,9 +65,10 @@ export class WebhookService {
             }
         }
 
-        if (user && invoice.lines.data[0]?.period?.end) {
-            const periodEnd = new Date(invoice.lines.data[0].period.end * 1000).toISOString();
-            const priceId = invoice.lines.data[0]?.price?.id;
+        const firstLine = invoice.lines?.data?.[0] as any;
+        if (user && firstLine?.period?.end) {
+            const periodEnd = new Date(firstLine.period.end * 1000).toISOString();
+            const priceId = firstLine?.price?.id || firstLine?.pricing?.price_id;
             const isStarter = priceId === process.env.STRIPE_PRICE_ID_STARTER;
 
             await this.supabase.from("user_subscriptions").update({

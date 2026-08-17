@@ -45,16 +45,37 @@ export async function middleware(req: NextRequest) {
   try {
     const {
       data: { user: fetchedUser },
+      error: userError,
     } = await supabase.auth.getUser();
-    user = fetchedUser;
+
+    if (userError) {
+      if (
+        userError.code === "refresh_token_not_found" ||
+        userError.message?.toLowerCase().includes("refresh token")
+      ) {
+        req.cookies.getAll().forEach((cookie) => {
+          if (cookie.name.includes("-auth-token")) {
+            res.cookies.set(cookie.name, "", { path: "/", maxAge: 0 });
+            req.cookies.delete(cookie.name);
+          }
+        });
+      }
+      user = null;
+    } else {
+      user = fetchedUser;
+    }
   } catch (error: unknown) {
     const isRefreshTokenNotFoundError =
-      error instanceof AuthApiError && error.code === "refresh_token_not_found";
+      (error instanceof AuthApiError && error.code === "refresh_token_not_found") ||
+      (error instanceof Error && error.message?.toLowerCase().includes("refresh token"));
 
     if (isRefreshTokenNotFoundError) {
-      const expireOptions = { path: "/", maxAge: 0 } as const;
-      res.cookies.set("sb-access-token", "", expireOptions);
-      res.cookies.set("sb-refresh-token", "", expireOptions);
+      req.cookies.getAll().forEach((cookie) => {
+        if (cookie.name.includes("-auth-token")) {
+          res.cookies.set(cookie.name, "", { path: "/", maxAge: 0 });
+          req.cookies.delete(cookie.name);
+        }
+      });
     }
 
     if (isAuthSessionMissingError(error) || isRefreshTokenNotFoundError) {

@@ -1,6 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Autres options ici
   images: {
     remotePatterns: [
       {
@@ -9,13 +8,16 @@ const nextConfig = {
       },
     ], // ✅ domaine Supabase autorisé
   },
-  experimental: {
-    allowedDevOrigins: [
-      'localhost:3000',
-      'admin.localhost:3000',
-      'app.localhost:3000',
-    ],
-  },
+  allowedDevOrigins: [
+    'localhost:3000',
+    'admin.localhost:3000',
+    'app.localhost:3000',
+    '*.localhost:3000',
+    'localhost',
+    'admin.localhost',
+    'app.localhost',
+  ],
 };
 
-module.exports = nextConfig;
+export default nextConfig;
+
