@@ -26,7 +26,7 @@ export type OfferQueryRow = Pick<
   | "created_at"
   | "sport"
   | "image_mobile"
->;
+> & { description?: string | null };
 
 const parseOfferTypes = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -64,6 +64,7 @@ export const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   shipping: row.shipping ?? "",
   modal: row.modal ?? "",
   condition: row.condition ?? "",
+  description: row.description ?? "",
   gender: row.gender ?? "",
   image_mobile: row.image_mobile ?? "",
   boost: row.boost ?? false,

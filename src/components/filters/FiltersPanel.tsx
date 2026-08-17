@@ -53,15 +53,21 @@ export default function FiltersPanel({
   favoriteIconActive = "/icons/coeur_rouge.svg",
   favoriteIconInactive = "/icons/coeur_gris.svg",
 }: FiltersPanelProps) {
-  const [showFilters, setShowFilters] = useState(() => {
-    if (!storageKey) return false;
-    try {
-      return sessionStorage.getItem(`${storageKey}_showFilters`) === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [showFilters, setShowFilters] = useState(false);
   const [openSortMenu, setOpenSortMenu] = useState(false);
+
+  useEffect(() => {
+    if (storageKey) {
+      try {
+        const saved = sessionStorage.getItem(`${storageKey}_showFilters`);
+        if (saved === "true") {
+          setShowFilters(true);
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [storageKey]);
 
   const menuRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);

@@ -28,6 +28,7 @@ type OfferQueryRow = {
   shipping: string | number | null;
   modal: string | null;
   condition: string | null;
+  description?: string | null;
   gender: string | null;
   boost: boolean | string | null;
   click_count: number | null;
@@ -69,6 +70,7 @@ const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   shipping: row.shipping ? String(row.shipping) : undefined,
   modal: row.modal ?? undefined,
   condition: row.condition ?? undefined,
+  description: row.description ?? undefined,
   gender: row.gender ?? undefined,
   boost: row.boost === true || row.boost === "true",
   created_at: row.created_at ?? undefined,
@@ -287,24 +289,7 @@ export default function ShopGrid({
       setLoading(true);
       const supabase = createClientComponentClient();
 
-      let query = supabase.from("offer_shop").select("*").eq("status", "ON");
-
-      const genderFilter = filters.find((f) =>
-        ["homme", "femme", "unisexe", "mixte", "tous"].includes(f.toLowerCase())
-      );
-      const categoryFilter = filters.find(
-        (f) => !["homme", "femme", "unisexe", "mixte", "tous"].includes(f.toLowerCase())
-      );
-
-      if (categoryFilter && categoryFilter.toLowerCase() !== "tous") {
-        query = query.contains("type", [categoryFilter]);
-      }
-
-      if (genderFilter && genderFilter.toLowerCase() !== "tous") {
-        query = query.or(`gender.ilike.%${genderFilter}%,gender.ilike.%tous%,gender.ilike.%mixte%,gender.ilike.%unisexe%`);
-      }
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("offer_shop").select("*").eq("status", "ON");
 
       if (!isActive) return;
 
@@ -335,6 +320,7 @@ export default function ShopGrid({
         shipping: row.shipping ? String(row.shipping) : undefined,
         modal: row.modal ?? undefined,
         condition: row.condition ?? undefined,
+        description: row.description ?? undefined,
         gender: row.gender ?? undefined,
         boost: Boolean(row.boost),
         click_count: row.click_count ?? 0,
@@ -342,6 +328,65 @@ export default function ShopGrid({
         sport: normalizeToArray(row.sport),
         image_mobile: row.image_mobile ?? undefined,
       }));
+
+      // Apply the 4 filters: [gender, category/type, sport, shop]
+      const [genderFilter = "", categoryFilter = "", sportFilter = "", shopFilter = ""] = filters;
+
+      normalized = normalized.filter((offer) => {
+        // 1. Sexe
+        if (genderFilter && genderFilter.trim() !== "" && genderFilter.toLowerCase() !== "tous") {
+          const target = genderFilter.trim().toLowerCase();
+          const offerGender = (offer.gender || "").trim().toLowerCase();
+          const isUniversal = ["tous", "mixte", "unisexe"].includes(offerGender);
+          if (!isUniversal && offerGender !== target) {
+            return false;
+          }
+        }
+
+        // 2. Catégorie (type)
+        if (
+          categoryFilter &&
+          categoryFilter.trim() !== "" &&
+          categoryFilter.toLowerCase() !== "tous" &&
+          categoryFilter.toLowerCase() !== "toutes les catégories"
+        ) {
+          const target = categoryFilter.trim().toLowerCase();
+          const types = offer.type.map((t) => t.toLowerCase());
+          if (!types.some((t) => t.includes(target) || target.includes(t))) {
+            return false;
+          }
+        }
+
+        // 3. Sport
+        if (
+          sportFilter &&
+          sportFilter.trim() !== "" &&
+          sportFilter.toLowerCase() !== "tous" &&
+          sportFilter.toLowerCase() !== "tous les sports"
+        ) {
+          const target = sportFilter.trim().toLowerCase();
+          const sports = offer.sport.map((s) => s.toLowerCase());
+          if (!sports.some((s) => s.includes(target) || target.includes(s))) {
+            return false;
+          }
+        }
+
+        // 4. Boutique (shop)
+        if (
+          shopFilter &&
+          shopFilter.trim() !== "" &&
+          shopFilter.toLowerCase() !== "tous" &&
+          shopFilter.toLowerCase() !== "toutes les boutiques"
+        ) {
+          const target = shopFilter.trim().toLowerCase();
+          const offerShop = (offer.shop || "").trim().toLowerCase();
+          if (offerShop !== target && !offerShop.includes(target)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
 
       if (favoritesOnly) {
         normalized = normalized.filter((offer) => favorites.includes(offer.id));

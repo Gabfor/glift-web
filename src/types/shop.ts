@@ -15,6 +15,7 @@ export interface ShopOffer {
   shipping?: string;
   modal?: string;
   condition?: string;
+  description?: string;
   gender?: string;
   image_mobile?: string;
   boost?: boolean;

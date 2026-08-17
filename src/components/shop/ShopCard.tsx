@@ -202,12 +202,20 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
 
       <div className="p-[15px] pb-[20px] md:p-[10px] md:pb-[20px] flex-1 flex flex-col justify-between">
         <div>
-          <h3 className="text-[#3A416F] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 break-words md:min-h-[48px]">
+          <h3 className="text-[#3A416F] text-[16px] font-bold mb-[5px] uppercase text-left line-clamp-2 break-words">
             {offer.name}
           </h3>
 
-        {/* Tags */}
-        <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
+          {/* Description */}
+          {offer.description && (
+            <div
+              className="text-[14px] text-[#5D6494] font-semibold mb-[10px] text-left line-clamp-2 leading-relaxed [&_p]:inline [&_p]:m-0"
+              dangerouslySetInnerHTML={{ __html: offer.description }}
+            />
+          )}
+
+          {/* Tags */}
+          <div className="flex justify-start flex-wrap gap-[5px] mb-[10px]">
           {(() => {
             const tags: string[] = [];
 

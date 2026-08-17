@@ -10,6 +10,7 @@ import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
 import BackLink from "@/components/BackLink";
+import RichTextEditor from "@/components/ui/RichTextEditor";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { COUNTRIES, getCountryFlagIcon } from "@/components/account/constants";
 import {
@@ -497,12 +498,12 @@ export default function CreateOfferPageClient({
                   </div>
                 </div>
 
-                {/* TITRES ET DESCRIPTION DE L'OFFRE */}
+                {/* TITRE ET DESCRIPTION DE L'OFFRE */}
                 <div className="flex flex-col">
                   <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Titres et description de l’offre
+                    Titre et description de l’offre
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
                     {/* Titre avec compteur */}
                     <div className="flex flex-col">
                       <div className="flex justify-between mb-[5px]">
@@ -515,7 +516,7 @@ export default function CreateOfferPageClient({
                       </div>
                       <input
                         type="text"
-                        placeholder="Titre de l’offre"
+                        placeholder="Titre du programme"
                         value={offer.name}
                         onChange={(e) =>
                           setOffer({ ...offer, name: e.target.value })
@@ -527,11 +528,11 @@ export default function CreateOfferPageClient({
                       />
                     </div>
 
-                    {/* Conditions avec insertion dynamique (Description) */}
+                    {/* Description légal avec insertion dynamique */}
                     <div className="flex flex-col">
                       <div className="flex justify-between mb-1">
                         <label className="text-[#3A416F] font-bold">
-                          Conditions
+                          Description légal
                         </label>
                         <div className="flex gap-2">
                           <button
@@ -560,9 +561,33 @@ export default function CreateOfferPageClient({
                                 border border-[#D7D4DC] hover:border-[#C2BFC6]
                                 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
                                 transition-all duration-150"
-                        placeholder="Conditions de l’offre"
+                        placeholder="Description légale de l’offre"
                       />
                     </div>
+                  </div>
+
+                  {/* Description (RichTextEditor) */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">
+                        Description
+                      </span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        {offer.description
+                          ? offer.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").length
+                          : 0}
+                        /80
+                      </span>
+                    </div>
+                    <RichTextEditor
+                      value={offer.description}
+                      onChange={(content) =>
+                        setOffer({ ...offer, description: content })
+                      }
+                      placeholder="Description de l’offre"
+                      withHelpLink
+                      minHeight="140px"
+                    />
                   </div>
                 </div>
 

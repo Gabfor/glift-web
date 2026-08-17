@@ -23,39 +23,49 @@ export default function StorePageClient({
   initialIsAuthenticated,
   initialFavorites = [],
 }: StorePageClientProps) {
-  const [sortBy, setSortBy] = useState(() => {
-    try { return sessionStorage.getItem("glift_store_sortBy") || "relevance"; } catch { return "relevance"; }
-  });
-  const [currentPage, setCurrentPage] = useState(() => {
-    try { return Number.parseInt(sessionStorage.getItem("glift_store_page") || "1", 10) || 1; } catch { return 1; }
-  });
+  const [sortBy, setSortBy] = useState("relevance");
+  const [currentPage, setCurrentPage] = useState(1);
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
-  const [favoritesOnly, setFavoritesOnly] = useState(() => {
-    try {
-      return sessionStorage.getItem("glift_store_favoritesOnly") === "true";
-    } catch {
-      return false;
-    }
-  });
-  const [filters, setFilters] = useState<string[]>(() => {
-    try {
-      const saved = sessionStorage.getItem("glift_store_filters");
-      if (saved) return JSON.parse(saved);
-    } catch { /* ignore */ }
-    return ["", "", "", "", "", "", ""];
-  });
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [filters, setFilters] = useState<string[]>(["", "", "", "", "", "", ""]);
+  const [isRestored, setIsRestored] = useState(false);
   const { user, isPremiumUser } = useUser();
 
-  // Save to sessionStorage on every change
+  // Restore from sessionStorage on mount after hydration
   useEffect(() => {
+    try {
+      const savedSort = sessionStorage.getItem("glift_store_sortBy");
+      if (savedSort) setSortBy(savedSort);
+
+      const savedPage = sessionStorage.getItem("glift_store_page");
+      if (savedPage) {
+        const p = Number.parseInt(savedPage, 10);
+        if (p) setCurrentPage(p);
+      }
+
+      const savedFilters = sessionStorage.getItem("glift_store_filters");
+      if (savedFilters) setFilters(JSON.parse(savedFilters));
+
+      const savedFavs = sessionStorage.getItem("glift_store_favoritesOnly");
+      if (savedFavs === "true") setFavoritesOnly(true);
+    } catch {
+      // ignore
+    } finally {
+      setIsRestored(true);
+    }
+  }, []);
+
+  // Save to sessionStorage on every change (only after initial restore)
+  useEffect(() => {
+    if (!isRestored) return;
     try {
       sessionStorage.setItem("glift_store_sortBy", sortBy);
       sessionStorage.setItem("glift_store_filters", JSON.stringify(filters));
       sessionStorage.setItem("glift_store_page", currentPage.toString());
       sessionStorage.setItem("glift_store_favoritesOnly", String(favoritesOnly));
     } catch { /* ignore */ }
-  }, [sortBy, filters, currentPage, favoritesOnly]);
+  }, [sortBy, filters, currentPage, favoritesOnly, isRestored]);
 
   return (
     <div className="max-w-[1152px] mx-auto">

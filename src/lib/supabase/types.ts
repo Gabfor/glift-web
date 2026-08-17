@@ -280,6 +280,7 @@ export interface Database {
           click_count: number;
           sport: Nullable<string[]>;
           condition: Nullable<string>;
+          description: Nullable<string>;
           boost: Nullable<boolean>;
           image_mobile: Nullable<string>;
           pays: Nullable<string>;
@@ -308,6 +309,7 @@ export interface Database {
           click_count?: number;
           sport?: Nullable<string[]>;
           condition?: Nullable<string>;
+          description?: Nullable<string>;
           boost?: Nullable<boolean>;
           image_mobile?: Nullable<string>;
           pays?: Nullable<string>;
@@ -336,6 +338,7 @@ export interface Database {
           click_count?: number;
           sport?: Nullable<string[]>;
           condition?: Nullable<string>;
+          description?: Nullable<string>;
           boost?: Nullable<boolean>;
           image_mobile?: Nullable<string>;
           pays?: Nullable<string>;

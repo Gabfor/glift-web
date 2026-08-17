@@ -28,42 +28,42 @@ export default function ShopPageClient({
   initialIsAuthenticated = false,
   initialFavorites = [],
 }: Props) {
-  const [sortBy, setSortBy] = useState(() => {
-    try {
-      return sessionStorage.getItem("glift_shop_sortBy") || "relevance";
-    } catch {
-      return "relevance";
-    }
-  });
-  const [currentPage, setCurrentPage] = useState(() => {
-    try {
-      return Number.parseInt(sessionStorage.getItem("glift_shop_page") || "1", 10) || 1;
-    } catch {
-      return 1;
-    }
-  });
-  const [filters, setFilters] = useState<string[]>(() => {
-    try {
-      const saved = sessionStorage.getItem("glift_shop_filters");
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // ignore
-    }
-    return ["", "", "", ""];
-  });
-  const [favoritesOnly, setFavoritesOnly] = useState(() => {
-    try {
-      return sessionStorage.getItem("glift_shop_favoritesOnly") === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [sortBy, setSortBy] = useState("relevance");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<string[]>(["", "", "", ""]);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
+  const [isRestored, setIsRestored] = useState(false);
 
-  // Save to sessionStorage on every change
+  // Restore from sessionStorage on mount after hydration
   useEffect(() => {
+    try {
+      const savedSort = sessionStorage.getItem("glift_shop_sortBy");
+      if (savedSort) setSortBy(savedSort);
+
+      const savedPage = sessionStorage.getItem("glift_shop_page");
+      if (savedPage) {
+        const p = Number.parseInt(savedPage, 10);
+        if (p) setCurrentPage(p);
+      }
+
+      const savedFilters = sessionStorage.getItem("glift_shop_filters");
+      if (savedFilters) setFilters(JSON.parse(savedFilters));
+
+      const savedFavs = sessionStorage.getItem("glift_shop_favoritesOnly");
+      if (savedFavs === "true") setFavoritesOnly(true);
+    } catch {
+      // ignore
+    } finally {
+      setIsRestored(true);
+    }
+  }, []);
+
+  // Save to sessionStorage on every change (only after initial restore)
+  useEffect(() => {
+    if (!isRestored) return;
     try {
       sessionStorage.setItem("glift_shop_sortBy", sortBy);
       sessionStorage.setItem("glift_shop_filters", JSON.stringify(filters));
@@ -72,7 +72,7 @@ export default function ShopPageClient({
     } catch {
       // ignore
     }
-  }, [sortBy, filters, currentPage, favoritesOnly]);
+  }, [sortBy, filters, currentPage, favoritesOnly, isRestored]);
 
   const handleOfferClick = (offer: ShopOffer) => {
     setSelectedOffer(offer);

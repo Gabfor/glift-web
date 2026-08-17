@@ -146,21 +146,8 @@ export default function StoreFilters({
     { value: "oldest", label: "Ancienneté" },
   ];
 
-  const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>(() => {
-    try {
-      const cached = sessionStorage.getItem("glift_store_programs_cache");
-      if (cached) return JSON.parse(cached);
-    } catch { /* ignore */ }
-    return [];
-  });
-
-  const [rawPrograms, setRawPrograms] = useState<StoreProgram[]>(() => {
-    try {
-      const cached = sessionStorage.getItem("glift_store_programs_raw_cache");
-      if (cached) return JSON.parse(cached);
-    } catch { /* ignore */ }
-    return [];
-  });
+  const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
+  const [rawPrograms, setRawPrograms] = useState<StoreProgram[]>([]);
 
   const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", "", "", "", ""]);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -184,6 +171,15 @@ export default function StoreFilters({
 
   useEffect(() => {
     let isActive = true;
+
+    try {
+      const cached = sessionStorage.getItem("glift_store_programs_cache");
+      if (cached) setPrograms(JSON.parse(cached));
+      const rawCached = sessionStorage.getItem("glift_store_programs_raw_cache");
+      if (rawCached) setRawPrograms(JSON.parse(rawCached));
+    } catch {
+      // ignore
+    }
 
     const fetchPrograms = async () => {
       const supabase = createClient();

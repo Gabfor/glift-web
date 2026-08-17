@@ -114,6 +114,7 @@ export default async function ShopPage() {
       shipping,
       modal,
       condition,
+      description,
       gender,
       boost,
       click_count,

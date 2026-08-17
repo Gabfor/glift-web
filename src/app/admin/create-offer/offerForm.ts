@@ -22,6 +22,7 @@ type OfferFormState = {
   status: string;
   sport: string[];
   condition: string;
+  description: string;
   boost: string;
   image_mobile: string;
   pays: string;
@@ -55,6 +56,7 @@ const emptyOffer: OfferFormState = {
   status: "ON",
   sport: [],
   condition: "",
+  description: "",
   boost: "NON",
   image_mobile: "",
   pays: "",
@@ -84,6 +86,7 @@ const mapOfferRowToForm = (row: OfferRow): OfferFormState => ({
     ? row.sport.filter((value): value is string => typeof value === "string")
     : [],
   condition: row.condition ?? "",
+  description: (row as any).description ?? "",
   boost: String(row.boost) === "true" ? "OUI" : "NON",
   image_mobile: row.image_mobile ?? "",
   pays: row.pays ?? "",
@@ -113,11 +116,12 @@ const buildOfferPayload = (form: OfferFormState): OfferInsert => {
     status: form.status,
     sport: form.sport.length > 0 ? form.sport : null,
     condition: form.condition || null,
+    ...(form.description ? { description: form.description } : { description: null }),
     boost: form.boost === "OUI",
     image_mobile: form.image_mobile || null,
     pays: form.pays || null,
     slider_image: form.slider_image || null,
-  };
+  } as any;
 };
 
 const normalizeOfferId = (rawId: unknown): string | number | null => {

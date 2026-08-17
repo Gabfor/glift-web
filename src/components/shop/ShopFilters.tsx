@@ -191,16 +191,19 @@ export default function ShopFilters({
     { value: "expiration", label: "Expiration" },
   ];
 
-  const [offers, setOffers] = useState<NormalizedOfferShopField[]>(() => {
-    try {
-      const cached = sessionStorage.getItem("glift_shop_offers_cache");
-      if (cached) return JSON.parse(cached);
-    } catch { /* ignore */ }
-    return [];
-  });
+  const [offers, setOffers] = useState<NormalizedOfferShopField[]>([]);
 
   useEffect(() => {
     let isActive = true;
+
+    try {
+      const cached = sessionStorage.getItem("glift_shop_offers_cache");
+      if (cached) {
+        setOffers(JSON.parse(cached));
+      }
+    } catch {
+      // ignore
+    }
 
     const fetchFilterOptions = async () => {
       const supabase = createClient();
@@ -233,6 +236,12 @@ export default function ShopFilters({
   }, []);
 
   const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", ""]);
+
+  useEffect(() => {
+    if (initialFilters && JSON.stringify(initialFilters) !== JSON.stringify(selectedFilters)) {
+      setSelectedFilters(initialFilters);
+    }
+  }, [initialFilters]);
 
   const { genderOptions, goalOptions, sportOptions, partnerOptions } = useMemo(() => {
     const genderValues = new Set<string>();
