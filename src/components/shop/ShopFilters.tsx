@@ -113,41 +113,37 @@ const matchesFilters = (
   const [genderFilter, typeFilter, sportFilter, shopFilter] = filters;
 
   if (skipIndex !== 0 && genderFilter) {
-    if (
-      offer.genders.length > 0 &&
-      !includesValue(offer.genders, genderFilter) &&
-      !hasUniversalValue(offer.genders)
-    ) {
-      return false;
-    }
-    if (offer.genders.length === 0 && genderFilter) {
-      return false;
+    const targets = genderFilter.split(",").map((s) => s.trim().toLowerCase());
+    const isUniversal = offer.genders.some((g) => ["tous", "mixte", "unisexe"].includes(g.toLowerCase()));
+    if (!isUniversal) {
+      const hasMatch = offer.genders.some((g) => targets.includes(g.toLowerCase()));
+      if (!hasMatch) return false;
     }
   }
 
   if (skipIndex !== 1 && typeFilter) {
-    const normalizedType = typeFilter.trim().toLowerCase();
-    if (!offer.types.some(t => t.toLowerCase().includes(normalizedType))) {
-      return false;
-    }
+    const targets = typeFilter.split(",").map((s) => s.trim().toLowerCase());
+    const hasMatch = targets.some((target) =>
+      offer.types.some((t) => t.toLowerCase().includes(target) || target.includes(t.toLowerCase()))
+    );
+    if (!hasMatch) return false;
   }
 
   if (skipIndex !== 2 && sportFilter) {
-    if (!offer.sport || offer.sport.trim().toLowerCase() !== sportFilter.trim().toLowerCase()) {
-      return false;
-    }
+    const targets = sportFilter.split(",").map((s) => s.trim().toLowerCase());
+    const sportLower = (offer.sport || "").toLowerCase().trim();
+    const hasMatch = targets.some((target) => sportLower === target || sportLower.includes(target));
+    if (!hasMatch) return false;
   }
 
   if (skipIndex !== 3 && shopFilter) {
-    if (
-      offer.shops.length > 0 &&
-      !includesValue(offer.shops, shopFilter) &&
-      !hasUniversalValue(offer.shops)
-    ) {
-      return false;
-    }
-    if (offer.shops.length === 0 && shopFilter) {
-      return false;
+    const targets = shopFilter.split(",").map((s) => s.trim().toLowerCase());
+    const isUniversal = offer.shops.some((s) => s.toLowerCase() === "tous");
+    if (!isUniversal) {
+      const hasMatch = offer.shops.some((s) =>
+        targets.some((target) => s.toLowerCase() === target || s.toLowerCase().includes(target))
+      );
+      if (!hasMatch) return false;
     }
   }
 
@@ -156,9 +152,12 @@ const matchesFilters = (
 
 const ensureSelectedIncluded = (options: Set<string>, selected: string) => {
   if (!selected || selected === "__none__") return;
-  const trimmed = selected.trim();
-  if (trimmed.length === 0) return;
-  options.add(trimmed);
+  selected.split(",").forEach((s) => {
+    const trimmed = s.trim();
+    if (trimmed.length > 0 && trimmed !== "__none__") {
+      options.add(trimmed);
+    }
+  });
 };
 
 const toFilterOptions = (
@@ -346,24 +345,38 @@ export default function ShopFilters({
     };
   }, [offers, selectedFilters]);
 
-  const filterOptions: FilterGroup[] = [
-    { label: "Sexe", placeholder: "Tous", options: genderOptions },
+  const filterOptions: FilterGroup[] = useMemo(() => [
+    {
+      label: "Sexe",
+      placeholder: "Tous",
+      options: [
+        { value: "Femme", label: "Femme" },
+        { value: "Homme", label: "Homme" },
+      ],
+      allOptions: [
+        { value: "Femme", label: "Femme" },
+        { value: "Homme", label: "Homme" },
+      ],
+    },
     {
       label: "Catégorie",
       placeholder: "Toutes les catégories",
-      options: goalOptions,
+      options: allCategoryOptions.map((c) => ({ value: c, label: c })),
+      allOptions: allCategoryOptions.map((c) => ({ value: c, label: c })),
     },
     {
       label: "Sport",
       placeholder: "Tous les sports",
-      options: sportOptions,
+      options: allSportOptions.map((s) => ({ value: s, label: s })),
+      allOptions: allSportOptions.map((s) => ({ value: s, label: s })),
     },
     {
       label: "Boutique",
       placeholder: "Toutes les boutiques",
-      options: partnerOptions,
+      options: allShopOptions.map((b) => ({ value: b, label: b })),
+      allOptions: allShopOptions.map((b) => ({ value: b, label: b })),
     },
-  ];
+  ], [allCategoryOptions, allSportOptions, allShopOptions]);
 
   // Drawer Sections
   const drawerSections: FilterSectionData[] = useMemo(() => [
@@ -417,43 +430,51 @@ export default function ShopFilters({
     const newFilters = ["", "", "", ""];
 
     // Sexe (index 0)
-    const sexSet = newDrawerFilters["Sexe"] || new Set();
-    if (sexSet.size === 0) {
-      newFilters[0] = "__none__";
-    } else if (sexSet.size === 1) {
-      newFilters[0] = Array.from(sexSet)[0];
-    } else {
-      newFilters[0] = "";
+    if (newDrawerFilters["Sexe"] !== undefined) {
+      const sexSet = newDrawerFilters["Sexe"];
+      if (sexSet.size === 0) {
+        newFilters[0] = "__none__";
+      } else if (sexSet.size === 1) {
+        newFilters[0] = Array.from(sexSet)[0];
+      } else {
+        newFilters[0] = "";
+      }
     }
 
     // Catégorie (index 1)
-    const catSet = newDrawerFilters["Catégorie"] || new Set();
-    if (catSet.size === 0) {
-      newFilters[1] = "__none__";
-    } else if (catSet.size < allCategoryOptions.length) {
-      newFilters[1] = Array.from(catSet).join(",");
-    } else {
-      newFilters[1] = "";
+    if (newDrawerFilters["Catégorie"] !== undefined) {
+      const catSet = newDrawerFilters["Catégorie"];
+      if (catSet.size === 0) {
+        newFilters[1] = "__none__";
+      } else if (catSet.size < allCategoryOptions.length) {
+        newFilters[1] = Array.from(catSet).join(",");
+      } else {
+        newFilters[1] = "";
+      }
     }
 
     // Sport (index 2)
-    const sportSet = newDrawerFilters["Sport"] || new Set();
-    if (sportSet.size === 0) {
-      newFilters[2] = "__none__";
-    } else if (sportSet.size < allSportOptions.length) {
-      newFilters[2] = Array.from(sportSet).join(",");
-    } else {
-      newFilters[2] = "";
+    if (newDrawerFilters["Sport"] !== undefined) {
+      const sportSet = newDrawerFilters["Sport"];
+      if (sportSet.size === 0) {
+        newFilters[2] = "__none__";
+      } else if (sportSet.size < allSportOptions.length) {
+        newFilters[2] = Array.from(sportSet).join(",");
+      } else {
+        newFilters[2] = "";
+      }
     }
 
     // Boutique (index 3)
-    const shopSet = newDrawerFilters["Boutique"] || new Set();
-    if (shopSet.size === 0) {
-      newFilters[3] = "__none__";
-    } else if (shopSet.size < allShopOptions.length) {
-      newFilters[3] = Array.from(shopSet).join(",");
-    } else {
-      newFilters[3] = "";
+    if (newDrawerFilters["Boutique"] !== undefined) {
+      const shopSet = newDrawerFilters["Boutique"];
+      if (shopSet.size === 0) {
+        newFilters[3] = "__none__";
+      } else if (shopSet.size < allShopOptions.length) {
+        newFilters[3] = Array.from(shopSet).join(",");
+      } else {
+        newFilters[3] = "";
+      }
     }
 
     setSelectedFilters(newFilters);

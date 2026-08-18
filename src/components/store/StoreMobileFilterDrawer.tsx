@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { StoreProgram } from "@/types/store";
+import CheckboxCheckedIcon from "/public/icons/checkbox_checked.svg";
+import CheckboxUncheckedIcon from "/public/icons/checkbox_unchecked.svg";
 
 export type FilterSectionData = {
   title: string;
@@ -263,27 +265,13 @@ export default function StoreMobileFilterDrawer({
                         className="flex items-center gap-3 cursor-pointer select-none group"
                       >
                         {/* Custom Checkbox */}
-                        <div
-                          className={`w-[18px] h-[18px] rounded-[4px] flex items-center justify-center transition-colors ${
-                            isChecked
-                              ? "bg-[#7069FA] border border-[#7069FA]"
-                              : "bg-white border border-[#D7D4DC] group-hover:border-[#A1A5FD]"
-                          }`}
-                        >
-                          {isChecked && (
-                            <svg
-                              className="w-3 h-3 text-white"
-                              viewBox="0 0 12 12"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2.2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <polyline points="2.5 6 4.8 9 9.5 3.5" />
-                            </svg>
-                          )}
-                        </div>
+                        <Image
+                          src={isChecked ? CheckboxCheckedIcon : CheckboxUncheckedIcon}
+                          alt={isChecked ? "Coché" : "Non coché"}
+                          width={18}
+                          height={18}
+                          className="shrink-0"
+                        />
 
                         {/* Label */}
                         <span className="text-[15px] font-semibold text-[#3A416F] group-hover:text-[#2E3271] transition-colors">

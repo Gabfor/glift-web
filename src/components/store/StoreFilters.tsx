@@ -274,43 +274,68 @@ export default function StoreFilters({
       if (program.location) allLocationValues.add(program.location);
       if (program.duration) allDurationValues.push(program.duration);
       if (program.partner) allPartnerValues.add(program.partner);
-
+      
       let matches = !selectedFilters.some((f) => f === "__none__");
       // Index 0: Gender
-      if (matches && selectedFilters[0] && program.gender &&
-        program.gender.trim().toLowerCase() !== selectedFilters[0].trim().toLowerCase() &&
-        !isUniversalValue(program.gender, "Tous")) matches = false;
+      if (matches && selectedFilters[0] && program.gender) {
+        const targets = selectedFilters[0].split(",").map((s) => s.trim().toLowerCase());
+        if (!isUniversalValue(program.gender, "Tous") && !targets.includes(program.gender.trim().toLowerCase())) {
+          matches = false;
+        }
+      }
 
       // Index 1: Goal
-      if (matches && selectedFilters[1] && program.goal &&
-        program.goal.trim().toLowerCase() !== selectedFilters[1].trim().toLowerCase()) matches = false;
+      if (matches && selectedFilters[1] && program.goal) {
+        const targets = selectedFilters[1].split(",").map((s) => s.trim().toLowerCase());
+        if (!targets.includes(program.goal.trim().toLowerCase())) {
+          matches = false;
+        }
+      }
 
       // Index 2: Level
-      if (matches && selectedFilters[2] && program.level &&
-        program.level.trim().toLowerCase() !== selectedFilters[2].trim().toLowerCase() &&
-        !isUniversalValue(program.level, "Tous niveaux")) matches = false;
+      if (matches && selectedFilters[2] && program.level) {
+        const targets = selectedFilters[2].split(",").map((s) => s.trim().toLowerCase());
+        if (!isUniversalValue(program.level, "Tous niveaux") && !targets.includes(program.level.trim().toLowerCase())) {
+          matches = false;
+        }
+      }
 
       // Index 3: Location
-      if (matches && selectedFilters[3] && program.location &&
-        program.location.trim().toLowerCase() !== selectedFilters[3].trim().toLowerCase()) matches = false;
+      if (matches && selectedFilters[3] && program.location) {
+        const targets = selectedFilters[3].split(",").map((s) => s.trim().toLowerCase());
+        if (!targets.includes(program.location.trim().toLowerCase())) {
+          matches = false;
+        }
+      }
 
       // Index 4: Duration
       if (matches && selectedFilters[4]) {
-        const max = Number.parseInt(selectedFilters[4], 10);
-        if (!Number.isNaN(max) && program.duration && program.duration > max) matches = false;
+        const targets = selectedFilters[4].split(",").map((s) => Number.parseInt(s, 10)).filter((n) => !Number.isNaN(n));
+        if (targets.length > 0) {
+          const max = Math.max(...targets);
+          if (program.duration && program.duration > max) matches = false;
+        }
       }
 
       // Index 5: Partner
-      if (matches && selectedFilters[5] && program.partner &&
-        program.partner.trim().toLowerCase() !== selectedFilters[5].trim().toLowerCase()) matches = false;
+      if (matches && selectedFilters[5] && program.partner) {
+        const targets = selectedFilters[5].split(",").map((s) => s.trim().toLowerCase());
+        if (!targets.includes(program.partner.trim().toLowerCase())) {
+          matches = false;
+        }
+      }
 
       if (matches) {
         const isAvail = checkAvailability(program);
         availabilityValues.add(isAvail ? "Oui" : "Non");
       }
 
-      if (matches && selectedFilters[6] && !isAvailableMatch(program, selectedFilters[6])) {
-        matches = false;
+      if (matches && selectedFilters[6]) {
+        const availTargets = selectedFilters[6].split(",").map((s) => s.trim());
+        const isMatch = availTargets.some((t) => isAvailableMatch(program, t));
+        if (!isMatch) {
+          matches = false;
+        }
       }
 
       if (matches) {
@@ -358,38 +383,50 @@ export default function StoreFilters({
     {
       label: "Sexe",
       placeholder: "Tous",
-      options: genderOptions,
-      allOptions: allGenderOptions,
+      options: [
+        { value: "Femme", label: "Femme" },
+        { value: "Homme", label: "Homme" },
+      ],
+      allOptions: [
+        { value: "Femme", label: "Femme" },
+        { value: "Homme", label: "Homme" },
+      ],
     },
     {
       label: "Objectif",
       placeholder: "Tous les objectifs",
-      options: goalOptions,
+      options: allGoalOptions,
       allOptions: allGoalOptions,
     },
     {
       label: "Niveau",
       placeholder: "Tous les niveaux",
-      options: levelOptions,
+      options: allLevelOptions,
       allOptions: allLevelOptions,
     },
     {
       label: "Lieu",
       placeholder: "Tous les lieux",
-      options: locationOptions,
+      options: allLocationOptions,
       allOptions: allLocationOptions,
     },
     {
       label: "Durée max.",
       placeholder: "Toutes les durées",
-      options: durationOptions,
+      options: allDurationOptions,
       allOptions: allDurationOptions,
     },
     {
       label: "Partenaire",
       placeholder: "Tous les partenaires",
-      options: partnerOptions,
+      options: allPartnerOptions,
       allOptions: allPartnerOptions,
+    },
+    {
+      label: "Disponibilité",
+      placeholder: "Toutes les disponibilités",
+      options: allAvailabilityOptions,
+      allOptions: allAvailabilityOptions,
     },
   ];
 
@@ -533,72 +570,88 @@ export default function StoreFilters({
     const newFilters = ["", "", "", "", "", "", ""];
 
     // Sexe (index 0)
-    const sexSet = newDrawerFilters["Sexe"] || new Set();
-    if (sexSet.size === 0) {
-      newFilters[0] = "__none__";
-    } else if (sexSet.size === 1) {
-      newFilters[0] = Array.from(sexSet)[0];
-    } else {
-      newFilters[0] = "";
+    if (newDrawerFilters["Sexe"] !== undefined) {
+      const sexSet = newDrawerFilters["Sexe"];
+      if (sexSet.size === 0) {
+        newFilters[0] = "__none__";
+      } else if (sexSet.size === 1) {
+        newFilters[0] = Array.from(sexSet)[0];
+      } else {
+        newFilters[0] = "";
+      }
     }
 
     // Objectif (index 1)
-    const goalSet = newDrawerFilters["Objectif"] || new Set();
-    if (goalSet.size === 0) {
-      newFilters[1] = "__none__";
-    } else if (goalSet.size < allGoalOptions.length) {
-      newFilters[1] = Array.from(goalSet).join(",");
-    } else {
-      newFilters[1] = "";
+    if (newDrawerFilters["Objectif"] !== undefined) {
+      const goalSet = newDrawerFilters["Objectif"];
+      if (goalSet.size === 0) {
+        newFilters[1] = "__none__";
+      } else if (goalSet.size < allGoalOptions.length) {
+        newFilters[1] = Array.from(goalSet).join(",");
+      } else {
+        newFilters[1] = "";
+      }
     }
 
     // Niveau (index 2)
-    const levelSet = newDrawerFilters["Niveau"] || new Set();
-    if (levelSet.size === 0) {
-      newFilters[2] = "__none__";
-    } else if (levelSet.size < allLevelOptions.length) {
-      newFilters[2] = Array.from(levelSet).join(",");
-    } else {
-      newFilters[2] = "";
+    if (newDrawerFilters["Niveau"] !== undefined) {
+      const levelSet = newDrawerFilters["Niveau"];
+      if (levelSet.size === 0) {
+        newFilters[2] = "__none__";
+      } else if (levelSet.size < allLevelOptions.length) {
+        newFilters[2] = Array.from(levelSet).join(",");
+      } else {
+        newFilters[2] = "";
+      }
     }
 
     // Lieu (index 3)
-    const locSet = newDrawerFilters["Lieu"] || new Set();
-    if (locSet.size === 0) {
-      newFilters[3] = "__none__";
-    } else if (locSet.size < allLocationOptions.length) {
-      newFilters[3] = Array.from(locSet).join(",");
-    } else {
-      newFilters[3] = "";
+    if (newDrawerFilters["Lieu"] !== undefined) {
+      const locSet = newDrawerFilters["Lieu"];
+      if (locSet.size === 0) {
+        newFilters[3] = "__none__";
+      } else if (locSet.size < allLocationOptions.length) {
+        newFilters[3] = Array.from(locSet).join(",");
+      } else {
+        newFilters[3] = "";
+      }
     }
 
     // Durée max. (index 4)
-    const durSet = newDrawerFilters["Durée max."] || new Set();
-    if (durSet.size === 0) {
-      newFilters[4] = "__none__";
-    } else if (durSet.size < allDurationOptions.length) {
-      const maxVal = Math.max(...Array.from(durSet).map((s) => parseInt(s, 10) || 0));
-      newFilters[4] = String(maxVal);
-    } else {
-      newFilters[4] = "";
+    if (newDrawerFilters["Durée max."] !== undefined) {
+      const durSet = newDrawerFilters["Durée max."];
+      if (durSet.size === 0) {
+        newFilters[4] = "__none__";
+      } else if (durSet.size < allDurationOptions.length) {
+        const maxVal = Math.max(...Array.from(durSet).map((s) => parseInt(s, 10) || 0));
+        newFilters[4] = String(maxVal);
+      } else {
+        newFilters[4] = "";
+      }
     }
 
     // Partenaire (index 5)
-    const partnerSet = newDrawerFilters["Partenaire"] || new Set();
-    if (partnerSet.size === 0) {
-      newFilters[5] = "__none__";
-    } else if (partnerSet.size < allPartnerOptions.length) {
-      newFilters[5] = Array.from(partnerSet).join(",");
-    } else {
-      newFilters[5] = "";
+    if (newDrawerFilters["Partenaire"] !== undefined) {
+      const partnerSet = newDrawerFilters["Partenaire"];
+      if (partnerSet.size === 0) {
+        newFilters[5] = "__none__";
+      } else if (partnerSet.size < allPartnerOptions.length) {
+        newFilters[5] = Array.from(partnerSet).join(",");
+      } else {
+        newFilters[5] = "";
+      }
     }
 
     // Disponibilité (index 6)
-    const availSet = newDrawerFilters["Disponibilité"] || new Set();
-    if (availSet.size === 0) {
-      newFilters[6] = "__none__";
-    } else if (availSet.size === 1) {
-      newFilters[6] = availSet.has("Téléchargeable") ? "Oui" : "Non";
+    if (newDrawerFilters["Disponibilité"] !== undefined) {
+      const availSet = newDrawerFilters["Disponibilité"];
+      if (availSet.size === 0) {
+        newFilters[6] = "__none__";
+      } else if (availSet.size === 1) {
+        newFilters[6] = availSet.has("Téléchargeable") ? "Oui" : "Non";
+      } else {
+        newFilters[6] = "";
+      }
     } else {
       newFilters[6] = "";
     }

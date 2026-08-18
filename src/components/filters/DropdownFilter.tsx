@@ -4,6 +4,8 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
+import CheckboxCheckedIcon from "/public/icons/checkbox_checked.svg";
+import CheckboxUncheckedIcon from "/public/icons/checkbox_unchecked.svg";
 
 type FilterOption = {
   value: string;
@@ -22,6 +24,7 @@ type DropdownFilterProps = {
   sortOptions?: boolean;
   maxWidth?: number;
   allOptions?: FilterOption[];
+  isMultiSelect?: boolean;
 };
 
 export default function DropdownFilter({
@@ -35,6 +38,7 @@ export default function DropdownFilter({
   sortOptions = true,
   maxWidth,
   allOptions = [],
+  isMultiSelect = true,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -59,13 +63,48 @@ export default function DropdownFilter({
     );
   }, [options, sortOptions]);
 
-  const isPlaceholder = selected === "";
-  const selectedOption = isPlaceholder
-    ? undefined
-    : preparedOptions.find((option) => option.value === selected);
-  const selectedLabel = isPlaceholder
-    ? placeholder
-    : selectedOption?.label ?? placeholder;
+  // Selected values as a Set for multi-select
+  const selectedValues = useMemo(() => {
+    if (!isMultiSelect) return new Set<string>();
+    if (selected === "" || selected === undefined) {
+      // Default: all options selected
+      return new Set(preparedOptions.map((o) => o.value));
+    }
+    if (selected === "__none__") {
+      return new Set<string>();
+    }
+    return new Set(selected.split(",").map((s) => s.trim()).filter(Boolean));
+  }, [isMultiSelect, selected, preparedOptions]);
+
+  const allSelected = useMemo(() => {
+    if (!isMultiSelect) return false;
+    return preparedOptions.length > 0 && selectedValues.size === preparedOptions.length;
+  }, [isMultiSelect, preparedOptions.length, selectedValues.size]);
+
+  const isPlaceholder = isMultiSelect
+    ? selected === ""
+    : selected === "";
+
+  const selectedLabel = useMemo(() => {
+    if (selected === "") {
+      return placeholder;
+    }
+    if (selected === "__none__") {
+      return "Aucun";
+    }
+
+    if (isMultiSelect) {
+      const selectedList = preparedOptions.filter((o) => selectedValues.has(o.value));
+      if (selectedList.length === 0) return "Aucun";
+      if (selectedList.length === preparedOptions.length) return placeholder;
+      if (selectedList.length === 1) return selectedList[0].label;
+      return `${selectedList[0].label} (+${selectedList.length - 1})`;
+    }
+
+    const selectedOption = preparedOptions.find((option) => option.value === selected);
+    return selectedOption?.label ?? placeholder;
+  }, [selected, isMultiSelect, placeholder, preparedOptions, selectedValues]);
+
   const hasIcons = useMemo(
     () => preparedOptions.some((option) => option.iconSrc),
     [preparedOptions]
@@ -79,9 +118,15 @@ export default function DropdownFilter({
 
       const labelsToMeasure = new Set<string>([
         placeholder,
+        "Aucun",
         ...preparedOptions.map((option) => option.label),
         ...allOptions.map((option) => option.label),
       ]);
+
+      preparedOptions.forEach((o) => {
+        labelsToMeasure.add(`${o.label} (+1)`);
+        labelsToMeasure.add(`${o.label} (+9)`);
+      });
 
       if (!isPlaceholder) {
         labelsToMeasure.add(selectedLabel);
@@ -89,8 +134,8 @@ export default function DropdownFilter({
 
       let maxMeasuredWidth = 0;
 
-      labelsToMeasure.forEach((label) => {
-        measurementTextRef.current!.textContent = label;
+      labelsToMeasure.forEach((l) => {
+        measurementTextRef.current!.textContent = l;
         const { width } = measurementRef.current!.getBoundingClientRect();
         maxMeasuredWidth = Math.max(maxMeasuredWidth, Math.ceil(width));
       });
@@ -101,10 +146,11 @@ export default function DropdownFilter({
       }
 
       const iconSpacing = hasIcons ? 30 : 0;
+      const checkboxSpacing = isMultiSelect ? 10 : 0;
       const widthLimit =
         typeof maxWidth === "number" ? maxWidth : Number.POSITIVE_INFINITY;
-      const widthWithIcons = maxMeasuredWidth + iconSpacing;
-      const finalWidth = Math.max(0, Math.min(widthWithIcons, widthLimit));
+      const widthWithExtras = maxMeasuredWidth + iconSpacing + checkboxSpacing;
+      const finalWidth = Math.max(0, Math.min(widthWithExtras, widthLimit));
       setCalculatedWidth(finalWidth);
 
       // Reset to the currently displayed label so the hidden element reflects the UI state
@@ -125,6 +171,7 @@ export default function DropdownFilter({
     placeholder,
     preparedOptions,
     selectedLabel,
+    isMultiSelect,
   ]);
 
   useEffect(() => {
@@ -170,13 +217,37 @@ export default function DropdownFilter({
     }
   }, [open, preparedOptions]);
 
+  const handleToggleOption = (optionValue: string) => {
+    if (!isMultiSelect) {
+      onSelect(optionValue);
+      setOpen(false);
+      buttonRef.current?.blur();
+      return;
+    }
+
+    const newSet = new Set(selectedValues);
+    if (newSet.has(optionValue)) {
+      newSet.delete(optionValue);
+    } else {
+      newSet.add(optionValue);
+    }
+
+    if (newSet.size === preparedOptions.length) {
+      onSelect("");
+    } else if (newSet.size === 0) {
+      onSelect("__none__");
+    } else {
+      onSelect(Array.from(newSet).join(","));
+    }
+  };
+
   const buttonStateClasses = (() => {
     if (disabled) {
       return "border-[#D7D4DC] bg-[#F2F1F6] cursor-not-allowed";
     }
 
     if (open) {
-      return "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD] bg-white";
+      return "border-transparent outline-none ring-2 ring-[#A1A5FD] bg-white";
     }
 
     return "border-[#D7D4DC] bg-white hover:border-[#C2BFC6]";
@@ -201,7 +272,7 @@ export default function DropdownFilter({
           <button
             type="button"
             onClick={() => onSelect("")}
-            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4]"
+            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4] cursor-pointer"
           >
             Effacer
           </button>
@@ -270,6 +341,7 @@ export default function DropdownFilter({
           gap-[10px]
           text-[16px]
           font-semibold
+          cursor-pointer
         `}
         style={{
           ...(calculatedWidth
@@ -284,9 +356,9 @@ export default function DropdownFilter({
           <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
             {selectedLabel}
           </span>
-          {selectedOption?.iconSrc && (
+          {selectedOptionHasIcon(preparedOptions, selected) && (
             <Image
-              src={selectedOption.iconSrc}
+              src={selectedOptionHasIcon(preparedOptions, selected)!}
               alt=""
               width={20}
               height={15}
@@ -310,15 +382,16 @@ export default function DropdownFilter({
 
       {open && (
         <div
-          className="absolute left-0 mt-20 w-full bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden"
+          className="absolute left-0 mt-20 min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden animate-in fade-in-50 duration-150"
         >
           {/* Top Gradient */}
           <div
-            className={`absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"
-              }`}
+            className={`absolute top-0 left-0 right-0 h-[24px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
+              showTopGradient ? "opacity-100" : "opacity-0"
+            }`}
           />
           <div
-            className="flex flex-col overflow-y-auto max-h-[216px] py-2 scrollable-dropdown"
+            className="flex flex-col overflow-y-auto max-h-[220px] py-1.5 scrollable-dropdown"
             ref={listRef}
             onScroll={(e) => {
               const target = e.currentTarget;
@@ -330,46 +403,65 @@ export default function DropdownFilter({
               setShowTopGradient(hasScroll && !isAtTop);
             }}
           >
-            {preparedOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onSelect(option.value);
-                  setOpen(false);
-                  buttonRef.current?.blur();
-                }}
-                className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${selected === option.value
-                  ? "text-[#7069FA]"
-                  : "text-[#5D6494] hover:text-[#3A416F]"
+            {preparedOptions.map((option) => {
+              const isChecked = isMultiSelect
+                ? selectedValues.has(option.value)
+                : selected === option.value;
+
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => handleToggleOption(option.value)}
+                  className={`text-left text-[15px] font-semibold py-[7px] px-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center gap-2.5 cursor-pointer select-none group ${
+                    isChecked
+                      ? "text-[#3A416F]"
+                      : "text-[#5D6494] hover:text-[#3A416F]"
                   }`}
-              >
-                <span className="flex min-w-0 items-center">
-                  <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                    {option.label}
-                  </span>
-                  {option.iconSrc && (
+                >
+                  {isMultiSelect && (
                     <Image
-                      src={option.iconSrc}
-                      alt=""
-                      width={20}
+                      src={isChecked ? CheckboxCheckedIcon : CheckboxUncheckedIcon}
+                      alt={isChecked ? "Coché" : "Non coché"}
+                      width={15}
                       height={15}
-                      className="ml-[10px] shrink-0"
+                      className="shrink-0"
                     />
                   )}
-                </span>
-              </button>
-            ))}
+
+                  <span className="flex min-w-0 items-center flex-1">
+                    <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                      {option.label}
+                    </span>
+                    {option.iconSrc && (
+                      <Image
+                        src={option.iconSrc}
+                        alt=""
+                        width={20}
+                        height={15}
+                        className="ml-[10px] shrink-0"
+                      />
+                    )}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           {/* Bottom Gradient */}
           <div
-            className={`absolute bottom-0 left-0 right-0 h-[40px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showBottomGradient ? "opacity-100" : "opacity-0"
-              }`}
+            className={`absolute bottom-0 left-0 right-0 h-[24px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
+              showBottomGradient ? "opacity-100" : "opacity-0"
+            }`}
           />
         </div>
       )}
     </div>
   );
+}
+
+function selectedOptionHasIcon(options: FilterOption[], selected: string): string | undefined {
+  if (!selected || selected === "__none__" || selected.includes(",")) return undefined;
+  return options.find((o) => o.value === selected)?.iconSrc;
 }
 
 export type { FilterOption };

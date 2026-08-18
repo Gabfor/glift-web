@@ -136,7 +136,7 @@ export default function FiltersPanel({
               min-w-[153px]
               border
               ${openSortMenu
-                  ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#A1A5FD]"
+                  ? "border-transparent outline-none ring-2 ring-[#A1A5FD]"
                   : "border-[#D7D4DC]"
                 }
               rounded-[5px]
