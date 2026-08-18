@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 
 interface OfferModalProps {
   name: string;
+  description?: string;
   brandImage?: string;
   code?: string;
   link: string;
@@ -19,6 +20,7 @@ interface OfferModalProps {
 
 export default function OfferModal({
   name,
+  description,
   brandImage,
   code,
   link,
@@ -35,13 +37,57 @@ export default function OfferModal({
 
   const handleCopy = async () => {
     if (!code) return;
-    try {
-      await navigator.clipboard.writeText(code);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Erreur lors de la copie :", err);
+
+    let copiedSuccess = false;
+
+    // 1. Essai avec l'API moderne Clipboard si disponible (HTTPS / localhost)
+    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(code);
+        copiedSuccess = true;
+      } catch (err) {
+        console.warn("navigator.clipboard.writeText non disponible ou refusé, fallback utilisé :", err);
+      }
     }
+
+    // 2. Fallback pour iOS WebKit et HTTP sans faire sauter l'écran
+    if (!copiedSuccess) {
+      try {
+        const currentScrollY = window.scrollY || window.pageYOffset || 0;
+        const textArea = document.createElement("textarea");
+        textArea.value = code;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.top = `${currentScrollY}px`;
+        textArea.style.left = "-9999px";
+        textArea.style.fontSize = "16px";
+        textArea.style.width = "1px";
+        textArea.style.height = "1px";
+        textArea.style.padding = "0";
+        textArea.style.border = "none";
+        textArea.style.outline = "none";
+        textArea.style.opacity = "0";
+        document.body.appendChild(textArea);
+
+        textArea.focus({ preventScroll: true });
+        textArea.select();
+        textArea.setSelectionRange(0, code.length);
+        copiedSuccess = document.execCommand("copy");
+        document.body.removeChild(textArea);
+
+        // Retirer le focus pour éviter tout scroll automatique du navigateur mobile
+        (document.activeElement as HTMLElement)?.blur();
+      } catch (err) {
+        console.error("Erreur lors de la copie fallback :", err);
+      }
+    }
+
+    // Déclenchement du feedback visuel
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+      setHoveredCopy(false);
+    }, 1500);
   };
 
   function formatDate(dateString?: string) {
@@ -73,18 +119,20 @@ export default function OfferModal({
       open
       title={name}
       onClose={onCancel}
-      titleClassName="order-2 mt-5 mb-5 text-center text-[18px] font-bold uppercase"
+      titleClassName="order-2 !mb-[10px] text-center text-[18px] font-bold uppercase text-[#3A416F]"
       contentClassName="flex flex-col items-center"
       footerWrapperClassName="order-6 w-full"
       footer={
-        <div className="flex justify-center gap-5">
+        <div className="flex w-full justify-center gap-5">
           <CTAButton
             variant="secondary"
             onClick={onCancel}
+            className="hidden md:inline-flex"
           >
             Annuler
           </CTAButton>
           <CTAButton
+            className="w-full md:w-auto"
             onClick={() => {
               onConfirm();
               window.open(link, "_blank");
@@ -119,36 +167,55 @@ export default function OfferModal({
         </div>
       )}
 
+      {description && (
+        <div
+          className="order-2 text-center text-[14px] font-semibold text-[#5D6494] mb-5 [&>p]:m-0 [&>p]:inline"
+          dangerouslySetInnerHTML={{ __html: description }}
+        />
+      )}
+
       <div className="order-3 mb-3 w-full text-left text-[#3A416F]">
-        <h3 className="mb-1 text-[14px] font-bold">Comment profiter de cette offre ?</h3>
+        <h3 className="mb-1 text-[14px] font-bold">Comment en profiter ?</h3>
         {modal === "Avec code" ? (
           <p className="text-[14px] font-semibold text-[#5D6494]">
-            Pour profiter immédiatement de cette offre, copiez le code de réduction ci-dessous et collez-le dans votre panier.
+            Pour en profiter immédiatement, copie le code de réduction ci-dessous et colle le dans ton panier.
           </p>
         ) : (
           <p className="text-[14px] font-semibold text-[#5D6494]">
-            Aucun code n&apos;est nécessaire pour profiter de cette offre. Cliquez sur le bouton ci-dessous pour être automatiquement redirigé vers le site partenaire.
+            Aucun code n&apos;est nécessaire pour profiter de cette offre. Clique sur le bouton ci-dessous pour être automatiquement redirigé vers le site partenaire.
           </p>
         )}
       </div>
 
       {modal === "Avec code" && code && (
-        <div className="order-4 mt-6 mb-6 flex w-[300px] justify-center">
+        <div className="order-4 mt-[10px] mb-[20px] flex w-[300px] justify-center">
           <div className="relative w-full">
             <input
               ref={inputRef}
               value={code}
               readOnly
-              className="h-[45px] w-full cursor-default select-none rounded-[5px] border border-[#D7D4DC] px-[15px] pr-[40px] text-center text-[16px] font-bold text-[#5D6494] transition-all duration-150 hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]"
+              inputMode="none"
+              tabIndex={-1}
+              onClick={(e) => {
+                e.currentTarget.blur();
+                handleCopy();
+              }}
+              className="h-[45px] w-full cursor-pointer select-none rounded-[5px] border border-[#D7D4DC] px-[15px] pr-[40px] text-center text-[16px] font-bold text-[#5D6494] transition-all duration-150 hover:border-[#C2BFC6] focus:outline-none"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
-              <Tooltip content="Copié !" delay={0} forceVisible={copied} disableHover>
+              <Tooltip
+                content={copied ? "Copié !" : "Copier"}
+                forceVisible={copied}
+                delay={100}
+                offset={10}
+              >
                 <button
+                  type="button"
                   onClick={handleCopy}
                   onMouseEnter={() => setHoveredCopy(true)}
                   onMouseLeave={() => setHoveredCopy(false)}
-                  className="mt-[6px] p-1 transition"
-                  title="Copier"
+                  className="mt-[6px] p-1 transition cursor-pointer"
+                  aria-label="Copier le code"
                 >
                   <Image
                     src={

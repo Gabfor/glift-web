@@ -141,6 +141,7 @@ export default function ShopPageClient({
       {showCodeModal && selectedOffer && (
         <OfferCodeModal
           name={selectedOffer.name}
+          description={selectedOffer.description}
           brandImage={selectedOffer.brand_image}
           code={selectedOffer.code}
           link={selectedOffer.shop_link || ""}
