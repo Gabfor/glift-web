@@ -422,12 +422,6 @@ export default function StoreFilters({
       options: allPartnerOptions,
       allOptions: allPartnerOptions,
     },
-    {
-      label: "Disponibilité",
-      placeholder: "Toutes les disponibilités",
-      options: allAvailabilityOptions,
-      allOptions: allAvailabilityOptions,
-    },
   ];
 
   // Build drawer sections
