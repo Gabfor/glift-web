@@ -689,17 +689,33 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/compte"
-                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] font-semibold text-[16px] flex items-center justify-center hover:bg-[#3A416F]/5 transition-colors"
+                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold text-[16px] flex items-center justify-center gap-1 transition-all duration-300 group cursor-pointer"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    {userDisplayName}
+                    <span>{userDisplayName}</span>
+                    <div className="relative w-[25px] h-[25px]">
+                      <Image
+                        src="/icons/arrow_blue.svg"
+                        alt="Flèche bleue"
+                        fill
+                        className="object-contain transition-opacity group-hover:opacity-0"
+                        priority={false}
+                      />
+                      <Image
+                        src="/icons/arrow.svg"
+                        alt="Flèche blanche"
+                        fill
+                        className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
+                        priority={false}
+                      />
+                    </div>
                   </Link>
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       router.push("/deconnexion");
                     }}
-                    className="w-full h-[44px] rounded-full bg-[#7069FA] hover:bg-[#6058F8] text-white font-semibold text-[16px] flex items-center justify-center transition-colors cursor-pointer"
+                    className="w-full h-[44px] rounded-full bg-[#EF4F4E] hover:bg-[#E03E3D] text-white font-semibold text-[16px] flex items-center justify-center transition-colors cursor-pointer"
                   >
                     Déconnexion
                   </button>
