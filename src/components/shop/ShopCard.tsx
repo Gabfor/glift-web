@@ -414,14 +414,10 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
             onClick={handleClick}
             className="w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
           >
-            En profiter
-            <Image
-              src="/icons/arrow.svg"
-              alt="Flèche"
-              width={25}
-              height={25}
-              className="ml-[-5px]"
-            />
+            <span className="inline-flex items-center gap-2">
+              <Image src="/icons/deal.svg" alt="" width={20} height={20} />
+              En profiter
+            </span>
           </CTAButton>
         </div>
       </div>

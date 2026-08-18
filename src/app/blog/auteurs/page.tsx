@@ -211,13 +211,6 @@ export default async function AuteursPage() {
                     href={`/blog/auteurs/${getAuthorSlug(author.prenom, author.nom)}`}
                   >
                     Voir le profil {getDePreposition(author.prenom)}{author.prenom}
-                    <Image
-                      src="/icons/arrow.svg"
-                      alt="Flèche"
-                      width={25}
-                      height={25}
-                      className="ml-[-5px]"
-                    />
                   </CTAButton>
                 </div>
               </div>

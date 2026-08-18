@@ -76,8 +76,10 @@ body[style*="overflow: hidden"] {
 }
 
 /* Permet de forcer le lock quand on le veut vraiment (ex: nos propres modales) */
+html.manual-scroll-lock,
 body.manual-scroll-lock {
   overflow: hidden !important;
+  overscroll-behavior: contain !important;
 }
 
 /* Désactive l'effet du `inert` que Radix met sur les parents du menu */

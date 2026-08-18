@@ -66,7 +66,14 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   useLayoutEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 10);
+      let scroll = window.scrollY;
+      if (document.body.classList.contains("manual-scroll-lock") || document.body.style.position === "fixed") {
+        const top = parseInt(document.body.style.top || "0", 10);
+        if (top < 0) {
+          scroll = Math.abs(top);
+        }
+      }
+      setIsSticky(scroll > 10);
     };
 
     // Initial check
@@ -78,8 +85,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
     }, 100);
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+
+    const observer = new MutationObserver(() => {
+      handleScroll();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
       clearTimeout(timer);
     };
   }, []);
@@ -689,26 +703,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/compte"
-                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold text-[16px] flex items-center justify-center gap-1 transition-all duration-300 group cursor-pointer"
+                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold text-[16px] flex items-center justify-center transition-all duration-300 group cursor-pointer"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <span>{userDisplayName}</span>
-                    <div className="relative w-[25px] h-[25px]">
-                      <Image
-                        src="/icons/arrow_blue.svg"
-                        alt="Flèche bleue"
-                        fill
-                        className="object-contain transition-opacity group-hover:opacity-0"
-                        priority={false}
-                      />
-                      <Image
-                        src="/icons/arrow.svg"
-                        alt="Flèche blanche"
-                        fill
-                        className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                        priority={false}
-                      />
-                    </div>
                   </Link>
                   <button
                     onClick={() => {

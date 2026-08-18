@@ -20,10 +20,28 @@ export default function AdminHeader() {
   // ✅ Sticky on scroll
   useEffect(() => {
     const handleScroll = () => {
-      setIsSticky(window.scrollY > 0);
+      let scroll = window.scrollY;
+      if (document.body.classList.contains("manual-scroll-lock") || document.body.style.position === "fixed") {
+        const top = parseInt(document.body.style.top || "0", 10);
+        if (top < 0) {
+          scroll = Math.abs(top);
+        }
+      }
+      setIsSticky(scroll > 0);
     };
+
+    handleScroll();
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    const observer = new MutationObserver(() => {
+      handleScroll();
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      observer.disconnect();
+    };
   }, []);
 
   // ✅ Close dropdown on outside click

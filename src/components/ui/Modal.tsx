@@ -61,46 +61,47 @@ export default function Modal({
   }, [open, onClose, closeDisabled])
 
   useEffect(() => {
-    if (open) {
-      document.body.classList.add('manual-scroll-lock')
-    } else {
-      document.body.classList.remove('manual-scroll-lock')
-    }
+    if (!open) return;
+
+    document.documentElement.classList.add("manual-scroll-lock");
+    document.body.classList.add("manual-scroll-lock");
 
     return () => {
-      document.body.classList.remove('manual-scroll-lock')
-    }
-  }, [open])
+      document.documentElement.classList.remove("manual-scroll-lock");
+      document.body.classList.remove("manual-scroll-lock");
+    };
+  }, [open]);
 
   if (!mounted || !open) {
-    return null
+    return null;
   }
 
   const handleOverlayClick = () => {
-    if (closeDisabled) return
-    onClose?.()
-  }
+    if (closeDisabled) return;
+    onClose?.();
+  };
 
   const handleClose = () => {
-    if (closeDisabled) return
-    onClose?.()
-  }
+    if (closeDisabled) return;
+    onClose?.();
+  };
 
   const closeIcon =
     closeHovered && !closeDisabled
       ? "/icons/close_hover.svg"
-      : "/icons/close.svg"
+      : "/icons/close.svg";
 
   return createPortal(
     <div
       className={clsx(
-        "fixed inset-0 z-[1000] flex items-center justify-center",
-        className,
+        "fixed inset-0 z-[1000] flex items-center justify-center p-4",
+        className
       )}
     >
       <div
-        className="absolute inset-0 bg-[#2E3142]/60 animate-in fade-in duration-300"
+        className="absolute inset-0 bg-[#2E3142]/60 animate-in fade-in duration-300 touch-none"
         onClick={handleOverlayClick}
+        onTouchMove={(e) => e.preventDefault()}
         aria-hidden="true"
       />
 
@@ -109,7 +110,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={labelId}
         className={clsx(
-          "relative z-10 w-[564px] max-w-[92vw] rounded-[20px] bg-white p-8 shadow-lg animate-in fade-in zoom-in-95 duration-300",
+          "relative z-10 w-[564px] max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white p-8 shadow-lg animate-in fade-in zoom-in-95 duration-300",
           contentClassName
         )}
       >

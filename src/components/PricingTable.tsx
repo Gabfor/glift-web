@@ -104,34 +104,13 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
             abo.boutonType === "primaire" ? (
               <CTAButton href={abo.boutonLien || "#"} className="font-semibold w-full md:w-auto">
                 {abo.boutonTexte}
-                <Image
-                  src="/icons/arrow.svg"
-                  alt="Flèche blanche"
-                  width={25}
-                  height={25}
-                  className="object-contain"
-                />
               </CTAButton>
             ) : (
               <Link
                 href={abo.boutonLien || "#"}
-                className="inline-flex items-center justify-center gap-1 h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
+                className="inline-flex items-center justify-center h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
               >
                 {abo.boutonTexte}
-                <div className="relative w-[25px] h-[25px]">
-                  <Image
-                    src="/icons/arrow_blue.svg"
-                    alt="Flèche normale"
-                    fill
-                    className="object-contain transition-opacity group-hover:opacity-0"
-                  />
-                  <Image
-                    src="/icons/arrow.svg"
-                    alt="Flèche blanche"
-                    fill
-                    className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                  />
-                </div>
               </Link>
             )
           )}

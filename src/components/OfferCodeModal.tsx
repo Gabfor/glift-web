@@ -138,16 +138,7 @@ export default function OfferModal({
               window.open(link, "_blank");
             }}
           >
-            <span className="inline-flex items-center gap-2">
-              Aller sur le site
-              <Image
-                src="/icons/arrow.svg"
-                alt="→"
-                width={25}
-                height={25}
-                className="h-[25px] w-[25px]"
-              />
-            </span>
+            Aller sur le site
           </CTAButton>
         </div>
       }

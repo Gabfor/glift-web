@@ -55,25 +55,9 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
         </div>
         <Link
           href={blogUrl}
-          className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition cursor-pointer"
+          className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center transition cursor-pointer"
         >
           Voir tous les articles
-          <div className="relative w-[25px] h-[25px]">
-            <Image
-              src="/icons/arrow_blue.svg"
-              alt="Flèche normale"
-              fill
-              className="object-contain transition-opacity group-hover:opacity-0"
-              priority={false}
-            />
-            <Image
-              src="/icons/arrow.svg"
-              alt="Flèche blanche"
-              fill
-              className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-              priority={false}
-            />
-          </div>
         </Link>
       </div>
 

@@ -128,7 +128,6 @@ export default function CheckoutForm(props: CheckoutFormProps) {
 
     const isFormComplete = cardNumberComplete && cardExpiryComplete && cardCvcComplete && accepted;
     const btnDisabled = !stripe || !elements || !isFormComplete || loading;
-    const arrowIcon = btnDisabled ? "/icons/arrow_grey.svg" : "/icons/arrow.svg";
 
     return (
         <form onSubmit={handleSubmit} className="w-full">
@@ -260,15 +259,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                     loadingText="Validation…"
                     className="h-[48px] px-[20px] rounded-[25px] text-[16px] font-semibold"
                 >
-                    <>
-                        {submitButtonText}
-                        <img
-                            src={arrowIcon}
-                            alt=""
-                            aria-hidden="true"
-                            className="w-[20px] h-[20px]"
-                        />
-                    </>
+                    {submitButtonText}
                 </CTAButton>
             </div>
 

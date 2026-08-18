@@ -92,10 +92,7 @@ export default function Footer() {
         {/* Right - CTA */}
         <div className="flex flex-col items-center gap-2 w-full lg:w-auto">
           <CTAButton href="/inscription?plan=premium" className="w-full lg:w-auto font-semibold text-[16px]">
-            <span className="inline-flex items-center justify-center gap-2 w-full">
-              Tester gratuitement
-              <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" width={25} height={25} />
-            </span>
+            Tester gratuitement
           </CTAButton>
           {/* Texte centré sous le CTA */}
           <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center gap-2">

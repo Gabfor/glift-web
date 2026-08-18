@@ -427,16 +427,10 @@ export default function BlogArticleBlocksRenderer({
                             className={
                               block.boutonType === "primaire"
                                 ? "btn-primary w-full sm:w-[250px] flex justify-center items-center h-[55px]"
-                                : "w-full sm:w-fit px-[30px] h-[44px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center gap-1 transition"
+                                : "w-full sm:w-fit px-[30px] h-[44px] group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center transition"
                             }
                           >
                             {block.boutonTexte}
-                            {block.boutonType === "secondaire" && (
-                              <div className="relative w-[25px] h-[25px]">
-                                <Image src="/icons/arrow_blue.svg" alt="Flèche" fill className="object-contain transition-opacity group-hover:opacity-0" priority={false} />
-                                <Image src="/icons/arrow.svg" alt="Flèche" fill className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0" priority={false} />
-                              </div>
-                            )}
                           </Link>
                         )}
                       </div>
@@ -533,23 +527,9 @@ export default function BlogArticleBlocksRenderer({
                         {card1Data.boutonType !== "aucun" && (
                           <Link
                             href={card1Data.boutonLien || storeUrl || "/store"}
-                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center gap-2 cursor-pointer mt-auto w-full sm:w-fit"
+                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
                           >
                             {cleanText(card1Data.boutonTexte) || "Découvrir le Store"}
-                            <div className="relative w-[20px] h-[20px]">
-                              <Image
-                                src="/icons/arrow_blue.svg"
-                                alt="Flèche"
-                                fill
-                                className="object-contain transition-opacity group-hover:opacity-0"
-                              />
-                              <Image
-                                src="/icons/arrow.svg"
-                                alt="Flèche"
-                                fill
-                                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                              />
-                            </div>
                           </Link>
                         )}
                       </motion.div>
@@ -575,23 +555,9 @@ export default function BlogArticleBlocksRenderer({
                         {card2Data.boutonType !== "aucun" && (
                           <Link
                             href={card2Data.boutonLien || shopUrl || "/shop"}
-                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center gap-2 cursor-pointer mt-auto w-full sm:w-fit"
+                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
                           >
                             {cleanText(card2Data.boutonTexte) || "Découvrir le Shop"}
-                            <div className="relative w-[20px] h-[20px]">
-                              <Image
-                                src="/icons/arrow_blue.svg"
-                                alt="Flèche"
-                                fill
-                                className="object-contain transition-opacity group-hover:opacity-0"
-                              />
-                              <Image
-                                src="/icons/arrow.svg"
-                                alt="Flèche"
-                                fill
-                                className="object-contain opacity-0 transition-opacity group-hover:opacity-100 absolute top-0 left-0"
-                              />
-                            </div>
                           </Link>
                         )}
                       </motion.div>
@@ -946,10 +912,9 @@ export default function BlogArticleBlocksRenderer({
                 return (
                   <Link
                     href={href}
-                    className="w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
+                    className="w-full sm:w-auto bg-[#7069FA] hover:bg-[#6660E4] text-white text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center transition"
                   >
                     {btn.texte}
-                    <Image src="/icons/arrow.svg" className="ml-[-5px]" alt="Flèche" priority={false} width={25} height={25} />
                   </Link>
                 );
               }

@@ -117,16 +117,9 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
 
         <Link href={`${blogUrl}/${article.url}`} className="mt-auto mx-auto">
           <CTAButton
-            className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center gap-2"
+            className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center"
           >
             Lire cet article
-            <Image
-              src="/icons/arrow.svg"
-              alt="Flèche"
-              width={25}
-              height={25}
-              className="ml-[-5px]"
-            />
           </CTAButton>
         </Link>
       </div>

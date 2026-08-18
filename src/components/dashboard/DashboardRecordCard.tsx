@@ -196,16 +196,9 @@ export default function DashboardRecordCard({
                     e.stopPropagation();
                     onActionClick();
                 }}
-                className={`group flex items-center justify-center gap-1 rounded-full border border-[#3A416F] px-5 py-3 transition-all duration-200 ${isActive ? 'text-[12px]' : 'text-[10px]'} font-bold text-[#3A416F] hover:bg-[#3A416F] hover:text-white w-full`}
+                className={`group flex items-center justify-center rounded-full border border-[#3A416F] px-5 py-3 transition-all duration-200 ${isActive ? 'text-[12px]' : 'text-[10px]'} font-bold text-[#3A416F] hover:bg-[#3A416F] hover:text-white w-full`}
             >
                 <span>{hasGoal ? "Voir mon objectif" : "Définir un objectif"}</span>
-                <Image
-                    src="/icons/arrow_purple.svg"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className="transition-all group-hover:brightness-0 group-hover:invert"
-                />
             </button>
             <button
                 className={`mt-2 text-[10px] font-semibold transition-colors ${hasGoal
