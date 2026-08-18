@@ -123,11 +123,6 @@ export default function DropdownFilter({
         ...allOptions.map((option) => option.label),
       ]);
 
-      preparedOptions.forEach((o) => {
-        labelsToMeasure.add(`${o.label} (+1)`);
-        labelsToMeasure.add(`${o.label} (+9)`);
-      });
-
       if (!isPlaceholder) {
         labelsToMeasure.add(selectedLabel);
       }
@@ -146,10 +141,9 @@ export default function DropdownFilter({
       }
 
       const iconSpacing = hasIcons ? 30 : 0;
-      const checkboxSpacing = isMultiSelect ? 10 : 0;
       const widthLimit =
         typeof maxWidth === "number" ? maxWidth : Number.POSITIVE_INFINITY;
-      const widthWithExtras = maxMeasuredWidth + iconSpacing + checkboxSpacing;
+      const widthWithExtras = maxMeasuredWidth + iconSpacing;
       const finalWidth = Math.max(0, Math.min(widthWithExtras, widthLimit));
       setCalculatedWidth(finalWidth);
 
@@ -413,7 +407,7 @@ export default function DropdownFilter({
                   key={option.value}
                   type="button"
                   onClick={() => handleToggleOption(option.value)}
-                  className={`text-left text-[15px] font-semibold py-[7px] px-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center gap-2.5 cursor-pointer select-none group ${
+                  className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center gap-2.5 cursor-pointer select-none group ${
                     isChecked
                       ? "text-[#3A416F]"
                       : "text-[#5D6494] hover:text-[#3A416F]"
