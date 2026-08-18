@@ -106,6 +106,10 @@ const matchesFilters = (
   filters: string[],
   skipIndex: number
 ) => {
+  if (filters.some((f, idx) => idx !== skipIndex && f === "__none__")) {
+    return false;
+  }
+
   const [genderFilter, typeFilter, sportFilter, shopFilter] = filters;
 
   if (skipIndex !== 0 && genderFilter) {
@@ -151,7 +155,7 @@ const matchesFilters = (
 };
 
 const ensureSelectedIncluded = (options: Set<string>, selected: string) => {
-  if (!selected) return;
+  if (!selected || selected === "__none__") return;
   const trimmed = selected.trim();
   if (trimmed.length === 0) return;
   options.add(trimmed);
@@ -374,26 +378,33 @@ export default function ShopFilters({
     const map: Record<string, Set<string>> = {};
 
     // Sexe (index 0)
-    if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
+    if (selectedFilters[0] === "__none__") map["Sexe"] = new Set();
+    else if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
     else if (selectedFilters[0] === "Femme") map["Sexe"] = new Set(["Femme"]);
     else map["Sexe"] = new Set(["Femme", "Homme"]);
 
     // Catégorie (index 1)
-    if (selectedFilters[1]) {
+    if (selectedFilters[1] === "__none__") {
+      map["Catégorie"] = new Set();
+    } else if (selectedFilters[1]) {
       map["Catégorie"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
     } else {
       map["Catégorie"] = new Set(allCategoryOptions);
     }
 
     // Sport (index 2)
-    if (selectedFilters[2]) {
+    if (selectedFilters[2] === "__none__") {
+      map["Sport"] = new Set();
+    } else if (selectedFilters[2]) {
       map["Sport"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
     } else {
       map["Sport"] = new Set(allSportOptions);
     }
 
     // Boutique (index 3)
-    if (selectedFilters[3]) {
+    if (selectedFilters[3] === "__none__") {
+      map["Boutique"] = new Set();
+    } else if (selectedFilters[3]) {
       map["Boutique"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
     } else {
       map["Boutique"] = new Set(allShopOptions);
@@ -407,7 +418,9 @@ export default function ShopFilters({
 
     // Sexe (index 0)
     const sexSet = newDrawerFilters["Sexe"] || new Set();
-    if (sexSet.size === 1) {
+    if (sexSet.size === 0) {
+      newFilters[0] = "__none__";
+    } else if (sexSet.size === 1) {
       newFilters[0] = Array.from(sexSet)[0];
     } else {
       newFilters[0] = "";
@@ -415,7 +428,9 @@ export default function ShopFilters({
 
     // Catégorie (index 1)
     const catSet = newDrawerFilters["Catégorie"] || new Set();
-    if (catSet.size > 0 && catSet.size < allCategoryOptions.length) {
+    if (catSet.size === 0) {
+      newFilters[1] = "__none__";
+    } else if (catSet.size < allCategoryOptions.length) {
       newFilters[1] = Array.from(catSet).join(",");
     } else {
       newFilters[1] = "";
@@ -423,7 +438,9 @@ export default function ShopFilters({
 
     // Sport (index 2)
     const sportSet = newDrawerFilters["Sport"] || new Set();
-    if (sportSet.size > 0 && sportSet.size < allSportOptions.length) {
+    if (sportSet.size === 0) {
+      newFilters[2] = "__none__";
+    } else if (sportSet.size < allSportOptions.length) {
       newFilters[2] = Array.from(sportSet).join(",");
     } else {
       newFilters[2] = "";
@@ -431,7 +448,9 @@ export default function ShopFilters({
 
     // Boutique (index 3)
     const shopSet = newDrawerFilters["Boutique"] || new Set();
-    if (shopSet.size > 0 && shopSet.size < allShopOptions.length) {
+    if (shopSet.size === 0) {
+      newFilters[3] = "__none__";
+    } else if (shopSet.size < allShopOptions.length) {
       newFilters[3] = Array.from(shopSet).join(",");
     } else {
       newFilters[3] = "";

@@ -80,7 +80,7 @@ const isUniversalValue = (value: string | null, universal: string) =>
   Boolean(value && value.trim().toLowerCase() === universal.toLowerCase());
 
 const ensureFilterSelection = (values: Set<string>, selected: string) => {
-  if (!selected) return;
+  if (!selected || selected === "__none__") return;
   const trimmed = selected.trim();
   if (!trimmed) return;
   values.add(trimmed);
@@ -94,7 +94,7 @@ const toStringOptions = (
 
   return Array.from(values)
     .map((value) => value.trim())
-    .filter((value) => value.length > 0)
+    .filter((value) => value.length > 0 && value !== "__none__")
     .filter((value) => !exclusionSet.has(value.toLowerCase()))
     .sort((a, b) => a.localeCompare(b))
     .map((value) => ({ value, label: value }));
@@ -102,10 +102,10 @@ const toStringOptions = (
 
 const buildDurationOptions = (durations: number[], selected: string) => {
   if (durations.length === 0) {
-    if (!selected) return [];
+    if (!selected || selected === "__none__") return [];
     return [selected]
       .map((value) => value.trim())
-      .filter((value) => value.length > 0)
+      .filter((value) => value.length > 0 && value !== "__none__")
       .map((value) => ({ value, label: `${value} minutes` }));
   }
 
@@ -275,9 +275,9 @@ export default function StoreFilters({
       if (program.duration) allDurationValues.push(program.duration);
       if (program.partner) allPartnerValues.add(program.partner);
 
-      let matches = true;
+      let matches = !selectedFilters.some((f) => f === "__none__");
       // Index 0: Gender
-      if (selectedFilters[0] && program.gender &&
+      if (matches && selectedFilters[0] && program.gender &&
         program.gender.trim().toLowerCase() !== selectedFilters[0].trim().toLowerCase() &&
         !isUniversalValue(program.gender, "Tous")) matches = false;
 
@@ -446,33 +446,42 @@ export default function StoreFilters({
     const map: Record<string, Set<string>> = {};
 
     // Sexe (index 0)
-    if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
+    if (selectedFilters[0] === "__none__") map["Sexe"] = new Set();
+    else if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
     else if (selectedFilters[0] === "Femme") map["Sexe"] = new Set(["Femme"]);
     else map["Sexe"] = new Set(["Femme", "Homme"]);
 
     // Objectif (index 1)
-    if (selectedFilters[1]) {
+    if (selectedFilters[1] === "__none__") {
+      map["Objectif"] = new Set();
+    } else if (selectedFilters[1]) {
       map["Objectif"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
     } else {
       map["Objectif"] = new Set(allGoalOptions.map((o) => o.value));
     }
 
     // Niveau (index 2)
-    if (selectedFilters[2]) {
+    if (selectedFilters[2] === "__none__") {
+      map["Niveau"] = new Set();
+    } else if (selectedFilters[2]) {
       map["Niveau"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
     } else {
       map["Niveau"] = new Set(allLevelOptions.map((o) => o.value));
     }
 
     // Lieu (index 3)
-    if (selectedFilters[3]) {
+    if (selectedFilters[3] === "__none__") {
+      map["Lieu"] = new Set();
+    } else if (selectedFilters[3]) {
       map["Lieu"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
     } else {
       map["Lieu"] = new Set(allLocationOptions.map((o) => o.value));
     }
 
     // Durée max. (index 4)
-    if (selectedFilters[4]) {
+    if (selectedFilters[4] === "__none__") {
+      map["Durée max."] = new Set();
+    } else if (selectedFilters[4]) {
       const max = parseInt(selectedFilters[4], 10);
       const activeDurations = allDurationOptions
         .filter((o) => parseInt(o.value, 10) <= max)
@@ -483,14 +492,18 @@ export default function StoreFilters({
     }
 
     // Partenaire (index 5)
-    if (selectedFilters[5]) {
+    if (selectedFilters[5] === "__none__") {
+      map["Partenaire"] = new Set();
+    } else if (selectedFilters[5]) {
       map["Partenaire"] = new Set(selectedFilters[5].split(",").map((s) => s.trim()));
     } else {
       map["Partenaire"] = new Set(allPartnerOptions.map((o) => o.value));
     }
 
     // Disponibilité (index 6)
-    if (selectedFilters[6] === "Oui") {
+    if (selectedFilters[6] === "__none__") {
+      map["Disponibilité"] = new Set();
+    } else if (selectedFilters[6] === "Oui") {
       map["Disponibilité"] = new Set(["Téléchargeable"]);
     } else if (selectedFilters[6] === "Non") {
       map["Disponibilité"] = new Set(["Non téléchargeable"]);
@@ -521,7 +534,9 @@ export default function StoreFilters({
 
     // Sexe (index 0)
     const sexSet = newDrawerFilters["Sexe"] || new Set();
-    if (sexSet.size === 1) {
+    if (sexSet.size === 0) {
+      newFilters[0] = "__none__";
+    } else if (sexSet.size === 1) {
       newFilters[0] = Array.from(sexSet)[0];
     } else {
       newFilters[0] = "";
@@ -529,7 +544,9 @@ export default function StoreFilters({
 
     // Objectif (index 1)
     const goalSet = newDrawerFilters["Objectif"] || new Set();
-    if (goalSet.size > 0 && goalSet.size < allGoalOptions.length) {
+    if (goalSet.size === 0) {
+      newFilters[1] = "__none__";
+    } else if (goalSet.size < allGoalOptions.length) {
       newFilters[1] = Array.from(goalSet).join(",");
     } else {
       newFilters[1] = "";
@@ -537,7 +554,9 @@ export default function StoreFilters({
 
     // Niveau (index 2)
     const levelSet = newDrawerFilters["Niveau"] || new Set();
-    if (levelSet.size > 0 && levelSet.size < allLevelOptions.length) {
+    if (levelSet.size === 0) {
+      newFilters[2] = "__none__";
+    } else if (levelSet.size < allLevelOptions.length) {
       newFilters[2] = Array.from(levelSet).join(",");
     } else {
       newFilters[2] = "";
@@ -545,7 +564,9 @@ export default function StoreFilters({
 
     // Lieu (index 3)
     const locSet = newDrawerFilters["Lieu"] || new Set();
-    if (locSet.size > 0 && locSet.size < allLocationOptions.length) {
+    if (locSet.size === 0) {
+      newFilters[3] = "__none__";
+    } else if (locSet.size < allLocationOptions.length) {
       newFilters[3] = Array.from(locSet).join(",");
     } else {
       newFilters[3] = "";
@@ -553,7 +574,9 @@ export default function StoreFilters({
 
     // Durée max. (index 4)
     const durSet = newDrawerFilters["Durée max."] || new Set();
-    if (durSet.size > 0 && durSet.size < allDurationOptions.length) {
+    if (durSet.size === 0) {
+      newFilters[4] = "__none__";
+    } else if (durSet.size < allDurationOptions.length) {
       const maxVal = Math.max(...Array.from(durSet).map((s) => parseInt(s, 10) || 0));
       newFilters[4] = String(maxVal);
     } else {
@@ -562,7 +585,9 @@ export default function StoreFilters({
 
     // Partenaire (index 5)
     const partnerSet = newDrawerFilters["Partenaire"] || new Set();
-    if (partnerSet.size > 0 && partnerSet.size < allPartnerOptions.length) {
+    if (partnerSet.size === 0) {
+      newFilters[5] = "__none__";
+    } else if (partnerSet.size < allPartnerOptions.length) {
       newFilters[5] = Array.from(partnerSet).join(",");
     } else {
       newFilters[5] = "";
@@ -570,7 +595,9 @@ export default function StoreFilters({
 
     // Disponibilité (index 6)
     const availSet = newDrawerFilters["Disponibilité"] || new Set();
-    if (availSet.size === 1) {
+    if (availSet.size === 0) {
+      newFilters[6] = "__none__";
+    } else if (availSet.size === 1) {
       newFilters[6] = availSet.has("Téléchargeable") ? "Oui" : "Non";
     } else {
       newFilters[6] = "";

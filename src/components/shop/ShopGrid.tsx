@@ -7,7 +7,6 @@ import ShopGridSkeleton from "./ShopGridSkeleton";
 import { ShopOffer, ShopProfile } from "@/types/shop";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { useUser } from "@/context/UserContext";
-import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -39,13 +38,16 @@ type OfferQueryRow = {
 
 const normalizeToArray = (value: unknown): string[] => {
   if (!value) return [];
-  if (Array.isArray(value)) return value.map(v => String(v));
+  if (Array.isArray(value)) return value.map((v) => String(v));
   if (typeof value === "string") {
     try {
       const parsed = JSON.parse(value);
-      if (Array.isArray(parsed)) return parsed.map(v => String(v));
+      if (Array.isArray(parsed)) return parsed.map((v) => String(v));
     } catch {
-      return value.split(",").map(v => v.trim()).filter(v => v);
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter((v) => v);
     }
     return [value];
   }
@@ -53,15 +55,14 @@ const normalizeToArray = (value: unknown): string[] => {
 };
 
 const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
-  ...row,
+  id: row.id,
+  name: row.name,
   start_date: row.start_date ?? "",
   end_date: row.end_date ?? "",
-  code: row.code ?? "",
-  image: row.image ?? "",
-  image_alt: row.image_alt ?? "",
   type: normalizeToArray(row.type),
-  sport: normalizeToArray(row.sport),
-  click_count: row.click_count ?? 0,
+  code: row.code ?? "",
+  image: row.image || "/placeholder.jpg",
+  image_alt: row.image_alt ?? "",
   brand_image: row.brand_image ?? undefined,
   brand_image_alt: row.brand_image_alt ?? undefined,
   shop: row.shop ?? undefined,
@@ -72,10 +73,126 @@ const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   condition: row.condition ?? undefined,
   description: row.description ?? undefined,
   gender: row.gender ?? undefined,
-  boost: row.boost === true || row.boost === "true",
+  boost: Boolean(row.boost),
+  click_count: row.click_count ?? 0,
   created_at: row.created_at ?? undefined,
+  sport: normalizeToArray(row.sport),
   image_mobile: row.image_mobile ?? undefined,
 });
+
+const processOffers = (
+  rawList: ShopOffer[],
+  currentFilters: string[],
+  currentSort: string,
+  profile: ShopProfile | null,
+  currentFavorites: string[],
+  favsOnly: boolean
+): ShopOffer[] => {
+  if (currentFilters.some((f) => f === "__none__")) {
+    return [];
+  }
+
+  let list = [...rawList];
+
+  const [genderFilter = "", categoryFilter = "", sportFilter = "", shopFilter = ""] = currentFilters;
+
+  list = list.filter((offer) => {
+    // 1. Sexe
+    if (genderFilter && genderFilter.trim() !== "" && genderFilter.toLowerCase() !== "tous") {
+      const targets = genderFilter.split(",").map((s) => s.trim().toLowerCase());
+      const offerGender = (offer.gender || "").trim().toLowerCase();
+      const isUniversal = ["tous", "mixte", "unisexe"].includes(offerGender);
+      if (!isUniversal && !targets.includes(offerGender)) {
+        return false;
+      }
+    }
+
+    // 2. Catégorie (type)
+    if (
+      categoryFilter &&
+      categoryFilter.trim() !== "" &&
+      categoryFilter.toLowerCase() !== "tous" &&
+      categoryFilter.toLowerCase() !== "toutes les catégories"
+    ) {
+      const targets = categoryFilter.split(",").map((s) => s.trim().toLowerCase());
+      const types = offer.type.map((t) => t.toLowerCase().trim());
+      const hasMatch = targets.some((target) =>
+        types.some((t) => t.includes(target) || target.includes(t))
+      );
+      if (!hasMatch) {
+        return false;
+      }
+    }
+
+    // 3. Sport
+    if (
+      sportFilter &&
+      sportFilter.trim() !== "" &&
+      sportFilter.toLowerCase() !== "tous" &&
+      sportFilter.toLowerCase() !== "tous les sports"
+    ) {
+      const targets = sportFilter.split(",").map((s) => s.trim().toLowerCase());
+      const sports = offer.sport.map((s) => s.toLowerCase().trim());
+      const hasMatch = targets.some((target) =>
+        sports.some((s) => s.includes(target) || target.includes(s))
+      );
+      if (!hasMatch) {
+        return false;
+      }
+    }
+
+    // 4. Boutique (shop)
+    if (
+      shopFilter &&
+      shopFilter.trim() !== "" &&
+      shopFilter.toLowerCase() !== "tous" &&
+      shopFilter.toLowerCase() !== "toutes les boutiques"
+    ) {
+      const targets = shopFilter.split(",").map((s) => s.trim().toLowerCase());
+      const offerShop = (offer.shop || "").toLowerCase().trim();
+      const isUniversal = !offerShop || offerShop === "tous";
+      if (!isUniversal) {
+        const hasMatch = targets.some((target) =>
+          offerShop === target || offerShop.includes(target)
+        );
+        if (!hasMatch) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  });
+
+  if (favsOnly) {
+    list = list.filter((offer) => currentFavorites.includes(offer.id));
+  }
+
+  if (currentSort === "relevance") {
+    const sorted = sortOffersByRelevance(list, profile, currentFavorites);
+    list = sorted;
+  } else if (currentSort === "popularity") {
+    list.sort((a, b) => (b.click_count ?? 0) - (a.click_count ?? 0));
+  } else if (currentSort === "newest") {
+    list.sort((a, b) => {
+      const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
+      const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
+      if (dateB !== dateA) return dateB - dateA;
+      const createA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const createB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      return createB - createA;
+    });
+  } else if (currentSort === "expiration") {
+    list.sort((a, b) => {
+      if (!a.end_date && !b.end_date) return a.name.localeCompare(b.name);
+      if (!a.end_date) return 1;
+      if (!b.end_date) return -1;
+      return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+    });
+  }
+
+  return list;
+};
 
 export default function ShopGrid({
   sortBy,
@@ -100,19 +217,8 @@ export default function ShopGrid({
   initialFavorites?: string[];
   favoritesOnly?: boolean;
 }) {
-  const isDefaultQuery =
-    currentPage === 1 &&
-    sortBy === "relevance" &&
-    filters.every((f) => f === "") &&
-    !favoritesOnly;
+  const { user, profile } = useUser();
 
-  const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
-  const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, 8));
-  const [loading, setLoading] = useState(
-    initialOffers.length === 0 || !isDefaultQuery
-  );
-  const { user, profile, isLoading: isUserContextLoading } = useUser();
-  
   const userProfile: ShopProfile | null = useMemo(() => {
     if (profile) {
       return {
@@ -124,7 +230,12 @@ export default function ShopGrid({
     return initialUserProfile;
   }, [profile, initialUserProfile]);
 
+  const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
+  const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, ITEMS_PER_PAGE));
+  const [loading, setLoading] = useState(initialOffers.length === 0);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
+  const rawOffersCacheRef = useRef<ShopOffer[]>(initialOffers.length > 0 ? initialOffers : []);
+  const hasLoadedOnceRef = useRef<boolean>(initialOffers.length > 0);
 
   // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
@@ -133,7 +244,6 @@ export default function ShopGrid({
     async function loadFavorites() {
       let loadedFavs: string[] = initialFavorites;
 
-      // 1. First read local cache
       try {
         const stored = localStorage.getItem("glift_favorite_offers");
         if (stored) {
@@ -164,20 +274,7 @@ export default function ShopGrid({
       }
 
       if (!isCancelled) {
-        const areFavsSame = (a: string[], b: string[]) => {
-          if (a.length !== b.length) return false;
-          const setA = new Set(a);
-          return b.every((item) => setA.has(item));
-        };
-
-        if (!areFavsSame(favorites, loadedFavs)) {
-          setFavorites(loadedFavs);
-          if (sortBy === "relevance") {
-            const sorted = sortOffersByRelevance(allOffers, userProfile, loadedFavs);
-            setAllOffers(sorted);
-            setOffers(sorted.slice(0, ITEMS_PER_PAGE));
-          }
-        }
+        setFavorites(loadedFavs);
       }
     }
 
@@ -222,220 +319,102 @@ export default function ShopGrid({
     [favorites, user?.id]
   );
 
-  const hasLoadedOnceRef = useRef(initialOffers.length > 0 && isDefaultQuery);
-  const previousQueryRef = useRef<{
-    sortBy: string;
-    currentPage: number;
-    filters: string[];
-    userProfile: ShopProfile | null;
-    favoritesOnly: boolean;
-  } | null>(
-    initialOffers.length > 0 && isDefaultQuery
-      ? {
-          sortBy,
-          currentPage,
-          filters: [...filters],
-          userProfile: initialUserProfile,
-          favoritesOnly,
-        }
-      : null
-  );
+  const lastStateRef = useRef({
+    sortBy,
+    currentPage,
+    filters: JSON.stringify(filters),
+    favoritesOnly,
+  });
 
   useEffect(() => {
-    if (
-      initialOffers.length > 0 &&
-      isDefaultQuery &&
-      !hasLoadedOnceRef.current
-    ) {
-      hasLoadedOnceRef.current = true;
-      previousQueryRef.current = {
-        sortBy,
-        currentPage,
-        filters: [...filters],
-        userProfile: userProfile ? { ...userProfile } : null,
-        favoritesOnly,
-      };
-      setLoading(false);
-      return;
-    }
+    let isActive = true;
 
-    const previousQuery = previousQueryRef.current;
-    const hasQueryChanged =
-      !previousQuery ||
-      previousQuery.sortBy !== sortBy ||
-      previousQuery.currentPage !== currentPage ||
-      previousQuery.favoritesOnly !== favoritesOnly ||
-      previousQuery.userProfile?.gender !== userProfile?.gender ||
-      previousQuery.userProfile?.supplements !== userProfile?.supplements ||
-      previousQuery.userProfile?.main_goal !== userProfile?.main_goal ||
-      JSON.stringify(previousQuery.filters) !== JSON.stringify(filters);
+    const stateChanged =
+      lastStateRef.current.sortBy !== sortBy ||
+      lastStateRef.current.currentPage !== currentPage ||
+      lastStateRef.current.filters !== JSON.stringify(filters) ||
+      lastStateRef.current.favoritesOnly !== favoritesOnly;
 
-    if (!hasQueryChanged && hasLoadedOnceRef.current) {
-      setLoading(false);
-      return;
-    }
-
-    previousQueryRef.current = {
+    lastStateRef.current = {
       sortBy,
       currentPage,
-      filters: [...filters],
-      userProfile: userProfile ? { ...userProfile } : null,
+      filters: JSON.stringify(filters),
       favoritesOnly,
     };
 
-    let isActive = true;
+    // If on default initial view without explicit user action, keep initial offers completely stable
+    if (!stateChanged && initialOffers.length > 0) {
+      if (onCountChange) onCountChange(initialOffers.length);
+      const fetchRaw = async () => {
+        const supabase = createClientComponentClient();
+        const { data } = await supabase
+          .from("offer_shop")
+          .select("*")
+          .eq("status", "ON");
+        if (!isActive || !data) return;
+        const rawOffers = (data || []) as OfferQueryRow[];
+        rawOffersCacheRef.current = rawOffers.map(mapOfferRowToOffer);
+      };
+      void fetchRaw();
+      return;
+    }
 
-    const fetchOffers = async () => {
+    const applyOffers = (rawList: ShopOffer[]) => {
+      const processed = processOffers(
+        rawList,
+        filters,
+        sortBy,
+        userProfile,
+        favorites,
+        favoritesOnly
+      );
+
+      if (!isActive) return;
+
+      if (onCountChange) onCountChange(processed.length);
+
+      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+      const paginated = processed.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+      setAllOffers(processed);
+      setOffers(paginated);
+      setLoading(false);
+      hasLoadedOnceRef.current = true;
+    };
+
+    // If we already have the raw offers in memory, filter immediately without any skeleton flicker
+    if (rawOffersCacheRef.current.length > 0) {
+      applyOffers(rawOffersCacheRef.current);
+    } else {
       setLoading(true);
-      const supabase = createClientComponentClient();
+    }
 
-      const { data, error } = await supabase.from("offer_shop").select("*").eq("status", "ON");
+    // Fetch from Supabase (first load or background sync)
+    const fetchOffers = async () => {
+      const supabase = createClientComponentClient();
+      const { data, error } = await supabase
+        .from("offer_shop")
+        .select("*")
+        .eq("status", "ON");
 
       if (!isActive) return;
 
       if (error) {
         console.error("Error fetching shop offers:", error);
-        setAllOffers([]);
-        setOffers([]);
-        setLoading(false);
-        hasLoadedOnceRef.current = true;
+        if (rawOffersCacheRef.current.length === 0) {
+          setAllOffers([]);
+          setOffers([]);
+          setLoading(false);
+          hasLoadedOnceRef.current = true;
+        }
         return;
       }
 
       const rawOffers = (data || []) as OfferQueryRow[];
-      let normalized: ShopOffer[] = rawOffers.map((row) => ({
-        id: row.id,
-        name: row.name,
-        start_date: row.start_date ?? "",
-        end_date: row.end_date ?? "",
-        type: normalizeToArray(row.type),
-        code: row.code ?? "",
-        image: row.image || "/placeholder.jpg",
-        image_alt: row.image_alt ?? "",
-        brand_image: row.brand_image ?? undefined,
-        brand_image_alt: row.brand_image_alt ?? undefined,
-        shop: row.shop ?? undefined,
-        shop_website: row.shop_website ?? undefined,
-        shop_link: row.shop_link ?? undefined,
-        shipping: row.shipping ? String(row.shipping) : undefined,
-        modal: row.modal ?? undefined,
-        condition: row.condition ?? undefined,
-        description: row.description ?? undefined,
-        gender: row.gender ?? undefined,
-        boost: Boolean(row.boost),
-        click_count: row.click_count ?? 0,
-        created_at: row.created_at ?? undefined,
-        sport: normalizeToArray(row.sport),
-        image_mobile: row.image_mobile ?? undefined,
-      }));
+      const normalized = rawOffers.map(mapOfferRowToOffer);
 
-      // Apply the 4 filters: [gender, category/type, sport, shop]
-      const [genderFilter = "", categoryFilter = "", sportFilter = "", shopFilter = ""] = filters;
-
-      normalized = normalized.filter((offer) => {
-        // 1. Sexe
-        if (genderFilter && genderFilter.trim() !== "" && genderFilter.toLowerCase() !== "tous") {
-          const targets = genderFilter.split(",").map((s) => s.trim().toLowerCase());
-          const offerGender = (offer.gender || "").trim().toLowerCase();
-          const isUniversal = ["tous", "mixte", "unisexe"].includes(offerGender);
-          if (!isUniversal && !targets.includes(offerGender)) {
-            return false;
-          }
-        }
-
-        // 2. Catégorie (type)
-        if (
-          categoryFilter &&
-          categoryFilter.trim() !== "" &&
-          categoryFilter.toLowerCase() !== "tous" &&
-          categoryFilter.toLowerCase() !== "toutes les catégories"
-        ) {
-          const targets = categoryFilter.split(",").map((s) => s.trim().toLowerCase());
-          const types = offer.type.map((t) => t.toLowerCase().trim());
-          const hasMatch = targets.some((target) =>
-            types.some((t) => t.includes(target) || target.includes(t))
-          );
-          if (!hasMatch) {
-            return false;
-          }
-        }
-
-        // 3. Sport
-        if (
-          sportFilter &&
-          sportFilter.trim() !== "" &&
-          sportFilter.toLowerCase() !== "tous" &&
-          sportFilter.toLowerCase() !== "tous les sports"
-        ) {
-          const targets = sportFilter.split(",").map((s) => s.trim().toLowerCase());
-          const sports = offer.sport.map((s) => s.toLowerCase().trim());
-          const hasMatch = targets.some((target) =>
-            sports.some((s) => s.includes(target) || target.includes(s))
-          );
-          if (!hasMatch) {
-            return false;
-          }
-        }
-
-        // 4. Boutique (shop)
-        if (
-          shopFilter &&
-          shopFilter.trim() !== "" &&
-          shopFilter.toLowerCase() !== "tous" &&
-          shopFilter.toLowerCase() !== "toutes les boutiques"
-        ) {
-          const targets = shopFilter.split(",").map((s) => s.trim().toLowerCase());
-          const offerShop = (offer.shop || "").toLowerCase().trim();
-          const isUniversal = !offerShop || offerShop === "tous";
-          if (!isUniversal) {
-            const hasMatch = targets.some((target) =>
-              offerShop === target || offerShop.includes(target)
-            );
-            if (!hasMatch) {
-              return false;
-            }
-          }
-        }
-
-        return true;
-      });
-
-      if (favoritesOnly) {
-        normalized = normalized.filter((offer) => favorites.includes(offer.id));
-      }
-
-      if (sortBy === "relevance") {
-        const sorted = sortOffersByRelevance(normalized, userProfile, favorites);
-        normalized.splice(0, normalized.length, ...sorted);
-      } else if (sortBy === "popularity") {
-        normalized.sort((a, b) => (b.click_count ?? 0) - (a.click_count ?? 0));
-      } else if (sortBy === "newest") {
-        normalized.sort((a, b) => {
-          const dateA = a.start_date ? new Date(a.start_date).getTime() : 0;
-          const dateB = b.start_date ? new Date(b.start_date).getTime() : 0;
-          if (dateB !== dateA) return dateB - dateA;
-          const createA = a.created_at ? new Date(a.created_at).getTime() : 0;
-          const createB = b.created_at ? new Date(b.created_at).getTime() : 0;
-          return createB - createA;
-        });
-      } else if (sortBy === "expiration") {
-        normalized.sort((a, b) => {
-          if (!a.end_date && !b.end_date) return a.name.localeCompare(b.name);
-          if (!a.end_date) return 1;
-          if (!b.end_date) return -1;
-          return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
-        });
-      }
-
-      if (onCountChange) onCountChange(normalized.length);
-
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const paginated = normalized.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-      setAllOffers(normalized);
-      setOffers(paginated);
-      setLoading(false);
-      hasLoadedOnceRef.current = true;
+      rawOffersCacheRef.current = normalized;
+      applyOffers(normalized);
     };
 
     void fetchOffers();
@@ -443,7 +422,7 @@ export default function ShopGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile, isUserContextLoading, favoritesOnly, favorites]);
+  }, [sortBy, currentPage, filters, userProfile, favoritesOnly, favorites]);
 
   return (
     <>
@@ -455,7 +434,7 @@ export default function ShopGrid({
             <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
               {favoritesOnly
                 ? "Aucune offre enregistrée en favori pour le moment."
-                : "Aucune offre disponible\navec ces filtres..."}
+                : "Aucune offre disponible\navec ces filtres."}
             </p>
           )}
 

@@ -272,12 +272,14 @@ export default function StoreGrid({
       favoritesOnly,
     };
 
-    setLoading(true);
+    if (!hasLoadedOnceRef.current) {
+      setLoading(true);
+    }
 
     let isActive = true;
 
     const fetchPrograms = async () => {
-      if (favoritesOnly && favorites.length === 0) {
+      if (filters.some((f) => f === "__none__") || (favoritesOnly && favorites.length === 0)) {
         if (onCountChange) onCountChange(0);
         setAllPrograms([]);
         setPrograms([]);
@@ -390,7 +392,7 @@ export default function StoreGrid({
             <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
               {favoritesOnly
                 ? "Aucun programme enregistré en favori pour le moment."
-                : "Aucun programme disponible\navec ces filtres..."}
+                : "Aucun programme disponible\navec ces filtres."}
             </p>
           )}
 
