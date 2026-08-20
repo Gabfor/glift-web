@@ -11,9 +11,9 @@ export type StepMetadata = {
 
 const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
   account: {
-    title: "Création de votre compte",
+    title: "Création de ton compte",
     subtitle:
-      "Créez un compte en moins de 30 secondes pour utiliser la plateforme.\nAucun moyen de paiement n'est nécessaire à l'inscription.",
+      "Crée un compte en moins de 30 secondes pour utiliser la plateforme.\nAucun moyen de paiement n'est nécessaire à l'inscription.",
   },
   payment: {
     title: "Mode de paiement",
@@ -56,12 +56,12 @@ export const getStepMetadata = (plan: PlanType | null, step: StepKey, isPaymentE
 
   if (step === "account") {
     if (plan === "starter") {
-      subtitle = "Créez un compte en moins de 30 secondes pour commencer\nà utiliser Glift gratuitement.";
+      subtitle = "Crée un compte en moins de 30 secondes pour commencer à utiliser Glift.";
     } else if (plan === "premium") {
       if (isPaymentEnabled) {
-        subtitle = "Créez un compte en moins d'une minute pour commencer à utiliser Glift.";
+        subtitle = "Crée un compte en moins d'une minute pour commencer à utiliser Glift.";
       } else {
-        subtitle = "Créez un compte en moins de 30 secondes pour commencer à utiliser Glift.\nAucun moyen de paiement n'est nécessaire à l'inscription.";
+        subtitle = "Crée un compte en moins de 30 secondes pour commencer à utiliser Glift.\nAucun moyen de paiement n'est nécessaire à l'inscription.";
       }
     }
   }

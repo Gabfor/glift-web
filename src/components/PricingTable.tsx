@@ -22,9 +22,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
             <div
               className="absolute text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-md"
               style={{
-                background: (!abo.badgeColor || abo.badgeColor === "#7069FA")
-                  ? "linear-gradient(90deg, #BF6AB7 0%, #5D63FC 100%)"
-                  : abo.badgeColor,
+                background: abo.badgeColor || "#7069FA",
                 color: abo.badgeTextColor || "#FFFFFF",
               }}
             >
