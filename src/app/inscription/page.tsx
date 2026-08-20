@@ -403,9 +403,9 @@ const AccountCreationPage = () => {
     text: string;
   }) => {
     const iconSrc = valid ? "/icons/check-success.svg" : "/icons/check-neutral.svg";
-    const textColor = valid ? "text-[#00D591]" : "text-[#C2BFC6]";
+    const textColor = valid ? "text-[#00D591]" : "text-[#D7D4DC]";
     return (
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center font-semibold">
         <span className={textColor}>{text}</span>
         <Image src={iconSrc} alt="État" width={16} height={16} className="w-[16px] h-[16px]" />
       </div>
@@ -536,11 +536,11 @@ const AccountCreationPage = () => {
             successMessage="Mot de passe valide"
             errorMessage="Mot de passe invalide"
             containerClassName="w-full mb-[10px]"
-            messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-medium"
+            messageContainerClassName="h-[20px] mt-[5px] text-[13px] font-semibold"
             criteriaRenderer={({ isFocused }) =>
               isFocused ? (
                 <div
-                  className="mt-3 px-4 py-3 bg-white rounded-[8px] text-[12px] text-[#5D6494] space-y-2"
+                  className="mt-3 px-4 py-3 bg-white rounded-[8px] text-[12px] font-semibold text-[#5D6494] space-y-2"
                   style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
                 >
                   <PasswordCriteriaItem valid={hasMinLength} text="Au moins 8 caractères" />

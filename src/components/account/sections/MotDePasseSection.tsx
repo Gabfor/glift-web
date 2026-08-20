@@ -22,8 +22,8 @@ function PasswordCriteriaItem({ valid, text }: { valid: boolean; text: string })
   const icon = valid ? "/icons/check-success.svg" : "/icons/check-neutral.svg"
 
   return (
-    <div className="flex items-center justify-between gap-4">
-      <span className={valid ? "text-[#00D591]" : "text-[#C2BFC6]"}>{text}</span>
+    <div className="flex items-center justify-between gap-4 font-semibold">
+      <span className={valid ? "text-[#00D591]" : "text-[#D7D4DC]"}>{text}</span>
       <Image src={icon} alt="État" width={16} height={16} className="h-4 w-4" />
     </div>
   )
@@ -218,7 +218,7 @@ export default function MotDePasseSection() {
               criteriaRenderer={({ isFocused }) =>
                 isFocused ? (
                   <div
-                    className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] text-[#5D6494]"
+                    className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] font-semibold text-[#5D6494]"
                     style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
                   >
                     <PasswordCriteriaItem valid={validation.hasMinLength} text="Au moins 8 caractères" />
@@ -232,7 +232,7 @@ export default function MotDePasseSection() {
               externalError={newPasswordError}
               statusOverride={newPasswordStatusOverride}
               containerClassName="w-full max-w-[368px]"
-              messageContainerClassName="mt-[5px] min-h-[20px] text-left text-[13px] font-medium"
+              messageContainerClassName="mt-[5px] min-h-[20px] text-left text-[13px] font-semibold"
               autoComplete="new-password"
             />
           </div>

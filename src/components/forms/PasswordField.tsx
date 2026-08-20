@@ -194,7 +194,7 @@ export function PasswordField({
       <div
         id={`${id}-message`}
         className={cn(
-          "mt-[5px] text-[13px] font-medium min-h-[20px]",
+          "mt-[5px] text-[13px] font-semibold min-h-[20px]",
           message ? (showError ? "text-[#EF4444]" : showSuccess ? "text-[#00D591]" : undefined) : undefined,
           messageContainerClassName,
         )}

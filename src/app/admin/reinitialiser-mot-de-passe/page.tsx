@@ -34,10 +34,10 @@ function PasswordCriteriaItem({
   const iconSrc = valid
     ? "/icons/check-success.svg"
     : "/icons/check-neutral.svg";
-  const textColor = valid ? "text-[#00D591]" : "text-[#C2BFC6]";
+  const textColor = valid ? "text-[#00D591]" : "text-[#D7D4DC]";
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between font-semibold">
       <span className={textColor}>{text}</span>
       <Image
         src={iconSrc}
@@ -57,7 +57,7 @@ function PasswordCriteriaList({
 }) {
   return (
     <div
-      className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] text-[#5D6494]"
+      className="mt-3 space-y-2 rounded-[8px] bg-white px-4 py-3 text-[12px] font-semibold text-[#5D6494]"
       style={{ boxShadow: "1px 1px 9px 1px rgba(0, 0, 0, 0.12)" }}
     >
       <PasswordCriteriaItem
@@ -412,7 +412,7 @@ export default function AdminResetPasswordPage() {
                   errorMessage="Le mot de passe doit contenir au moins 8 caractères, une lettre, un chiffre et un symbole."
                   successMessage="Mot de passe valide"
                   containerClassName="w-full"
-                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  messageContainerClassName="mt-[5px] text-[13px] font-semibold"
                   criteriaRenderer={passwordCriteriaRenderer}
                   blurDelay={100}
                 />
@@ -437,7 +437,7 @@ export default function AdminResetPasswordPage() {
                   errorMessage="Les mots de passe doivent correspondre et respecter les critères ci-dessus."
                   successMessage="Confirmation du mot de passe valide"
                   containerClassName="w-full"
-                  messageContainerClassName="mt-[5px] text-[13px] font-medium"
+                  messageContainerClassName="mt-[5px] text-[13px] font-semibold"
                   criteriaRenderer={confirmCriteriaRenderer}
                   blurDelay={100}
                 />
