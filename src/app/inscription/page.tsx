@@ -603,26 +603,26 @@ const AccountCreationPage = () => {
               type="button"
               onClick={() => handleOAuthSignUp("apple")}
               disabled={oauthLoading !== null || loading}
-              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center gap-3 transition-colors duration-150 disabled:opacity-60"
+              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
             >
-              <div className="w-[20px] flex items-center justify-center">
-                <AppleIcon className="w-[20px] h-[20px] text-black" />
+              <div className="w-[20px] flex items-center justify-center shrink-0">
+                <AppleIcon className="w-[17px] h-[20px] text-black" />
               </div>
-              <div className="w-[170px] flex items-center justify-center text-center">
-                <span>S’inscrire avec Apple</span>
+              <div className="w-[185px] flex items-center justify-center text-center">
+                <span className="whitespace-nowrap">S’inscrire avec Apple</span>
               </div>
             </button>
             <button
               type="button"
               onClick={() => handleOAuthSignUp("google")}
               disabled={oauthLoading !== null || loading}
-              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center gap-3 transition-colors duration-150 disabled:opacity-60"
+              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
             >
-              <div className="w-[20px] flex items-center justify-center">
+              <div className="w-[20px] flex items-center justify-center shrink-0">
                 <GoogleIcon className="w-[18px] h-[18px]" />
               </div>
-              <div className="w-[170px] flex items-center justify-center text-center">
-                <span>S’inscrire avec Google</span>
+              <div className="w-[185px] flex items-center justify-center text-center">
+                <span className="whitespace-nowrap">S’inscrire avec Google</span>
               </div>
             </button>
           </div>
