@@ -211,7 +211,7 @@ const AccountCreationPage = () => {
         setOtpError({
           title: "Code invalide ou expiré",
           description:
-            "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier votre code ou de renvoyer un nouveau code.",
+            "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier ton code ou de demander à recevoir un nouveau code.",
         });
         return;
       }
@@ -594,7 +594,7 @@ const AccountCreationPage = () => {
               <div className="w-full border-t border-[#ECE9F1]" />
             </div>
             <div className="relative bg-[#FBFCFE] px-3 text-[14px] font-semibold text-[#D7D4DC]">
-              ou
+              ou continue avec
             </div>
           </div>
 
@@ -683,8 +683,8 @@ const AccountCreationPage = () => {
               ) : (
                 <ModalMessage
                   variant="info"
-                  title="Finalisez votre inscription"
-                  description="Pour confirmer votre identité et finaliser la création de votre compte, saisissez le code que vous avez reçu dans votre email d'inscription."
+                  title="Finalise ton inscription"
+                  description="Pour finaliser la création de ton compte, saisis le code de validation à 6 chiffres que nous venons de t’envoyer par email."
                 />
               )}
             </div>
@@ -694,7 +694,7 @@ const AccountCreationPage = () => {
                 Code reçu par email
               </label>
 
-              <div className="flex justify-start gap-2.5 w-full mt-1">
+              <div className="flex justify-between gap-1.5 sm:gap-2.5 w-full mt-1">
                 {otpCode.map((digit, index) => (
                   <input
                     key={index}
@@ -710,7 +710,7 @@ const AccountCreationPage = () => {
                     onChange={(e) => handleOtpChange(e.target.value, index)}
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
                     onPaste={handleOtpPaste}
-                    className={`w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 focus:outline-none focus:!border-transparent focus:ring-2 focus:ring-[#A1A5FD] ${
+                    className={`flex-1 min-w-0 max-w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 focus:outline-none focus:!border-transparent focus:ring-2 focus:ring-[#A1A5FD] ${
                       otpError ? "border-[#EF4444]" : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                     }`}
                   />

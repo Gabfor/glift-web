@@ -110,7 +110,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={labelId}
         className={clsx(
-          "relative z-10 w-[564px] max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white p-8 shadow-lg animate-in fade-in zoom-in-95 duration-300",
+          "relative z-10 w-[564px] max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white p-5 sm:p-8 shadow-lg animate-in fade-in zoom-in-95 duration-300",
           contentClassName
         )}
       >

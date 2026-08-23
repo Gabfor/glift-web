@@ -172,7 +172,7 @@ export default function MotDePasseSection() {
               id="current-password"
               name="current-password"
               label="Ancien mot de passe"
-              placeholder="Votre mot de passe actuel"
+              placeholder="••••••••"
               value={currentPassword}
               onChange={(nextValue) => {
                 setCurrentPassword(nextValue)

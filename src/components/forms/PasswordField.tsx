@@ -35,7 +35,7 @@ export function PasswordField({
   id = "password",
   name = "password",
   label = "Mot de passe",
-  placeholder = "Mot de passe",
+  placeholder = "••••••••",
   labelAction,
   successMessage = "Mot de passe valide",
   errorMessage = "Mot de passe invalide",
