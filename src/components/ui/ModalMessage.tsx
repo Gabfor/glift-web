@@ -12,7 +12,7 @@ const VARIANT_CONFIG: Record<ModalMessageVariant, {
   iconSrc: string
 }> = {
   success: {
-    background: "#DAEFE8",
+    background: "#E6F7F2",
     titleColor: "#006646",
     textColor: "#00A370",
     iconSrc: "/icons/message_succes.svg",
@@ -30,7 +30,7 @@ const VARIANT_CONFIG: Record<ModalMessageVariant, {
     iconSrc: "/icons/message_erreur.svg",
   },
   info: {
-    background: "#E5E4F3",
+    background: "#F4F5FE",
     titleColor: "#6660E4",
     textColor: "#7069FA",
     iconSrc: "/icons/message_info.svg",

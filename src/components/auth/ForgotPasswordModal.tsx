@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation"
 import CTAButton from "@/components/CTAButton"
 import { EmailField, isValidEmail } from "@/components/forms/EmailField"
 import { createClientComponentClient } from "@/lib/supabase/client"
+import Image from "next/image"
 import Modal from "@/components/ui/Modal"
 import ModalMessage from "@/components/ui/ModalMessage"
 
@@ -266,7 +267,20 @@ export default function ForgotPasswordModal({
   return (
     <Modal
       open={open}
-      title="Mot de passe oublié"
+      title={
+        <div className="flex flex-col items-center">
+          <div className="sm:hidden mb-3">
+            <Image
+              src={error ? "/icons/cadena_rouge.svg" : "/icons/cadena_violet.svg"}
+              alt="Icône cadenas"
+              width={29}
+              height={35}
+              className="h-[35px] w-auto"
+            />
+          </div>
+          <span>Mot de passe oublié</span>
+        </div>
+      }
       onClose={handleClose}
       closeDisabled={loading}
       footerWrapperClassName="mt-[30px]"
