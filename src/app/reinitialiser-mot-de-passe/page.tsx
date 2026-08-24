@@ -248,7 +248,7 @@ export default function ResetPasswordPage() {
     };
   }, [stage, supabase, searchParams]);
 
-  const isFormValid = isEmailValid && isPasswordValid && isConfirmValid;
+  const isFormValid = isPasswordValid && isConfirmValid;
   const passwordCriteriaRenderer = useCallback<CriteriaRenderer>(
     ({ isFocused }) =>
       isFocused ? (
@@ -356,8 +356,7 @@ export default function ResetPasswordPage() {
                 <ModalMessage
                   variant="info"
                   title="Modification de ton mot de passe"
-                  description="Pour finaliser ta demande de modification de ton mot de passe, saisis un nouveau mot de passe, puis confirme-le avant de cliquer sur « Enregistrer »."
-                  className="px-6 py-5"
+                  description="Pour finaliser ta demande, saisis un nouveau mot de passe sécurisé, puis confirme-le avant de cliquer sur « Enregistrer »."
                 />
               </div>
               {formError ? (
@@ -375,26 +374,8 @@ export default function ResetPasswordPage() {
               autoComplete="on"
               name="reset-password"
             >
-              {/* Email */}
-              <div className="w-full mb-[30px]">
-                <label
-                  htmlFor="email"
-                  className="text-[16px] text-[#3A416F] font-bold mb-[5px] block"
-                >
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="username"
-                  type="email"
-                  inputMode="email"
-                  autoComplete="username"
-                  placeholder="john.doe@email.com"
-                  value={email}
-                  disabled
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
-                />
-              </div>
+              {/* Hidden username for accessibility and password managers */}
+              <input type="hidden" name="username" value={email} autoComplete="username" />
 
               {/* Nouveau mot de passe */}
               <div className="w-full mb-[5px]">
