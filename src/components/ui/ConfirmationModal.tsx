@@ -79,13 +79,13 @@ export default function ConfirmationModal({
       title={title}
       closeDisabled={isLoading}
       footer={
-        <div className={clsx("flex justify-center gap-4", actionsClassName)}>
+        <div className={clsx("flex justify-center gap-3 sm:gap-4 w-full", actionsClassName)}>
           <CTAButton
             variant="secondary"
             onClick={handleCancel}
             disabled={cancelDisabled}
             className={clsx(
-              "min-w-[136px]",
+              "flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]",
               cancelClassName
             )}
             {...restCancelButtonProps}
@@ -101,7 +101,7 @@ export default function ConfirmationModal({
             loadingText={loadingText}
             keepWidthWhileLoading={keepWidthWhileLoading}
             disabled={confirmButtonDisabled}
-            className={clsx("min-w-[136px]", confirmClassName)}
+            className={clsx("flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]", confirmClassName)}
             {...restConfirmButtonProps}
           >
             {confirmLabel}

@@ -15,7 +15,7 @@ export default function ProgramHideWarningModal({ show, onCancel, onConfirm }: P
             title="Masquer ce programme"
             onClose={onCancel}
             footer={
-                <div className="flex justify-center gap-5">
+                <div className="flex justify-center gap-3 sm:gap-5 w-full">
                     <CTAButton
                         variant="secondary"
                         onClick={(e) => {
@@ -24,6 +24,7 @@ export default function ProgramHideWarningModal({ show, onCancel, onConfirm }: P
                             onCancel();
                         }}
                         type="button"
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                     >
                         Annuler
                     </CTAButton>
@@ -31,6 +32,7 @@ export default function ProgramHideWarningModal({ show, onCancel, onConfirm }: P
                         variant="danger"
                         onClick={() => onConfirm()}
                         loadingText=""
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                     >
                         Confirmer
                     </CTAButton>

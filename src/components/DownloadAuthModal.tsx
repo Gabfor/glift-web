@@ -29,12 +29,13 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
       }
       onClose={onClose}
       footer={
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           {isRestricted ? (
             <>
               <CTAButton
                 variant="secondary"
                 onClick={onClose}
+                className="flex-1 w-full sm:w-auto sm:flex-initial"
               >
                 Annuler
               </CTAButton>
@@ -43,6 +44,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                   onClose();
                   router.push("/compte#mon-abonnement");
                 }}
+                className="flex-1 w-full sm:w-auto sm:flex-initial"
               >
                 Débloquer
               </CTAButton>
@@ -55,6 +57,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                   onClose();
                   router.push("/connexion");
                 }}
+                className="flex-1 w-full sm:w-auto sm:flex-initial"
               >
                 Connexion
               </CTAButton>
@@ -63,6 +66,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                   onClose();
                   router.push("/tarifs");
                 }}
+                className="flex-1 w-full sm:w-auto sm:flex-initial"
               >
                 Inscription
               </CTAButton>

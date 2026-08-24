@@ -271,12 +271,13 @@ export default function ForgotPasswordModal({
       closeDisabled={loading}
       footerWrapperClassName="mt-[30px]"
       footer={
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           <CTAButton
             variant="secondary"
             type="button"
             onClick={handleClose}
             disabled={loading}
+            className="flex-1 w-full sm:w-auto sm:flex-initial"
           >
             Annuler
           </CTAButton>
@@ -288,6 +289,7 @@ export default function ForgotPasswordModal({
               disabled={!isEmailValid || isCooldownActive}
               loading={loading}
               loadingText="Envoi..."
+              className="flex-1 w-full sm:w-auto sm:flex-initial"
             >
               Valider
             </CTAButton>
@@ -300,7 +302,7 @@ export default function ForgotPasswordModal({
               loading={loading}
               loadingText="En cours"
               keepWidthWhileLoading={false}
-              className="px-[30px]"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:px-[30px]"
             >
               Valider
             </CTAButton>

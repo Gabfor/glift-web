@@ -25,14 +25,16 @@ export default function RichTextHelpLinkModal({ initialText, onCancel, onSave }:
             title="Ajouter un lien vers une aide"
             onClose={onCancel}
             footer={
-                <div className="flex justify-center gap-5">
+                <div className="flex justify-center gap-3 sm:gap-5 w-full">
                     <CTAButton
                         variant="secondary"
                         onClick={onCancel}
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                     >
                         Annuler
                     </CTAButton>
                     <CTAButton
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                         onClick={() => {
                             if (helpId.trim()) {
                                 onSave(helpId.trim(), textInput);

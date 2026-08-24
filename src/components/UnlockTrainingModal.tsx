@@ -22,11 +22,11 @@ export default function UnlockTrainingModal({
             title="Exercice bloqué"
             onClose={onClose}
             footer={
-                <div className="flex justify-center gap-4">
-                    <CTAButton variant="secondary" onClick={onClose}>
+                <div className="flex justify-center gap-3 sm:gap-4 w-full">
+                    <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Annuler
                     </CTAButton>
-                    <CTAButton onClick={onUnlock}>
+                    <CTAButton onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Débloquer
                     </CTAButton>
                 </div>

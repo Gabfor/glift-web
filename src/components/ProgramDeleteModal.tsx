@@ -15,7 +15,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
       title="Supprimer un programme"
       onClose={onCancel}
       footer={
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           <CTAButton
             variant="secondary"
             onClick={(e) => {
@@ -24,6 +24,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
               onCancel();
             }}
             type="button"
+            className="flex-1 w-full sm:w-auto sm:flex-initial"
           >
             Annuler
           </CTAButton>
@@ -31,6 +32,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
             variant="danger"
             onClick={() => onConfirm()}
             loadingText=""
+            className="flex-1 w-full sm:w-auto sm:flex-initial"
           >
             Confirmer
           </CTAButton>

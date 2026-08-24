@@ -54,11 +54,11 @@ export default function RichTextLinkModal({ initialText, initialLink = "", onCan
             title={title}
             onClose={onCancel}
             footer={
-                <div className="flex justify-center gap-5">
+                <div className="flex justify-center gap-3 sm:gap-5 w-full">
                     {initialLink ? (
                         <button
                             onClick={() => onSave("", textInput)}
-                            className="px-4 py-2 font-semibold text-[#EF4F4E] hover:text-[#BA2524]"
+                            className="flex-1 w-full sm:w-auto sm:flex-initial px-4 py-2 font-semibold text-[#EF4F4E] hover:text-[#BA2524]"
                         >
                             Supprimer
                         </button>
@@ -66,11 +66,13 @@ export default function RichTextLinkModal({ initialText, initialLink = "", onCan
                         <CTAButton
                             variant="secondary"
                             onClick={onCancel}
+                            className="flex-1 w-full sm:w-auto sm:flex-initial"
                         >
                             Annuler
                         </CTAButton>
                     )}
                     <CTAButton
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                         onClick={() => {
                             const normalizedLink = normalizeLink(link);
 

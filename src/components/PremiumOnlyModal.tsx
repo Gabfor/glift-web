@@ -17,10 +17,11 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
       title="Offre bloquée"
       onClose={onClose}
       footer={
-        <div className="flex justify-center gap-4">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           <CTAButton
             variant="secondary"
             onClick={onClose}
+            className="flex-1 w-full sm:w-auto sm:flex-initial"
           >
             Annuler
           </CTAButton>
@@ -29,6 +30,7 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
               onClose();
               router.push("/compte#mon-abonnement");
             }}
+            className="flex-1 w-full sm:w-auto sm:flex-initial"
           >
             Débloquer
           </CTAButton>

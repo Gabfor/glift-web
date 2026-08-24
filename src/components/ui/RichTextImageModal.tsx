@@ -40,16 +40,18 @@ export default function RichTextImageModal({ isOpen, onClose, onSave }: RichText
             title="Ajouter une image"
             onClose={handleClose}
             footer={
-                <div className="flex justify-center gap-5">
+                <div className="flex justify-center gap-3 sm:gap-5 w-full">
                     <CTAButton
                         variant="secondary"
                         onClick={handleClose}
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                     >
                         Annuler
                     </CTAButton>
                     <CTAButton
                         onClick={handleSave}
                         disabled={fileUrls.length === 0}
+                        className="flex-1 w-full sm:w-auto sm:flex-initial"
                     >
                         Enregistrer
                     </CTAButton>

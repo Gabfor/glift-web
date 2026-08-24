@@ -638,16 +638,30 @@ const AccountCreationPage = () => {
         {/* OTP Code Validation Modal matching Forgot Password flow */}
         <Modal
           open={showVerificationModal}
-          title="Code de validation"
+          title={
+            <div className="flex flex-col items-center">
+              <div className="sm:hidden mb-3">
+                <Image
+                  src={otpError ? "/icons/cadena_rouge.svg" : "/icons/cadena_violet.svg"}
+                  alt="Icône cadenas"
+                  width={29}
+                  height={35}
+                  className="h-[35px] w-auto"
+                />
+              </div>
+              <span>Code de validation</span>
+            </div>
+          }
           onClose={() => setShowVerificationModal(false)}
           closeDisabled={otpLoading || isRedirecting}
           footer={
-            <div className="flex justify-center gap-3">
+            <div className="flex justify-center gap-3 w-full">
               <CTAButton
                 type="button"
                 variant="secondary"
                 onClick={() => setShowVerificationModal(false)}
                 disabled={otpLoading || isRedirecting}
+                className="flex-1 w-full sm:w-auto sm:flex-initial"
               >
                 Annuler
               </CTAButton>
@@ -659,7 +673,7 @@ const AccountCreationPage = () => {
                 loading={otpLoading || isRedirecting}
                 loadingText="En cours"
                 keepWidthWhileLoading={false}
-                className="px-[30px]"
+                className="flex-1 w-full sm:w-auto sm:flex-initial sm:px-[30px]"
               >
                 Valider
               </CTAButton>

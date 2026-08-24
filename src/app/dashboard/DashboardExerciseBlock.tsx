@@ -1566,15 +1566,20 @@ export default function DashboardExerciseBlock({
         onClose={handleCloseGoalModal}
         footerWrapperClassName="mt-[5px]"
         footer={
-          <div className="flex justify-center gap-4">
+          <div className="flex justify-center gap-3 sm:gap-4 w-full">
             <CTAButton
               type="button"
               variant="secondary"
               onClick={handleCloseGoalModal}
+              className="flex-1 w-full sm:w-auto sm:flex-initial"
             >
               Annuler
             </CTAButton>
-            <CTAButton type="button" onClick={handleSaveGoal}>
+            <CTAButton
+              type="button"
+              onClick={handleSaveGoal}
+              className="flex-1 w-full sm:w-auto sm:flex-initial"
+            >
               {hasGoal ? "Modifier" : "Enregistrer"}
             </CTAButton>
           </div>

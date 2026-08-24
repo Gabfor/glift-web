@@ -27,11 +27,12 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
       title={title}
       onClose={onCancel}
       footer={
-        <div className="flex justify-center gap-5">
+        <div className="flex justify-center gap-3 sm:gap-5 w-full">
           {initialNote ? (
             <CTAButton
               variant="secondary"
               onClick={() => onSave("")}
+              className="flex-1 w-full sm:w-auto sm:flex-initial"
             >
               Supprimer
             </CTAButton>
@@ -39,11 +40,12 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
             <CTAButton
               variant="secondary"
               onClick={onCancel}
+              className="flex-1 w-full sm:w-auto sm:flex-initial"
             >
               Annuler
             </CTAButton>
           )}
-          <CTAButton onClick={() => onSave(note)}>
+          <CTAButton onClick={() => onSave(note)} className="flex-1 w-full sm:w-auto sm:flex-initial">
             Enregistrer
           </CTAButton>
         </div>
