@@ -206,7 +206,7 @@ export default function ConnexionPage() {
           type: "invalid-credentials",
           title: "Email ou mot de passe incorrect",
           description:
-            "Nous n’arrivons pas à te connecter. Merci de vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
+            "Nous n’arrivons pas à te connecter. Vérifie qu’il s’agit bien de l’email utilisé lors de ton inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
         setLoading(false);
       } else {
