@@ -133,7 +133,7 @@ export default function ForgotPasswordModal({
 
         setError({
           title: "Une erreur est survenue",
-          description: "Nous n'avons pas pu envoyer l'e-mail de réinitialisation. Veuillez réessayer dans quelques instants.",
+          description: "Nous n'avons pas pu envoyer l'e-mail de réinitialisation. Merci de réessayer dans quelques instants.",
         })
         return
       }
@@ -178,9 +178,9 @@ export default function ForgotPasswordModal({
 
       if (verifyError || !data?.user) {
         setError({
-          title: "Code invalide ou expiré",
+          title: "Code de validation incorrect",
           description:
-            "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier votre code ou de relancer une demande depuis « Mot de passe oublié ? ».",
+            "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier ton code ou de relancer une demande depuis « Mot de passe oublié ? ».",
         })
         return
       }
@@ -201,7 +201,7 @@ export default function ForgotPasswordModal({
       setError({
         title: "Code invalide ou expiré",
         description:
-          "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier votre code ou de relancer une demande depuis « Mot de passe oublié ? ».",
+          "Nous sommes désolés mais le code est invalide ou expiré. Merci de vérifier ton code ou de relancer une demande depuis « Mot de passe oublié ? ».",
       })
     } finally {
       setLoading(false)
@@ -319,8 +319,8 @@ export default function ForgotPasswordModal({
           <div className="w-full max-w-[504px] space-y-4">
             <ModalMessage
               variant="info"
-              title="Vous avez oublié votre mot de passe ?"
-              description="Pas de problème, nous allons vous envoyer un lien pour réinitialiser votre mot de passe en toute sécurité."
+              title="Tu as oublié ton mot de passe ?"
+              description="Pas de problème, nous allons t'envoyer un lien pour réinitialiser ton mot de passe en toute sécurité."
             />
             {error && (
               <ModalMessage
@@ -360,8 +360,8 @@ export default function ForgotPasswordModal({
             ) : (
               <ModalMessage
                 variant="success"
-                title="Merci pour votre email"
-                description="Si un compte y est associé, un email contenant un code à 6 chiffres vous a été envoyé. Ce code est valable pendant 30 minutes."
+                title="Merci pour ton email"
+                description="Si un compte y est associé, un email contenant un code à 6 chiffres t'a été envoyé. Ce code est valable pendant 30 minutes."
               />
             )}
           </div>

@@ -69,10 +69,10 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
         open={open}
         onClose={() => setOpen(false)}
         onConfirm={handleConfirm}
-        title="Supprimer votre compte"
+        title="Supprimer ton compte"
         variant="warning"
         messageTitle="Attention"
-        messageDescription="La suppression de votre compte est définitive."
+        messageDescription="La suppression de ton compte est définitive."
         confirmLabel="Confirmer"
         confirmButtonProps={{
           loading,
@@ -81,11 +81,11 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
         }}
       >
         <p className="mb-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-          En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> votre compte ainsi que l’ensemble des données qui lui
-          sont associées seront <span className="text-[#3A416F]">définitivement supprimées</span> de la plateforme.
+          En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> ton compte ainsi que l’ensemble des données qui lui
+          sont associées seront <span className="text-[#3A416F]">définitivement supprimés</span> de la plateforme.
         </p>
         <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-          Si ce n’est pas ce que vous souhaitez faire, vous trouverez peut-être la solution à votre besoin dans la partie{' '}
+          Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie{' '}
           <Link href={helpUrl} className="underline text-[#3A416F]">
             Aide
           </Link>{' '}

@@ -16,7 +16,7 @@ import ModalMessage from "@/components/ui/ModalMessage"
 import { useUser } from "@/context/UserContext"
 
 const INVALID_CURRENT_PASSWORD_MESSAGE =
-  "L’ancien mot de passe que vous avez renseigné ne correspond pas au mot de passe actuellement utilisé pour vous connecter à votre compte."
+  "L’ancien mot de passe que tu as renseigné ne correspond pas au mot de passe actuellement utilisé pour te connecter à ton compte."
 
 function PasswordCriteriaItem({ valid, text }: { valid: boolean; text: string }) {
   const icon = valid ? "/icons/check-success.svg" : "/icons/check-neutral.svg"
@@ -94,23 +94,23 @@ export default function MotDePasseSection() {
             setError(INVALID_CURRENT_PASSWORD_MESSAGE)
             break
           case "same-password":
-            setError("Votre nouveau mot de passe doit être différent de l’actuel.")
+            setError("Ton nouveau mot de passe doit être différent de l’actuel.")
             setNewPasswordStatusOverride("neutral")
             if (hadPreviousSuccess) {
               setSuccess(true)
             }
             break
           case "invalid-password-format":
-            setNewPasswordError("Votre nouveau mot de passe ne respecte pas les critères requis.")
+            setNewPasswordError("Ton nouveau mot de passe ne respecte pas les critères requis.")
             setNewPasswordStatusOverride(undefined)
             setError("Impossible de mettre à jour le mot de passe.")
             break
           case "not-authenticated":
-            setError("Vous devez être connecté.")
+            setError("Tu dois être connecté.")
             break
           case "missing-fields":
           case "invalid-body":
-            setError("Informations manquantes pour modifier votre mot de passe.")
+            setError("Informations manquantes pour modifier ton mot de passe.")
             break
           case "user-fetch-failed":
           case "missing-email":
@@ -160,7 +160,7 @@ export default function MotDePasseSection() {
             <ModalMessage
               variant="success"
               title="Félicitations !"
-              description="Votre mot de passe a été modifié avec succès. Vous devrez utiliser votre nouveau mot de passe sécurisé pour vous connecter la prochaine fois."
+              description="Ton mot de passe a été modifié avec succès. Tu devras utiliser ton nouveau mot de passe sécurisé pour te connecter la prochaine fois."
               className="w-full max-w-[564px]"
             />
           </div>

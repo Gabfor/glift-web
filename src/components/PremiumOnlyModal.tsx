@@ -40,15 +40,15 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
       <ModalMessage
         variant="info"
         title="Attention"
-        description="Cette offre est bloquée car votre abonnement actuelle ne vous permet pas de profiter des offres réservées aux membres Premium."
+        description="Cette offre est bloquée car ton abonnement actuel ne te permet pas de profiter des offres réservées aux membres Premium."
         className="mb-6"
       />
 
       <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> vous serez redirigé vers votre compte où vous pourrez souscrire à la formule d’abonnement Premium qui vous donnera accès aux offres bloquées.
+        En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras souscrire à la formule d’abonnement Premium qui te donnera accès aux offres bloquées.
         <br />
         <br />
-        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre formule d’abonnement et vous pourrez continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F]">Premium</span>.
+        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ta formule d’abonnement et tu pourras continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F]">Premium</span>.
       </p>
     </Modal>
   );

@@ -35,16 +35,16 @@ export default function UnlockTrainingModal({
             <ModalMessage
                 variant="info"
                 title="Pourquoi cet exercice est-il bloqué ?"
-                description="Cet exercice est bloqué car votre formule d’abonnement actuelle vous limite à 10 exercices utilisables."
+                description="Cet exercice est bloqué car ta formule d’abonnement actuelle te limite à 10 exercices utilisables."
                 className="mb-6"
             />
 
             <div className="space-y-4 text-[14px] font-semibold text-[#5D6494] leading-relaxed">
                 <p>
-                    En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> vous serez redirigé vers votre compte où vous pourrez choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi cet exercice.
+                    En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi cet exercice.
                 </p>
                 <p>
-                    En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous pourrez continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.
+                    En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu pourras continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.
                 </p>
             </div>
         </Modal>

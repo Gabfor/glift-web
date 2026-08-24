@@ -69,18 +69,18 @@ const COMMUNICATION_FIELDS = [
     key: "shop" as const,
     title: "Newsletter Glift Shop",
     description:
-      "Vous serez informé lorsque de nouvelles offres correspondant à votre profil seront ajoutées.",
+      "Tu seras informé lorsque de nouvelles offres correspondant à ton profil seront ajoutées.",
   },
   {
     key: "store" as const,
     title: "Newsletter Glift Store",
     description:
-      "Vous serez informé lorsque de nouvelles ressources d’entrainement correspondant à votre profil seront ajoutées.",
+      "Tu seras informé lorsque de nouvelles ressources d’entrainement correspondant à ton profil seront ajoutées.",
   },
 ] as const
 
 const CURVE_TOOLTIP_MESSAGE =
-  "Ce réglage détermine le type de courbe affichée par défaut dans votre tableau de bord."
+  "Ce réglage détermine le type de courbe affichée par défaut dans ton tableau de bord."
 
 type CommunicationKey = (typeof COMMUNICATION_FIELDS)[number]["key"]
 
@@ -342,7 +342,7 @@ export default function PreferencesSection() {
               <ModalMessage
                 variant="success"
                 title="Préférences mises à jour"
-                description="Merci ! Vos préférences ont bien été enregistrées et sont applicables dès maintenant. Vous pouvez revenir les mettre à jour quand vous le souhaitez."
+                description="Merci ! Tes préférences ont bien été enregistrées et sont applicables dès maintenant. Tu peux revenir les mettre à jour quand tu le souhaites."
                 className="w-full max-w-[564px]"
               />
             </div>
@@ -398,7 +398,7 @@ export default function PreferencesSection() {
                   >
                     <div className="relative w-[18px] h-[18px] flex items-center justify-center">
                       <InfoTooltipAdornment
-                        message="Ce réglage détermine le nombre de séances affichées par défaut dans votre tableau de bord."
+                        message="Ce réglage détermine le nombre de séances affichées par défaut dans ton tableau de bord."
                         ariaLabel="Plus d’informations sur le nombre de séances par défaut"
                       />
                     </div>

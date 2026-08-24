@@ -127,7 +127,7 @@ const AccountCreationPage = () => {
         return {
           title: "Inscription impossible",
           description:
-            "Vous ne pouvez pas utiliser cet email car il est déjà associé à un compte actif sur la plateforme.",
+            "Tu ne peux pas utiliser cet email car il est déjà associé à un compte actif sur la plateforme.",
           emailFieldError: "Mince, cet email est déjà utilisé",
         };
       }
@@ -443,9 +443,9 @@ const AccountCreationPage = () => {
     return (
       <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
-          <h1 className="text-[26px] font-bold text-[#2E3271]">Choisissez une formule</h1>
+          <h1 className="text-[26px] font-bold text-[#2E3271]">Choisis une formule</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
-            Pour vous inscrire, sélectionnez d’abord une formule sur la page tarifs.
+            Pour t'inscrire, sélectionne d’abord une formule sur la page tarifs.
           </p>
           <Link
             href="/tarifs"
@@ -473,14 +473,11 @@ const AccountCreationPage = () => {
         />
 
         {error ? (
-          <div className="w-[564px] max-w-full mb-6 relative rounded-[5px] px-5 py-4 bg-[#FFF1F1]">
-            <span className="absolute left-0 top-0 h-full w-[3px] bg-[#E34A4A] rounded-l-[5px]" />
-            <p className="text-[14px] font-bold text-[#E34A4A] mb-2">{error.title}</p>
-            {error.description && (
-              <p className="text-[14px] font-semibold text-[#E34A4A] leading-snug">
-                {error.description}
-              </p>
-            )}
+          <div className="w-[564px] max-w-full mb-6">
+            <ErrorMessage
+              title={error.title}
+              description={error.description}
+            />
           </div>
         ) : null}
 

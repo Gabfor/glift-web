@@ -253,7 +253,7 @@ export default function ProfilePictureBlock({
       </div>
 
       <p className="text-base font-semibold text-[#3A416F] mb-[20px]">
-        Votre profil est complet à{" "}
+        Ton profil est complet à{" "}
         <span className="inline-flex w-[5ch] tabular-nums text-left justify-start">
           <span className="text-[#33E1AC]">{pct}%</span>
           <span className="text-[#3A416F]">.</span>

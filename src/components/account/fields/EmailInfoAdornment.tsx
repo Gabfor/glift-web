@@ -8,7 +8,7 @@ type Props = {
 }
 
 export default function EmailInfoAdornment({
-  message = "Pour des raisons techniques, votre email ne peut pas être modifié.",
+  message = "Pour des raisons techniques, ton email ne peut pas être modifié.",
   iconSize = 18,
 }: Props) {
   return (

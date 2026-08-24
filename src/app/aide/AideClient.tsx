@@ -167,14 +167,14 @@ function AideContent({
           />
         ) : (
           <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
-            Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
+            Retrouve les questions les plus fréquemment posées par nos utilisateurs.
             <br />
-            Si vous avez d’autres questions,{" "}
+            Si tu as d’autres questions,{" "}
             <Link
               href={`${contactUrl}?from=aide`}
               className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
             >
-              contactez-nous.
+              contacte-nous.
             </Link>
           </p>
         )}
@@ -279,14 +279,14 @@ export default function AidePage({
               />
             ) : (
               <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
-                Retrouvez les questions les plus fréquemment posées par nos utilisateurs.
+                Retrouve les questions les plus fréquemment posées par nos utilisateurs.
                 <br />
-                Si vous avez d’autres questions,{" "}
+                Si tu as d’autres questions,{" "}
                 <Link
                   href={`${contactUrl}?from=aide`}
                   className="text-[#7069FA] hover:text-[#6660E4] transition-colors"
                 >
-                  contactez-nous.
+                  contacte-nous.
                 </Link>
               </p>
             )}

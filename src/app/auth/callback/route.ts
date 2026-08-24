@@ -544,7 +544,7 @@ export async function GET(request: NextRequest) {
     success: !errorMessage,
     redirectUrl,
     successMessage:
-      "Votre email a été confirmée. Vous pouvez retourner sur l'application Glift.",
+      "Ton adresse email a été confirmée. Tu peux retourner sur l'application Glift.",
     errorMessage,
   });
 

@@ -344,8 +344,8 @@ export default function ResetPasswordPage() {
             <div className="w-[564px] max-w-full mx-auto mb-6">
               <ModalMessage
                 variant="warning"
-                title="Impossible de vous identifier"
-                description="Nous sommes désolés mais nous n'avons pas réussi à vous identifier. Merci de relancer une demande depuis « Mot de passe oublié ? »."
+                title="Impossible de t’identifier"
+                description="Nous sommes désolés mais nous n'avons pas réussi à t'identifier. Merci de relancer une demande depuis « Mot de passe oublié ? »."
               />
             </div>
           )}
@@ -355,8 +355,8 @@ export default function ResetPasswordPage() {
               <div className="w-[564px] max-w-full mx-auto mb-6">
                 <ModalMessage
                   variant="info"
-                  title="Modification de votre mot de passe"
-                  description="Pour finaliser votre demande de modification de votre mot de passe, saisissez un nouveau mot de passe, puis confirmez-le avant de cliquer sur « Enregistrer »."
+                  title="Modification de ton mot de passe"
+                  description="Pour finaliser ta demande de modification de ton mot de passe, saisis un nouveau mot de passe, puis confirme-le avant de cliquer sur « Enregistrer »."
                   className="px-6 py-5"
                 />
               </div>

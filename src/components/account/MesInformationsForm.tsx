@@ -23,6 +23,7 @@ import TextField from "./fields/TextField"
 import ToggleField from "./fields/ToggleField"
 import IncompleteAlert from "./IncompleteAlert"
 import ProfileCompleteAlert from "./ProfileCompleteAlert"
+import ErrorMessage from "@/components/ui/ErrorMessage"
 import MissingField from "./fields/MissingField"
 import ProfilePictureBlock from "./fields/ProfilePictureBlock"
 import MesInformationsFormSkeleton from "./MesInformationsFormSkeleton"
@@ -172,14 +173,14 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
       className="flex flex-col items-center gap-2"
     >
       {error && (
-        <div className="w-[368px] text-red-500 text-[13px] font-medium mb-2 text-left">
-          {error}
+        <div className="w-[564px] max-w-full mb-4">
+          <ErrorMessage title="Erreur" description={error} />
         </div>
       )}
 
       {avatarError && (
-        <div className="w-[368px] text-red-500 text-[13px] font-medium mb-2 text-left">
-          {avatarError}
+        <div className="w-[564px] max-w-full mb-4">
+          <ErrorMessage title="Erreur photo de profil" description={avatarError} />
         </div>
       )}
 

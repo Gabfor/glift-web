@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 type Props = {
   adminId: string | null;
@@ -206,9 +207,9 @@ export default function CreateAdminClient({ adminId }: Props) {
 
             {/* Error message */}
             {actionError && (
-              <p className="text-center text-[14px] text-red-500 font-semibold -mt-4">
-                {actionError}
-              </p>
+              <div className="w-full max-w-[564px] mx-auto -mt-2 mb-4">
+                <ErrorMessage title="Erreur" description={actionError} />
+              </div>
             )}
 
             {/* Submit button */}

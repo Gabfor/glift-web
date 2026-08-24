@@ -87,7 +87,7 @@ const PaymentPage = () => {
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
           <h1 className="text-[26px] font-bold text-[#2E3271]">Redirection nécessaire</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
-            Cette étape est réservée à la formule Premium. Reprenez le tunnel d’inscription depuis la première étape.
+            Cette étape est réservée à la formule Premium. Reprends le tunnel d’inscription depuis la première étape.
           </p>
           <Link
             href="/inscription"
@@ -109,9 +109,9 @@ const PaymentPage = () => {
       </div>
       <div className="w-full max-w-2xl flex flex-col items-center px-4 sm:px-0">
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center leading-snug">
-          Vous pouvez ajouter un mode de paiement dès maintenant.
+          Tu peux ajouter un mode de paiement dès maintenant.
           <br />
-          Vous ne serez pas facturé avant le{" "}
+          Tu ne seras pas facturé avant le{" "}
           <span className="font-bold text-[#5D6494]">{trialEndLabel}</span>.
         </p>
         <StepDots

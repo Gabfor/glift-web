@@ -17,11 +17,11 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
   },
   payment: {
     title: "Mode de paiement",
-    subtitle: "Activez votre essai gratuit en renseignant vos informations de paiement.",
+    subtitle: "Active ton essai gratuit en renseignant tes informations de paiement.",
   },
   profile: {
     title: "Inscription terminée !",
-    subtitle: "Nous sommes ravis de vous compter parmi nous.\nVous pouvez dès à présent commencer à vous entrainer avec Glift.",
+    subtitle: "Nous sommes ravis de te compter parmi nous.\nTu peux dès à présent commencer à t’entrainer avec Glift.",
   },
 };
 

@@ -41,7 +41,7 @@ const VARIANT_STYLES: Record<ModalMessageVariant, {
 interface ModalMessageProps {
   variant: ModalMessageVariant
   title: ReactNode
-  description: ReactNode
+  description?: ReactNode
   className?: string
   onClose?: () => void
 }
@@ -85,7 +85,7 @@ export default function ModalMessage({
   return (
     <div
       className={clsx(
-        "rounded-br-[5px] rounded-tr-[5px] border-l-[3px] px-4 py-3 text-left",
+        "w-full max-w-[564px] rounded-br-[5px] rounded-tr-[5px] border-l-[3px] px-4 py-3 text-left",
         className
       )}
       style={{
@@ -98,9 +98,11 @@ export default function ModalMessage({
           <div className="text-[12px] font-bold" style={{ color: styles.titleColor }}>
             {title}
           </div>
-          <div className="text-[12px] font-semibold" style={{ color: styles.textColor }}>
-            {description}
-          </div>
+          {description ? (
+            <div className="text-[12px] font-semibold mt-1" style={{ color: styles.textColor }}>
+              {description}
+            </div>
+          ) : null}
         </div>
         {onClose && (
           <button

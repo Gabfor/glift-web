@@ -6,6 +6,7 @@ import CTAButton from "@/components/CTAButton";
 import { EmailField } from "@/components/forms/EmailField";
 import FileUploader from "@/components/forms/FileUploader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import ModalMessage from "@/components/ui/ModalMessage";
 import { useUser } from "@/context/UserContext";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
@@ -103,22 +104,18 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
                         <div className="w-full mb-[20px]">
                             <ErrorMessage
                                 title="Erreur d'envoi"
-                                description="Oups, nous n’avons pas réussi à envoyer le message. Merci de réessayer plus tard."
+                                description="Oups, nous n’avons pas réussi à envoyer ton message. Merci de réessayer plus tard."
                             />
                         </div>
                     )}
 
                     {status === "success" && (
-                        <div
-                            className="w-full mb-[20px] max-w-[564px] px-4 py-3 text-left border-l-[3px] rounded-tr-[5px] rounded-br-[5px]"
-                            style={{ backgroundColor: "#EAF5EA", borderLeftColor: "#59A95C" }}
-                        >
-                            <div className="text-[12px] font-bold" style={{ color: "#2B7E30" }}>
-                                Message envoyé
-                            </div>
-                            <div className="text-[12px] font-semibold mt-1" style={{ color: "#59A95C" }}>
-                                Merci, votre message a bien été envoyé ! Nous reviendrons vers vous rapidement.
-                            </div>
+                        <div className="w-full mb-[20px]">
+                            <ModalMessage
+                                variant="success"
+                                title="Message envoyé"
+                                description="Merci, ton message a bien été envoyé ! Nous reviendrons vers toi rapidement."
+                            />
                         </div>
                     )}
 

@@ -11,6 +11,7 @@ import CTAButton from "@/components/CTAButton";
 import GliftLoader from "@/components/ui/GliftLoader";
 import BackLink from "@/components/BackLink";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { COUNTRIES, getCountryFlagIcon } from "@/components/account/constants";
 import {
@@ -268,8 +269,8 @@ export default function CreateOfferPageClient({
             </h2>
 
             {errorMessage && (
-              <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
-                {errorMessage}
+              <div className="w-full max-w-[564px] mx-auto mb-6">
+                <ErrorMessage title="Erreur" description={errorMessage} />
               </div>
             )}
 

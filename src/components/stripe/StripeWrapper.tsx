@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckoutForm";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 // Remplacez par votre clé publique Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -49,7 +50,11 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
     }, []); // Run once on mount
 
     if (error) {
-        return <div className="text-red-500 font-semibold p-4 bg-red-50 rounded-lg">{error}</div>;
+        return (
+            <div className="w-full max-w-[564px] mx-auto my-6">
+                <ErrorMessage title="Erreur d'initialisation" description={error} />
+            </div>
+        );
     }
 
     if (!clientSecret) {

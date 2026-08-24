@@ -94,7 +94,7 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
   const uploadAvatar = useCallback(
     async (file: File) => {
       if (!user?.id) {
-        const message = "Vous devez être connecté pour modifier votre photo."
+        const message = "Tu dois être connecté pour modifier ta photo."
         setError(message)
         throw new Error(message)
       }
@@ -201,7 +201,7 @@ export const useAvatar = (user: User | null): UseAvatarResult => {
     }
 
     if (!user?.id) {
-      const message = "Vous devez être connecté pour modifier votre photo."
+      const message = "Tu dois être connecté pour modifier ta photo."
       setError(message)
       throw new Error(message)
     }

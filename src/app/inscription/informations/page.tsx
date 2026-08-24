@@ -6,6 +6,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import CTAButton from "@/components/CTAButton";
 import StepDots from "@/components/onboarding/StepDots";
+import ModalMessage from "@/components/ui/ModalMessage";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 import DropdownField from "@/components/account/fields/DropdownField";
 import ToggleField from "@/components/account/fields/ToggleField";
 import BirthDateField from "@/components/account/fields/BirthDateField";
@@ -253,9 +255,9 @@ const InformationsPage = () => {
     return (
       <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
-          <h1 className="text-[26px] font-bold text-[#2E3271]">Choisissez une formule</h1>
+          <h1 className="text-[26px] font-bold text-[#2E3271]">Choisis une formule</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
-            Pour vous inscrire, sélectionnez d’abord une formule sur la page tarifs.
+            Pour t'inscrire, sélectionne d’abord une formule sur la page tarifs.
           </p>
           <Link
             href="/tarifs"
@@ -273,9 +275,9 @@ const InformationsPage = () => {
       <div className="w-full max-w-[760px] text-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Inscription terminée !</h1>
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
-          Nous sommes ravis de vous compter parmi nous.
+          Nous sommes ravis de te compter parmi nous.
           <br />
-          Vous pouvez dès à présent commencer à vous entrainer avec Glift.
+          Tu peux dès à présent commencer à t’entrainer avec Glift.
         </p>
         <StepDots
           className={`mt-4 mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
@@ -285,19 +287,17 @@ const InformationsPage = () => {
       </div>
 
       <div className="w-[564px] max-w-full mb-6">
-        <div className="relative bg-[#F4F5FE] rounded-[5px] px-5 py-3 text-left">
-          <span className="absolute left-0 top-0 h-full w-[3px] bg-[#A1A5FD] rounded-l-[5px]" />
-          <p className="text-[#7069FA] font-bold text-[12px] mb-1">Hey psst !</p>
-          <p className="text-[#A1A5FD] font-semibold text-[12px] leading-relaxed">
-            Avant de partir vous entrainer, aidez-nous à mieux vous connaître et à personnaliser votre expérience avec Glift en répondant aux 4 questions ci-dessous.
-          </p>
-        </div>
+        <ModalMessage
+          variant="info"
+          title="Hey psst !"
+          description="Avant de partir t’entrainer, aide-nous à mieux te connaître et à personnaliser ton expérience avec Glift en répondant aux 4 questions ci-dessous."
+        />
       </div>
 
       {hookError && (
-        <p className="w-[368px] text-[#EF4444] text-[13px] font-medium mb-2 text-left" role="alert">
-          {hookError}
-        </p>
+        <div className="w-[564px] max-w-full mb-4">
+          <ErrorMessage title="Erreur" description={hookError} />
+        </div>
       )}
 
       <form className="w-[368px] max-w-full" onSubmit={handleSubmit}>
@@ -379,8 +379,8 @@ const InformationsPage = () => {
 
         <FieldRow show={false}>
           <DropdownField
-            label="Quel est votre objectif principal ?"
-            placeholder="Sélectionnez un objectif"
+            label="Quel est ton objectif principal ?"
+            placeholder="Sélectionne un objectif"
             selected={mainGoal}
             onSelect={(value) => {
               setMainGoal(value);

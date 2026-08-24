@@ -50,7 +50,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
             Articles liés
           </h2>
           <p className="text-[#5D6494] text-[14px] font-semibold">
-            Voici d’autres articles qui pourraient vous plaire.
+            Voici d’autres articles qui pourraient te plaire.
           </p>
         </div>
         <Link

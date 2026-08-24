@@ -170,22 +170,22 @@ const PaymentMethodCard = ({
 const getPaymentErrorMessage = (code: string | null): string => {
     switch (code) {
         case 'insufficient_funds':
-            return "Le paiement a été refusé par votre banque (fonds insuffisants).";
+            return "Le paiement a été refusé par ta banque (fonds insuffisants).";
         case 'lost_card':
         case 'stolen_card':
-            return "Cette carte a été déclarée perdue ou volée. Veuillez utiliser un autre moyen de paiement.";
+            return "Cette carte a été déclarée perdue ou volée. Merci d'utiliser un autre moyen de paiement.";
         case 'expired_card':
-            return "Votre carte a expiré. Veuillez mettre à jour votre moyen de paiement.";
+            return "Ta carte a expiré. Merci de mettre à jour ton moyen de paiement.";
         case 'incorrect_cvc':
             return "Le code de sécurité (CVC) est incorrect.";
         case 'processing_error':
-            return "Une erreur est survenue lors du traitement du paiement. Veuillez réessayer.";
+            return "Une erreur est survenue lors du traitement du paiement. Merci de réessayer.";
         case 'card_declined':
-            return "Votre carte a été refusée. Veuillez contacter votre banque ou essayer une autre carte.";
+            return "Ta carte a été refusée. Merci de contacter ta banque ou d'essayer une autre carte.";
         case 'authentication_required':
-            return "L'authentification de votre banque a échoué. Veuillez réessayer.";
+            return "L'authentification de ta banque a échoué. Merci de réessayer.";
         default:
-            return "Le dernier paiement a échoué. Veuillez vérifier votre moyen de paiement.";
+            return "Le dernier paiement a échoué. Merci de vérifier ton moyen de paiement.";
     }
 };
 
@@ -580,10 +580,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Modifier »</span> vous passerez à l’abonnement Starter dès la fin de votre abonnement Premium. Vous ne serez plus débité de 2,49 € tous les mois. Vous pourrez repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F]">« Modifier »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous continuerez de profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras de profiter d’un stockage illimité.
                     </p>
                 </div>
             </ConfirmationModal>
@@ -595,7 +595,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 messageTitle="Attention"
                 messageDescription={
                     <span>
-                        En supprimant votre moyen de paiement, vous mettrez fin à votre abonnement Premium et vous serez basculé vers un abonnement Starter.
+                        En supprimant ton moyen de paiement, tu mettras fin à ton abonnement Premium et tu seras basculé vers un abonnement Starter.
                     </span>
                 }
                 onConfirm={confirmDeletePaymentMethod}
@@ -607,10 +607,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Supprimer »</span> vous passerez à l’abonnement Starter dès la fin de votre abonnement Premium. Vous ne serez plus débité de 2,49 € tous les mois. Vous pourrez repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F]">« Supprimer »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous continuerez à profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter d’un stockage illimité.
                     </p>
                 </div>
             </ConfirmationModal>
@@ -622,7 +622,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         description={successPlan === 'starter'
                             ? (
                                 <span>
-                                    Vous passerez à un abonnement Starter dès la fin de votre période d’abonnement Premium actuelle, soit le {subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.
+                                    Tu passeras à un abonnement Starter dès la fin de ta période d’abonnement Premium actuelle, soit le {subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.
                                     {paymentMethod && (
                                         <>
                                             {" "}
@@ -644,13 +644,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 </span>
                             )
                             : (isUndoingDowngrade
-                                ? "Suite à votre annulation, nous vous confirmons que votre abonnement Premium sera renouvelé automatiquement à l’issu de la période d’abonnement actuelle."
-                                : "Votre abonnement a été modifié avec succès. Vous avez maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
+                                ? "Suite à ton annulation, nous te confirmons que ton abonnement Premium sera renouvelé automatiquement à l’issue de la période d’abonnement actuelle."
+                                : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
                         }
                     />
                 </div>
-            )
-            }
+            )}
             {
                 showModalMessage && (
                     <div className="mb-6 w-full">
@@ -798,7 +797,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                             // Updated existing
                                                             setSuccessMessage({
                                                                 title: "Mode de paiement modifié avec succès",
-                                                                description: "Votre changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
+                                                                description: "Ton changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
                                                                 variant: "success"
                                                             });
                                                             setShowModalMessage(true);

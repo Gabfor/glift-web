@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { StripeCardNumberElement } from "@stripe/stripe-js";
 import CTAButton from "@/components/CTAButton";
 import InfoTooltipAdornment from "@/components/account/fields/InfoTooltipAdornment";
+import ErrorMessage from "@/components/ui/ErrorMessage";
 
 /* eslint-disable @next/next/no-img-element */
 
@@ -95,7 +96,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                         router.push(`/inscription/informations?payment_success=true&plan=${plan}&customer_id=${customerId ?? ''}&subscription_id=${subscriptionId ?? ''}`);
                     }
                 } else {
-                    setErrorMessage("Le paiement n'a pas pu être confirmé. Veuillez réessayer.");
+                    setErrorMessage("Le paiement n'a pas pu être confirmé. Merci de réessayer.");
                     setLoading(false);
                 }
             } else {
@@ -217,9 +218,11 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                 </div>
 
                 {errorMessage && (
-                    <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-md text-sm font-medium">
-                        {errorMessage}
-                    </div>
+                    <ErrorMessage
+                        title="Erreur de paiement"
+                        description={errorMessage}
+                        className="mb-4"
+                    />
                 )}
             </div>
 

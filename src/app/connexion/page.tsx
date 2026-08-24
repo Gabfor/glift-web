@@ -105,7 +105,7 @@ export default function ConnexionPage() {
         type: "grace-expired",
         title: "Connexion impossible",
         description:
-          "Nous sommes désolés mais il semblerait que vous n'ayez pas validé votre email à temps. Votre compte a été désactivé et va être supprimé. Si c'est une erreur, contactez-nous.",
+          "Nous sommes désolés mais il semblerait que tu n'aies pas validé ton email à temps. Ton compte a été désactivé et va être supprimé. Si c'est une erreur, contacte-nous.",
       });
 
       const params = new URLSearchParams(searchParams.toString());
@@ -184,9 +184,9 @@ export default function ConnexionPage() {
               await supabase.auth.signOut();
               setError({
                 type: "grace-expired",
-                title: "Connexion impossible",
+                title: "Délai de confirmation dépassé",
                 description:
-                  "Nous sommes désolés mais il semblerait que vous n'ayez pas validé votre email à temps. Votre compte a été désactivé et va être supprimé. Si c'est une erreur, contactez-nous.",
+                  "Nous sommes désolés mais il semblerait que tu n'aies pas validé ton email à temps. Ton compte a été désactivé et va être supprimé. Si c'est une erreur, contacte-nous.",
               });
               setLoading(false);
               setShowTransitionLoader(false);
@@ -206,7 +206,7 @@ export default function ConnexionPage() {
           type: "invalid-credentials",
           title: "Email ou mot de passe incorrect",
           description:
-            "Nous n’arrivons pas à vous connecter. Veuillez vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
+            "Nous n’arrivons pas à te connecter. Merci de vérifier qu’il s’agit bien de l’email utilisé lors de l’inscription ou qu’il n’y a pas d’erreur dans le mot de passe.",
         });
         setLoading(false);
       } else {
@@ -214,7 +214,7 @@ export default function ConnexionPage() {
           type: "generic",
           title: "Une erreur est survenue.",
           description:
-            "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
+            "Nous n'avons pas réussi à te connecter. Recharge la page ou réessaie dans quelques instants.",
         });
         setLoading(false);
       }
@@ -224,7 +224,7 @@ export default function ConnexionPage() {
         type: "generic",
         title: "Une erreur est survenue.",
         description:
-          "Nous n'avons pas réussi à vous connecter. Rechargez la page ou réessayez dans quelques instants.",
+          "Nous n'avons pas réussi à te connecter. Recharge la page ou réessaie dans quelques instants.",
       });
       setLoading(false);
     }
@@ -300,45 +300,46 @@ export default function ConnexionPage() {
           Connexion
         </h1>
 
-        <form className="flex w-full max-w-[368px] flex-col items-stretch" onSubmit={handleLogin}>
-          {showResetSuccess ? (
-            <div className="mb-4">
-              <ModalMessage
-                variant="success"
-                title="Mot de passe modifié avec succès !"
-                description="Bonne nouvelle ! Votre mot de passe a bien été modifié. Vous pouvez dès à présent vous connecter en utilisant votre nouveau mot de passe."
-              />
-            </div>
-          ) : null}
+        {showResetSuccess ? (
+          <div className="w-[564px] max-w-full mb-6">
+            <ModalMessage
+              variant="success"
+              title="Mot de passe modifié avec succès !"
+              description="Bonne nouvelle ! Ton mot de passe a bien été modifié. Tu peux dès à présent te connecter en utilisant ton nouveau mot de passe."
+            />
+          </div>
+        ) : null}
 
-          {error && error.type !== "invalid-email" ? (
-            <div className="mb-4">
-              <ErrorMessage
-                title={error.title}
-                description={
-                  error.type === "grace-expired" && error.description ? (
-                    <span>
-                      {error.description.split("contactez-nous").map((part, index, array) => (
-                        <span key={index}>
-                          {part}
-                          {index < array.length - 1 && (
-                            <Link
-                              href={contactUrl}
-                              className="underline hover:text-[#C43636]"
-                            >
-                              contactez-nous
-                            </Link>
-                          )}
-                        </span>
-                      ))}
-                    </span>
-                  ) : (
-                    error.description
-                  )
-                }
-              />
-            </div>
-          ) : null}
+        {error && error.type !== "invalid-email" ? (
+          <div className="w-[564px] max-w-full mb-6">
+            <ErrorMessage
+              title={error.title}
+              description={
+                error.type === "grace-expired" && error.description ? (
+                  <span>
+                    {error.description.split("contacte-nous").map((part, index, array) => (
+                      <span key={index}>
+                        {part}
+                        {index < array.length - 1 && (
+                          <Link
+                            href={contactUrl}
+                            className="underline hover:text-[#C43636]"
+                          >
+                            contacte-nous
+                          </Link>
+                        )}
+                      </span>
+                    ))}
+                  </span>
+                ) : (
+                  error.description
+                )
+              }
+            />
+          </div>
+        ) : null}
+
+        <form className="flex w-full max-w-[368px] flex-col items-stretch" onSubmit={handleLogin}>
 
           <div className="flex flex-col gap-0 w-full">
             {/* Email */}

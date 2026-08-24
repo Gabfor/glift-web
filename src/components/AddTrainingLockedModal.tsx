@@ -35,16 +35,16 @@ export default function AddTrainingLockedModal({
             <ModalMessage
                 variant="info"
                 title="Pourquoi est-il impossible d’ajouter un entraînement ?"
-                description="L’ajout d’un entraînement est impossible car votre formule d’abonnement actuelle vous limite à seul entraînement de 10 exercices utilisables."
+                description="L’ajout d’un entraînement est impossible car ta formule d’abonnement actuelle te limite à un seul entraînement de 10 exercices utilisables."
                 className="mb-6"
             />
 
             <div className="space-y-4 text-[14px] font-medium text-[#5D6494] leading-[1.6]">
                 <p>
-                    En cliquant sur <span className="font-bold text-[#3A416F]">« Débloquer »</span> vous serez redirigé vers votre compte où vous pourrez choisir la formule d’abonnement Premium qui vous permettra d’ajouter de nouveaux entraînements.
+                    En cliquant sur <span className="font-bold text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui te permettra d’ajouter de nouveaux entraînements.
                 </p>
                 <p>
-                    En cliquant sur <span className="font-bold text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à votre abonnement et vous pourrez continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.
+                    En cliquant sur <span className="font-bold text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu pourras continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.
                 </p>
             </div>
         </Modal>

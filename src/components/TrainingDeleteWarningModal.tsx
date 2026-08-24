@@ -42,15 +42,15 @@ export default function TrainingDeleteWarningModal({ show, onCancel, onConfirm }
             <ModalMessage
                 variant="warning"
                 title="Attention"
-                description="Si vous supprimez votre seul entraînement actif, vous n’aurez plus d’entraînement disponible sur le site et dans l’app."
+                description="Si tu supprimes ton seul entraînement actif, tu n’auras plus d’entraînement disponible sur le site et dans l’app."
                 className="mb-6"
             />
 
             <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] mb-4">
-                En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> votre seul entraînement actif ainsi que l’ensemble des exercices à l’intérieur seront <span className="text-[#3A416F]">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
+                En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> ton seul entraînement actif ainsi que l’ensemble des exercices à l’intérieur seront <span className="text-[#3A416F]">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
             </p>
             <p className="mb-6 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                Si ce n’est pas ce que vous souhaitez faire, vous trouverez peut-être la solution à votre besoin dans la partie <a href="#" className="text-[#3A416F] underline">Aide</a> du site.
+                Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <a href="#" className="text-[#3A416F] underline">Aide</a> du site.
             </p>
         </Modal>
     );
