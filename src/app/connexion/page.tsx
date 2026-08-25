@@ -473,6 +473,7 @@ export default function ConnexionPage() {
       <ForgotPasswordModal
         open={showForgotPassword}
         onClose={() => setShowForgotPassword(false)}
+        initialEmail={email}
       />
     </main>
   );

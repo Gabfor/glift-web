@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
     };
   }, [confirmPassword, password]);
 
-  const next = searchParams?.get("next") || "/compte#mes-informations";
+  const next = searchParams?.get("next") || "/dashboard";
   const isEmailValid = email.trim() !== "";
   const isPasswordValid = passwordValidation.isValid;
   const isConfirmValid = confirmValidation.isValid;
@@ -264,7 +264,7 @@ export default function ResetPasswordPage() {
       setFormError(null);
 
       const params = new URLSearchParams({ reset: "success" });
-      const isNextSafe = next.startsWith("/") && !next.startsWith("//");
+      const isNextSafe = next.startsWith("/") && !next.startsWith("//") && next !== "/dashboard";
       if (isNextSafe) {
         params.set("next", next);
       }
