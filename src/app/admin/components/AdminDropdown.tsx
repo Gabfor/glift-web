@@ -32,6 +32,7 @@ export default function AdminDropdown({
   clearLabel = "Effacer",
   onClear,
   sortStrategy = "label",
+  defaultScrollToValue,
 }: {
   label: string;
   options: DropdownOption[];
@@ -50,10 +51,12 @@ export default function AdminDropdown({
   clearLabel?: string;
   onClear?: () => void;
   sortStrategy?: SortStrategy;
+  defaultScrollToValue?: string;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const [typedValue, setTypedValue] = useState("");
   const [showBottomGradient, setShowBottomGradient] = useState(false);
   const [showTopGradient, setShowTopGradient] = useState(false);
@@ -119,7 +122,7 @@ export default function AdminDropdown({
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
         buttonRef.current?.blur();
       }
@@ -208,16 +211,35 @@ export default function AdminDropdown({
   }, [allowTyping, selected]);
 
   useEffect(() => {
-    if (open && menuRef.current) {
-      const target = menuRef.current;
-      const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+    if (open && listRef.current) {
+      const targetValue = selected || defaultScrollToValue;
+      if (targetValue) {
+        const optionEl = listRef.current.querySelector<HTMLElement>(
+          `[data-option-value="${targetValue}"]`
+        );
+        if (optionEl) {
+          const list = listRef.current;
+          const optionTop = optionEl.offsetTop;
+          const optionHeight = optionEl.offsetHeight;
+          const listHeight = list.clientHeight;
+          list.scrollTop = Math.max(
+            0,
+            optionTop - listHeight / 2 + optionHeight / 2
+          );
+        }
+      }
+
+      const target = listRef.current;
+      const isAtBottom =
+        Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) <
+        1;
       const isAtTop = target.scrollTop < 1;
       const hasScroll = target.scrollHeight > target.clientHeight;
 
       setShowBottomGradient(hasScroll && !isAtBottom);
       setShowTopGradient(hasScroll && !isAtTop);
     }
-  }, [open, sortedOptions]);
+  }, [open, selected, defaultScrollToValue, sortedOptions]);
 
   const handleBlur = () => {
     if (!allowTyping) {
@@ -279,7 +301,7 @@ export default function AdminDropdown({
   return (
     <div
       className={`flex flex-col relative transition-all duration-300 ${className}`}
-      ref={menuRef}
+      ref={containerRef}
     >
       {(label || (clearable && !isShowingPlaceholder)) && (
         <div className="flex items-center justify-between mb-[5px]">
@@ -360,7 +382,7 @@ export default function AdminDropdown({
               }`}
           />
           <div
-            ref={menuRef}
+            ref={listRef}
             className="overflow-y-auto max-h-[216px] scrollable-dropdown py-2"
             onScroll={(e) => {
               const target = e.currentTarget;
@@ -385,6 +407,7 @@ export default function AdminDropdown({
                 <button
                   key={option.value}
                   type="button"
+                  data-option-value={option.value}
                   onClick={() => {
                     onSelect(option.value);
                     setOpen(false);

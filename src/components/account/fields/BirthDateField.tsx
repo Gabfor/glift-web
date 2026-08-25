@@ -23,6 +23,7 @@ const months = [
   { value: '12', label: 'Décembre' },
 ]
 const currentYear = new Date().getFullYear()
+const defaultScrollYear = String(currentYear - 16)
 const years = Array.from({ length: 100 }, (_, i) => ({
   value: String(currentYear - i),
   label: String(currentYear - i),
@@ -140,6 +141,7 @@ export default function BirthDateField({
             digitsOnly
             inputLength={4}
             sortStrategy="year-desc"
+            defaultScrollToValue={defaultScrollYear}
           />
         </div>
       </div>

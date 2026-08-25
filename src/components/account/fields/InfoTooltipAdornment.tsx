@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import Image from "next/image"
 import { createPortal } from "react-dom"
 
-type TooltipSide = "right" | "left"
+type TooltipSide = "right" | "left" | "bottom"
 
 type Props = {
   message: string
@@ -23,7 +23,12 @@ export default function InfoTooltipAdornment({
   const [overAnchor, setOverAnchor] = useState(false)
   const [overTip, setOverTip] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const [position, setPosition] = useState<{ top: number; left: number; side: TooltipSide }>(() => ({
+  const [position, setPosition] = useState<{
+    top: number
+    left: number
+    side: TooltipSide
+    arrowLeft?: number
+  }>(() => ({
     top: 0,
     left: 0,
     side: "right",
@@ -40,6 +45,18 @@ export default function InfoTooltipAdornment({
     if (!anchor) return
     const rect = anchor.getBoundingClientRect()
     const viewportWidth = window.innerWidth
+
+    if (viewportWidth < 768) {
+      // Responsive Mobile: position below the icon with arrow pointing up
+      const side: TooltipSide = "bottom"
+      const centerX = rect.left + rect.width / 2
+      let left = centerX - WIDTH / 2
+      left = Math.max(PAD, Math.min(viewportWidth - WIDTH - PAD, left))
+      const top = Math.round(rect.bottom + GAP)
+      const arrowLeft = Math.max(10, Math.min(WIDTH - 26, centerX - left - 8))
+      setPosition({ top, left, side, arrowLeft })
+      return
+    }
 
     let side: TooltipSide = "right"
     let left = rect.right + GAP
@@ -173,7 +190,11 @@ export default function InfoTooltipAdornment({
           <div
             ref={tipRef}
             className="fixed z-[10000] pointer-events-auto"
-            style={{ top: position.top, left: position.left, transform: "translateY(-50%)" }}
+            style={{
+              top: position.top,
+              left: position.left,
+              transform: position.side === "bottom" ? "none" : "translateY(-50%)",
+            }}
             role="tooltip"
             onMouseEnter={() => setOverTip(true)}
             onMouseLeave={() => setOverTip(false)}
@@ -183,10 +204,17 @@ export default function InfoTooltipAdornment({
               style={{ width: WIDTH }}
             >
               {message}
-              {position.side === "right" ? (
+              {position.side === "right" && (
                 <span className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-r-[8px] border-r-[#2F3247]" />
-              ) : (
+              )}
+              {position.side === "left" && (
                 <span className="absolute right-[-8px] top-1/2 -translate-y-1/2 w-0 h-0 border-y-[8px] border-y-transparent border-l-[8px] border-l-[#2F3247]" />
+              )}
+              {position.side === "bottom" && (
+                <span
+                  className="absolute top-[-8px] w-0 h-0 border-x-[8px] border-x-transparent border-b-[8px] border-b-[#2F3247]"
+                  style={{ left: position.arrowLeft ?? 16 }}
+                />
               )}
             </div>
           </div>,

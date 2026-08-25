@@ -254,13 +254,13 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                 </span>
             </label>
 
-            <div className="mt-0 flex justify-center">
+            <div className="mt-0 flex justify-center w-full">
                 <CTAButton
                     type="submit"
                     disabled={btnDisabled}
                     loading={loading}
                     loadingText="Validation…"
-                    className="h-[48px] px-[20px] rounded-[25px] text-[16px] font-semibold"
+                    className="w-full sm:w-auto h-[48px] px-[20px] rounded-[25px] text-[16px] font-semibold"
                 >
                     {submitButtonText}
                 </CTAButton>
