@@ -183,26 +183,41 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
   return (
     <>
-      {shouldShowPaymentBanner && (
-        <div className="fixed top-0 left-0 w-full h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center z-[110]">
-          <p className="text-white text-[14px] font-semibold">
-            ⚠️ N'oublie pas d'ajouter un moyen de paiement pour ne pas perdre tes avantages Premium.{" "}
-            <Link
-              href="/compte#mon-abonnement"
-              className="underline"
-            >
-              Ajouter maintenant.
-            </Link>
-          </p>
-        </div>
-      )}
+      <div className="fixed top-0 left-0 w-full z-[100]">
+        {shouldShowPaymentBanner && (
+          <div className="w-full min-h-[36px] py-1.5 md:py-0 md:h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center">
+            {/* Version Desktop (md et +) */}
+            <p className="hidden md:block text-white text-[14px] font-semibold">
+              ⚠️ N'oublie pas d'ajouter un moyen de paiement pour ne pas perdre tes avantages Premium.{" "}
+              <Link
+                href="/compte#mon-abonnement"
+                className="underline whitespace-nowrap"
+              >
+                Ajouter maintenant.
+              </Link>
+            </p>
 
-      <header
-        className={`fixed ${shouldShowPaymentBanner ? "top-[36px]" : "top-0"} left-0 w-full z-[100] ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky || isMobileMenuOpen
-          ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
-          : "bg-transparent shadow-none"
-          }`}
-      >
+            {/* Version Responsive Mobile (< md) */}
+            <p className="block md:hidden text-white text-[14px] font-semibold leading-snug">
+              ⚠️{" "}
+              <Link
+                href="/compte#mon-abonnement"
+                className="underline"
+              >
+                Ajoute un moyen de paiement
+              </Link>
+              <br />
+              pour ne pas perdre tes avantages Premium.
+            </p>
+          </div>
+        )}
+
+        <header
+          className={`w-full ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky || isMobileMenuOpen
+            ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
+            : "bg-transparent shadow-none"
+            }`}
+        >
         <div className="max-w-[1152px] mx-auto h-[72px] flex items-center justify-between px-5 md:px-0 relative">
           {/* Burger button (Mobile Left) */}
           <button
@@ -740,6 +755,19 @@ export default function Header({ disconnected = false }: HeaderProps) {
           </div>
         </div>
       </header>
-    </>
+    </div>
+
+    {/* Espaceur dans le flux du document pour décaler automatiquement le contenu de la page de la hauteur exacte du bandeau */}
+    {shouldShowPaymentBanner && (
+      <div
+        className="w-full min-h-[36px] py-1.5 md:py-0 md:h-[36px] invisible pointer-events-none"
+        aria-hidden="true"
+      >
+        <p className="block md:hidden text-[14px] leading-snug">
+          ⚠️ Ajoute un moyen de paiement<br />pour ne pas perdre tes avantages Premium.
+        </p>
+      </div>
+    )}
+  </>
   );
 }
