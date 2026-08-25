@@ -718,9 +718,16 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <>
                   <Link
                     href="/compte"
-                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold text-[16px] flex items-center justify-center transition-all duration-300 group cursor-pointer"
+                    className="w-full h-[44px] rounded-full border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold text-[16px] flex items-center justify-center gap-[5px] transition-all duration-300 group cursor-pointer"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
+                    <Image
+                      src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
+                      alt={isPremiumUser ? "Premium" : "Starter"}
+                      width={18}
+                      height={15}
+                      className="h-[15px] w-auto object-contain shrink-0"
+                    />
                     <span>{userDisplayName}</span>
                   </Link>
                   <button

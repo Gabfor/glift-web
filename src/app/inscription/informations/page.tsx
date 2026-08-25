@@ -395,10 +395,10 @@ const InformationsPage = () => {
           />
         </FieldRow>
 
-        <div className="mt-5 flex flex-col items-center">
+        <div className="mt-5 flex flex-col items-center w-full">
           <CTAButton
             type="submit"
-            className="px-[30px] font-semibold"
+            className="w-full sm:w-auto px-[30px] font-semibold"
             disabled={!isFormValid && !(hookLoading || submitting)}
             loading={hookLoading || submitting}
             loadingText="En cours..."
