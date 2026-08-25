@@ -116,14 +116,6 @@ export default function ResetPasswordPage() {
   }, [stage]);
 
   useEffect(() => {
-    return () => {
-      if (stageRef.current === "reset") {
-        supabase.auth.signOut({ scope: "local" });
-      }
-    };
-  }, [supabase]);
-
-  useEffect(() => {
     if (stage !== "verify") {
       return;
     }
@@ -153,13 +145,11 @@ export default function ResetPasswordPage() {
     };
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, _session) => {
+      (event, session) => {
         if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
-          const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
-          const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
-          const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
-
-          if (isFreshReset) {
+          if (session?.user?.email) {
+            handleRecoverySession({ user: session.user });
+          } else {
             supabase.auth.getUser().then(({ data }) => {
               if (data?.user) {
                 handleRecoverySession({ user: data.user });
@@ -172,30 +162,9 @@ export default function ResetPasswordPage() {
 
     const verifySession = async () => {
       try {
-        const resetTsStr = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-timestamp") : null;
-        const resetTs = resetTsStr ? parseInt(resetTsStr, 10) : 0;
-        const isFreshReset = resetTs > 0 && Date.now() - resetTs < 60_000;
-
         // 1. Essayer de récupérer l'utilisateur existant (s'il y a déjà une session active)
         let { data: initialData } = await supabase.auth.getUser();
         let user = initialData?.user ?? null;
-
-        if (!user && isFreshReset) {
-          await new Promise((resolve) => setTimeout(resolve, 300));
-          const { data: retryData } = await supabase.auth.getUser();
-          user = retryData?.user ?? null;
-        }
-
-        if (!isFreshReset) {
-          if (user) {
-            router.push("/dashboard");
-            return;
-          }
-          if (!cancelled) {
-            setStage("error");
-          }
-          return;
-        }
 
         // 2. Si pas de session active mais qu'un code PKCE est présent dans l'URL, tenter l'échange
         if (!user) {
@@ -214,19 +183,20 @@ export default function ResetPasswordPage() {
           }
         }
 
-        // 3. Valider qu'on a bien un utilisateur connecté
+        // 3. Valider qu'on a bien un utilisateur connecté ou un email de réinitialisation
         if (user?.email) {
           handleRecoverySession({ user });
-          if (typeof window !== "undefined") {
-            sessionStorage.removeItem("glift-reset-timestamp");
+        } else {
+          const storedEmail = typeof window !== "undefined" ? sessionStorage.getItem("glift-reset-email") : null;
+          if (storedEmail) {
+            setEmail(storedEmail);
+            setStage("reset");
+          } else if (!cancelled) {
+            setStage("error");
           }
-        } else if (!cancelled) {
-          await supabase.auth.signOut({ scope: "local" });
-          setStage("error");
         }
       } catch (unknownError) {
         console.error("Erreur lors de la vérification du lien", unknownError);
-        await supabase.auth.signOut({ scope: "local" });
         if (!cancelled) {
           setStage("error");
         }
@@ -283,6 +253,11 @@ export default function ResetPasswordPage() {
       });
       if (signOutError) {
         console.error("Erreur lors de la déconnexion après réinitialisation", signOutError);
+      }
+
+      if (typeof window !== "undefined") {
+        sessionStorage.removeItem("glift-reset-timestamp");
+        sessionStorage.removeItem("glift-reset-email");
       }
 
       setStage("done");
@@ -429,7 +404,7 @@ export default function ResetPasswordPage() {
               <div className="w-full flex justify-center mt-[5px]">
                 <CTAButton
                   type="submit"
-                  className="font-semibold"
+                  className="w-full md:max-w-[160px] font-semibold"
                   disabled={stage === "error" || !isFormValid}
                   loading={submitting}
                   loadingText="En cours..."

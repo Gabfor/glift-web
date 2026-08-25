@@ -112,8 +112,13 @@ export default function ForgotPasswordModal({
 
     try {
       const sanitizedEmail = email.trim()
+      const origin = typeof window !== "undefined" ? window.location.origin : ""
+      const targetPath = resetPath || "/reinitialiser-mot-de-passe"
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-        sanitizedEmail
+        sanitizedEmail,
+        {
+          redirectTo: `${origin}${targetPath}`,
+        }
       )
 
       if (resetError) {
@@ -193,6 +198,7 @@ export default function ForgotPasswordModal({
 
       if (typeof window !== "undefined") {
         sessionStorage.setItem("glift-reset-timestamp", Date.now().toString())
+        sessionStorage.setItem("glift-reset-email", sanitizedEmail)
       }
       onClose()
       const targetPath = resetPath || "/reinitialiser-mot-de-passe"

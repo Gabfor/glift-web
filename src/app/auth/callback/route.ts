@@ -237,6 +237,29 @@ export async function GET(request: NextRequest) {
   const queryEmailParam =
     url.searchParams.get("email") ?? url.searchParams.get("new_email");
 
+  type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
+  const allowedVerifyTypes = [
+    "signup",
+    "magiclink",
+    "recovery",
+    "invite",
+    "email_change",
+    "email",
+  ] as const;
+  type AllowedVerifyType = (typeof allowedVerifyTypes)[number];
+
+  const rawTypeParam = url.searchParams
+    .get("type")
+    ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
+
+  const isAllowedVerifyType = (
+    value: VerifyOtpParams["type"],
+  ): value is AllowedVerifyType =>
+    allowedVerifyTypes.includes(value as AllowedVerifyType);
+
+  const typeParam =
+    rawTypeParam && isAllowedVerifyType(rawTypeParam) ? rawTypeParam : undefined;
+
   if (code) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     exchangeError = error;
@@ -257,29 +280,6 @@ export async function GET(request: NextRequest) {
       confirmedUserEmailConfirmedAt = exchangeEmailConfirmedAt;
     }
   } else {
-    type VerifyOtpParams = Parameters<(typeof supabase.auth)["verifyOtp"]>[0];
-    const allowedVerifyTypes = [
-      "signup",
-      "magiclink",
-      "recovery",
-      "invite",
-      "email_change",
-      "email",
-    ] as const;
-    type AllowedVerifyType = (typeof allowedVerifyTypes)[number];
-
-    const rawTypeParam = url.searchParams
-      .get("type")
-      ?.toLowerCase() as VerifyOtpParams["type"] | undefined;
-
-    const isAllowedVerifyType = (
-      value: VerifyOtpParams["type"],
-    ): value is AllowedVerifyType =>
-      allowedVerifyTypes.includes(value as AllowedVerifyType);
-
-    const typeParam =
-      rawTypeParam && isAllowedVerifyType(rawTypeParam) ? rawTypeParam : undefined;
-
     if (typeParam && (tokenHash || token)) {
       if (tokenHash) {
         const verifyParams: Extract<VerifyOtpParams, { token_hash: string }> = {
@@ -373,7 +373,13 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  const redirectUrl = new URL("/dashboard", request.url).toString();
+  const nextParam = url.searchParams.get("next");
+  const isRecovery = typeParam === "recovery";
+  const defaultTarget = isRecovery ? "/reinitialiser-mot-de-passe" : "/dashboard";
+  const targetPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+    ? nextParam
+    : defaultTarget;
+  const redirectUrl = new URL(targetPath, request.url).toString();
   const queryErrorDescription =
     url.searchParams.get("error_description") ?? undefined;
   const rawErrorCode = url.searchParams.get("error_code");
@@ -538,6 +544,17 @@ export async function GET(request: NextRequest) {
     console.warn(
       "[auth-callback] Email confirmation succeeded but user identifier is unavailable",
     );
+  }
+
+  if (!errorMessage && isRecovery) {
+    const redirectResponse = NextResponse.redirect(new URL(redirectUrl));
+    cookiesToSet.forEach(({ name, value, options }) => {
+      redirectResponse.cookies.set(name, value, options);
+    });
+    cookiesToRemove.forEach(({ name, options }) => {
+      redirectResponse.cookies.set(name, "", { ...options, maxAge: -1 });
+    });
+    return redirectResponse;
   }
 
   const html = renderAutoCloseTemplate({
