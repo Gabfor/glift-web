@@ -303,9 +303,9 @@ const InformationsPage = () => {
       <form className="w-[368px] max-w-full" onSubmit={handleSubmit}>
         <FieldRow show={false}>
           <ToggleField
-            label="Sexe"
+            label="Genre"
             value={gender}
-            options={["Homme", "Femme", "Non binaire"]}
+            options={["Homme", "Femme"]}
             onChange={(value) => {
               setGender(gender === value ? "" : value);
               markTouched("gender");
@@ -313,6 +313,7 @@ const InformationsPage = () => {
             touched={touched.gender}
             setTouched={() => markTouched("gender")}
             success={genderSuccess}
+            className="w-[246px]"
           />
         </FieldRow>
 

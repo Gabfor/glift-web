@@ -28,8 +28,6 @@ export function calculateProgramRelevance(
     } else if (userGender === "femme") {
       if (pg === "femme" || pg === "tous") score += 5;
       else if (pg === "homme") score -= 5;
-    } else if (userGender === "non binaire" || userGender === "non-binaire") {
-      if (pg === "tous") score += 3;
     }
   }
 
@@ -58,17 +56,35 @@ export function calculateProgramRelevance(
   }
 
   // 4. Location Rule
-  const userLocation = userProfile.training_place?.toString().trim();
-  if (userLocation && program.location && program.location.trim() === userLocation) {
-    score += 3;
+  const userLocation = userProfile.training_place?.toString().trim().toLowerCase();
+  if (userLocation) {
+    const pl = program.location.trim().toLowerCase();
+    const isWildcard = pl === "les deux" || pl === "tous" || pl === "partout";
+
+    if (userLocation === "salle") {
+      if (pl === "salle" || isWildcard) score += 5;
+      else if (pl === "domicile") score -= 5;
+    } else if (userLocation === "domicile") {
+      if (pl === "domicile" || isWildcard) score += 5;
+      else if (pl === "salle") score -= 5;
+    } else if (userLocation === "les deux") {
+      score += 5;
+    }
   }
 
-  // 5. Sessions Rule
+  // 5. Duration Rule (Sessions per week)
   const userSessions = userProfile.weekly_sessions?.toString().trim();
-  if (userSessions) {
-    const pSessions = String(program.sessions).trim();
-    if (pSessions && (pSessions === userSessions || userSessions.startsWith(pSessions))) {
-      score += 2;
+  if (userSessions && program.sessions) {
+    const pSessions = program.sessions.toString().trim();
+    if (userSessions === pSessions) {
+      score += 5;
+    } else {
+      const uVal = parseInt(userSessions, 10);
+      const pVal = parseInt(pSessions, 10);
+      if (!isNaN(uVal) && !isNaN(pVal)) {
+        const diff = Math.abs(uVal - pVal);
+        if (diff === 1) score += 2;
+      }
     }
   }
 
@@ -135,8 +151,6 @@ export function calculateOfferRelevance(
     } else if (gender === "femme") {
       if (g === "femme" || isWildcard) score += 5;
       else if (g === "homme") score -= 5;
-    } else if (gender === "non binaire" || gender === "non-binaire") {
-      if (isWildcard) score += 3;
     }
   }
 

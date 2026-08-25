@@ -347,7 +347,7 @@ export default function ShopFilters({
 
   const filterOptions: FilterGroup[] = useMemo(() => [
     {
-      label: "Sexe",
+      label: "Genre",
       placeholder: "Tous",
       options: [
         { value: "Femme", label: "Femme" },
@@ -380,7 +380,7 @@ export default function ShopFilters({
 
   // Drawer Sections
   const drawerSections: FilterSectionData[] = useMemo(() => [
-    { title: "Sexe", options: ["Femme", "Homme"] },
+    { title: "Genre", options: ["Femme", "Homme"] },
     { title: "Catégorie", options: allCategoryOptions },
     { title: "Sport", options: allSportOptions },
     { title: "Boutique", options: allShopOptions },
@@ -390,11 +390,11 @@ export default function ShopFilters({
   const drawerSelectedFilters = useMemo(() => {
     const map: Record<string, Set<string>> = {};
 
-    // Sexe (index 0)
-    if (selectedFilters[0] === "__none__") map["Sexe"] = new Set();
-    else if (selectedFilters[0] === "Homme") map["Sexe"] = new Set(["Homme"]);
-    else if (selectedFilters[0] === "Femme") map["Sexe"] = new Set(["Femme"]);
-    else map["Sexe"] = new Set(["Femme", "Homme"]);
+    // Genre (index 0)
+    if (selectedFilters[0] === "__none__") map["Genre"] = new Set();
+    else if (selectedFilters[0] === "Homme") map["Genre"] = new Set(["Homme"]);
+    else if (selectedFilters[0] === "Femme") map["Genre"] = new Set(["Femme"]);
+    else map["Genre"] = new Set(["Femme", "Homme"]);
 
     // Catégorie (index 1)
     if (selectedFilters[1] === "__none__") {
@@ -429,9 +429,9 @@ export default function ShopFilters({
   const handleDrawerApply = (newDrawerFilters: Record<string, Set<string>>) => {
     const newFilters = ["", "", "", ""];
 
-    // Sexe (index 0)
-    if (newDrawerFilters["Sexe"] !== undefined) {
-      const sexSet = newDrawerFilters["Sexe"];
+    // Genre (index 0)
+    if (newDrawerFilters["Genre"] !== undefined) {
+      const sexSet = newDrawerFilters["Genre"];
       if (sexSet.size === 0) {
         newFilters[0] = "__none__";
       } else if (sexSet.size === 1) {

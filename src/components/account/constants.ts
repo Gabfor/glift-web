@@ -1,4 +1,4 @@
-export const GENDER_OPTIONS = ['Homme', 'Femme', 'Non binaire'] as const
+export const GENDER_OPTIONS = ['Homme', 'Femme'] as const
 
 export const COUNTRIES = ['France', 'Belgique', 'Suisse', 'Canada', 'Autre'] as const
 

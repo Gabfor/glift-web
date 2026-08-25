@@ -207,7 +207,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
 
       <MissingField show={missing.gender} id="missing-field-gender">
         <ToggleField
-          label="Sexe"
+          label="Genre"
           value={values.gender}
           options={Array.from(GENDER_OPTIONS)}
           onChange={(option) => {
@@ -221,6 +221,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
             markTouched({ gender: true })
           }}
           success={successMessages.gender}
+          className="w-[246px]"
         />
       </MissingField>
 
