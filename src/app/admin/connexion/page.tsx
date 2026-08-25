@@ -228,6 +228,7 @@ export default function AdminConnexionPage() {
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
                     size={15}
+                    isAdmin
                   />
                   Je veux rester connecté.
                 </label>
