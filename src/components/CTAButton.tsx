@@ -168,12 +168,15 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         ? "bg-[#3A416F] text-white hover:bg-[#2E3271] focus-visible:ring-[#5D6494]"
         : "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]"),
       resolvedVariant === "inactive" &&
-      "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]",
+      (effectiveLoading
+        ? "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)]"
+        : "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]"),
       resolvedVariant === "danger" &&
       "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       resolvedVariant === "secondary" &&
       "border border-[#3A416F] bg-transparent text-[#3A416F] hover:bg-[#3A416F] hover:text-white focus-visible:ring-[#5D6494]",
       isDisabledOrLoading && "cursor-not-allowed opacity-100",
+      effectiveLoading && "pointer-events-none",
       className
     );
 
