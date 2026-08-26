@@ -19,7 +19,7 @@ export default function SubmitButton({
   label = "Enregistrer mes informations",
   onClick,
   containerClassName,
-  buttonClassName = "w-full max-w-[368px]",
+  buttonClassName = "w-full max-w-[368px] sm:w-auto sm:max-w-none",
 }: Props) {
   const isDisabled = disabled || loading
 

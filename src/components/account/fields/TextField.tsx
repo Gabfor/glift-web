@@ -71,7 +71,7 @@ export default function TextField({
         />
       </div>
 
-      <div className="h-[20px] mt-[5px] text-[13px] font-medium">
+      <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">
         {showError ? (
           <p className="text-[#EF4444]">{error}</p>
         ) : showSuccess ? (

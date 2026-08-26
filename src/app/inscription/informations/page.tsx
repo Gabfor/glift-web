@@ -182,7 +182,7 @@ const InformationsPage = () => {
   const birthDateSuccess = useMemo(() => {
     const anyTouched = touched.birthDay || touched.birthMonth || touched.birthYear;
     if (anyTouched && birthDay && birthMonth && birthYear) {
-      return "Super, maintenant on connaît la date de ton anniversaire !";
+      return "Super, on connaît la date de ton anniversaire !";
     }
     return "";
   }, [birthDay, birthMonth, birthYear, touched.birthDay, touched.birthMonth, touched.birthYear]);

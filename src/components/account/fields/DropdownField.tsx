@@ -121,7 +121,7 @@ export default function DropdownField({
         />
       </div>
 
-      <div className="h-[20px] mt-[5px] text-[13px] font-medium">
+      <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">
         {showSuccess && <SuccessMsg>{success}</SuccessMsg>}
       </div>
     </div>

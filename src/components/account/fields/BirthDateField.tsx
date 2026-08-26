@@ -146,7 +146,7 @@ export default function BirthDateField({
         </div>
       </div>
 
-      <div className="h-[20px] mt-[5px] text-[13px] font-medium text-left">
+      <div className="min-h-[20px] mt-[5px] text-[13px] font-medium text-left leading-snug">
         {showSuccess && <SuccessMsg>{successMessage}</SuccessMsg>}
       </div>
     </div>

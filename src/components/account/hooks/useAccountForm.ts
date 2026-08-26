@@ -176,7 +176,9 @@ const buildSnapshot = (
     supplements: pickString(profile?.supplements, safeMetadata, "supplements"),
     birthDate: parseBirthDate(
       typeof profile?.birth_date === "string"
-        ? profile?.birth_date
+        ? profile.birth_date
+        : profile?.birth_date === null
+        ? ""
         : safeMetadata.birth_date
     ),
   }
@@ -321,7 +323,7 @@ const useSuccessMessages = (params: {
 
     const currentBirthDate = toFlatValues(values).birthDate
     if (isBirthDateValid && currentBirthDate && currentBirthDate !== initialFlat.birthDate) {
-      next.birthDate = "Super, maintenant on connaît la date de ton anniversaire !"
+      next.birthDate = "Super, on connaît la date de ton anniversaire !"
     } else {
       delete next.birthDate
     }
@@ -553,13 +555,13 @@ export const useAccountForm = (user: User | null) => {
         id: user.id,
         name: trimmedName,
         birth_date: currentFlat.birthDate || null,
-        gender: currentFlat.gender,
-        country: currentFlat.country,
-        experience: currentFlat.experience,
-        main_goal: currentFlat.mainGoal,
-        training_place: currentFlat.trainingPlace,
-        weekly_sessions: currentFlat.weeklySessions,
-        supplements: currentFlat.supplements,
+        gender: currentFlat.gender || null,
+        country: currentFlat.country || null,
+        experience: currentFlat.experience || null,
+        main_goal: currentFlat.mainGoal || null,
+        training_place: currentFlat.trainingPlace || null,
+        weekly_sessions: currentFlat.weeklySessions || null,
+        supplements: currentFlat.supplements || null,
       }
 
       const { error: updateError } = await supabase
@@ -571,7 +573,10 @@ export const useAccountForm = (user: User | null) => {
       const { id: _profileId } = profilePatch
       void _profileId
       const { error: metadataUpdateError } = await supabase.auth.updateUser({
-        data: { name: trimmedName },
+        data: {
+          name: trimmedName,
+          birth_date: currentFlat.birthDate || null,
+        },
       })
 
       if (metadataUpdateError) throw metadataUpdateError

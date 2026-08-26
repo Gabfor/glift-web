@@ -107,7 +107,7 @@ export default function ToggleField({
         })}
       </div>
 
-      <div className="h-[18px] mt-[5px] overflow-hidden">
+      <div className="min-h-[18px] mt-[5px] text-[13px] font-medium leading-snug">
         {showSuccess && <SuccessMsg>{success}</SuccessMsg>}
       </div>
     </div>
