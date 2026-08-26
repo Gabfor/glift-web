@@ -11,6 +11,7 @@ export function useDashboardUrl() {
   const [blogUrl, setBlogUrl] = useState("/blog");
   const [helpUrl, setHelpUrl] = useState("/aide");
   const [contactUrl, setContactUrl] = useState("/contact");
+  const [compteUrl, setCompteUrl] = useState("/compte");
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export function useDashboardUrl() {
             "90c6b3f6-1b46-4711-8882-28177874b51d", // Trainings
             "f9709b0b-b513-4d53-a6ef-d9cda3f0a706", // Blog
             "eb40db10-0d10-47af-b102-62e2763bef86", // Help / Aide
-            "c131a31e-4c74-4b53-bdf5-d41a87e5b61b"  // Contact
+            "c131a31e-4c74-4b53-bdf5-d41a87e5b61b", // Contact
+            "66f7d022-7935-430b-99d8-c6ce195f2d65"  // Compte
           ]);
 
         if (!error && data) {
@@ -46,6 +48,8 @@ export function useDashboardUrl() {
               setHelpUrl(`/${page.url}`);
             } else if (page.id === "c131a31e-4c74-4b53-bdf5-d41a87e5b61b" && page.url) {
               setContactUrl(`/${page.url}`);
+            } else if (page.id === "66f7d022-7935-430b-99d8-c6ce195f2d65" && page.url) {
+              setCompteUrl(`/${page.url}`);
             }
           });
         }
@@ -59,5 +63,5 @@ export function useDashboardUrl() {
     fetchUrls();
   }, []);
 
-  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl, contactUrl, isLoading };
+  return { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl, contactUrl, compteUrl, isLoading };
 }

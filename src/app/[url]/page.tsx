@@ -80,6 +80,9 @@ import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
 import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/contact/ContactClient";
+import ComptePageClient from "@/app/compte/ComptePageClient";
+import { PaymentService } from "@/lib/services/paymentService";
+import { COMPTE_PAGE_ID } from "@/app/admin/create-page/pageForm";
 import BackLink from "@/components/BackLink";
 
 export const dynamic = "force-dynamic";
@@ -453,6 +456,38 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return <ContactClient initialPageContent={contactPageContent} />;
+  }
+
+  if (page.id === COMPTE_PAGE_ID) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      redirect("/connexion");
+    }
+
+    const paymentService = new PaymentService(supabase as any);
+    const [paymentMethods, profileResponse] = await Promise.all([
+      paymentService.getUserPaymentMethods(user.id, user.email, user.app_metadata),
+      supabase.from("profiles").select("subscription_plan").eq("id", user.id).single(),
+    ]);
+
+    const isPremium = profileResponse.data?.subscription_plan === "premium";
+
+    const initialPageContent = {
+      surtitre: page.surtitre ?? "",
+      titre: page.titre || "<p>Bienvenue dans votre compte</p>",
+      description: page.description ?? "<p>Mettez à jour votre profil, modifiez vos informations ou votre abonnement.</p>",
+    };
+
+    return (
+      <ComptePageClient
+        initialPaymentMethods={paymentMethods}
+        initialIsPremium={isPremium}
+        initialPageContent={initialPageContent}
+      />
+    );
   }
 
   const currentUrl = (resolvedParams.url || page.url || "").replace(/^\//, "").trim();

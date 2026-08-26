@@ -11,12 +11,19 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { PaymentMethod } from '@/lib/services/paymentService'
 
+export interface ComptePageContent {
+  surtitre?: string
+  titre?: string
+  description?: string
+}
+
 interface ComptePageClientProps {
   initialPaymentMethods: PaymentMethod[]
   initialIsPremium: boolean
+  initialPageContent?: ComptePageContent
 }
 
-export default function ComptePageClient({ initialPaymentMethods, initialIsPremium }: ComptePageClientProps) {
+export default function ComptePageClient({ initialPaymentMethods, initialIsPremium, initialPageContent }: ComptePageClientProps) {
   const { user, isEmailVerified } = useUser()
   const [openSections, setOpenSections] = useState<string[]>([])
 
@@ -91,12 +98,23 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
-        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">
-          Bienvenue dans votre compte
-        </h1>
-        <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug mb-[40px]">
-          Mettez à jour votre profil, modifiez vos informations ou votre abonnement.
-        </p>
+        {initialPageContent?.surtitre && (
+          <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
+            {initialPageContent.surtitre}
+          </div>
+        )}
+        <h1
+          className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto mb-[10px] prose-titles [&_p]:m-0"
+          dangerouslySetInnerHTML={{ __html: initialPageContent?.titre || "Bienvenue dans votre compte" }}
+        />
+        <div
+          className="text-[16px] text-[#5D6494] font-semibold leading-relaxed w-full max-w-[500px] mx-auto mb-[40px] text-center [&_p]:m-0 [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+          dangerouslySetInnerHTML={{
+            __html:
+              initialPageContent?.description ||
+              "Mettez à jour votre profil, modifiez vos informations ou votre abonnement.",
+          }}
+        />
 
         <div className="w-full max-w-[760px] space-y-[30px]">
           <Accordion type="multiple" className="space-y-[30px]" value={openSections} onValueChange={setOpenSections}>

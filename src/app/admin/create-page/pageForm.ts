@@ -21,6 +21,7 @@ export type PageFormState = {
 
 export const BLOG_PAGE_ID = "f9709b0b-b513-4d53-a6ef-d9cda3f0a706";
 export const CONTACT_PAGE_ID = "c131a31e-4c74-4b53-bdf5-d41a87e5b61b";
+export const COMPTE_PAGE_ID = "66f7d022-7935-430b-99d8-c6ce195f2d65";
 const DEFAULT_BLOG_TEXT = "Que votre objectif soit la prise de masse musculaire, la perte de gras (sèche) ou le développement de votre force, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, passez au niveau supérieur.";
 
 export const emptyPage: PageFormState = {

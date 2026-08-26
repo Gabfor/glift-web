@@ -7,7 +7,10 @@ import { ReactNode } from 'react'
 export default function AccordionTrigger({ children }: { children: ReactNode }) {
   return (
     <BaseTrigger
-      className="h-[60px] font-bold text-[#5D6494] hover:text-[#3A416F] data-[state=open]:text-[#3A416F] transition-colors text-[16px] pl-[30px] pr-6 py-3 hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[8px] rounded-[8px]"
+      onClick={(e) => {
+        e.currentTarget.blur()
+      }}
+      className="h-[60px] font-bold text-[#5D6494] [@media(hover:hover)]:hover:text-[#3A416F] data-[state=open]:text-[#3A416F] transition-colors text-[16px] pl-[30px] pr-6 py-3 hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[8px] rounded-[8px] focus:outline-none"
     >
       <span>{children}</span>
       <span className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180">
@@ -15,13 +18,13 @@ export default function AccordionTrigger({ children }: { children: ReactNode }) 
           src="/icons/chevron_down.svg"
           alt="Chevron"
           fill
-          className="object-contain transition-opacity duration-150 group-hover:opacity-0"
+          className="object-contain transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-0 group-data-[state=open]:opacity-0"
         />
         <Image
           src="/icons/chevron_down_hover.svg"
           alt="Chevron hover"
           fill
-          className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+          className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 [@media(hover:hover)]:group-hover:opacity-100 group-data-[state=open]:opacity-100"
         />
       </span>
     </BaseTrigger >
