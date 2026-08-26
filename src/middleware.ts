@@ -68,17 +68,22 @@ export async function middleware(req: NextRequest) {
     const isRefreshTokenNotFoundError =
       (error instanceof AuthApiError && error.code === "refresh_token_not_found") ||
       (error instanceof Error && error.message?.toLowerCase().includes("refresh token"));
+    const isUserNotFoundError =
+      (error instanceof AuthApiError &&
+        error.message?.toLowerCase().includes("user from sub claim in jwt does not exist")) ||
+      (error instanceof Error &&
+        error.message?.toLowerCase().includes("user from sub claim in jwt does not exist"));
 
-    if (isRefreshTokenNotFoundError) {
+    if (isRefreshTokenNotFoundError || isUserNotFoundError) {
       req.cookies.getAll().forEach((cookie) => {
-        if (cookie.name.includes("-auth-token")) {
+        if (cookie.name.includes("-auth-token") || cookie.name.includes("sb-")) {
           res.cookies.set(cookie.name, "", { path: "/", maxAge: 0 });
           req.cookies.delete(cookie.name);
         }
       });
     }
 
-    if (isAuthSessionMissingError(error) || isRefreshTokenNotFoundError) {
+    if (isAuthSessionMissingError(error) || isRefreshTokenNotFoundError || isUserNotFoundError) {
       user = null;
     } else {
       throw error;

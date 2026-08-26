@@ -185,9 +185,9 @@ export default function AdminHeader() {
                 className="group flex items-center h-full px-4 gap-2 text-[#5D6494] hover:text-[#3A416F] text-[16px] font-semibold"
               >
                 <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#3A416F] text-white flex items-center justify-center font-semibold">
-                  {user.user_metadata?.name?.charAt(0).toUpperCase() || "?"}
+                  {(String(user.user_metadata?.given_name || user.user_metadata?.first_name || user.user_metadata?.name || "?")).charAt(0).toUpperCase()}
                 </div>
-                {user.user_metadata?.name || "Profil"}
+                {String(user.user_metadata?.given_name || user.user_metadata?.first_name || (user.user_metadata?.name ? String(user.user_metadata.name).trim().split(/\s+/)[0] : "Profil"))}
                 <span
                   className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
                     }`}

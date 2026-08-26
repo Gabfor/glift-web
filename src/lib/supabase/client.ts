@@ -104,8 +104,16 @@ export const createClientComponentClient = () => {
   ) => {
     try {
       return await originalGetUser(...args);
-    } catch (error) {
-      if (isAuthSessionMissingError(error)) {
+    } catch (error: any) {
+      const msg = (error?.message || "").toLowerCase();
+      const isStaleSession =
+        isAuthSessionMissingError(error) ||
+        msg.includes("user from sub claim in jwt does not exist") ||
+        msg.includes("invalid jwt") ||
+        msg.includes("user not found") ||
+        msg.includes("refresh token");
+
+      if (isStaleSession) {
         return {
           data: { user: null },
           error,

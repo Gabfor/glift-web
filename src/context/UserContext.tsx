@@ -93,11 +93,15 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       console.log("[UserContext] fetchUser getUser finished. User:", user?.email, "Error:", error?.message);
 
       if (error) {
-        if (isAuthSessionMissingError(error)) {
-          // Even for missing session error, if we are in background mode (e.g. focus), 
-          // we should be careful not to log out immediately if it's a transient issue.
-          // However, "Auth session missing" usually means strictly no token.
-          // But to be super safe against flicker:
+        const errorMsg = (error.message || "").toLowerCase();
+        const isStaleSession =
+          isAuthSessionMissingError(error) ||
+          errorMsg.includes("user from sub claim in jwt does not exist") ||
+          errorMsg.includes("invalid jwt") ||
+          errorMsg.includes("user not found") ||
+          errorMsg.includes("refresh token");
+
+        if (isStaleSession) {
           if (!background) {
             setUser(null);
             setIsPremiumUser(false);
@@ -231,17 +235,18 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setProfile(null);
         }
       }
-    } catch (error) {
-      if (!isAuthSessionMissingError(error)) {
+    } catch (error: any) {
+      const errorMsg = (error?.message || "").toLowerCase();
+      const isStaleSession =
+        isAuthSessionMissingError(error) ||
+        errorMsg.includes("user from sub claim in jwt does not exist") ||
+        errorMsg.includes("invalid jwt") ||
+        errorMsg.includes("user not found") ||
+        errorMsg.includes("refresh token");
+
+      if (!isStaleSession) {
         console.error("Erreur lors de la récupération de l'utilisateur", error);
-        // Do not clear user here if it's just a profile fetch error or transient network error
-        // forcing a logout on every error causes flickering.
-        // We only clear if we specifically suspect auth is gone, but isAuthSessionMissingError checks that.
-        // If we are here, it's likely a network error or DB error.
-        // Better to keep stale user than to flash a logout state.
       } else {
-        // If background refresh occurs (e.g. on focus), do not clear the user if we have an error that might be transient
-        // Wait for explicit SIGNED_OUT from listener.
         if (!background) {
           setUser(null);
           setIsPremiumUser(false);

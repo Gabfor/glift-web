@@ -103,7 +103,7 @@ const createInitialState = (): PreferencesState => ({
   sessionCount: "15",
   communications: COMMUNICATION_FIELDS.reduce(
     (acc, field) => {
-      acc[field.key] = true
+      acc[field.key] = false
       return acc
     },
     {} as Record<CommunicationKey, boolean>,

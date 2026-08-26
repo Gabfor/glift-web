@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import type { AuthError, SupabaseClient, User } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/server";
+import { UserService } from "@/lib/services/userService";
+import { SubscriptionService } from "@/lib/services/subscriptionService";
+import { PaymentService } from "@/lib/services/paymentService";
 import type { Database } from "@/lib/supabase/types";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -373,13 +376,44 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  const getRequestBaseUrl = (req: NextRequest): URL => {
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
+    const proto =
+      req.headers.get("x-forwarded-proto") ||
+      req.nextUrl.protocol.replace(":", "") ||
+      "http";
+
+    if (host) {
+      const sanitizedHost = host.replace(/^0\.0\.0\.0/, "localhost");
+      return new URL(`${proto}://${sanitizedHost}`);
+    }
+
+    const rawUrl = new URL(req.url);
+    if (rawUrl.hostname === "0.0.0.0") {
+      rawUrl.hostname = "localhost";
+    }
+    return rawUrl;
+  };
+
+  const baseUrl = getRequestBaseUrl(request);
+
+  const planParam = url.searchParams.get("plan");
   const nextParam = url.searchParams.get("next");
   const isRecovery = typeParam === "recovery";
-  const defaultTarget = isRecovery ? "/reinitialiser-mot-de-passe" : "/dashboard";
-  const targetPath = nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
-    ? nextParam
-    : defaultTarget;
-  const redirectUrl = new URL(targetPath, request.url).toString();
+  const isOAuth = Boolean(code) && !typeParam;
+
+  let defaultTarget = "/dashboard";
+  if (isRecovery) {
+    defaultTarget = "/reinitialiser-mot-de-passe";
+  } else if (planParam === "premium") {
+    defaultTarget = "/post-inscription?plan=premium";
+  }
+
+  const targetPath =
+    nextParam && nextParam.startsWith("/") && !nextParam.startsWith("//")
+      ? nextParam
+      : defaultTarget;
+  const redirectUrl = new URL(targetPath, baseUrl).toString();
   const queryErrorDescription =
     url.searchParams.get("error_description") ?? undefined;
   const rawErrorCode = url.searchParams.get("error_code");
@@ -404,7 +438,7 @@ export async function GET(request: NextRequest) {
     Boolean(code || tokenHash || token || fallbackConfirmedUserId);
 
   if (shouldRedirectToLogin) {
-    const loginUrl = new URL("/connexion", request.url);
+    const loginUrl = new URL("/connexion", baseUrl);
     const callbackPath = `${request.nextUrl.pathname}${request.nextUrl.search}`;
     loginUrl.searchParams.set("next", encodeURIComponent(callbackPath));
 
@@ -463,81 +497,93 @@ export async function GET(request: NextRequest) {
   }
 
   if (!errorMessage && confirmedUserId) {
-    let emailVerifiedUpdated = false;
+    try {
+      const adminClient = createAdminClient();
+      const userService = new UserService(adminClient);
+      const subscriptionService = new SubscriptionService(adminClient);
+      const paymentService = new PaymentService(adminClient);
 
-    if (user && user.id === confirmedUserId) {
-      const { error: profileUpdateError } = await supabase
+      // Vérifier si le profil existe
+      const { data: existingProfile } = await adminClient
         .from("profiles")
-        .update({ email_verified: true })
-        .eq("id", confirmedUserId);
+        .select("id, name, subscription_plan")
+        .eq("id", confirmedUserId)
+        .maybeSingle();
 
-      if (profileUpdateError) {
-        console.warn(
-          "[auth-callback] Unable to mark email as verified with session",
-          profileUpdateError,
-        );
-      } else {
-        emailVerifiedUpdated = true;
+      const chosenPlan: "starter" | "premium" =
+        planParam === "premium" ? "premium" : "starter";
+
+      const extractFirstName = (rawName?: string | null): string | null => {
+        if (!rawName) return null;
+        const trimmed = rawName.trim();
+        if (!trimmed) return null;
+        return trimmed.split(/\s+/)[0] || null;
+      };
+
+      let resolvedEmail = queryEmailParam || user?.email;
+      let resolvedName =
+        user?.user_metadata?.given_name ||
+        user?.user_metadata?.first_name ||
+        extractFirstName(user?.user_metadata?.full_name) ||
+        extractFirstName(user?.user_metadata?.name);
+
+      if (!resolvedEmail || !resolvedName) {
+        const { data: adminUserData } =
+          await adminClient.auth.admin.getUserById(confirmedUserId);
+        resolvedEmail = resolvedEmail || adminUserData?.user?.email;
+        resolvedName =
+          resolvedName ||
+          adminUserData?.user?.user_metadata?.given_name ||
+          adminUserData?.user?.user_metadata?.first_name ||
+          extractFirstName(adminUserData?.user?.user_metadata?.full_name) ||
+          extractFirstName(adminUserData?.user?.user_metadata?.name) ||
+          (resolvedEmail ? resolvedEmail.split("@")[0] : "Utilisateur");
       }
-    }
 
-    if (!emailVerifiedUpdated) {
-      try {
-        const adminClient = createAdminClient();
+      if (!existingProfile) {
+        // Initialisation complète pour nouvel utilisateur (OAuth ou nouvel inscrit)
+        await userService.createOrUpdateProfile(confirmedUserId, {
+          name: resolvedName || "Utilisateur",
+          plan: chosenPlan,
+        });
 
-        if (!authEmailConfirmed) {
-          const { data: adminUserData, error: adminLookupError } =
-            await adminClient.auth.admin.getUserById(confirmedUserId);
-
-          if (adminLookupError) {
-            console.warn(
-              "[auth-callback] Unable to verify auth email confirmation state with admin client",
-              adminLookupError,
-            );
-          } else {
-            const adminEmailConfirmedAt =
-              adminUserData?.user?.email_confirmed_at ?? null;
-
-            authEmailConfirmed = Boolean(adminEmailConfirmedAt);
-
-            if (adminEmailConfirmedAt) {
-              confirmedUserEmailConfirmedAt = adminEmailConfirmedAt;
-            }
-          }
-        }
-
-        if (authEmailConfirmed) {
-          const { error: adminUpdateError } = await adminClient
+        await Promise.allSettled([
+          adminClient
             .from("profiles")
             .update({ email_verified: true })
-            .eq("id", confirmedUserId);
-
-          if (adminUpdateError) {
-            console.error(
-              "[auth-callback] Unable to mark email as verified with admin client",
-              adminUpdateError,
-            );
-          } else {
-            emailVerifiedUpdated = true;
-          }
-        } else {
-          console.warn(
-            "[auth-callback] Auth email is not marked as confirmed despite OTP recovery",
-            { confirmedUserId },
-          );
+            .eq("id", confirmedUserId),
+          userService.initializePreferences(confirmedUserId),
+          subscriptionService.initializeSubscription(
+            confirmedUserId,
+            chosenPlan,
+          ),
+          resolvedEmail
+            ? paymentService.createCustomerAndStarterSubscription(
+                confirmedUserId,
+                resolvedEmail,
+                resolvedName || "Utilisateur",
+                chosenPlan,
+              )
+            : Promise.resolve(),
+        ]);
+      } else {
+        // Utilisateur existant : s'assurer que l'email est marqué comme vérifié et que le prénom seul est utilisé
+        const updatePayload: { email_verified: boolean; name?: string } = {
+          email_verified: true,
+        };
+        if (resolvedName && resolvedName !== "Utilisateur") {
+          updatePayload.name = resolvedName;
         }
-      } catch (adminClientError) {
-        console.error(
-          "[auth-callback] Unable to create admin Supabase client",
-          adminClientError,
-        );
-      }
-    }
 
-    if (!emailVerifiedUpdated) {
-      console.warn(
-        "[auth-callback] Email verification confirmation succeeded but profile update failed",
-        { confirmedUserId },
+        await adminClient
+          .from("profiles")
+          .update(updatePayload)
+          .eq("id", confirmedUserId);
+      }
+    } catch (profileInitError) {
+      console.error(
+        "[auth-callback] Error initializing profile or verifying email:",
+        profileInitError,
       );
     }
   } else if (!errorMessage && !confirmedUserId) {
@@ -546,8 +592,23 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!errorMessage && isRecovery) {
+  // Si pas d'erreur et flux OAuth, récupération ou navigation directe :
+  if (!errorMessage && (isOAuth || isRecovery || !typeParam)) {
     const redirectResponse = NextResponse.redirect(new URL(redirectUrl));
+    cookiesToSet.forEach(({ name, value, options }) => {
+      redirectResponse.cookies.set(name, value, options);
+    });
+    cookiesToRemove.forEach(({ name, options }) => {
+      redirectResponse.cookies.set(name, "", { ...options, maxAge: -1 });
+    });
+    return redirectResponse;
+  }
+
+  // En cas d'erreur lors d'une connexion OAuth, rediriger vers la page de connexion avec message
+  if (errorMessage && isOAuth) {
+    const loginUrl = new URL("/connexion", baseUrl);
+    loginUrl.searchParams.set("error", errorMessage);
+    const redirectResponse = NextResponse.redirect(loginUrl);
     cookiesToSet.forEach(({ name, value, options }) => {
       redirectResponse.cookies.set(name, value, options);
     });

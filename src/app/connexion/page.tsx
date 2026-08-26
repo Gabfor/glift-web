@@ -100,13 +100,22 @@ export default function ConnexionPage() {
       router.replace(`/connexion${query ? `?${query}` : ""}`);
     }
 
-    if (searchParams?.get("error") === "grace-expired") {
-      setError({
-        type: "grace-expired",
-        title: "Connexion impossible",
-        description:
-          "Nous sommes désolés mais il semblerait que tu n'aies pas validé ton email à temps. Ton compte a été désactivé et va être supprimé. Si c'est une erreur, contacte-nous.",
-      });
+    const errorParam = searchParams?.get("error");
+    if (errorParam) {
+      if (errorParam === "grace-expired") {
+        setError({
+          type: "grace-expired",
+          title: "Connexion impossible",
+          description:
+            "Nous sommes désolés mais il semblerait que tu n'aies pas validé ton email à temps. Ton compte a été désactivé et va être supprimé. Si c'est une erreur, contacte-nous.",
+        });
+      } else {
+        setError({
+          type: "generic",
+          title: "Erreur d'authentification",
+          description: decodeURIComponent(errorParam),
+        });
+      }
 
       const params = new URLSearchParams(searchParams.toString());
       params.delete("error");

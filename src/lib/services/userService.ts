@@ -76,7 +76,13 @@ export class UserService {
         if (!existingPrefs) {
             const { error: insertError } = await this.supabase
                 .from("preferences")
-                .insert({ id: userId });
+                .insert({
+                    id: userId,
+                    newsletter: false,
+                    newsletter_shop: false,
+                    newsletter_store: false,
+                    survey: false,
+                });
 
             if (insertError) throw new Error(`Failed to create preferences: ${insertError.message}`);
         }

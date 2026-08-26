@@ -23,7 +23,7 @@ interface HeaderProps {
 export default function Header({ disconnected = false }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
+  const { user, profile, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
   const { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl } = useDashboardUrl();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -40,9 +40,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
       ? user.user_metadata.avatar_url.trim()
       : "";
   const hasAvatar = rawAvatarUrl.length > 0;
-  const userInitial =
-    user?.user_metadata?.name?.charAt(0).toUpperCase() || "?";
-  const userDisplayName = user?.user_metadata?.name?.trim() || "Profil";
+
+  const rawName =
+    (typeof profile?.name === "string" && profile.name.trim()) ||
+    (typeof user?.user_metadata?.given_name === "string" && user.user_metadata.given_name.trim()) ||
+    (typeof user?.user_metadata?.first_name === "string" && user.user_metadata.first_name.trim()) ||
+    (typeof user?.user_metadata?.name === "string" && user.user_metadata.name.trim()) ||
+    (typeof user?.user_metadata?.full_name === "string" && user.user_metadata.full_name.trim()) ||
+    "";
+
+  const userFirstName = (rawName ? rawName.split(/\s+/)[0] : "") || "Profil";
+  const userInitial = userFirstName.charAt(0).toUpperCase() || "?";
+  const userDisplayName = userFirstName;
 
   // Forcer le mode déconnecté si `disconnected` est vrai
   const showAuthenticatedUI =

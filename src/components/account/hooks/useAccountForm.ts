@@ -145,8 +145,20 @@ const buildSnapshot = (
 ): { values: FormValues; flat: FlatValues } => {
   const safeMetadata = metadata && typeof metadata === "object" ? metadata : {}
 
+  const extractFirstName = (raw?: unknown): string => {
+    if (typeof raw !== "string") return "";
+    const trimmed = raw.trim();
+    if (!trimmed) return "";
+    return trimmed.split(/\s+/)[0] || "";
+  };
+
   const values: FormValues = {
-    name: pickString(profile?.name, safeMetadata, "name"),
+    name:
+      (typeof safeMetadata.given_name === "string" && safeMetadata.given_name.trim()) ||
+      (typeof safeMetadata.first_name === "string" && safeMetadata.first_name.trim()) ||
+      extractFirstName(profile?.name) ||
+      extractFirstName(safeMetadata.name) ||
+      extractFirstName(safeMetadata.full_name),
     gender: pickString(profile?.gender, safeMetadata, "gender"),
     country: pickString(profile?.country, safeMetadata, "country"),
     experience: pickString(profile?.experience, safeMetadata, "experience"),

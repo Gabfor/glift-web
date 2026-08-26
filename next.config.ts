@@ -6,7 +6,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'wzdkuqxjcqrwrouobpxo.supabase.co',
       },
-    ], // ✅ domaine Supabase autorisé
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.googleusercontent.com',
+      },
+    ],
   },
   allowedDevOrigins: [
     'localhost:3000',

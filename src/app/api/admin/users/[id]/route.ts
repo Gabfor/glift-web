@@ -100,11 +100,26 @@ export async function GET(
 
     const profile = profileRow ?? null;
 
+    const extractFirstName = (raw?: unknown): string => {
+      if (typeof raw !== "string") return "";
+      const trimmed = raw.trim();
+      if (!trimmed) return "";
+      return trimmed.split(/\s+/)[0] || "";
+    };
+
+    const resolvedName =
+      (typeof metadata.given_name === "string" && metadata.given_name.trim()) ||
+      (typeof metadata.first_name === "string" && metadata.first_name.trim()) ||
+      extractFirstName(profile?.name) ||
+      extractFirstName(metadata.name) ||
+      extractFirstName(metadata.full_name) ||
+      null;
+
     return NextResponse.json({
       user: {
         id: authUser.id,
         email: authUser.email ?? "",
-        name: pickString(profile?.name, metadata, "name"),
+        name: resolvedName,
         gender: pickString(profile?.gender, metadata, "gender"),
         birth_date: pickString(profile?.birth_date, metadata, "birth_date"),
         country: pickString(profile?.country, metadata, "country"),

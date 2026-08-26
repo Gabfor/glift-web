@@ -249,8 +249,22 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
             ? details.metadata
             : {}) as Record<string, unknown>;
 
+        const extractFirstName = (raw?: unknown): string => {
+          if (typeof raw !== "string") return "";
+          const trimmed = raw.trim();
+          if (!trimmed) return "";
+          return trimmed.split(/\s+/)[0] || "";
+        };
+
+        const resolvedFormName =
+          (typeof metadata.given_name === "string" && metadata.given_name.trim()) ||
+          (typeof metadata.first_name === "string" && metadata.first_name.trim()) ||
+          extractFirstName(details.name) ||
+          extractFirstName(metadata.name) ||
+          extractFirstName(metadata.full_name);
+
         const nextForm: FormState = {
-          name: pickString(details.name, metadata, "name"),
+          name: resolvedFormName,
           email: typeof details.email === "string" ? details.email : "",
           gender: pickString(details.gender, metadata, "gender"),
           country: pickString(details.country, metadata, "country"),
