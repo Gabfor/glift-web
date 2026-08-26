@@ -496,6 +496,9 @@ export async function GET(request: NextRequest) {
     }
   }
 
+  let isNewOAuthSignup = false;
+  let chosenPlanForRedirect: "starter" | "premium" = "starter";
+
   if (!errorMessage && confirmedUserId) {
     try {
       const adminClient = createAdminClient();
@@ -512,6 +515,8 @@ export async function GET(request: NextRequest) {
 
       const chosenPlan: "starter" | "premium" =
         planParam === "premium" ? "premium" : "starter";
+      chosenPlanForRedirect = chosenPlan;
+      isNewOAuthSignup = isOAuth && !existingProfile;
 
       const extractFirstName = (rawName?: string | null): string | null => {
         if (!rawName) return null;
@@ -594,7 +599,15 @@ export async function GET(request: NextRequest) {
 
   // Si pas d'erreur et flux OAuth, récupération ou navigation directe :
   if (!errorMessage && (isOAuth || isRecovery || !typeParam)) {
-    const redirectResponse = NextResponse.redirect(new URL(redirectUrl));
+    const destinationUrl =
+      isNewOAuthSignup && !nextParam
+        ? new URL(
+            `/inscription/informations?plan=${chosenPlanForRedirect}&oauth=true`,
+            baseUrl,
+          ).toString()
+        : redirectUrl;
+
+    const redirectResponse = NextResponse.redirect(new URL(destinationUrl));
     cookiesToSet.forEach(({ name, value, options }) => {
       redirectResponse.cookies.set(name, value, options);
     });

@@ -61,8 +61,9 @@ const InformationsPage = () => {
 
   const siteSettings = useSiteSettings();
 
+  const isOAuth = searchParams?.get("oauth") === "true";
   const planParam = searchParams?.get("plan") ?? null;
-  const plan = parsePlan(planParam);
+  const plan = parsePlan(planParam) ?? (isOAuth ? "starter" : null);
   const stepMetadata = plan ? getStepMetadata(plan, "profile", siteSettings.isPremiumPaymentStepEnabled) : null;
 
   const [gender, setGender] = useState("");
@@ -251,7 +252,7 @@ const InformationsPage = () => {
     }
   };
 
-  if (!plan || !stepMetadata) {
+  if ((!plan || !stepMetadata) && !isOAuth) {
     return (
       <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
@@ -272,18 +273,20 @@ const InformationsPage = () => {
 
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] flex flex-col items-center">
-      <div className="w-full max-w-[760px] text-center">
+      <div className={`w-full max-w-[760px] text-center ${isOAuth ? "mb-6" : ""}`}>
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">Inscription terminée !</h1>
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug">
           Nous sommes ravis de te compter parmi nous.
           <br />
           Tu peux dès à présent commencer à t’entrainer avec Glift.
         </p>
-        <StepDots
-          className={`mt-4 mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
-          totalSteps={stepMetadata.totalSteps}
-          currentStep={stepMetadata.currentStep}
-        />
+        {!isOAuth && stepMetadata && (
+          <StepDots
+            className={`mt-4 mb-6 transition-opacity duration-200 ${siteSettings.isLoading ? "opacity-0" : "opacity-100"}`}
+            totalSteps={stepMetadata.totalSteps}
+            currentStep={stepMetadata.currentStep}
+          />
+        )}
       </div>
 
       <div className="w-[564px] max-w-full mb-6">
