@@ -170,7 +170,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
           event.preventDefault()
         }
       }}
-      className="flex flex-col items-center gap-2"
+      className="flex flex-col items-center gap-2 w-full max-w-full px-1 sm:px-0"
     >
       {error && (
         <div className="w-[564px] max-w-full mb-4">
@@ -187,7 +187,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
       {hasIncomplete ? <IncompleteAlert onScrollClick={handleScrollToFirstMissing} /> : showSuccessBanner ? <ProfileCompleteAlert /> : null}
 
       <div
-        className={`w-[368px] flex flex-col items-center mb-[30px]${hasTopMessage ? "" : " mt-[30px]"
+        className={`w-full max-w-[368px] flex flex-col items-center mb-[30px]${hasTopMessage ? "" : " mt-[30px]"
           }`}
       >
         <ProfilePictureBlock
@@ -221,7 +221,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
             markTouched({ gender: true })
           }}
           success={successMessages.gender}
-          className="w-[246px]"
+          className="w-full max-w-[246px]"
         />
       </MissingField>
 
@@ -426,7 +426,7 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
             markTouched({ supplements: true })
           }}
           success={successMessages.supplements}
-          className="w-[246px]"
+          className="w-full max-w-[246px]"
         />
       </MissingField>
 

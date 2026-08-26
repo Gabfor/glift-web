@@ -19,9 +19,9 @@ export default function InfoTooltipAdornment({
 }: Props) {
   const anchorRef = useRef<HTMLSpanElement>(null)
   const tipRef = useRef<HTMLDivElement>(null)
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  const [overAnchor, setOverAnchor] = useState(false)
-  const [overTip, setOverTip] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [position, setPosition] = useState<{
     top: number
@@ -34,8 +34,6 @@ export default function InfoTooltipAdornment({
     side: "right",
   }))
 
-  const open = overAnchor || overTip
-
   const GAP = 12
   const PAD = 8
   const WIDTH = 220
@@ -46,26 +44,32 @@ export default function InfoTooltipAdornment({
     const rect = anchor.getBoundingClientRect()
     const viewportWidth = window.innerWidth
 
-    if (viewportWidth < 768) {
-      // Responsive Mobile: position below the icon with arrow pointing up
-      const side: TooltipSide = "bottom"
-      const centerX = rect.left + rect.width / 2
-      let left = centerX - WIDTH / 2
-      left = Math.max(PAD, Math.min(viewportWidth - WIDTH - PAD, left))
-      const top = Math.round(rect.bottom + GAP)
-      const arrowLeft = Math.max(10, Math.min(WIDTH - 26, centerX - left - 8))
-      setPosition({ top, left, side, arrowLeft })
+    // 1. Try placing on the right (tooltip on the right with arrow on the left)
+    if (rect.right + GAP + WIDTH + PAD <= viewportWidth) {
+      const side: TooltipSide = "right"
+      const left = Math.round(rect.right + GAP)
+      const top = Math.round(rect.top + rect.height / 2)
+      setPosition({ top, left, side })
       return
     }
 
-    let side: TooltipSide = "right"
-    let left = rect.right + GAP
-    if (left + WIDTH + PAD > viewportWidth) {
-      side = "left"
-      left = Math.max(PAD, rect.left - GAP - WIDTH)
+    // 2. Try placing on the left (tooltip on the left with arrow on the right)
+    if (rect.left - GAP - WIDTH - PAD >= 0) {
+      const side: TooltipSide = "left"
+      const left = Math.round(rect.left - GAP - WIDTH)
+      const top = Math.round(rect.top + rect.height / 2)
+      setPosition({ top, left, side })
+      return
     }
-    const top = Math.round(rect.top + rect.height / 2)
-    setPosition({ top, left, side })
+
+    // 3. Fallback: position below with arrow pointing up
+    const side: TooltipSide = "bottom"
+    const centerX = rect.left + rect.width / 2
+    let left = centerX - WIDTH / 2
+    left = Math.max(PAD, Math.min(viewportWidth - WIDTH - PAD, left))
+    const top = Math.round(rect.bottom + GAP)
+    const arrowLeft = Math.max(10, Math.min(WIDTH - 26, centerX - left - 8))
+    setPosition({ top, left, side, arrowLeft })
   }
 
   useEffect(() => {
@@ -73,75 +77,52 @@ export default function InfoTooltipAdornment({
   }, [])
 
   useEffect(() => {
-    if (!open) return
+    if (!isOpen) return
 
     compute()
 
     const handleScroll = () => compute()
     const handleResize = () => compute()
 
-    const handlePointerMove = (event: PointerEvent) => {
-      const { clientX, clientY } = event
-      const anchorRect = anchorRef.current?.getBoundingClientRect()
-      const tipRect = tipRef.current?.getBoundingClientRect()
-
-      const inAnchor = !!anchorRect &&
-        clientX >= anchorRect.left &&
-        clientX <= anchorRect.right &&
-        clientY >= anchorRect.top &&
-        clientY <= anchorRect.bottom
-
-      const inTip = !!tipRect &&
-        clientX >= tipRect.left &&
-        clientX <= tipRect.right &&
-        clientY >= tipRect.top &&
-        clientY <= tipRect.bottom
-
-      setOverAnchor(inAnchor)
-      setOverTip(inTip)
-    }
-
     const handlePointerDown = (event: PointerEvent) => {
       const anchor = anchorRef.current
       const tip = tipRef.current
-      if (anchor && anchor.contains(event.target as Node)) return
-      if (tip && tip.contains(event.target as Node)) return
-      setOverAnchor(false)
-      setOverTip(false)
-    }
-
-    const handleWindowBlur = () => {
-      setOverAnchor(false)
-      setOverTip(false)
+      const target = event.target as Node
+      if (anchor && anchor.contains(target)) return
+      if (tip && tip.contains(target)) return
+      setIsOpen(false)
     }
 
     window.addEventListener("scroll", handleScroll, true)
     window.addEventListener("resize", handleResize)
-    document.addEventListener("pointermove", handlePointerMove, true)
     document.addEventListener("pointerdown", handlePointerDown, true)
-    window.addEventListener("blur", handleWindowBlur)
 
     return () => {
       window.removeEventListener("scroll", handleScroll, true)
       window.removeEventListener("resize", handleResize)
-      document.removeEventListener("pointermove", handlePointerMove, true)
       document.removeEventListener("pointerdown", handlePointerDown, true)
-      window.removeEventListener("blur", handleWindowBlur)
     }
-  }, [open])
+  }, [isOpen])
+
+  const handlePointerEnter = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setIsOpen(true)
+  }
+
+  const handlePointerLeave = (e: React.PointerEvent) => {
+    if (e.pointerType === 'touch') return
+    timeoutRef.current = setTimeout(() => {
+      setIsOpen(false)
+    }, 150)
+  }
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLSpanElement> = (event) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault()
-      if (open) {
-        setOverAnchor(false)
-        setOverTip(false)
-      } else {
-        setOverAnchor(true)
-      }
+      setIsOpen((prev) => !prev)
     } else if (event.key === "Escape") {
-      setOverAnchor(false)
-      setOverTip(false)
+      setIsOpen(false)
     }
   }
 
@@ -149,24 +130,19 @@ export default function InfoTooltipAdornment({
     <>
       <span
         ref={anchorRef}
-        className="relative inline-block group select-none"
+        className="relative inline-block group select-none cursor-pointer"
         style={{ width: iconSize, height: iconSize }}
-        onMouseEnter={() => setOverAnchor(true)}
-        onMouseLeave={() => setOverAnchor(false)}
-        onFocus={() => setOverAnchor(true)}
-        onBlur={() => setOverAnchor(false)}
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
         onKeyDown={handleKeyDown}
-        onClick={() => {
-          if (open) {
-            setOverAnchor(false)
-            setOverTip(false)
-          } else {
-            setOverAnchor(true)
-          }
+        onClick={(e) => {
+          e.preventDefault()
+          e.stopPropagation()
+          setIsOpen((prev) => !prev)
         }}
         tabIndex={0}
         aria-haspopup="dialog"
-        aria-expanded={open}
+        aria-expanded={isOpen}
         aria-label={ariaLabel}
       >
         <Image
@@ -185,7 +161,7 @@ export default function InfoTooltipAdornment({
         />
       </span>
 
-      {mounted && open && typeof document !== "undefined" &&
+      {mounted && isOpen && typeof document !== "undefined" &&
         createPortal(
           <div
             ref={tipRef}
@@ -196,8 +172,8 @@ export default function InfoTooltipAdornment({
               transform: position.side === "bottom" ? "none" : "translateY(-50%)",
             }}
             role="tooltip"
-            onMouseEnter={() => setOverTip(true)}
-            onMouseLeave={() => setOverTip(false)}
+            onPointerEnter={handlePointerEnter}
+            onPointerLeave={handlePointerLeave}
           >
             <div
               className="relative bg-[#2F3247] text-white text-[14px] leading-snug font-medium px-3 py-2 rounded-[8px] shadow-[0_5px_21px_0_rgba(93,100,148,0.15)] break-words"

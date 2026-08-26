@@ -35,10 +35,17 @@ export default function TextField({
   const showSuccess = !!success && !showError
 
   return (
-    <div className="w-[368px] flex flex-col text-left">
-      <label className="text-[16px] font-bold text-[#3A416F] mb-[6px]">{label}</label>
+    <div className="w-full max-w-[368px] flex flex-col text-left mx-auto">
+      <div className="flex items-center gap-2 mb-[6px]">
+        <label className="text-[16px] font-bold text-[#3A416F] w-fit self-start mb-0">{label}</label>
+        {endAdornment && (
+          <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+            {endAdornment}
+          </div>
+        )}
+      </div>
 
-      <div className="relative">
+      <div className="relative w-full">
         <input
           type="text"
           value={value}
@@ -49,7 +56,9 @@ export default function TextField({
           className={clsx(
             'h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px]',
             inputClassName,
-            disabled ? 'bg-[#F2F1F6] text-[#D7D4DC] cursor-not-allowed' : 'bg-white text-[#3A416F]',
+            disabled
+              ? 'bg-[#F2F1F6] text-[#D7D4DC] disabled:opacity-100 disabled:[-webkit-text-fill-color:#D7D4DC] cursor-not-allowed'
+              : 'bg-white text-[#3A416F]',
             'transition-all duration-150',
             'border',
             showError
@@ -60,17 +69,6 @@ export default function TextField({
           )}
           placeholder={placeholder ?? label}
         />
-
-        {endAdornment && (
-          <div
-            className="absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
-            style={{ left: 'calc(100% + 10px)' }}
-          >
-            <div className="relative w-[18px] h-[18px] pointer-events-auto flex items-center justify-center">
-              {endAdornment}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="h-[20px] mt-[5px] text-[13px] font-medium">

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import Image from "next/image"
 import Tooltip from "@/components/Tooltip"
-import { useUser } from "@/context/UserContext"
 
 const ALLOWED_TYPES = new Set([
   "image/jpeg",
@@ -38,8 +37,6 @@ export default function ProfilePictureBlock({
   const [localBusy, setLocalBusy] = useState(false)
   const [isDeleteHovered, setIsDeleteHovered] = useState(false)
   const [isUploadHovered, setIsUploadHovered] = useState(false)
-
-  const { isPremiumUser } = useUser()
 
   const working = isBusy || localBusy
   const pct = useMemo(() => clampPercentage(profileCompletion), [profileCompletion])
@@ -105,7 +102,7 @@ export default function ProfilePictureBlock({
 
   return (
     <div className="flex flex-col items-center w-full">
-      <div className="relative w-[368px] flex flex-col items-center">
+      <div className="relative w-full max-w-[368px] flex flex-col items-center">
         <div className="flex items-center justify-center gap-[20px] mb-4">
           <Tooltip
             content="Supprimer la photo"
@@ -252,30 +249,13 @@ export default function ProfilePictureBlock({
         />
       </div>
 
-      <p className="text-base font-semibold text-[#3A416F] mb-[20px]">
+      <p className="text-base font-semibold text-[#3A416F]">
         Ton profil est complet à{" "}
         <span className="inline-flex w-[5ch] tabular-nums text-left justify-start">
           <span className="text-[#33E1AC]">{pct}%</span>
           <span className="text-[#3A416F]">.</span>
         </span>
       </p>
-
-      <div className="flex items-center gap-[5px]">
-        <Image
-          src={isPremiumUser ? "/icons/diamant_premium.svg" : "/icons/diamant_starter.svg"}
-          alt=""
-          width={15}
-          height={15}
-        />
-        <div
-          className={`flex h-[15px] items-center rounded-full px-[10px] text-[8px] font-semibold ${isPremiumUser
-            ? "bg-[#FFF7CB] text-[#E2BA00]"
-            : "bg-[#F4F5FE] text-[#A1A5FD]"
-            }`}
-        >
-          {isPremiumUser ? "Abonnement Premium" : "Abonnement Starter"}
-        </div>
-      </div>
     </div>
   )
 }

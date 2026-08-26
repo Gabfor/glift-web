@@ -71,7 +71,7 @@ export default function BirthDateField({
   const handleOpenYear = useCallback(() => {}, [])
 
   return (
-    <div className="w-[368px]">
+    <div className="w-full max-w-[368px] mx-auto">
       <div className="flex justify-between items-center mb-[5px]">
         <label className="text-[16px] text-[#3A416F] font-bold">Date de naissance</label>
         {isFull && (
@@ -85,8 +85,8 @@ export default function BirthDateField({
         )}
       </div>
 
-      <div className="flex gap-2">
-        <div className="w-[88px]">
+      <div className="flex gap-1.5 sm:gap-2 w-full">
+        <div className="flex-[0.8] min-w-0">
           <AdminDropdown
             label=""
             placeholder="Jour"
@@ -105,7 +105,7 @@ export default function BirthDateField({
           />
         </div>
 
-        <div className="w-[154px]">
+        <div className="flex-[1.4] min-w-0">
           <AdminDropdown
             label=""
             placeholder="Mois"
@@ -125,7 +125,7 @@ export default function BirthDateField({
           />
         </div>
 
-        <div className="w-[111px]">
+        <div className="flex-[1] min-w-0">
           <AdminDropdown
             label=""
             placeholder="Année"

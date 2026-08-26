@@ -368,7 +368,7 @@ export default function PreferencesSection() {
                   touched={weightTouched}
                   setTouched={() => setWeightTouched(true)}
                   containerClassName="w-full"
-                  className="w-[246px]"
+                  className="w-full max-w-[246px]"
                 />
               </div>
 
@@ -394,7 +394,7 @@ export default function PreferencesSection() {
                     sortStrategy="none"
                   />
                   <div
-                    className="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 z-20"
+                    className="absolute top-1/2 right-[-28px] sm:left-[calc(100%+10px)] sm:right-auto -translate-y-1/2 z-20"
                   >
                     <div className="relative w-[18px] h-[18px] flex items-center justify-center">
                       <InfoTooltipAdornment
@@ -428,7 +428,7 @@ export default function PreferencesSection() {
                   />
 
                   <div
-                    className="absolute top-1/2 left-[calc(100%+10px)] -translate-y-1/2 z-20"
+                    className="absolute top-1/2 right-[-28px] sm:left-[calc(100%+10px)] sm:right-auto -translate-y-1/2 z-20"
                   >
                     <div className="relative w-[18px] h-[18px] flex items-center justify-center">
                       <InfoTooltipAdornment

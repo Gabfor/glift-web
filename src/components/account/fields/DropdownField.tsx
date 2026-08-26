@@ -82,11 +82,11 @@ export default function DropdownField({
     <div
       className={clsx(
         "flex flex-col text-left",
-        containerClassName ?? "w-[368px]",
+        containerClassName ?? "w-full max-w-[368px] mx-auto",
       )}
     >
       <div className="flex items-center justify-between mb-[6px]">
-        <label className="text-[16px] font-bold text-[#3A416F]">{label}</label>
+        <label className="text-[16px] font-bold text-[#3A416F] w-fit">{label}</label>
         {hasSelection && clearable && (
           <button
             type="button"

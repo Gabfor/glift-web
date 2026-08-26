@@ -96,8 +96,8 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
   }, [])
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
-      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] overflow-x-hidden">
+      <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center w-full">
         {initialPageContent?.surtitre && (
           <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
             {initialPageContent.surtitre}

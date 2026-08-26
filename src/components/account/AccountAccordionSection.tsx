@@ -19,7 +19,7 @@ export default function AccountAccordionSection({ value, title, children }: Prop
         </div>
         <AccordionContent
           forceMount
-          className="px-4 py-4 bg-white border-t border-[#D7D4DC] rounded-b-[8px]"
+          className="px-3 sm:px-6 py-4 bg-white border-t border-[#D7D4DC] rounded-b-[8px] overflow-hidden"
         >
           {children}
         </AccordionContent>

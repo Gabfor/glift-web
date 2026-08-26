@@ -30,6 +30,7 @@ export default function MissingField({
 }: MissingFieldProps) {
   const wrapRef = useRef<HTMLDivElement>(null)
   const [topPx, setTopPx] = useState<number | null>(null)
+  const [labelOffset, setLabelOffset] = useState<{ top: number; left: number } | null>(null)
 
   const compute = () => {
     const root = wrapRef.current
@@ -56,12 +57,42 @@ export default function MissingField({
 
     if (!best) {
       setTopPx(centerWrap - rWrap.top)
-      return
+    } else {
+      const rBest = best.getBoundingClientRect()
+      const centerBest = rBest.top + rBest.height / 2
+      setTopPx(centerBest - rWrap.top)
     }
 
-    const rBest = best.getBoundingClientRect()
-    const centerBest = rBest.top + rBest.height / 2
-    setTopPx(centerBest - rWrap.top)
+    const labelEl = root.querySelector('label')
+    if (labelEl) {
+      let textRight = 0
+      let textTop = 0
+      let textHeight = 0
+
+      if (labelEl.firstChild) {
+        const range = document.createRange()
+        range.selectNodeContents(labelEl)
+        const rects = range.getClientRects()
+        if (rects.length > 0) {
+          const lastRect = rects[rects.length - 1]
+          textRight = lastRect.right
+          textTop = lastRect.top
+          textHeight = lastRect.height
+        }
+      }
+
+      if (textRight === 0) {
+        const rLabel = labelEl.getBoundingClientRect()
+        textRight = rLabel.right
+        textTop = rLabel.top
+        textHeight = rLabel.height
+      }
+
+      setLabelOffset({
+        top: textTop - rWrap.top + textHeight / 2,
+        left: textRight - rWrap.left + 8,
+      })
+    }
   }
 
   useLayoutEffect(() => {
@@ -94,21 +125,63 @@ export default function MissingField({
   }, [])
 
   return (
-    <div ref={wrapRef} id={id} className="relative" style={{ width: widthPx }}>
+    <div ref={wrapRef} id={id} className="relative w-full max-w-[368px] mx-auto">
       {children}
 
-      {show && topPx !== null && (
-        <span
-          className="absolute"
-          style={{
-            left: -(iconSize + gapPx),
-            top: topPx,
-            transform: 'translateY(-50%)',
-          }}
-          aria-hidden="true"
-        >
-          <Image src="/icons/missing.svg" alt="" width={iconSize} height={iconSize} />
-        </span>
+      {show && (
+        <>
+          {/* Desktop: floating indicator to the left of the input */}
+          {topPx !== null && (
+            <span
+              className="hidden sm:flex absolute items-center justify-center pointer-events-none select-none"
+              style={{
+                left: -(iconSize + gapPx),
+                top: topPx,
+                transform: 'translateY(-50%)',
+                width: iconSize,
+                height: iconSize,
+              }}
+              aria-hidden="true"
+            >
+              <span className="relative flex items-center justify-center w-full h-full">
+                <span className="absolute inset-0 rounded-full bg-[#E6E6FF] opacity-75 animate-ping" />
+                <Image
+                  src="/icons/missing.svg"
+                  alt=""
+                  width={iconSize}
+                  height={iconSize}
+                  className="relative z-10"
+                />
+              </span>
+            </span>
+          )}
+
+          {/* Mobile: inline indicator right next to the label (pointing down towards the field) */}
+          {labelOffset !== null && (
+            <span
+              className="flex sm:hidden absolute items-center justify-center pointer-events-none select-none"
+              style={{
+                left: labelOffset.left,
+                top: labelOffset.top,
+                transform: 'translateY(-50%)',
+                width: 18,
+                height: 18,
+              }}
+              aria-hidden="true"
+            >
+              <span className="relative flex items-center justify-center w-full h-full">
+                <span className="absolute inset-0 rounded-full bg-[#E6E6FF] opacity-75 animate-ping" />
+                <Image
+                  src="/icons/missing.svg"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="relative z-10 rotate-90"
+                />
+              </span>
+            </span>
+          )}
+        </>
       )}
     </div>
   )

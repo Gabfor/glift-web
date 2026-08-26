@@ -27,20 +27,20 @@ export default function ToggleField({
   className = '',
   variant = 'segmented',
   itemClassName = '',
-  containerClassName = 'w-[368px]',
+  containerClassName = 'w-full max-w-[368px] mx-auto',
 }: ToggleFieldProps) {
   const showSuccess = !!success && touched
 
   return (
     <div className={`${containerClassName} flex flex-col text-left`}>
-      <label className="text-[16px] font-bold text-[#3A416F] mb-[6px]">{label}</label>
+      <label className="text-[16px] font-bold text-[#3A416F] mb-[6px] w-fit self-start">{label}</label>
 
       <div
         role="radiogroup"
         className={
           variant === 'boxed'
-            ? `flex items-center gap-2.5 ${className}`
-            : `flex h-[45px] relative ${className}`
+            ? `flex items-center justify-between gap-1.5 sm:gap-2.5 w-full ${className}`
+            : `flex h-[45px] relative w-full ${className}`
         }
       >
         {options.map((option, index) => {
@@ -91,7 +91,7 @@ export default function ToggleField({
                 setTouched()
               }}
               className={`
-                ${itemClassName || 'w-[53px] h-[45px]'}
+                ${itemClassName || 'flex-1 max-w-[53px] min-w-0 h-[45px]'}
                 inline-flex items-center justify-center
                 rounded-[5px] border bg-white
                 text-[16px] font-semibold
