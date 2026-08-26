@@ -277,7 +277,13 @@ export default function ForgotPasswordModal({
         <div className="flex flex-col items-center">
           <div className="sm:hidden mb-3">
             <Image
-              src={error ? "/icons/cadena_rouge.svg" : "/icons/cadena_violet.svg"}
+              src={
+                error
+                  ? "/icons/cadena_rouge.svg"
+                  : step === "otp"
+                    ? "/icons/cadena_vert.svg"
+                    : "/icons/cadena_violet.svg"
+              }
               alt="Icône cadenas"
               width={29}
               height={35}
