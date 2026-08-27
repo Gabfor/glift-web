@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { getPasswordValidationState } from "@/utils/password"
 
 export async function POST(request: Request) {
@@ -26,14 +26,22 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "invalid-body" }, { status: 400 })
     }
 
+    const providers = (user.app_metadata?.providers as string[] | undefined) ?? []
+    const hasPassword =
+      user.user_metadata?.has_password === true ||
+      user.app_metadata?.has_password === true ||
+      providers.includes("email") ||
+      user.app_metadata?.provider === "email"
+    const isOAuthOnly = !hasPassword && (providers.includes("google") || providers.includes("apple") || user.app_metadata?.provider === "google" || user.app_metadata?.provider === "apple")
+
     const currentPassword = typeof body.currentPassword === "string" ? body.currentPassword : ""
     const newPassword = typeof body.newPassword === "string" ? body.newPassword : ""
 
-    if (!currentPassword || !newPassword) {
+    if (!newPassword || (!isOAuthOnly && !currentPassword)) {
       return NextResponse.json({ error: "missing-fields" }, { status: 400 })
     }
 
-    if (currentPassword === newPassword) {
+    if (!isOAuthOnly && currentPassword === newPassword) {
       return NextResponse.json({ error: "same-password" }, { status: 400 })
     }
 
@@ -48,21 +56,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "missing-email" }, { status: 400 })
     }
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password: currentPassword,
-    })
+    if (!isOAuthOnly) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password: currentPassword,
+      })
 
-    if (signInError) {
-      if (signInError.status === 400 || signInError.status === 401) {
+      if (signInError) {
+        if (signInError.status === 400 || signInError.status === 401) {
+          return NextResponse.json({ error: "invalid-current-password" }, { status: 400 })
+        }
+
+        console.error("[change-password] unable to verify current password", signInError)
         return NextResponse.json({ error: "invalid-current-password" }, { status: 400 })
       }
-
-      console.error("[change-password] unable to verify current password", signInError)
-      return NextResponse.json({ error: "invalid-current-password" }, { status: 400 })
     }
 
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword })
+    const admin = createAdminClient()
+    const { error: updateError } = await admin.auth.admin.updateUserById(user.id, {
+      password: newPassword,
+      user_metadata: {
+        ...(user.user_metadata || {}),
+        has_password: true,
+      },
+    })
 
     if (updateError) {
       console.error("[change-password] failed to update password", updateError)
