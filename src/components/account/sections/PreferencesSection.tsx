@@ -57,25 +57,25 @@ const COMMUNICATION_FIELDS = [
     key: "newsletterGlift" as const,
     title: "Newsletter Glift",
     description:
-      "Vous serez informé des dernières nouveautés de la plateforme Glift. Pas de spam, c’est promis.",
+      "Tu seras informé des dernières nouveautés de la plateforme Glift. Pas de spam, c’est promis.",
   },
   {
     key: "surveys" as const,
     title: "Enquêtes et sondages",
     description:
-      "Vous recevrez des enquêtes et des sondages afin de participer à l’évolution de Glift.",
+      "Tu recevras des enquêtes et des sondages afin de participer à l’évolution de Glift.",
   },
   {
     key: "shop" as const,
     title: "Newsletter Glift Shop",
     description:
-      "Tu seras informé lorsque de nouvelles offres correspondant à ton profil seront ajoutées.",
+      "Tu seras informé lorsque de nouveaux bons plans ou codes promo correspondant à ton profil seront ajoutés.",
   },
   {
     key: "store" as const,
     title: "Newsletter Glift Store",
     description:
-      "Tu seras informé lorsque de nouvelles ressources d’entrainement correspondant à ton profil seront ajoutées.",
+      "Tu seras informé lorsque de nouveaux programmes d’entraînements correspondant à ton profil seront ajoutés.",
   },
 ] as const
 
@@ -155,14 +155,14 @@ type PreferenceToggleRowProps = {
 
 function PreferenceToggleRow({ field, checked, onCheckedChange }: PreferenceToggleRowProps) {
   return (
-    <div className="flex items-center justify-between gap-6 py-1">
+    <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-6 py-1">
       <div className="flex-1 pr-2">
-        <div className="text-[16px] font-bold text-[#3A416F] leading-tight">{field.title}</div>
-        <p className="text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">
+        <div className="text-[15px] sm:text-[16px] font-bold text-[#3A416F] leading-tight">{field.title}</div>
+        <p className="text-[13px] sm:text-[15px] font-semibold text-[#5D6494] leading-snug mt-[4px]">
           {field.description}
         </p>
       </div>
-      <div className="flex-shrink-0 translate-y-[-2px]">
+      <div className="flex-shrink-0 mt-0.5 sm:mt-0 sm:translate-y-[-2px]">
         <ToggleSwitch
           checked={checked}
           onCheckedChange={onCheckedChange}
@@ -331,7 +331,7 @@ export default function PreferencesSection() {
         </div>
       ) : (
         <form
-          className="flex flex-col px-[100px] pb-0"
+          className="flex flex-col px-0 sm:px-4 md:px-[60px] pb-0"
           onSubmit={handleSubmit}
           onKeyDown={(event) => {
             if (event.key === "Enter") event.preventDefault()
@@ -349,7 +349,7 @@ export default function PreferencesSection() {
           ) : null}
 
           <div className="flex w-full text-left flex-col gap-5 pt-[14px]">
-            <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
+            <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
               Réglages de la plateforme
             </h3>
 
@@ -373,71 +373,58 @@ export default function PreferencesSection() {
               </div>
 
               <div className="w-full max-w-[368px]">
-                <div className="relative w-full">
-                  <DropdownField
-                    label="Nombre de séances par défaut"
-                    placeholder="Sélectionnez un nombre"
-                    selected={sessionCount}
-                    onSelect={(value) => {
-                      setSessionCount(value)
-                      setShowSuccessMessage(false)
-                    }}
-                    options={[
-                      { value: "5", label: "5 dernières séances" },
-                      { value: "10", label: "10 dernières séances" },
-                      { value: "15", label: "15 dernières séances" },
-                    ]}
-                    touched={false}
-                    setTouched={() => { }}
-                    clearable={false}
-                    width="w-full"
-                    sortStrategy="none"
-                  />
-                  <div
-                    className="absolute top-1/2 right-[-28px] sm:left-[calc(100%+10px)] sm:right-auto -translate-y-1/2 z-20"
-                  >
-                    <div className="relative w-[18px] h-[18px] flex items-center justify-center">
-                      <InfoTooltipAdornment
-                        message="Ce réglage détermine le nombre de séances affichées par défaut dans ton tableau de bord."
-                        ariaLabel="Plus d’informations sur le nombre de séances par défaut"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <DropdownField
+                  label="Nombre de séances par défaut"
+                  placeholder="Sélectionnez un nombre"
+                  selected={sessionCount}
+                  onSelect={(value) => {
+                    setSessionCount(value)
+                    setShowSuccessMessage(false)
+                  }}
+                  options={[
+                    { value: "5", label: "5 dernières séances" },
+                    { value: "10", label: "10 dernières séances" },
+                    { value: "15", label: "15 dernières séances" },
+                  ]}
+                  touched={false}
+                  setTouched={() => { }}
+                  clearable={false}
+                  width="w-full"
+                  sortStrategy="none"
+                  endAdornment={
+                    <InfoTooltipAdornment
+                      message="Ce réglage détermine le nombre de séances affichées par défaut dans ton tableau de bord."
+                      ariaLabel="Plus d’informations sur le nombre de séances par défaut"
+                    />
+                  }
+                />
               </div>
 
               <div className="w-full max-w-[368px]">
-                <div className="relative w-full">
-                  <DropdownField
-                    label="Type de courbe par défaut"
-                    placeholder="Sélectionnez un type de courbe"
-                    selected={defaultCurve}
-                    onSelect={(value) => {
-                      setDefaultCurve(value as CurveOptionValue)
-                      setCurveTouched(value !== "")
-                      setShowSuccessMessage(false)
-                    }}
-                    options={CURVE_OPTIONS.map((option) => ({
-                      value: option.value,
-                      label: option.label,
-                    }))}
-                    touched={curveTouched}
-                    setTouched={(isTouched) => setCurveTouched(isTouched)}
-                    clearable={false}
-                    width="w-full"
-                  />
-
-                  <div
-                    className="absolute top-1/2 right-[-28px] sm:left-[calc(100%+10px)] sm:right-auto -translate-y-1/2 z-20"
-                  >
-                    <div className="relative w-[18px] h-[18px] flex items-center justify-center">
-                      <InfoTooltipAdornment
-                        message={CURVE_TOOLTIP_MESSAGE}
-                        ariaLabel="Plus d’informations sur le type de courbe par défaut"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <DropdownField
+                  label="Type de courbe par défaut"
+                  placeholder="Sélectionnez un type de courbe"
+                  selected={defaultCurve}
+                  onSelect={(value) => {
+                    setDefaultCurve(value as CurveOptionValue)
+                    setCurveTouched(value !== "")
+                    setShowSuccessMessage(false)
+                  }}
+                  options={CURVE_OPTIONS.map((option) => ({
+                    value: option.value,
+                    label: option.label,
+                  }))}
+                  touched={curveTouched}
+                  setTouched={(isTouched) => setCurveTouched(isTouched)}
+                  clearable={false}
+                  width="w-full"
+                  endAdornment={
+                    <InfoTooltipAdornment
+                      message={CURVE_TOOLTIP_MESSAGE}
+                      ariaLabel="Plus d’informations sur le type de courbe par défaut"
+                    />
+                  }
+                />
               </div>
 
               <div className="flex flex-col gap-[21px] mt-2">
@@ -445,7 +432,7 @@ export default function PreferencesSection() {
                 <PreferenceToggleRow
                   field={{
                     title: "Afficher la colonne Effort",
-                    description: "Afficher la colonne Effort dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                    description: "Affiche la colonne Effort dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
                   }}
                   checked={showEffort}
                   onCheckedChange={(checked) => {
@@ -457,7 +444,7 @@ export default function PreferencesSection() {
                 <PreferenceToggleRow
                   field={{
                     title: "Afficher la colonne Matériel",
-                    description: "Afficher la colonne Matériel dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                    description: "Affiche la colonne Matériel dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
                   }}
                   checked={showMateriel}
                   onCheckedChange={(checked) => {
@@ -469,7 +456,7 @@ export default function PreferencesSection() {
                 <PreferenceToggleRow
                   field={{
                     title: "Afficher la colonne Repos",
-                    description: "Afficher la colonne Repos dans les tableaux d'exercices. Ce réglage est valable également pour l’application mobile."
+                    description: "Affiche la colonne Repos dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
                   }}
                   checked={showRepos}
                   onCheckedChange={(checked) => {

@@ -15,6 +15,7 @@ export type DropdownFieldProps = {
   touched: boolean
   success?: string
   setTouched: (val: boolean) => void
+  endAdornment?: React.ReactNode
   /**
    * Tailwind width class applied to the dropdown button. Defaults to `w-full`.
    */
@@ -55,6 +56,7 @@ export default function DropdownField({
   touched,
   success,
   setTouched,
+  endAdornment,
   width = "w-full",
   containerClassName,
   clearable = true,
@@ -86,7 +88,10 @@ export default function DropdownField({
       )}
     >
       <div className="flex items-center justify-between mb-[6px]">
-        <label className="text-[16px] font-bold text-[#3A416F] w-fit">{label}</label>
+        <div className="flex items-center gap-2">
+          <label className="text-[16px] font-bold text-[#3A416F] w-fit">{label}</label>
+          {endAdornment}
+        </div>
         {hasSelection && clearable && (
           <button
             type="button"

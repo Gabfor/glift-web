@@ -59,7 +59,12 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (typeof window !== 'undefined' && window.location.hash) {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search)
+          }
+          setOpen(true)
+        }}
         className={clsx('mt-[50px]', triggerBaseClasses, triggerClassName)}
       >
         Supprimer mon compte
@@ -72,25 +77,26 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
         title="Supprimer ton compte"
         variant="warning"
         messageTitle="Attention"
-        messageDescription="La suppression de ton compte est définitive."
-        confirmLabel="Confirmer"
+        messageDescription="La suppression de ton compte est définitive. Es-tu sûr de vouloir nous quitter ? Vraiment sûr ? Snif snif, on est tristes..."
+        confirmLabel="Je confirme"
         confirmButtonProps={{
           loading,
           loadingText: 'En cours...',
           keepWidthWhileLoading: true,
         }}
       >
-        <p className="mb-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-          En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> ton compte ainsi que l’ensemble des données qui lui
-          sont associées seront <span className="text-[#3A416F]">définitivement supprimés</span> de la plateforme.
-        </p>
-        <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-          Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie{' '}
-          <Link href={helpUrl} className="underline text-[#3A416F]">
-            Aide
-          </Link>{' '}
-          du site.
-        </p>
+        <div className="space-y-4">
+          <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+            En cliquant sur <span className="text-[#3A416F]">« Je confirme »</span> ton compte ainsi que l’ensemble des données qui lui sont associées seront <span className="text-[#3A416F] font-bold">définitivement supprimées</span> de Glift.
+          </p>
+          <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+            Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie{' '}
+            <Link href={helpUrl} className="underline text-[#3A416F] hover:text-[#2E3271] transition-colors">
+              Aide
+            </Link>{' '}
+            du site.
+          </p>
+        </div>
 
         {error && (
           <p className="mt-6 text-left text-[14px] font-semibold text-[#BA2524]">{error}</p>

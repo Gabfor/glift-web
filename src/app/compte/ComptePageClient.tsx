@@ -25,10 +25,10 @@ interface ComptePageClientProps {
 
 export default function ComptePageClient({ initialPaymentMethods, initialIsPremium, initialPageContent }: ComptePageClientProps) {
   const { user, isEmailVerified } = useUser()
-  const [openSection, setOpenSection] = useState<string | undefined>(undefined)
+  const [openSection, setOpenSection] = useState<string>("")
 
   const handleSectionChange = useCallback((value: string) => {
-    setOpenSection(value || undefined)
+    setOpenSection(value)
     if (typeof window !== 'undefined') {
       if (value) {
         window.history.replaceState(null, '', `#${value}`)
