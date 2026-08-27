@@ -195,7 +195,7 @@ interface SubscriptionManagerProps {
 }
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
-    const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial } = useUser();
+    const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial, profile } = useUser();
     const { triggerLoader, stopLoader } = useGlobalLoader();
 
     // Initialize with server-side value if available, or default to starter
@@ -226,6 +226,15 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const [paymentError, setPaymentError] = useState<string | null>(null);
     const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
     const [isUndoingDowngrade, setIsUndoingDowngrade] = useState(false);
+
+    const now = new Date();
+    const rawTrialEnd = profile?.premium_trial_end_at || premiumTrialEndAt || (profile?.premium_trial_started_at ? new Date(new Date(profile.premium_trial_started_at).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString() : null);
+    const isTrialActive = isPremiumUser && Boolean(
+        rawTrialEnd && new Date(rawTrialEnd) > now
+    );
+    const trialEndFormatted = rawTrialEnd
+        ? new Date(rawTrialEnd).toLocaleDateString('fr-FR')
+        : '';
 
     const fetchPaymentMethod = async () => {
         try {
@@ -661,7 +670,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     </div>
                 )
             }
-            {!isPremiumUser && trial === false && (
+            {!isPremiumUser && trial === false && !profile?.premium_trial_started_at && !profile?.premium_trial_end_at && !premiumTrialEndAt && (
                 <div className="mb-6 w-full max-w-[564px] mx-auto">
                     <ModalMessage
                         variant="success"
@@ -672,6 +681,31 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             </div>
                         }
                         description="Bonne nouvelle ! Tu peux bénéficier de 30 jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement."
+                    />
+                </div>
+            )}
+
+            {isTrialActive && (
+                <div className={`w-full max-w-[564px] mx-auto ${!paymentMethod ? "mb-4" : "mb-6"}`}>
+                    <ModalMessage
+                        variant="success"
+                        title={
+                            <div className="flex items-center gap-1.5">
+                                <img src="/icons/gift.svg" alt="" className="h-[18px] w-auto inline-block" />
+                                <span>Essai Premium est en cours...</span>
+                            </div>
+                        }
+                        description="Tu profites actuellement de 30 jours offerts pour tester toutes les fonctionnalités Premium. Nous espérons que tout se passe bien !"
+                    />
+                </div>
+            )}
+
+            {isTrialActive && !paymentMethod && (
+                <div className="mb-6 w-full max-w-[564px] mx-auto">
+                    <ModalMessage
+                        variant="info"
+                        title={`Ton essai se termine le : ${trialEndFormatted}`}
+                        description="Si tu souhaites continuer à en profiter sans interruption après cette date, pense à ajouter ton moyen de paiement."
                     />
                 </div>
             )}
