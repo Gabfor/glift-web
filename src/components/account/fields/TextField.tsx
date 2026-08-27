@@ -64,7 +64,7 @@ export default function TextField({
             showError
               ? 'border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
               : showSuccess
-              ? 'border-[#00D591]'
+              ? 'border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'
               : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]',
           )}
           placeholder={placeholder ?? label}

@@ -108,7 +108,7 @@ export default function MotDePasseSection() {
   const passwordsMatch = repeatPassword.length > 0 && repeatPassword === newPassword
   const repeatPasswordError =
     repeatPasswordTouched && repeatPassword.length > 0 && repeatPassword !== newPassword
-      ? "Les deux mots de passe ne correspondent pas."
+      ? "Les deux mots de passe ne correspondent pas"
       : null
 
   const isFormReady = isOAuthOnly
@@ -150,7 +150,7 @@ export default function MotDePasseSection() {
 
       const payload = (await response.json().catch(() => null)) as
         | { error?: string }
-        | { success?: boolean }
+        | { success?: boolean; session?: { access_token: string; refresh_token: string } | null }
         | null
 
       if (!response.ok) {
@@ -183,8 +183,6 @@ export default function MotDePasseSection() {
           case "missing-email":
           case "update-failed":
           case "unexpected-error":
-            setError("Impossible de mettre à jour le mot de passe.")
-            break
           default:
             setError("Impossible de mettre à jour le mot de passe.")
             break
@@ -193,13 +191,24 @@ export default function MotDePasseSection() {
         return
       }
 
+      if (payload && "session" in payload && payload.session) {
+        await supabase.auth.setSession({
+          access_token: payload.session.access_token,
+          refresh_token: payload.session.refresh_token,
+        })
+      }
+
+      const wasOAuthOnly = isOAuthOnly
+
       setSuccess(true)
       setCurrentPassword("")
       setNewPassword("")
       setRepeatPassword("")
       setRepeatPasswordTouched(false)
       setNewPasswordStatusOverride(undefined)
-      setHasCreatedPassword(true)
+      if (wasOAuthOnly) {
+        setHasCreatedPassword(true)
+      }
       setPasswordStatus({ hasPassword: true })
       updateUserMetadata({ has_password: true })
     } catch (unknownError) {

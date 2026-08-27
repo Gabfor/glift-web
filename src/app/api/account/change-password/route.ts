@@ -1,19 +1,30 @@
 import { NextResponse } from "next/server"
+import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 
 import { createClient, createAdminClient } from "@/lib/supabase/server"
 import { getPasswordValidationState } from "@/utils/password"
 
 export async function POST(request: Request) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-      error: userError,
-    } = await supabase.auth.getUser()
+    const authHeader = request.headers.get("authorization")
+    const token = authHeader?.replace(/^Bearer\s+/i, "")
 
-    if (userError) {
-      console.error("[change-password] failed to retrieve user", userError)
-      return NextResponse.json({ error: "user-fetch-failed" }, { status: 500 })
+    const supabase = await createClient()
+    let user = null
+
+    if (token) {
+      const { data: tokenUserData, error: tokenError } = await supabase.auth.getUser(token)
+      if (!tokenError && tokenUserData?.user) {
+        user = tokenUserData.user
+      }
+    }
+
+    if (!user) {
+      const { data: cookieUserData, error: userError } = await supabase.auth.getUser()
+      if (userError) {
+        console.error("[change-password] failed to retrieve user", userError)
+      }
+      user = cookieUserData?.user ?? null
     }
 
     if (!user) {
@@ -56,18 +67,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "missing-email" }, { status: 400 })
     }
 
+    const authClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          persistSession: false,
+          autoRefreshToken: false,
+        },
+      }
+    )
+
     if (!isOAuthOnly) {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await authClient.auth.signInWithPassword({
         email,
         password: currentPassword,
       })
 
       if (signInError) {
-        if (signInError.status === 400 || signInError.status === 401) {
-          return NextResponse.json({ error: "invalid-current-password" }, { status: 400 })
-        }
-
-        console.error("[change-password] unable to verify current password", signInError)
         return NextResponse.json({ error: "invalid-current-password" }, { status: 400 })
       }
     }
@@ -86,7 +103,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "update-failed" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true })
+    // Immediately establish a new session so the user is never logged out
+    const { data: newSessionData } = await authClient.auth.signInWithPassword({
+      email,
+      password: newPassword,
+    })
+
+    return NextResponse.json({
+      success: true,
+      session: newSessionData?.session ?? null,
+    })
   } catch (error) {
     console.error("[change-password] unexpected error", error)
     return NextResponse.json({ error: "unexpected-error" }, { status: 500 })

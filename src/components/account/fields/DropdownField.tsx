@@ -70,14 +70,7 @@ export default function DropdownField({
 
   const buttonClassName = clsx(
     width,
-    "h-[45px] px-[15px]",
     buttonRoundedClassName,
-    "text-[16px] font-semibold bg-white text-[#3A416F]",
-    "border transition-all duration-150",
-    "focus:outline-none",
-    showSuccess
-      ? "!border-[#00D591]"
-      : "border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]",
   )
 
   return (
@@ -121,6 +114,7 @@ export default function DropdownField({
             }
           }}
           options={options}
+          success={showSuccess}
           buttonClassName={buttonClassName}
           sortStrategy={sortStrategy}
         />

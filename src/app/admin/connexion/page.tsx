@@ -241,7 +241,7 @@ export default function AdminConnexionPage() {
             <CTAButton
               type="submit"
               isAdmin
-              className="w-full max-w-[160px] font-semibold"
+              className="w-full md:w-auto font-semibold"
               disabled={!isFormValid}
               loading={loading}
               loadingText="En cours..."

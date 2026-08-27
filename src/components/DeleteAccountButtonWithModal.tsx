@@ -74,16 +74,7 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
         open={open}
         onClose={() => setOpen(false)}
         onConfirm={handleConfirm}
-        title={
-          <div className="flex flex-col items-center gap-3">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M21.5774 7.5C22.7321 5.5 25.2679 5.5 26.4226 7.5L43.7428 37.5C44.8975 39.5 43.6296 42 41.3202 42H6.6798C4.3704 42 3.10246 39.5 4.25716 37.5L21.5774 7.5Z" fill="#EF4F4E" />
-              <path d="M24 18V27" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
-              <circle cx="24" cy="33" r="2" fill="white" />
-            </svg>
-            <span>Supprimer ton compte</span>
-          </div>
-        }
+        title="Supprimer ton compte"
         variant="warning"
         messageTitle="Attention"
         messageDescription="La suppression de ton compte est définitive. Es-tu sûr de vouloir nous quitter ? Vraiment sûr ? Snif snif, on est tristes..."

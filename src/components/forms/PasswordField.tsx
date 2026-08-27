@@ -159,14 +159,17 @@ export function PasswordField({
           className={cn(
             "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border",
             "disabled:cursor-not-allowed disabled:bg-[#F2F1F6] disabled:text-[#D7D4DC] disabled:border-[#D7D4DC]",
-            showError
-              ? "border-[#EF4444]"
-              : showSuccess
-              ? "border-[#00D591]"
-              : cn(
-                  "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2",
-                  isPageAdmin ? "focus:ring-[#5D6494]" : "focus:ring-[#A1A5FD]"
-                ),
+              showError
+                ? "border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]"
+                : showSuccess
+                ? cn(
+                    "border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2",
+                    isPageAdmin ? "focus:ring-[#5D6494]" : "focus:ring-[#A1A5FD]"
+                  )
+                : cn(
+                    "border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2",
+                    isPageAdmin ? "focus:ring-[#5D6494]" : "focus:ring-[#A1A5FD]"
+                  ),
             inputClassName,
           )}
           aria-invalid={showError}

@@ -158,7 +158,7 @@ export default function ProfilePictureBlock({
                 cx="63"
                 cy="63"
                 r={RADIUS}
-                stroke="#33E1AC"
+                stroke="#00D591"
                 strokeWidth={STROKE}
                 fill="none"
                 pathLength={100}
@@ -252,7 +252,7 @@ export default function ProfilePictureBlock({
       <p className="text-base font-semibold text-[#3A416F]">
         Ton profil est complet à{" "}
         <span className="inline-flex w-[5ch] tabular-nums text-left justify-start">
-          <span className="text-[#33E1AC]">{pct}%</span>
+          <span className="text-[#00D591]">{pct}%</span>
           <span className="text-[#3A416F]">.</span>
         </span>
       </p>

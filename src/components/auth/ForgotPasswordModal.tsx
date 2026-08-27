@@ -275,7 +275,7 @@ export default function ForgotPasswordModal({
       open={open}
       title={
         <div className="flex flex-col items-center">
-          <div className="sm:hidden mb-3">
+          <div className="mb-3">
             <Image
               src={
                 error

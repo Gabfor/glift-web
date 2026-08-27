@@ -567,7 +567,7 @@ const AccountCreationPage = () => {
           <div className="w-full flex justify-center mt-[10px]">
             <CTAButton
               type="submit"
-              className="w-full md:max-w-[220px] font-semibold"
+              className="w-full md:w-auto font-semibold"
               disabled={!isFormValid}
               loading={loading}
               loadingText="En cours..."
@@ -637,7 +637,7 @@ const AccountCreationPage = () => {
           open={showVerificationModal}
           title={
             <div className="flex flex-col items-center">
-              <div className="sm:hidden mb-3">
+              <div className="mb-3">
                 <Image
                   src={otpError ? "/icons/cadena_rouge.svg" : "/icons/cadena_violet.svg"}
                   alt="Icône cadenas"
