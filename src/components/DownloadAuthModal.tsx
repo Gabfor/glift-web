@@ -93,19 +93,19 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
       {isRestricted ? (
         <div className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] space-y-4">
           <p>
-            En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras basculer vers la formule d’abonnement Premium qui te donneras accès à l’ensemble des programmes du Glift Store.
+            En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras basculer vers la formule d’abonnement Premium qui te donneras accès à l’ensemble des programmes du Glift Store.
           </p>
           <p>
-            En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement actuel.
+            En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement actuel.
           </p>
         </div>
       ) : (
         <div className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] space-y-4">
           <p>
-            Si tu n’as pas encore créé de compte, clique sur le bouton <span className="text-[#3A416F]">« Inscription »</span> ci-dessous et rejoins Glift en moins de 30 secondes. Aucun moyen de paiement n’est nécessaire et tu as 30 jours offerts pour tester.
+            Si tu n’as pas encore créé de compte, clique sur le bouton <span className="text-[#3A416F] font-bold">« Inscription »</span> ci-dessous et rejoins Glift en moins de 30 secondes. Aucun moyen de paiement n’est nécessaire et tu as 30 jours offerts pour tester.
           </p>
           <p>
-            Si tu as déjà un compte, tu peux te connecter en cliquant sur le bouton <span className="text-[#3A416F]">« Connexion »</span> ci-dessous.
+            Si tu as déjà un compte, tu peux te connecter en cliquant sur le bouton <span className="text-[#3A416F] font-bold">« Connexion »</span> ci-dessous.
           </p>
         </div>
       )}

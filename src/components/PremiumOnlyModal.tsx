@@ -45,10 +45,10 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
       />
 
       <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras souscrire à la formule d’abonnement Premium qui te donnera accès aux offres bloquées.
+        En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras souscrire à la formule d’abonnement Premium qui te donnera accès aux offres bloquées.
         <br />
         <br />
-        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ta formule d’abonnement et tu pourras continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F]">Premium</span>.
+        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ta formule d’abonnement et tu pourras continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F] font-bold">Premium</span>.
       </p>
     </Modal>
   );

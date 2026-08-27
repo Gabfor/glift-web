@@ -27,18 +27,51 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
   const { user, isEmailVerified } = useUser()
   const [openSection, setOpenSection] = useState<string>("")
 
+  const scrollToSection = useCallback((sectionId: string, smooth = true) => {
+    if (typeof window === 'undefined' || !sectionId) return
+
+    const performScroll = (isSmooth: boolean) => {
+      const el = document.getElementById(sectionId)
+      if (!el) return
+
+      // Dynamically calculate the total height of the fixed header (including any active top banners)
+      const fixedHeader = document.querySelector('.fixed.top-0') as HTMLElement | null
+      const headerHeight = fixedHeader ? fixedHeader.getBoundingClientRect().height : 72
+      // Responsive buffer: 12px on mobile screens, 20px on desktop
+      const buffer = window.innerWidth < 768 ? 12 : 20
+      const headerOffset = headerHeight + buffer
+
+      const rect = el.getBoundingClientRect()
+      const targetScrollTop = window.scrollY + rect.top - headerOffset
+
+      window.scrollTo({
+        top: Math.max(0, targetScrollTop),
+        behavior: isSmooth ? 'smooth' : 'auto',
+      })
+    }
+
+    // Smoothly scroll and maintain alignment through accordion open/close transition (300ms duration)
+    performScroll(smooth)
+    setTimeout(() => performScroll(smooth), 120)
+    setTimeout(() => performScroll(smooth), 320)
+    setTimeout(() => performScroll(false), 450)
+  }, [])
+
   const handleSectionChange = useCallback((value: string) => {
     setOpenSection(value)
     if (typeof window !== 'undefined') {
       if (value) {
         window.history.replaceState(null, '', `#${value}`)
+        setTimeout(() => {
+          scrollToSection(value, true)
+        }, 120)
       } else {
         window.history.replaceState(null, '', window.location.pathname + window.location.search)
       }
     }
-  }, [])
+  }, [scrollToSection])
 
-  const openSectionFromHash = useCallback(() => {
+  const openSectionFromHash = useCallback((smooth = true) => {
     if (typeof window === 'undefined') return
 
     const hash = window.location.hash.replace('#', '')
@@ -47,28 +80,19 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
     }
 
     setOpenSection(hash)
-
-    const target = document.getElementById(hash)
-    if (target) {
-      // Base offset 110px. Add 36px if email not verified (banner visible)
-      // Check logic from Header.tsx: show if verified is false or (null AND not confirmed)
-      const shouldShowBanner = isEmailVerified === false || (isEmailVerified === null && !user?.email_confirmed_at)
-      const headerOffset = 110 + (shouldShowBanner ? 36 : 0)
-
-      const { top } = target.getBoundingClientRect()
-      const scrollTop = window.scrollY + top - headerOffset
-      window.scrollTo({ top: Math.max(0, scrollTop), behavior: 'smooth' })
-    }
-  }, [isEmailVerified, user])
+    setTimeout(() => {
+      scrollToSection(hash, smooth)
+    }, 150)
+  }, [scrollToSection])
 
   useEffect(() => {
-    openSectionFromHash()
+    openSectionFromHash(false)
 
     if (typeof window === 'undefined') {
       return
     }
 
-    const handleHashChange = () => openSectionFromHash()
+    const handleHashChange = () => openSectionFromHash(true)
     window.addEventListener('hashchange', handleHashChange)
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [openSectionFromHash])

@@ -579,10 +579,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Modifier »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Modifier »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras de profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras de profiter d’un stockage illimité.
                     </p>
                 </div>
             </ConfirmationModal>
@@ -606,10 +606,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Supprimer »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Supprimer »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F]">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter d’un stockage illimité.
                     </p>
                 </div>
             </ConfirmationModal>

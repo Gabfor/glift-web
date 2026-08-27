@@ -12,7 +12,7 @@ type Props = {
 
 export default function AccountAccordionSection({ value, title, children }: Props) {
   return (
-    <AccordionItem value={value} id={value}>
+    <AccordionItem value={value} id={value} className="scroll-mt-[100px] md:scroll-mt-[120px]">
       <div className="border border-[#D7D4DC] bg-white rounded-[8px]">
         <div className="overflow-hidden rounded-[8px]">
           <AccordionTrigger>{title}</AccordionTrigger>

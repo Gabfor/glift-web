@@ -47,10 +47,10 @@ export default function ProgramHideWarningModal({ show, onCancel, onConfirm }: P
             />
 
             <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] mb-4">
-                En cliquant sur <span className="text-[#3A416F]">« Confirmer »</span> le programme contenant ton seul entraînement actif sera masqué et ne sera donc plus disponible sur l’application mobile. Tu pourras toujours le démasquer.
+                En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif sera masqué et ne sera donc plus disponible sur l’application mobile. Tu pourras toujours le démasquer.
             </p>
             <p className="mb-6 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <a href="#" className="text-[#3A416F] underline">Aide</a> du site.
+                Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <a href="#" className="text-[#3A416F] font-bold underline">Aide</a> du site.
             </p>
         </Modal>
     );

@@ -10,7 +10,7 @@ type CTAButtonProps = ComponentPropsWithoutRef<typeof CTAButton>
 
 interface ConfirmationModalProps {
   open: boolean
-  title: string
+  title: ReactNode
   variant: "warning" | "info"
   messageTitle: ReactNode
   messageDescription: ReactNode
