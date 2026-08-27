@@ -25,7 +25,18 @@ interface ComptePageClientProps {
 
 export default function ComptePageClient({ initialPaymentMethods, initialIsPremium, initialPageContent }: ComptePageClientProps) {
   const { user, isEmailVerified } = useUser()
-  const [openSections, setOpenSections] = useState<string[]>([])
+  const [openSection, setOpenSection] = useState<string | undefined>(undefined)
+
+  const handleSectionChange = useCallback((value: string) => {
+    setOpenSection(value || undefined)
+    if (typeof window !== 'undefined') {
+      if (value) {
+        window.history.replaceState(null, '', `#${value}`)
+      } else {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+      }
+    }
+  }, [])
 
   const openSectionFromHash = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -35,15 +46,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
       return
     }
 
-    setOpenSections((current) => {
-      // If the section is already open, keep it open (and potentially others)
-      if (current.includes(hash)) {
-        return current
-      }
-      // Add the new section to the list of open sections to avoid layout shift
-      // This solves the scroll issue when navigating from a higher open section
-      return [...current, hash]
-    })
+    setOpenSection(hash)
 
     const target = document.getElementById(hash)
     if (target) {
@@ -117,7 +120,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
         />
 
         <div className="w-full max-w-[760px] space-y-[30px]">
-          <Accordion type="multiple" className="space-y-[30px]" value={openSections} onValueChange={setOpenSections}>
+          <Accordion type="single" collapsible className="space-y-[30px]" value={openSection} onValueChange={handleSectionChange}>
             <MesInformationsSection user={user} />
             <MotDePasseSection />
             <AbonnementSection initialPaymentMethods={initialPaymentMethods} initialIsPremium={initialIsPremium} />

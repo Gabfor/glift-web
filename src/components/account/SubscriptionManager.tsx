@@ -18,33 +18,26 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 
 const PlanOption = ({
     title,
-    subtitle,
+    icon,
     price,
     period,
     isSelected,
     onSelect,
-    badge,
 }: {
     title: string;
-    subtitle: string;
+    icon?: string;
     price: string;
     period: string;
     isSelected: boolean;
     onSelect: () => void;
-    badge?: React.ReactNode;
 }) => {
     return (
         <div
             onClick={onSelect}
-            className={`flex flex-col cursor-pointer group ${badge ? 'pt-0 pb-2' : 'py-2'}`}
+            className="flex flex-col cursor-pointer group py-2"
         >
-            {badge && (
-                <div className="mb-1 ml-8">
-                    {badge}
-                </div>
-            )}
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-[10px] min-w-0">
                     <div className="relative w-5 h-5 flex items-center justify-center shrink-0">
                         <img
                             src={isSelected ? "/icons/radio_ON.svg" : "/icons/radio_OFF.svg"}
@@ -52,24 +45,30 @@ const PlanOption = ({
                             className="w-full h-full"
                         />
                     </div>
-                    <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:gap-1">
-                        <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
+                    <div className="flex items-center gap-[5px] min-w-0">
+                        {icon && (
+                            <div className="relative h-[20px] flex items-center justify-center shrink-0">
+                                <img
+                                    src={icon}
+                                    alt=""
+                                    className="h-[20px] w-auto object-contain"
+                                />
+                            </div>
+                        )}
+                        <span className={`text-[15px] sm:text-[16px] font-semibold leading-none ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"}`}>
                             {title}
-                        </span>
-                        <span className={`text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
-                            {subtitle}
                         </span>
                     </div>
                 </div>
-                <div className="flex items-baseline gap-1">
+                <div className="flex items-baseline gap-1 shrink-0">
                     <span
-                        className={`text-[20px] font-bold ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"
+                        className={`text-[18px] sm:text-[20px] font-bold ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"
                             }`}
                     >
                         {price}
                     </span>
                     <span
-                        className={`text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
+                        className={`text-[14px] sm:text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
                             }`}
                     >
                         {period}
@@ -117,20 +116,20 @@ const PaymentMethodCard = ({
     const brandIcon = getBrandIcon(brand);
 
     return (
-        <div className={`w-full h-[80px] rounded-[8px] bg-[#FAFAFF] border flex items-center justify-between px-[20px] ${isError ? 'border-red-500 bg-[#FFF1F1]' : 'border-[#E6E6FF]'}`}>
-            <div className="flex items-center gap-4">
-                <div className="w-[50px] h-[34px] flex items-center justify-center overflow-hidden">
+        <div className={`w-full min-h-[80px] h-auto py-3 sm:py-0 rounded-[8px] bg-[#FAFAFF] border flex items-center justify-between px-3 sm:px-[20px] gap-2 sm:gap-4 ${isError ? 'border-red-500 bg-[#FFF1F1]' : 'border-[#E6E6FF]'}`}>
+            <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
+                <div className="w-[40px] sm:w-[50px] h-[34px] flex items-center justify-center overflow-hidden shrink-0">
                     {brandIcon ? (
-                        <img src={brandIcon} alt={brand} className="h-[25px] w-auto object-contain" />
+                        <img src={brandIcon} alt={brand} className="h-[22px] sm:h-[25px] w-auto object-contain" />
                     ) : (
                         <span className="text-[10px] font-bold text-gray-500 uppercase">{brand}</span>
                     )}
                 </div>
-                <div className="flex flex-col text-left">
-                    <span className="text-[14px] font-semibold text-[#2E3271]">
+                <div className="flex flex-col text-left min-w-0">
+                    <span className="text-[13px] sm:text-[14px] font-semibold text-[#2E3271] truncate">
                         {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                     </span>
-                    <span className={`text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
+                    <span className={`text-[11px] sm:text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
                         {isExpired ? "Expirée depuis" : "Expire en"} : {expMonth.toString().padStart(2, '0')}/{expYear}
                     </span>
                 </div>
@@ -557,7 +556,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     }
 
     return (
-        <div className="w-full text-left mt-[14px] mb-8 px-[81px]">
+        <div className="w-full text-left mt-[14px] mb-8 flex flex-col items-center">
             <ConfirmationModal
                 open={showDowngradeModal}
                 title="Modification d’abonnement"
@@ -615,7 +614,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 </div>
             </ConfirmationModal>
             {showSuccessMessage && (
-                <div className="mb-6 w-full">
+                <div className="mb-6 w-full max-w-[564px] mx-auto">
                     <ModalMessage
                         variant="success"
                         title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : (isUndoingDowngrade ? "Annulation prise en compte" : "Félicitations !")}
@@ -652,7 +651,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             )}
             {
                 showModalMessage && (
-                    <div className="mb-6 w-full">
+                    <div className="mb-6 w-full max-w-[564px] mx-auto">
                         <ModalMessage
                             variant={successMessage.variant}
                             title={successMessage.title}
@@ -662,10 +661,24 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     </div>
                 )
             }
-            <div className="space-y-4 mb-0">
+            {!isPremiumUser && trial === false && (
+                <div className="mb-6 w-full max-w-[564px] mx-auto">
+                    <ModalMessage
+                        variant="success"
+                        title={
+                            <div className="flex items-center gap-1.5">
+                                <img src="/icons/gift.svg" alt="" className="h-[18px] w-auto inline-block" />
+                                <span>Essaye Premium gratuitement !</span>
+                            </div>
+                        }
+                        description="Bonne nouvelle ! Tu peux bénéficier de 30 jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement."
+                    />
+                </div>
+            )}
+            <div className="w-full max-w-[564px] mx-auto space-y-4 mb-0">
                 <PlanOption
                     title="Abonnement Starter"
-                    subtitle="avec stockage limité"
+                    icon="/icons/diamant_starter.svg"
                     price="0 €"
                     period="/mois"
                     isSelected={selectedPlan === "starter"}
@@ -673,22 +686,17 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 />
                 <PlanOption
                     title="Abonnement Premium"
-                    subtitle="avec stockage illimité"
+                    icon="/icons/diamant_premium.svg"
                     price="2,49 €"
                     period="/mois"
                     isSelected={selectedPlan === "premium"}
                     onSelect={() => setSelectedPlan("premium")}
-                    badge={(!isPremiumUser && trial === false) ? (
-                        <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center w-fit uppercase">
-                            Bénéficiez de 30 jours pour tester gratuitement
-                        </span>
-                    ) : null}
                 />
             </div>
 
             {
                 selectedPlan === 'premium' && (
-                    <div className="mt-[20px] mb-[40px]">
+                    <div className="w-full max-w-[564px] mx-auto mt-[20px] mb-[40px]">
                         {paymentMethod && !isAddingMethod ? (
                             <PaymentMethodCard
                                 brand={paymentMethod.brand}
@@ -710,7 +718,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                         + Ajouter un mode de paiement
                                     </button>
                                 ) : (
-                                    <div className="px-6 pb-6 pt-10 bg-white relative">
+                                    <div className="px-4 sm:px-6 pb-6 pt-10 bg-white relative">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -750,7 +758,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                         fontSizeBase: '16px',
                                                         colorTextSecondary: '#D7D4DC',
                                                         colorTextPlaceholder: '#D7D4DC',
-                                                    },
+                                                     },
                                                     rules: {
                                                         '.Input': {
                                                             border: '1px solid #D7D4DC',
@@ -794,7 +802,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                         window.dispatchEvent(new Event('paymentMethodUpdated'));
 
                                                         if (paymentMethod) {
-                                                            // Updated existing
+                                                             // Updated existing
                                                             setSuccessMessage({
                                                                 title: "Mode de paiement modifié avec succès",
                                                                 description: "Ton changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
@@ -826,12 +834,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 )
             }
 
-            <div className={`flex justify-center ${selectedPlan === "starter" ? "mt-[32px]" : ""}`}>
+            <div className={`flex justify-center w-full ${selectedPlan === "starter" ? "mt-[32px]" : ""}`}>
                 <CTAButton
                     onClick={handleUpdate}
                     disabled={isCurrentPlan || (selectedPlan === 'premium' && !paymentMethod)}
                     loading={loading}
-                    className="px-[30px] font-semibold bg-[#F4F5FE] text-[#7069FA] hover:bg-[#EBEDFE]"
+                    className="w-full max-w-[368px] sm:w-auto sm:max-w-none px-[30px] font-semibold bg-[#F4F5FE] text-[#7069FA] hover:bg-[#EBEDFE]"
                 >
                     Mettre à jour
                 </CTAButton>
