@@ -188,6 +188,48 @@ const getPaymentErrorMessage = (code: string | null): string => {
     }
 };
 
+const PaymentFormSkeleton = () => (
+    <div className="w-full animate-pulse">
+        <div className="w-full max-w-[368px] mx-auto mb-[30px]">
+            {/* Numéro de carte */}
+            <div className="mb-5">
+                <div className="h-[20px] w-[140px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
+                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
+            </div>
+
+            {/* Date d'expiration */}
+            <div className="mb-5">
+                <div className="h-[20px] w-[130px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
+                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
+            </div>
+
+            {/* Code de sécurité */}
+            <div className="w-[179px] mb-6">
+                <div className="h-[20px] w-[120px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
+                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
+            </div>
+        </div>
+
+        {/* Checkbox line */}
+        <div className="flex items-start gap-3 mb-5 w-full max-w-[564px] mx-auto">
+            <div className="w-[15px] h-[15px] rounded-[3px] bg-[#E6E8F5] shrink-0 mt-[3px]" />
+            <div className="space-y-2 flex-1">
+                <div className="h-[12px] w-full bg-[#E6E8F5] rounded-[4px]" />
+                <div className="h-[12px] w-3/4 bg-[#E6E8F5] rounded-[4px]" />
+            </div>
+        </div>
+
+        {/* Submit button */}
+        <div className="mt-0 flex justify-center w-full">
+            <div className="h-[48px] w-full sm:w-[220px] rounded-full bg-[#E6E8F5]" />
+        </div>
+
+        {/* Stripe footer */}
+        <div className="mt-5 flex items-center justify-center gap-2">
+            <div className="h-[14px] w-[180px] bg-[#E6E8F5] rounded-[4px]" />
+        </div>
+    </div>
+);
 
 interface SubscriptionManagerProps {
     initialPaymentMethods?: PaymentMethod[];
@@ -256,7 +298,6 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     const handleStartSetup = async () => {
         setIsAddingMethod(true);
-        triggerLoader(3000); // Immediate feedback for setup
         try {
             const res = await fetch('/api/user/setup-subscription', { method: 'POST' });
             if (res.ok) {
@@ -653,6 +694,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             )
                             : (isUndoingDowngrade
                                 ? "Suite à ton annulation, nous te confirmons que ton abonnement Premium sera renouvelé automatiquement à l’issue de la période d’abonnement actuelle."
+                                : isTrialActive
+                                ? "Ton moyen de paiement a bien été ajouté. Tu pourras continuer à bénéficier des avantages Premium une fois les 30 jours offerts passés."
                                 : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
                         }
                     />
@@ -749,7 +792,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                         type="button"
                                         className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
                                     >
-                                        + Ajouter un mode de paiement
+                                        + Ajouter un moyen de paiement
                                     </button>
                                 ) : (
                                     <div className="px-4 sm:px-6 pb-6 pt-10 bg-white relative">
@@ -838,8 +881,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                         if (paymentMethod) {
                                                              // Updated existing
                                                             setSuccessMessage({
-                                                                title: "Mode de paiement modifié avec succès",
-                                                                description: "Ton changement de mode de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
+                                                                title: "Moyen de paiement modifié avec succès",
+                                                                description: "Ton changement de moyen de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
                                                                 variant: "success"
                                                             });
                                                             setShowModalMessage(true);
@@ -856,9 +899,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 />
                                             </Elements>
                                         ) : (
-                                            <div className="flex justify-center items-center py-10">
-                                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
-                                            </div>
+                                            <PaymentFormSkeleton />
                                         )}
                                     </div>
                                 )}

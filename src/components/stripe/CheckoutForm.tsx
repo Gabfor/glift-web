@@ -56,6 +56,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
 
     // Track field completion for validation
     const [cardNumberComplete, setCardNumberComplete] = useState(false);
+    const [hasCardNumberValue, setHasCardNumberValue] = useState(false);
     const [cardExpiryComplete, setCardExpiryComplete] = useState(false);
     const [cardCvcComplete, setCardCvcComplete] = useState(false);
 
@@ -148,16 +149,21 @@ export default function CheckoutForm(props: CheckoutFormProps) {
                             <CardNumberElement
                                 options={{ ...ELEMENT_OPTIONS, showIcon: true, disableLink: true }}
                                 className="w-full"
-                                onChange={(e) => setCardNumberComplete(e.complete)}
+                                onChange={(e) => {
+                                    setCardNumberComplete(e.complete);
+                                    setHasCardNumberValue(!e.empty);
+                                }}
                                 onFocus={() => setFocusedField("cardNumber")}
                                 onBlur={() => setFocusedField(null)}
                             />
                         </div>
-                        <div className="flex items-center gap-1">
-                            <img src="/icons/visa.svg" alt="Visa" className="h-[20px] w-auto" />
-                            <img src="/icons/mastercard.svg" alt="Mastercard" className="h-[20px] w-auto" />
-                            <img src="/icons/cb.svg" alt="CB" className="h-[20px] w-auto" />
-                        </div>
+                        {!hasCardNumberValue && (
+                            <div className="flex items-center gap-1 shrink-0 transition-opacity duration-150">
+                                <img src="/icons/visa.svg" alt="Visa" className="h-[20px] w-auto" />
+                                <img src="/icons/mastercard.svg" alt="Mastercard" className="h-[20px] w-auto" />
+                                <img src="/icons/cb.svg" alt="CB" className="h-[20px] w-auto" />
+                            </div>
+                        )}
                     </div>
                 </div>
 
