@@ -150,14 +150,14 @@ export default function InfoTooltipAdornment({
           alt=""
           width={iconSize}
           height={iconSize}
-          className="block group-hover:opacity-0"
+          className="pointer-events-none block [@media(hover:hover)]:group-hover:opacity-0"
         />
         <Image
           src="/icons/info_hover.svg"
           alt=""
           width={iconSize}
           height={iconSize}
-          className="absolute inset-0 opacity-0 group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
         />
       </span>
 

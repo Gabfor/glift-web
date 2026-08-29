@@ -81,7 +81,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
                 colorDanger: '#df1b41',
                 fontFamily: 'Quicksand, system-ui, sans-serif',
                 spacingUnit: '4px',
-                borderRadius: '5px',
+                borderRadius: '22px',
                 fontSizeBase: '16px',
                 colorTextSecondary: '#D7D4DC',
                 colorTextPlaceholder: '#D7D4DC',
@@ -89,6 +89,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
             },
             rules: {
                 '.Input': {
+                    borderRadius: '5px',
                     border: '1px solid #D7D4DC',
                     boxShadow: 'none',
                     padding: '10px 15px',

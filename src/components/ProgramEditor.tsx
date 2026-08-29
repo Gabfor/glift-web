@@ -363,7 +363,7 @@ export default function ProgramEditor({
             <span>{name || DEFAULT_PROGRAM_NAME}</span>
             <Tooltip content="Editer">
               <div
-                className="relative ml-1 w-[15px] h-[15px]"
+                className="relative ml-1 w-[15px] h-[15px] cursor-pointer select-none"
                 onClick={handleStartEditClick}
               >
                 <Image
@@ -371,14 +371,14 @@ export default function ProgramEditor({
                   alt="Modifier"
                   fill
                   sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-100 group-hover:opacity-0"
+                  className="pointer-events-none absolute top-0 left-0 w-full h-full opacity-100 [@media(hover:hover)]:group-hover:opacity-0"
                 />
                 <Image
                   src="/icons/edit_program_hover.svg"
                   alt="Modifier"
                   fill
                   sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-0 group-hover:opacity-100"
+                  className="pointer-events-none absolute top-0 left-0 w-full h-full opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                 />
               </div>
             </Tooltip>

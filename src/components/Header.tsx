@@ -455,13 +455,13 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     src="/icons/chevron_down.svg"
                     alt="Chevron"
                     fill
-                    className="object-contain transition-opacity duration-150 group-hover:opacity-0"
+                    className="pointer-events-none object-contain transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-0"
                   />
                   <Image
                     src="/icons/chevron_down_hover.svg"
                     alt="Chevron hover"
                     fill
-                    className="object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 group-hover:opacity-100"
+                    className="pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-150 opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
                   />
                 </span>
               </button>

@@ -189,7 +189,7 @@ export default function InfoAdornment({
           alt=""
           width={iconSize}
           height={iconSize}
-          className="block transition-opacity duration-150 ease-in-out group-hover:opacity-0"
+          className="pointer-events-none block transition-opacity duration-150 ease-in-out [@media(hover:hover)]:group-hover:opacity-0"
           style={{ opacity: open ? 0 : undefined }}
         />
         <Image
@@ -197,7 +197,7 @@ export default function InfoAdornment({
           alt=""
           width={iconSize}
           height={iconSize}
-          className="absolute inset-0 opacity-0 transition-opacity duration-150 ease-in-out group-hover:opacity-100"
+          className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 ease-in-out [@media(hover:hover)]:group-hover:opacity-100"
           style={{ opacity: open ? 1 : undefined }}
         />
       </span>

@@ -145,10 +145,10 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                             </span>
                             <div className="flex items-center gap-[5px]">
                                 {/* Top Vote */}
-                                <Tooltip content="Oui">
+                                <Tooltip content="Oui" asChild>
                                     <button
                                         onClick={() => handleVote('top')}
-                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100"
+                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
                                         aria-label="Oui, utile"
                                     >
                                         <div className="relative w-[20px] h-[20px]">
@@ -157,7 +157,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/oui_gris.svg"
                                                     alt="Oui gris"
                                                     fill
-                                                    className={`object-contain transition-opacity duration-200 ${!hasVoted ? 'group-hover:opacity-0' : ''
+                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover:opacity-0' : ''
                                                         }`}
                                                 />
                                             ) : null}
@@ -166,7 +166,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/oui_vert.svg"
                                                     alt="Oui vert"
                                                     fill
-                                                    className={`object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100' : 'opacity-100'
                                                         }`}
                                                 />
                                             ) : null}
@@ -175,10 +175,10 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                 </Tooltip>
 
                                 {/* Flop Vote */}
-                                <Tooltip content="Non">
+                                <Tooltip content="Non" asChild>
                                     <button
                                         onClick={() => handleVote('flop')}
-                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100"
+                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
                                         aria-label="Non, pas utile"
                                     >
                                         <div className="relative w-[20px] h-[20px]">
@@ -187,7 +187,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/non_gris.svg"
                                                     alt="Non gris"
                                                     fill
-                                                    className={`object-contain transition-opacity duration-200 ${!hasVoted ? 'group-hover:opacity-0' : ''
+                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover:opacity-0' : ''
                                                         }`}
                                                 />
                                             ) : null}
@@ -196,7 +196,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/non_rouge.svg"
                                                     alt="Non rouge"
                                                     fill
-                                                    className={`object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'
+                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100' : 'opacity-100'
                                                         }`}
                                                 />
                                             ) : null}

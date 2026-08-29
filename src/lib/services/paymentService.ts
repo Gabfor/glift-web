@@ -12,6 +12,7 @@ export interface PaymentMethod {
     last4: string;
     exp_month: number;
     exp_year: number;
+    wallet_type?: string | null;
 }
 
 export function toEndOfDayIso(input: string | number | Date): string {
@@ -93,6 +94,7 @@ export class PaymentService {
             last4: pm.card?.last4 || '????',
             exp_month: pm.card?.exp_month || 0,
             exp_year: pm.card?.exp_year || 0,
+            wallet_type: pm.card?.wallet?.type || pm.metadata?.simulated_wallet || null,
         }));
     }
 
@@ -435,7 +437,7 @@ export class PaymentService {
                     // Create SetupIntent
                     const setupIntent = await stripe.setupIntents.create({
                         customer: customerId,
-                        payment_method_types: ['card'],
+                        automatic_payment_methods: { enabled: true },
                         metadata: { subscription_id: activeSub.id }
                     });
                     console.log("PaymentService: Created SetupIntent for trial");
@@ -644,7 +646,7 @@ export class PaymentService {
                 console.log("PaymentService: No pending_setup_intent from subscription. Creating manual SetupIntent.");
                 setupIntent = await stripe.setupIntents.create({
                     customer: customerId,
-                    payment_method_types: ['card'],
+                    automatic_payment_methods: { enabled: true },
                     metadata: { subscription_id: subscription.id }
                 });
             }
@@ -1132,7 +1134,7 @@ export class PaymentService {
         return null; // Implies starter/none logic in frontend
     }
 
-    async setDefaultPaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string) {
+    async setDefaultPaymentMethod(userId: string, userEmail: string, appMetadata: any, paymentMethodId: string, walletType?: string | null) {
         let customerId = appMetadata?.stripe_customer_id;
 
         // Validation helper
@@ -1150,7 +1152,33 @@ export class PaymentService {
             invoice_settings: { default_payment_method: paymentMethodId }
         });
 
-        // 2. Update Active Subscription Default (to null, so it uses customer default)
+        // 2. Set simulated_wallet metadata if provided
+        if (walletType) {
+            try {
+                await stripe.paymentMethods.update(paymentMethodId, {
+                    metadata: { simulated_wallet: walletType },
+                });
+            } catch (e) {
+                console.warn("PaymentService: Could not update payment method metadata", e);
+            }
+        }
+
+        // 3. Detach any previous payment methods from customer to keep only the active one
+        try {
+            const existingPms = await stripe.paymentMethods.list({
+                customer: customerId,
+                type: 'card',
+            });
+            for (const pm of existingPms.data) {
+                if (pm.id !== paymentMethodId) {
+                    await stripe.paymentMethods.detach(pm.id);
+                }
+            }
+        } catch (e) {
+            console.warn("PaymentService: Could not detach older payment methods", e);
+        }
+
+        // 4. Update Active Subscription Default (to null, so it uses customer default)
         const subscriptions = await stripe.subscriptions.list({
             customer: customerId,
         });

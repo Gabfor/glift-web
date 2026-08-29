@@ -17,13 +17,13 @@ export default function BackLink({ children, href, onClick, className = '' }: Ba
                     src="/icons/chevron_left.svg"
                     alt="Retour"
                     fill
-                    className="object-contain transition-opacity duration-150 group-hover:opacity-0"
+                    className="pointer-events-none object-contain transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-0"
                 />
                 <Image
                     src="/icons/chevron_left_hover.svg"
                     alt="Retour (hover)"
                     fill
-                    className="object-contain opacity-0 transition-opacity duration-150 group-hover:opacity-100 absolute top-0 left-0"
+                    className="pointer-events-none object-contain opacity-0 transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100 absolute top-0 left-0"
                 />
             </div>
             {children}

@@ -443,9 +443,11 @@ export default function ConnexionPage() {
           <div className="flex flex-col gap-[20px] w-full items-center">
             <button
               type="button"
-              onClick={() => handleOAuthSignIn("apple")}
-              disabled={oauthLoading !== null || loading}
-              className="w-full h-[44px] px-6 rounded-full bg-black hover:bg-[#1a1a1a] text-white font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
+              onClick={() => {
+                if (oauthLoading !== null || loading) return;
+                handleOAuthSignIn("apple");
+              }}
+              className="w-full h-[44px] px-6 rounded-full bg-black text-white font-semibold text-[15px] flex items-center justify-center cursor-pointer select-none"
             >
               <div className="w-[20px] flex items-center justify-center shrink-0">
                 <AppleIcon className="w-[17px] h-[20px] text-white" />
@@ -456,9 +458,11 @@ export default function ConnexionPage() {
             </button>
             <button
               type="button"
-              onClick={() => handleOAuthSignIn("google")}
-              disabled={oauthLoading !== null || loading}
-              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
+              onClick={() => {
+                if (oauthLoading !== null || loading) return;
+                handleOAuthSignIn("google");
+              }}
+              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center cursor-pointer select-none"
             >
               <div className="w-[20px] flex items-center justify-center shrink-0">
                 <GoogleIcon className="w-[18px] h-[18px]" />

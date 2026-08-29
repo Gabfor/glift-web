@@ -84,8 +84,8 @@ export default function DashboardExerciseDropdown({
             alt=""
             fill
             className={clsx(
-              "object-contain transition-opacity duration-150",
-              open ? "opacity-0" : "opacity-100 group-hover:opacity-0",
+              "pointer-events-none object-contain transition-opacity duration-150",
+              open ? "opacity-0" : "opacity-100 [@media(hover:hover)]:group-hover:opacity-0",
             )}
             aria-hidden
           />
@@ -94,8 +94,8 @@ export default function DashboardExerciseDropdown({
             alt=""
             fill
             className={clsx(
-              "object-contain absolute top-0 left-0 transition-opacity duration-150",
-              open ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+              "pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-150",
+              open ? "opacity-100" : "opacity-0 [@media(hover:hover)]:group-hover:opacity-100",
             )}
             aria-hidden
           />

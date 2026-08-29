@@ -37,7 +37,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { paymentMethodId } = body;
+        const { paymentMethodId, walletType } = body;
 
         if (!paymentMethodId) {
             return NextResponse.json({ error: 'Missing paymentMethodId' }, { status: 400 });
@@ -46,7 +46,7 @@ export async function PUT(request: Request) {
         // Use Admin Client to allow metadata and profile updates (like premium_end_at)
         const adminSupabase = createAdminClient();
         const paymentService = new PaymentService(adminSupabase);
-        await paymentService.setDefaultPaymentMethod(user.id, user.email || '', user.app_metadata, paymentMethodId);
+        await paymentService.setDefaultPaymentMethod(user.id, user.email || '', user.app_metadata, paymentMethodId, walletType);
 
         return NextResponse.json({ success: true });
     } catch (error: any) {

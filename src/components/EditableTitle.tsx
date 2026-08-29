@@ -156,21 +156,21 @@ function EditableTitle({
             {getDisplayName(programName)}
           </p>
 
-          <Tooltip content="Editer">
-            <div className="relative w-5 h-5" onClick={handleEnterEditMode}>
+          <Tooltip content="Editer" asChild>
+            <div className="relative w-5 h-5 cursor-pointer select-none" onClick={handleEnterEditMode}>
               <Image
                 src="/icons/edit.svg"
                 alt="modifier"
                 fill
                 sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 group-hover:opacity-0"
+                className="pointer-events-none absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 [@media(hover:hover)]:group-hover:opacity-0"
               />
               <Image
                 src="/icons/edit_hover.svg"
                 alt="modifier"
                 fill
                 sizes="100%"
-                className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 group-hover:opacity-100"
+                className="pointer-events-none absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 [@media(hover:hover)]:group-hover:opacity-100"
               />
             </div>
           </Tooltip>

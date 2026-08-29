@@ -99,15 +99,15 @@ export default function Tooltip({
 
   const handleMouseEnter: React.MouseEventHandler<HTMLElement> = () => {
     if (disableHover) return;
+    if (typeof window !== "undefined" && window.matchMedia("(hover: none)").matches) {
+      return;
+    }
     timeoutRef.current = setTimeout(() => {
       setVisible(true);
     }, delay);
   };
 
-  const hideTooltip = useCallback((event?: React.SyntheticEvent) => {
-    if (event) {
-      event.stopPropagation();
-    }
+  const hideTooltip = useCallback(() => {
     clearDelayTimeout();
     setVisible(false);
     setReady(false);
