@@ -773,7 +773,6 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             variant={successMessage.variant}
                             title={successMessage.title}
                             description={successMessage.description}
-                            onClose={successMessage.variant === 'error' ? undefined : () => setShowModalMessage(false)}
                         />
                     </div>
                 )
@@ -831,7 +830,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     <ModalMessage
                         variant="info"
                         title={`Ton essai se termine le : ${trialEndFormatted}`}
-                        description="Si tu souhaites continuer à en profiter sans interruption après cette date, pense à ajouter ton moyen de paiement."
+                        description="Si tu souhaites continuer à profiter de tes avantages Premium sans interruption après cette date, pense à ajouter ton moyen de paiement."
                     />
                 </div>
             )}

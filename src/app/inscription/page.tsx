@@ -600,10 +600,10 @@ const AccountCreationPage = () => {
               type="button"
               onClick={() => handleOAuthSignUp("apple")}
               disabled={oauthLoading !== null || loading}
-              className="w-full h-[44px] px-6 rounded-full border border-[#D7D4DC] hover:border-[#C2BFC6] bg-white text-[#000000] font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
+              className="w-full h-[44px] px-6 rounded-full bg-black hover:bg-[#1a1a1a] text-white font-semibold text-[15px] flex items-center justify-center transition-colors duration-150 disabled:opacity-60"
             >
               <div className="w-[20px] flex items-center justify-center shrink-0">
-                <AppleIcon className="w-[17px] h-[20px] text-black" />
+                <AppleIcon className="w-[17px] h-[20px] text-white" />
               </div>
               <div className="w-[185px] flex items-center justify-center text-center">
                 <span className="whitespace-nowrap">S’inscrire avec Apple</span>
