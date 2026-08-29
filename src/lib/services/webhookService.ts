@@ -7,6 +7,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
     typescript: true,
 });
 
+function toEndOfDayIso(input: string | number | Date): string {
+    const d = new Date(input);
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();
+}
+
 export class WebhookService {
     constructor(private supabase: SupabaseClient<Database>) { }
 
@@ -213,10 +219,10 @@ export class WebhookService {
 
             const subAny = subscription as any;
             const periodEnd = subAny.current_period_end
-                ? new Date(subAny.current_period_end * 1000).toISOString()
+                ? toEndOfDayIso(subAny.current_period_end * 1000)
                 : null;
             const trialEnd = subAny.trial_end
-                ? new Date(subAny.trial_end * 1000).toISOString()
+                ? toEndOfDayIso(subAny.trial_end * 1000)
                 : null;
 
             const priceId = subAny.items?.data[0]?.price.id;

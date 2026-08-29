@@ -116,7 +116,7 @@ const PaymentMethodCard = ({
     const brandIcon = getBrandIcon(brand);
 
     return (
-        <div className={`w-full min-h-[80px] h-auto py-3 sm:py-0 rounded-[8px] bg-[#FAFAFF] border flex items-center justify-between px-3 sm:px-[20px] gap-2 sm:gap-4 ${isError ? 'border-red-500 bg-[#FFF1F1]' : 'border-[#E6E6FF]'}`}>
+        <div className="w-full min-h-[80px] h-auto py-3 sm:py-0 rounded-[8px] bg-[#FAFAFF] border border-[#E6E6FF] flex items-center justify-between px-3 sm:px-[20px] gap-2 sm:gap-4">
             <div className="flex items-center gap-2.5 sm:gap-4 min-w-0">
                 <div className="w-[40px] sm:w-[50px] h-[34px] flex items-center justify-center overflow-hidden shrink-0">
                     {brandIcon ? (
@@ -126,10 +126,10 @@ const PaymentMethodCard = ({
                     )}
                 </div>
                 <div className="flex flex-col text-left min-w-0">
-                    <span className="text-[13px] sm:text-[14px] font-semibold text-[#2E3271] truncate">
+                    <span className="text-[12px] sm:text-[14px] font-semibold text-[#2E3271] truncate">
                         {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                     </span>
-                    <span className={`text-[11px] sm:text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
+                    <span className={`text-[10px] sm:text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
                         {isExpired ? "Expirée depuis" : "Expire en"} : {expMonth.toString().padStart(2, '0')}/{expYear}
                     </span>
                 </div>
@@ -139,7 +139,7 @@ const PaymentMethodCard = ({
                 <button
                     onClick={onEdit}
                     type="button"
-                    className="text-[14px] font-semibold text-[#7069FA] hover:text-[#5a52cc] transition-colors"
+                    className="text-[12px] sm:text-[14px] font-semibold text-[#7069FA] hover:text-[#5a52cc] transition-colors"
                 >
                     Modifier
                 </button>
@@ -268,14 +268,32 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const [paymentError, setPaymentError] = useState<string | null>(null);
     const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
     const [isUndoingDowngrade, setIsUndoingDowngrade] = useState(false);
+    const [isCardReadded, setIsCardReadded] = useState(false);
 
     const now = new Date();
-    const rawTrialEnd = profile?.premium_trial_end_at || premiumTrialEndAt || (profile?.premium_trial_started_at ? new Date(new Date(profile.premium_trial_started_at).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString() : null);
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const isCardExpired = paymentMethod
+        ? paymentMethod.exp_year < currentYear ||
+          (paymentMethod.exp_year === currentYear && paymentMethod.exp_month < currentMonth)
+        : false;
+
+    const rawTrialEnd = profile?.premium_trial_end_at || premiumTrialEndAt || (profile?.premium_trial_started_at ? (() => {
+        const d = new Date(new Date(profile.premium_trial_started_at).getTime() + 30 * 24 * 60 * 60 * 1000);
+        d.setHours(23, 59, 59, 999);
+        return d.toISOString();
+    })() : null);
     const isTrialActive = isPremiumUser && Boolean(
         rawTrialEnd && new Date(rawTrialEnd) > now
     );
     const trialEndFormatted = rawTrialEnd
         ? new Date(rawTrialEnd).toLocaleDateString('fr-FR')
+        : '';
+
+    const formattedEndDate = subscriptionEndDate
+        ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR')
+        : premiumEndAt
+        ? new Date(premiumEndAt).toLocaleDateString('fr-FR')
         : '';
 
     const fetchPaymentMethod = async () => {
@@ -330,7 +348,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
             // Check local state immediately to show message on reload
             const now = new Date();
-            if (premiumEndAt && new Date(premiumEndAt) > now) {
+            if (premiumEndAt && new Date(premiumEndAt) > now && !isTrialActive) {
                 setSuccessPlan('starter');
                 setSubscriptionEndDate(Math.floor(new Date(premiumEndAt).getTime() / 1000));
                 setShowSuccessMessage(true);
@@ -369,7 +387,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
                     if (data && data.status) {
                         // User has a Stripe subscription
-                        if (data.cancel_at_period_end || hasFuturePremiumEnd || data.status === 'incomplete') {
+                        if ((data.cancel_at_period_end || hasFuturePremiumEnd || data.status === 'incomplete') && !isTrialActive) {
                             // Cancellation pending (Stripe or DB) OR Incomplete subscription (Payment Failed/Abandoned)
                             setSuccessPlan('starter');
                             // Show end of current period
@@ -468,6 +486,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         if (!options?.isUndo) {
             setShowSuccessMessage(false);
             setSuccessPlan(null);
+            setIsCardReadded(false);
         }
         try {
             const res = await fetch('/api/user/update-subscription', {
@@ -546,7 +565,11 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     };
 
     const handleDeletePaymentMethod = () => {
-        setShowDeleteModal(true);
+        if (isPremiumUser) {
+            setShowDeleteModal(true);
+        } else {
+            confirmDeletePaymentMethod();
+        }
     };
 
     const confirmDeletePaymentMethod = async () => {
@@ -558,28 +581,34 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             });
 
             if (res.ok) {
-                // Determine if we need to show starter success message?
-                // Deletion implies downgrade.
-                setSuccessPlan('starter');
-                // We could fetch subscription details to get the exact end date, 
-                // but let's assume end of period or just let the user see the banner.
-                // Or better, let's trigger a refresh or check.
                 setShowDeleteModal(false);
                 setPaymentMethod(null);
                 window.dispatchEvent(new Event('paymentMethodUpdated'));
 
-                // Fetch updated subscription details to enable success banner with date
-                fetch(`/api/user/subscription-details?t=${Date.now()}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data && data.current_period_end) {
-                            setSubscriptionEndDate(data.current_period_end);
-                        } else if (premiumEndAt) {
-                            // Fallback if already set in context, though context might be stale immediately
-                            setSubscriptionEndDate(Math.floor(new Date(premiumEndAt).getTime() / 1000));
-                        }
-                        setShowSuccessMessage(true);
+                if (isPremiumUser && !isTrialActive) {
+                    setSuccessPlan('starter');
+                    // Fetch updated subscription details to enable success banner with date
+                    fetch(`/api/user/subscription-details?t=${Date.now()}`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data && data.current_period_end) {
+                                setSubscriptionEndDate(data.current_period_end);
+                            } else if (premiumEndAt) {
+                                setSubscriptionEndDate(Math.floor(new Date(premiumEndAt).getTime() / 1000));
+                            }
+                            setShowSuccessMessage(true);
+                        });
+                } else if (!isPremiumUser) {
+                    setShowSuccessMessage(false);
+                    setSuccessMessage({
+                        title: "Moyen de paiement supprimé",
+                        description: "Ton moyen de paiement a été supprimé avec succès. Aucune coordonnée bancaire n'est désormais enregistrée sur ton compte.",
+                        variant: "success"
                     });
+                    setShowModalMessage(true);
+                } else {
+                    setShowSuccessMessage(false);
+                }
 
                 await refreshUser();
             } else {
@@ -611,8 +640,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 open={showDowngradeModal}
                 title="Modification d’abonnement"
                 variant="info"
-                messageTitle="Etes-vous sûr de vouloir changer d’abonnement ?"
-                messageDescription="L’abonnement Starter permet de créer et d’utiliser gratuitement uniquement un seul entraînement composé de 10 exercices maximum."
+                messageTitle="Es-tu sûr de vouloir changer d’abonnement ?"
+                messageDescription="L’abonnement Starter permet de conserver 1 seul entraînement de 10 exercices. Pour varier tes séances en toute liberté, le Premium reste ton meilleur allié !"
                 onConfirm={confirmDowngrade}
                 confirmLabel="Modifier"
                 onClose={() => {
@@ -632,7 +661,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         En cliquant sur <span className="text-[#3A416F] font-bold">« Modifier »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras de profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter des avantages Premium.
                     </p>
                 </div>
             </ConfirmationModal>
@@ -659,47 +688,83 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         En cliquant sur <span className="text-[#3A416F] font-bold">« Supprimer »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter d’un stockage illimité.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter des avantages Premium.
                     </p>
                 </div>
             </ConfirmationModal>
-            {showSuccessMessage && (
-                <div className="mb-6 w-full max-w-[564px] mx-auto">
-                    <ModalMessage
-                        variant="success"
-                        title={successPlan === 'starter' ? "Changement d’abonnement pris en compte" : (isUndoingDowngrade ? "Annulation prise en compte" : "Félicitations !")}
-                        description={successPlan === 'starter'
-                            ? (
-                                <span>
-                                    Tu passeras à un abonnement Starter dès la fin de ta période d’abonnement Premium actuelle, soit le {subscriptionEndDate ? new Date(subscriptionEndDate * 1000).toLocaleDateString('fr-FR') : ''}.
-                                    {paymentMethod && (
-                                        <>
-                                            {" "}
-                                            <button
-                                                onClick={() => {
-                                                    setIsUndoingDowngrade(true);
-                                                    setSelectedPlan('premium');
-                                                    // Optimistic update
-                                                    setSuccessPlan('premium');
-                                                    processUpdate({ isUndo: true });
-                                                }}
-                                                className="underline hover:text-[#207227] font-semibold cursor-pointer text-inherit transition-colors"
-                                            >
-                                                Annuler ce changement
-                                            </button>
-                                            .
-                                        </>
-                                    )}
-                                </span>
-                            )
-                            : (isUndoingDowngrade
-                                ? "Suite à ton annulation, nous te confirmons que ton abonnement Premium sera renouvelé automatiquement à l’issue de la période d’abonnement actuelle."
-                                : isTrialActive
-                                ? "Ton moyen de paiement a bien été ajouté. Tu pourras continuer à bénéficier des avantages Premium une fois les 30 jours offerts passés."
-                                : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un compte Glift Premium.")
-                        }
-                    />
-                </div>
+            {showSuccessMessage && (!isTrialActive || successPlan !== 'starter') && (
+                <>
+                    <div className={`w-full max-w-[564px] mx-auto ${successPlan === 'starter' && !paymentMethod ? "mb-4" : "mb-6"}`}>
+                        <ModalMessage
+                            variant="success"
+                            title={
+                                successPlan === 'starter'
+                                    ? (paymentMethod ? "Changement d’abonnement pris en compte" : "Moyen de paiement supprimé")
+                                    : isUndoingDowngrade
+                                    ? "Annulation prise en compte"
+                                    : isCardReadded
+                                    ? "Moyen de paiement enregistré"
+                                    : isTrialActive
+                                    ? "Félicitations !"
+                                    : "Félicitations !"
+                            }
+                            description={
+                                successPlan === 'starter'
+                                    ? (
+                                        paymentMethod ? (
+                                            <span>
+                                                Tu passeras à un abonnement Starter dès la fin de ta période d’abonnement Premium actuelle, soit le <span className="font-bold text-[#006646]">{formattedEndDate}</span>.
+                                                <>
+                                                    {" "}
+                                                    <button
+                                                        onClick={() => {
+                                                            setIsUndoingDowngrade(true);
+                                                            setSelectedPlan('premium');
+                                                            // Optimistic update
+                                                            setSuccessPlan('premium');
+                                                            processUpdate({ isUndo: true });
+                                                        }}
+                                                        className="underline hover:text-[#207227] font-semibold cursor-pointer text-inherit transition-colors"
+                                                    >
+                                                        Annuler ce changement
+                                                    </button>
+                                                    .
+                                                </>
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                Ton moyen de paiement a été supprimé avec succès. Aucune coordonnée bancaire n’est désormais enregistrée sur ton compte. Tu continueras à profiter des avantages de ton abonnement Premium jusqu’au <span className="font-bold text-[#006646]">{formattedEndDate}</span>. Après cette date, ton compte passera automatiquement à l’abonnement Starter.
+                                            </span>
+                                        )
+                                    )
+                                    : isUndoingDowngrade
+                                    ? "Suite à ton annulation, nous te confirmons que ton abonnement Premium sera renouvelé automatiquement à l’issue de la période d’abonnement actuelle."
+                                    : isCardReadded
+                                    ? (
+                                        <span>
+                                            Ton moyen de paiement a bien été enregistré. Ton abonnement Premium sera automatiquement renouvelé à l’issue de ta période en cours, soit le <span className="font-bold text-[#006646]">{formattedEndDate}</span>.
+                                        </span>
+                                    )
+                                    : isTrialActive
+                                    ? "Ton moyen de paiement a bien été ajouté. Tu pourras continuer à bénéficier des avantages Premium une fois les 30 jours offerts passés."
+                                    : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un abonnement Premium. Profites-en bien !"
+                            }
+                        />
+                    </div>
+                    {successPlan === 'starter' && !paymentMethod && (
+                        <div className="mb-6 w-full max-w-[564px] mx-auto">
+                            <ModalMessage
+                                variant="info"
+                                title="Tu souhaites conserver ton abonnement Premium ?"
+                                description={
+                                    <span>
+                                        Rien de plus simple, il te suffit d’ajouter un moyen de paiement avant le <span className="font-bold text-[#6660E4]">{formattedEndDate}</span>.
+                                    </span>
+                                }
+                            />
+                        </div>
+                    )}
+                </>
             )}
             {
                 showModalMessage && (
@@ -725,6 +790,24 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         }
                         description="Bonne nouvelle ! Tu peux bénéficier de 30 jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement."
                     />
+                </div>
+            )}
+
+            {!isPremiumUser && !isTrialActive && (trial === true || Boolean(profile?.premium_trial_started_at) || Boolean(profile?.premium_end_at) || Boolean(profile?.premium_trial_end_at)) && !showSuccessMessage && (
+                <div className="mb-6 w-full max-w-[564px] mx-auto">
+                    {isCardExpired ? (
+                        <ModalMessage
+                            variant="error"
+                            title="Ton abonnement Premium n’a pas pu être renouvelé"
+                            description="Ton moyen de paiement est arrivé à expiration. Ton accès est temporairement limité à 1 seul entraînement de 10 exercices. Pas de stress, ajoute un moyen de paiement dès maintenant pour réactiver ton abonnement Premium."
+                        />
+                    ) : (
+                        <ModalMessage
+                            variant="info"
+                            title="Ton abonnement Premium a pris fin"
+                            description="Ton accès est maintenant limité à 1 seul entraînement de 10 exercices mais tu peux réactiver ton abonnement Premium à tout moment."
+                        />
+                    )}
                 </div>
             )}
 
@@ -854,11 +937,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                     plan={setupData.plan}
                                                     customerId={setupData.customerId}
                                                     subscriptionId={setupData.subscriptionId}
-                                                    submitButtonText={paymentMethod ? "Enregistrer" : "Démarrer mon abonnement"}
+                                                    submitButtonText={paymentMethod || (isPremiumUser && !isTrialActive) ? "Enregistrer" : "Démarrer mon abonnement"}
                                                     mode={setupData.mode}
                                                     onSuccess={async (newPaymentMethodId?: string) => {
                                                         // Prevent race condition with useEffect fetching stale data
                                                         lastActionTime.current = Date.now();
+                                                        const wasAlreadyPremium = isPremiumUser && !isTrialActive;
 
                                                         // Always set as default to ensure subscription is updated/reactivated
                                                         if (newPaymentMethodId) {
@@ -879,7 +963,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                         window.dispatchEvent(new Event('paymentMethodUpdated'));
 
                                                         if (paymentMethod) {
-                                                             // Updated existing
+                                                            // Updated existing
                                                             setSuccessMessage({
                                                                 title: "Moyen de paiement modifié avec succès",
                                                                 description: "Ton changement de moyen de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
@@ -887,7 +971,24 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                             });
                                                             setShowModalMessage(true);
                                                         } else {
-                                                            // New subscription
+                                                            if (wasAlreadyPremium) {
+                                                                try {
+                                                                    const subRes = await fetch(`/api/user/subscription-details?t=${Date.now()}`);
+                                                                    if (subRes.ok) {
+                                                                        const subData = await subRes.json();
+                                                                        if (subData?.current_period_end) {
+                                                                            setSubscriptionEndDate(subData.current_period_end);
+                                                                        }
+                                                                    }
+                                                                } catch (e) {
+                                                                    console.error("Failed to fetch sub details after adding card", e);
+                                                                }
+                                                                setIsCardReadded(true);
+                                                                setIsUndoingDowngrade(false);
+                                                            } else {
+                                                                setIsCardReadded(false);
+                                                            }
+
                                                             setSelectedPlan('premium');
                                                             setSuccessPlan('premium');
                                                             setShowSuccessMessage(true);
@@ -912,7 +1013,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             <div className={`flex justify-center w-full ${selectedPlan === "starter" ? "mt-[32px]" : ""}`}>
                 <CTAButton
                     onClick={handleUpdate}
-                    disabled={isCurrentPlan || (selectedPlan === 'premium' && !paymentMethod)}
+                    disabled={isCurrentPlan || (selectedPlan === 'premium' && (!paymentMethod || isCardExpired))}
                     loading={loading}
                     className="w-full max-w-[368px] sm:w-auto sm:max-w-none px-[30px] font-semibold bg-[#F4F5FE] text-[#7069FA] hover:bg-[#EBEDFE]"
                 >

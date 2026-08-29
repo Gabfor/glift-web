@@ -14,6 +14,12 @@ export interface PaymentMethod {
     exp_year: number;
 }
 
+export function toEndOfDayIso(input: string | number | Date): string {
+    const d = new Date(input);
+    d.setHours(23, 59, 59, 999);
+    return d.toISOString();
+}
+
 export class PaymentService {
     constructor(private supabase: SupabaseClient<Database>) { }
 
@@ -70,7 +76,7 @@ export class PaymentService {
                 if (defaultPmId) {
                     try {
                         const pm = await stripe.paymentMethods.retrieve(defaultPmId);
-                        if (pm && pm.card) {
+                        if (pm && pm.card && pm.customer === stripeCustomerId) {
                             paymentMethodsData = [pm];
                         }
                     } catch (e) {
@@ -219,7 +225,7 @@ export class PaymentService {
                 .eq('key', 'trial_period_days')
                 .single();
             const configuredTrialDays = trialSetting?.value ? parseFloat(trialSetting.value) : 30;
-            const trialEndDate = new Date(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000).toISOString();
+            const trialEndDate = toEndOfDayIso(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000);
 
             await this.supabase.from('profiles').update({ 
                 subscription_plan: 'premium',
@@ -436,7 +442,7 @@ export class PaymentService {
 
                     // Update Supabase trial info
                     const startDate = new Date().toISOString();
-                    const endDate = new Date(trialEndTimestamp * 1000).toISOString();
+                    const endDate = toEndOfDayIso(trialEndTimestamp * 1000);
                     await this.supabase.from('profiles').update({
                         trial: true,
                         premium_trial_started_at: startDate,
@@ -647,7 +653,7 @@ export class PaymentService {
 
             // Mark trial as used
             const startDate = new Date().toISOString();
-            const endDate = new Date(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000).toISOString();
+            const endDate = toEndOfDayIso(Date.now() + configuredTrialDays * 24 * 60 * 60 * 1000);
 
             await this.supabase.from('profiles').update({
                 trial: true,
@@ -713,7 +719,7 @@ export class PaymentService {
 
             // Update profiles.cancellation = false AND set trial_end from stripe if any (should be null or past)
             // If no trial given, we still update cancellation
-            const trialEnd = subscription.trial_end ? new Date(subscription.trial_end * 1000).toISOString() : null;
+            const trialEnd = subscription.trial_end ? toEndOfDayIso(subscription.trial_end * 1000) : null;
             await this.supabase.from('profiles').update({
                 cancellation: false,
                 premium_trial_end_at: trialEnd,
@@ -781,11 +787,11 @@ export class PaymentService {
                     console.log(`*** PaymentService Debug: Retrieved FRESH sub ${updatedSub.id}`);
                     console.log(`*** PaymentService Debug: current_period_end raw=${updatedSubAny.current_period_end}`);
 
-                    const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
+                    const trialEnd = updatedSub.trial_end ? toEndOfDayIso(updatedSub.trial_end * 1000) : null;
 
                     let premiumEnd = null;
                     if (updatedSubAny.current_period_end) {
-                        premiumEnd = new Date(updatedSubAny.current_period_end * 1000).toISOString();
+                        premiumEnd = toEndOfDayIso(updatedSubAny.current_period_end * 1000);
                         console.log(`*** PaymentService Debug: Calculated premiumEnd=${premiumEnd}`);
                     } else {
                         console.log("*** PaymentService Debug: current_period_end is MISSING or Falsy on FRESH fetch!");
@@ -825,7 +831,7 @@ export class PaymentService {
                 const updatedSub = await stripe.subscriptions.update(activeSub.id, updateParams);
 
                 // Update profiles.cancellation = false AND set trial end if applicable
-                const trialEnd = updatedSub.trial_end ? new Date(updatedSub.trial_end * 1000).toISOString() : null;
+                const trialEnd = updatedSub.trial_end ? toEndOfDayIso(updatedSub.trial_end * 1000) : null;
                 await this.supabase.from('profiles').update({
                     cancellation: false,
                     premium_trial_end_at: trialEnd,
@@ -962,7 +968,7 @@ export class PaymentService {
                 // Update profiles.cancellation = true AND set expected end date
                 // Use the updated subscription's cancel_at (timestamp) or current_period_end
                 const cancelTimestamp = updatedSub.cancel_at || (updatedSub as any).current_period_end;
-                const finalDate = new Date(cancelTimestamp * 1000).toISOString();
+                const finalDate = toEndOfDayIso(cancelTimestamp * 1000);
                 await this.supabase.from('profiles').update({
                     cancellation: true,
                     premium_end_at: finalDate
@@ -1040,7 +1046,7 @@ export class PaymentService {
 
                     // Sync End Date if cancelled
                     if (activeSub.cancel_at_period_end && (activeSub as any).current_period_end) {
-                        const stripeEnd = new Date((activeSub as any).current_period_end * 1000).toISOString();
+                        const stripeEnd = toEndOfDayIso((activeSub as any).current_period_end * 1000);
                         if (profile.premium_end_at !== stripeEnd) {
                             updates.premium_end_at = stripeEnd;
                             needsUpdate = true;
@@ -1175,11 +1181,44 @@ export class PaymentService {
         if (!customerId) throw new Error("No customer found");
 
         try {
-            // 1. Detach payment method
-            await stripe.paymentMethods.detach(paymentMethodId);
-            console.log(`PaymentService: Detached payment method ${paymentMethodId}`);
+            // 1. Clear customer default payment method if matching
+            try {
+                const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+                if (customer && !customer.deleted && customer.invoice_settings?.default_payment_method === paymentMethodId) {
+                    await stripe.customers.update(customerId, {
+                        invoice_settings: { default_payment_method: '' }
+                    });
+                }
+            } catch (e) {
+                console.warn("PaymentService: Could not clear customer default payment method", e);
+            }
 
-            // 2. Handle Subscription Cancellation (Downgrade)
+            // 2. Clear subscription default payment method if matching
+            try {
+                const subs = await stripe.subscriptions.list({ customer: customerId });
+                for (const sub of subs.data) {
+                    const subPmId = typeof sub.default_payment_method === 'string'
+                        ? sub.default_payment_method
+                        : sub.default_payment_method?.id;
+                    if (subPmId === paymentMethodId) {
+                        await stripe.subscriptions.update(sub.id, {
+                            default_payment_method: ''
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn("PaymentService: Could not clear subscription default payment method", e);
+            }
+
+            // 3. Detach payment method
+            try {
+                await stripe.paymentMethods.detach(paymentMethodId);
+                console.log(`PaymentService: Detached payment method ${paymentMethodId}`);
+            } catch (e) {
+                console.warn(`PaymentService: Could not detach payment method ${paymentMethodId}`, e);
+            }
+
+            // 4. Handle Subscription Cancellation (Downgrade)
             const subscriptions = await stripe.subscriptions.list({
                 customer: customerId,
                 status: 'all',
@@ -1207,7 +1246,7 @@ export class PaymentService {
                     }
 
                     const finalDate = cancelDate
-                        ? new Date(cancelDate * 1000).toISOString()
+                        ? toEndOfDayIso(cancelDate * 1000)
                         : null;
 
                     await this.supabase.from('profiles').update({

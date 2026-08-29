@@ -109,9 +109,14 @@ export async function POST(req: Request) {
 
                             // SELF-HEALING: Update DB dates from Stripe
                             const subAny = activeOrTrialingSub as any;
+                            const toEndOfDayIso = (input: number) => {
+                                const d = new Date(input);
+                                d.setHours(23, 59, 59, 999);
+                                return d.toISOString();
+                            };
                             await supabaseAdmin.from("profiles").update({
-                                premium_end_at: subAny.cancel_at_period_end ? new Date(subAny.current_period_end * 1000).toISOString() : null,
-                                premium_trial_end_at: subAny.trial_end ? new Date(subAny.trial_end * 1000).toISOString() : null,
+                                premium_end_at: subAny.cancel_at_period_end ? toEndOfDayIso(subAny.current_period_end * 1000) : null,
+                                premium_trial_end_at: subAny.trial_end ? toEndOfDayIso(subAny.trial_end * 1000) : null,
                                 subscription_plan: 'premium',
                                 cancellation: subAny.cancel_at_period_end,
                                 trial: subAny.status === 'trialing'
