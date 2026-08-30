@@ -982,7 +982,26 @@ export class PaymentService {
                     currentPeriodEnd: (updatedSub as any).current_period_end
                 };
             }
-            return { status: 'already_starter', subscriptionId: null };
+
+            // No active Stripe subscription (e.g. Free trial without payment method)
+            const { data: profile } = await this.supabase
+                .from('profiles')
+                .select('premium_trial_end_at, premium_trial_started_at, subscription_plan')
+                .eq('id', userId)
+                .single();
+
+            const trialEnd = profile?.premium_trial_end_at || (profile?.premium_trial_started_at ? toEndOfDayIso(new Date(profile.premium_trial_started_at).getTime() + 30 * 24 * 60 * 60 * 1000) : null);
+
+            await this.supabase.from('profiles').update({
+                cancellation: true,
+                premium_end_at: trialEnd || toEndOfDayIso(Date.now()),
+            } as any).eq('id', userId);
+
+            return {
+                status: 'canceled_at_period_end',
+                subscriptionId: null,
+                currentPeriodEnd: trialEnd ? Math.floor(new Date(trialEnd).getTime() / 1000) : null
+            };
         }
     }
 

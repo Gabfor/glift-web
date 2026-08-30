@@ -126,7 +126,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
          */
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("id, name, email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at, premium_trial_started_at, trial, gender, main_goal, supplements, experience, training_place, weekly_sessions, birth_date, country")
+          .select("id, name, email_verified, grace_expires_at, subscription_plan, cancellation, premium_trial_end_at, premium_end_at, premium_trial_started_at, trial, gender, main_goal, supplements, experience, training_place, weekly_sessions, birth_date, country")
           .eq("id", customUser.id)
           .maybeSingle();
 

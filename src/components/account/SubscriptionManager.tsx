@@ -272,6 +272,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const isTrialActive = isPremiumUser && Boolean(
         rawTrialEnd && new Date(rawTrialEnd) > now
     );
+    const isTrialCancelled = isTrialActive && (
+        profile?.cancellation === true ||
+        successPlan === 'starter'
+    );
     const trialEndFormatted = rawTrialEnd
         ? new Date(rawTrialEnd).toLocaleDateString('fr-FR')
         : '';
@@ -527,6 +531,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         setSubscriptionEndDate(data.currentPeriodEnd);
                     }
                     setShowSuccessMessage(true);
+                    if (isStarterSuccess && (isPremiumUser || isTrialActive)) {
+                        setSelectedPlan("premium");
+                    }
                     // Refresh user context to update UI to 'Premium' state without reload
                     await refreshUser();
                 }
@@ -805,21 +812,34 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             )}
 
             {isTrialActive && (
-                <div className={`w-full max-w-[564px] mx-auto ${!paymentMethod ? "mb-4" : "mb-6"}`}>
-                    <ModalMessage
-                        variant="success"
-                        title={
-                            <div className="flex items-center gap-1.5">
-                                <img src="/icons/gift.svg" alt="" className="h-[18px] w-auto inline-block" />
-                                <span>Essai Premium est en cours...</span>
-                            </div>
-                        }
-                        description={`Tu profites actuellement de ${trialDays} jours offerts pour tester l’abonnement Premium. Nous espérons que tout se passe bien !`}
-                    />
+                <div className={`w-full max-w-[564px] mx-auto ${!paymentMethod && !isTrialCancelled ? "mb-4" : "mb-6"}`}>
+                    {isTrialCancelled ? (
+                        <ModalMessage
+                            variant="success"
+                            title="Changement d’abonnement pris en compte"
+                            description={
+                                <span>
+                                    Tu passeras à un abonnement Starter dès la fin de ton essai Premium, soit le{" "}
+                                    <span className="font-bold text-[#006646]">{trialEndFormatted || formattedEndDate}</span>.
+                                </span>
+                            }
+                        />
+                    ) : (
+                        <ModalMessage
+                            variant="success"
+                            title={
+                                <div className="flex items-center gap-1.5">
+                                    <img src="/icons/gift.svg" alt="" className="h-[18px] w-auto inline-block" />
+                                    <span>Essai Premium est en cours...</span>
+                                </div>
+                            }
+                            description={`Tu profites actuellement de ${trialDays} jours offerts pour tester l’abonnement Premium. Nous espérons que tout se passe bien !`}
+                        />
+                    )}
                 </div>
             )}
 
-            {isTrialActive && !paymentMethod && (
+            {isTrialActive && !paymentMethod && !isTrialCancelled && (
                 <div className="mb-6 w-full max-w-[564px] mx-auto">
                     <ModalMessage
                         variant="info"
