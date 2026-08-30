@@ -359,7 +359,7 @@ type ValueUpdater = string | ((previous: string) => string)
 type BirthDateUpdater = string | ((previous: string) => string)
 
 export const useAccountForm = (user: User | null) => {
-  const { updateUserMetadata } = useUser()
+  const { updateUserMetadata, refreshUser } = useUser()
   const [profile, setProfile] = useState<ProfileDetails>(undefined)
   const isInitialLoading = profile === undefined
   const snapshot = useMemo(
@@ -583,6 +583,7 @@ export const useAccountForm = (user: User | null) => {
       updateUserMetadata({ name: trimmedName })
 
       setProfile((prev) => ({ ...(prev ?? {}), ...profilePatch }))
+      void refreshUser(true)
 
       setInitialFlat({ ...currentFlat })
       setInitialBirthParts({ ...values.birthDate })
@@ -598,6 +599,7 @@ export const useAccountForm = (user: User | null) => {
     }
   }, [
     currentFlat,
+    refreshUser,
     resetFeedback,
     updateUserMetadata,
     user?.id,

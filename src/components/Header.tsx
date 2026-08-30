@@ -446,7 +446,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
                     </div>
                   )}
                 </div>
-                {userDisplayName}
+                <span className="truncate max-w-[120px] xl:max-w-[160px] inline-block text-left" title={userDisplayName}>
+                  {userDisplayName}
+                </span>
                 <span
                   className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
                     }`}
@@ -737,7 +739,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                       height={15}
                       className="h-[15px] w-auto object-contain shrink-0"
                     />
-                    <span>{userDisplayName}</span>
+                    <span className="truncate max-w-[170px]" title={userDisplayName}>{userDisplayName}</span>
                   </Link>
                   <button
                     onClick={() => {

@@ -38,7 +38,7 @@ interface UserContextType {
   trial?: boolean;
   isUserDataLoaded: boolean;
   profile: any | null;
-  refreshUser: () => Promise<void>;
+  refreshUser: (background?: boolean) => Promise<void>;
   updateUserMetadata: (
     patch: Partial<CustomUser["user_metadata"]>,
   ) => void;
@@ -126,7 +126,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
          */
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
-          .select("email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at, trial, gender, main_goal, supplements, experience, training_place, weekly_sessions")
+          .select("id, name, email_verified, grace_expires_at, subscription_plan, premium_trial_end_at, premium_end_at, premium_trial_started_at, trial, gender, main_goal, supplements, experience, training_place, weekly_sessions, birth_date, country")
           .eq("id", customUser.id)
           .maybeSingle();
 
@@ -353,9 +353,20 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       },
     );
 
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === "visible") {
+        void fetchUser(true);
+      }
+    };
+
+    window.addEventListener("focus", handleVisibilityOrFocus);
+    document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+
     return () => {
       authListener?.subscription.unsubscribe();
       authClient.setSession = originalSetSession;
+      window.removeEventListener("focus", handleVisibilityOrFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
     };
   }, [fetchUser, supabase]);
 

@@ -187,7 +187,9 @@ export default function AdminHeader() {
                 <div className="w-[44px] h-[44px] text-[25px] rounded-full bg-[#3A416F] text-white flex items-center justify-center font-semibold">
                   {(String(user.user_metadata?.given_name || user.user_metadata?.first_name || user.user_metadata?.name || "?")).charAt(0).toUpperCase()}
                 </div>
-                {String(user.user_metadata?.given_name || user.user_metadata?.first_name || (user.user_metadata?.name ? String(user.user_metadata.name).trim().split(/\s+/)[0] : "Profil"))}
+                <span className="truncate max-w-[120px] xl:max-w-[160px] inline-block text-left" title={String(user.user_metadata?.given_name || user.user_metadata?.first_name || (user.user_metadata?.name ? String(user.user_metadata.name).trim().split(/\s+/)[0] : "Profil"))}>
+                  {String(user.user_metadata?.given_name || user.user_metadata?.first_name || (user.user_metadata?.name ? String(user.user_metadata.name).trim().split(/\s+/)[0] : "Profil"))}
+                </span>
                 <span
                   className={`relative w-[14px] h-[8px] mt-[2px] group transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""
                     }`}

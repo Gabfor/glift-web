@@ -331,7 +331,7 @@ export default function PreferencesSection() {
         </div>
       ) : (
         <form
-          className="flex flex-col px-0 sm:px-4 md:px-[60px] pb-0"
+          className="w-full max-w-[564px] mx-auto flex flex-col pb-0"
           onSubmit={handleSubmit}
           onKeyDown={(event) => {
             if (event.key === "Enter") event.preventDefault()
