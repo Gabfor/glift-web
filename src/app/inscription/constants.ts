@@ -16,7 +16,7 @@ const STEP_DETAILS: Record<StepKey, { title: string; subtitle: string }> = {
       "Crée un compte en moins de 30 secondes pour utiliser la plateforme.\nAucun moyen de paiement n'est nécessaire à l'inscription.",
   },
   payment: {
-    title: "Mode de paiement",
+    title: "Moyen de paiement",
     subtitle: "Active ton essai gratuit en renseignant tes informations de paiement.",
   },
   profile: {

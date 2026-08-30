@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 type Props = {
   selectedIds: string[];
   onDelete: () => void;
-  onToggleStatus: () => void;
+  onToggleStatus?: () => void;
   onEdit: () => void;
   className?: string;
 };
@@ -43,7 +43,7 @@ export default function UserAdminActionsBar({
         </Tooltip>
       )}
 
-      {hasSingleSelection && (
+      {hasSingleSelection && onToggleStatus && (
         <Tooltip content="Mettre à jour le statut" delay={0}>
           <button
             onClick={onToggleStatus}

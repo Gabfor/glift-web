@@ -36,18 +36,18 @@ type AdminUser = {
   training_place: string | null;
   weekly_sessions: string | null;
   supplements: string | null;
+  signup_type?: string | null;
+  payment_method?: string | null;
 };
 
 type FiltersState = {
   gender: string;
-  status: string;
   subscription: string;
   country: string;
 };
 
 const MS_IN_DAY = 86_400_000;
 const TRIAL_DURATION_DAYS = 30;
-const GRACE_PERIOD_DAYS = 7;
 
 const SUBSCRIPTION_LABELS: Record<string, string> = {
   premium: "Premium",
@@ -167,16 +167,6 @@ const calculateAge = (birthDate: string | null | undefined) => {
   return age >= 0 ? age : null;
 };
 
-const computeStatus = (user: AdminUser) => {
-  if (user.email_verified) {
-    return "Validé";
-  }
-
-  return isWithinDays(user.created_at, GRACE_PERIOD_DAYS)
-    ? "En attente"
-    : "A supprimer";
-};
-
 const formatDate = (date: string | null | undefined) => {
   if (!date) {
     return "";
@@ -258,20 +248,6 @@ const escapeCsvValue = (value: string | number | boolean | null | undefined) => 
   return `"${escapedValue}"`;
 };
 
-const STATUS_BADGE_BASE_CLASS =
-  "inline-flex h-[20px] items-center justify-center rounded-[25px] text-[10px] font-semibold px-2";
-
-const statusClassName = (status: string) => {
-  switch (status) {
-    case "Validé":
-      return "bg-[#DCFAF1] text-[#00D591]";
-    case "En attente":
-      return "bg-[#FEF7D0] text-[#DCBC04]";
-    default:
-      return "bg-[#FFE3E3] text-[#EF4F4E]";
-  }
-};
-
 type SortableColumn =
   | "created_at"
   | "name"
@@ -280,8 +256,7 @@ type SortableColumn =
   | "subscription"
   | "seniority"
   | "gender"
-  | "age"
-  | "status";
+  | "age";
 
 function UserNameCell({ user }: { user: AdminUser }) {
   const [copied, setCopied] = useState(false);
@@ -324,7 +299,6 @@ export default function AdminUsersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState<FiltersState>({
     gender: "",
-    status: "",
     subscription: "",
     country: "",
   });
@@ -356,20 +330,6 @@ export default function AdminUsersPage() {
 
     return Array.from(entries.entries())
       .map(([value, label]) => ({ value, label }))
-      .sort((a, b) =>
-        a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
-      );
-  }, [users]);
-
-  const statusOptions = useMemo<FilterOption[]>(() => {
-    const values = new Set<string>();
-
-    users.forEach((user) => {
-      values.add(computeStatus(user));
-    });
-
-    return Array.from(values)
-      .map((label) => ({ value: label, label }))
       .sort((a, b) =>
         a.label.localeCompare(b.label, "fr-FR", { sensitivity: "base" }),
       );
@@ -431,14 +391,6 @@ export default function AdminUsersPage() {
       }
 
       if (
-        current.status &&
-        !statusOptions.some((option) => option.value === current.status)
-      ) {
-        next.status = "";
-        changed = true;
-      }
-
-      if (
         current.subscription &&
         !subscriptionOptions.some(
           (option) => option.value === current.subscription,
@@ -458,7 +410,7 @@ export default function AdminUsersPage() {
 
       return changed ? next : current;
     });
-  }, [countryOptions, genderOptions, statusOptions, subscriptionOptions]);
+  }, [countryOptions, genderOptions, subscriptionOptions]);
 
   useEffect(() => {
     setShowActionsBar(!editingUserId && selectedIds.length > 0);
@@ -528,10 +480,12 @@ export default function AdminUsersPage() {
           training_place: user.training_place ?? null,
           weekly_sessions: user.weekly_sessions ?? null,
           supplements: user.supplements ?? null,
+          signup_type: user.signup_type ?? "Email",
+          payment_method: user.payment_method || "Aucun",
         }),
       );
 
-      setUsers(normalized);
+      setUsers((normalized));
       setSelectedIds([]);
       setLoading(false);
     } catch (rpcError) {
@@ -616,59 +570,6 @@ export default function AdminUsersPage() {
     }
   };
 
-  const handleToggleStatus = async () => {
-    if (selectedIds.length !== 1) {
-      return;
-    }
-
-    const userId = selectedIds[0];
-    const targetUser = users.find((user) => user.id === userId);
-
-    if (!targetUser) {
-      return;
-    }
-
-    if (targetUser.email_verified) {
-      return;
-    }
-
-    try {
-      const response = await fetch("/api/admin/users", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: userId, verified: true }),
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        console.error(
-          "Mise à jour du statut impossible",
-          payload ?? response.statusText,
-        );
-
-        if (response.status === 401 || response.status === 403) {
-          setError("Vous n'avez pas la permission de mettre à jour ce statut.");
-        } else {
-          setError("Impossible de mettre à jour le statut de l'utilisateur.");
-        }
-
-        return;
-      }
-    } catch (statusError) {
-      console.error("Mise à jour du statut impossible", statusError);
-      setError("Impossible de mettre à jour le statut de l'utilisateur.");
-      return;
-    }
-
-    setUsers((current) =>
-      current.map((user) =>
-        user.id === userId ? { ...user, email_verified: true } : user,
-      ),
-    );
-    setSelectedIds([]);
-    setError(null);
-  };
-
   const handleEditUser = (userId: string) => {
     const nextParams = new URLSearchParams(searchParams?.toString() ?? "");
     nextParams.set("id", userId);
@@ -700,10 +601,6 @@ export default function AdminUsersPage() {
         return false;
       }
 
-      if (filters.status && computeStatus(user) !== filters.status) {
-        return false;
-      }
-
       if (
         filters.subscription &&
         normalizePlan(user.subscription_plan) !== filters.subscription
@@ -722,7 +619,6 @@ export default function AdminUsersPage() {
     searchTerm,
     filters.country,
     filters.gender,
-    filters.status,
     filters.subscription,
   ]);
 
@@ -756,8 +652,6 @@ export default function AdminUsersPage() {
           return user.gender?.toLowerCase() ?? "";
         case "age":
           return calculateAge(user.birth_date) ?? -1;
-        case "status":
-          return computeStatus(user).toLowerCase();
         default:
           return 0;
       }
@@ -801,7 +695,6 @@ export default function AdminUsersPage() {
     users,
     filters.country,
     filters.gender,
-    filters.status,
     filters.subscription,
   ]);
 
@@ -820,18 +713,17 @@ export default function AdminUsersPage() {
 
     const headers = [
       "Date de création",
+      "Type d'inscription",
       "Date de connexion",
       "Prénom",
       "Sexe",
       "Email",
       "Date de naissance",
       "Âge",
-      "Statut",
-      "Date fin de validation",
-      "Date de validation",
       "Abonnement",
       "Période d'essai",
       "Date fin période d'essai",
+      "Moyen de paiement",
       "% remplissage profil",
       "Pays",
       "Années",
@@ -844,23 +736,21 @@ export default function AdminUsersPage() {
     const rows = sortedUsers.map((user) => {
       const trialActive = isInTrial(user);
       const age = calculateAge(user.birth_date);
-      const status = computeStatus(user);
       const profileCompletion = `${calculateProfileCompletion(user)}%`;
 
       return [
         formatDateTime(user.created_at),
+        user.signup_type ?? "Email",
         formatDateTime(user.last_sign_in_at),
         user.name ?? "",
         user.gender ?? "",
         user.email,
         formatDate(user.birth_date),
         typeof age === "number" ? age : "",
-        status,
-        formatDate(user.grace_expires_at),
-        formatDateTime(user.email_confirmed_at),
         formatSubscription(user.subscription_plan),
         trialActive ? "Oui" : "Non",
         formatTrialEndDate(user),
+        user.payment_method || "Aucun",
         profileCompletion,
         user.country ?? "",
         user.experience ?? "",
@@ -963,13 +853,6 @@ export default function AdminUsersPage() {
                   onSelect={(value) => handleFilterChange("gender", value)}
                 />
                 <DropdownFilter
-                  label="Statut"
-                  placeholder="Tous les statuts"
-                  options={statusOptions}
-                  selected={filters.status}
-                  onSelect={(value) => handleFilterChange("status", value)}
-                />
-                <DropdownFilter
                   label="Abonnement"
                   placeholder="Abonnements"
                   options={subscriptionOptions}
@@ -991,7 +874,6 @@ export default function AdminUsersPage() {
                   <UserAdminActionsBar
                     selectedIds={selectedIds}
                     onDelete={handleDelete}
-                    onToggleStatus={handleToggleStatus}
                     onEdit={handleEdit}
                   />
                 )}
@@ -1031,6 +913,7 @@ export default function AdminUsersPage() {
                             />
                           </button>
                         </th>
+                        {renderHeaderCell("Date d'inscription", "created_at")}
                         {renderHeaderCell("Prénom", "name")}
                         {renderHeaderCell("Email", "email")}
                         {renderHeaderCell("Période de test", "trial")}
@@ -1038,7 +921,6 @@ export default function AdminUsersPage() {
                         {renderHeaderCell("Ancienneté", "seniority")}
                         {renderHeaderCell("Sexe", "gender")}
                         {renderHeaderCell("Age", "age")}
-                        {renderHeaderCell("Statut", "status")}
                       </tr>
                     </thead>
                     <tbody>
@@ -1046,7 +928,6 @@ export default function AdminUsersPage() {
                         const isSelected = selectedIds.includes(user.id);
                         const trialActive = isInTrial(user);
                         const age = calculateAge(user.birth_date);
-                        const status = computeStatus(user);
 
                         const genderLower = user.gender?.toLowerCase() ?? "";
                         const genderIcon =
@@ -1079,6 +960,9 @@ export default function AdminUsersPage() {
                                   style={{ marginTop: "5px" }}
                                 />
                               </button>
+                            </td>
+                            <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                              {formatDate(user.created_at)}
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
                               <UserNameCell user={user} />
@@ -1116,13 +1000,6 @@ export default function AdminUsersPage() {
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
                               {typeof age === "number" ? `${age} ans` : "—"}
-                            </td>
-                            <td className="px-4 align-middle">
-                              <span
-                                className={`${STATUS_BADGE_BASE_CLASS} ${statusClassName(status)}`}
-                              >
-                                {status}
-                              </span>
                             </td>
                           </tr>
                         );

@@ -105,14 +105,12 @@ const PaymentPage = () => {
     <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-4 pt-[100px] md:pt-[140px]">
       <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[10px]">
-          Mode de paiement
+          Moyen de paiement
         </h1>
       </div>
       <div className="w-full max-w-2xl flex flex-col items-center px-4 sm:px-0">
         <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center leading-snug">
-          Tu peux ajouter un mode de paiement dès maintenant.
-          <br />
-          Tu ne seras pas facturé avant le{" "}
+          Tu peux ajouter un moyen de paiement dès maintenant. Tu ne seras pas facturé avant le{" "}
           <span className="font-bold text-[#5D6494]">{trialEndLabel}</span>.
         </p>
         <StepDots
@@ -136,19 +134,21 @@ const PaymentPage = () => {
       </div>
 
       <div className="w-full max-w-[564px] mt-8 flex flex-col items-center mb-8">
-        <StripeWrapper
-          priceLabel={priceLabel}
-          plan={plan}
-          email={user?.email || ""}
-          userId={user?.id || ""}
-        />
+        <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] overflow-hidden bg-transparent px-4 sm:px-6 py-6 sm:py-8">
+          <StripeWrapper
+            priceLabel={priceLabel}
+            plan={plan}
+            email={user?.email || ""}
+            userId={user?.id || ""}
+          />
+        </div>
 
         <button
           type="button"
           onClick={() => {
             router.push(nextPath);
           }}
-          className="mt-5 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
+          className="mt-6 text-[14px] font-semibold text-[#7069FA] hover:text-[#6660E4]"
         >
           Ignorer pour le moment
         </button>

@@ -3,6 +3,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 
 import { createAdminClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/types";
+import { PaymentService } from "@/lib/services/paymentService";
 import { ensureAdmin } from "./utils";
 
 type DeletePayload = {
@@ -33,6 +34,31 @@ type AdminUserRow = {
   training_place: string | null;
   weekly_sessions: string | null;
   supplements: string | null;
+  signup_type: string;
+  payment_method: string | null;
+};
+
+const formatSignupType = (user: User): string => {
+  const provider = (user.app_metadata?.provider as string | undefined)?.toLowerCase();
+  if (provider === "apple") return "Apple";
+  if (provider === "google") return "Google";
+  if (provider === "email") return "Email";
+
+  const providers = user.app_metadata?.providers as string[] | undefined;
+  if (Array.isArray(providers) && providers.length > 0) {
+    if (providers.some((p) => p.toLowerCase() === "apple")) return "Apple";
+    if (providers.some((p) => p.toLowerCase() === "google")) return "Google";
+    if (providers.some((p) => p.toLowerCase() === "email")) return "Email";
+  }
+
+  if (Array.isArray(user.identities) && user.identities.length > 0) {
+    const idProviders = user.identities.map((id) => id.provider?.toLowerCase());
+    if (idProviders.includes("apple")) return "Apple";
+    if (idProviders.includes("google")) return "Google";
+    if (idProviders.includes("email")) return "Email";
+  }
+
+  return "Email";
 };
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -127,6 +153,40 @@ export async function GET() {
 
     const profileMap = new Map(profiles.map((profile) => [profile.id, profile]));
 
+    const paymentService = new PaymentService(adminClient);
+    const paymentMethodMap = new Map<string, string>();
+
+    const BATCH_SIZE = 10;
+    for (let i = 0; i < authUsers.length; i += BATCH_SIZE) {
+      const batch = authUsers.slice(i, i + BATCH_SIZE);
+      await Promise.all(
+        batch.map(async (user) => {
+          try {
+            if (!user.app_metadata?.stripe_customer_id && !user.email) {
+              return;
+            }
+            const pms = await paymentService.getUserPaymentMethods(
+              user.id,
+              user.email,
+              user.app_metadata,
+            );
+            if (pms && pms.length > 0) {
+              const pm = pms[0];
+              if (pm.wallet_type === "apple_pay") {
+                paymentMethodMap.set(user.id, "Apple Pay");
+              } else if (pm.wallet_type === "google_pay") {
+                paymentMethodMap.set(user.id, "Google Pay");
+              } else {
+                paymentMethodMap.set(user.id, "Par carte");
+              }
+            }
+          } catch (e) {
+            console.error(`[admin/users] Error getting payment methods for ${user.id}:`, e);
+          }
+        }),
+      );
+    }
+
     const users: AdminUserRow[] = authUsers.map((user) => {
       const profile = profileMap.get(user.id);
 
@@ -152,6 +212,8 @@ export async function GET() {
         training_place: profile?.training_place ?? null,
         weekly_sessions: profile?.weekly_sessions ?? null,
         supplements: profile?.supplements ?? null,
+        signup_type: formatSignupType(user),
+        payment_method: paymentMethodMap.get(user.id) ?? "Aucun",
       } satisfies AdminUserRow;
     });
 

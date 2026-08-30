@@ -11,7 +11,9 @@ import { PaymentMethod } from "@/lib/services/paymentService";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "@/components/stripe/CheckoutForm";
+import PaymentFormSkeleton from "@/components/stripe/PaymentFormSkeleton";
 import { useGlobalLoader } from "@/context/GlobalLoaderContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 // Initialize Stripe outside of component
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -214,49 +216,6 @@ const getPaymentErrorMessage = (code: string | null): string => {
     }
 };
 
-const PaymentFormSkeleton = () => (
-    <div className="w-full animate-pulse">
-        <div className="w-full max-w-[368px] mx-auto mb-[30px]">
-            {/* Numéro de carte */}
-            <div className="mb-5">
-                <div className="h-[20px] w-[140px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
-                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
-            </div>
-
-            {/* Date d'expiration */}
-            <div className="mb-5">
-                <div className="h-[20px] w-[130px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
-                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
-            </div>
-
-            {/* Code de sécurité */}
-            <div className="w-[179px] mb-6">
-                <div className="h-[20px] w-[120px] bg-[#E6E8F5] rounded-[4px] mb-[8px]" />
-                <div className="h-[45px] w-full rounded-[5px] bg-[#F2F1F6] border border-[#ECE9F1]" />
-            </div>
-        </div>
-
-        {/* Checkbox line */}
-        <div className="flex items-start gap-3 mb-5 w-full max-w-[564px] mx-auto">
-            <div className="w-[15px] h-[15px] rounded-[3px] bg-[#E6E8F5] shrink-0 mt-[3px]" />
-            <div className="space-y-2 flex-1">
-                <div className="h-[12px] w-full bg-[#E6E8F5] rounded-[4px]" />
-                <div className="h-[12px] w-3/4 bg-[#E6E8F5] rounded-[4px]" />
-            </div>
-        </div>
-
-        {/* Submit button */}
-        <div className="mt-0 flex justify-center w-full">
-            <div className="h-[48px] w-full sm:w-[220px] rounded-full bg-[#E6E8F5]" />
-        </div>
-
-        {/* Stripe footer */}
-        <div className="mt-5 flex items-center justify-center gap-2">
-            <div className="h-[14px] w-[180px] bg-[#E6E8F5] rounded-[4px]" />
-        </div>
-    </div>
-);
-
 interface SubscriptionManagerProps {
     initialPaymentMethods?: PaymentMethod[];
     initialIsPremium?: boolean; // Optional because it might not be provided in all usages
@@ -264,6 +223,7 @@ interface SubscriptionManagerProps {
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
     const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial, profile } = useUser();
+    const { trialDays } = useSiteSettings();
     const { triggerLoader, stopLoader } = useGlobalLoader();
 
     // Initialize with server-side value if available, or default to starter
@@ -780,8 +740,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                         </span>
                                     )
                                     : isTrialActive
-                                    ? "Ton moyen de paiement a bien été ajouté. Tu pourras continuer à bénéficier des avantages Premium une fois les 30 jours offerts passés."
-                                    : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un abonnement Premium. Profites-en bien !"
+                                    ? `Ton moyen de paiement a bien été ajouté. Tu pourras continuer à bénéficier des avantages Premium une fois les ${trialDays} jours offerts passés.`
+                                    : "Ton abonnement a été modifié avec succès. Tu as maintenant accès à l’ensemble des fonctionnalités d’un abonnement Premium."
                             }
                         />
                     </div>
@@ -821,7 +781,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 <span>Essaye Premium gratuitement !</span>
                             </div>
                         }
-                        description="Bonne nouvelle ! Tu peux bénéficier de 30 jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement."
+                        description={`Bonne nouvelle ! Tu peux bénéficier de ${trialDays} jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement.`}
                     />
                 </div>
             )}
@@ -854,7 +814,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 <span>Essai Premium est en cours...</span>
                             </div>
                         }
-                        description="Tu profites actuellement de 30 jours offerts pour tester l’abonnement Premium. Nous espérons que tout se passe bien !"
+                        description={`Tu profites actuellement de ${trialDays} jours offerts pour tester l’abonnement Premium. Nous espérons que tout se passe bien !`}
                     />
                 </div>
             )}
@@ -864,7 +824,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     <ModalMessage
                         variant="info"
                         title={`Ton essai se termine le : ${trialEndFormatted}`}
-                        description="Si tu souhaites continuer à profiter de tes avantages Premium sans interruption après cette date, pense à ajouter ton moyen de paiement."
+                        description="Si tu souhaites continuer à profiter de tes avantages Premium sans interruption après cette date, pense à ajouter un moyen de paiement."
                     />
                 </div>
             )}

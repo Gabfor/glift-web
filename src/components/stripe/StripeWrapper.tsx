@@ -5,6 +5,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "./CheckoutForm";
 import ErrorMessage from "@/components/ui/ErrorMessage";
+import PaymentFormSkeleton from "./PaymentFormSkeleton";
 
 // Remplacez par votre clé publique Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -59,8 +60,8 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
 
     if (!clientSecret) {
         return (
-            <div className="flex justify-center items-center py-10">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]"></div>
+            <div className="w-full">
+                <PaymentFormSkeleton />
             </div>
         );
     }
