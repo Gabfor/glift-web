@@ -83,7 +83,11 @@ export default function DropdownField({
       <div className="flex items-center justify-between mb-[6px]">
         <div className="flex items-center gap-2">
           <label className="text-[16px] font-bold text-[#3A416F] w-fit">{label}</label>
-          {endAdornment}
+          {endAdornment && (
+            <div className="sm:hidden relative w-[18px] h-[18px] flex items-center justify-center">
+              {endAdornment}
+            </div>
+          )}
         </div>
         {hasSelection && clearable && (
           <button
@@ -118,6 +122,16 @@ export default function DropdownField({
           buttonClassName={buttonClassName}
           sortStrategy={sortStrategy}
         />
+        {endAdornment && (
+          <div
+            className="hidden sm:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+            style={{ left: "calc(100% + 10px)" }}
+          >
+            <div className="relative w-[18px] h-[18px] pointer-events-auto flex items-center justify-center">
+              {endAdornment}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">

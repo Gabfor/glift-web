@@ -781,7 +781,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 <span>Essaye Premium gratuitement !</span>
                             </div>
                         }
-                        description={`Bonne nouvelle ! Tu peux bénéficier de ${trialDays} jours offerts pour tester gratuitement l’abonnement Premium. Tu n’as même pas besoin de renseigner un moyen de paiement.`}
+                        description={`Bonne nouvelle ! Tu peux bénéficier de ${trialDays} jours offerts pour tester gratuitement l’abonnement Premium. C’est sans engagement et tu n’as même pas besoin de renseigner un moyen de paiement.`}
                     />
                 </div>
             )}

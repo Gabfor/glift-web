@@ -468,8 +468,8 @@ export default function PreferencesSection() {
             </div>
           </div>
 
-          <div className="mt-[50px] flex w-full text-left flex-col gap-[21px]">
-            <h3 className="text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
+          <div className="mt-[30px] flex w-full text-left flex-col gap-[21px]">
+            <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
               Réglages de vos communications
             </h3>
 

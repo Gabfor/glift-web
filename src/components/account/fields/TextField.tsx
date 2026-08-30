@@ -39,7 +39,7 @@ export default function TextField({
       <div className="flex items-center gap-2 mb-[6px]">
         <label className="text-[16px] font-bold text-[#3A416F] w-fit self-start mb-0">{label}</label>
         {endAdornment && (
-          <div className="relative w-[18px] h-[18px] flex items-center justify-center">
+          <div className="sm:hidden relative w-[18px] h-[18px] flex items-center justify-center">
             {endAdornment}
           </div>
         )}
@@ -69,6 +69,17 @@ export default function TextField({
           )}
           placeholder={placeholder ?? label}
         />
+
+        {endAdornment && (
+          <div
+            className="hidden sm:block absolute top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+            style={{ left: 'calc(100% + 10px)' }}
+          >
+            <div className="relative w-[18px] h-[18px] pointer-events-auto flex items-center justify-center">
+              {endAdornment}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">
