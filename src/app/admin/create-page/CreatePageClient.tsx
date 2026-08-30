@@ -516,8 +516,8 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                       { id: "a1", texte: "Un seul entraînement", active: true },
                       { id: "a2", texte: "Un maximum de 10 exercices", active: true },
                       { id: "a3", texte: "Un tableau de bord personnalisé", active: true },
-                      { id: "a4", texte: "Accès aux programmes du Glift Store", active: false },
-                      { id: "a5", texte: "Offres personnalisées dans la Glift Shop", active: false },
+                      { id: "a4", texte: "Accès aux bons plans de la Glift Shop", active: true },
+                      { id: "a5", texte: "Accès aux programmes du Glift Store", active: false },
                     ]
                   },
                   abonnement2: {
@@ -535,8 +535,8 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                       { id: "b1", texte: "Un nombre illimité d'entraînements", active: true },
                       { id: "b2", texte: "Un nombre illimité d'exercices", active: true },
                       { id: "b3", texte: "Un tableau de bord personnalisé", active: true },
-                      { id: "b4", texte: "Accès aux programmes du Glift Store", active: true },
-                      { id: "b5", texte: "Offres personnalisées dans la Glift Shop", active: true },
+                      { id: "b4", texte: "Accès aux bons plans de la Glift Shop", active: true },
+                      { id: "b5", texte: "Accès aux programmes du Glift Store", active: true },
                       { id: "b6", texte: "Annulation gratuite à tout moment", active: true },
                     ]
                   }

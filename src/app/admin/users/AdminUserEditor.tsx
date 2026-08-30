@@ -459,7 +459,7 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
 
           <div className={fieldWrapperClass}>
             <ToggleField
-              label="Sexe"
+              label="Genre"
               value={form.gender}
               options={Array.from(GENDER_OPTIONS)}
               onChange={(value) => {

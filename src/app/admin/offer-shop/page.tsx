@@ -293,7 +293,7 @@ export default function OfferShopPage() {
                   {renderHeaderCell("Fin", "end_date", "w-[94px] px-3")}
                   {renderHeaderCell("Nom de l'offre", "name", "px-3")}
                   {renderHeaderCell("Partenaire", "shop", "w-[120px] px-3")}
-                  {renderHeaderCell("Sexe", "gender", "w-[60px] px-3")}
+                  {renderHeaderCell("Genre", "gender", "w-[60px] px-3")}
                   {renderHeaderCell("Pays", "pays", "w-[60px] px-3")}
                   {renderHeaderCell("Utilisation", "click_count", "w-[85px] px-3")}
                 </tr>
@@ -320,7 +320,7 @@ export default function OfferShopPage() {
                   {renderHeaderCell("Fin", "end_date", "w-[94px] px-3")}
                   {renderHeaderCell("Nom de l'offre", "name", "px-3")}
                   {renderHeaderCell("Partenaire", "shop", "w-[120px] px-3")}
-                  {renderHeaderCell("Sexe", "gender", "w-[60px] px-3")}
+                  {renderHeaderCell("Genre", "gender", "w-[60px] px-3")}
                   {renderHeaderCell("Pays", "pays", "w-[60px] px-3")}
                   {renderHeaderCell("Utilisation", "click_count", "w-[85px] px-3")}
                 </tr>

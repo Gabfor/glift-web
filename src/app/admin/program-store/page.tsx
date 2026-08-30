@@ -344,7 +344,7 @@ export default function ProgramStorePage() {
                     </div>
                   </th>
                   {renderHeaderCell("Statut", "status")}
-                  {renderHeaderCell("Sexe", "gender")}
+                  {renderHeaderCell("Genre", "gender")}
                   {renderHeaderCell("Nom du programme", "title")}
                   {renderHeaderCell("Difficulté", "level")}
                   {renderHeaderCell("Séances", "sessions")}
@@ -389,7 +389,7 @@ export default function ProgramStorePage() {
                     </button>
                   </th>
                   {renderHeaderCell("Statut", "status")}
-                  {renderHeaderCell("Sexe", "gender")}
+                  {renderHeaderCell("Genre", "gender")}
                   {renderHeaderCell("Nom du programme", "title")}
                   {renderHeaderCell("Difficulté", "level")}
                   {renderHeaderCell("Séances", "sessions")}

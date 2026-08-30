@@ -386,7 +386,7 @@ export default function AdminProgramPage() {
                   </th>
                   {renderHeaderCell("Lié", "linked", "w-[82px]")}
                   {renderHeaderCell("Date", "created_at", "w-[75px]")}
-                  {renderHeaderCell("Sexe", "gender", "w-[65px]")}
+                  {renderHeaderCell("Genre", "gender", "w-[65px]")}
                   {renderHeaderCell("Nom du programme", "name", "truncate max-w-[200px]")}
                   {renderHeaderCell("Partenaire", "partner_name", "w-[120px]")}
                   {renderHeaderCell("Vignettes", "vignettes", "text-right w-[110px]")}

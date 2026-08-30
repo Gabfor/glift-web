@@ -402,12 +402,12 @@ export default function CreateProgramPageClient({
                     Détails du programme
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Row 1: Sexe | Objectif */}
+                    {/* Row 1: Genre | Objectif */}
                     <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Sexe</label>
+                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Genre</label>
                       <AdminDropdown
                         label=""
-                        placeholder="Sélectionnez le sexe"
+                        placeholder="Sélectionnez le genre"
                         selected={program.gender}
                         onSelect={(value) => setProgram({ ...program, gender: value })}
                         options={[

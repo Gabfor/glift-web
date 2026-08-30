@@ -698,14 +698,14 @@ export default function CreateOfferPageClient({
                     Détails de l’offre
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Sexe */}
+                    {/* Genre */}
                     <div className="flex flex-col">
                       <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
-                        Sexe
+                        Genre
                       </label>
                       <AdminDropdown
                         label=""
-                        placeholder="Sélectionnez le sexe"
+                        placeholder="Sélectionnez le genre"
                         selected={offer.gender}
                         onSelect={(value) =>
                           setOffer({ ...offer, gender: value })

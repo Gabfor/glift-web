@@ -716,7 +716,7 @@ export default function AdminUsersPage() {
       "Type d'inscription",
       "Date de connexion",
       "Prénom",
-      "Sexe",
+      "Genre",
       "Email",
       "Date de naissance",
       "Âge",
@@ -846,15 +846,15 @@ export default function AdminUsersPage() {
             <div className="mb-[20px] flex min-h-[40px] flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-wrap gap-3">
                 <DropdownFilter
-                  label="Sexe"
-                  placeholder="Tous les sexes"
+                  label="Genre"
+                  placeholder="Tous"
                   options={genderOptions}
                   selected={filters.gender}
                   onSelect={(value) => handleFilterChange("gender", value)}
                 />
                 <DropdownFilter
                   label="Abonnement"
-                  placeholder="Abonnements"
+                  placeholder="Tous"
                   options={subscriptionOptions}
                   selected={filters.subscription}
                   onSelect={(value) =>
@@ -863,7 +863,7 @@ export default function AdminUsersPage() {
                 />
                 <DropdownFilter
                   label="Pays"
-                  placeholder="Tous les pays"
+                  placeholder="Tous"
                   options={countryOptions}
                   selected={filters.country}
                   onSelect={(value) => handleFilterChange("country", value)}
@@ -919,7 +919,7 @@ export default function AdminUsersPage() {
                         {renderHeaderCell("Période de test", "trial")}
                         {renderHeaderCell("Abonnement", "subscription")}
                         {renderHeaderCell("Ancienneté", "seniority")}
-                        {renderHeaderCell("Sexe", "gender")}
+                        {renderHeaderCell("Genre", "gender")}
                         {renderHeaderCell("Age", "age")}
                       </tr>
                     </thead>
@@ -928,6 +928,13 @@ export default function AdminUsersPage() {
                         const isSelected = selectedIds.includes(user.id);
                         const trialActive = isInTrial(user);
                         const age = calculateAge(user.birth_date);
+
+                        const subscriptionPlan = normalizePlan(user.subscription_plan);
+                        const subscriptionIcon =
+                          subscriptionPlan === "premium"
+                            ? "/icons/diamant_premium.svg"
+                            : "/icons/diamant_starter.svg";
+                        const subscriptionLabel = formatSubscription(user.subscription_plan);
 
                         const genderLower = user.gender?.toLowerCase() ?? "";
                         const genderIcon =
@@ -979,7 +986,14 @@ export default function AdminUsersPage() {
                               {trialActive ? "Oui" : "Non"}
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                              {formatSubscription(user.subscription_plan)}
+                              <div className="relative h-4 w-[19px]">
+                                <Image
+                                  src={subscriptionIcon}
+                                  alt={subscriptionLabel}
+                                  fill
+                                  className="object-contain"
+                                />
+                              </div>
                             </td>
                             <td className="px-4 font-semibold text-[#5D6494] align-middle">
                               {formatSeniority(user.created_at)}
@@ -989,7 +1003,7 @@ export default function AdminUsersPage() {
                                 <div className="relative h-5 w-5">
                                   <Image
                                     src={genderIcon}
-                                    alt={user.gender ?? "Sexe"}
+                                    alt={user.gender ?? "Genre"}
                                     fill
                                     className="object-contain object-bottom"
                                   />

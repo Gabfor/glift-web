@@ -1,7 +1,9 @@
 import React from "react";
+import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import Tooltip from "@/components/Tooltip";
 import { ContentBlock, SeanceRow, BlockPartenaires } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
@@ -553,7 +555,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   </div>
                   <div className="flex items-center gap-4">
                     <img src={getSexeIcon(currentSexe)} alt="" className="w-[28px] h-[28px]" />
-                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Sexe</span>
+                    <span className="text-[#D7D4DC] text-[14px] font-semibold">Genre</span>
                   </div>
                   <div className="flex items-center gap-4">
                     <img src={getIntensiteIcon(currentIntensite)} alt="" className="w-[28px] h-[28px]" />
@@ -815,125 +817,181 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       </div>
 
                       <div className="flex flex-col gap-5">
-                        {abo.arguments.map((arg, argIdx) => (
-                          <div key={arg.id} className="flex flex-col gap-4">
-                             {/* Separator Argument - Identical to BlockAdminWrapper Header */}
-                             <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-4 z-10">
-                                {/* Icônes de déplacement à gauche */}
-                                <div className="flex items-center absolute left-0 z-10 bg-[#FBFCFE] py-2 pr-2">
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      if (argIdx < abo.arguments.length - 1) {
-                                        const newArgs = [...abo.arguments];
-                                        [newArgs[argIdx + 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx + 1]];
-                                        updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                                      }
-                                    }} 
-                                    disabled={argIdx === abo.arguments.length - 1} 
-                                    className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === abo.arguments.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                  >
-                                    <div className="relative w-full h-full">
-                                      <img src="/icons/move_down.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
-                                      <img src="/icons/move_down_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
-                                    </div>
-                                  </button>
-
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      if (argIdx > 0) {
-                                        const newArgs = [...abo.arguments];
-                                        [newArgs[argIdx - 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx - 1]];
-                                        updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                                      }
-                                    }} 
-                                    disabled={argIdx === 0} 
-                                    className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                  >
-                                    <div className="relative w-full h-full">
-                                      <img src="/icons/move_up.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
-                                      <img src="/icons/move_up_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
-                                    </div>
-                                  </button>
-
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      const newArgs = [...abo.arguments];
-                                      const newArg = { ...arg, id: uuidv4() };
-                                      newArgs.splice(argIdx + 1, 0, newArg);
-                                      updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                                    }} 
-                                    className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
-                                  >
-                                    <div className="relative w-full h-full">
-                                      <img src="/icons/duplicate.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
-                                      <img src="/icons/duplicate_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
-                                    </div>
-                                  </button>
-                                </div>
-
+                        {abo.arguments.map((arg, argIdx) => {
+                          const argKey = arg.id || `arg-${argIdx}`;
+                          return (
+                            <div key={argKey} className="flex flex-col gap-4">
+                              {/* Separator Argument - Identical to BlockAdminWrapper Header */}
+                              <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-4 z-10">
                                 {/* Titre centré */}
-                                <div className="flex-1 flex justify-center items-center relative z-10">
-                                  <div className="bg-[#FBFCFE] px-4 text-[14px] text-[#D7D4DC] font-bold">
+                                <div className="flex-1 flex justify-center items-center relative z-10 pointer-events-none">
+                                  <div className="bg-[#FBFCFE] px-4 text-[14px] text-[#D7D4DC] font-bold pointer-events-auto">
                                     Argument {argIdx + 1}
                                   </div>
                                 </div>
 
-                                {/* Poubelle à droite */}
-                                <div className="flex items-center absolute right-0 z-10 bg-[#FBFCFE] py-2 pl-2">
-                                  <button 
-                                    type="button"
-                                    onClick={() => {
-                                      if (argIdx > 0) {
+                                {/* Icônes de déplacement à gauche */}
+                                <div className="flex items-center absolute left-0 z-20 bg-[#FBFCFE] p-2">
+                                  <Tooltip content="Descendre">
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
+                                        if (argIdx < abo.arguments.length - 1) {
+                                          const newArgs = [...abo.arguments];
+                                          [newArgs[argIdx + 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx + 1]];
+                                          updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                        }
+                                      }} 
+                                      disabled={argIdx === abo.arguments.length - 1} 
+                                      className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === abo.arguments.length - 1 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      aria-label="Descendre"
+                                    >
+                                      <div className="relative w-full h-full">
+                                        <Image
+                                          src="/icons/move_down.svg"
+                                          alt="Descendre"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0 pointer-events-none"
+                                        />
+                                        <Image
+                                          src="/icons/move_down_hover.svg"
+                                          alt="Descendre"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100 pointer-events-none"
+                                        />
+                                      </div>
+                                    </button>
+                                  </Tooltip>
+
+                                  <Tooltip content="Monter">
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
+                                        if (argIdx > 0) {
+                                          const newArgs = [...abo.arguments];
+                                          [newArgs[argIdx - 1], newArgs[argIdx]] = [newArgs[argIdx], newArgs[argIdx - 1]];
+                                          updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                        }
+                                      }} 
+                                      disabled={argIdx === 0} 
+                                      className={`relative w-[25px] h-[25px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      aria-label="Monter"
+                                    >
+                                      <div className="relative w-full h-full">
+                                        <Image
+                                          src="/icons/move_up.svg"
+                                          alt="Monter"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0 pointer-events-none"
+                                        />
+                                        <Image
+                                          src="/icons/move_up_hover.svg"
+                                          alt="Monter"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100 pointer-events-none"
+                                        />
+                                      </div>
+                                    </button>
+                                  </Tooltip>
+
+                                  <Tooltip content="Dupliquer">
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
                                         const newArgs = [...abo.arguments];
-                                        newArgs.splice(argIdx, 1);
+                                        const newArg = { ...arg, id: uuidv4() };
+                                        newArgs.splice(argIdx + 1, 0, newArg);
                                         updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                                      }
-                                    }}
-                                    disabled={argIdx === 0}
-                                    className={`relative w-[20px] h-[20px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                  >
-                                    <div className="relative w-full h-full">
-                                      <img src="/icons/delete_grey.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 hover:opacity-0" />
-                                      <img src="/icons/delete_hover.svg" alt="" className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 opacity-0 hover:opacity-100" />
-                                    </div>
-                                  </button>
+                                      }} 
+                                      className="relative w-[25px] h-[25px] transition duration-300 ease-in-out"
+                                      aria-label="Dupliquer"
+                                    >
+                                      <div className="relative w-full h-full">
+                                        <Image
+                                          src="/icons/duplicate.svg"
+                                          alt="Dupliquer"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0 pointer-events-none"
+                                        />
+                                        <Image
+                                          src="/icons/duplicate_hover.svg"
+                                          alt="Dupliquer"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100 pointer-events-none"
+                                        />
+                                      </div>
+                                    </button>
+                                  </Tooltip>
+                                </div>
+
+                                {/* Poubelle à droite */}
+                                <div className="flex items-center absolute right-0 z-20 bg-[#FBFCFE] py-2 pl-2">
+                                  <Tooltip content="Supprimer">
+                                    <button 
+                                      type="button"
+                                      onClick={() => {
+                                        if (argIdx > 0) {
+                                          const newArgs = [...abo.arguments];
+                                          newArgs.splice(argIdx, 1);
+                                          updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                        }
+                                      }}
+                                      disabled={argIdx === 0}
+                                      className={`relative w-[20px] h-[20px] transition duration-300 ease-in-out ${argIdx === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                      aria-label="Supprimer"
+                                    >
+                                      <div className="relative w-full h-full">
+                                        <Image
+                                          src="/icons/delete_grey.svg"
+                                          alt="Supprimer"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0 pointer-events-none"
+                                        />
+                                        <Image
+                                          src="/icons/delete_hover.svg"
+                                          alt="Supprimer"
+                                          fill
+                                          className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100 pointer-events-none"
+                                        />
+                                      </div>
+                                    </button>
+                                  </Tooltip>
                                 </div>
 
                                 {/* La ligne (séparateur) en dessous */}
                                 <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0" />
-                             </div>
+                              </div>
 
-                             <RichTextEditor
-                               value={arg.texte}
-                               onChange={(val) => {
-                                 const newArgs = [...abo.arguments];
-                                 newArgs[argIdx] = { ...arg, texte: val };
-                                 updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                               }}
-                               minHeight="80px"
-                             />
+                              <RichTextEditor
+                                key={argKey}
+                                value={arg.texte}
+                                onChange={(val) => {
+                                  const newArgs = [...abo.arguments];
+                                  newArgs[argIdx] = { ...arg, texte: val };
+                                  updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                }}
+                                minHeight="80px"
+                              />
 
-                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                               <AdminDropdown
-                                 label={`Statut argument ${argIdx + 1}`}
-                                 placeholder="Sélectionner un statut"
-                                 options={[
-                                   { label: "Activé", value: "true" },
-                                   { label: "Désactivé", value: "false" }
-                                 ]}
-                                 selected={arg.active ? "true" : "false"}
-                                 onSelect={(opt) => {
-                                   const newArgs = [...abo.arguments];
-                                   newArgs[argIdx] = { ...arg, active: opt === "true" };
-                                   updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
-                                 }}
-                               />
-                             </div>
-                          </div>
-                        ))}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <AdminDropdown
+                                  label={`Statut argument ${argIdx + 1}`}
+                                  placeholder="Sélectionner un statut"
+                                  options={[
+                                    { label: "Activé", value: "true" },
+                                    { label: "Désactivé", value: "false" }
+                                  ]}
+                                  selected={arg.active ? "true" : "false"}
+                                  onSelect={(opt) => {
+                                    const newArgs = [...abo.arguments];
+                                    newArgs[argIdx] = { ...arg, active: opt === "true" };
+                                    updateBlock(block.id, { [key]: { ...abo, arguments: newArgs } });
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
                         
                         <div className="pt-4">
                           <button
