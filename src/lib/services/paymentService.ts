@@ -873,14 +873,34 @@ export class PaymentService {
                     clientSecret: clientSecret || undefined // Return if exists
                 };
             } else {
-                // No active subscription: Create new one
+                // No active subscription on Stripe
 
-                // Fetch user profile to check trial eligibility
+                // Fetch user profile to check trial status and eligibility
                 const { data: profile } = await this.supabase
                     .from('profiles')
-                    .select('trial')
+                    .select('trial, premium_trial_started_at, premium_trial_end_at, cancellation, subscription_plan')
                     .eq('id', userId)
                     .single();
+
+                const now = new Date();
+                const rawTrialEnd = profile?.premium_trial_end_at;
+                const rawTrialStarted = profile?.premium_trial_started_at;
+                let isCurrentTrialActive = false;
+                if (rawTrialEnd) {
+                    isCurrentTrialActive = new Date(rawTrialEnd) > now;
+                } else if (rawTrialStarted) {
+                    isCurrentTrialActive = new Date(rawTrialStarted).getTime() + 30 * 24 * 60 * 60 * 1000 > now.getTime();
+                }
+
+                // If user is currently in an active trial and simply un-cancelling, restore trial state without needing a card
+                if (isCurrentTrialActive && profile?.cancellation === true) {
+                    await this.supabase.from('profiles').update({
+                        cancellation: false,
+                        subscription_plan: 'premium'
+                    } as any).eq('id', userId);
+
+                    return { status: 'reactivated' };
+                }
 
                 const hasUsedTrial = profile?.trial ?? false;
 

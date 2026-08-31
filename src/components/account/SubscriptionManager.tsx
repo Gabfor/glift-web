@@ -411,17 +411,20 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             setSuccessPlan('starter');
                             setSubscriptionEndDate(Math.floor(new Date(premiumEndAt!).getTime() / 1000));
                             setShowSuccessMessage(true);
-                        } else if (hasFutureTrialEnd) {
-                            // Manual trial without Stripe sub -> will expire
+                        } else if (profile?.cancellation === true && hasFutureTrialEnd) {
+                            // User cancelled trial manually
                             setSuccessPlan('starter');
                             setSubscriptionEndDate(Math.floor(new Date(premiumTrialEndAt!).getTime() / 1000));
                             setShowSuccessMessage(true);
+                        } else {
+                            setShowSuccessMessage(false);
+                            setSuccessPlan(null);
                         }
                     }
                 })
                 .catch(err => console.error("Failed to fetch sub details", err));
         }
-    }, [isPremiumUser, premiumTrialEndAt, premiumEndAt]);
+    }, [isPremiumUser, premiumTrialEndAt, premiumEndAt, profile?.cancellation]);
 
 
     // Determine effective premium status: use server prop if not yet synced
@@ -484,10 +487,11 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             setIsCardReadded(false);
         }
         try {
+            const planToUpdate = options?.isUndo ? 'premium' : selectedPlan;
             const res = await fetch('/api/user/update-subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan: selectedPlan })
+                body: JSON.stringify({ plan: planToUpdate })
             });
             const data = await res.json();
 
@@ -693,7 +697,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     </p>
                 </div>
             </ConfirmationModal>
-            {showSuccessMessage && (!isTrialActive || successPlan !== 'starter') && (
+            {showSuccessMessage && !isTrialActive && (
                 <>
                     <div className={`w-full max-w-[564px] mx-auto ${successPlan === 'starter' && !paymentMethod ? "mb-4" : "mb-6"}`}>
                         <ModalMessage
@@ -821,6 +825,21 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 <span>
                                     Tu passeras à un abonnement Starter dès la fin de ton essai Premium, soit le{" "}
                                     <span className="font-bold text-[#006646]">{trialEndFormatted || formattedEndDate}</span>.
+                                    <>
+                                        {" "}
+                                        <button
+                                            onClick={() => {
+                                                setIsUndoingDowngrade(true);
+                                                setSelectedPlan('premium');
+                                                setSuccessPlan('premium');
+                                                processUpdate({ isUndo: true });
+                                            }}
+                                            className="underline hover:text-[#207227] font-semibold cursor-pointer text-inherit transition-colors"
+                                        >
+                                            Annuler ce changement
+                                        </button>
+                                        .
+                                    </>
                                 </span>
                             }
                         />
