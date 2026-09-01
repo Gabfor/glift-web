@@ -209,7 +209,7 @@ export default function ConnexionPage() {
           await supabase.auth.setSession(data.session);
         }
         console.log("[CLIENT LOGIN] Session set. Redirecting...");
-        window.location.href = sanitizedNextParam ?? "/dashboard";
+        window.location.href = sanitizedNextParam ?? "/tableau-de-bord";
       } else if (error.message === "Invalid login credentials") {
         setError({
           type: "invalid-credentials",

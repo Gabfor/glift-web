@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 
 export function useDashboardUrl() {
-  const [dashboardUrl, setDashboardUrl] = useState("/dashboard");
+  const [dashboardUrl, setDashboardUrl] = useState("/tableau-de-bord");
   const [shopUrl, setShopUrl] = useState("/shop");
   const [storeUrl, setStoreUrl] = useState("/store");
   const [trainingsUrl, setTrainingsUrl] = useState("/entrainements");
   const [blogUrl, setBlogUrl] = useState("/blog");
   const [helpUrl, setHelpUrl] = useState("/aide");
-  const [contactUrl, setContactUrl] = useState("/contact");
+  const [contactUrl, setContactUrl] = useState("/nous-contacter");
   const [compteUrl, setCompteUrl] = useState("/compte");
   const [isLoading, setIsLoading] = useState(true);
 

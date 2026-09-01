@@ -28,7 +28,7 @@ export default function PostInscription() {
     }
 
     const destination = isAuthenticated
-      ? "/dashboard"
+      ? "/tableau-de-bord"
       : `/connexion${email ? `?email=${encodeURIComponent(email)}` : ""}`;
 
     router.replace(destination);

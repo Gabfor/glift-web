@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
   const isRecovery = typeParam === "recovery";
   const isOAuth = Boolean(code) && !typeParam;
 
-  let defaultTarget = "/dashboard";
+  let defaultTarget = "/tableau-de-bord";
   if (isRecovery) {
     defaultTarget = "/reinitialiser-mot-de-passe";
   } else if (planParam === "premium") {

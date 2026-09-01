@@ -193,7 +193,7 @@ export async function middleware(req: NextRequest) {
       const isAdmin = user.user_metadata?.is_admin === true;
       if (!isAdmin) {
         // Si connecté mais pas admin, rediriger vers le dashboard de l'app utilisateur
-        const target = getSubdomainUrl("app", "/dashboard");
+        const target = getSubdomainUrl("app", "/tableau-de-bord");
         const redirectRes = new NextResponse(null, {
           status: 307,
           headers: {
@@ -257,7 +257,7 @@ export async function middleware(req: NextRequest) {
 
     // ✅ Protection des routes nécessitant une connexion utilisateur
     if (!user) {
-      const protectedRoutes = ["/dashboard", "/entrainements", "/compte"];
+      const protectedRoutes = ["/tableau-de-bord", "/dashboard", "/entrainements", "/compte"];
       const isProtectedRoute = protectedRoutes.some((route) => {
         return (
           pathname === route ||

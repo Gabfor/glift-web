@@ -275,7 +275,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <Link
                   href={dashboardUrl}
                   className={
-                    pathname === dashboardUrl || pathname === "/dashboard"
+                    pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
                       ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
                       : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
                   }
@@ -576,7 +576,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   <Link
                     href={dashboardUrl}
                     className={
-                      pathname === dashboardUrl || pathname === "/dashboard"
+                      pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
                         ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
                         : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
                     }

@@ -79,7 +79,7 @@ import StoreHeader from "@/components/store/StoreHeader";
 import EntrainementsClient from "@/app/entrainements/EntrainementsClient";
 import BlogListClient from "@/app/blog/BlogListClient";
 import AideClient from "@/app/aide/AideClient";
-import ContactClient from "@/app/contact/ContactClient";
+import ContactClient from "@/app/nous-contacter/ContactClient";
 import ComptePageClient from "@/app/compte/ComptePageClient";
 import { PaymentService } from "@/lib/services/paymentService";
 import { COMPTE_PAGE_ID } from "@/app/admin/create-page/pageForm";
