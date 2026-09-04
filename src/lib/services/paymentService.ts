@@ -1163,7 +1163,7 @@ export class PaymentService {
                 id: activeSub.id,
                 status: activeSub.status,
                 cancel_at_period_end: activeSub.cancel_at_period_end,
-                current_period_end: (activeSub as any).current_period_end,
+                current_period_end: (activeSub as any).current_period_end || (activeSub.items?.data?.[0] as any)?.current_period_end,
                 plan: stripePlan,
                 lastInvoiceError,
                 lastInvoiceErrorCode,

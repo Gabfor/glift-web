@@ -190,17 +190,14 @@ function CreateHelpForm() {
                                     selected={categories}
                                     onChange={setCategories}
                                     options={[
-                                        { value: "Programmes", label: "Programmes" },
                                         { value: "Store", label: "Store" },
                                         { value: "Shop", label: "Shop" },
-                                        { value: "Blog", label: "Blog" },
-                                        { value: "Questions fréquentes", label: "Questions fréquentes" },
                                         { value: "Compte", label: "Compte" },
                                         { value: "Abonnement", label: "Abonnement" },
                                         { value: "Application", label: "Application" },
-                                        { value: "Paiement", label: "Paiement" },
-                                        { value: "Bug", label: "Bug" },
-                                        { value: "Entraînement", label: "Entraînement" }
+                                        { value: "Entraînement", label: "Entraînement" },
+                                        { value: "Tableau de bord", label: "Tableau de bord" },
+                                        { value: "Autres", label: "Autres" }
                                     ]}
                                 />
                             </div>

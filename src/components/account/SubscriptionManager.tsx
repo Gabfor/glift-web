@@ -243,7 +243,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const [setupData, setSetupData] = useState<{ clientSecret: string; customerId: string; subscriptionId: string; plan: string; mode?: 'setup' | 'payment' } | null>(null);
     const [showSuccessMessage, setShowSuccessMessage] = useState(false);
     const [showModalMessage, setShowModalMessage] = useState(false);
-    const [successMessage, setSuccessMessage] = useState<{ title: string; description: string; variant: 'success' | 'error' | 'info' | 'warning' }>({
+    const [successMessage, setSuccessMessage] = useState<{ title: React.ReactNode; description: React.ReactNode; variant: 'success' | 'error' | 'info' | 'warning' }>({
         title: "",
         description: "",
         variant: "success"
@@ -381,6 +381,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     const hasFuturePremiumEnd = premiumEndAt && new Date(premiumEndAt) > now;
 
                     if (data && data.status) {
+                        if (data.current_period_end) {
+                            setSubscriptionEndDate(data.current_period_end);
+                        }
                         // User has a Stripe subscription
                         if ((data.cancel_at_period_end || hasFuturePremiumEnd || data.status === 'incomplete') && !isTrialActive) {
                             // Cancellation pending (Stripe or DB) OR Incomplete subscription (Payment Failed/Abandoned)
@@ -443,8 +446,13 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
             if (isExpired) {
                 setSuccessMessage({
-                    title: "Mode de paiement expiré",
-                    description: "Pour continuer à bénéficier d’un abonnement Premium veuillez renseigner un nouveau mode de paiement valide.",
+                    title: "Ton moyen de paiement a expiré",
+                    description: (
+                        <span>
+                            Pour continuer à bénéficier d’un abonnement Premium une fois la période de facturation actuelle terminée, renseigne un nouveau moyen de paiement avant le{" "}
+                            <span className="font-bold text-[#BB1111]">{formattedEndDate || "la fin de la période"}</span>.
+                        </span>
+                    ),
                     variant: "error"
                 });
                 setShowModalMessage(true);
@@ -467,7 +475,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 }
             }
         }
-    }, [paymentMethod, paymentError, paymentErrorCode]);
+    }, [paymentMethod, paymentError, paymentErrorCode, formattedEndDate]);
 
     const isCurrentPlan =
         (effectiveIsPremium && selectedPlan === "premium") ||

@@ -2,16 +2,27 @@
 
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSearchParams, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import SearchBar from "@/components/SearchBar";
 import { Accordion } from "@/components/ui/accordion";
 import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
-import DropdownFilter from "@/components/filters/DropdownFilter";
 import Pagination from "@/components/pagination/Pagination";
 import AideSkeleton from "@/components/aide/AideSkeleton";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
+
+const HELP_CATEGORIES = [
+  { id: "Application", label: "Application", icon: "/icons/aide_application.svg" },
+  { id: "Entraînement", label: "Entraînement", icon: "/icons/aide_entrainement.svg" },
+  { id: "Compte", label: "Compte", icon: "/icons/aide_compte.svg" },
+  { id: "Tableau de bord", label: "Tableau de bord", icon: "/icons/aide_tableau_de_bord.svg" },
+  { id: "Store", label: "Store", icon: "/icons/aide_store.svg" },
+  { id: "Shop", label: "Shop", icon: "/icons/aide_shop.svg" },
+  { id: "Abonnement", label: "Abonnement", icon: "/icons/aide_abonnement.svg" },
+  { id: "Autres", label: "Autres", icon: "/icons/aide_autres.svg" },
+];
 
 type HelpQuestion = {
   id: string;
@@ -110,16 +121,41 @@ function AideContent({
     }
   }, [loading, questions, q]);
 
-  // Extract unique categories from all live questions for the dropdown
-  const allCategories = useMemo(() => {
-    const cats = new Set<string>();
-    questions.forEach(q => {
-      if (q.categories) {
-        q.categories.forEach(c => cats.add(c));
+  const scrollToResults = () => {
+    setTimeout(() => {
+      const resultsEl = document.getElementById("aide-results");
+      if (resultsEl) {
+        const headerOffset = 85;
+        const y = resultsEl.getBoundingClientRect().top + window.scrollY - headerOffset;
+        window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
       }
-    });
-    return Array.from(cats).sort().map(cat => ({ value: cat, label: cat }));
-  }, [questions]);
+    }, 100);
+  };
+
+  const handleCategoryClick = (categoryName: string) => {
+    if (selectedCategory === categoryName) {
+      setSelectedCategory("");
+    } else {
+      setSelectedCategory(categoryName);
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        scrollToResults();
+      }
+    }
+    setCurrentPage(1);
+  };
+
+  const handleSearchSubmit = () => {
+    if (!searchTerm.trim() && !selectedCategory) return;
+
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    scrollToResults();
+  };
+
+  const normalizeCat = (str: string) =>
+    str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
 
   // Filter questions based on search term, category and user login state
   const filteredQuestions = useMemo(() => {
@@ -133,7 +169,10 @@ function AideContent({
       const matchesSearch = q.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
         q.answer.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = selectedCategory === "" ||
-        (q.categories && q.categories.includes(selectedCategory));
+        (q.categories && q.categories.some(c => 
+          c.toLowerCase().trim() === selectedCategory.toLowerCase().trim() ||
+          normalizeCat(c) === normalizeCat(selectedCategory)
+        ));
       return matchesSearch && matchesCategory;
     });
   }, [questions, searchTerm, selectedCategory, isLogged]);
@@ -144,10 +183,10 @@ function AideContent({
     return filteredQuestions.slice(startIndex, startIndex + ITEMS_PER_PAGE);
   }, [filteredQuestions, currentPage]);
 
-
+  const hasActiveFilter = Boolean(searchTerm.trim() || selectedCategory || q);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
 
         {/* Header Section */}
@@ -162,11 +201,11 @@ function AideContent({
         />
         {pageIntro?.description ? (
           <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:!text-[#7069FA] hover:[&_a]:!text-[#6660E4] hover:[&_a]:no-underline [&_a]:transition-colors"
             dangerouslySetInnerHTML={{ __html: pageIntro.description }}
           />
         ) : (
-          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
+          <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8">
             Retrouve les questions les plus fréquemment posées par nos utilisateurs.
             <br />
             Si tu as d’autres questions,{" "}
@@ -180,69 +219,108 @@ function AideContent({
         )}
 
         {/* Search Bar */}
-        <div className="mb-[40px] w-full max-w-[500px]">
+        <div className="w-full max-w-[368px]">
           <SearchBar
             value={searchTerm}
             onChange={(val) => {
               setSearchTerm(val);
               setCurrentPage(1);
             }}
+            onSubmit={handleSearchSubmit}
             placeholder="Rechercher par mot-clé"
           />
         </div>
 
-        {showSkeleton ? (
-          <AideSkeleton />
-        ) : (
-          <div className="w-full max-w-[760px] text-left">
-            {/* Category Filter */}
-            {allCategories.length > 0 && (
-              <div className="mb-[30px] flex justify-start z-20 relative">
-                <DropdownFilter
-                  label="Catégorie"
-                  placeholder="Toutes les catégories"
-                  options={allCategories}
-                  allOptions={allCategories}
-                  selected={selectedCategory}
-                  onSelect={(val) => {
-                    setSelectedCategory(val);
-                    setCurrentPage(1);
-                  }}
-                />
-              </div>
-            )}
+        {/* Separator "ou par catégorie" with 30px margin top and bottom */}
+        <div className="relative my-[30px] flex items-center justify-center w-full max-w-[760px]">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-[#ECE9F1]" />
+          </div>
+          <div className="relative bg-[#FBFCFE] px-4 text-[14px] font-semibold text-[#D7D4DC]">
+            ou par catégorie
+          </div>
+        </div>
 
-            {/* Questions List */}
-            {filteredQuestions.length === 0 ? (
-              <div className="text-center text-[#5D6494] font-semibold mt-10">
-                Aucun résultat trouvé
-              </div>
+        {/* Category Cards Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px] md:gap-[24px] w-full max-w-[760px] justify-items-center mb-0">
+          {HELP_CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                type="button"
+                onClick={() => handleCategoryClick(cat.id)}
+                className={`group w-full md:w-[172px] h-[88px] rounded-[8px] bg-white flex flex-col items-center justify-between pt-[20px] pb-[15px] border cursor-pointer select-none transition-all duration-200 ease-in-out ${
+                  isSelected
+                    ? "border-[#A1A5FD] ring-1 ring-inset ring-[#A1A5FD] shadow-[0_4px_20px_rgba(93,100,148,0.06)]"
+                    : "border-[#D7D4DC] ring-0 ring-transparent shadow-none"
+                }`}
+              >
+                <div className="relative w-[30px] h-[30px] flex items-center justify-center shrink-0">
+                  <Image
+                    src={cat.icon}
+                    alt=""
+                    width={30}
+                    height={30}
+                    className="w-[30px] h-[30px] object-contain"
+                  />
+                </div>
+                <span className={`text-[12px] font-bold text-center leading-none transition-colors duration-200 ${
+                  isSelected ? "text-[#3A416F]" : "text-[#5D6494] group-hover:text-[#3A416F]"
+                }`}>
+                  {cat.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {hasActiveFilter && (
+          <div id="aide-results" className="w-full max-w-[760px] text-left">
+            {showSkeleton ? (
+              <AideSkeleton />
             ) : (
               <>
-                <Accordion
-                  type="single"
-                  collapsible
-                  className="space-y-[20px]"
-                  value={openSection}
-                  onValueChange={setOpenSection}
-                >
-                  {paginatedQuestions.map(q => (
-                    <HelpQuestionItem
-                      key={q.id}
-                      questionId={q.id}
-                      question={q.question}
-                      answer={q.answer}
-                      searchTerm={searchTerm}
-                    />
-                  ))}
-                </Accordion>
+                {/* Results Indicator */}
+                <div className="flex justify-end mt-[30px] mb-[20px]">
+                  <span className="text-[14px] font-semibold text-[#5D6494]">
+                    {filteredQuestions.length} résultat{filteredQuestions.length > 1 ? "s" : ""}
+                  </span>
+                </div>
 
-                <Pagination
-                  currentPage={currentPage}
-                  totalItems={filteredQuestions.length}
-                  onPageChange={setCurrentPage}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                />
+                {/* Questions List */}
+                {filteredQuestions.length === 0 ? (
+                  <div className="text-center text-[#5D6494] font-semibold mt-10">
+                    Aucun résultat trouvé
+                  </div>
+                ) : (
+                  <>
+                    <Accordion
+                      type="single"
+                      collapsible
+                      className="space-y-[20px]"
+                      value={openSection}
+                      onValueChange={setOpenSection}
+                    >
+                      {paginatedQuestions.map(q => (
+                        <HelpQuestionItem
+                          key={q.id}
+                          questionId={q.id}
+                          question={q.question}
+                          answer={q.answer}
+                          searchTerm={searchTerm}
+                        />
+                      ))}
+                    </Accordion>
+
+                    <Pagination
+                      currentPage={currentPage}
+                      totalItems={filteredQuestions.length}
+                      onPageChange={setCurrentPage}
+                      itemsPerPage={ITEMS_PER_PAGE}
+                    />
+                  </>
+                )}
               </>
             )}
           </div>
@@ -260,7 +338,7 @@ export default function AidePage({
   const { contactUrl } = useDashboardUrl();
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] flex justify-center items-start">
+      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center items-start">
         <div className="w-full max-w-[1152px] mx-auto text-center flex flex-col items-center">
             {/* Header Section */}
             {initialPageContent.surtitre && (
@@ -274,11 +352,11 @@ export default function AidePage({
             />
             {initialPageContent.description ? (
               <div 
-                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:!text-[#7069FA] hover:[&_a]:!text-[#6660E4] hover:[&_a]:no-underline [&_a]:transition-colors"
                 dangerouslySetInnerHTML={{ __html: initialPageContent.description }}
               />
             ) : (
-              <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8">
+              <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8">
                 Retrouve les questions les plus fréquemment posées par nos utilisateurs.
                 <br />
                 Si tu as d’autres questions,{" "}
@@ -292,15 +370,46 @@ export default function AidePage({
             )}
 
             {/* Search Bar */}
-            <div className="mb-[40px] w-full max-w-[500px]">
-            <SearchBar
+            <div className="w-full max-w-[368px]">
+              <SearchBar
                 value=""
                 onChange={() => {}}
                 placeholder="Rechercher par mot-clé"
-            />
+              />
             </div>
 
-            <AideSkeleton />
+            {/* Separator "ou par catégorie" with 30px margin top and bottom */}
+            <div className="relative my-[30px] flex items-center justify-center w-full max-w-[760px]">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#ECE9F1]" />
+              </div>
+              <div className="relative bg-[#FBFCFE] px-4 text-[14px] font-semibold text-[#D7D4DC]">
+                ou par catégorie
+              </div>
+            </div>
+
+            {/* Category Cards Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px] md:gap-[24px] w-full max-w-[760px] justify-items-center mb-0">
+              {HELP_CATEGORIES.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="w-full md:w-[172px] h-[88px] rounded-[8px] bg-white flex flex-col items-center justify-between pt-[20px] pb-[15px] border border-[#D7D4DC]"
+                >
+                  <div className="relative w-[30px] h-[30px] flex items-center justify-center shrink-0">
+                    <Image
+                      src={cat.icon}
+                      alt=""
+                      width={30}
+                      height={30}
+                      className="w-[30px] h-[30px] object-contain"
+                    />
+                  </div>
+                  <span className="text-[12px] font-bold text-[#5D6494] text-center leading-none">
+                    {cat.label}
+                  </span>
+                </div>
+              ))}
+            </div>
         </div>
       </main>
     }>

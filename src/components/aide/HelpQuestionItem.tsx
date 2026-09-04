@@ -129,9 +129,9 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                     <AccordionTrigger>{highlightText(question, searchTerm)}</AccordionTrigger>
                 </div>
                 <AccordionContent
-                    className="bg-white border-t border-[#D7D4DC] rounded-b-[8px]"
+                    className="bg-white border-t border-[#D7D4DC] rounded-b-[8px] pb-0"
                 >
-                    <div className="px-[30px] pt-[20px] pb-[15px]">
+                    <div className="px-[20px] md:px-[30px] pt-[20px] pb-[20px]">
                         {/* Answer Content */}
                         <div
                             className={`prose prose-sm max-w-none text-[14px] leading-[22px] font-semibold text-[#5D6494] mb-[25px] whitespace-pre-wrap ${quicksand.className}`}
@@ -139,8 +139,8 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                         />
 
                         {/* Vote Section */}
-                        <div className="flex items-center justify-center rounded-[8px] h-[20px] px-[20px]">
-                            <span className="text-[14px] font-semibold text-[#C2BFC6] mr-[15px]">
+                        <div className="w-fit max-w-full mx-auto flex items-center justify-center h-[40px] px-[20px] border border-[#ECE9F1] rounded-full">
+                            <span className="text-[13px] sm:text-[14px] font-semibold text-[#C2BFC6] mr-[12px] sm:mr-[15px] whitespace-nowrap">
                                 Est-ce que cette réponse a été utile ?
                             </span>
                             <div className="flex items-center gap-[5px]">

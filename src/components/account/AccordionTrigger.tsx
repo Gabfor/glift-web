@@ -10,10 +10,10 @@ export default function AccordionTrigger({ children }: { children: ReactNode }) 
       onClick={(e) => {
         e.currentTarget.blur()
       }}
-      className="h-[60px] font-bold text-[#5D6494] [@media(hover:hover)]:hover:text-[#3A416F] data-[state=open]:text-[#3A416F] transition-colors text-[16px] pl-[30px] pr-6 py-3 hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[8px] rounded-[8px] focus:outline-none"
+      className="min-h-[60px] font-bold text-[#5D6494] [@media(hover:hover)]:hover:text-[#3A416F] data-[state=open]:text-[#3A416F] transition-colors text-[16px] px-[20px] md:pl-[30px] md:pr-6 py-[18px] hover:no-underline flex items-center justify-between group appearance-none before:hidden after:hidden w-full data-[state=open]:rounded-t-[8px] rounded-[8px] focus:outline-none"
     >
-      <span>{children}</span>
-      <span className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180">
+      <span className="text-left">{children}</span>
+      <span className="relative w-[14px] h-[8px] mt-[2px] ml-[20px] shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180">
         <Image
           src="/icons/chevron_down.svg"
           alt="Chevron"

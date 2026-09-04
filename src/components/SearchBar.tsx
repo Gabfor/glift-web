@@ -9,9 +9,19 @@ type Props = {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  className?: string;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onSubmit?: () => void;
 };
 
-export default function SearchBar({ value, onChange, placeholder }: Props) {
+export default function SearchBar({
+  value,
+  onChange,
+  placeholder,
+  className = "",
+  onKeyDown,
+  onSubmit,
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -23,7 +33,7 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
   };
 
   return (
-    <div className="relative w-[368px] mx-auto">
+    <div className={`relative w-full max-w-[368px] mx-auto ${className}`}>
       {/* Icône search.svg à gauche */}
       <div className="absolute left-3 top-1/2 -translate-y-1/2">
         <Image src="/icons/search.svg" alt="Rechercher" width={18} height={18} className="w-[18px] h-[18px]" />
@@ -34,6 +44,12 @@ export default function SearchBar({ value, onChange, placeholder }: Props) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            onSubmit?.();
+          }
+          onKeyDown?.(e);
+        }}
         placeholder={placeholder || "Rechercher..."}
         className="w-full pl-10 pr-10 py-2 rounded-[5px] bg-white text-[16px] font-semibold text-[#3A416F] placeholder-[#D7D4DC]
                    border border-[#D7D4DC] hover:border-[#C2BFC6]

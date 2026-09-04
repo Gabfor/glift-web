@@ -34,7 +34,7 @@ const AccordionTrigger = React.forwardRef<
     >
       <span>{children}</span>
       <span
-        className="relative w-[14px] h-[8px] mt-[2px] shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180"
+        className="relative w-[14px] h-[8px] mt-[2px] ml-[20px] shrink-0 transition-transform duration-300 group-data-[state=open]:rotate-180"
       >
         <Image
           src="/icons/chevron_down.svg"
