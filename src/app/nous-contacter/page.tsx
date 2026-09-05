@@ -4,7 +4,15 @@ import ContactClient from "./ContactClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function NousContacterPage() {
+export default async function NousContacterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const resolvedSearchParams = await searchParams;
+  const fromParam = resolvedSearchParams?.from;
+  const fromAideInitial = fromParam === "aide" || (Array.isArray(fromParam) && fromParam.includes("aide"));
+
   const supabase = await createServerClient();
   const { data } = await supabase
     .from("pages")
@@ -28,9 +36,9 @@ export default async function NousContacterPage() {
   const initialPageContent = {
     surtitre: data?.surtitre ?? "",
     titre: data?.titre || "Nous contacter",
-    description: data?.description ?? "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
+    description: data?.description ?? "Tu souhaites nous contacter ? Remplis le formulaire ci-dessous et nous reviendrons vers toi rapidement.",
     description_aide,
   };
 
-  return <ContactClient initialPageContent={initialPageContent} />;
+  return <ContactClient initialPageContent={initialPageContent} fromAideInitial={fromAideInitial} />;
 }

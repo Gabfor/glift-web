@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useSearchParams, notFound } from "next/navigation";
+import { useSearchParams, useRouter, notFound } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import SearchBar from "@/components/SearchBar";
 import { Accordion } from "@/components/ui/accordion";
@@ -42,6 +42,7 @@ function AideContent({
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
 }) {
+  const router = useRouter();
   const { contactUrl } = useDashboardUrl();
   const supabase = useMemo(() => createClient(), []);
   const searchParams = useSearchParams();
@@ -186,6 +187,42 @@ function AideContent({
 
   const hasActiveFilter = Boolean(searchTerm.trim() || selectedCategory || q);
 
+  const formattedDescription = useMemo(() => {
+    if (!pageIntro?.description) return "";
+    return pageIntro.description
+      .replace(/target="_blank"/g, 'target="_self"')
+      .replace(
+        /href="([^"]*nous-contacter)(\?[^"]*)?"/g,
+        (match, p1, p2) => {
+          const query = p2 ? (p2.includes("from=aide") ? p2 : `${p2}&from=aide`) : "?from=aide";
+          return `href="${p1}${query}"`;
+        }
+      );
+  }, [pageIntro?.description]);
+
+  const handleDescriptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = (e.target as HTMLElement).closest("a");
+    if (target) {
+      const href = target.getAttribute("href");
+      if (href) {
+        try {
+          const url = new URL(href, window.location.origin);
+          if (url.origin === window.location.origin) {
+            e.preventDefault();
+            router.push(url.pathname + url.search + url.hash);
+            return;
+          }
+        } catch {
+          // ignore
+        }
+        if (href.startsWith("/") || href.startsWith("#")) {
+          e.preventDefault();
+          router.push(href);
+        }
+      }
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
@@ -202,8 +239,9 @@ function AideContent({
         />
         {pageIntro?.description ? (
           <div 
+            onClick={handleDescriptionClick}
             className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:!text-[#7069FA] hover:[&_a]:!text-[#6660E4] hover:[&_a]:no-underline [&_a]:transition-colors"
-            dangerouslySetInnerHTML={{ __html: pageIntro.description }}
+            dangerouslySetInnerHTML={{ __html: formattedDescription }}
           />
         ) : (
           <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8">

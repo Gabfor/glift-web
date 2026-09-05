@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import CTAButton from "@/components/CTAButton";
 import { EmailField } from "@/components/forms/EmailField";
 import FileUploader from "@/components/forms/FileUploader";
@@ -17,13 +17,15 @@ type ContactClientProps = {
         description: string;
         description_aide?: string;
     };
+    fromAideInitial?: boolean;
 };
 
-function ContactForm({ initialPageContent }: ContactClientProps) {
+function ContactForm({ initialPageContent, fromAideInitial = false }: ContactClientProps) {
+    const router = useRouter();
     const { user } = useUser();
     const { helpUrl } = useDashboardUrl();
     const searchParams = useSearchParams();
-    const fromAide = searchParams.get("from") === "aide";
+    const fromAide = fromAideInitial || searchParams.get("from") === "aide";
 
     const [email, setEmail] = useState("");
     const [subject, setSubject] = useState("");
@@ -61,17 +63,46 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
             setSubject("");
             setDescription("");
             setFileUrls([]);
+            if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         } catch (err: any) {
             console.error(err);
             setStatus("error");
             setErrorMessage(err.message);
+            if (typeof window !== "undefined") {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         }
     };
 
     const isFormValid = email.trim() !== "" && subject.trim() !== "" && description.trim() !== "";
 
+    const handleDescriptionClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = (e.target as HTMLElement).closest("a");
+        if (target) {
+            const href = target.getAttribute("href");
+            if (href) {
+                try {
+                    const url = new URL(href, window.location.origin);
+                    if (url.origin === window.location.origin) {
+                        e.preventDefault();
+                        router.push(url.pathname + url.search + url.hash);
+                        return;
+                    }
+                } catch {
+                    // ignore
+                }
+                if (href.startsWith("/") || href.startsWith("#")) {
+                    e.preventDefault();
+                    router.push(href);
+                }
+            }
+        }
+    };
+
     return (
-        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
+        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
             <div className="w-full flex flex-col items-center px-4 sm:px-0">
                 {initialPageContent.surtitre && (
                     <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -84,14 +115,18 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
                     dangerouslySetInnerHTML={{ __html: initialPageContent.titre || "Nous contacter" }}
                 />
                 
-                <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:text-[#7069FA] [&_a]:hover:text-[#6660E4] [&_a]:hover:no-underline [&_a]:transition-colors">
+                <div 
+                    onClick={handleDescriptionClick}
+                    className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:text-[#7069FA] [&_a]:hover:text-[#6660E4] [&_a]:hover:no-underline [&_a]:transition-colors"
+                >
                     {fromAide ? (
                         <div dangerouslySetInnerHTML={{ 
-                            __html: (initialPageContent.description_aide || `Vous n'avez pas trouvé la réponse à votre question dans notre <a href="{{helpUrl}}">Aide</a> ?<br />Posez votre question ci-dessous et nous reviendrons vers vous.`)
+                            __html: (initialPageContent.description_aide || `Tu n'as pas trouvé la réponse à ta question dans notre <a href="{{helpUrl}}">Aide</a> ?<br />Pose ta question ci-dessous et nous reviendrons vers toi rapidement.`)
+                                .replace(/target="_blank"/g, 'target="_self"')
                                 .replaceAll("{{helpUrl}}", helpUrl)
                         }} />
                     ) : (
-                        <div dangerouslySetInnerHTML={{ __html: initialPageContent.description || "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous<br />et nous reviendrons vers vous rapidement." }} />
+                        <div dangerouslySetInnerHTML={{ __html: initialPageContent.description || "Tu souhaites nous contacter ? Remplis le formulaire ci-dessous<br />et nous reviendrons vers toi rapidement." }} />
                     )}
                 </div>
 
@@ -192,10 +227,16 @@ function ContactForm({ initialPageContent }: ContactClientProps) {
     );
 }
 
-export default function ContactClient({ initialPageContent }: ContactClientProps) {
+export default function ContactClient({ initialPageContent, fromAideInitial = false }: ContactClientProps) {
+    const { helpUrl } = useDashboardUrl();
+    const activeDescriptionAide = (initialPageContent.description_aide || `Tu n'as pas trouvé la réponse à ta question dans notre <a href="{{helpUrl}}">Aide</a> ?<br />Pose ta question ci-dessous et nous reviendrons vers toi rapidement.`)
+        .replace(/target="_blank"/g, 'target="_self"')
+        .replaceAll("{{helpUrl}}", helpUrl);
+    const activeDefaultDescription = initialPageContent.description || "Tu souhaites nous contacter ? Remplis le formulaire ci-dessous<br />et nous reviendrons vers toi rapidement.";
+
     return (
         <Suspense fallback={
-            <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
+            <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
                 <div className="w-full flex flex-col items-center px-4 sm:px-0">
                     {initialPageContent.surtitre && (
                         <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -208,13 +249,13 @@ export default function ContactClient({ initialPageContent }: ContactClientProps
                         dangerouslySetInnerHTML={{ __html: initialPageContent.titre || "Nous contacter" }}
                     />
                     
-                    <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
-                        <div dangerouslySetInnerHTML={{ __html: initialPageContent.description || "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous<br />et nous reviendrons vers vous rapidement." }} />
+                    <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0 [&_a]:text-[#7069FA] [&_a]:hover:text-[#6660E4] [&_a]:hover:no-underline [&_a]:transition-colors">
+                        <div dangerouslySetInnerHTML={{ __html: fromAideInitial ? activeDescriptionAide : activeDefaultDescription }} />
                     </div>
                 </div>
             </main>
         }>
-            <ContactForm initialPageContent={initialPageContent} />
+            <ContactForm initialPageContent={initialPageContent} fromAideInitial={fromAideInitial} />
         </Suspense>
     );
 }
