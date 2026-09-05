@@ -478,7 +478,10 @@ export default function RichTextEditor({
           pointer-events: none;
           font-weight: 600;
         }
-        .ProseMirror p.image-caption {
+        .ProseMirror .image-caption,
+        .ProseMirror .image-caption *,
+        .ProseMirror p.image-caption,
+        .ProseMirror p.image-caption * {
             color: #D7D4DC !important;
             font-size: 12px !important;
             font-weight: 500 !important;

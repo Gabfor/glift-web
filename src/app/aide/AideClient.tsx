@@ -10,6 +10,7 @@ import { Accordion } from "@/components/ui/accordion";
 import HelpQuestionItem from "@/components/aide/HelpQuestionItem";
 import Pagination from "@/components/pagination/Pagination";
 import AideSkeleton from "@/components/aide/AideSkeleton";
+import CTAButton from "@/components/CTAButton";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
@@ -290,8 +291,18 @@ function AideContent({
 
                 {/* Questions List */}
                 {filteredQuestions.length === 0 ? (
-                  <div className="text-center text-[#5D6494] font-semibold mt-10">
-                    Aucun résultat trouvé
+                  <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                      Oups ! Aucun résultat trouvé....
+                    </h2>
+                    <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                      Tu ne trouves pas ce que tu cherches ?
+                      <br />
+                      Envoie nous un message et nous reviendrons vers toi rapidement.
+                    </p>
+                    <CTAButton href={`${contactUrl}?from=aide`}>
+                      Nous contacter
+                    </CTAButton>
                   </div>
                 ) : (
                   <>

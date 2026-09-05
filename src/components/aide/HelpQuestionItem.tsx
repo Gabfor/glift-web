@@ -106,7 +106,10 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
     return (
         <AccordionItem value={questionId} id={questionId}>
             <style jsx global>{`
-                .prose p.image-caption {
+                .prose .image-caption,
+                .prose .image-caption *,
+                .prose p.image-caption,
+                .prose p.image-caption * {
                     color: #D7D4DC !important;
                     font-size: 12px !important;
                     font-weight: 500 !important;
@@ -140,7 +143,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
 
                         {/* Vote Section */}
                         <div className="w-fit max-w-full mx-auto flex items-center justify-center h-[40px] px-[20px] border border-[#ECE9F1] rounded-full">
-                            <span className="text-[13px] sm:text-[14px] font-semibold text-[#C2BFC6] mr-[12px] sm:mr-[15px] whitespace-nowrap">
+                            <span className="text-[12px] font-medium text-[#D7D4DC] mr-[15px] whitespace-nowrap">
                                 Est-ce que cette réponse a été utile ?
                             </span>
                             <div className="flex items-center gap-[5px]">
