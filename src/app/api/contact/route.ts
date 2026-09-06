@@ -14,6 +14,13 @@ export async function POST(req: Request) {
             );
         }
 
+        if (fileUrls && Array.isArray(fileUrls) && fileUrls.length > 5) {
+            return NextResponse.json(
+                { success: false, error: "Vous ne pouvez pas envoyer plus de 5 pièces jointes." },
+                { status: 400 }
+            );
+        }
+
         // Initialize admin client to read settings safely
         const supabaseAdmin = createClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,

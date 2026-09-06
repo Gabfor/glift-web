@@ -50,7 +50,7 @@ export default function FooterConnected() {
     {
       title: "AIDE",
       links: [
-        { label: "Questions", href: helpUrl },
+        { label: "Centre d'aide", href: helpUrl },
         { label: "Nous contacter", href: contactUrl },
       ],
     },

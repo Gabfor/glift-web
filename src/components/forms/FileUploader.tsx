@@ -4,16 +4,38 @@ import { useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
+const DEFAULT_ALLOWED_EXTENSIONS = ["jpg", "jpeg", "png", "webp", "heic", "heif", "pdf", "mp4", "mov", "webm"];
+const DEFAULT_ALLOWED_MIME_TYPES = [
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+    "application/pdf",
+    "video/mp4",
+    "video/quicktime",
+    "video/webm",
+];
+const DEFAULT_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,video/mp4,video/quicktime,video/webm,.jpg,.jpeg,.png,.webp,.heic,.heif,.pdf,.mp4,.mov,.webm";
+
 type Props = {
     value: string[];
     onChange: (urls: string[]) => void;
     accept?: string;
+    maxFiles?: number;
+    maxSizeInMB?: number;
+    allowedExtensions?: string[];
+    showHelperText?: boolean;
 };
 
 export default function FileUploader({
     value,
     onChange,
-    accept,
+    accept = DEFAULT_ACCEPT,
+    maxFiles = 5,
+    maxSizeInMB = 20,
+    allowedExtensions = DEFAULT_ALLOWED_EXTENSIONS,
+    showHelperText = true,
 }: Props) {
     const pathname = usePathname();
     const hostname = typeof window !== "undefined" ? window.location.hostname : "";
@@ -33,34 +55,91 @@ export default function FileUploader({
         pathname?.startsWith("/administrateurs") ||
         pathname?.startsWith("/auteurs") ||
         pathname?.startsWith("/settings");
+
     const [loading, setLoading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const supabase = useMemo(() => createClient(), []);
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const isAtMaxFiles = value.length >= maxFiles;
+
     const uploadFiles = async (fileList: FileList | null) => {
-        const files = Array.from(fileList || []);
-        if (files.length === 0) return;
+        const rawFiles = Array.from(fileList || []);
+        if (rawFiles.length === 0) return;
+
+        setError(null);
+
+        // 1. Check if already at max files
+        if (value.length >= maxFiles) {
+            setError(`Vous avez déjà atteint la limite maximale de ${maxFiles} fichiers.`);
+            return;
+        }
+
+        const maxSizeBytes = maxSizeInMB * 1024 * 1024;
+        const validFiles: File[] = [];
+        const errorMessages: string[] = [];
+
+        for (const file of rawFiles) {
+            // Check batch count limit
+            if (value.length + validFiles.length >= maxFiles) {
+                errorMessages.push(`Limite de ${maxFiles} fichiers atteinte.`);
+                break;
+            }
+
+            // Check format
+            const ext = file.name.split('.').pop()?.toLowerCase() || '';
+            const isExtValid = allowedExtensions.includes(ext);
+            const isMimeValid = accept === "image/*"
+                ? file.type.startsWith("image/")
+                : file.type
+                ? DEFAULT_ALLOWED_MIME_TYPES.includes(file.type.toLowerCase())
+                : isExtValid;
+
+            if (!isExtValid && !isMimeValid) {
+                errorMessages.push(`"${file.name}" : format non autorisé.`);
+                continue;
+            }
+
+            // Check size
+            if (file.size > maxSizeBytes) {
+                const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+                errorMessages.push(`"${file.name}" dépasse la limite de ${maxSizeInMB} Mo (${sizeMb} Mo).`);
+                continue;
+            }
+
+            validFiles.push(file);
+        }
+
+        if (errorMessages.length > 0) {
+            setError(errorMessages.join(" "));
+        }
+
+        if (validFiles.length === 0) {
+            if (inputRef.current) {
+                inputRef.current.value = "";
+            }
+            return;
+        }
 
         setLoading(true);
         try {
             const newUrls: string[] = [];
 
-            for (const file of files) {
-                const fileExt = file.name.split('.').pop();
+            for (const file of validFiles) {
                 // Replace spaces and special chars in the original name to avoid URL issues
                 const safeOriginalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}-${safeOriginalName}`;
                 const filePath = `attachements/${fileName}`;
 
-                const { error } = await supabase
+                const { error: uploadError } = await supabase
                     .storage
                     .from("contact-attachments")
                     .upload(filePath, file, { upsert: true });
 
-                if (error) {
-                    console.error("Supabase Storage error:", error);
-                    throw error;
+                if (uploadError) {
+                    console.error("Supabase Storage error:", uploadError);
+                    throw uploadError;
                 }
 
                 const { data } = supabase
@@ -76,7 +155,7 @@ export default function FileUploader({
             onChange([...value, ...newUrls]);
         } catch (err) {
             console.error("Erreur d'upload :", err);
-            alert("Erreur lors de l'upload d'un ou plusieurs fichiers.");
+            setError("Une erreur est survenue lors du téléchargement d'un ou plusieurs fichiers.");
         } finally {
             setLoading(false);
             if (inputRef.current) {
@@ -92,13 +171,17 @@ export default function FileUploader({
     const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsDragging(true);
+        if (!isAtMaxFiles && !loading) {
+            setIsDragging(true);
+        }
     };
 
     const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsDragging(true);
+        if (!isAtMaxFiles && !loading) {
+            setIsDragging(true);
+        }
     };
 
     const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
@@ -111,6 +194,7 @@ export default function FileUploader({
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
+        if (isAtMaxFiles || loading) return;
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
             uploadFiles(e.dataTransfer.files);
             e.dataTransfer.clearData();
@@ -118,6 +202,7 @@ export default function FileUploader({
     };
 
     const handleClick = () => {
+        if (isAtMaxFiles || loading) return;
         if (inputRef.current) {
             inputRef.current.click();
         }
@@ -127,7 +212,10 @@ export default function FileUploader({
         e.stopPropagation();
         const updatedUrls = value.filter((_, index) => index !== indexToRemove);
         onChange(updatedUrls);
-    }
+        if (error && updatedUrls.length < maxFiles) {
+            setError(null);
+        }
+    };
 
     return (
         <div className="w-full">
@@ -137,15 +225,22 @@ export default function FileUploader({
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`h-[45px] w-full flex items-center justify-center rounded-[5px] bg-white border border-dashed text-[14px] cursor-pointer transition-all duration-150 ${isDragging
-                    ? isPageAdmin
-                        ? "border-[#5D6494] bg-[#F4F5FE]"
-                        : "border-[#A1A5FD] bg-[#F4F3FF]"
-                    : "border-[#D7D4DC] hover:border-[#C2BFC6]"
-                    }`}
+                className={`h-[45px] w-full flex items-center justify-center rounded-[5px] border border-dashed text-[14px] transition-all duration-150 ${
+                    isAtMaxFiles
+                        ? "bg-[#F8F7FC] border-[#D7D4DC] cursor-not-allowed opacity-75"
+                        : isDragging
+                        ? isPageAdmin
+                            ? "border-[#5D6494] bg-[#F4F5FE] cursor-pointer"
+                            : "border-[#A1A5FD] bg-[#F4F3FF] cursor-pointer"
+                        : "bg-white border-[#D7D4DC] hover:border-[#C2BFC6] cursor-pointer"
+                }`}
             >
                 {loading ? (
                     <span className="text-[#5D6494] font-semibold">Téléchargement en cours...</span>
+                ) : isAtMaxFiles ? (
+                    <span className="text-[#8F94B8] font-semibold">
+                        Limite maximale atteinte ({value.length}/{maxFiles} fichiers)
+                    </span>
                 ) : (
                     <span className="text-[#5D6494] font-semibold">
                         <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajouter vos fichiers</span>{" "}
@@ -153,6 +248,22 @@ export default function FileUploader({
                     </span>
                 )}
             </div>
+
+            {/* Error message */}
+            {error && (
+                <div className="mt-2 text-[13px] font-semibold text-[#E05252] flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#E05252] shrink-0" />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            {/* Helper description */}
+            {showHelperText && !isAtMaxFiles && (
+                <div className="mt-1.5 text-[12px] font-medium text-[#8F94B8] flex flex-wrap items-center justify-between gap-1">
+                    <span>Formats acceptés : JPG, PNG, WEBP, HEIC, PDF, MP4, MOV, WEBM</span>
+                    <span>Max. {maxSizeInMB} Mo ({value.length}/{maxFiles})</span>
+                </div>
+            )}
 
             {/* Display selected files below the dropzone */}
             {value.length > 0 && (
@@ -184,7 +295,7 @@ export default function FileUploader({
                 multiple
                 ref={inputRef}
                 onChange={handleFileChange}
-                disabled={loading}
+                disabled={loading || isAtMaxFiles}
                 accept={accept}
                 className="hidden"
             />
