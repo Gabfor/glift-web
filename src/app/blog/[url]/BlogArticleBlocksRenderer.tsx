@@ -243,7 +243,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
                   animate={{ opacity: 1, y: 0, height: "auto" }}
                   exit={{ opacity: 0, y: -6, height: 0 }}
                   transition={{ duration: 0.35, ease: "easeInOut" }}
-                  className="text-[#EF4444] font-semibold text-[14px] mt-2 overflow-hidden"
+                  className="text-[#EF4F4E] font-semibold text-[14px] mt-2 overflow-hidden"
                 >
                   {message}
                 </motion.p>

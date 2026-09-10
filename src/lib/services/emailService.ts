@@ -2,6 +2,15 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function escapeHtml(str: string): string {
+  return (str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export class EmailService {
   async sendVerificationEmail(email: string, link: string) {
     // In dev mode or if no API key, log the link
@@ -15,6 +24,8 @@ export class EmailService {
     }
 
     try {
+      const safeEmail = escapeHtml(email);
+      const safeLink = escapeHtml(link);
       const { data, error } = await resend.emails.send({
         from: "Glift <onboarding@resend.dev>", // TODO: Replace with your verified domain in production
         to: email,
@@ -26,13 +37,13 @@ export class EmailService {
               Merci de vous être inscrit. Pour confirmer que cette adresse email vous appartient, veuillez cliquer sur le lien ci-dessous :
             </p>
             <div style="margin: 30px 0;">
-              <a href="${link}" style="background-color: #7069FA; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+              <a href="${safeLink}" style="background-color: #7069FA; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
                 Confirmer mon email
               </a>
             </div>
             <p style="color: #9CA3AF; font-size: 14px;">
               Si le bouton ne fonctionne pas, vous pouvez copier ce lien : <br>
-              <a href="${link}" style="color: #7069FA;">${link}</a>
+              <a href="${safeLink}" style="color: #7069FA;">${safeLink}</a>
             </p>
           </div>
         `,
@@ -67,6 +78,13 @@ export class EmailService {
     }
 
     try {
+      const safeUserEmail = escapeHtml(userEmail);
+      const safeSubject = escapeHtml(subject);
+      const safeDescription = escapeHtml(description);
+      const safeFileUrls = (fileUrls || [])
+        .filter((url) => typeof url === "string" && /^https?:\/\//i.test(url.trim()))
+        .map((url) => escapeHtml(url.trim()));
+
       const { data, error } = await resend.emails.send({
         from: "Glift Contact <onboarding@resend.dev>", // TODO: Replace with your verified domain in production
         to: destination,
@@ -76,19 +94,19 @@ export class EmailService {
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #D7D4DC; padding: 20px; border-radius: 8px;">
             <h1 style="color: #2E3271; font-size: 20px;">Nouveau message de contact</h1>
             <p style="color: #5D6494; font-size: 16px;">
-              <strong>De :</strong> <a href="mailto:${userEmail}" style="color: #7069FA;">${userEmail}</a><br/>
-              <strong>Sujet :</strong> ${subject}
+              <strong>De :</strong> <a href="mailto:${safeUserEmail}" style="color: #7069FA;">${safeUserEmail}</a><br/>
+              <strong>Sujet :</strong> ${safeSubject}
             </p>
             <hr style="border: 0; border-top: 1px solid #D7D4DC; margin: 20px 0;"/>
             <div style="color: #3A416F; font-size: 16px; white-space: pre-wrap;">
-              ${description}
+              ${safeDescription}
             </div>
-            ${fileUrls && fileUrls.length > 0 ? `
+            ${safeFileUrls.length > 0 ? `
               <hr style="border: 0; border-top: 1px solid #D7D4DC; margin: 20px 0;"/>
               <p style="color: #5D6494; font-size: 14px;">
-                <strong>Pièce(s) jointe(s) (${fileUrls.length}) :</strong> <br/>
+                <strong>Pièce(s) jointe(s) (${safeFileUrls.length}) :</strong> <br/>
                 <ul style="padding-left: 20px;">
-                  ${fileUrls.map((url, i) => `<li><a href="${url}" target="_blank" style="color: #7069FA;">Voir le fichier ${i + 1}</a></li>`).join('')}
+                  ${safeFileUrls.map((url, i) => `<li><a href="${url}" target="_blank" rel="noopener noreferrer" style="color: #7069FA;">Voir le fichier ${i + 1}</a></li>`).join('')}
                 </ul>
               </p>
             ` : ""}

@@ -62,7 +62,7 @@ export default function TextField({
             'transition-all duration-150',
             'border',
             showError
-              ? 'border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
+              ? 'border-[#EF4F4E] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
               : showSuccess
               ? 'border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'
               : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]',
@@ -84,7 +84,7 @@ export default function TextField({
 
       <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">
         {showError ? (
-          <p className="text-[#EF4444]">{error}</p>
+          <p className="text-[#EF4F4E]">{error}</p>
         ) : showSuccess ? (
           <SuccessMsg>{success}</SuccessMsg>
         ) : null}

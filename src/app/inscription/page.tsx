@@ -502,13 +502,13 @@ const AccountCreationPage = () => {
               className={`h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 ${shouldShowPrenomSuccess
                 ? "border border-[#00D591]"
                 : shouldShowPrenomError
-                  ? "border border-[#EF4444]"
+                  ? "border border-[#EF4F4E]"
                   : "border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
                 }`}
             />
             <div className="h-[20px] mt-[5px] text-[13px] font-medium">
               {shouldShowPrenomSuccess && <p className="text-[#00D591]">Enchanté {prenom.trim()} !</p>}
-              {shouldShowPrenomError && <p className="text-[#EF4444]">Le prénom ne doit contenir que des lettres</p>}
+              {shouldShowPrenomError && <p className="text-[#EF4F4E]">Le prénom ne doit contenir que des lettres</p>}
             </div>
           </div>
 
@@ -726,7 +726,7 @@ const AccountCreationPage = () => {
                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
                     onPaste={handleOtpPaste}
                     className={`flex-1 min-w-0 max-w-[48px] h-[45px] rounded-[5px] border bg-white text-center text-[16px] font-semibold text-[#5D6494] placeholder-[#D7D4DC] transition-all duration-150 focus:outline-none focus:!border-transparent focus:ring-2 focus:ring-[#A1A5FD] ${
-                      otpError ? "border-[#EF4444]" : "border-[#D7D4DC] hover:border-[#C2BFC6]"
+                      otpError ? "border-[#EF4F4E]" : "border-[#D7D4DC] hover:border-[#C2BFC6]"
                     }`}
                   />
                 ))}

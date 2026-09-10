@@ -72,7 +72,7 @@ export default function FileUploader({
 
         // 1. Check if already at max files
         if (value.length >= maxFiles) {
-            setError(`Vous avez déjà atteint la limite maximale de ${maxFiles} fichiers.`);
+            setError(`Vous avez déjà atteint la limite maximale de ${maxFiles} fichiers`);
             return;
         }
 
@@ -83,7 +83,7 @@ export default function FileUploader({
         for (const file of rawFiles) {
             // Check batch count limit
             if (value.length + validFiles.length >= maxFiles) {
-                errorMessages.push(`Limite de ${maxFiles} fichiers atteinte.`);
+                errorMessages.push(`Limite de ${maxFiles} fichiers atteinte`);
                 break;
             }
 
@@ -97,14 +97,17 @@ export default function FileUploader({
                 : isExtValid;
 
             if (!isExtValid && !isMimeValid) {
-                errorMessages.push(`"${file.name}" : format non autorisé.`);
+                if (!errorMessages.includes("Format non autorisé")) {
+                    errorMessages.push("Format non autorisé");
+                }
                 continue;
             }
 
             // Check size
             if (file.size > maxSizeBytes) {
-                const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-                errorMessages.push(`"${file.name}" dépasse la limite de ${maxSizeInMB} Mo (${sizeMb} Mo).`);
+                if (!errorMessages.includes("Fichier trop volumineux")) {
+                    errorMessages.push("Fichier trop volumineux");
+                }
                 continue;
             }
 
@@ -155,7 +158,7 @@ export default function FileUploader({
             onChange([...value, ...newUrls]);
         } catch (err) {
             console.error("Erreur d'upload :", err);
-            setError("Une erreur est survenue lors du téléchargement d'un ou plusieurs fichiers.");
+            setError("Une erreur est survenue lors du téléchargement d'un ou plusieurs fichiers");
         } finally {
             setLoading(false);
             if (inputRef.current) {
@@ -225,21 +228,41 @@ export default function FileUploader({
                 onDragEnter={handleDragEnter}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`h-[45px] w-full flex items-center justify-center rounded-[5px] border border-dashed text-[14px] transition-all duration-150 ${
+                className={`group relative h-[45px] w-full flex items-center justify-center rounded-[5px] text-[14px] transition-all duration-150 ${
                     isAtMaxFiles
-                        ? "bg-[#F8F7FC] border-[#D7D4DC] cursor-not-allowed opacity-75"
-                        : isDragging
-                        ? isPageAdmin
-                            ? "border-[#5D6494] bg-[#F4F5FE] cursor-pointer"
-                            : "border-[#A1A5FD] bg-[#F4F3FF] cursor-pointer"
-                        : "bg-white border-[#D7D4DC] hover:border-[#C2BFC6] cursor-pointer"
+                        ? "bg-[#F2F1F6] cursor-not-allowed"
+                        : "bg-white cursor-pointer"
                 }`}
             >
+                <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none rounded-[5px]"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <rect
+                        x="0.5"
+                        y="0.5"
+                        width="calc(100% - 1px)"
+                        height="calc(100% - 1px)"
+                        rx="5"
+                        strokeWidth="1"
+                        strokeDasharray="4 4"
+                        className={`transition-colors duration-150 ${
+                            isAtMaxFiles
+                                ? "stroke-[#D7D4DC]"
+                                : isDragging
+                                ? isPageAdmin
+                                    ? "stroke-[#5D6494]"
+                                    : "stroke-[#A1A5FD]"
+                                : "stroke-[#D7D4DC] group-hover:stroke-[#C2BFC6]"
+                        }`}
+                    />
+                </svg>
                 {loading ? (
                     <span className="text-[#5D6494] font-semibold">Téléchargement en cours...</span>
                 ) : isAtMaxFiles ? (
-                    <span className="text-[#8F94B8] font-semibold">
-                        Limite maximale atteinte ({value.length}/{maxFiles} fichiers)
+                    <span className="text-[#D7D4DC] font-semibold">
+                        Limite de pièces jointes atteinte
                     </span>
                 ) : (
                     <span className="text-[#5D6494] font-semibold">
@@ -251,15 +274,14 @@ export default function FileUploader({
 
             {/* Error message */}
             {error && (
-                <div className="mt-2 text-[13px] font-semibold text-[#E05252] flex items-center gap-1.5">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#E05252] shrink-0" />
-                    <span>{error}</span>
+                <div className="mt-2 text-[13px] font-semibold text-[#EF4F4E]">
+                    {error}
                 </div>
             )}
 
             {/* Helper description */}
-            {showHelperText && !isAtMaxFiles && (
-                <div className="mt-1.5 text-[12px] font-medium text-[#8F94B8] flex flex-wrap items-center justify-between gap-1">
+            {showHelperText && (
+                <div className="mt-1.5 text-[12px] font-medium text-[#D7D4DC] flex flex-wrap items-center justify-between gap-1">
                     <span>Formats acceptés : JPG, PNG, WEBP, HEIC, PDF, MP4, MOV, WEBM</span>
                     <span>Max. {maxSizeInMB} Mo ({value.length}/{maxFiles})</span>
                 </div>

@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import CTAButton from "@/components/CTAButton";
 import { EmailField } from "@/components/forms/EmailField";
 import FileUploader from "@/components/forms/FileUploader";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 import ModalMessage from "@/components/ui/ModalMessage";
+import Turnstile, { TurnstileRef } from "@/components/ui/Turnstile";
 import { useUser } from "@/context/UserContext";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
@@ -31,6 +32,8 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
     const [subject, setSubject] = useState("");
     const [description, setDescription] = useState("");
     const [fileUrls, setFileUrls] = useState<string[]>([]);
+    const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+    const turnstileRef = useRef<TurnstileRef>(null);
 
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
@@ -50,7 +53,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
             const res = await fetch("/api/contact", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, subject, description, fileUrls }),
+                body: JSON.stringify({ email, subject, description, fileUrls, turnstileToken }),
             });
 
             const data = await res.json();
@@ -60,9 +63,14 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
             }
 
             setStatus("success");
+            if (!user?.email) {
+                setEmail("");
+            }
             setSubject("");
             setDescription("");
             setFileUrls([]);
+            setTurnstileToken(null);
+            turnstileRef.current?.reset();
             if (typeof window !== "undefined") {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -70,6 +78,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
             console.error(err);
             setStatus("error");
             setErrorMessage(err.message);
+            turnstileRef.current?.reset();
             if (typeof window !== "undefined") {
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -139,7 +148,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                         <div className="w-full mb-[20px]">
                             <ErrorMessage
                                 title="Erreur d'envoi"
-                                description="Oups, nous n’avons pas réussi à envoyer ton message. Merci de réessayer plus tard."
+                                description={errorMessage || "Oups, nous n’avons pas réussi à envoyer ton message. Merci de réessayer plus tard."}
                             />
                         </div>
                     )}
@@ -155,21 +164,21 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                     )}
 
                     {/* Email Field */}
-                    <div className="w-full mb-[10px]">
-                        <EmailField
-                            id="contact-email"
-                            name="email"
-                            value={email}
-                            onChange={setEmail}
-                            placeholder="john.doe@gmail.com"
-                            hideSuccessMessage
-                            showExternalErrorWhenEmpty={false}
-                            messageContainerClassName="h-[20px] mt-[5px]"
-                        />
-                    </div>
+                    <EmailField
+                        id="contact-email"
+                        name="email"
+                        label="Email"
+                        value={email}
+                        onChange={setEmail}
+                        placeholder="john.doe@gmail.com"
+                        hideSuccessMessage
+                        showExternalErrorWhenEmpty={false}
+                        containerClassName="w-full"
+                        messageContainerClassName="mt-2 text-[13px] font-medium"
+                    />
 
                     {/* Subject Field */}
-                    <div className="w-full mb-[10px]">
+                    <div className="w-full">
                         <label htmlFor="subject" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
                             Sujet
                         </label>
@@ -182,11 +191,11 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                             placeholder="Sujet de votre demande"
                             className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
                         />
-                        <div className="h-[20px] mt-[5px]"></div>
+                        <div className="min-h-[20px] mt-2 text-[13px] font-medium"></div>
                     </div>
 
                     {/* Description Field */}
-                    <div className="w-full mb-[10px]">
+                    <div className="w-full">
                         <label htmlFor="description" className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">
                             Description
                         </label>
@@ -198,7 +207,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                             placeholder="Description de votre demande"
                             className="min-h-[160px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] p-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-y"
                         />
-                        <div className="h-[20px] mt-[5px]"></div>
+                        <div className="min-h-[20px] mt-2 text-[13px] font-medium"></div>
                     </div>
 
                     {/* Attachments Field */}
@@ -208,6 +217,13 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                         </label>
                         <FileUploader value={fileUrls} onChange={setFileUrls} />
                     </div>
+
+                    {/* Turnstile invisible captcha */}
+                    <Turnstile
+                        ref={turnstileRef}
+                        onVerify={setTurnstileToken}
+                        onExpire={() => setTurnstileToken(null)}
+                    />
 
                     {/* Submit Button */}
                     <div className="w-full flex justify-center">

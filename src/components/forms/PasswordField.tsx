@@ -160,7 +160,7 @@ export function PasswordField({
             "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border",
             "disabled:cursor-not-allowed disabled:bg-[#F2F1F6] disabled:text-[#D7D4DC] disabled:border-[#D7D4DC]",
               showError
-                ? "border-[#EF4444] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]"
+                ? "border-[#EF4F4E] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]"
                 : showSuccess
                 ? cn(
                     "border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2",
@@ -198,7 +198,7 @@ export function PasswordField({
         id={`${id}-message`}
         className={cn(
           "mt-[5px] text-[13px] font-semibold min-h-[20px]",
-          message ? (showError ? "text-[#EF4444]" : showSuccess ? "text-[#00D591]" : undefined) : undefined,
+          message ? (showError ? "text-[#EF4F4E]" : showSuccess ? "text-[#00D591]" : undefined) : undefined,
           messageContainerClassName,
         )}
         aria-live="polite"

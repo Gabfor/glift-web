@@ -468,16 +468,16 @@ input:checked+.slider:before {
   }
 
   /* Override focus:border-transparent to transition border color smoothly to the focus ring color */
-  input.focus\:border-transparent:focus:not(.border-\[\#EF4444\]),
-  textarea.focus\:border-transparent:focus:not(.border-\[\#EF4444\]),
-  select.focus\:border-transparent:focus:not(.border-\[\#EF4444\]) {
+  input.focus\:border-transparent:focus:not(.border-\[\#EF4F4E\]),
+  textarea.focus\:border-transparent:focus:not(.border-\[\#EF4F4E\]),
+  select.focus\:border-transparent:focus:not(.border-\[\#EF4F4E\]) {
     border-color: var(--color-focus-ring) !important;
   }
 
   /* Transition the error border color to red on focus instead of transparent */
-  input.focus\:border-transparent:focus.border-\[\#EF4444\],
-  textarea.focus\:border-transparent:focus.border-\[\#EF4444\] {
-    border-color: #EF4444 !important;
+  input.focus\:border-transparent:focus.border-\[\#EF4F4E\],
+  textarea.focus\:border-transparent:focus.border-\[\#EF4F4E\] {
+    border-color: #EF4F4E !important;
   }
 }
 
