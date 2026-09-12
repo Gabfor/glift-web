@@ -1,12 +1,26 @@
 export const GENDER_OPTIONS = ['Homme', 'Femme'] as const
 
-export const COUNTRIES = ['France', 'Belgique', 'Suisse', 'Canada', 'Autre'] as const
+export const COUNTRIES = [
+  'France',
+  'Belgique',
+  'Suisse',
+  'Canada',
+  'Île Maurice',
+  'Luxembourg',
+  'Maroc',
+  'Monaco',
+  'Autre',
+] as const
 
 export const COUNTRY_FLAG_ICON_MAP: Record<(typeof COUNTRIES)[number], string> = {
   France: '/flags/france.svg',
   Belgique: '/flags/belgique.svg',
   Suisse: '/flags/suisse.svg',
   Canada: '/flags/canada.svg',
+  'Île Maurice': '/flags/ile_maurice.svg',
+  Luxembourg: '/flags/luxembourg.svg',
+  Maroc: '/flags/maroc.svg',
+  Monaco: '/flags/monaco.svg',
   Autre: '/flags/autre.svg',
 } as const
 
