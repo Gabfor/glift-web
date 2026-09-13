@@ -65,9 +65,9 @@ export default function Spinner({ size = "sm", className, ariaLabel }: SpinnerPr
           inset: 0;
           box-sizing: border-box;
           border-radius: 50%;
-          border: var(--semantic-loader-border-width) solid rgba(58, 65, 111, 0.15);
+          border: var(--semantic-loader-border-width) solid color-mix(in srgb, currentColor 20%, transparent);
           border-top-color: currentColor;
-          animation: semantic-loader-spin 0.6s linear infinite;
+          animation: semantic-loader-spin 0.7s linear infinite;
         }
       `}</style>
     </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
@@ -63,6 +63,12 @@ export default function FileUploader({
     const inputRef = useRef<HTMLInputElement>(null);
 
     const isAtMaxFiles = value.length >= maxFiles;
+
+    useEffect(() => {
+        if (value.length === 0 && error) {
+            setError(null);
+        }
+    }, [value.length, error]);
 
     const uploadFiles = async (fileList: FileList | null) => {
         const rawFiles = Array.from(fileList || []);
@@ -265,10 +271,17 @@ export default function FileUploader({
                         Limite de pièces jointes atteinte
                     </span>
                 ) : (
-                    <span className="text-[#5D6494] font-semibold">
-                        <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajouter vos fichiers</span>{" "}
-                        ou faites glisser vos fichiers ici
-                    </span>
+                    <>
+                        {/* Version mobile */}
+                        <span className={`sm:hidden font-semibold ${isPageAdmin ? "text-[#5D6494]" : "text-[#7069FA]"}`}>
+                            Ajouter vos fichiers ici
+                        </span>
+                        {/* Version desktop */}
+                        <span className="hidden sm:inline text-[#5D6494] font-semibold">
+                            <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajouter vos fichiers</span>{" "}
+                            ou faites glisser vos fichiers ici
+                        </span>
+                    </>
                 )}
             </div>
 

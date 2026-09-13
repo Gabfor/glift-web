@@ -37,6 +37,22 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
 
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
+    const messageRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (status === "success" || status === "error") {
+            const timer = setTimeout(() => {
+                if (messageRef.current) {
+                    const yOffset = -140; // Décalage pour le header sticky
+                    const y = messageRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+                    window.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+                } else {
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
     useEffect(() => {
         if (user?.email) {
@@ -71,17 +87,11 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
             setFileUrls([]);
             setTurnstileToken(null);
             turnstileRef.current?.reset();
-            if (typeof window !== "undefined") {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         } catch (err: any) {
             console.error(err);
             setStatus("error");
             setErrorMessage(err.message);
             turnstileRef.current?.reset();
-            if (typeof window !== "undefined") {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         }
     };
 
@@ -111,8 +121,8 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
     };
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
-            <div className="w-full flex flex-col items-center px-4 sm:px-0">
+        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
+            <div className="max-w-[1152px] w-full mx-auto flex flex-col items-center">
                 {initialPageContent.surtitre && (
                     <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
                         {initialPageContent.surtitre}
@@ -144,22 +154,21 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                     className="flex flex-col w-full max-w-[564px]"
                     onSubmit={handleSubmit}
                 >
-                    {status === "error" && (
-                        <div className="w-full mb-[20px]">
-                            <ErrorMessage
-                                title="Erreur d'envoi"
-                                description={errorMessage || "Oups, nous n’avons pas réussi à envoyer ton message. Merci de réessayer plus tard."}
-                            />
-                        </div>
-                    )}
-
-                    {status === "success" && (
-                        <div className="w-full mb-[20px]">
-                            <ModalMessage
-                                variant="success"
-                                title="Message envoyé"
-                                description="Merci, ton message a bien été envoyé ! Nous reviendrons vers toi rapidement."
-                            />
+                    {(status === "error" || status === "success") && (
+                        <div ref={messageRef} className="w-full mb-[20px] scroll-mt-[140px]">
+                            {status === "error" && (
+                                <ErrorMessage
+                                    title="Erreur d'envoi"
+                                    description={errorMessage || "Oups, nous n’avons pas réussi à envoyer ton message. Merci de réessayer plus tard."}
+                                />
+                            )}
+                            {status === "success" && (
+                                <ModalMessage
+                                    variant="success"
+                                    title="Message envoyé"
+                                    description="Merci, ton message a bien été envoyé ! Nous reviendrons vers toi rapidement."
+                                />
+                            )}
                         </div>
                     )}
 
@@ -223,13 +232,14 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                         ref={turnstileRef}
                         onVerify={setTurnstileToken}
                         onExpire={() => setTurnstileToken(null)}
+                        className="hidden"
                     />
 
                     {/* Submit Button */}
                     <div className="w-full flex justify-center">
                         <CTAButton
                             type="submit"
-                            className="font-semibold px-[30px]"
+                            className="font-semibold px-[30px] w-full sm:w-auto"
                             disabled={!isFormValid || status === "loading" || status === "success"}
                             loading={status === "loading"}
                             loadingText="Envoi en cours..."
@@ -252,8 +262,8 @@ export default function ContactClient({ initialPageContent, fromAideInitial = fa
 
     return (
         <Suspense fallback={
-            <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
-                <div className="w-full flex flex-col items-center px-4 sm:px-0">
+            <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
+                <div className="max-w-[1152px] w-full mx-auto flex flex-col items-center">
                     {initialPageContent.surtitre && (
                         <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
                             {initialPageContent.surtitre}
