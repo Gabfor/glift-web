@@ -16,6 +16,7 @@ import {
   emptyProgram,
   mapProgramRowToForm,
 } from "./programForm";
+import { MAIN_GOALS } from "@/components/account/constants";
 
 type CreateProgramPageClientProps = {
   initialProgram: ProgramFormState | null;
@@ -425,16 +426,10 @@ export default function CreateProgramPageClient({
                         selected={program.goal}
                         onSelect={(value) => setProgram({ ...program, goal: value })}
                         sortStrategy="none"
-                        options={[
-                          { value: "Prise de muscle", label: "Prise de muscle" },
-                          { value: "Perte de graisse", label: "Perte de graisse" },
-                          { value: "Gain de force", label: "Gain de force" },
-                          { value: "Performance sportive", label: "Performance sportive" },
-                          { value: "Confiance & bien-être", label: "Confiance & bien-être" },
-                          { value: "Prévention des blessures", label: "Prévention des blessures" },
-                          { value: "Santé & longévité", label: "Santé & longévité" },
-                          { value: "Routine & discipline", label: "Routine & discipline" },
-                        ]}
+                        options={MAIN_GOALS.map((goal) => ({
+                          value: goal,
+                          label: goal,
+                        }))}
                       />
                     </div>
 

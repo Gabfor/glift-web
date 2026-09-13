@@ -13,6 +13,7 @@ import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
 import { ContentBlock } from "./blogArticleForm";
 import RichTextEditor from "@/components/ui/RichTextEditor";
+import { MAIN_GOALS } from "@/components/account/constants";
 
 type Props = {
   articleId: string | null;
@@ -615,10 +616,10 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       onSelect={(value) => setArticle({ ...article, objectif: value })}
                       options={[
                         { value: "Tous", label: "Tous" },
-                        { value: "Prise de muscle", label: "Prise de muscle" },
-                        { value: "Perte de graisse", label: "Perte de graisse" },
-                        { value: "Gain de force", label: "Gain de force" },
-                        { value: "Performance", label: "Performance" },
+                        ...MAIN_GOALS.map((goal) => ({
+                          value: goal,
+                          label: goal,
+                        })),
                       ]}
                     />
                   </div>
