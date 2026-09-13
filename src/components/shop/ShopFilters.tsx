@@ -391,90 +391,57 @@ export default function ShopFilters({
     const map: Record<string, Set<string>> = {};
 
     // Genre (index 0)
-    if (selectedFilters[0] === "__none__") map["Genre"] = new Set();
-    else if (selectedFilters[0] === "Homme") map["Genre"] = new Set(["Homme"]);
-    else if (selectedFilters[0] === "Femme") map["Genre"] = new Set(["Femme"]);
-    else map["Genre"] = new Set(["Femme", "Homme"]);
+    if (selectedFilters[0] && selectedFilters[0] !== "__none__") {
+      map["Genre"] = new Set(selectedFilters[0].split(",").map((s) => s.trim()));
+    } else {
+      map["Genre"] = new Set();
+    }
 
     // Catégorie (index 1)
-    if (selectedFilters[1] === "__none__") {
-      map["Catégorie"] = new Set();
-    } else if (selectedFilters[1]) {
+    if (selectedFilters[1] && selectedFilters[1] !== "__none__") {
       map["Catégorie"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
     } else {
-      map["Catégorie"] = new Set(allCategoryOptions);
+      map["Catégorie"] = new Set();
     }
 
     // Sport (index 2)
-    if (selectedFilters[2] === "__none__") {
-      map["Sport"] = new Set();
-    } else if (selectedFilters[2]) {
+    if (selectedFilters[2] && selectedFilters[2] !== "__none__") {
       map["Sport"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
     } else {
-      map["Sport"] = new Set(allSportOptions);
+      map["Sport"] = new Set();
     }
 
     // Boutique (index 3)
-    if (selectedFilters[3] === "__none__") {
-      map["Boutique"] = new Set();
-    } else if (selectedFilters[3]) {
+    if (selectedFilters[3] && selectedFilters[3] !== "__none__") {
       map["Boutique"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
     } else {
-      map["Boutique"] = new Set(allShopOptions);
+      map["Boutique"] = new Set();
     }
 
     return map;
-  }, [selectedFilters, allCategoryOptions, allSportOptions, allShopOptions]);
+  }, [selectedFilters]);
 
   const handleDrawerApply = (newDrawerFilters: Record<string, Set<string>>) => {
     const newFilters = ["", "", "", ""];
 
     // Genre (index 0)
-    if (newDrawerFilters["Genre"] !== undefined) {
-      const sexSet = newDrawerFilters["Genre"];
-      if (sexSet.size === 0) {
-        newFilters[0] = "__none__";
-      } else if (sexSet.size === 1) {
-        newFilters[0] = Array.from(sexSet)[0];
-      } else {
-        newFilters[0] = "";
-      }
+    if (newDrawerFilters["Genre"] && newDrawerFilters["Genre"].size > 0) {
+      newFilters[0] = Array.from(newDrawerFilters["Genre"]).join(",");
     }
 
     // Catégorie (index 1)
-    if (newDrawerFilters["Catégorie"] !== undefined) {
-      const catSet = newDrawerFilters["Catégorie"];
-      if (catSet.size === 0) {
-        newFilters[1] = "__none__";
-      } else if (catSet.size < allCategoryOptions.length) {
-        newFilters[1] = Array.from(catSet).join(",");
-      } else {
-        newFilters[1] = "";
-      }
+    if (newDrawerFilters["Catégorie"] && newDrawerFilters["Catégorie"].size > 0) {
+      newFilters[1] = Array.from(newDrawerFilters["Catégorie"]).join(",");
     }
 
     // Sport (index 2)
-    if (newDrawerFilters["Sport"] !== undefined) {
-      const sportSet = newDrawerFilters["Sport"];
-      if (sportSet.size === 0) {
-        newFilters[2] = "__none__";
-      } else if (sportSet.size < allSportOptions.length) {
-        newFilters[2] = Array.from(sportSet).join(",");
-      } else {
-        newFilters[2] = "";
-      }
+    if (newDrawerFilters["Sport"] && newDrawerFilters["Sport"].size > 0) {
+      newFilters[2] = Array.from(newDrawerFilters["Sport"]).join(",");
     }
 
     // Boutique (index 3)
-    if (newDrawerFilters["Boutique"] !== undefined) {
-      const shopSet = newDrawerFilters["Boutique"];
-      if (shopSet.size === 0) {
-        newFilters[3] = "__none__";
-      } else if (shopSet.size < allShopOptions.length) {
-        newFilters[3] = Array.from(shopSet).join(",");
-      } else {
-        newFilters[3] = "";
-      }
+    if (newDrawerFilters["Boutique"] && newDrawerFilters["Boutique"].size > 0) {
+      newFilters[3] = Array.from(newDrawerFilters["Boutique"]).join(",");
     }
 
     setSelectedFilters(newFilters);

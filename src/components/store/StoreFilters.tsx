@@ -477,80 +477,66 @@ export default function StoreFilters({
     const map: Record<string, Set<string>> = {};
 
     // Genre (index 0)
-    if (selectedFilters[0] === "__none__") map["Genre"] = new Set();
-    else if (selectedFilters[0] === "Homme") map["Genre"] = new Set(["Homme"]);
-    else if (selectedFilters[0] === "Femme") map["Genre"] = new Set(["Femme"]);
-    else map["Genre"] = new Set(["Femme", "Homme"]);
+    if (selectedFilters[0] && selectedFilters[0] !== "__none__") {
+      map["Genre"] = new Set(selectedFilters[0].split(",").map((s) => s.trim()));
+    } else {
+      map["Genre"] = new Set();
+    }
 
     // Objectif (index 1)
-    if (selectedFilters[1] === "__none__") {
-      map["Objectif"] = new Set();
-    } else if (selectedFilters[1]) {
+    if (selectedFilters[1] && selectedFilters[1] !== "__none__") {
       map["Objectif"] = new Set(selectedFilters[1].split(",").map((s) => s.trim()));
     } else {
-      map["Objectif"] = new Set(allGoalOptions.map((o) => o.value));
+      map["Objectif"] = new Set();
     }
 
     // Niveau (index 2)
-    if (selectedFilters[2] === "__none__") {
-      map["Niveau"] = new Set();
-    } else if (selectedFilters[2]) {
+    if (selectedFilters[2] && selectedFilters[2] !== "__none__") {
       map["Niveau"] = new Set(selectedFilters[2].split(",").map((s) => s.trim()));
     } else {
-      map["Niveau"] = new Set(allLevelOptions.map((o) => o.value));
+      map["Niveau"] = new Set();
     }
 
     // Lieu (index 3)
-    if (selectedFilters[3] === "__none__") {
-      map["Lieu"] = new Set();
-    } else if (selectedFilters[3]) {
+    if (selectedFilters[3] && selectedFilters[3] !== "__none__") {
       map["Lieu"] = new Set(selectedFilters[3].split(",").map((s) => s.trim()));
     } else {
-      map["Lieu"] = new Set(allLocationOptions.map((o) => o.value));
+      map["Lieu"] = new Set();
     }
 
     // Durée max. (index 4)
-    if (selectedFilters[4] === "__none__") {
-      map["Durée max."] = new Set();
-    } else if (selectedFilters[4]) {
+    if (selectedFilters[4] && selectedFilters[4] !== "__none__") {
       const max = parseInt(selectedFilters[4], 10);
       const activeDurations = allDurationOptions
         .filter((o) => parseInt(o.value, 10) <= max)
         .map((o) => o.value);
-      map["Durée max."] = new Set(activeDurations);
+      map["Durée max."] = new Set(activeDurations.length > 0 ? activeDurations : [selectedFilters[4]]);
     } else {
-      map["Durée max."] = new Set(allDurationOptions.map((o) => o.value));
+      map["Durée max."] = new Set();
     }
 
     // Partenaire (index 5)
-    if (selectedFilters[5] === "__none__") {
-      map["Partenaire"] = new Set();
-    } else if (selectedFilters[5]) {
+    if (selectedFilters[5] && selectedFilters[5] !== "__none__") {
       map["Partenaire"] = new Set(selectedFilters[5].split(",").map((s) => s.trim()));
     } else {
-      map["Partenaire"] = new Set(allPartnerOptions.map((o) => o.value));
+      map["Partenaire"] = new Set();
     }
 
     // Disponibilité (index 6)
-    if (selectedFilters[6] === "__none__") {
-      map["Disponibilité"] = new Set();
-    } else if (selectedFilters[6] === "Oui") {
-      map["Disponibilité"] = new Set(["Téléchargeable"]);
-    } else if (selectedFilters[6] === "Non") {
-      map["Disponibilité"] = new Set(["Non téléchargeable"]);
+    if (selectedFilters[6] && selectedFilters[6] !== "__none__") {
+      if (selectedFilters[6] === "Oui") {
+        map["Disponibilité"] = new Set(["Téléchargeable"]);
+      } else if (selectedFilters[6] === "Non") {
+        map["Disponibilité"] = new Set(["Non téléchargeable"]);
+      } else {
+        map["Disponibilité"] = new Set(selectedFilters[6].split(",").map((s) => s.trim()));
+      }
     } else {
-      map["Disponibilité"] = new Set(["Téléchargeable", "Non téléchargeable"]);
+      map["Disponibilité"] = new Set();
     }
 
     return map;
-  }, [
-    selectedFilters,
-    allGoalOptions,
-    allLevelOptions,
-    allLocationOptions,
-    allDurationOptions,
-    allPartnerOptions,
-  ]);
+  }, [selectedFilters, allDurationOptions]);
 
   const handleFilterChange = (index: number, value: string) => {
     const newFilters = [...selectedFilters];
@@ -564,90 +550,46 @@ export default function StoreFilters({
     const newFilters = ["", "", "", "", "", "", ""];
 
     // Genre (index 0)
-    if (newDrawerFilters["Genre"] !== undefined) {
-      const sexSet = newDrawerFilters["Genre"];
-      if (sexSet.size === 0) {
-        newFilters[0] = "__none__";
-      } else if (sexSet.size === 1) {
-        newFilters[0] = Array.from(sexSet)[0];
-      } else {
-        newFilters[0] = "";
-      }
+    if (newDrawerFilters["Genre"] && newDrawerFilters["Genre"].size > 0) {
+      newFilters[0] = Array.from(newDrawerFilters["Genre"]).join(",");
     }
 
     // Objectif (index 1)
-    if (newDrawerFilters["Objectif"] !== undefined) {
-      const goalSet = newDrawerFilters["Objectif"];
-      if (goalSet.size === 0) {
-        newFilters[1] = "__none__";
-      } else if (goalSet.size < allGoalOptions.length) {
-        newFilters[1] = Array.from(goalSet).join(",");
-      } else {
-        newFilters[1] = "";
-      }
+    if (newDrawerFilters["Objectif"] && newDrawerFilters["Objectif"].size > 0) {
+      newFilters[1] = Array.from(newDrawerFilters["Objectif"]).join(",");
     }
 
     // Niveau (index 2)
-    if (newDrawerFilters["Niveau"] !== undefined) {
-      const levelSet = newDrawerFilters["Niveau"];
-      if (levelSet.size === 0) {
-        newFilters[2] = "__none__";
-      } else if (levelSet.size < allLevelOptions.length) {
-        newFilters[2] = Array.from(levelSet).join(",");
-      } else {
-        newFilters[2] = "";
-      }
+    if (newDrawerFilters["Niveau"] && newDrawerFilters["Niveau"].size > 0) {
+      newFilters[2] = Array.from(newDrawerFilters["Niveau"]).join(",");
     }
 
     // Lieu (index 3)
-    if (newDrawerFilters["Lieu"] !== undefined) {
-      const locSet = newDrawerFilters["Lieu"];
-      if (locSet.size === 0) {
-        newFilters[3] = "__none__";
-      } else if (locSet.size < allLocationOptions.length) {
-        newFilters[3] = Array.from(locSet).join(",");
-      } else {
-        newFilters[3] = "";
-      }
+    if (newDrawerFilters["Lieu"] && newDrawerFilters["Lieu"].size > 0) {
+      newFilters[3] = Array.from(newDrawerFilters["Lieu"]).join(",");
     }
 
     // Durée max. (index 4)
-    if (newDrawerFilters["Durée max."] !== undefined) {
-      const durSet = newDrawerFilters["Durée max."];
-      if (durSet.size === 0) {
-        newFilters[4] = "__none__";
-      } else if (durSet.size < allDurationOptions.length) {
-        const maxVal = Math.max(...Array.from(durSet).map((s) => parseInt(s, 10) || 0));
+    if (newDrawerFilters["Durée max."] && newDrawerFilters["Durée max."].size > 0) {
+      const maxVal = Math.max(...Array.from(newDrawerFilters["Durée max."]).map((s) => parseInt(s, 10) || 0));
+      if (maxVal > 0) {
         newFilters[4] = String(maxVal);
-      } else {
-        newFilters[4] = "";
       }
     }
 
     // Partenaire (index 5)
-    if (newDrawerFilters["Partenaire"] !== undefined) {
-      const partnerSet = newDrawerFilters["Partenaire"];
-      if (partnerSet.size === 0) {
-        newFilters[5] = "__none__";
-      } else if (partnerSet.size < allPartnerOptions.length) {
-        newFilters[5] = Array.from(partnerSet).join(",");
-      } else {
-        newFilters[5] = "";
-      }
+    if (newDrawerFilters["Partenaire"] && newDrawerFilters["Partenaire"].size > 0) {
+      newFilters[5] = Array.from(newDrawerFilters["Partenaire"]).join(",");
     }
 
     // Disponibilité (index 6)
-    if (newDrawerFilters["Disponibilité"] !== undefined) {
+    if (newDrawerFilters["Disponibilité"] && newDrawerFilters["Disponibilité"].size > 0) {
       const availSet = newDrawerFilters["Disponibilité"];
-      if (availSet.size === 0) {
-        newFilters[6] = "__none__";
-      } else if (availSet.size === 1) {
-        newFilters[6] = availSet.has("Téléchargeable") ? "Oui" : "Non";
-      } else {
-        newFilters[6] = "";
+      if (availSet.has("Téléchargeable") && !availSet.has("Non téléchargeable")) {
+        newFilters[6] = "Oui";
+      } else if (availSet.has("Non téléchargeable") && !availSet.has("Téléchargeable")) {
+        newFilters[6] = "Non";
       }
-    } else {
-      newFilters[6] = "";
     }
 
     setSelectedFilters(newFilters);

@@ -49,8 +49,8 @@ export default function StoreMobileFilterDrawer({
         if (selectedFilters[sec.title]) {
           copy[sec.title] = new Set(selectedFilters[sec.title]);
         } else {
-          // Default: all selected for this section
-          copy[sec.title] = new Set(sec.options);
+          // Default: empty set for additive filtering
+          copy[sec.title] = new Set<string>();
         }
       });
       setTempFilters(copy);
@@ -64,12 +64,11 @@ export default function StoreMobileFilterDrawer({
     };
   }, [isOpen, sections, selectedFilters]);
 
-  // Check if any filter is active (i.e. not everything is selected)
+  // Check if any filter is active (i.e. at least one option is selected)
   const hasActiveFilters = useMemo(() => {
     return sections.some((sec) => {
       const selected = tempFilters[sec.title];
-      if (!selected) return false;
-      return selected.size !== sec.options.length;
+      return selected && selected.size > 0;
     });
   }, [sections, tempFilters]);
 
@@ -93,10 +92,10 @@ export default function StoreMobileFilterDrawer({
   const toggleSectionAll = (section: FilterSectionData) => {
     setTempFilters((prev) => {
       const currentSet = prev[section.title] || new Set();
-      const allSelected = currentSet.size === section.options.length;
+      const hasSelected = currentSet.size > 0;
       return {
         ...prev,
-        [section.title]: allSelected ? new Set<string>() : new Set(section.options),
+        [section.title]: hasSelected ? new Set<string>() : new Set(section.options),
       };
     });
   };
@@ -106,14 +105,13 @@ export default function StoreMobileFilterDrawer({
     if (!allPrograms || allPrograms.length === 0) return 0;
 
     return allPrograms.filter((program) => {
-      // 1. Sexe
-      if (tempFilters["Sexe"]) {
-        const selected = tempFilters["Sexe"];
-        if (selected.size === 0) return false;
+      // 1. Genre / Sexe
+      const genreSet = tempFilters["Genre"] || tempFilters["Sexe"];
+      if (genreSet && genreSet.size > 0) {
         const g = (program.gender || "").toLowerCase().trim();
         const isWildcard = !g || g === "tous" || g === "mixte" || g === "unisexe";
         if (!isWildcard) {
-          const hasMatch = Array.from(selected).some(
+          const hasMatch = Array.from(genreSet).some(
             (s) => s.toLowerCase().trim() === g
           );
           if (!hasMatch) return false;
@@ -121,18 +119,16 @@ export default function StoreMobileFilterDrawer({
       }
 
       // 2. Objectif
-      if (tempFilters["Objectif"]) {
+      if (tempFilters["Objectif"] && tempFilters["Objectif"].size > 0) {
         const selected = tempFilters["Objectif"];
-        if (selected.size === 0) return false;
         if (program.goal && !selected.has(program.goal)) {
           return false;
         }
       }
 
       // 3. Niveau
-      if (tempFilters["Niveau"]) {
+      if (tempFilters["Niveau"] && tempFilters["Niveau"].size > 0) {
         const selected = tempFilters["Niveau"];
-        if (selected.size === 0) return false;
         const l = (program.level || "").trim();
         const isWildcard = l.toLowerCase() === "tous niveaux";
         if (!isWildcard && l && !selected.has(l)) {
@@ -141,9 +137,8 @@ export default function StoreMobileFilterDrawer({
       }
 
       // 4. Lieu
-      if (tempFilters["Lieu"]) {
+      if (tempFilters["Lieu"] && tempFilters["Lieu"].size > 0) {
         const selected = tempFilters["Lieu"];
-        if (selected.size === 0) return false;
         const loc = (program.location || "").trim();
         if (loc && !selected.has(loc)) {
           return false;
@@ -151,22 +146,20 @@ export default function StoreMobileFilterDrawer({
       }
 
       // 5. Durée max.
-      if (tempFilters["Durée max."]) {
+      if (tempFilters["Durée max."] && tempFilters["Durée max."].size > 0) {
         const selected = tempFilters["Durée max."];
-        if (selected.size === 0) return false;
         const maxMinutes = Math.max(
           ...Array.from(selected).map((s) => parseInt(s, 10) || 0)
         );
-        const progDuration = parseInt(program.duration, 10) || 0;
+        const progDuration = parseInt(String(program.duration), 10) || 0;
         if (progDuration > 0 && maxMinutes > 0 && progDuration > maxMinutes) {
           return false;
         }
       }
 
       // 6. Partenaire
-      if (tempFilters["Partenaire"]) {
+      if (tempFilters["Partenaire"] && tempFilters["Partenaire"].size > 0) {
         const selected = tempFilters["Partenaire"];
-        if (selected.size === 0) return false;
         const partner = (program.partner_name || "").trim();
         if (partner && !selected.has(partner)) {
           return false;
@@ -174,9 +167,8 @@ export default function StoreMobileFilterDrawer({
       }
 
       // 7. Disponibilité
-      if (tempFilters["Disponibilité"]) {
+      if (tempFilters["Disponibilité"] && tempFilters["Disponibilité"].size > 0) {
         const selected = tempFilters["Disponibilité"];
-        if (selected.size === 0) return false;
         const isDownloadable = program.plan === "starter" || isPremiumUser;
         const matchOui = selected.has("Téléchargeable") && isDownloadable;
         const matchNon = selected.has("Non téléchargeable") && !isDownloadable;
@@ -234,7 +226,7 @@ export default function StoreMobileFilterDrawer({
         <div className="flex-1 overflow-y-auto px-5 py-5 space-y-6">
           {sections.map((section, idx) => {
             const selectedSet = tempFilters[section.title] || new Set();
-            const allSelected = selectedSet.size === section.options.length;
+            const hasSelected = selectedSet.size > 0;
 
             return (
               <div key={section.title} className={idx > 0 ? "pt-5 border-t border-[#ECE9F1]" : ""}>
@@ -249,7 +241,7 @@ export default function StoreMobileFilterDrawer({
                     onClick={() => toggleSectionAll(section)}
                     className="text-[13px] font-semibold text-[#7069FA] hover:text-[#5E56E8] transition"
                   >
-                    {allSelected ? "Tout déselectionner" : "Tout sélectionner"}
+                    {hasSelected ? "Tout effacer" : "Tout sélectionner"}
                   </button>
                 </div>
 

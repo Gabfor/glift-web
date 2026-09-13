@@ -387,6 +387,7 @@ export default function DashboardProgramFilters(
           disabled={isProgramDisabled}
           maxWidth={270}
           sortOptions={false}
+          isMultiSelect={false}
         />
         <DropdownFilter
           label="Entraînement"
@@ -404,6 +405,7 @@ export default function DashboardProgramFilters(
           disabled={isTrainingDisabled}
           maxWidth={270}
           sortOptions={false}
+          isMultiSelect={false}
         />
         <DropdownFilter
           label="Exercice"
@@ -420,6 +422,7 @@ export default function DashboardProgramFilters(
           disabled={isExerciseDisabled}
           sortOptions={false}
           maxWidth={270}
+          isMultiSelect={false}
         />
       </div>
       <button

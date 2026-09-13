@@ -66,37 +66,27 @@ export default function DropdownFilter({
   // Selected values as a Set for multi-select
   const selectedValues = useMemo(() => {
     if (!isMultiSelect) return new Set<string>();
-    if (selected === "" || selected === undefined) {
-      // Default: all options selected
-      return new Set(preparedOptions.map((o) => o.value));
-    }
-    if (selected === "__none__") {
+    if (!selected || selected === "__none__") {
       return new Set<string>();
     }
     return new Set(selected.split(",").map((s) => s.trim()).filter(Boolean));
-  }, [isMultiSelect, selected, preparedOptions]);
+  }, [isMultiSelect, selected]);
 
   const allSelected = useMemo(() => {
     if (!isMultiSelect) return false;
     return preparedOptions.length > 0 && selectedValues.size === preparedOptions.length;
   }, [isMultiSelect, preparedOptions.length, selectedValues.size]);
 
-  const isPlaceholder = isMultiSelect
-    ? selected === ""
-    : selected === "";
+  const isPlaceholder = !selected || selected === "__none__" || (isMultiSelect && selectedValues.size === 0);
 
   const selectedLabel = useMemo(() => {
-    if (selected === "") {
+    if (!selected || selected === "__none__") {
       return placeholder;
-    }
-    if (selected === "__none__") {
-      return "Aucun";
     }
 
     if (isMultiSelect) {
       const selectedList = preparedOptions.filter((o) => selectedValues.has(o.value));
-      if (selectedList.length === 0) return "Aucun";
-      if (selectedList.length === preparedOptions.length) return placeholder;
+      if (selectedList.length === 0) return placeholder;
       if (selectedList.length === 1) return selectedList[0].label;
       return `${selectedList[0].label} (+${selectedList.length - 1})`;
     }
@@ -226,10 +216,8 @@ export default function DropdownFilter({
       newSet.add(optionValue);
     }
 
-    if (newSet.size === preparedOptions.length) {
+    if (newSet.size === 0) {
       onSelect("");
-    } else if (newSet.size === 0) {
-      onSelect("__none__");
     } else {
       onSelect(Array.from(newSet).join(","));
     }
