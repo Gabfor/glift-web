@@ -375,7 +375,7 @@ export default function AdminDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden">
+        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden">
           {/* Top Gradient */}
           <div
             className={`absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"

@@ -442,7 +442,7 @@ const AccountCreationPage = () => {
   if (!plan || !stepMetadata) {
     return (
       <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
-        <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-[0_10px_40px_rgba(46,50,113,0.08)]">
+        <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-glift">
           <h1 className="text-[26px] font-bold text-[#2E3271]">Choisis une formule</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
             Pour t'inscrire, sélectionne d’abord une formule sur la page tarifs.

@@ -195,7 +195,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.6, ease: "easeOut" }}
-          className="bg-white rounded-[20px] p-6 sm:p-8 border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)]"
+          className="bg-white rounded-[20px] p-6 sm:p-8 border border-[#D7D4DC] shadow-glift hover:shadow-glift-hover transition-shadow duration-200"
         >
           <form onSubmit={handleSubmit} className="flex flex-col">
             <div className="flex flex-col sm:flex-row items-end gap-[20px] sm:gap-3 w-full">
@@ -512,7 +512,7 @@ export default function BlogArticleBlocksRenderer({
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.6, ease: "easeOut" }}
-                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
+                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-glift hover:shadow-glift-hover transition-shadow duration-200 border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
                       >
                         <div className="mb-[20px]">
                           <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
@@ -540,7 +540,7 @@ export default function BlogArticleBlocksRenderer({
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true, amount: 0.3 }}
                         transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
-                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-[0_4px_20px_rgba(93,100,148,0.06)] border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
+                        className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-glift hover:shadow-glift-hover transition-shadow duration-200 border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
                       >
                         <div className="mb-[20px]">
                           <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
@@ -816,7 +816,7 @@ export default function BlogArticleBlocksRenderer({
                         return (
                           <div
                             key={idx}
-                            className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative w-full"
+                            className="h-[150px] bg-white border border-[#D7D4DC] rounded-[20px] flex items-center justify-center p-6 relative w-full shadow-glift hover:shadow-glift-hover transition-shadow duration-200"
                           >
                             <div className="relative w-full h-full">
                               {partner.link_url ? (

@@ -80,7 +80,7 @@ export default function StoreCard({
           : [];
 
   return (
-    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-shadow duration-200">
       {/* BOUTON FAVORI (15px du haut et 15px de la droite) - Seulement si utilisateur connecté */}
       {isAuthenticated && onToggleFavorite && (
         <button
@@ -141,7 +141,7 @@ export default function StoreCard({
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-glift relative">
                 <Image
                   src={program.partner_image}
                   alt={program.partner_image_alt || "Partenaire"}
@@ -153,7 +153,7 @@ export default function StoreCard({
               </div>
             </a>
           ) : (
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-glift relative">
               <Image
                 src={program.partner_image}
                 alt={program.partner_image_alt || "Partenaire"}

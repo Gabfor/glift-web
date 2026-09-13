@@ -173,7 +173,7 @@ export default function FiltersPanel({
             {openSortMenu && (
               <div
                 className="
-                absolute left-0 mt-2 min-w-[153px] bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]
+                absolute left-0 mt-2 min-w-[153px] bg-white rounded-[5px] py-2 z-50 shadow-glift-hover
               "
               >
                 <div className="flex flex-col">

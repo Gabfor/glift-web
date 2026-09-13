@@ -143,7 +143,7 @@ export default function Tooltip({
       >
         <div
           className={clsx(
-            "relative flex min-h-[40px] items-center justify-center rounded-md bg-[#2E3142] px-3 text-[14px] font-medium text-white shadow-md",
+            "relative flex min-h-[40px] items-center justify-center rounded-md bg-[#2E3142] px-3 text-[14px] font-medium text-white shadow-glift-hover",
             "whitespace-nowrap",
             contentClassName,
           )}

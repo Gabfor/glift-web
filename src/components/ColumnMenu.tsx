@@ -13,7 +13,7 @@ type Props = {
 
 export default function ColumnMenu({ columns, onToggle }: Props) {
   return (
-    <div className="absolute -right-4 top-full mt-3 w-[183px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] border border-[#ECE9F1] z-50 py-3 px-3 text-[16px] text-[#5D6494]">
+    <div className="absolute -right-4 top-full mt-3 w-[183px] bg-white rounded-[5px] shadow-glift-hover border border-[#ECE9F1] z-50 py-3 px-3 text-[16px] text-[#5D6494]">
       {/* Flèche en haut droite */}
       <div className="absolute top-[-9px] right-4 w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
 

@@ -20,7 +20,7 @@ export default function RecordCard({
 }: RecordCardProps) {
     return (
         <div
-            className="flex h-[240px] w-[200px] flex-col items-center justify-center rounded-[20px] bg-white px-4 text-center shadow-lg"
+            className="flex h-[240px] w-[200px] flex-col items-center justify-center rounded-[20px] bg-white px-4 text-center shadow-glift"
             onClick={onClick}
         >
             <div className="mb-4">

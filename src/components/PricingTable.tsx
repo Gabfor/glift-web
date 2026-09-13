@@ -16,11 +16,15 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
 
   const renderAbo = (abo: Subscription, isPremium?: boolean) => {
     return (
-      <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden p-[20px] md:p-[30px] flex flex-col text-center w-full max-w-[466px] ${isPremium ? "order-1 md:order-2 md:min-h-[630px] shadow-[0_4px_20px_rgba(93,100,148,0.06)]" : "order-2 md:order-1"}`}>
+      <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden p-[20px] md:p-[30px] flex flex-col text-center w-full max-w-[466px] transition-shadow duration-200 ${
+        isPremium
+          ? "order-1 md:order-2 md:min-h-[630px] shadow-glift-hover hover:shadow-glift-hover-strong"
+          : "order-2 md:order-1 shadow-glift hover:shadow-glift-hover"
+      }`}>
         {isPremium && abo.badge && (abo.badgeStatus !== "OFF") && (
           <div className="hidden md:block absolute top-0 right-0 overflow-hidden w-[180px] h-[180px]">
             <div
-              className="absolute text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-md"
+              className="absolute text-white text-[14px] font-bold uppercase rotate-45 w-[200px] text-center py-1 right-[-40px] top-[45px] shadow-glift"
               style={{
                 background: abo.badgeColor || "#7069FA",
                 color: abo.badgeTextColor || "#FFFFFF",

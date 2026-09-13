@@ -291,8 +291,8 @@ function AideContent({
                 onClick={() => handleCategoryClick(cat.id)}
                 className={`group w-full md:w-[172px] h-[88px] rounded-[8px] bg-white flex flex-col items-center justify-between pt-[20px] pb-[15px] border cursor-pointer select-none transition-all duration-200 ease-in-out ${
                   isSelected
-                    ? "border-[#A1A5FD] ring-1 ring-inset ring-[#A1A5FD] shadow-[0_4px_20px_rgba(93,100,148,0.06)]"
-                    : "border-[#D7D4DC] ring-0 ring-transparent shadow-none"
+                    ? "border-[#A1A5FD] shadow-[0_4px_20px_rgba(93,100,148,0.06),inset_0_0_0_1px_#A1A5FD]"
+                    : "border-[#D7D4DC] shadow-glift hover:shadow-glift-hover"
                 }`}
               >
                 <div className="relative w-[30px] h-[30px] flex items-center justify-center shrink-0">
@@ -442,7 +442,7 @@ export default function AidePage({
               {HELP_CATEGORIES.map((cat) => (
                 <div
                   key={cat.id}
-                  className="w-full md:w-[172px] h-[88px] rounded-[8px] bg-white flex flex-col items-center justify-between pt-[20px] pb-[15px] border border-[#D7D4DC]"
+                  className="w-full md:w-[172px] h-[88px] rounded-[8px] bg-white flex flex-col items-center justify-between pt-[20px] pb-[15px] border border-[#D7D4DC] shadow-glift"
                 >
                   <div className="relative w-[30px] h-[30px] flex items-center justify-center shrink-0">
                     <Image

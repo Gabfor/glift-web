@@ -376,7 +376,7 @@ export default function DropdownFilter({
 
       {open && (
         <div
-          className="absolute left-0 mt-20 min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)] overflow-hidden animate-in fade-in-50 duration-150"
+          className="absolute left-0 mt-20 min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden animate-in fade-in-50 duration-150"
         >
           {/* Top Gradient */}
           <div

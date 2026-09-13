@@ -62,7 +62,7 @@ export default function AdminHeader() {
     <>
       <header
         className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${isSticky
-          ? "bg-white shadow-[0_5px_21px_0_rgba(93,100,148,0.15)]"
+          ? "bg-white shadow-glift-hover"
           : "bg-transparent"
           }`}
       >
@@ -211,7 +211,7 @@ export default function AdminHeader() {
             )}
 
             {dropdownOpen && (
-              <div className="absolute top-full right-[-4px] w-[180px] bg-white rounded-[5px] shadow-[0px_5px_21px_0px_rgba(93,100,148,0.15)] py-2 z-50 border border-[#ECE9F1]">
+              <div className="absolute top-full right-[-4px] w-[180px] bg-white rounded-[5px] shadow-glift-hover py-2 z-50 border border-[#ECE9F1]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
                 <button
                   onClick={() => {

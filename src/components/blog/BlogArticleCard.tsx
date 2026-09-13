@@ -28,7 +28,7 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
 
   return (
     <div 
-      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full"
+      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full shadow-glift hover:shadow-glift-hover transition-shadow duration-200"
       style={{ maxWidth }}
     >
       <Link href={`${blogUrl}/${article.url}`} className="block">
@@ -44,7 +44,7 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
             unoptimized
           />
           {/* Badge Type (CONSEIL...) */}
-          <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-sm tracking-wider flex items-center justify-center">
+          <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
             {article.type || "Conseil"}
           </div>
         </div>

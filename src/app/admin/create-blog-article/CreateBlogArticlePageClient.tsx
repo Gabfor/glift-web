@@ -224,7 +224,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           {!articleId && (
             <div className="relative flex items-center bg-[#F4F5FE] h-[40px] p-[5px] rounded-full mb-10 w-[230px]">
               <div
-                className={`absolute h-[30px] w-[110px] bg-white rounded-full transition-transform duration-300 ease-in-out shadow-sm`}
+                className={`absolute h-[30px] w-[110px] bg-white rounded-full transition-transform duration-300 ease-in-out shadow-glift`}
                 style={{
                   transform: article.type === "Conseil" ? "translateX(0)" : "translateX(110px)",
                 }}

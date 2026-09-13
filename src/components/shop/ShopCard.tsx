@@ -101,7 +101,7 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
   }, [offer.end_date]);
 
   return (
-    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-[0_4px_20px_rgba(93,100,148,0.06)]">
+    <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-shadow duration-200">
       {/* CSS Keyframe for Heartbeat animation */}
       <style>{`
         @keyframes heartbeat {
@@ -174,7 +174,7 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
         <div className="flex justify-center -mt-8 relative z-10">
           {offer.shop_website ? (
             <a href={offer.shop_website} target="_blank" rel="noopener noreferrer">
-              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+              <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-glift relative">
                 <Image
                   src={offer.brand_image}
                   alt={offer.brand_image_alt || "Partenaire"}
@@ -186,7 +186,7 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
               </div>
             </a>
           ) : (
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-[0_0_10px_rgba(93,100,148,0.25)] relative">
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-white overflow-hidden shadow-glift relative">
               <Image
                 src={offer.brand_image}
                 alt={offer.brand_image_alt || "Partenaire"}

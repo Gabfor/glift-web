@@ -1,7 +1,7 @@
 export default function AuteursTableSkeleton() {
   return (
     <div className="animate-pulse">
-      <div className="overflow-x-auto rounded-[8px] bg-white shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+      <div className="overflow-x-auto rounded-[8px] bg-white shadow-glift">
         <table className="min-w-full text-left text-sm">
           <thead className="border-b border-[#ECE9F1] h-[60px]">
             <tr>

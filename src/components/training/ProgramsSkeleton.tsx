@@ -15,7 +15,7 @@ export default function ProgramsSkeleton() {
             {skeletonTrainings.map((_, trainingIndex) => (
               <div
                 key={trainingIndex}
-                className="flex h-[60px] w-[270px] items-center gap-4 rounded-[5px] border border-[#ECE9F1] bg-white px-4"
+                className="flex h-[60px] w-[270px] items-center gap-4 rounded-[8px] border border-[#ECE9F1] bg-white px-4 shadow-glift"
               >
                 <div className="h-[25px] w-[25px] rounded bg-[#E6E8F5]" />
                 <div className="h-4 flex-1 rounded bg-[#E6E8F5]" />

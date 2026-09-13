@@ -722,7 +722,7 @@ export default function StoreFilters({
             </button>
 
             {openMobileSortMenu && (
-              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]">
+              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-glift-hover">
                 <div className="flex flex-col">
                   {sortOptions.map((option) => (
                     <button

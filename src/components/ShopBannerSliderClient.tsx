@@ -230,7 +230,7 @@ export default function ShopBannerSliderClient({
             {slide.offer && onOfferClick ? (
               <div
                 onClick={() => onOfferClick(slide.offer!)}
-                className="cursor-pointer block relative group rounded-[20px] border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)] overflow-hidden"
+                className="cursor-pointer block relative group rounded-[20px] border border-[#D7D4DC] shadow-glift overflow-hidden"
               >
                 <Image
                   src={slide.image}
@@ -245,7 +245,7 @@ export default function ShopBannerSliderClient({
                 href={slide.link || "#"}
                 target={slide.link ? "_blank" : undefined}
                 rel={slide.link ? "noopener noreferrer" : undefined}
-                className="block relative rounded-[20px] border border-[#D7D4DC] shadow-[0_4px_20px_rgba(93,100,148,0.06)] overflow-hidden"
+                className="block relative rounded-[20px] border border-[#D7D4DC] shadow-glift overflow-hidden"
               >
                 <Image
                   src={slide.image}

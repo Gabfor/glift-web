@@ -142,7 +142,7 @@ export default function AdminMultiSelectDropdown({
             rounded-[5px]
             py-2
             z-50
-            shadow-[0px_1px_9px_1px_rgba(0,0,0,0.12)]
+            shadow-glift-hover
             scrollable-dropdown
             max-h-[180px]
             overflow-y-auto

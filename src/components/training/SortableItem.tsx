@@ -105,14 +105,14 @@ export default function SortableItem({
       {...attributes}
 
       className={cn(
-        'w-[270px] transition-shadow duration-300 ease-in-out',
-        showVisibility ? 'shadow-[0px_1px_15px_rgba(0,0,0,0.05)]' : 'shadow-none',
+        'w-[270px] rounded-[8px] transition-shadow duration-300 ease-in-out',
+        showVisibility ? 'shadow-glift-hover' : 'shadow-glift hover:shadow-glift-hover',
         menuOpen ? 'z-50' : 'z-0'
       )}
     >
       <div
         className={cn(
-          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] transition-transform duration-300 ease-in-out",
+          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px]",
           showVisibility
             ? "rounded-t-[8px] rounded-b-none"
             : "rounded-[8px]",
@@ -124,7 +124,7 @@ export default function SortableItem({
         {/* Zone de gauche : Drag ou Lock */}
         <div
           className={cn(
-            "w-[25px] h-[25px] group relative flex items-center justify-center",
+            "w-[25px] h-[25px] flex-shrink-0 group relative flex items-center justify-center",
             dragDisabled || isLocked
               ? "cursor-default" // Pas de drag si bloqué
               : "cursor-grab active:cursor-grabbing"
@@ -171,13 +171,13 @@ export default function SortableItem({
               ariaLabel="Chargement de l’entraînement"
             />
           ) : (
-            <span className="block w-full truncate text-center">{training.name}</span>
+            <span className="block w-full truncate text-center leading-normal">{training.name}</span>
           )}
         </div>
 
         {/* Menu (caché si locked) */}
         <div
-          className="w-[25px] h-[25px] z-10 flex items-center justify-center"
+          className="w-[25px] h-[25px] flex-shrink-0 z-10 flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
         >
           {!isLocked && (

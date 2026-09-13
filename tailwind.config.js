@@ -7,11 +7,15 @@ module.exports = {
 		"./components/**/*.{js,ts,jsx,tsx}",
 		"./src/**/*.{js,ts,jsx,tsx}", // Ajouté si tu bosses dans /src
 	],
+	future: {
+		hoverOnlyWhenSupported: true,
+	},
 	theme: {
 		extend: {
 			boxShadow: {
-				glift: '0px 3px 6px rgba(93, 100, 148, 0.15)',
-				'glift-hover': '0px 10px 20px rgba(93, 100, 148, 0.25)'
+				glift: '0px 4px 20px rgba(93, 100, 148, 0.06)',
+				'glift-hover': '0px 5px 21px rgba(93, 100, 148, 0.15)',
+				'glift-hover-strong': '0px 8px 28px rgba(93, 100, 148, 0.24)'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

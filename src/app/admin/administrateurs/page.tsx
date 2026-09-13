@@ -362,7 +362,7 @@ export default function AdminUsersManagementPage() {
         )}
 
         {/* Admins Table */}
-        <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-[0_3px_6px_rgba(93,100,148,0.15)]">
+        <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-glift">
           <table className="min-w-full text-left text-sm">
             <thead className="border-b border-[#ECE9F1] h-[60px]">
               <tr>
@@ -489,7 +489,7 @@ export default function AdminUsersManagementPage() {
       {/* Delete Confirmation Dialog */}
       {deletingIds.length > 0 && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="w-full max-w-[400px] bg-white rounded-[20px] p-6 shadow-xl border border-[#D7D4DC]">
+          <div className="w-full max-w-[400px] bg-white rounded-[20px] p-6 shadow-glift-hover border border-[#D7D4DC]">
             <h2 className="text-[18px] font-bold text-[#2E3271] mb-2">
               Confirmer la suppression
             </h2>

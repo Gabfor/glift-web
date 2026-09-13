@@ -292,7 +292,7 @@ export default async function BlogSubpathPage({
 
             {/* Image principale */}
             {article.image_url && (
-              <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-[0_4px_12px_rgba(93,100,148,0.05)]">
+              <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
                 <Image
                   src={article.image_url}
                   alt={article.image_alt || article.titre}

@@ -59,8 +59,12 @@ a {
   box-shadow: var(--shadow-card);
 }
 
-.shadow-glift-hover:hover {
+.shadow-glift-hover {
   box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-glift-hover-strong {
+  box-shadow: 0px 8px 28px rgba(93, 100, 148, 0.24);
 }
 
 html {
@@ -348,7 +352,7 @@ input:checked+.slider:before {
     --color-accent-danger: #ef4f4e;
     --color-accent-danger-hover: #ba2524;
     --color-focus-ring: #a1a5fd;
-    --shadow-card: 0px 3px 6px rgba(93, 100, 148, 0.15);
+    --shadow-card: 0px 4px 20px rgba(93, 100, 148, 0.06);
     --shadow-card-hover: 0px 5px 21px rgba(93, 100, 148, 0.15);
     --radius-sm: 5px;
     --radius-md: 12px;

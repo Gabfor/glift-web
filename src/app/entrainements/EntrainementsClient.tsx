@@ -86,7 +86,13 @@ export default function EntrainementsPage({
   const [programsDuringDrag, setProgramsDuringDrag] = useState<Program[] | null>(null);
 
   const router = useRouter();
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 5,
+      },
+    })
+  );
 
   const pageIntro = initialPageContent;
 

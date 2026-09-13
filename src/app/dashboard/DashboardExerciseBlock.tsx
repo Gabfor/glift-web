@@ -584,7 +584,7 @@ const DashboardExerciseChartTooltip = ({
       forceVisible
       disableHover
       asChild
-      contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-md"
+      contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-glift-hover"
       arrowClassName="bg-[#2E3142]"
       offset={TOOLTIP_OFFSET_FROM_POINT_PX}
     >
@@ -1318,7 +1318,7 @@ export default function DashboardExerciseBlock({
   return (
     <div className="w-full flex flex-col xl:flex-row gap-[24px]">
       {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
-      <div className="flex-1 xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-sm h-[339px]">
+      <div className="flex-1 xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px]">
         {/* Header inside Zone 1 */}
         <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
           <h2 className="text-[16px] font-bold text-[#2E3271] truncate mr-[20px]" title={name}>
@@ -1483,7 +1483,7 @@ export default function DashboardExerciseBlock({
       {/* ZONE 2: Records Carousel (approx 25% width or flex: 1) */}
       <div className="w-full xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
         {isLoadingData ? (
-          <div className="w-[220px] h-[339px] rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-sm animate-pulse flex flex-col justify-between">
+          <div className="w-[220px] h-[339px] rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-glift animate-pulse flex flex-col justify-between">
             <div className="w-full flex flex-col gap-4">
               <div className="flex justify-between">
                 <div className="h-[18px] w-[18px] bg-[#F0F1FB] rounded-full" />

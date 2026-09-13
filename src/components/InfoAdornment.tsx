@@ -213,7 +213,7 @@ export default function InfoAdornment({
             onMouseLeave={() => setOverTip(false)}
           >
             <div
-              className="relative bg-[#2F3247] text-white text-[14px] leading-snug font-medium px-3 py-2 rounded-[8px] shadow-[0_5px_21px_0_rgba(93,100,148,0.15)] break-words"
+              className="relative bg-[#2F3247] text-white text-[14px] leading-snug font-medium px-3 py-2 rounded-[8px] shadow-glift-hover break-words"
               style={{ width: widthPx }}
             >
               {message}

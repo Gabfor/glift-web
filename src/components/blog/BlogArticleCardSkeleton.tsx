@@ -7,7 +7,7 @@ export default function BlogArticleCardSkeleton({
 }) {
   return (
     <div 
-      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full animate-pulse"
+      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full animate-pulse shadow-glift"
       style={{ maxWidth }}
     >
       <div 

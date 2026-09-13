@@ -133,7 +133,7 @@ export default function DashboardRecordCard({
     }, [dateLabel]);
 
     return (
-        <div className="flex h-full w-full flex-col items-center justify-between rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-sm select-none transition-all duration-200 ease-in-out">
+        <div className="flex h-full w-full flex-col items-center justify-between rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-glift select-none transition-all duration-200 ease-in-out">
 
 
             {/* Re-structuring header based on Mock 2 interpretation if I can? 

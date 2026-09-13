@@ -223,7 +223,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
         <header
           className={`w-full ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky || isMobileMenuOpen
-            ? "bg-white shadow-[0_6px_14px_-10px_rgba(15,23,42,0.25)]"
+            ? "bg-white shadow-glift"
             : "bg-transparent shadow-none"
             }`}
         >
@@ -482,7 +482,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
             )}
 
             {dropdownOpen && showAuthenticatedUI && (
-              <div className="absolute top-[calc(100%-8px)] right-[-4px] w-[180px] bg-white rounded-[5px] shadow-[0px_4px_16px_rgba(0,0,0,0.08)] py-2 z-50 border border-[var(--color-surface-subtle)]">
+              <div className="absolute top-[calc(100%-8px)] right-[-4px] w-[180px] bg-white rounded-[5px] shadow-glift-hover py-2 z-50 border border-[var(--color-surface-subtle)]">
                 <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[var(--color-surface-subtle)] rounded-[1px]" />
                 <Link
                   href="/compte#mes-informations"
@@ -534,7 +534,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
 
         {/* Mobile Menu Slide-in Drawer */}
         <div
-          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-[82vw] max-w-[310px] h-full bg-white shadow-2xl overflow-y-auto p-6 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-[82vw] max-w-[310px] h-full bg-white shadow-glift-hover overflow-y-auto p-6 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             }`}
         >
           <div className="flex flex-col">

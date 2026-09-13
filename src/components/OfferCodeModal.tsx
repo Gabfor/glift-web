@@ -145,7 +145,7 @@ export default function OfferModal({
     >
       {brandImage && (
         <div className="order-1 mb-4 mt-4 flex justify-center">
-          <div className="relative h-[70px] w-[70px] overflow-hidden rounded-full border-[3px] border-white bg-white shadow-[0_0_10px_rgba(93,100,148,0.25)]">
+          <div className="relative h-[70px] w-[70px] overflow-hidden rounded-full border-[3px] border-white bg-white shadow-glift">
             <Image
               src={brandImage}
               alt="Partenaire"

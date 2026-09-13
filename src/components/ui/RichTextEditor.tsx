@@ -173,7 +173,7 @@ export default function RichTextEditor({
             Youtube.configure({
                 inline: false,
                 HTMLAttributes: {
-                    class: 'w-full aspect-video rounded-[8px] my-4 shadow-sm',
+                    class: 'w-full aspect-video rounded-[8px] my-4 shadow-glift',
                 },
             }),
             ...(typeof window !== 'undefined' ? [ImageResize.configure({
@@ -314,7 +314,7 @@ export default function RichTextEditor({
             } flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
             style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
         >
-            <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-[0px_4px_6px_rgba(93,100,148,0.05)] sticky top-0 z-10 w-full flex-wrap">
+            <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-glift sticky top-0 z-10 w-full flex-wrap">
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleBold().run()}
                     isActive={editor?.isActive('bold') ?? false}
@@ -431,7 +431,7 @@ export default function RichTextEditor({
                             </ToolbarButton>
 
                             {showEmojiPicker && (
-                                <div className="absolute top-[30px] right-0 z-50 shadow-lg rounded-[8px] bg-white">
+                                <div className="absolute top-[30px] right-0 z-50 shadow-glift-hover rounded-[8px] bg-white">
                                     <EmojiPicker
                                         onEmojiClick={(emojiData) => {
                                             editor?.chain().focus().insertContent(emojiData.emoji).run();

@@ -10,30 +10,30 @@ interface Training {
 
 export default function DragPreviewItem({ training }: { training: Training }) {
   return (
-    <div className="w-[270px] h-[60px] bg-white border border-[#D7D4DC] rounded-[8px] flex items-center justify-between px-4 text-[#3A416F] font-semibold text-[16px] shadow-[0px_1px_15px_rgba(0,0,0,0.05)] cursor-grabbing select-none">
-      <div className="w-[25px] h-[25px] group relative">
+    <div className="w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC] text-[#3A416F] shadow-glift-hover-strong cursor-grabbing select-none">
+      {/* Zone de gauche : Drag */}
+      <div className="w-[25px] h-[25px] flex-shrink-0 group relative flex items-center justify-center">
         <Image
-          src="/icons/drag.svg"
+          src="/icons/drag_hover.svg"
           alt="Déplacer"
           fill
           sizes="100%"
-          className="group-hover:hidden"
-        />
-        <Image
-          src="/icons/drag_hover.svg"
-          alt="Déplacer (hover)"
-          fill
-          sizes="100%"
-          className="hidden group-hover:inline"
         />
       </div>
 
-      <span className="truncate text-center flex-1 px-6">{training.name}</span>
+      {/* Titre */}
+      <div className="flex-1 px-6 flex items-center justify-center min-w-0 h-full">
+        <span className="block w-full truncate text-center leading-normal">{training.name}</span>
+      </div>
 
-      <div className="w-[25px] h-[25px] z-10">
-        <div className="group w-[25px] h-[25px] flex items-center justify-center relative">
-          <Image src="/icons/dots.svg" alt="Menu" fill sizes="100%" className="group-hover:hidden" />
-          <Image src="/icons/dots_hover.svg" alt="Menu (hover)" fill sizes="100%" className="hidden group-hover:inline" />
+      {/* Zone de droite : Menu */}
+      <div className="w-[25px] h-[25px] flex-shrink-0 z-10 flex items-center justify-center">
+        <div className="relative">
+          <div className="w-full h-full flex items-center justify-center">
+            <div className="group w-[25px] h-[25px] flex items-center justify-center relative">
+              <Image src="/icons/dots.svg" alt="Menu" fill sizes="100%" />
+            </div>
+          </div>
         </div>
       </div>
     </div>

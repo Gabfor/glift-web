@@ -334,7 +334,7 @@ export default function ProgramStorePage() {
             <div className="h-[48px] w-full bg-[#ECE9F1] rounded-[5px]" />
           </div>
         ) : filteredPrograms.length === 0 ? (
-          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-[0_3px_6px_rgba(93,100,148,0.15)] overflow-hidden">
+          <div className="text-center text-[#5D6494] bg-white rounded-[8px] shadow-glift overflow-hidden">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>

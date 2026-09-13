@@ -104,7 +104,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
     const displayAnswer = highlightHTML(cleanAnswer, searchTerm);
 
     return (
-        <AccordionItem value={questionId} id={questionId}>
+        <AccordionItem value={questionId} id={questionId} className="group/accordion">
             <style jsx global>{`
                 .prose .image-caption,
                 .prose .image-caption *,
@@ -127,7 +127,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                     height: auto !important;
                 }
             `}</style>
-            <div className="border border-[#D7D4DC] bg-white rounded-[8px]">
+            <div className="border border-[#D7D4DC] bg-white rounded-[8px] shadow-glift hover:shadow-glift-hover group-data-[state=open]/accordion:shadow-glift-hover transition-shadow duration-200">
                 <div className="overflow-hidden rounded-[8px]">
                     <AccordionTrigger>{highlightText(question, searchTerm)}</AccordionTrigger>
                 </div>
@@ -151,7 +151,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                 <Tooltip content="Oui" asChild>
                                     <button
                                         onClick={() => handleVote('top')}
-                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
+                                        className="group/btn w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
                                         aria-label="Oui, utile"
                                     >
                                         <div className="relative w-[20px] h-[20px]">
@@ -160,7 +160,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/oui_gris.svg"
                                                     alt="Oui gris"
                                                     fill
-                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover:opacity-0' : ''
+                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover/btn:opacity-0' : ''
                                                         }`}
                                                 />
                                             ) : null}
@@ -169,7 +169,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/oui_vert.svg"
                                                     alt="Oui vert"
                                                     fill
-                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100' : 'opacity-100'
+                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover/btn:opacity-100' : 'opacity-100'
                                                         }`}
                                                 />
                                             ) : null}
@@ -181,7 +181,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                 <Tooltip content="Non" asChild>
                                     <button
                                         onClick={() => handleVote('flop')}
-                                        className="group w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
+                                        className="group/btn w-[24px] h-[24px] flex items-center justify-center transition-all opacity-100 cursor-pointer select-none"
                                         aria-label="Non, pas utile"
                                     >
                                         <div className="relative w-[20px] h-[20px]">
@@ -190,7 +190,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/non_gris.svg"
                                                     alt="Non gris"
                                                     fill
-                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover:opacity-0' : ''
+                                                    className={`pointer-events-none object-contain transition-opacity duration-200 ${!hasVoted ? '[@media(hover:hover)]:group-hover/btn:opacity-0' : ''
                                                         }`}
                                                 />
                                             ) : null}
@@ -199,7 +199,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                                                     src="/icons/non_rouge.svg"
                                                     alt="Non rouge"
                                                     fill
-                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover:opacity-100' : 'opacity-100'
+                                                    className={`pointer-events-none object-contain absolute top-0 left-0 transition-opacity duration-200 ${!hasVoted ? 'opacity-0 [@media(hover:hover)]:group-hover/btn:opacity-100' : 'opacity-100'
                                                         }`}
                                                 />
                                             ) : null}
