@@ -14,6 +14,10 @@ import ShopMobileFilterDrawer, {
   type FilterSectionData,
 } from "@/components/shop/ShopMobileFilterDrawer";
 
+import { isOfferMatchingCountry } from "@/utils/shopUtils";
+import { getClientCountryCookie } from "@/utils/geoUtils";
+import { ShopProfile } from "@/types/shop";
+
 type Props = {
   sortBy: string;
   onSortChange: (sortBy: string) => void;
@@ -21,6 +25,7 @@ type Props = {
   initialFilters?: string[];
   favoritesOnly?: boolean;
   onFavoritesOnlyToggle?: () => void;
+  initialUserProfile?: ShopProfile | null;
 };
 
 type OfferShopField = {
@@ -28,6 +33,7 @@ type OfferShopField = {
   shop?: string | string[] | null;
   type?: string | string[] | null;
   sport?: string | string[] | null;
+  pays?: string | null;
 };
 
 type NormalizedOfferShopField = {
@@ -35,6 +41,7 @@ type NormalizedOfferShopField = {
   shops: string[];
   types: string[];
   sport: string | null;
+  pays: string | null;
 };
 
 const normalizeToArray = (value: unknown): string[] => {
@@ -91,6 +98,7 @@ const normalizeOffer = (field: OfferShopField): NormalizedOfferShopField => ({
   shops: normalizeToArray(field.shop),
   types: normalizeToArray(field.type),
   sport: normalizeSport(field.sport),
+  pays: field.pays ?? null,
 });
 
 const hasUniversalValue = (values: string[]) =>
@@ -123,22 +131,22 @@ const matchesFilters = (
 
   if (skipIndex !== 1 && typeFilter) {
     const targets = typeFilter.split(",").map((s) => s.trim().toLowerCase());
-    const hasMatch = targets.some((target) =>
-      offer.types.some((t) => t.toLowerCase().includes(target) || target.includes(t.toLowerCase()))
+    const hasMatch = offer.types.some((t) =>
+      targets.some((target) => t.toLowerCase().includes(target) || target.includes(t.toLowerCase()))
     );
     if (!hasMatch) return false;
   }
 
   if (skipIndex !== 2 && sportFilter) {
     const targets = sportFilter.split(",").map((s) => s.trim().toLowerCase());
-    const sportLower = (offer.sport || "").toLowerCase().trim();
-    const hasMatch = targets.some((target) => sportLower === target || sportLower.includes(target));
+    const offerSport = offer.sport ? offer.sport.trim().toLowerCase() : "";
+    const hasMatch = targets.some((target) => offerSport === target || offerSport.includes(target));
     if (!hasMatch) return false;
   }
 
   if (skipIndex !== 3 && shopFilter) {
     const targets = shopFilter.split(",").map((s) => s.trim().toLowerCase());
-    const isUniversal = offer.shops.some((s) => s.toLowerCase() === "tous");
+    const isUniversal = offer.shops.length === 0 || hasUniversalValue(offer.shops);
     if (!isUniversal) {
       const hasMatch = offer.shops.some((s) =>
         targets.some((target) => s.toLowerCase() === target || s.toLowerCase().includes(target))
@@ -181,8 +189,10 @@ export default function ShopFilters({
   initialFilters,
   favoritesOnly = false,
   onFavoritesOnlyToggle,
+  initialUserProfile = null,
 }: Props) {
-  const { user } = useUser();
+  const { user, profile } = useUser();
+  const userCountry = profile?.country || initialUserProfile?.country || getClientCountryCookie();
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
     { value: "popularity", label: "Popularité" },
@@ -197,11 +207,13 @@ export default function ShopFilters({
     let isActive = true;
 
     try {
-      const cached = sessionStorage.getItem("glift_shop_offers_cache");
+      const cacheKey = `glift_shop_offers_cache_${userCountry}`;
+      const rawCacheKey = `glift_shop_raw_offers_cache_${userCountry}`;
+      const cached = sessionStorage.getItem(cacheKey);
       if (cached) {
         setOffers(JSON.parse(cached));
       }
-      const rawCached = sessionStorage.getItem("glift_shop_raw_offers_cache");
+      const rawCached = sessionStorage.getItem(rawCacheKey);
       if (rawCached) {
         setRawOffers(JSON.parse(rawCached));
       }
@@ -228,39 +240,46 @@ export default function ShopFilters({
 
       if (!isActive) return;
 
-      const normalizedOffers = (data ?? []).map((item) => normalizeOffer(item));
+      const normalizedOffers = (data ?? [])
+        .map((item) => normalizeOffer(item))
+        .filter((item) => isOfferMatchingCountry(item.pays, userCountry));
       setOffers(normalizedOffers);
 
-      const rawList: ShopOffer[] = (data ?? []).map((row) => ({
-        id: row.id,
-        name: row.name,
-        start_date: row.start_date ?? "",
-        end_date: row.end_date ?? "",
-        type: normalizeToArray(row.type),
-        code: row.code ?? "",
-        image: row.image || "/placeholder.jpg",
-        image_alt: row.image_alt ?? "",
-        brand_image: row.brand_image ?? undefined,
-        brand_image_alt: row.brand_image_alt ?? undefined,
-        shop: row.shop ?? undefined,
-        shop_website: row.shop_website ?? undefined,
-        shop_link: row.shop_link ?? undefined,
-        shipping: row.shipping ? String(row.shipping) : undefined,
-        modal: row.modal ?? undefined,
-        condition: row.condition ?? undefined,
-        description: row.description ?? undefined,
-        gender: row.gender ?? undefined,
-        boost: Boolean(row.boost),
-        click_count: row.click_count ?? 0,
-        created_at: row.created_at ?? undefined,
-        sport: normalizeToArray(row.sport),
-        image_mobile: row.image_mobile ?? undefined,
-      }));
+      const rawList: ShopOffer[] = (data ?? [])
+        .map((row) => ({
+          id: row.id,
+          name: row.name,
+          start_date: row.start_date ?? "",
+          end_date: row.end_date ?? "",
+          type: normalizeToArray(row.type),
+          code: row.code ?? "",
+          image: row.image || "/placeholder.jpg",
+          image_alt: row.image_alt ?? "",
+          brand_image: row.brand_image ?? undefined,
+          brand_image_alt: row.brand_image_alt ?? undefined,
+          shop: row.shop ?? undefined,
+          shop_website: row.shop_website ?? undefined,
+          shop_link: row.shop_link ?? undefined,
+          shipping: row.shipping ? String(row.shipping) : undefined,
+          modal: row.modal ?? undefined,
+          condition: row.condition ?? undefined,
+          description: row.description ?? undefined,
+          gender: row.gender ?? undefined,
+          boost: Boolean(row.boost),
+          click_count: row.click_count ?? 0,
+          created_at: row.created_at ?? undefined,
+          sport: normalizeToArray(row.sport),
+          image_mobile: row.image_mobile ?? undefined,
+          pays: row.pays ?? null,
+        }))
+        .filter((row) => isOfferMatchingCountry(row.pays, userCountry));
       setRawOffers(rawList);
 
       try {
-        sessionStorage.setItem("glift_shop_offers_cache", JSON.stringify(normalizedOffers));
-        sessionStorage.setItem("glift_shop_raw_offers_cache", JSON.stringify(rawList));
+        const cacheKey = `glift_shop_offers_cache_${userCountry}`;
+        const rawCacheKey = `glift_shop_raw_offers_cache_${userCountry}`;
+        sessionStorage.setItem(cacheKey, JSON.stringify(normalizedOffers));
+        sessionStorage.setItem(rawCacheKey, JSON.stringify(rawList));
       } catch {
         // ignore
       }
@@ -271,7 +290,7 @@ export default function ShopFilters({
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [userCountry]);
 
   const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", ""]);
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
@@ -349,10 +368,7 @@ export default function ShopFilters({
     {
       label: "Genre",
       placeholder: "Tous",
-      options: [
-        { value: "Femme", label: "Femme" },
-        { value: "Homme", label: "Homme" },
-      ],
+      options: genderOptions,
       allOptions: [
         { value: "Femme", label: "Femme" },
         { value: "Homme", label: "Homme" },
@@ -361,30 +377,30 @@ export default function ShopFilters({
     {
       label: "Catégorie",
       placeholder: "Toutes les catégories",
-      options: allCategoryOptions.map((c) => ({ value: c, label: c })),
+      options: goalOptions,
       allOptions: allCategoryOptions.map((c) => ({ value: c, label: c })),
     },
     {
       label: "Sport",
       placeholder: "Tous les sports",
-      options: allSportOptions.map((s) => ({ value: s, label: s })),
+      options: sportOptions,
       allOptions: allSportOptions.map((s) => ({ value: s, label: s })),
     },
     {
       label: "Boutique",
       placeholder: "Toutes les boutiques",
-      options: allShopOptions.map((b) => ({ value: b, label: b })),
+      options: partnerOptions,
       allOptions: allShopOptions.map((b) => ({ value: b, label: b })),
     },
-  ], [allCategoryOptions, allSportOptions, allShopOptions]);
+  ], [genderOptions, goalOptions, sportOptions, partnerOptions, allCategoryOptions, allSportOptions, allShopOptions]);
 
   // Drawer Sections
   const drawerSections: FilterSectionData[] = useMemo(() => [
-    { title: "Genre", options: ["Femme", "Homme"] },
-    { title: "Catégorie", options: allCategoryOptions },
-    { title: "Sport", options: allSportOptions },
-    { title: "Boutique", options: allShopOptions },
-  ], [allCategoryOptions, allSportOptions, allShopOptions]);
+    { title: "Genre", options: genderOptions.map((g) => g.value) },
+    { title: "Catégorie", options: goalOptions.map((g) => g.value) },
+    { title: "Sport", options: sportOptions.map((s) => s.value) },
+    { title: "Boutique", options: partnerOptions.map((p) => p.value) },
+  ], [genderOptions, goalOptions, sportOptions, partnerOptions]);
 
   // Drawer selected filters map
   const drawerSelectedFilters = useMemo(() => {
@@ -523,7 +539,7 @@ export default function ShopFilters({
             </button>
 
             {openMobileSortMenu && (
-              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-glift-hover">
+              <div className="absolute left-0 mt-[10px] w-full bg-white rounded-[5px] py-1.5 z-50 shadow-glift-hover">
                 <div className="flex flex-col">
                   {sortOptions.map((option) => (
                     <button
@@ -533,7 +549,7 @@ export default function ShopFilters({
                         onSortChange(option.value);
                         setOpenMobileSortMenu(false);
                       }}
-                      className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
+                      className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
                         option.value === sortBy
                           ? "text-[#7069FA]"
                           : "text-[#5D6494] hover:text-[#3A416F]"

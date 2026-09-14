@@ -6,6 +6,8 @@ import ShopCard from "./ShopCard";
 import ShopGridSkeleton from "./ShopGridSkeleton";
 import { ShopOffer, ShopProfile } from "@/types/shop";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
+import { isOfferMatchingCountry } from "@/utils/shopUtils";
+import { getClientCountryCookie } from "@/utils/geoUtils";
 import { useUser } from "@/context/UserContext";
 
 const ITEMS_PER_PAGE = 8;
@@ -34,6 +36,7 @@ type OfferQueryRow = {
   created_at: string | null;
   sport: string | string[] | null;
   image_mobile: string | null;
+  pays: string | null;
 };
 
 const normalizeToArray = (value: unknown): string[] => {
@@ -78,6 +81,7 @@ const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   created_at: row.created_at ?? undefined,
   sport: normalizeToArray(row.sport),
   image_mobile: row.image_mobile ?? undefined,
+  pays: row.pays ?? null,
 });
 
 const processOffers = (
@@ -92,7 +96,8 @@ const processOffers = (
     return [];
   }
 
-  let list = [...rawList];
+  const userCountry = profile?.country || getClientCountryCookie();
+  let list = rawList.filter((offer) => isOfferMatchingCountry(offer.pays, userCountry));
 
   const [genderFilter = "", categoryFilter = "", sportFilter = "", shopFilter = ""] = currentFilters;
 
@@ -225,6 +230,7 @@ export default function ShopGrid({
         gender: profile.gender || null,
         supplements: profile.supplements || null,
         main_goal: profile.main_goal || null,
+        country: profile.country || initialUserProfile?.country || null,
       };
     }
     return initialUserProfile;

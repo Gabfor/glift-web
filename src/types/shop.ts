@@ -22,10 +22,13 @@ export interface ShopOffer {
   click_count?: number;
   created_at?: string;
   sport: string[];
+  pays?: string | null;
 }
 
 export interface ShopProfile {
   gender: string | null;
   main_goal: string | null;
   supplements: string | null;
+  country?: string | null;
 }
+

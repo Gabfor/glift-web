@@ -172,9 +172,7 @@ export default function FiltersPanel({
 
             {openSortMenu && (
               <div
-                className="
-                absolute left-0 mt-2 min-w-[153px] bg-white rounded-[5px] py-2 z-50 shadow-glift-hover
-              "
+                className="absolute left-0 mt-[10px] min-w-[153px] bg-white rounded-[5px] py-1.5 z-50 shadow-glift-hover"
               >
                 <div className="flex flex-col">
                   {sortOptions.map((option) => (
@@ -185,10 +183,11 @@ export default function FiltersPanel({
                         setOpenSortMenu(false);
                         buttonRef.current?.blur();
                       }}
-                      className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${option.value === sortBy
-                        ? "text-[#7069FA]"
-                        : "text-[#5D6494] hover:text-[#3A416F]"
-                        }`}
+                      className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
+                        option.value === sortBy
+                          ? "text-[#7069FA]"
+                          : "text-[#5D6494] hover:text-[#3A416F]"
+                      }`}
                     >
                       {option.label}
                     </button>

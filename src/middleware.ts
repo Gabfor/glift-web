@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AuthApiError, isAuthSessionMissingError } from "@supabase/auth-js";
 import { createRememberingMiddlewareClient } from "@/lib/supabase/middleware";
+import { ISO_TO_COUNTRY_MAP, DEFAULT_COUNTRY } from "@/utils/geoUtils";
 
 // Helper pour copier proprement les cookies entre deux réponses Next.js
 const copyCookies = (from: NextResponse, to: NextResponse) => {
@@ -26,15 +27,35 @@ export async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   const host = req.headers.get("host") || "";
 
-  // Injecter x-pathname dans les en-têtes de la requête pour les Server Components
+  // Geolocation detection from IP headers
+  const geoCountryCode =
+    (req as any).geo?.country ||
+    req.headers.get("x-vercel-ip-country") ||
+    req.headers.get("cf-ipcountry") ||
+    req.headers.get("x-country-code") ||
+    "";
+  const upperGeoCode = geoCountryCode.trim().toUpperCase();
+  const detectedCountry = ISO_TO_COUNTRY_MAP[upperGeoCode] || DEFAULT_COUNTRY;
+
+  // Injecter x-pathname et x-geo-country dans les en-têtes de la requête pour les Server Components
   const requestHeaders = new Headers(req.headers);
   requestHeaders.set("x-pathname", pathname);
+  requestHeaders.set("x-geo-country-code", upperGeoCode);
+  requestHeaders.set("x-geo-country", detectedCountry);
 
   const res = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
+
+  if (!req.cookies.get("glift_country")) {
+    res.cookies.set("glift_country", encodeURIComponent(detectedCountry), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 30,
+      sameSite: "lax",
+    });
+  }
 
   // Crée le client Supabase middleware-compatible
   const supabase = createRememberingMiddlewareClient({ req, res, requestHeaders });

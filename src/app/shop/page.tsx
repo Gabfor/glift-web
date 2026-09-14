@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
+import { headers } from "next/headers";
 import ShopPageClient from "./ShopPageClient";
-import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
+import { mapOfferRowToOffer, OfferQueryRow, isOfferMatchingCountry } from "@/utils/shopUtils";
+import { resolveUserCountry } from "@/utils/geoUtils";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import type { Metadata } from "next";
@@ -71,7 +73,7 @@ export default async function ShopPage() {
     const [profileRes, favsRes] = await Promise.all([
       supabase
         .from("profiles")
-        .select("gender, main_goal, supplements")
+        .select("gender, main_goal, supplements, country")
         .eq("id", user.id)
         .single(),
       supabase
@@ -87,6 +89,21 @@ export default async function ShopPage() {
       initialFavorites = (favsRes.data as unknown as Array<{ offer_id: string }>).map((item) => String(item.offer_id));
     }
   }
+
+  // 1b. Resolve effective country (User profile or IP Geolocation or default France)
+  const headersList = await headers();
+  const geoCountryCode =
+    headersList.get("x-geo-country-code") ||
+    headersList.get("x-vercel-ip-country") ||
+    headersList.get("cf-ipcountry");
+  const userCountry = resolveUserCountry(userProfile?.country, geoCountryCode);
+
+  const effectiveProfile: ShopProfile = {
+    gender: userProfile?.gender ?? null,
+    main_goal: userProfile?.main_goal ?? null,
+    supplements: userProfile?.supplements ?? null,
+    country: userCountry,
+  };
 
   // 2. Fetch total count
   const { count: totalCount } = await supabase
@@ -120,11 +137,14 @@ export default async function ShopPage() {
       click_count,
       created_at,
       sport,
-      image_mobile
+      image_mobile,
+      pays
     `)
     .eq("status", "ON");
 
-  const mappedOffers = (rawOffers ?? []).map(row => mapOfferRowToOffer(row as OfferQueryRow));
+  const mappedOffers = (rawOffers ?? [])
+    .map((row) => mapOfferRowToOffer(row as OfferQueryRow))
+    .filter((offer) => isOfferMatchingCountry(offer.pays, userCountry));
   
   // Perform relevance sorting on the server
   const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile, initialFavorites);
@@ -168,15 +188,15 @@ export default async function ShopPage() {
           shop_link, shop_website, 
           code, modal, condition, 
           start_date, end_date, brand_image, type,
-          image
+          image, pays
         `)
         .eq("status", "ON")
-        .neq("slider_image", null)
-        .limit(slotsNeeded + 2);
+        .neq("slider_image", null);
 
       if (offers) {
         offerSlides = (offers ?? [])
-          .filter((o) => o.slider_image)
+          .filter((o) => o.slider_image && isOfferMatchingCountry(o.pays, userCountry))
+          .slice(0, slotsNeeded + 2)
           .map((o) => ({
             image: o.slider_image!,
             alt: o.image_alt || o.name,
@@ -226,7 +246,7 @@ export default async function ShopPage() {
         <ShopPageClient 
           initialOffers={initialOffers} 
           sliderConfig={sliderConfig}
-          initialUserProfile={userProfile}
+          initialUserProfile={effectiveProfile}
           initialIsAuthenticated={!!user}
           initialFavorites={initialFavorites}
         />

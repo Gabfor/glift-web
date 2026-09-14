@@ -301,142 +301,144 @@ export default function DropdownFilter({
         </span>
         <span className="shrink-0" style={{ width: 8.73, height: 6.13 }} />
       </button>
-      <button
-        type="button"
-        ref={buttonRef}
-        onClick={() => {
-          if (!disabled) {
-            setOpen((current) => !current);
-          }
-        }}
-        disabled={disabled}
-        className={`
-          h-10
-          border
-          ${buttonStateClasses}
-          rounded-[5px]
-          pl-3
-          pr-[15px]
-          py-2
-          flex items-center
-          justify-between
-          gap-[10px]
-          text-[16px]
-          font-semibold
-          cursor-pointer
-        `}
-        style={{
-          ...(calculatedWidth
-            ? { minWidth: calculatedWidth }
-            : undefined),
-          ...(typeof maxWidth === "number" ? { maxWidth } : undefined),
-        }}
-      >
-        <span
-          className={`${labelColorClass} flex min-w-0 items-center text-left flex-1`}
-        >
-          <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-            {selectedLabel}
-          </span>
-          {selectedOptionHasIcon(preparedOptions, selected) && (
-            <Image
-              src={selectedOptionHasIcon(preparedOptions, selected)!}
-              alt=""
-              width={20}
-              height={15}
-              className="ml-[10px] shrink-0"
-            />
-          )}
-        </span>
-        <Image
-          src={chevronIcon}
-          alt=""
-          width={8.73}
-          height={6.13}
-          className="shrink-0"
-          style={{
-            transform: open ? "rotate(-180deg)" : "rotate(0deg)",
-            transition: "transform 0.2s ease",
-            transformOrigin: "center 45%",
+      <div className="relative">
+        <button
+          type="button"
+          ref={buttonRef}
+          onClick={() => {
+            if (!disabled) {
+              setOpen((current) => !current);
+            }
           }}
-        />
-      </button>
-
-      {open && (
-        <div
-          className="absolute left-0 mt-20 min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden animate-in fade-in-50 duration-150"
+          disabled={disabled}
+          className={`
+            h-10
+            border
+            ${buttonStateClasses}
+            rounded-[5px]
+            pl-3
+            pr-[15px]
+            py-2
+            flex items-center
+            justify-between
+            gap-[10px]
+            text-[16px]
+            font-semibold
+            cursor-pointer
+          `}
+          style={{
+            ...(calculatedWidth
+              ? { minWidth: calculatedWidth }
+              : undefined),
+            ...(typeof maxWidth === "number" ? { maxWidth } : undefined),
+          }}
         >
-          {/* Top Gradient */}
-          <div
-            className={`absolute top-0 left-0 right-0 h-[24px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
-              showTopGradient ? "opacity-100" : "opacity-0"
-            }`}
-          />
-          <div
-            className="flex flex-col overflow-y-auto max-h-[220px] py-1.5 scrollable-dropdown"
-            ref={listRef}
-            onScroll={(e) => {
-              const target = e.currentTarget;
-              const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
-              const isAtTop = target.scrollTop < 1;
-              const hasScroll = target.scrollHeight > target.clientHeight;
-
-              setShowBottomGradient(hasScroll && !isAtBottom);
-              setShowTopGradient(hasScroll && !isAtTop);
-            }}
+          <span
+            className={`${labelColorClass} flex min-w-0 items-center text-left flex-1`}
           >
-            {preparedOptions.map((option) => {
-              const isChecked = isMultiSelect
-                ? selectedValues.has(option.value)
-                : selected === option.value;
+            <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+              {selectedLabel}
+            </span>
+            {selectedOptionHasIcon(preparedOptions, selected) && (
+              <Image
+                src={selectedOptionHasIcon(preparedOptions, selected)!}
+                alt=""
+                width={20}
+                height={15}
+                className="ml-[10px] shrink-0"
+              />
+            )}
+          </span>
+          <Image
+            src={chevronIcon}
+            alt=""
+            width={8.73}
+            height={6.13}
+            className="shrink-0"
+            style={{
+              transform: open ? "rotate(-180deg)" : "rotate(0deg)",
+              transition: "transform 0.2s ease",
+              transformOrigin: "center 45%",
+            }}
+          />
+        </button>
 
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleToggleOption(option.value)}
-                  className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center gap-2.5 cursor-pointer select-none group ${
-                    isChecked
-                      ? "text-[#3A416F]"
-                      : "text-[#5D6494] hover:text-[#3A416F]"
-                  }`}
-                >
-                  {isMultiSelect && (
-                    <Image
-                      src={isChecked ? CheckboxCheckedIcon : CheckboxUncheckedIcon}
-                      alt={isChecked ? "Coché" : "Non coché"}
-                      width={15}
-                      height={15}
-                      className="shrink-0"
-                    />
-                  )}
+        {open && (
+          <div
+            className="absolute left-0 mt-[10px] min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden"
+          >
+            {/* Top Gradient */}
+            <div
+              className={`absolute top-0 left-0 right-[16px] h-[24px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
+                showTopGradient ? "opacity-100" : "opacity-0"
+              }`}
+            />
+            <div
+              className="flex flex-col overflow-y-auto max-h-[220px] py-1.5 scrollable-dropdown"
+              ref={listRef}
+              onScroll={(e) => {
+                const target = e.currentTarget;
+                const isAtBottom = Math.abs(target.scrollHeight - target.scrollTop - target.clientHeight) < 1;
+                const isAtTop = target.scrollTop < 1;
+                const hasScroll = target.scrollHeight > target.clientHeight;
 
-                  <span className="flex min-w-0 items-center flex-1">
-                    <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                      {option.label}
-                    </span>
-                    {option.iconSrc && (
+                setShowBottomGradient(hasScroll && !isAtBottom);
+                setShowTopGradient(hasScroll && !isAtTop);
+              }}
+            >
+              {preparedOptions.map((option) => {
+                const isChecked = isMultiSelect
+                  ? selectedValues.has(option.value)
+                  : selected === option.value;
+
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleToggleOption(option.value)}
+                    className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center gap-2.5 cursor-pointer select-none group ${
+                      isChecked
+                        ? "text-[#3A416F]"
+                        : "text-[#5D6494] hover:text-[#3A416F]"
+                    }`}
+                  >
+                    {isMultiSelect && (
                       <Image
-                        src={option.iconSrc}
-                        alt=""
-                        width={20}
+                        src={isChecked ? CheckboxCheckedIcon : CheckboxUncheckedIcon}
+                        alt={isChecked ? "Coché" : "Non coché"}
+                        width={15}
                         height={15}
-                        className="ml-[10px] shrink-0"
+                        className="shrink-0"
                       />
                     )}
-                  </span>
-                </button>
-              );
-            })}
+
+                    <span className="flex min-w-0 items-center flex-1">
+                      <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                        {option.label}
+                      </span>
+                      {option.iconSrc && (
+                        <Image
+                          src={option.iconSrc}
+                          alt=""
+                          width={20}
+                          height={15}
+                          className="ml-[10px] shrink-0"
+                        />
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            {/* Bottom Gradient */}
+            <div
+              className={`absolute bottom-0 left-0 right-[16px] h-[24px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
+                showBottomGradient ? "opacity-100" : "opacity-0"
+              }`}
+            />
           </div>
-          {/* Bottom Gradient */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 h-[24px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${
-              showBottomGradient ? "opacity-100" : "opacity-0"
-            }`}
-          />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

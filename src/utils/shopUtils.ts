@@ -26,6 +26,7 @@ export type OfferQueryRow = Pick<
   | "created_at"
   | "sport"
   | "image_mobile"
+  | "pays"
 > & { description?: string | null };
 
 const parseOfferTypes = (value: unknown): string[] => {
@@ -71,4 +72,23 @@ export const mapOfferRowToOffer = (row: OfferQueryRow): ShopOffer => ({
   click_count: row.click_count ?? 0,
   created_at: row.created_at ?? "",
   sport: row.sport ?? [],
+  pays: row.pays ?? null,
 });
+
+export const isOfferMatchingCountry = (
+  offerPays: string | null | undefined,
+  userCountry: string | null | undefined
+): boolean => {
+  const normOffer = (offerPays ?? "").trim().toLowerCase();
+  const isOfferUniversal = !normOffer || normOffer === "tous";
+
+  const normUser = (userCountry ?? "tous").trim().toLowerCase();
+  const isUserUniversal = !normUser || normUser === "tous";
+
+  if (isUserUniversal) {
+    return isOfferUniversal;
+  }
+
+  return isOfferUniversal || normOffer === normUser;
+};
+

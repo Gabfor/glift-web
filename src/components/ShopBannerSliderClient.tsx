@@ -28,6 +28,9 @@ export type OfferData = {
 };
 
 import { ShopOffer } from "@/types/shop";
+import { isOfferMatchingCountry } from "@/utils/shopUtils";
+import { getClientCountryCookie } from "@/utils/geoUtils";
+import { useUser } from "@/context/UserContext";
 
 type Slide = {
   image: string;
@@ -48,13 +51,12 @@ const normalizeSlides = (value: SliderRow["slides"]): Slide[] => {
     return [];
   }
 
-  return value.map((slide) => {
+  return value.map((slide: any) => {
     if (typeof slide === "object" && slide !== null && !Array.isArray(slide)) {
-      const record = slide as Record<string, unknown>;
       return {
-        image: typeof record.image === "string" ? record.image : "",
-        alt: typeof record.alt === "string" ? record.alt : "",
-        link: typeof record.link === "string" ? record.link : "",
+        image: slide.image || "",
+        alt: slide.alt || "",
+        link: slide.link || "",
       };
     }
 
@@ -69,6 +71,8 @@ export default function ShopBannerSliderClient({
   initialIsMobileActive = true,
 }: Props) {
   const supabase = createClient();
+  const { profile } = useUser();
+  const userCountry = profile?.country || getClientCountryCookie();
   const [paginationEl, setPaginationEl] = useState<HTMLDivElement | null>(null);
   const swiperRef = useRef<SwiperClass | null>(null);
 
@@ -105,15 +109,15 @@ export default function ShopBannerSliderClient({
             shop_link, shop_website, 
             code, modal, condition, 
             start_date, end_date, brand_image, type,
-            image
+            image, pays
           `)
           .eq("status", "ON")
-          .neq("slider_image", null)
-          .limit(slotsNeeded + 2);
+          .neq("slider_image", null);
 
         if (offers) {
-          offerSlides = offers
-            .filter((o) => o.slider_image)
+          offerSlides = (offers ?? [])
+            .filter((o) => o.slider_image && isOfferMatchingCountry(o.pays, userCountry))
+            .slice(0, slotsNeeded + 2)
             .map((o) => ({
               image: o.slider_image!,
               alt: o.image_alt || o.name,
@@ -133,6 +137,7 @@ export default function ShopBannerSliderClient({
                 image: o.image || "",
                 image_alt: o.image_alt || "",
                 created_at: "",
+                pays: o.pays ?? null,
               } as ShopOffer
             }));
         }

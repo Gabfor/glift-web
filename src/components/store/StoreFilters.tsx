@@ -131,6 +131,79 @@ const buildDurationOptions = (durations: number[], selected: string) => {
   return options.sort((a, b) => Number.parseInt(a.value, 10) - Number.parseInt(b.value, 10));
 };
 
+const matchesStoreFilters = (
+  program: NormalizedProgramStoreField,
+  filters: string[],
+  skipIndex: number,
+  isAuthenticated: boolean,
+  isPremiumUser: boolean
+) => {
+  if (filters.some((f, idx) => idx !== skipIndex && f === "__none__")) {
+    return false;
+  }
+
+  const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, partnerFilter, availabilityFilter] = filters;
+
+  // Index 0: Gender
+  if (skipIndex !== 0 && genderFilter && program.gender) {
+    const targets = genderFilter.split(",").map((s) => s.trim().toLowerCase());
+    const isUniversal = isUniversalValue(program.gender, "Tous") || isUniversalValue(program.gender, "Mixte") || isUniversalValue(program.gender, "Unisexe");
+    if (!isUniversal && !targets.includes(program.gender.trim().toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Index 1: Goal
+  if (skipIndex !== 1 && goalFilter && program.goal) {
+    const targets = goalFilter.split(",").map((s) => s.trim().toLowerCase());
+    if (!targets.includes(program.goal.trim().toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Index 2: Level
+  if (skipIndex !== 2 && levelFilter && program.level) {
+    const targets = levelFilter.split(",").map((s) => s.trim().toLowerCase());
+    const isUniversal = isUniversalValue(program.level, "Tous niveaux");
+    if (!isUniversal && !targets.includes(program.level.trim().toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Index 3: Location
+  if (skipIndex !== 3 && locationFilter && program.location) {
+    const targets = locationFilter.split(",").map((s) => s.trim().toLowerCase());
+    if (!targets.includes(program.location.trim().toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Index 4: Duration
+  if (skipIndex !== 4 && durationFilter) {
+    const max = Number.parseInt(durationFilter, 10);
+    if (!Number.isNaN(max) && program.duration && program.duration > max) {
+      return false;
+    }
+  }
+
+  // Index 5: Partner
+  if (skipIndex !== 5 && partnerFilter && program.partner) {
+    const targets = partnerFilter.split(",").map((s) => s.trim().toLowerCase());
+    if (!targets.includes(program.partner.trim().toLowerCase())) {
+      return false;
+    }
+  }
+
+  // Index 6: Availability
+  if (skipIndex !== 6 && availabilityFilter) {
+    const isAvail = isAuthenticated && (isPremiumUser || program.plan === "starter");
+    if (availabilityFilter === "Oui" && !isAvail) return false;
+    if (availabilityFilter === "Non" && isAvail) return false;
+  }
+
+  return true;
+};
+
 export default function StoreFilters({
   sortBy,
   onSortChange,
@@ -247,18 +320,6 @@ export default function StoreFilters({
     const availabilityValues = new Set<string>();
     const partnerValues = new Set<string>();
 
-    const checkAvailability = (program: NormalizedProgramStoreField) => {
-      if (!isAuthenticated) return false;
-      if (isPremiumUser) return true;
-      return program.plan === "starter";
-    };
-
-    const isAvailableMatch = (program: NormalizedProgramStoreField, filterValue: string) => {
-      if (!filterValue) return true;
-      const isAvailable = checkAvailability(program);
-      return filterValue === "Oui" ? isAvailable : !isAvailable;
-    };
-
     const allGenderValues = new Set<string>();
     const allGoalValues = new Set<string>();
     const allLevelValues = new Set<string>();
@@ -274,77 +335,28 @@ export default function StoreFilters({
       if (program.location) allLocationValues.add(program.location);
       if (program.duration) allDurationValues.push(program.duration);
       if (program.partner) allPartnerValues.add(program.partner);
-      
-      let matches = !selectedFilters.some((f) => f === "__none__");
-      // Index 0: Gender
-      if (matches && selectedFilters[0] && program.gender) {
-        const targets = selectedFilters[0].split(",").map((s) => s.trim().toLowerCase());
-        if (!isUniversalValue(program.gender, "Tous") && !targets.includes(program.gender.trim().toLowerCase())) {
-          matches = false;
-        }
-      }
 
-      // Index 1: Goal
-      if (matches && selectedFilters[1] && program.goal) {
-        const targets = selectedFilters[1].split(",").map((s) => s.trim().toLowerCase());
-        if (!targets.includes(program.goal.trim().toLowerCase())) {
-          matches = false;
-        }
+      if (matchesStoreFilters(program, selectedFilters, 0, isAuthenticated, isPremiumUser) && program.gender) {
+        genderValues.add(program.gender);
       }
-
-      // Index 2: Level
-      if (matches && selectedFilters[2] && program.level) {
-        const targets = selectedFilters[2].split(",").map((s) => s.trim().toLowerCase());
-        if (!isUniversalValue(program.level, "Tous niveaux") && !targets.includes(program.level.trim().toLowerCase())) {
-          matches = false;
-        }
+      if (matchesStoreFilters(program, selectedFilters, 1, isAuthenticated, isPremiumUser) && program.goal) {
+        goalValues.add(program.goal);
       }
-
-      // Index 3: Location
-      if (matches && selectedFilters[3] && program.location) {
-        const targets = selectedFilters[3].split(",").map((s) => s.trim().toLowerCase());
-        if (!targets.includes(program.location.trim().toLowerCase())) {
-          matches = false;
-        }
+      if (matchesStoreFilters(program, selectedFilters, 2, isAuthenticated, isPremiumUser) && program.level) {
+        levelValues.add(program.level);
       }
-
-      // Index 4: Duration
-      if (matches && selectedFilters[4]) {
-        const targets = selectedFilters[4].split(",").map((s) => Number.parseInt(s, 10)).filter((n) => !Number.isNaN(n));
-        if (targets.length > 0) {
-          const max = Math.max(...targets);
-          if (program.duration && program.duration > max) matches = false;
-        }
+      if (matchesStoreFilters(program, selectedFilters, 3, isAuthenticated, isPremiumUser) && program.location) {
+        locationValues.add(program.location);
       }
-
-      // Index 5: Partner
-      if (matches && selectedFilters[5] && program.partner) {
-        const targets = selectedFilters[5].split(",").map((s) => s.trim().toLowerCase());
-        if (!targets.includes(program.partner.trim().toLowerCase())) {
-          matches = false;
-        }
+      if (matchesStoreFilters(program, selectedFilters, 4, isAuthenticated, isPremiumUser) && program.duration) {
+        durationValues.push(program.duration);
       }
-
-      if (matches) {
-        const isAvail = checkAvailability(program);
+      if (matchesStoreFilters(program, selectedFilters, 5, isAuthenticated, isPremiumUser) && program.partner) {
+        partnerValues.add(program.partner);
+      }
+      if (matchesStoreFilters(program, selectedFilters, 6, isAuthenticated, isPremiumUser)) {
+        const isAvail = isAuthenticated && (isPremiumUser || program.plan === "starter");
         availabilityValues.add(isAvail ? "Oui" : "Non");
-      }
-
-      if (matches && selectedFilters[6]) {
-        const availTargets = selectedFilters[6].split(",").map((s) => s.trim());
-        const isMatch = availTargets.some((t) => isAvailableMatch(program, t));
-        if (!isMatch) {
-          matches = false;
-        }
-      }
-
-      if (matches) {
-        if (program.gender) genderValues.add(program.gender);
-        if (program.goal) goalValues.add(program.goal);
-        if (program.level) levelValues.add(program.level);
-        if (program.location) locationValues.add(program.location);
-        if (program.duration) durationValues.push(program.duration);
-        if (program.partner) partnerValues.add(program.partner);
       }
     });
 
@@ -383,43 +395,37 @@ export default function StoreFilters({
     {
       label: "Genre",
       placeholder: "Tous",
-      options: [
-        { value: "Femme", label: "Femme" },
-        { value: "Homme", label: "Homme" },
-      ],
-      allOptions: [
-        { value: "Femme", label: "Femme" },
-        { value: "Homme", label: "Homme" },
-      ],
+      options: genderOptions,
+      allOptions: allGenderOptions,
     },
     {
       label: "Objectif",
       placeholder: "Tous les objectifs",
-      options: allGoalOptions,
+      options: goalOptions,
       allOptions: allGoalOptions,
     },
     {
       label: "Niveau",
       placeholder: "Tous les niveaux",
-      options: allLevelOptions,
+      options: levelOptions,
       allOptions: allLevelOptions,
     },
     {
       label: "Lieu",
       placeholder: "Tous les lieux",
-      options: allLocationOptions,
+      options: locationOptions,
       allOptions: allLocationOptions,
     },
     {
       label: "Durée max.",
       placeholder: "Toutes les durées",
-      options: allDurationOptions,
+      options: durationOptions,
       allOptions: allDurationOptions,
     },
     {
       label: "Partenaire",
       placeholder: "Tous les partenaires",
-      options: allPartnerOptions,
+      options: partnerOptions,
       allOptions: allPartnerOptions,
     },
   ];
@@ -429,44 +435,46 @@ export default function StoreFilters({
     const sections: FilterSectionData[] = [
       {
         title: "Genre",
-        options: ["Femme", "Homme"],
+        options: genderOptions.map((o) => o.value),
       },
       {
         title: "Objectif",
-        options: allGoalOptions.map((o) => o.value),
+        options: goalOptions.map((o) => o.value),
       },
       {
         title: "Niveau",
-        options: allLevelOptions.map((o) => o.value),
+        options: levelOptions.map((o) => o.value),
       },
       {
         title: "Lieu",
-        options: allLocationOptions.map((o) => o.value),
+        options: locationOptions.map((o) => o.value),
       },
       {
         title: "Durée max.",
-        options: allDurationOptions.map((o) => o.value),
+        options: durationOptions.map((o) => o.value),
       },
       {
         title: "Partenaire",
-        options: allPartnerOptions.map((o) => o.value),
+        options: partnerOptions.map((o) => o.value),
       },
     ];
 
     if (isUserDataLoaded && isAuthenticated && !isPremiumUser) {
       sections.push({
         title: "Disponibilité",
-        options: ["Téléchargeable", "Non téléchargeable"],
+        options: availabilityOptions.map((o) => o.value),
       });
     }
 
     return sections;
   }, [
-    allGoalOptions,
-    allLevelOptions,
-    allLocationOptions,
-    allDurationOptions,
-    allPartnerOptions,
+    genderOptions,
+    goalOptions,
+    levelOptions,
+    locationOptions,
+    durationOptions,
+    partnerOptions,
+    availabilityOptions,
     isUserDataLoaded,
     isAuthenticated,
     isPremiumUser,
@@ -664,7 +672,7 @@ export default function StoreFilters({
             </button>
 
             {openMobileSortMenu && (
-              <div className="absolute left-0 mt-2 w-full bg-white rounded-[5px] py-2 z-50 shadow-glift-hover">
+              <div className="absolute left-0 mt-[10px] w-full bg-white rounded-[5px] py-1.5 z-50 shadow-glift-hover">
                 <div className="flex flex-col">
                   {sortOptions.map((option) => (
                     <button
@@ -674,7 +682,7 @@ export default function StoreFilters({
                         onSortChange(option.value);
                         setOpenMobileSortMenu(false);
                       }}
-                      className={`text-left text-[16px] font-semibold py-[8px] px-3 mx-[8px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
+                      className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 ${
                         option.value === sortBy
                           ? "text-[#7069FA]"
                           : "text-[#5D6494] hover:text-[#3A416F]"

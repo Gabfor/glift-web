@@ -121,7 +121,7 @@ export default function DashboardExerciseDropdown({
 
       {open ? (
         <div
-          className="absolute -right-[23px] mt-2 min-w-[220px] bg-white rounded-[5px] shadow-glift-hover py-2 z-50 border border-[#ECE9F1]"
+          className="absolute -right-[23px] mt-2 min-w-[220px] bg-white rounded-[5px] shadow-glift-hover py-1.5 z-50 border border-[#ECE9F1]"
         >
           <div className="absolute -top-2 right-[18px] w-4 h-4 bg-white rotate-45 border-t border-l border-[#ECE9F1] rounded-[1px]" />
           <div className="flex flex-col">
@@ -136,7 +136,7 @@ export default function DashboardExerciseDropdown({
                   aria-selected={isSelected}
                   onClick={() => handleSelect(option.value)}
                   className={clsx(
-                    "text-[16px] text-left font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] transition-colors",
+                    "text-[15px] text-left font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] transition-colors",
                     isSelected
                       ? "text-[#7069FA]"
                       : "text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]",

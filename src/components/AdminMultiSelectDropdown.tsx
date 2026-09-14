@@ -136,15 +136,15 @@ export default function AdminMultiSelectDropdown({
       {open && (
         <div
           className="
-            absolute left-0 top-full mt-1
+            absolute left-0 top-full mt-[10px]
             w-full
             bg-white
             rounded-[5px]
-            py-2
+            py-1.5
             z-50
             shadow-glift-hover
             scrollable-dropdown
-            max-h-[180px]
+            max-h-[220px]
             overflow-y-auto
           "
         >
@@ -156,9 +156,9 @@ export default function AdminMultiSelectDropdown({
                   key={option.value}
                   onClick={() => toggleOption(option.value)}
                   className="
-                    flex items-center gap-2
-                    text-[16px] font-semibold
-                    py-[8px] px-3 mx-[8px]
+                    flex items-center gap-2.5
+                    text-[15px] font-semibold
+                    py-[7px] pl-[5px] pr-3 mx-[6px]
                     rounded-[5px]
                     hover:bg-[#FAFAFF]
                     text-[#5D6494] hover:text-[#3A416F]
@@ -168,8 +168,8 @@ export default function AdminMultiSelectDropdown({
                   <Image
                     src={isChecked ? CheckboxChecked : CheckboxUnchecked}
                     alt={isChecked ? "Coché" : "Non coché"}
-                    width={16}
-                    height={16}
+                    width={15}
+                    height={15}
                   />
                   {option.label}
                 </button>

@@ -102,6 +102,7 @@ export default function ShopPageClient({
           sortBy={sortBy}
           initialFilters={filters}
           favoritesOnly={favoritesOnly}
+          initialUserProfile={initialUserProfile}
           onFavoritesOnlyToggle={() => {
             setFavoritesOnly((prev) => !prev);
             setCurrentPage(1);

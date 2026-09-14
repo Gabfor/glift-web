@@ -66,7 +66,9 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
 }
 
 import ShopPageClient from "@/app/shop/ShopPageClient";
-import { mapOfferRowToOffer, OfferQueryRow } from "@/utils/shopUtils";
+import { mapOfferRowToOffer, OfferQueryRow, isOfferMatchingCountry } from "@/utils/shopUtils";
+import { resolveUserCountry } from "@/utils/geoUtils";
+import { headers } from "next/headers";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import ShopHeader from "@/components/shop/ShopHeader";
@@ -168,7 +170,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     if (session?.user) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("gender, main_goal, supplements")
+        .select("gender, main_goal, supplements, country")
         .eq("id", session.user.id)
         .single();
       
@@ -176,6 +178,20 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         userProfile = profile as ShopProfile;
       }
     }
+
+    const headersList = await headers();
+    const geoCountryCode =
+      headersList.get("x-geo-country-code") ||
+      headersList.get("x-vercel-ip-country") ||
+      headersList.get("cf-ipcountry");
+    const userCountry = resolveUserCountry(userProfile?.country, geoCountryCode);
+
+    const effectiveProfile: ShopProfile = {
+      gender: userProfile?.gender ?? null,
+      main_goal: userProfile?.main_goal ?? null,
+      supplements: userProfile?.supplements ?? null,
+      country: userCountry,
+    };
 
     // 2. Fetch total count
     const { count: totalCount } = await supabase
@@ -207,12 +223,15 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         boost,
         click_count,
         created_at,
-        sport
+        sport,
+        pays
       `)
       .eq("status", "ON");
 
-    const mappedOffers = (rawOffers ?? []).map(row => mapOfferRowToOffer(row as OfferQueryRow));
-    const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile);
+    const mappedOffers = (rawOffers ?? [])
+      .map(row => mapOfferRowToOffer(row as OfferQueryRow))
+      .filter(offer => isOfferMatchingCountry(offer.pays, userCountry));
+    const sortedOffers = sortOffersByRelevance(mappedOffers, effectiveProfile);
     const initialOffers = sortedOffers.slice(0, 8);
 
     // 4. Fetch Slider Configuration
@@ -252,15 +271,15 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             shop_link, shop_website, 
             code, modal, condition, 
             start_date, end_date, brand_image, type,
-            image
+            image, pays
           `)
           .eq("status", "ON")
-          .neq("slider_image", null)
-          .limit(slotsNeeded + 2);
+          .neq("slider_image", null);
 
         if (offers) {
           offerSlides = (offers ?? [])
-            .filter((o) => o.slider_image)
+            .filter((o) => o.slider_image && isOfferMatchingCountry(o.pays, userCountry))
+            .slice(0, slotsNeeded + 2)
             .map((o) => ({
               image: o.slider_image!,
               alt: o.image_alt || o.name,
@@ -306,6 +325,8 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         <ShopPageClient 
           initialOffers={initialOffers} 
           sliderConfig={sliderConfig}
+          initialUserProfile={effectiveProfile}
+          initialIsAuthenticated={!!session?.user}
         />
       </main>
     );

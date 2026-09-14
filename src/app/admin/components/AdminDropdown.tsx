@@ -375,15 +375,15 @@ export default function AdminDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 w-full bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden">
+        <div className="absolute left-0 top-full mt-[10px] w-full bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden">
           {/* Top Gradient */}
           <div
-            className={`absolute top-0 left-0 right-0 h-[40px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"
+            className={`absolute top-0 left-0 right-[16px] h-[24px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"
               }`}
           />
           <div
             ref={listRef}
-            className="overflow-y-auto max-h-[216px] scrollable-dropdown py-2"
+            className="overflow-y-auto max-h-[220px] scrollable-dropdown py-1.5"
             onScroll={(e) => {
               const target = e.currentTarget;
               const isAtBottom =
@@ -413,21 +413,11 @@ export default function AdminDropdown({
                     setOpen(false);
                     buttonRef.current?.blur();
                   }}
-                  className={`
-                  text-left
-                  text-[16px]
-                  font-semibold
-                  py-[8px]
-                  px-3
-                  mx-[8px]
-                  rounded-[5px]
-                  hover:bg-[#FAFAFF]
-                  transition-colors duration-150
-                  ${selected === option.value
+                  className={`text-left text-[15px] font-semibold py-[7px] pl-[5px] pr-3 mx-[6px] rounded-[5px] hover:bg-[#FAFAFF] transition-colors duration-150 flex items-center ${
+                    selected === option.value
                       ? "text-[#3A416F] font-bold"
                       : "text-[#5D6494] hover:text-[#3A416F]"
-                    }
-                `}
+                  }`}
                 >
                   {renderOptionContent(option)}
                 </button>
@@ -436,7 +426,7 @@ export default function AdminDropdown({
           </div>
           {/* Bottom Gradient */}
           <div
-            className={`absolute bottom-0 left-0 right-0 h-[40px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showBottomGradient ? "opacity-100" : "opacity-0"
+            className={`absolute bottom-0 left-0 right-[16px] h-[24px] bg-gradient-to-t from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showBottomGradient ? "opacity-100" : "opacity-0"
               }`}
           />
         </div>
