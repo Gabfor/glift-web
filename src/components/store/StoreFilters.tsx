@@ -81,9 +81,12 @@ const isUniversalValue = (value: string | null, universal: string) =>
 
 const ensureFilterSelection = (values: Set<string>, selected: string) => {
   if (!selected || selected === "__none__") return;
-  const trimmed = selected.trim();
-  if (!trimmed) return;
-  values.add(trimmed);
+  selected.split(",").forEach((s) => {
+    const trimmed = s.trim();
+    if (trimmed.length > 0 && trimmed !== "__none__") {
+      values.add(trimmed);
+    }
+  });
 };
 
 const toStringOptions = (
@@ -103,7 +106,8 @@ const toStringOptions = (
 const buildDurationOptions = (durations: number[], selected: string) => {
   if (durations.length === 0) {
     if (!selected || selected === "__none__") return [];
-    return [selected]
+    return selected
+      .split(",")
       .map((value) => value.trim())
       .filter((value) => value.length > 0 && value !== "__none__")
       .map((value) => ({ value, label: `${value} minutes` }));
@@ -121,11 +125,13 @@ const buildDurationOptions = (durations: number[], selected: string) => {
     options.push({ value: String(limit), label: `${limit} minutes` });
   }
 
-  if (selected) {
-    const trimmed = selected.trim();
-    if (trimmed.length > 0 && !options.some((option) => option.value === trimmed)) {
-      options.push({ value: trimmed, label: `${trimmed} minutes` });
-    }
+  if (selected && selected !== "__none__") {
+    selected.split(",").forEach((s) => {
+      const trimmed = s.trim();
+      if (trimmed.length > 0 && !options.some((option) => option.value === trimmed)) {
+        options.push({ value: trimmed, label: `${trimmed} minutes` });
+      }
+    });
   }
 
   return options.sort((a, b) => Number.parseInt(a.value, 10) - Number.parseInt(b.value, 10));

@@ -280,6 +280,8 @@ export default function AdminDropdown({
       setTypedValue("");
     }
     onSelect("");
+    setOpen(false);
+    buttonRef.current?.blur();
     onClear?.();
   };
 

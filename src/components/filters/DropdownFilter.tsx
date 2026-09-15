@@ -79,21 +79,43 @@ export default function DropdownFilter({
 
   const isPlaceholder = !selected || selected === "__none__" || (isMultiSelect && selectedValues.size === 0);
 
-  const selectedLabel = useMemo(() => {
+  const { displayLabel, badgeSuffix } = useMemo(() => {
     if (!selected || selected === "__none__") {
-      return placeholder;
+      return { displayLabel: placeholder, badgeSuffix: "" };
     }
 
     if (isMultiSelect) {
-      const selectedList = preparedOptions.filter((o) => selectedValues.has(o.value));
-      if (selectedList.length === 0) return placeholder;
-      if (selectedList.length === 1) return selectedList[0].label;
-      return `${selectedList[0].label} (+${selectedList.length - 1})`;
+      const orderedSelectedValues = selected
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      if (orderedSelectedValues.length === 0) {
+        return { displayLabel: placeholder, badgeSuffix: "" };
+      }
+
+      const firstValue = orderedSelectedValues[0];
+      const firstOption =
+        preparedOptions.find((option) => option.value === firstValue) ??
+        allOptions.find((option) => option.value === firstValue);
+
+      const firstLabel = firstOption?.label ?? firstValue;
+      const count = orderedSelectedValues.length - 1;
+
+      return {
+        displayLabel: firstLabel,
+        badgeSuffix: count > 0 ? ` (+${count})` : "",
+      };
     }
 
     const selectedOption = preparedOptions.find((option) => option.value === selected);
-    return selectedOption?.label ?? placeholder;
-  }, [selected, isMultiSelect, placeholder, preparedOptions, selectedValues]);
+    return {
+      displayLabel: selectedOption?.label ?? placeholder,
+      badgeSuffix: "",
+    };
+  }, [selected, isMultiSelect, placeholder, preparedOptions, allOptions]);
+
+  const selectedLabel = `${displayLabel}${badgeSuffix}`;
 
   const hasIcons = useMemo(
     () => preparedOptions.some((option) => option.iconSrc),
@@ -113,8 +135,8 @@ export default function DropdownFilter({
         ...allOptions.map((option) => option.label),
       ]);
 
-      if (!isPlaceholder) {
-        labelsToMeasure.add(selectedLabel);
+      if (!isPlaceholder && displayLabel) {
+        labelsToMeasure.add(displayLabel);
       }
 
       let maxMeasuredWidth = 0;
@@ -138,7 +160,7 @@ export default function DropdownFilter({
       setCalculatedWidth(finalWidth);
 
       // Reset to the currently displayed label so the hidden element reflects the UI state
-      measurementTextRef.current.textContent = isPlaceholder ? placeholder : selectedLabel;
+      measurementTextRef.current.textContent = isPlaceholder ? placeholder : displayLabel;
     };
 
     updateWidth();
@@ -154,7 +176,7 @@ export default function DropdownFilter({
     maxWidth,
     placeholder,
     preparedOptions,
-    selectedLabel,
+    displayLabel,
     isMultiSelect,
   ]);
 
@@ -253,7 +275,11 @@ export default function DropdownFilter({
         {!isPlaceholder && (
           <button
             type="button"
-            onClick={() => onSelect("")}
+            onClick={() => {
+              onSelect("");
+              setOpen(false);
+              buttonRef.current?.blur();
+            }}
             className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4] cursor-pointer"
           >
             Effacer
@@ -328,17 +354,26 @@ export default function DropdownFilter({
           `}
           style={{
             ...(calculatedWidth
-              ? { minWidth: calculatedWidth }
-              : undefined),
-            ...(typeof maxWidth === "number" ? { maxWidth } : undefined),
+              ? {
+                  width: typeof maxWidth === "number" ? Math.min(calculatedWidth, maxWidth) : calculatedWidth,
+                  maxWidth: typeof maxWidth === "number" ? maxWidth : calculatedWidth,
+                }
+              : typeof maxWidth === "number"
+                ? { maxWidth }
+                : undefined),
           }}
         >
           <span
-            className={`${labelColorClass} flex min-w-0 items-center text-left flex-1`}
+            className={`${labelColorClass} flex min-w-0 items-center text-left flex-1 overflow-hidden`}
           >
-            <span className="min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-              {selectedLabel}
+            <span className="min-w-0 truncate">
+              {displayLabel}
             </span>
+            {badgeSuffix && (
+              <span className="shrink-0 whitespace-nowrap">
+                {badgeSuffix}
+              </span>
+            )}
             {selectedOptionHasIcon(preparedOptions, selected) && (
               <Image
                 src={selectedOptionHasIcon(preparedOptions, selected)!}
