@@ -404,7 +404,7 @@ export default function StoreGrid({
                   Oups ! Aucun favori enregistré...
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
-                  Pour enregistrer tes programmes préférés, clique simplement sur l&apos;icône en forme de cœur située en haut à droite.
+                  Pour enregistrer tes programmes préférés, clique simplement sur l&apos;icône en forme d&apos;étoile située en haut à droite.
                 </p>
                 {onResetFavorites && (
                   <CTAButton onClick={onResetFavorites}>
