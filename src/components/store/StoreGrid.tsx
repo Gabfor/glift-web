@@ -13,6 +13,7 @@ import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
 
 import { StoreProgram, StoreProfile } from "@/types/store";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
+import CTAButton from "@/components/CTAButton";
 
 export default function StoreGrid({
   sortBy,
@@ -24,6 +25,8 @@ export default function StoreGrid({
   initialFavorites = [],
   favoritesOnly = false,
   onCountChange,
+  onResetFavorites,
+  onResetFilters,
 }: {
   sortBy: string;
   currentPage: number;
@@ -34,6 +37,8 @@ export default function StoreGrid({
   initialFavorites?: string[];
   favoritesOnly?: boolean;
   onCountChange?: (count: number) => void;
+  onResetFavorites?: () => void;
+  onResetFilters?: () => void;
 }) {
   const isDefaultQuery =
     currentPage === 1 &&
@@ -382,6 +387,10 @@ export default function StoreGrid({
     };
   }, [sortBy, currentPage, filters, userProfile, isAuthenticated, isUserContextLoading, favoritesOnly, favorites]);
 
+  const hasActiveFilters = filters.some(
+    (f) => f && f.trim() !== "" && f.toLowerCase() !== "tous" && f !== "__none__"
+  );
+
   return (
     <>
       {loading ? (
@@ -389,11 +398,47 @@ export default function StoreGrid({
       ) : (
         <div className="relative mt-8">
           {allPrograms.length === 0 && !loading && (
-            <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
-              {favoritesOnly
-                ? "Aucun programme enregistré en favori pour le moment."
-                : "Aucun programme disponible\navec ces filtres."}
-            </p>
+            favoritesOnly ? (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun favori enregistré...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Pour enregistrer tes programmes préférés, clique simplement sur l&apos;icône en forme de cœur située en haut à droite.
+                </p>
+                {onResetFavorites && (
+                  <CTAButton onClick={onResetFavorites}>
+                    Effacer le filtre
+                  </CTAButton>
+                )}
+              </div>
+            ) : hasActiveFilters ? (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun résultat avec ces filtres...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Aucun programme ne correspond à ta sélection actuelle. Modifie ou réinitialise tes filtres pour corriger cela.
+                </p>
+                {onResetFilters && (
+                  <CTAButton onClick={onResetFilters}>
+                    Effacer les filtres
+                  </CTAButton>
+                )}
+              </div>
+            ) : (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun résultat trouvé...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Aucun programme n&apos;est disponible pour le moment. Nous afficherons de nouveaux programmes très prochainement !
+                </p>
+                <CTAButton onClick={() => window.location.reload()}>
+                  Actualiser la page
+                </CTAButton>
+              </div>
+            )
           )}
 
           {/* Vue Mobile (< md) : Tous les programmes en défilement continu */}

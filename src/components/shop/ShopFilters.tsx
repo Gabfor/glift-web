@@ -335,7 +335,19 @@ export default function ShopFilters({
 
     offers.forEach((offer) => {
       if (matchesFilters(offer, selectedFilters, 0)) {
-        offer.genders.forEach((gender) => genderValues.add(gender));
+        offer.genders.forEach((gender) => {
+          const g = gender.trim().toLowerCase();
+          if (g === "tous" || g === "mixte" || g === "unisexe") {
+            genderValues.add("Femme");
+            genderValues.add("Homme");
+          } else if (g === "femme") {
+            genderValues.add("Femme");
+          } else if (g === "homme") {
+            genderValues.add("Homme");
+          } else if (gender.trim()) {
+            genderValues.add(gender.trim());
+          }
+        });
       }
 
       if (matchesFilters(offer, selectedFilters, 1)) {
@@ -357,7 +369,7 @@ export default function ShopFilters({
     ensureSelectedIncluded(partnerValues, selectedFilters[3] ?? "");
 
     return {
-      genderOptions: toFilterOptions(genderValues, ["tous"]),
+      genderOptions: toFilterOptions(genderValues, ["tous", "mixte", "unisexe"]),
       goalOptions: toFilterOptions(goalValues),
       sportOptions: toFilterOptions(sportValues),
       partnerOptions: toFilterOptions(partnerValues, ["tous"]),

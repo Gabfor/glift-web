@@ -92,6 +92,14 @@ export default function StorePageClient({
         filters={filters}
         favoritesOnly={favoritesOnly}
         onCountChange={setTotalPrograms}
+        onResetFavorites={() => {
+          setFavoritesOnly(false);
+          setCurrentPage(1);
+        }}
+        onResetFilters={() => {
+          setFilters(["", "", "", "", "", "", ""]);
+          setCurrentPage(1);
+        }}
         initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialPrograms : undefined}
         initialUserProfile={initialUserProfile}
         initialIsAuthenticated={initialIsAuthenticated}

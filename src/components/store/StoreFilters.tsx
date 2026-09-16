@@ -335,7 +335,19 @@ export default function StoreFilters({
     const allPartnerValues = new Set<string>();
 
     programs.forEach((program) => {
-      if (program.gender) allGenderValues.add(program.gender);
+      if (program.gender) {
+        const g = program.gender.trim().toLowerCase();
+        if (g === "tous" || g === "mixte" || g === "unisexe") {
+          allGenderValues.add("Femme");
+          allGenderValues.add("Homme");
+        } else if (g === "femme") {
+          allGenderValues.add("Femme");
+        } else if (g === "homme") {
+          allGenderValues.add("Homme");
+        } else if (program.gender.trim()) {
+          allGenderValues.add(program.gender.trim());
+        }
+      }
       if (program.goal) allGoalValues.add(program.goal);
       if (program.level) allLevelValues.add(program.level);
       if (program.location) allLocationValues.add(program.location);
@@ -343,7 +355,17 @@ export default function StoreFilters({
       if (program.partner) allPartnerValues.add(program.partner);
 
       if (matchesStoreFilters(program, selectedFilters, 0, isAuthenticated, isPremiumUser) && program.gender) {
-        genderValues.add(program.gender);
+        const g = program.gender.trim().toLowerCase();
+        if (g === "tous" || g === "mixte" || g === "unisexe") {
+          genderValues.add("Femme");
+          genderValues.add("Homme");
+        } else if (g === "femme") {
+          genderValues.add("Femme");
+        } else if (g === "homme") {
+          genderValues.add("Homme");
+        } else if (program.gender.trim()) {
+          genderValues.add(program.gender.trim());
+        }
       }
       if (matchesStoreFilters(program, selectedFilters, 1, isAuthenticated, isPremiumUser) && program.goal) {
         goalValues.add(program.goal);
@@ -379,13 +401,13 @@ export default function StoreFilters({
     };
 
     return {
-      genderOptions: toStringOptions(genderValues, ["tous"]),
+      genderOptions: toStringOptions(genderValues, ["tous", "mixte", "unisexe"]),
       goalOptions: toStringOptions(goalValues),
       levelOptions: toStringOptions(levelValues, ["tous niveaux"]),
       locationOptions: toStringOptions(locationValues),
       durationOptions: buildDurationOptions(durationValues, selectedFilters[4] ?? ""),
 
-      allGenderOptions: toStringOptions(allGenderValues, ["tous"]),
+      allGenderOptions: toStringOptions(allGenderValues, ["tous", "mixte", "unisexe"]),
       allGoalOptions: toStringOptions(allGoalValues),
       allLevelOptions: toStringOptions(allLevelValues, ["tous niveaux"]),
       allLocationOptions: allLocationFallback(),
