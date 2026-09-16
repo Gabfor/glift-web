@@ -27,13 +27,21 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
     const { helpUrl } = useDashboardUrl();
     const searchParams = useSearchParams();
     const fromAide = fromAideInitial || searchParams.get("from") === "aide";
+    const initialSubject = searchParams.get("subject") || searchParams.get("objet") || "";
 
     const [email, setEmail] = useState("");
-    const [subject, setSubject] = useState("");
+    const [subject, setSubject] = useState(initialSubject);
     const [description, setDescription] = useState("");
     const [fileUrls, setFileUrls] = useState<string[]>([]);
     const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
     const turnstileRef = useRef<TurnstileRef>(null);
+
+    useEffect(() => {
+        const paramSubject = searchParams.get("subject") || searchParams.get("objet");
+        if (paramSubject) {
+            setSubject(paramSubject);
+        }
+    }, [searchParams]);
 
     const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
     const [errorMessage, setErrorMessage] = useState("");
@@ -197,7 +205,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                             type="text"
                             value={subject}
                             onChange={(e) => setSubject(e.target.value)}
-                            placeholder="Sujet de votre demande"
+                            placeholder="Sujet"
                             className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]"
                         />
                         <div className="min-h-[20px] mt-2 text-[13px] font-medium"></div>
@@ -213,7 +221,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
                             name="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Description de votre demande"
+                            placeholder="Description"
                             className="min-h-[160px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] p-[15px] rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] resize-y"
                         />
                         <div className="min-h-[20px] mt-2 text-[13px] font-medium"></div>

@@ -9,6 +9,8 @@ import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { isOfferMatchingCountry } from "@/utils/shopUtils";
 import { getClientCountryCookie } from "@/utils/geoUtils";
 import { useUser } from "@/context/UserContext";
+import CTAButton from "@/components/CTAButton";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -210,6 +212,8 @@ export default function ShopGrid({
   initialIsAuthenticated = false,
   initialFavorites = [],
   favoritesOnly = false,
+  onResetFavorites,
+  onResetFilters,
 }: {
   sortBy: string;
   currentPage: number;
@@ -221,6 +225,8 @@ export default function ShopGrid({
   initialIsAuthenticated?: boolean;
   initialFavorites?: string[];
   favoritesOnly?: boolean;
+  onResetFavorites?: () => void;
+  onResetFilters?: () => void;
 }) {
   const { user, profile } = useUser();
 
@@ -430,6 +436,18 @@ export default function ShopGrid({
     };
   }, [sortBy, currentPage, filters, userProfile, favoritesOnly, favorites]);
 
+  const { contactUrl } = useDashboardUrl();
+
+  const hasActiveFilters = filters.some(
+    (f) => f && f.trim() !== "" && f.toLowerCase() !== "tous" && f !== "__none__"
+  );
+
+  const isCountryEmpty =
+    !favoritesOnly &&
+    !hasActiveFilters &&
+    rawOffersCacheRef.current.length > 0 &&
+    allOffers.length === 0;
+
   return (
     <>
       {loading ? (
@@ -437,11 +455,59 @@ export default function ShopGrid({
       ) : (
         <div className="relative mt-8">
           {allOffers.length === 0 && !loading && (
-            <p className="text-center text-[#3A416F] font-semibold whitespace-pre-line">
-              {favoritesOnly
-                ? "Aucune offre enregistrée en favori pour le moment."
-                : "Aucune offre disponible\navec ces filtres."}
-            </p>
+            favoritesOnly ? (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun favori enregistré...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Pour enregistrer tes bons plans préférés, clique simplement sur l&apos;icône en forme de cœur située en haut à droite.
+                </p>
+                {onResetFavorites && (
+                  <CTAButton onClick={onResetFavorites}>
+                    Effacer le filtre
+                  </CTAButton>
+                )}
+              </div>
+            ) : hasActiveFilters ? (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun résultat avec ces filtres...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Aucun bon plan ne correspond à ta sélection actuelle. Modifie ou réinitialise tes filtres pour corriger cela.
+                </p>
+                {onResetFilters && (
+                  <CTAButton onClick={onResetFilters}>
+                    Effacer les filtres
+                  </CTAButton>
+                )}
+              </div>
+            ) : isCountryEmpty ? (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun résultat dans ton pays...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Pour le moment nous n&apos;avons malheureusement aucun bon plan à te proposer dans ton pays, mais on y travaille !
+                </p>
+                <CTAButton href={`${contactUrl}?subject=${encodeURIComponent("Proposition de partenariat")}`}>
+                  Proposer un partenaire
+                </CTAButton>
+              </div>
+            ) : (
+              <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun résultat trouvé...
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  Aucun bon plan n&apos;est disponible pour le moment. Nous afficherons de nouvelles offres très prochainement !
+                </p>
+                <CTAButton onClick={() => window.location.reload()}>
+                  Actualiser la page
+                </CTAButton>
+              </div>
+            )
           )}
 
           <div className="flex flex-col gap-5 md:hidden">

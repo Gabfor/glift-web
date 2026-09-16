@@ -104,7 +104,7 @@ export default function DropdownFilter({
 
       return {
         displayLabel: firstLabel,
-        badgeSuffix: count > 0 ? ` (+${count})` : "",
+        badgeSuffix: count > 0 ? `(+${count})` : "",
       };
     }
 
@@ -115,7 +115,7 @@ export default function DropdownFilter({
     };
   }, [selected, isMultiSelect, placeholder, preparedOptions, allOptions]);
 
-  const selectedLabel = `${displayLabel}${badgeSuffix}`;
+  const selectedLabel = badgeSuffix ? `${displayLabel} ${badgeSuffix}` : displayLabel;
 
   const hasIcons = useMemo(
     () => preparedOptions.some((option) => option.iconSrc),
@@ -370,7 +370,7 @@ export default function DropdownFilter({
               {displayLabel}
             </span>
             {badgeSuffix && (
-              <span className="shrink-0 whitespace-nowrap">
+              <span className="shrink-0 whitespace-nowrap ml-1">
                 {badgeSuffix}
               </span>
             )}

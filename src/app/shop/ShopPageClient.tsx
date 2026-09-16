@@ -127,6 +127,14 @@ export default function ShopPageClient({
           initialUserProfile={initialUserProfile}
           initialIsAuthenticated={initialIsAuthenticated}
           initialFavorites={initialFavorites}
+          onResetFavorites={() => {
+            setFavoritesOnly(false);
+            setCurrentPage(1);
+          }}
+          onResetFilters={() => {
+            setFilters(["", "", "", ""]);
+            setCurrentPage(1);
+          }}
         />
         {totalItems > 8 && (
           <div className="hidden md:block">

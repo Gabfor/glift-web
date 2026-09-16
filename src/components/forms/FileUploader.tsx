@@ -274,12 +274,12 @@ export default function FileUploader({
                     <>
                         {/* Version mobile */}
                         <span className={`sm:hidden font-semibold ${isPageAdmin ? "text-[#5D6494]" : "text-[#7069FA]"}`}>
-                            Ajouter vos fichiers ici
+                            Ajoute tes fichiers ici
                         </span>
                         {/* Version desktop */}
                         <span className="hidden sm:inline text-[#5D6494] font-semibold">
-                            <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajouter vos fichiers</span>{" "}
-                            ou faites glisser vos fichiers ici
+                            <span className={isPageAdmin ? "text-[#5D6494] font-semibold" : "text-[#7069FA] font-semibold"}>Ajoute tes fichiers</span>{" "}
+                            ou fais glisser tes fichiers ici
                         </span>
                     </>
                 )}
