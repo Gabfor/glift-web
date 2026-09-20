@@ -66,10 +66,70 @@ export default async function RootLayout({
   const host = headersList.get("host") || "";
   const isAdminSubdomain = host.startsWith("admin.");
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://glift.io";
+
+  const rootSchema = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        "name": "Glift",
+        "url": siteUrl,
+        "logo": {
+          "@type": "ImageObject",
+          "@id": `${siteUrl}/#logo`,
+          "url": `${siteUrl}/logo-glift.svg`,
+          "caption": "Glift"
+        },
+        "founder": {
+          "@type": "Person",
+          "name": "Gabriel Fort",
+          "url": `${siteUrl}/blog/auteurs/gabriel-fort`
+        }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": `${siteUrl}/#webapp`,
+        "name": "Glift",
+        "url": siteUrl,
+        "applicationCategory": "HealthAndFitnessApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "description": "Plateforme et application web de musculation : conception de programmes d'entraînement sur mesure, suivi de séances en salle, notation de ressenti et analyse de progression.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "category": "Free"
+        },
+        "publisher": {
+          "@id": `${siteUrl}/#organization`
+        }
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${siteUrl}/#website`,
+        "url": siteUrl,
+        "name": "Glift",
+        "publisher": {
+          "@id": `${siteUrl}/#organization`
+        },
+        "inLanguage": "fr-FR"
+      }
+    ]
+  };
+
   // On passe initialSession={null} pour éviter le warning serveur de Supabase (getSession).
   // Le client gérera sa propre session via SupabaseProvider et getUser().
   return (
     <html lang={locale}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }}
+        />
+      </head>
       <body className={quicksand.className}>
         <UnlockScroll />
         <ClientLayoutWrapper initialSession={null} isAdminSubdomain={isAdminSubdomain}>{children}</ClientLayoutWrapper>

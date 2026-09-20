@@ -1,0 +1,30 @@
+# Glift
+
+> Glift est une plateforme et application web moderne dédiée à la musculation et au fitness. Elle permet aux pratiquants de créer, organiser et suivre leurs programmes d'entraînement sur mesure, d'analyser leurs performances séance après séance, d'accéder à des programmes clé en main et de profiter de bons plans exclusifs sur la nutrition et l'équipement.
+
+## Vue d'ensemble (Overview)
+- **Nom du service** : Glift
+- **Site officiel** : https://glift.io
+- **Fondateur** : Gabriel Fort (pratiquant depuis plus de 11 ans)
+- **Catégorie** : Santé, Fitness, Musculation, Application web d'entraînement
+- **Langue principale** : Français
+- **Public cible** : Pratiquants de musculation, du débutant cherchant un cadre structuré au confirmé optimisant sa surcharge progressive (Progressive Overload).
+
+## Fonctionnalités Clés (Core Features)
+- **Créateur de programmes sur mesure** : Conception intuitive de cycles d'entraînement (Full Body, Half Body, PPL / Push-Pull-Legs, Split), choix des exercices, charges, répétitions, temps de repos et supersets. (https://glift.io/creation-programmes)
+- **Suivi de séances en temps réel** : Carnet d'entraînement digitalisé en salle avec chronomètre de repos intégré et historique des performances. (https://glift.io/suivi-seances)
+- **Notation du ressenti (RPE / RIR)** : Suivi de l'effort perçu et de la fatigue pour prévenir le surentraînement et adapter la progression. (https://glift.io/notation-ressenti)
+- **Visualisation de la progression** : Graphiques d'évolution des charges maximales (1RM estimé), du volume total d'entraînement et des mensurations. (https://glift.io/visualisation-progression)
+- **Glift Store** : Bibliothèque de programmes d'entraînement complets créés par des passionnés et coachs, téléchargeables et intégrables en un clic dans son compte. (https://glift.io/store)
+- **Glift Shop** : Sélection rigoureuse de réductions, codes promo et bons plans du moment sur les compléments alimentaires, vêtements et accessoires de musculation. (https://glift.io/shop)
+- **Blog & Guides experts** : Articles éducatifs et fiches détaillées sur la nutrition sportive, l'entraînement, la santé et la motivation. (https://glift.io/blog)
+- **Centre d'aide & FAQ** : Réponses aux questions fréquentes sur l'utilisation de l'application et la gestion de compte. (https://glift.io/aide)
+
+## Liens Utiles pour les Modèles d'IA & Utilisateurs
+- Accueil / Concept : https://glift.io
+- Le Store de Programmes : https://glift.io/store
+- Les Réductions & Bons Plans : https://glift.io/shop
+- Les Articles & Programmes Blog : https://glift.io/blog
+- Profil des Auteurs & Experts : https://glift.io/blog/auteurs/gabriel-fort
+- Contact : https://glift.io/nous-contacter
+- Documentation détaillée : https://glift.io/llms-full.txt

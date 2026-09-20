@@ -311,30 +311,30 @@ export default function BlogArticleBlocksRenderer({
   };
 
   const getNiveauIcon = (niveau?: string) => {
-    if (!niveau) return "/icons/admin_niveau_1.svg";
+    if (!niveau) return "/icons/front_niveau_1.svg";
     const n = niveau.toLowerCase();
-    if (n.includes("débutant") || n.includes("tous")) return "/icons/admin_niveau_1.svg";
-    if (n.includes("intermédiaire")) return "/icons/admin_niveau_2.svg";
-    if (n.includes("confirmé")) return "/icons/admin_niveau_3.svg";
-    return "/icons/admin_niveau_1.svg";
+    if (n.includes("débutant") || n.includes("tous")) return "/icons/front_niveau_1.svg";
+    if (n.includes("intermédiaire")) return "/icons/front_niveau_2.svg";
+    if (n.includes("confirmé")) return "/icons/front_niveau_3.svg";
+    return "/icons/front_niveau_1.svg";
   };
 
   const getSexeIcon = (sexe?: string) => {
-    if (!sexe) return "/icons/admin_sexe.svg";
+    if (!sexe) return "/icons/front_sexe.svg";
     const s = sexe.toLowerCase();
-    if (s.includes("femme")) return "/icons/admin_femme.svg";
-    if (s.includes("homme")) return "/icons/admin_sexe.svg";
-    if (s.includes("tous") || s.includes("mixte")) return "/icons/admin_mixte.svg";
-    return "/icons/admin_sexe.svg";
+    if (s.includes("femme")) return "/icons/front_femme.svg";
+    if (s.includes("homme")) return "/icons/front_sexe.svg";
+    if (s.includes("tous") || s.includes("mixte")) return "/icons/front_mixte.svg";
+    return "/icons/front_sexe.svg";
   };
 
   const getIntensiteIcon = (intensite?: string) => {
-    if (!intensite) return "/icons/admin_intensite_modere.svg";
+    if (!intensite) return "/icons/front_intensite_modere.svg";
     const i = intensite.toLowerCase();
-    if (i.includes("faible")) return "/icons/admin_intensite_faible.svg";
-    if (i.includes("modérée") || i.includes("modere")) return "/icons/admin_intensite_modere.svg";
-    if (i.includes("élevée") || i.includes("eleve")) return "/icons/admin_intensite_eleve.svg";
-    return "/icons/admin_intensite_modere.svg";
+    if (i.includes("faible")) return "/icons/front_intensite_faible.svg";
+    if (i.includes("modérée") || i.includes("modere")) return "/icons/front_intensite_modere.svg";
+    if (i.includes("élevée") || i.includes("eleve")) return "/icons/front_intensite_eleve.svg";
+    return "/icons/front_intensite_modere.svg";
   };
 
   React.useEffect(() => {
@@ -667,12 +667,12 @@ export default function BlogArticleBlocksRenderer({
                 <div
                   className="bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[15px]"
                 >
-                  <CharacteristicItem icon="/icons/admin_objectif.svg" label="Objectif" value={articleMeta?.objectif} />
-                  <CharacteristicItem icon="/icons/admin_temps.svg" label="Durée moyenne des séances" value={articleMeta?.duree_moyenne ? `${articleMeta.duree_moyenne} min` : undefined} />
-                  <CharacteristicItem icon="/icons/admin_seance.svg" label="Nombre de séances" value={articleMeta?.nombre_seances} />
-                  <CharacteristicItem icon="/icons/admin_semaines.svg" label="Nombre de semaines" value={articleMeta?.nombre_semaines} />
+                  <CharacteristicItem icon="/icons/front_objectif.svg" label="Objectif" value={articleMeta?.objectif} />
+                  <CharacteristicItem icon="/icons/front_temps.svg" label="Durée moyenne des séances" value={articleMeta?.duree_moyenne ? `${articleMeta.duree_moyenne} min` : undefined} />
+                  <CharacteristicItem icon="/icons/front_seance.svg" label="Nombre de séances" value={articleMeta?.nombre_seances} />
+                  <CharacteristicItem icon="/icons/front_semaines.svg" label="Nombre de semaines" value={articleMeta?.nombre_semaines} />
                   <CharacteristicItem icon={getNiveauIcon(articleMeta?.niveau)} label="Niveau" value={articleMeta?.niveau} />
-                  <CharacteristicItem icon="/icons/admin_lieu.svg" label="Lieu d'entraînement" value={articleMeta?.lieu} />
+                  <CharacteristicItem icon="/icons/front_lieu.svg" label="Lieu d'entraînement" value={articleMeta?.lieu} />
                   <CharacteristicItem icon={getSexeIcon(articleMeta?.sexe)} label="Sexe" value={articleMeta?.sexe} />
                   <CharacteristicItem icon={getIntensiteIcon(articleMeta?.intensite)} label="Intensité" value={articleMeta?.intensite} />
                 </div>
@@ -713,11 +713,12 @@ export default function BlogArticleBlocksRenderer({
                     />
                   )}
                   {block.table_rows && block.table_rows.length > 0 && (
-                    <div className="overflow-x-auto w-full">
+                    <div className="overflow-x-auto w-full p-[1px]">
                       <AdminSeanceTable
                         rows={block.table_rows}
                         setRows={() => {}}
                         readOnly={true}
+                        adminMode={false}
                       />
                     </div>
                   )}

@@ -97,5 +97,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.5,
   }));
 
-  return [...staticUrls, ...dbPageUrls, ...dbLegalPageUrls, ...articleUrls, ...categoryUrls];
+  // 5. Récupération et indexation des auteurs du blog (E-E-A-T)
+  const { data: dbAuthors } = await supabase
+    .from('auteurs')
+    .select('prenom, nom, updated_at')
+    .eq('statut', true);
+
+  const authorUrls = [
+    {
+      url: `${siteUrl}/blog/auteurs`,
+      lastModified: new Date(),
+      changeFrequency: 'monthly' as const,
+      priority: 0.6,
+    },
+    ...(dbAuthors || []).map(author => {
+      const slug = `${author.prenom}-${author.nom}`
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9-]/g, '');
+      return {
+        url: `${siteUrl}/blog/auteurs/${slug}`,
+        lastModified: author.updated_at ? new Date(author.updated_at) : new Date(),
+        changeFrequency: 'monthly' as const,
+        priority: 0.6,
+      };
+    }),
+  ];
+
+  return [...staticUrls, ...dbPageUrls, ...dbLegalPageUrls, ...articleUrls, ...categoryUrls, ...authorUrls];
 }

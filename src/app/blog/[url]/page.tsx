@@ -193,6 +193,41 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             })
           }}
         />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "BreadcrumbList",
+              "itemListElement": [
+                {
+                  "@type": "ListItem",
+                  "position": 1,
+                  "name": "Accueil",
+                  "item": siteUrl
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 2,
+                  "name": "Blog",
+                  "item": `${siteUrl}/blog`
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 3,
+                  "name": article.categorie || "Conseils",
+                  "item": `${siteUrl}/blog/${(article.categorie || "conseils").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`
+                },
+                {
+                  "@type": "ListItem",
+                  "position": 4,
+                  "name": article.titre,
+                  "item": `${siteUrl}/blog/${url}`
+                }
+              ]
+            })
+          }}
+        />
         <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto px-4 md:px-0 mb-10">

@@ -87,8 +87,7 @@ import { PaymentService } from "@/lib/services/paymentService";
 import { COMPTE_PAGE_ID } from "@/app/admin/create-page/pageForm";
 import BackLink from "@/components/BackLink";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+export const revalidate = 60;
 
 export default async function LegalPage({ params }: { params: Promise<{ url: string }> }) {
   const resolvedParams = await params;
@@ -455,13 +454,42 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     );
   }
   if (page.id === "eb40db10-0d10-47af-b102-62e2763bef86") {
+    const { data: helpQuestions } = await supabase
+      .from("help_questions")
+      .select("*")
+      .eq("status", "ON")
+      .order("top", { ascending: false })
+      .order("created_at", { ascending: false });
+
     const helpPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Aide",
       description: page.description ?? "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
     };
 
-    return <AideClient initialPageContent={helpPageContent} />;
+    const cleanQuestions = (helpQuestions || []).filter((q: any) => q.question && q.answer);
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": cleanQuestions.map((q: any) => ({
+        "@type": "Question",
+        "name": q.question.replace(/<[^>]*>/g, "").trim(),
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": q.answer.replace(/<[^>]*>/g, "").trim(),
+        },
+      })),
+    };
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+        <AideClient initialPageContent={helpPageContent} initialQuestions={helpQuestions || []} />
+      </>
+    );
   }
 
   if (page.id === "c131a31e-4c74-4b53-bdf5-d41a87e5b61b") {

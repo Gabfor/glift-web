@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import ContactClient from "./ContactClient";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export default async function NousContacterPage({
   searchParams,

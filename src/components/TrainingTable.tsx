@@ -110,7 +110,7 @@ export default function TrainingTable({
   const router = useRouter();
 
   const isVisible = (name: string) => columns.find(c => c.name === name)?.visible;
-  const lastVisibleCol: string = isVisible("effort") ? "effort" : isVisible("repos") ? "repos" : isVisible("poids") ? "poids" : "repetitions";
+  const lastVisibleCol: string = isVisible("effort") ? "effort" : isVisible("repos") ? "repos" : isVisible("poids") ? "poids" : isVisible("repetitions") !== false ? "repetitions" : isVisible("series") ? "series" : isVisible("materiel") ? "materiel" : "exercices";
   const [dragGroup, setDragGroup] = useState<Row[]>([]);
   const dragGroupRef = useRef<Row[]>([]);
   const lastOverIdRef = useRef<string | null>(null);
@@ -370,20 +370,20 @@ export default function TrainingTable({
                 {!readOnly && (
                   <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
                 )}
-                <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px]" : "border-r"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
+                <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
                 {isVisible("materiel") && (
-                  <th className={`text-[15px] border-r px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px]" : "border-r"}`} style={{ height: "40px", maxWidth: "135px", width: "135px" }}>Matériel</th>
+                  <th className={`text-[15px] px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "135px", width: "135px" }}>Matériel</th>
                 )}
-                <th className="text-[15px] border-r font-semibold text-center" style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Séries</th>
-                <th className={`text-[15px] border-r font-semibold text-center ${lastVisibleCol === "repetitions" ? "rounded-tr-[5px]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Répétitions</th>
+                <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "series" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Séries</th>
+                <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "repetitions" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Répétitions</th>
                 {isVisible("poids") && (
-                  <th className={`text-[15px] border-r px-3 font-semibold text-center ${lastVisibleCol === "poids" ? "rounded-tr-[5px]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Poids</th>
+                  <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "poids" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Poids</th>
                 )}
                 {isVisible("repos") && (
-                  <th className={`text-[15px] border-r px-2 font-semibold text-center ${lastVisibleCol === "repos" ? "rounded-tr-[5px]" : "border-r"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Repos</th>
+                  <th className={`text-[15px] px-2 font-semibold text-center ${lastVisibleCol === "repos" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Repos</th>
                 )}
                 {isVisible("effort") && (
-                  <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "effort" ? "rounded-tr-[5px]" : "border-r"}`} style={{ height: "40px", maxWidth: "237px", width: "237px" }}>Effort</th>
+                  <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "effort" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "237px", width: "237px" }}>Effort</th>
                 )}
               </tr>
             </thead>

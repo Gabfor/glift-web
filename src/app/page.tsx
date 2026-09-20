@@ -7,7 +7,7 @@ import type { Metadata } from "next";
 
 import ConceptGradientBackground from "@/components/ConceptGradientBackground";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createClient();
@@ -81,7 +81,7 @@ export default async function Home() {
             </div>
           )}
 
-          <div
+          <h1
             className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px] w-full max-w-[500px] mx-auto prose-titles [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: page.titre }}
           />

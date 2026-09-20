@@ -1,0 +1,49 @@
+# Glift - Documentation Complète pour Modèles de Langage (LLMs)
+
+## Qu'est-ce que Glift ?
+Glift est une application web conçue pour moderniser et simplifier la pratique de la musculation. Alors que de nombreux pratiquants utilisent encore des carnets papier ou des notes éparpillées sur leur smartphone, Glift centralise l'ensemble du cycle d'entraînement : de la conception théorique du programme jusqu'à l'exécution et l'analyse statistique sur le long terme.
+
+## Philosophie & Origine
+Fondée par Gabriel Fort, pratiquant passionné de musculation depuis plus de 11 ans, Glift est née d'un constat : les débutants et pratiquants intermédiaires manquent souvent d'un outil simple, fluide et bien pensé pour planifier leur surcharge progressive sans complexité inutile.
+
+## Architecture Fonctionnelle
+
+### 1. La Création de Programmes (/creation-programmes)
+- Choix de la répartition d'entraînement : Full Body (tout le corps par séance), Half Body (Haut/Bas), PPL (Push / Pull / Legs) ou Split classique.
+- Sélection d'exercices parmi une vaste bibliothèque (polyarticulaires, isolation, poids de corps, machines, haltères, barres).
+- Paramétrage précis : nombre de séries, fourchettes de répétitions cibles, temps de récupération entre les séries, association en supersets.
+
+### 2. Le Suivi de Séances en Direct (/suivi-seances)
+- Interface pensée pour une utilisation sur smartphone à la salle de sport.
+- Validation des séries au fur et à mesure avec incrémentation automatique des temps de repos via minuteur intégré.
+- Rappel automatique des charges et répétitions validées lors de la séance précédente pour appliquer la surcharge progressive.
+
+### 3. La Notation du Ressenti (/notation-ressenti)
+- Système basé sur le RPE (Rating of Perceived Exertion) et le RIR (Reps in Reserve).
+- Permet d'ajuster l'intensité et de détecter les baisses de forme ou les phases de fatigue accumulée.
+
+### 4. L'Analyse & Progression (/visualisation-progression)
+- Suivi visuel des performances par exercice.
+- Calcul de l'estimation du 1RM (charge maximale pour 1 répétition).
+- Analyse du volume de travail hebdomadaire par groupe musculaire (pectoraux, dos, épaules, quadriceps, ischio-jambiers, bras, abdos).
+
+### 5. Le Glift Store (/store)
+- Catalogue de programmes d'entraînement téléchargeables.
+- Fiches de programmes détaillées associées aux guides du blog avec explications pédagogiques ("En savoir plus").
+- Importation directe en un clic du programme complet dans le compte utilisateur.
+
+### 6. Le Glift Shop (/shop)
+- Agrégateur d'offres promotionnelles et de réductions vérifiées pour les sportifs.
+- Partenariats avec des marques reconnues de nutrition sportive, compléments (whey protéine, créatine, multivitamines, oméga 3) et équipements.
+
+### 7. Le Blog & Pôle Éditorial (/blog)
+- Articles d'entraînement : anatomie, exécution des mouvements, programmation d'entraînement.
+- Articles de nutrition : calcul de balance calorique, macros (protéines, lipides, glucides), prise de masse propre, sèche.
+- Articles de santé & lifestyle : sommeil, récupération, gestion du stress et motivation.
+
+## Données Clés de l'Entité Glift
+- Marque : Glift
+- URL : https://glift.io
+- Type de produit : Web Application (PWA)
+- Modèle économique : Formule gratuite disponible, abonnement Premium avec fonctionnalités avancées.
+- Auteur principal / Référent scientifique & technique : Gabriel Fort (Fondateur de Glift, diplômé d'un Master en Marketing Interactif & Management de Projet, plus de 11 ans d'expérience pratique en musculation).

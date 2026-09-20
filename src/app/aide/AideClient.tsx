@@ -39,8 +39,10 @@ type HelpQuestion = {
 
 function AideContent({
   initialPageContent,
+  initialQuestions = [],
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
+  initialQuestions?: HelpQuestion[];
 }) {
   const router = useRouter();
   const { contactUrl } = useDashboardUrl();
@@ -48,8 +50,8 @@ function AideContent({
   const searchParams = useSearchParams();
   const q = searchParams.get('q');
 
-  const [questions, setQuestions] = useState<HelpQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [questions, setQuestions] = useState<HelpQuestion[]>(initialQuestions);
+  const [loading, setLoading] = useState(initialQuestions.length === 0);
   const showSkeleton = useMinimumVisibility(loading, 400);
 
   const pageIntro = initialPageContent;
@@ -63,12 +65,16 @@ function AideContent({
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-
       const { data: userData } = await supabase.auth.getUser();
       const logged = !!userData?.user;
       setIsLogged(logged);
 
+      if (initialQuestions.length > 0) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
       const { data, error } = await supabase
         .from("help_questions")
         .select("*")
@@ -85,7 +91,7 @@ function AideContent({
     };
 
     void fetchData();
-  }, [supabase]);
+  }, [supabase, initialQuestions.length]);
 
   // Handle deep linking to a specific question via ?q=id
   useEffect(() => {
@@ -381,8 +387,10 @@ function AideContent({
 
 export default function AidePage({
   initialPageContent,
+  initialQuestions = [],
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
+  initialQuestions?: HelpQuestion[];
 }) {
   const { contactUrl } = useDashboardUrl();
   return (
@@ -437,8 +445,8 @@ export default function AidePage({
               </div>
             </div>
 
-            {/* Category Cards Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-[16px] md:gap-[24px] w-full max-w-[760px] justify-items-center mb-0">
+            {/* Category Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:flex md:flex-wrap justify-center gap-[10px] sm:gap-[15px] md:gap-[24px] w-full max-w-[760px] mb-8">
               {HELP_CATEGORIES.map((cat) => (
                 <div
                   key={cat.id}
@@ -462,7 +470,7 @@ export default function AidePage({
         </div>
       </main>
     }>
-      <AideContent initialPageContent={initialPageContent} />
+      <AideContent initialPageContent={initialPageContent} initialQuestions={initialQuestions} />
     </Suspense>
   );
 }

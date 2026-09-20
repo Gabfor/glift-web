@@ -14,9 +14,10 @@ type Props = {
   rows: SeanceRow[];
   setRows: (rows: SeanceRow[]) => void;
   readOnly?: boolean;
+  adminMode?: boolean;
 };
 
-export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Props) {
+export default function AdminSeanceTable({ rows, setRows, readOnly = false, adminMode = true }: Props) {
   const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
@@ -348,7 +349,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
         handleIconHover={handleIconHover}
         columns={adminColumns}
         setIsEditing={() => {}}
-        adminMode={true}
+        adminMode={adminMode}
         readOnly={readOnly}
       />
       {!readOnly && (
@@ -390,10 +391,10 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false }: Pr
               if (visibleRows.length === 0) return null;
 
               return (
-                <div key={`blk-${bIdx}`} className="flex flex-col pl-[15px] border-l-[3px] border-[#A1A5FD] gap-5">
+                <div key={`blk-${bIdx}`} className={`flex flex-col pl-[15px] border-l-[3px] ${adminMode ? "border-[#A1A5FD]" : "border-[#7069FA]"} gap-5`}>
                   {visibleRows.map((r) => (
                     <div key={`details-${r.index}`} className="flex flex-col gap-[5px]">
-                      <div className="text-[16px] font-bold text-[#3A416F] mb-[5px]">{r.row.exercice || "—"}</div>
+                      <div className={`text-[16px] font-bold ${adminMode ? "text-[#3A416F]" : "text-[#7069FA]"} mb-[5px]`}>{r.row.exercice || "—"}</div>
                       <div 
                         className="prose prose-sm max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:m-0"
                         dangerouslySetInnerHTML={{ __html: r.row.conseils || "" }}
