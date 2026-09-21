@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { Extension, Node, mergeAttributes } from '@tiptap/core';
+import { Selection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -85,6 +86,142 @@ const GlobalAttributes = Extension.create({
     },
 });
 
+const EnterKeymap = Extension.create({
+    name: 'enterKeymap',
+    priority: 1000,
+    addKeyboardShortcuts() {
+        return {
+            Enter: () => {
+                const { state } = this.editor;
+                const { selection } = state;
+                const { $from, empty } = selection;
+
+                // 1. Si une sélection de texte existe (non vide), laisser le comportement par défaut supprimer la sélection
+                if (!empty) {
+                    return false;
+                }
+
+                // 2. Si on est dans une liste (bullet list ou ordered list), laisser le comportement par défaut (nouvel item ou sortie de liste)
+                let insideList = false;
+                for (let d = $from.depth; d > 0; d--) {
+                    const node = $from.node(d);
+                    if (node.type.name === 'listItem' || node.type.name === 'bulletList' || node.type.name === 'orderedList') {
+                        insideList = true;
+                        break;
+                    }
+                }
+                if (insideList) {
+                    return false;
+                }
+
+                // 3. Si on est dans un titre (h2, h3), laisser le comportement par défaut (créer un paragraphe en dessous)
+                if ($from.parent.type.name === 'heading') {
+                    return false;
+                }
+
+                // 4. Si on n'est pas dans un paragraphe, laisser le comportement par défaut
+                if ($from.parent.type.name !== 'paragraph') {
+                    return false;
+                }
+
+                const parent = $from.parent;
+
+                // 5. Si le paragraphe est totalement vide, créer une nouvelle ligne vide (splitBlock)
+                if (parent.content.size === 0) {
+                    return this.editor.commands.splitBlock();
+                }
+
+                // 6. Si le curseur suit immédiatement un hardBreak (<br>), c'est le 2e "Entrée" consécutif !
+                // On supprime le <br> précédent et on sépare en un nouveau paragraphe (<p>) pour créer un vrai saut de ligne
+                if ($from.nodeBefore && $from.nodeBefore.type.name === 'hardBreak') {
+                    const hardBreakSize = $from.nodeBefore.nodeSize || 1;
+                    return this.editor
+                        .chain()
+                        .command(({ tr }) => {
+                            tr.delete($from.pos - hardBreakSize, $from.pos);
+                            return true;
+                        })
+                        .splitBlock()
+                        .run();
+                }
+
+                // 7. Si on est au tout début du paragraphe ($from.parentOffset === 0), créer un paragraphe au-dessus
+                // au lieu d'insérer un <br> en tête de texte qui créerait un double espace artificiel
+                if ($from.parentOffset === 0) {
+                    return this.editor.commands.splitBlock();
+                }
+
+                // 8. 1er "Entrée" : insérer un hardBreak (<br>) pour aller directement à la ligne sans saut de ligne (espacement de paragraphe)
+                return this.editor.commands.setHardBreak();
+            },
+            'Shift-Enter': () => {
+                return this.editor.commands.setHardBreak();
+            },
+            Backspace: () => {
+                const { state } = this.editor;
+                const { selection } = state;
+                const { $from, empty } = selection;
+
+                if (!empty) {
+                    return false;
+                }
+
+                // Si on est dans un paragraphe vide sous une liste, supprimer le paragraphe et revenir dans la liste
+                if ($from.parent.type.name === 'paragraph' && $from.parent.content.size === 0) {
+                    const index = $from.index(0);
+                    const prevNode = index > 0 ? state.doc.child(index - 1) : null;
+
+                    if (prevNode && (prevNode.type.name === 'bulletList' || prevNode.type.name === 'orderedList')) {
+                        const pStart = $from.before(1);
+                        const pEnd = $from.after(1);
+                        const tr = state.tr.delete(pStart, pEnd);
+                        tr.setSelection(Selection.near(tr.doc.resolve(pStart - 1), -1));
+                        this.editor.view.dispatch(tr);
+                        return true;
+                    }
+                }
+
+                return false;
+            },
+            Delete: () => {
+                const { state } = this.editor;
+                const { selection } = state;
+                const { $from, empty } = selection;
+
+                if (!empty) {
+                    return false;
+                }
+
+                // Si on est à la toute fin d'une liste et que le bloc suivant est un paragraphe vide, le supprimer
+                let listDepth = -1;
+                for (let d = $from.depth; d > 0; d--) {
+                    const node = $from.node(d);
+                    if (node.type.name === 'bulletList' || node.type.name === 'orderedList') {
+                        listDepth = d;
+                        break;
+                    }
+                }
+
+                if (listDepth > 0) {
+                    const listEnd = $from.after(listDepth);
+                    if ($from.pos >= listEnd - 3) {
+                        const doc = state.doc;
+                        const $afterList = doc.resolve(listEnd);
+                        const nextNode = $afterList.nodeAfter;
+                        if (nextNode && nextNode.type.name === 'paragraph' && nextNode.content.size === 0) {
+                            const tr = state.tr.delete(listEnd, listEnd + nextNode.nodeSize);
+                            this.editor.view.dispatch(tr);
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            },
+        };
+    },
+});
+
 const ImageCaption = Node.create({
     name: 'imageCaption',
     group: 'block',
@@ -149,9 +286,22 @@ export default function RichTextEditor({
         pathname?.startsWith("/auteurs") ||
         pathname?.startsWith("/settings");
 
+    const sanitizedValue = useMemo(() => {
+        if (!value) return value;
+        let clean = value.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>');
+        // Supprimer les balises <p></p> vides résiduelles en fin de contenu ou juste sous une liste
+        clean = clean.replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>');
+        return clean;
+    }, [value]);
+
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            EnterKeymap,
+            StarterKit.configure({
+                heading: {
+                    levels: [2, 3],
+                },
+            }),
             Underline,
             GlobalAttributes,
             ImageCaption,
@@ -164,9 +314,7 @@ export default function RichTextEditor({
             Link.configure({
                 openOnClick: false,
                 HTMLAttributes: {
-                    class: isPageAdmin
-                        ? 'text-[#5D6494] no-underline cursor-pointer hover:text-[#3A416F] transition-colors'
-                        : 'text-[#7069FA] no-underline cursor-pointer hover:text-[#6660E4] transition-colors',
+                    class: 'text-[#7069FA] no-underline cursor-pointer hover:text-[#6660E4] transition-colors',
                 },
                 validate: (href) => /^https?:\/\//.test(href) || href.startsWith('#') || href.startsWith('/'),
             }),
@@ -180,17 +328,23 @@ export default function RichTextEditor({
                 inline: false,
             })] : []),
         ],
-        content: value,
+        content: sanitizedValue,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'}`,
+                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'} [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:my-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:my-2 [&_p]:mt-0 [&_p]:mb-3.5`,
                 spellcheck: "true",
                 style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? 'min-height: 345px' : '',
+            },
+            transformPastedHTML(html) {
+                // Interdire les <h1> : rétrogradation automatique en <p> lors du copier-coller
+                return html.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>');
             },
         },
         immediatelyRender: false,
         onUpdate: ({ editor }) => {
-            onChange(editor.getHTML());
+            let html = editor.getHTML();
+            html = html.replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>');
+            onChange(html);
         },
     });
 
@@ -214,7 +368,8 @@ export default function RichTextEditor({
 
     useEffect(() => {
         if (editor && value !== editor.getHTML()) {
-            editor.commands.setContent(value);
+            const cleanVal = value ? value.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>').replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>') : value;
+            editor.commands.setContent(cleanVal);
         }
     }, [value, editor]);
 
@@ -315,6 +470,48 @@ export default function RichTextEditor({
             style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
         >
             <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-glift sticky top-0 z-10 w-full flex-wrap">
+                {/* Format de texte : Normal (<p>), Sous-titre (<h2>), Sous-section (<h3>) */}
+                <button
+                    onClick={() => editor?.chain().focus().setParagraph().run()}
+                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                        editor?.isActive('paragraph') && !editor?.isActive('heading')
+                            ? 'bg-[#3A416F] text-white'
+                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                    }`}
+                    type="button"
+                    title="Texte normal (<p>)"
+                >
+                    Normal
+                </button>
+
+                <button
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                        editor?.isActive('heading', { level: 2 })
+                            ? 'bg-[#3A416F] text-white'
+                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                    }`}
+                    type="button"
+                    title="Sous-titre (<h2>)"
+                >
+                    H2
+                </button>
+
+                <button
+                    onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                        editor?.isActive('heading', { level: 3 })
+                            ? 'bg-[#3A416F] text-white'
+                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                    }`}
+                    type="button"
+                    title="Sous-section (<h3>)"
+                >
+                    H3
+                </button>
+
+                <div className="w-[1px] h-[20px] bg-[#D7D4DC] mx-1" />
+
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleBold().run()}
                     isActive={editor?.isActive('bold') ?? false}
@@ -495,20 +692,46 @@ export default function RichTextEditor({
             margin-top: 0px !important;
             margin-bottom: 0px !important;
         }
+        .ProseMirror ul,
+        .ProseMirror ol {
+            list-style-position: outside;
+            padding-left: 22px;
+            margin-left: 0;
+            margin-top: 8px !important;
+            margin-bottom: 12px !important;
+        }
         .ProseMirror ul {
             list-style-type: disc;
-            list-style-position: outside;
-            padding-left: 18px;
-            margin-left: 0;
         }
         .ProseMirror ol {
             list-style-type: decimal;
-            list-style-position: outside;
-            padding-left: 18px;
-            margin-left: 0;
+        }
+        .ProseMirror li {
+            font-size: 14px;
+            margin-top: 2px !important;
+            margin-bottom: 2px !important;
+        }
+        .ProseMirror li p {
+            margin: 0 !important;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .ProseMirror ul + p,
+        .ProseMirror ol + p {
+            margin-top: 0 !important;
+        }
+        .ProseMirror p > br:first-child:not(:only-child) {
+            display: none !important;
         }
         .ProseMirror p {
             font-size: 14px;
+            margin-top: 0;
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+        .ProseMirror p:empty,
+        .ProseMirror p.is-empty {
+            min-height: 1.5em;
         }
         .ProseMirror li {
             font-size: 14px;
@@ -520,7 +743,7 @@ export default function RichTextEditor({
         .ProseMirror a,
         .ProseMirror a[class*="text-"],
         .ProseMirror a span {
-            color: ${isPageAdmin ? '#5D6494 !important' : '#7069FA'};
+            color: #7069FA !important;
             text-decoration: none;
             cursor: pointer;
             transition: color 0.15s ease;
@@ -528,7 +751,7 @@ export default function RichTextEditor({
         .ProseMirror a:hover,
         .ProseMirror a:hover *,
         .ProseMirror a[class*="text-"]:hover {
-            color: ${isPageAdmin ? '#3A416F !important' : '#6660E4'};
+            color: #6660E4 !important;
         }
         .ProseMirror iframe {
             max-width: 100%;

@@ -260,9 +260,8 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                           type="text"
                           placeholder="Meta title"
                           value={pageData.seo_title}
-                          onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value.slice(0, 60) })}
+                          onChange={(e) => setPageData({ ...pageData, seo_title: e.target.value })}
                           className={inputClass}
-                          maxLength={60}
                         />
                       </div>
 

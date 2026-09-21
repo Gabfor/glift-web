@@ -594,7 +594,7 @@ export default function BlogArticleBlocksRenderer({
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -611,7 +611,7 @@ export default function BlogArticleBlocksRenderer({
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -623,11 +623,22 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] ${isConceptPage ? 'max-w-[500px] mx-auto text-center' : ''}`}>
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
               </div>
+            );
+
+          case "note":
+            return (
+              <div
+                key={key}
+                id={block.ancreId || undefined}
+                role="note"
+                className="w-full bg-[#F7F7FF] rounded-[10px] p-[20px] text-center text-[14px] font-bold text-[#3A416F] leading-relaxed scroll-mt-[100px] [&_p]:m-0 [&_p]:text-center [&_p]:font-bold [&_p]:text-[14px] [&_p]:text-[#3A416F] [&_a]:text-[#7069FA] [&_a]:underline"
+                dangerouslySetInnerHTML={{ __html: block.texte || "" }}
+              />
             );
 
           case "source":
@@ -708,7 +719,7 @@ export default function BlogArticleBlocksRenderer({
                 <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? "h-0 opacity-0 mt-0" : "opacity-100"}`}>
                   {block.texte && (
                     <div
-                      className={`prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] ${block.titre ? "mt-[20px]" : ""}`}
+                      className={`prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-3.5 ${block.titre ? "mt-[20px]" : ""}`}
                       dangerouslySetInnerHTML={{ __html: block.texte }}
                     />
                   )}

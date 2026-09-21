@@ -14,6 +14,7 @@ import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
 import { ContentBlock } from "./blogArticleForm";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { MAIN_GOALS } from "@/components/account/constants";
+import { generateSlugFromTitle } from "@/utils/slugUtils";
 
 type Props = {
   articleId: string | null;
@@ -21,8 +22,10 @@ type Props = {
 
 export default function CreateBlogArticlePageClient({ articleId }: Props) {
   const router = useRouter();
+  const isNewArticle = !articleId;
   const [article, setArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
   const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
+  const [isUrlManuallyEdited, setIsUrlManuallyEdited] = useState(!isNewArticle);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
@@ -133,6 +136,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         };
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
+        if (!fetchedArticle.url) {
+          setIsUrlManuallyEdited(false);
+        }
       } else {
         console.error("Erreur lors du chargement de l'article:", error);
       }
@@ -140,6 +146,33 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
 
     void fetchArticle();
   }, [articleId, supabase]);
+
+  const handleTitreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitre = e.target.value;
+    if (isNewArticle && !isUrlManuallyEdited) {
+      const generatedUrl = generateSlugFromTitle(newTitre);
+      setArticle((prev) => ({
+        ...prev,
+        titre: newTitre,
+        url: generatedUrl,
+      }));
+    } else {
+      setArticle((prev) => ({
+        ...prev,
+        titre: newTitre,
+      }));
+    }
+  };
+
+  const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newUrl = e.target.value;
+    if (newUrl.trim() === "") {
+      setIsUrlManuallyEdited(false);
+    } else {
+      setIsUrlManuallyEdited(true);
+    }
+    setArticle((prev) => ({ ...prev, url: newUrl }));
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -390,9 +423,8 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       type="text"
                       placeholder="Titre de l'article"
                       value={article.titre || ""}
-                      onChange={(e) => setArticle({ ...article, titre: e.target.value })}
+                      onChange={handleTitreChange}
                       className={inputClass}
-                      maxLength={52}
                     />
                   </div>
 
@@ -409,7 +441,6 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       value={article.description || ""}
                       onChange={(e) => setArticle({ ...article, description: e.target.value })}
                       className={textareaClass}
-                      maxLength={169}
                     />
                   </div>
 
@@ -420,7 +451,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       type="text"
                       placeholder="Url de l'article"
                       value={article.url || ""}
-                      onChange={(e) => setArticle({ ...article, url: e.target.value })}
+                      onChange={handleUrlChange}
                       className={inputClass}
                     />
                   </div>
@@ -465,9 +496,8 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       type="text"
                       placeholder="Meta title"
                       value={article.seo_title}
-                      onChange={(e) => setArticle({ ...article, seo_title: e.target.value.slice(0, 60) })}
+                      onChange={(e) => setArticle({ ...article, seo_title: e.target.value })}
                       className={inputClass}
-                      maxLength={60}
                     />
                   </div>
 
@@ -894,6 +924,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               break;
             case "source":
               newBlock = { id: newId, type: "source", titre: "", texte: "" };
+              break;
+            case "note":
+              newBlock = { id: newId, type: "note", texte: "" };
               break;
             case "programme":
               newBlock = { id: newId, type: "programme", ancreId: "programme", titre: "", texte: "" };

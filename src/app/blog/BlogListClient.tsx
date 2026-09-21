@@ -39,25 +39,32 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
     setCurrentPage(1);
   }, [initialCategory]);
 
-  // Dynamically generate categories from existing articles
-  const dynamicCategories = ["Tous", ...Array.from(new Set(initialArticles.map(a => a.categorie))).sort()];
+  // Dynamically generate categories from existing articles (filter out null/undefined/empty)
+  const validArticleCategories = Array.from(
+    new Set(
+      initialArticles
+        .map((a) => a.categorie)
+        .filter((c): c is string => typeof c === "string" && c.trim() !== "")
+    )
+  ).sort();
+  const dynamicCategories = ["Tous", ...validArticleCategories];
 
   const filteredArticles = initialArticles.filter((article) => {
     return selectedCategory === "Tous" || article.categorie === selectedCategory;
   });
 
-  const allFeatured = filteredArticles.filter(a => a.is_featured);
+  const allFeatured = filteredArticles.filter((a) => a.is_featured);
   const featuredArticles = allFeatured.slice(0, 4);
   const allRecent = [
     ...allFeatured.slice(4),
-    ...filteredArticles.filter(a => !a.is_featured)
+    ...filteredArticles.filter((a) => !a.is_featured),
   ];
 
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedRecent = allRecent.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const getCategoryUrl = (cat: string) => {
-    if (cat === "Tous") return blogUrl;
+    if (!cat || cat === "Tous") return blogUrl;
     // Standardize URL: no accents, lowercase
     const slug = cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     return `${blogUrl}/${slug}`;

@@ -290,13 +290,12 @@ export default function CreateProgramPageClient({
                         </div>
                         <input
                           type="text"
-                          maxLength={28}
                           placeholder="Titre du programme" // Placeholder from mockup says 'Titre du programme'
                           value={program.shortName}
                           onChange={(e) =>
                             setProgram({
                               ...program,
-                              shortName: e.target.value.slice(0, 28),
+                              shortName: e.target.value,
                             })
                           }
                           className={inputClass}

@@ -134,7 +134,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
     const isUpdated = article.updated_at && 
       new Date(article.updated_at).getTime() > new Date(article.created_at).getTime() + 60000;
     const dateToDisplay = isUpdated ? article.updated_at : article.created_at;
-    const dateLabel = isUpdated ? "mise à jour le" : "mis en ligne le";
+    const dateLabel = isUpdated ? "mis à jour le" : "mis en ligne le";
 
     // Fetch author details
     let authorDetails: any = null;

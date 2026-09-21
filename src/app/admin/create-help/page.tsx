@@ -230,7 +230,6 @@ function CreateHelpForm() {
                             </div>
                             <input
                                 type="text"
-                                maxLength={120}
                                 placeholder="Question de l'aide"
                                 value={question}
                                 onChange={(e) => setQuestion(e.target.value)}

@@ -93,6 +93,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "card": return "Bloc cards";
       case "newsletter": return "Bloc newsletter";
       case "source": return "Bloc source";
+      case "note": return "Bloc note";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
@@ -511,6 +512,17 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   />
                 </div>
               </>
+            )}
+
+            {block.type === "note" && (
+              <div className="flex flex-col">
+                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte de la note</label>
+                <RichTextEditor 
+                  value={block.texte || ""} 
+                  onChange={(html) => updateBlock(block.id, { texte: html })}
+                  minHeight="100px"
+                />
+              </div>
             )}
 
             {block.type === "telechargement" && (
