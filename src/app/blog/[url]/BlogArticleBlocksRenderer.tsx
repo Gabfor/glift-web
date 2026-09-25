@@ -54,6 +54,8 @@ type ContentBlock = {
   ancreId?: string;
   programme_id?: string;
   table_rows?: any[];
+  headers?: string[];
+  rows?: string[][];
   surtitre?: string;
   enabled?: boolean;
   slots?: any[];
@@ -254,6 +256,47 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
       </div>
     </div>
   );
+}
+
+function renderTableCellContent(content: string) {
+  if (!content) return null;
+  if (/<[a-z][\s\S]*>/i.test(content)) {
+    return (
+      <span
+        className="[&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#5850EC] transition-colors truncate block"
+        dangerouslySetInnerHTML={{ __html: content }}
+      />
+    );
+  }
+  const markdownLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/;
+  if (markdownLinkRegex.test(content)) {
+    const parts: (string | React.ReactNode)[] = [];
+    let remaining = content;
+    let keyIdx = 0;
+    while (remaining) {
+      const match = remaining.match(/\[([^\]]+)\]\(([^)]+)\)/);
+      if (!match || match.index === undefined) {
+        parts.push(remaining);
+        break;
+      }
+      if (match.index > 0) {
+        parts.push(remaining.substring(0, match.index));
+      }
+      parts.push(
+        <Link
+          key={keyIdx++}
+          href={match[2]}
+          className="text-[#7069FA] underline font-semibold hover:text-[#5850EC] transition-colors truncate"
+        >
+          {match[1]}
+        </Link>
+      );
+      remaining = remaining.substring(match.index + match[0].length);
+    }
+    return <span className="truncate block">{parts}</span>;
+  }
+
+  return <span className="truncate block">{content}</span>;
 }
 
 interface BlogArticleBlocksRendererProps {
@@ -640,6 +683,143 @@ export default function BlogArticleBlocksRenderer({
                 dangerouslySetInnerHTML={{ __html: block.texte || "" }}
               />
             );
+
+          case "tableau": {
+            const headers = block.headers || [];
+            const rows = block.rows || [];
+            if (headers.length === 0 && rows.length === 0) return null;
+
+            const isColumnCentered = (header: string, colIdx: number) => {
+              if (colIdx > 0) return true;
+              const h = (header || "").toLowerCase().trim();
+              if (
+                [
+                  "séries",
+                  "series",
+                  "répétitions",
+                  "repetitions",
+                  "reps",
+                  "poids",
+                  "repos",
+                  "effort",
+                  "charge",
+                  "temps",
+                  "sets",
+                  "durée",
+                  "duree",
+                  "semaine",
+                  "semaines",
+                  "jour",
+                  "jours",
+                ].includes(h)
+              ) {
+                return true;
+              }
+              const colValues = rows.map((r: string[]) => r[colIdx] || "").filter((v: string) => v.trim() !== "");
+              if (colValues.length > 0 && colValues.every((v: string) => v.trim().length <= 12)) {
+                return true;
+              }
+              return false;
+            };
+
+            return (
+              <div
+                key={key}
+                id={block.ancreId || undefined}
+                className="flex flex-col scroll-mt-[100px] w-full"
+              >
+                {block.titre && (
+                  <h3 className="text-[18px] md:text-[20px] font-bold text-[#2E3271] mb-[12px]">
+                    {block.titre}
+                  </h3>
+                )}
+                <div className="overflow-x-auto w-full p-[1px]">
+                  <div className="relative w-full rounded-[5px] overflow-hidden border border-[#ECE9F1]">
+                    <table
+                      className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
+                      style={{ borderSpacing: "0px", marginBottom: "0px" }}
+                    >
+                      <thead className="bg-[#7069FA] text-white text-left h-10">
+                        <tr style={{ height: "40px" }}>
+                          {headers.map((header: string, hIdx: number) => {
+                            const isFirst = hIdx === 0;
+                            const isLast = hIdx === headers.length - 1;
+                            const centered = isColumnCentered(header, hIdx);
+                            return (
+                              <th
+                                key={hIdx}
+                                className={`text-[15px] font-semibold ${
+                                  !isLast ? "border-r border-[#ECE9F1]" : ""
+                                } ${
+                                  isFirst ? "rounded-tl-[5px]" : ""
+                                } ${isLast ? "rounded-tr-[5px]" : ""} ${
+                                  centered ? "text-center px-2" : "text-left px-3"
+                                }`}
+                                style={{ height: "40px" }}
+                              >
+                                {header}
+                              </th>
+                            );
+                          })}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((row: string[], rIdx: number) => {
+                          const isLastRow = rIdx === rows.length - 1;
+                          return (
+                            <tr
+                              key={rIdx}
+                              className="bg-white border-[#ECE9F1]"
+                              style={{ height: "40px", backgroundColor: "#ffffff" }}
+                            >
+                              {headers.map((header: string, cIdx: number) => {
+                                const cellValue = row[cIdx] || "";
+                                const isFirst = cIdx === 0;
+                                const isLast = cIdx === headers.length - 1;
+                                const centered = isColumnCentered(header, cIdx);
+                                return (
+                                  <td
+                                    key={cIdx}
+                                    className={`px-0 py-0 ${
+                                      isFirst && isLastRow ? "rounded-bl-[5px]" : ""
+                                    } ${
+                                      isLast && isLastRow ? "rounded-br-[5px]" : ""
+                                    }`}
+                                    style={{ height: "40px", padding: 0 }}
+                                  >
+                                    <div
+                                      className={`w-full h-10 border-t ${
+                                        !isFirst ? "border-l border-[#ECE9F1]" : ""
+                                      } text-[14px] font-semibold text-[#5D6494] truncate flex items-center ${
+                                        isFirst && isLastRow ? "rounded-bl-[5px]" : ""
+                                      } ${
+                                        isLast && isLastRow ? "rounded-br-[5px]" : ""
+                                      } ${
+                                        centered ? "justify-center text-center px-2" : "justify-start text-left px-3"
+                                      }`}
+                                      style={{
+                                        height: "40px",
+                                        lineHeight: "40px",
+                                        color: "#5D6494",
+                                        WebkitTextFillColor: "#5D6494",
+                                      }}
+                                      title={typeof cellValue === "string" ? cellValue : undefined}
+                                    >
+                                      {renderTableCellContent(cellValue)}
+                                    </div>
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          }
 
           case "source":
             return (

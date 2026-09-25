@@ -6,6 +6,9 @@ type AddWidgetModalProps = {
   onSelect: (type: string) => void;
 };
 
+const cardClassName =
+  "group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-200 items-center justify-start pt-[30px] transform-gpu hover:-translate-y-1 [backface-visibility:hidden] [transform:translateZ(0)] will-change-transform";
+
 export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWidgetModalProps) {
   const isPage = articleType === "Page";
 
@@ -23,7 +26,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 1. Bloc boutons (Page) */}
             <button
               onClick={() => onSelect("boutons")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc boutons
@@ -37,7 +40,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 2. Bloc image principale (Page) */}
             <button
               onClick={() => onSelect("image-principale")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Image principale
@@ -48,7 +51,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 3. Bloc partenaire (Page) */}
             <button
               onClick={() => onSelect("partenaires")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc partenaires
@@ -64,7 +67,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 4. Bloc titre (Page) */}
             <button
               onClick={() => onSelect("titre")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc titre
@@ -79,7 +82,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 5. Bloc texte + image (Page) */}
             <button
               onClick={() => onSelect("texte-image")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc texte + image
@@ -97,7 +100,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 6. Bloc card (Page) */}
             <button
               onClick={() => onSelect("card")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc cards
@@ -111,7 +114,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 7. Bloc newsletter (Page) */}
             <button
               onClick={() => onSelect("newsletter")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc newsletter
@@ -124,7 +127,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 8. Bloc tarifs (Page) */}
             <button
               onClick={() => onSelect("tarifs")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc tarifs
@@ -140,7 +143,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 1. Bloc titre + texte (Commun hors Page) */}
             <button
               onClick={() => onSelect("titre-texte")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc titre + texte
@@ -156,7 +159,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
             {/* 2. Bloc texte (Commun hors Page) */}
             <button
               onClick={() => onSelect("texte")}
-              className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+              className={cardClassName}
             >
               <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                 Bloc texte
@@ -173,7 +176,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 3. Bloc texte 1.1 (Legal) */}
                 <button
                   onClick={() => onSelect("texte-1-1")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc texte 1.1
@@ -202,7 +205,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 3. Bloc source (Conseil) */}
                 <button
                   onClick={() => onSelect("source")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc source
@@ -215,7 +218,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 4. Bloc note (Conseil) */}
                 <button
                   onClick={() => onSelect("note")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc note
@@ -225,10 +228,34 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                   </div>
                 </button>
 
-                {/* Vides 5, 6 (Conseil) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* 5. Bloc tableau (Conseil) */}
+                <button
+                  onClick={() => onSelect("tableau")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc tableau
+                  </span>
+                  <div className="w-[85%] flex flex-col border border-[#F4F5FE] rounded-[6px] overflow-hidden">
+                    <div className="w-full h-[16px] bg-[#F4F5FE] border-b border-[#F4F5FE] grid grid-cols-3 items-center px-1">
+                      <div className="w-[70%] h-[4px] bg-white rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-white rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-white rounded-full mx-auto" />
+                    </div>
+                    <div className="w-full h-[16px] bg-white border-b border-[#F4F5FE] grid grid-cols-3 items-center px-1">
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                    </div>
+                    <div className="w-full h-[16px] bg-white grid grid-cols-3 items-center px-1">
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                      <div className="w-[70%] h-[4px] bg-[#F4F5FE] rounded-full mx-auto" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Vide 6 (Conseil) */}
                 <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
                   <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
                 </div>
@@ -238,7 +265,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 3. Bloc programme (Programme) */}
                 <button
                   onClick={() => onSelect("programme")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc programme
@@ -258,7 +285,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 4. Bloc téléchargement (Programme) */}
                 <button
                   onClick={() => onSelect("telechargement")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc téléchargement
@@ -271,7 +298,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 5. Bloc séance (Programme) */}
                 <button
                   onClick={() => onSelect("seance")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc séance
@@ -284,7 +311,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 {/* 6. Bloc source (Programme) */}
                 <button
                   onClick={() => onSelect("source")}
-                  className="group w-full h-[172px] rounded-[20px] bg-white overflow-hidden flex flex-col border border-[#D7D4DC] hover:shadow-glift-hover transition-all duration-300 items-center justify-start pt-[30px] transform hover:-translate-y-1"
+                  className={cardClassName}
                 >
                   <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
                     Bloc source

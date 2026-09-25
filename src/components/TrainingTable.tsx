@@ -358,57 +358,60 @@ export default function TrainingTable({
           items={rows.map((row, index) => (row.id ?? `temp-${index}`).toString())}
           strategy={verticalListSortingStrategy}
         >
-          <table
-            className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed border border-[#ECE9F1]"
-            style={{
-              borderSpacing: "0px",
-              marginBottom: isLastSupersetAtBottom ? "1px" : "0px"
-            }}
-          >
-            <thead className={`text-white text-left h-10 ${adminMode ? "bg-[#3A416F]" : "bg-[#7069FA]"}`}>
-              <tr style={{ height: "40px" }}>
-                {!readOnly && (
-                  <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
-                )}
-                <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
-                {isVisible("materiel") && (
-                  <th className={`text-[15px] px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "135px", width: "135px" }}>Matériel</th>
-                )}
-                <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "series" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Séries</th>
-                <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "repetitions" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Répétitions</th>
-                {isVisible("poids") && (
-                  <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "poids" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Poids</th>
-                )}
-                {isVisible("repos") && (
-                  <th className={`text-[15px] px-2 font-semibold text-center ${lastVisibleCol === "repos" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Repos</th>
-                )}
-                {isVisible("effort") && (
-                  <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "effort" ? "rounded-tr-[5px] border-r border-[#ECE9F1]" : "border-r"}`} style={{ height: "40px", maxWidth: "237px", width: "237px" }}>Effort</th>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, index) => (
-                <TrainingRow
-                  key={row.id ?? `temp-${index}`}
-                  row={row}
-                  index={index}
-                  setRows={setRows}
-                  handleEffortChange={handleEffortChange}
-                  handleCheckboxChange={handleCheckboxChange}
-                  handleIncrementSeries={handleIncrementSeries}
-                  handleDecrementSeries={handleDecrementSeries}
-                  handleIconHover={handleIconHover}
-                  columns={columns}
-                  setIsEditing={setIsEditing}
-                  isHidden={dragActive && dragGroup.some(d => d.id === row.id)}
-                  adminMode={adminMode}
-                  readOnly={readOnly}
-                  onUnlockClick={() => setIsUnlockModalOpen(true)}
-                />
-              ))}
-            </tbody>
-          </table>
+          <div className="w-full rounded-[5px] overflow-hidden border border-[#ECE9F1]">
+            <table
+              className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
+              style={{
+                borderSpacing: "0px",
+                marginBottom: isLastSupersetAtBottom ? "1px" : "0px"
+              }}
+            >
+              <thead className={`text-white text-left h-10 ${adminMode ? "bg-[#3A416F]" : "bg-[#7069FA]"}`}>
+                <tr style={{ height: "40px" }}>
+                  {!readOnly && (
+                    <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
+                  )}
+                  <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
+                  {isVisible("materiel") && (
+                    <th className={`text-[15px] px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "135px", width: "135px" }}>Matériel</th>
+                  )}
+                  <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "series" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Séries</th>
+                  <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "repetitions" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Répétitions</th>
+                  {isVisible("poids") && (
+                    <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "poids" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Poids</th>
+                  )}
+                  {isVisible("repos") && (
+                    <th className={`text-[15px] px-2 font-semibold text-center ${lastVisibleCol === "repos" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Repos</th>
+                  )}
+                  {isVisible("effort") && (
+                    <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "effort" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "237px", width: "237px" }}>Effort</th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, index) => (
+                  <TrainingRow
+                    key={row.id ?? `temp-${index}`}
+                    row={row}
+                    index={index}
+                    isLastRow={index === rows.length - 1}
+                    setRows={setRows}
+                    handleEffortChange={handleEffortChange}
+                    handleCheckboxChange={handleCheckboxChange}
+                    handleIncrementSeries={handleIncrementSeries}
+                    handleDecrementSeries={handleDecrementSeries}
+                    handleIconHover={handleIconHover}
+                    columns={columns}
+                    setIsEditing={setIsEditing}
+                    isHidden={dragActive && dragGroup.some(d => d.id === row.id)}
+                    adminMode={adminMode}
+                    readOnly={readOnly}
+                    onUnlockClick={() => setIsUnlockModalOpen(true)}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </SortableContext>
         <DragOverlay dropAnimation={dragOverlayDropAnimation}>
           {dragGroup.length > 0 && (

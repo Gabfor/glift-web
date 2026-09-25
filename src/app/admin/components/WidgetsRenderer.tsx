@@ -1,11 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import Tooltip from "@/components/Tooltip";
-import { ContentBlock, SeanceRow, BlockPartenaires } from "../create-blog-article/blogArticleForm";
+import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
+import AddRowButton from "@/components/AddRowButton";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
@@ -94,6 +95,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "newsletter": return "Bloc newsletter";
       case "source": return "Bloc source";
       case "note": return "Bloc note";
+      case "tableau": return "Bloc tableau";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
@@ -523,6 +525,14 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   minHeight="100px"
                 />
               </div>
+            )}
+
+            {block.type === "tableau" && (
+              <AdminTableBlock
+                block={block as BlockTableau}
+                updateBlock={updateBlock}
+                inputClass={inputClass}
+              />
             )}
 
             {block.type === "telechargement" && (
@@ -1098,6 +1108,205 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
           </BlockAdminWrapper>
         );
       })}
+    </div>
+  );
+}
+
+function AdminTableBlock({
+  block,
+  updateBlock,
+  inputClass,
+}: {
+  block: BlockTableau;
+  updateBlock: (id: string, updates: Partial<ContentBlock>) => void;
+  inputClass: string;
+}) {
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+  const [colPlusIcon, setColPlusIcon] = useState("/icons/admin_plus.svg");
+  const headers = block.headers && block.headers.length > 0
+    ? block.headers
+    : ["Colonne 1", "Colonne 2", "Colonne 3"];
+  const rows = block.rows && block.rows.length > 0
+    ? block.rows
+    : [["", "", ""]];
+
+  const handleUpdateHeader = (colIndex: number, value: string) => {
+    const newHeaders = [...headers];
+    newHeaders[colIndex] = value;
+    updateBlock(block.id, { headers: newHeaders });
+  };
+
+  const handleAddColumn = () => {
+    const newHeaders = [...headers, `Colonne ${headers.length + 1}`];
+    const newRows = rows.map((r) => [...r, ""]);
+    updateBlock(block.id, { headers: newHeaders, rows: newRows });
+  };
+
+  const handleDeleteColumn = (colIndex: number) => {
+    if (headers.length <= 1) return;
+    const newHeaders = headers.filter((_, i) => i !== colIndex);
+    const newRows = rows.map((r) => r.filter((_, i) => i !== colIndex));
+    updateBlock(block.id, { headers: newHeaders, rows: newRows });
+  };
+
+  const handleUpdateCell = (rowIndex: number, colIndex: number, value: string) => {
+    const newRows = rows.map((r, rIdx) => {
+      if (rIdx !== rowIndex) return r;
+      const updatedRow = [...r];
+      updatedRow[colIndex] = value;
+      return updatedRow;
+    });
+    updateBlock(block.id, { rows: newRows });
+  };
+
+  const handleAddRow = () => {
+    const newRow = new Array(headers.length).fill("");
+    updateBlock(block.id, { rows: [...rows, newRow] });
+  };
+
+  const handleDeleteRow = (rowIndex: number) => {
+    if (rows.length <= 1) return;
+    const newRows = rows.filter((_, i) => i !== rowIndex);
+    updateBlock(block.id, { rows: newRows });
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre du tableau</label>
+          <input
+            type="text"
+            placeholder="Titre"
+            value={block.titre || ""}
+            onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id (ancre pour sommaire)</label>
+          <input
+            type="text"
+            placeholder="Id"
+            value={block.ancreId || ""}
+            onChange={(e) => updateBlock(block.id, { ancreId: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="w-full mt-2">
+        <div className="flex justify-end items-center mb-2 min-h-[24px]">
+          <Tooltip content="Ajouter une colonne" placement="top">
+            <button
+              type="button"
+              onClick={handleAddColumn}
+              onMouseEnter={() => setColPlusIcon("/icons/admin_plus_hover.svg")}
+              onMouseLeave={() => setColPlusIcon("/icons/admin_plus.svg")}
+              className="cursor-pointer flex items-center justify-center p-0.5"
+            >
+              <Image
+                src={colPlusIcon}
+                alt="Ajouter une colonne"
+                width={20}
+                height={20}
+                className="w-5 h-5 transition-all duration-200"
+              />
+            </button>
+          </Tooltip>
+        </div>
+
+        <div className="overflow-x-auto w-full border border-[#ECE9F1] rounded-[5px] overflow-hidden">
+          <table className="w-full text-[14px] font-medium border-collapse table-fixed bg-white">
+            <thead className="bg-[#3A416F] text-white text-left h-10">
+              <tr style={{ height: "40px" }}>
+                {headers.map((header, colIdx) => (
+                  <th
+                    key={colIdx}
+                    className="relative group border-r border-white/20 last:border-r-0 px-2 font-semibold text-center"
+                    style={{ height: "40px" }}
+                  >
+                    <div className="relative flex items-center justify-center w-full">
+                      <input
+                        type="text"
+                        value={header}
+                        onChange={(e) => handleUpdateHeader(colIdx, e.target.value)}
+                        placeholder={`Colonne ${colIdx + 1}`}
+                        className="w-full h-10 bg-transparent text-white font-semibold text-[14px] focus:outline-none placeholder-white/50 text-center px-5 placeholder:text-center"
+                      />
+                      {headers.length > 1 && (
+                        <Tooltip content="Supprimer la colonne" placement="top">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteColumn(colIdx)}
+                            className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:text-[#EF4F4E] text-white/70 p-1 transition-opacity duration-150 cursor-pointer"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                              <path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                            </svg>
+                          </button>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </th>
+                ))}
+                <th style={{ width: "40px", maxWidth: "40px" }} className="w-10"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, rowIdx) => (
+                <tr key={rowIdx} className="bg-white border-t border-[#ECE9F1]">
+                  {headers.map((_, colIdx) => (
+                    <td
+                      key={colIdx}
+                      className="p-0 border-r border-[#ECE9F1]"
+                      style={{ height: "40px" }}
+                    >
+                      <input
+                        type="text"
+                        value={row[colIdx] ?? ""}
+                        onChange={(e) => handleUpdateCell(rowIdx, colIdx, e.target.value)}
+                        placeholder="Texte de la cellule"
+                        className={`w-full h-10 px-3 text-[14px] font-semibold text-[#5D6494] bg-transparent focus:outline-none focus:bg-[#F4F5FE] transition-colors ${
+                          colIdx > 0 ? "text-center placeholder:text-center" : "text-left"
+                        }`}
+                      />
+                    </td>
+                  ))}
+                  <td
+                    className="w-10 text-center"
+                    style={{ width: "40px", maxWidth: "40px", height: "40px" }}
+                  >
+                    {rows.length > 1 && (
+                      <Tooltip content="Supprimer la ligne" placement="top">
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteRow(rowIdx)}
+                          className="w-full h-full flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
+                        >
+                          <Image
+                            src="/icons/non_rouge.svg"
+                            alt="Supprimer la ligne"
+                            width={18}
+                            height={18}
+                          />
+                        </button>
+                      </Tooltip>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <AddRowButton
+          icon={plusIcon}
+          setIcon={setPlusIcon}
+          onClick={handleAddRow}
+          adminMode={true}
+        />
+      </div>
     </div>
   );
 }

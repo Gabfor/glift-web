@@ -928,6 +928,19 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
             case "note":
               newBlock = { id: newId, type: "note", texte: "" };
               break;
+            case "tableau":
+              newBlock = {
+                id: newId,
+                type: "tableau",
+                titre: "",
+                ancreId: "",
+                headers: ["Colonne 1", "Colonne 2", "Colonne 3"],
+                rows: [
+                  ["", "", ""],
+                  ["", "", ""]
+                ]
+              };
+              break;
             case "programme":
               newBlock = { id: newId, type: "programme", ancreId: "programme", titre: "", texte: "" };
               break;
