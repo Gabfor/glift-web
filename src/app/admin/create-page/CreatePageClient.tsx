@@ -580,6 +580,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
               case "cta":
                 newBlock = { id: newId, type: "cta", texte: "", url: "" };
                 break;
+              case "liste":
+                newBlock = { id: newId, type: "liste", titre: "À retenir", ancreId: "", items: ["", "", ""] };
+                break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });
             setIsWidgetModalOpen(false);

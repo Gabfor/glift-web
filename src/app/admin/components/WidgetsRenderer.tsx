@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import Tooltip from "@/components/Tooltip";
-import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau, BlockCTA } from "../create-blog-article/blogArticleForm";
+import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau, BlockCTA, BlockListe } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
 import AddRowButton from "@/components/AddRowButton";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
@@ -97,6 +97,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "note": return "Bloc note";
       case "tableau": return "Bloc tableau";
       case "cta": return "Bloc CTA";
+      case "liste": return "Bloc liste";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
@@ -551,6 +552,14 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   onChange={(val) => updateBlock(block.id, { url: val })}
                 />
               </div>
+            )}
+
+            {block.type === "liste" && (
+              <AdminListBlock
+                block={block as BlockListe}
+                updateBlock={updateBlock}
+                inputClass={inputClass}
+              />
             )}
 
             {block.type === "telechargement" && (
@@ -1339,6 +1348,117 @@ function AdminTableBlock({
           icon={plusIcon}
           setIcon={setPlusIcon}
           onClick={handleAddRow}
+          adminMode={true}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AdminListBlock({
+  block,
+  updateBlock,
+  inputClass,
+}: {
+  block: BlockListe;
+  updateBlock: (id: string, updates: Partial<ContentBlock>) => void;
+  inputClass: string;
+}) {
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+  const items = block.items && block.items.length > 0 ? block.items : [""];
+
+  const handleUpdateItem = (index: number, val: string) => {
+    const newItems = [...items];
+    newItems[index] = val;
+    updateBlock(block.id, { items: newItems });
+  };
+
+  const handleAddItem = () => {
+    updateBlock(block.id, { items: [...items, ""] });
+  };
+
+  const handleDeleteItem = (index: number) => {
+    if (items.length <= 1) {
+      updateBlock(block.id, { items: [""] });
+      return;
+    }
+    const newItems = items.filter((_, i) => i !== index);
+    updateBlock(block.id, { items: newItems });
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre de la liste</label>
+          <input
+            type="text"
+            placeholder="ex: À retenir"
+            value={block.titre || ""}
+            onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id</label>
+          <input
+            type="text"
+            placeholder="Id"
+            value={block.ancreId || ""}
+            onChange={(e) => updateBlock(block.id, { ancreId: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 mt-1">
+        <label className="text-[16px] text-[#3A416F] font-bold">Éléments de la liste</label>
+        <div className="flex flex-col gap-2">
+          {items.map((item, index) => {
+            const numStr = String(index + 1).padStart(2, "0");
+            return (
+              <div key={index} className="flex items-center gap-3">
+                <span className="text-[14px] font-bold text-[#3A416F] w-[26px] text-center shrink-0 select-none">
+                  {numStr}
+                </span>
+                <input
+                  type="text"
+                  placeholder={`Élément ${index + 1}`}
+                  value={item}
+                  onChange={(e) => handleUpdateItem(index, e.target.value)}
+                  className={inputClass}
+                />
+                <Tooltip content="Supprimer" placement="top" offset={10}>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteItem(index)}
+                    className="p-1 group cursor-pointer shrink-0"
+                  >
+                    <Image
+                      src="/icons/admin_supp_colonne.svg"
+                      alt="Supprimer"
+                      width={16}
+                      height={16}
+                      className="group-hover:hidden"
+                    />
+                    <Image
+                      src="/icons/admin_supp_colonne_hover.svg"
+                      alt="Supprimer"
+                      width={16}
+                      height={16}
+                      className="hidden group-hover:block"
+                    />
+                  </button>
+                </Tooltip>
+              </div>
+            );
+          })}
+        </div>
+
+        <AddRowButton
+          icon={plusIcon}
+          setIcon={setPlusIcon}
+          onClick={handleAddItem}
           adminMode={true}
         />
       </div>

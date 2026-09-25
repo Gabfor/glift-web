@@ -944,6 +944,15 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
             case "cta":
               newBlock = { id: newId, type: "cta", texte: "", url: "" };
               break;
+            case "liste":
+              newBlock = {
+                id: newId,
+                type: "liste",
+                titre: "À retenir",
+                ancreId: "",
+                items: ["", "", ""]
+              };
+              break;
             case "programme":
               newBlock = { id: newId, type: "programme", ancreId: "programme", titre: "", texte: "" };
               break;

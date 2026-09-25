@@ -52,6 +52,7 @@ type ContentBlock = {
   titre?: string;
   texte?: string;
   url?: string;
+  items?: string[];
   ancreId?: string;
   programme_id?: string;
   table_rows?: any[];
@@ -865,6 +866,42 @@ export default function BlogArticleBlocksRenderer({
                 >
                   {block.texte || "En savoir plus"}
                 </CTAButton>
+              </div>
+            );
+          }
+
+          case "liste": {
+            const listItems = block.items || [];
+            const validItems = listItems.filter((it) => it && it.trim() !== "");
+            if (!block.titre && validItems.length === 0) return null;
+
+            return (
+              <div
+                key={key}
+                id={block.ancreId || undefined}
+                className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] flex flex-col gap-[10px] scroll-mt-[100px]"
+              >
+                {block.titre && (
+                  <h3 className="text-[20px] md:text-[22px] font-bold text-[#2E3271] mb-0">
+                    {block.titre}
+                  </h3>
+                )}
+                <div className="flex flex-col gap-[10px]">
+                  {validItems.map((item, idx) => {
+                    const numStr = String(idx + 1).padStart(2, "0");
+                    return (
+                      <div key={idx} className="flex items-start gap-[10px]">
+                        <span className="text-[14px] font-bold text-[#7069FA] tracking-wide shrink-0 select-none pt-[1px]">
+                          {numStr}
+                        </span>
+                        <div
+                          className="text-[14px] font-semibold text-[#5D6494] leading-[1.6] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_strong]:font-bold [&_b]:font-bold"
+                          dangerouslySetInnerHTML={{ __html: item }}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             );
           }

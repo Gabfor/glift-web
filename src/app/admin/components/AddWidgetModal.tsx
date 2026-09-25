@@ -17,9 +17,9 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
       open
       title="Ajouter un widget"
       onClose={onClose}
-      contentClassName={isPage ? "w-[880px] max-w-[95vw] !p-[40px]" : "w-[680px] max-w-[95vw] !p-[40px]"}
+      contentClassName="w-[880px] max-w-[95vw] !p-[40px]"
     >
-      <div className={`grid ${isPage ? "grid-cols-4" : "grid-cols-3"} gap-5 mt-8`}>
+      <div className="grid grid-cols-4 gap-5 mt-8">
         
         {articleType === "Page" ? (
           <>
@@ -189,13 +189,7 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                   </div>
                 </button>
 
-                {/* Vides 4, 5, 6 (Legal) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* Vide 4 (Legal) */}
                 <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
                   <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
                 </div>
@@ -264,11 +258,38 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                     Bloc CTA
                   </span>
                   <div className="w-[85%] flex justify-center items-center h-[40px] mt-2">
-                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full flex items-center justify-center">
-                      <div className="w-[50px] h-[6px] bg-white rounded-full" />
+                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full" />
+                  </div>
+                </button>
+
+                {/* 7. Bloc liste (Conseil) */}
+                <button
+                  onClick={() => onSelect("liste")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc liste
+                  </span>
+                  <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-full h-[6px] bg-[#F4F5FE] rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-[85%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-[70%] h-[6px] bg-[#F4F5FE] rounded-full" />
                     </div>
                   </div>
                 </button>
+
+                {/* Vide 8 (Conseil) */}
+                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+                </div>
               </>
             ) : (
               <>
@@ -340,19 +361,33 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                     Bloc CTA
                   </span>
                   <div className="w-[85%] flex justify-center items-center h-[40px] mt-2">
-                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full flex items-center justify-center">
-                      <div className="w-[50px] h-[6px] bg-white rounded-full" />
-                    </div>
+                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full" />
                   </div>
                 </button>
 
-                {/* Vides 8, 9 (Programme) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* 8. Bloc liste (Programme) */}
+                <button
+                  onClick={() => onSelect("liste")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc liste
+                  </span>
+                  <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-full h-[6px] bg-[#F4F5FE] rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-[85%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
+                      <div className="w-[70%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                    </div>
+                  </div>
+                </button>
               </>
             )}
           </>
