@@ -734,7 +734,7 @@ export default function BlogArticleBlocksRenderer({
                   </h3>
                 )}
                 <div className="overflow-x-auto w-full p-[1px]">
-                  <div className="relative w-full rounded-[5px] overflow-hidden border border-[#ECE9F1]">
+                  <div className="relative w-full rounded-t-[5px] overflow-hidden border border-[#ECE9F1]">
                     <table
                       className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
                       style={{ borderSpacing: "0px", marginBottom: "0px" }}
@@ -765,7 +765,6 @@ export default function BlogArticleBlocksRenderer({
                       </thead>
                       <tbody>
                         {rows.map((row: string[], rIdx: number) => {
-                          const isLastRow = rIdx === rows.length - 1;
                           return (
                             <tr
                               key={rIdx}
@@ -780,21 +779,13 @@ export default function BlogArticleBlocksRenderer({
                                 return (
                                   <td
                                     key={cIdx}
-                                    className={`px-0 py-0 ${
-                                      isFirst && isLastRow ? "rounded-bl-[5px]" : ""
-                                    } ${
-                                      isLast && isLastRow ? "rounded-br-[5px]" : ""
-                                    }`}
+                                    className="px-0 py-0"
                                     style={{ height: "40px", padding: 0 }}
                                   >
                                     <div
                                       className={`w-full h-10 border-t ${
                                         !isFirst ? "border-l border-[#ECE9F1]" : ""
                                       } text-[14px] font-semibold text-[#5D6494] truncate flex items-center ${
-                                        isFirst && isLastRow ? "rounded-bl-[5px]" : ""
-                                      } ${
-                                        isLast && isLastRow ? "rounded-br-[5px]" : ""
-                                      } ${
                                         centered ? "justify-center text-center px-2" : "justify-start text-left px-3"
                                       }`}
                                       style={{

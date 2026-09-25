@@ -78,7 +78,6 @@ export default function TrainingRow({
       : {};
 
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
-  const lastVisibleCol: string = isVisible("effort") ? "effort" : isVisible("repos") ? "repos" : isVisible("poids") ? "poids" : isVisible("repetitions") ? "repetitions" : isVisible("series") ? "series" : isVisible("materiel") ? "materiel" : "exercices";
 
   const transitionTiming = "cubic-bezier(0.22, 1, 0.36, 1)";
   const transitionStyles: React.CSSProperties = isDragging
@@ -191,13 +190,13 @@ export default function TrainingRow({
         </td>
       )}
 
-      <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "exercices" ? "border-r border-[#ECE9F1]" : ""}`} style={{ height: "40px", padding: "0" }}>
+      <td className="px-0 py-0" style={{ height: "40px", padding: "0" }}>
         {row.link ? (
           <a
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t ${readOnly ? "" : "border-l"} ${!readOnly && lastVisibleCol === "exercices" ? "border-r" : ""} border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : !row.exercice ? "!text-[#D7D4DC] pointer-events-auto" : isEffectiveAdmin ? "!text-[#3A416F] pointer-events-auto" : "!text-[#7069FA] pointer-events-auto"
+            className={`w-full block px-3 border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${row.locked ? "!text-[#D7D4DC] pointer-events-none" : !row.exercice ? "!text-[#D7D4DC] pointer-events-auto" : isEffectiveAdmin ? "!text-[#3A416F] pointer-events-auto" : "!text-[#7069FA] pointer-events-auto"
               }`}
             style={{
               backgroundColor: "transparent",
@@ -255,7 +254,7 @@ export default function TrainingRow({
       </td>
 
       {isVisible("materiel") && (
-        <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "materiel" ? "border-r border-[#ECE9F1]" : ""}`}>
+        <td className="px-0 py-0">
           <input
             type="text"
             value={row.materiel}
@@ -272,7 +271,7 @@ export default function TrainingRow({
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             disabled={row.locked}
-            className={`w-full h-10 border-l border-t ${!readOnly && lastVisibleCol === "materiel" ? "border-r" : ""} border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
+            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
@@ -289,8 +288,8 @@ export default function TrainingRow({
         </td>
       )}
 
-      <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "series" ? "border-r border-[#ECE9F1]" : ""}`} style={{ maxWidth: "60px", width: "60px" }}>
-        <div className={`flex items-center h-10 border-l border-t ${!readOnly && lastVisibleCol === "series" ? "border-r" : ""} border-[#ECE9F1] ${readOnly ? "justify-center" : "justify-end"}`}>
+      <td className="px-0 py-0" style={{ maxWidth: "60px", width: "60px" }}>
+        <div className={`flex items-center h-10 border-l border-t border-[#ECE9F1] ${readOnly ? "justify-center" : "justify-end"}`}>
           <input
             type="number"
             value={row.series}
@@ -327,7 +326,7 @@ export default function TrainingRow({
         </div>
       </td>
 
-      <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "repetitions" ? "border-r border-[#ECE9F1]" : ""}`} style={{ maxWidth: "157px", width: "157px" }}>
+      <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
         <div className="flex flex-row w-full">
           {row.repetitions.map((rep, subIndex) => (
             <input
@@ -335,7 +334,7 @@ export default function TrainingRow({
               type="number"
               readOnly={readOnly}
               disabled={row.locked}
-              className={`flex-grow h-10 text-center border-l border-t ${!readOnly && lastVisibleCol === "repetitions" && subIndex === row.repetitions.length - 1 ? "border-r" : ""} border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : readOnly ? "pointer-events-none" : ""}`}
+              className={`flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : readOnly ? "pointer-events-none" : ""}`}
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
@@ -368,7 +367,7 @@ export default function TrainingRow({
       </td>
 
       {isVisible("poids") && (
-        <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "poids" ? "border-r border-[#ECE9F1]" : ""}`} style={{ maxWidth: "157px", width: "157px" }}>
+        <td className="px-0 py-0" style={{ maxWidth: "157px", width: "157px" }}>
           <div className="flex flex-row w-full">
           {row.poids.map((weight, subIndex) => (
             <input
@@ -376,7 +375,7 @@ export default function TrainingRow({
               type="number"
               readOnly={readOnly}
               disabled={row.locked}
-              className={`flex-grow h-10 text-center border-l border-t ${!readOnly && lastVisibleCol === "poids" && subIndex === row.poids.length - 1 ? "border-r" : ""} border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : readOnly ? "pointer-events-none" : ""}`}
+              className={`flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input ${row.locked ? "cursor-not-allowed" : readOnly ? "pointer-events-none" : ""}`}
               style={{
                 width: `${100 / row.series}%`,
                 backgroundColor:
@@ -410,12 +409,12 @@ export default function TrainingRow({
       )}
 
       {isVisible("repos") && (
-        <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "repos" ? "border-r border-[#ECE9F1]" : ""}`}>
+        <td className="px-0 py-0">
           <input
             type="number"
             readOnly={readOnly}
             disabled={row.locked}
-            className={`w-full h-10 text-center border-l border-t ${!readOnly && lastVisibleCol === "repos" ? "border-r" : ""} border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
+            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
@@ -445,8 +444,8 @@ export default function TrainingRow({
       )}
 
       {isVisible("effort") && (
-        <td className={`px-0 py-0 ${!readOnly && lastVisibleCol === "effort" ? "border-r border-[#ECE9F1]" : ""}`} style={{ maxWidth: "237px", width: "237px" }}>
-          <div className={`flex items-center h-10 justify-end border-t ${!readOnly && lastVisibleCol === "effort" ? "border-r" : ""} border-[#ECE9F1]`}>
+        <td className="px-0 py-0" style={{ maxWidth: "237px", width: "237px" }}>
+          <div className="flex items-center h-10 justify-end border-t border-[#ECE9F1]">
             {row.effort.map((eff, subIndex) => (
               <div key={`effort-${subIndex}`} className="flex items-center justify-center w-full border-l border-[#ECE9F1] h-10">
                 <div className="flex justify-center items-center w-full">

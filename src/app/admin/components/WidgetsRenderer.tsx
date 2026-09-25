@@ -1123,6 +1123,8 @@ function AdminTableBlock({
 }) {
   const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
   const [colPlusIcon, setColPlusIcon] = useState("/icons/admin_plus.svg");
+  const [hoveredColDelIdx, setHoveredColDelIdx] = useState<number | null>(null);
+  const [hoveredRowDelIdx, setHoveredRowDelIdx] = useState<number | null>(null);
   const headers = block.headers && block.headers.length > 0
     ? block.headers
     : ["Colonne 1", "Colonne 2", "Colonne 3"];
@@ -1184,7 +1186,7 @@ function AdminTableBlock({
           />
         </div>
         <div className="flex flex-col">
-          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id (ancre pour sommaire)</label>
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id</label>
           <input
             type="text"
             placeholder="Id"
@@ -1216,7 +1218,7 @@ function AdminTableBlock({
           </Tooltip>
         </div>
 
-        <div className="overflow-x-auto w-full border border-[#ECE9F1] rounded-[5px] overflow-hidden">
+        <div className="overflow-x-auto w-full border border-[#ECE9F1] rounded-t-[5px] overflow-hidden">
           <table className="w-full text-[14px] font-medium border-collapse table-fixed bg-white">
             <thead className="bg-[#3A416F] text-white text-left h-10">
               <tr style={{ height: "40px" }}>
@@ -1235,15 +1237,24 @@ function AdminTableBlock({
                         className="w-full h-10 bg-transparent text-white font-semibold text-[14px] focus:outline-none placeholder-white/50 text-center px-5 placeholder:text-center"
                       />
                       {headers.length > 1 && (
-                        <Tooltip content="Supprimer la colonne" placement="top">
+                        <Tooltip content="Supprimer la colonne" placement="top" offset={10} asChild>
                           <button
                             type="button"
                             onClick={() => handleDeleteColumn(colIdx)}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 hover:text-[#EF4F4E] text-white/70 p-1 transition-opacity duration-150 cursor-pointer"
+                            onMouseEnter={() => setHoveredColDelIdx(colIdx)}
+                            onMouseLeave={() => setHoveredColDelIdx(null)}
+                            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer"
                           >
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                              <path d="M2.5 2.5L9.5 9.5M9.5 2.5L2.5 9.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-                            </svg>
+                            <Image
+                              src={
+                                hoveredColDelIdx === colIdx
+                                  ? "/icons/admin_supp_colonne_hover.svg"
+                                  : "/icons/admin_supp_colonne.svg"
+                              }
+                              alt="Supprimer la colonne"
+                              width={16}
+                              height={16}
+                            />
                           </button>
                         </Tooltip>
                       )}
@@ -1274,24 +1285,32 @@ function AdminTableBlock({
                     </td>
                   ))}
                   <td
-                    className="w-10 text-center"
+                    className="w-10 text-center p-0"
                     style={{ width: "40px", maxWidth: "40px", height: "40px" }}
                   >
                     {rows.length > 1 && (
-                      <Tooltip content="Supprimer la ligne" placement="top">
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteRow(rowIdx)}
-                          className="w-full h-full flex items-center justify-center opacity-70 hover:opacity-100 transition-opacity cursor-pointer"
-                        >
-                          <Image
-                            src="/icons/non_rouge.svg"
-                            alt="Supprimer la ligne"
-                            width={18}
-                            height={18}
-                          />
-                        </button>
-                      </Tooltip>
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Tooltip content="Supprimer la ligne" placement="top" offset={10} asChild>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteRow(rowIdx)}
+                            onMouseEnter={() => setHoveredRowDelIdx(rowIdx)}
+                            onMouseLeave={() => setHoveredRowDelIdx(null)}
+                            className="w-5 h-5 flex items-center justify-center cursor-pointer"
+                          >
+                            <Image
+                              src={
+                                hoveredRowDelIdx === rowIdx
+                                  ? "/icons/admin_supp_colonne_hover.svg"
+                                  : "/icons/admin_supp_colonne.svg"
+                              }
+                              alt="Supprimer la ligne"
+                              width={16}
+                              height={16}
+                            />
+                          </button>
+                        </Tooltip>
+                      </div>
                     )}
                   </td>
                 </tr>

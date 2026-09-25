@@ -358,7 +358,7 @@ export default function TrainingTable({
           items={rows.map((row, index) => (row.id ?? `temp-${index}`).toString())}
           strategy={verticalListSortingStrategy}
         >
-          <div className="w-full rounded-[5px] overflow-hidden border border-[#ECE9F1]">
+          <div className="w-full rounded-t-[5px] overflow-hidden border border-[#ECE9F1]">
             <table
               className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
               style={{
