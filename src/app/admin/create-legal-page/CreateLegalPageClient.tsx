@@ -550,6 +550,9 @@ export default function CreateLegalPageClient({ pageId }: Props) {
             case "texte-1-1":
               newBlock = { id: newId, type: "texte-1-1", titre: "", texte: "" };
               break;
+            case "cta":
+              newBlock = { id: newId, type: "cta", texte: "", url: "" };
+              break;
             default:
               break;
           }

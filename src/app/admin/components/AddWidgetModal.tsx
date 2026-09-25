@@ -255,10 +255,20 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                   </div>
                 </button>
 
-                {/* Vide 6 (Conseil) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* 6. Bloc CTA (Conseil) */}
+                <button
+                  onClick={() => onSelect("cta")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc CTA
+                  </span>
+                  <div className="w-[85%] flex justify-center items-center h-[40px] mt-2">
+                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full flex items-center justify-center">
+                      <div className="w-[50px] h-[6px] bg-white rounded-full" />
+                    </div>
+                  </div>
+                </button>
               </>
             ) : (
               <>
@@ -320,6 +330,29 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                     <div className="w-full h-[35px] bg-[#F4F5FE] rounded-[4px]" />
                   </div>
                 </button>
+
+                {/* 7. Bloc CTA (Programme) */}
+                <button
+                  onClick={() => onSelect("cta")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc CTA
+                  </span>
+                  <div className="w-[85%] flex justify-center items-center h-[40px] mt-2">
+                    <div className="w-[120px] h-[32px] bg-[#F4F5FE] rounded-full flex items-center justify-center">
+                      <div className="w-[50px] h-[6px] bg-white rounded-full" />
+                    </div>
+                  </div>
+                </button>
+
+                {/* Vides 8, 9 (Programme) */}
+                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+                </div>
+                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
+                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
+                </div>
               </>
             )}
           </>

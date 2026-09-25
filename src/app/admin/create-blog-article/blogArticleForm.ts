@@ -35,6 +35,12 @@ export type BlockTableau = BaseBlock & {
   rows: string[][];
 };
 
+export type BlockCTA = BaseBlock & {
+  type: "cta";
+  texte: string;
+  url: string;
+};
+
 export type BlockProgramme = BaseBlock & {
   type: "programme";
   titre: string;
@@ -200,6 +206,7 @@ export type ContentBlock =
   | BlockSource 
   | BlockNote
   | BlockTableau
+  | BlockCTA
   | BlockProgramme 
   | BlockTelechargement 
   | BlockSeance

@@ -577,6 +577,9 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                   texte2: "Un site pour\ncréer ses entraînements\nfacilement"
                 };
                 break;
+              case "cta":
+                newBlock = { id: newId, type: "cta", texte: "", url: "" };
+                break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });
             setIsWidgetModalOpen(false);

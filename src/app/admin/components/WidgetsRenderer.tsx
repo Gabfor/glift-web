@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import Tooltip from "@/components/Tooltip";
-import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau } from "../create-blog-article/blogArticleForm";
+import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau, BlockCTA } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
 import AddRowButton from "@/components/AddRowButton";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
@@ -96,6 +96,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "source": return "Bloc source";
       case "note": return "Bloc note";
       case "tableau": return "Bloc tableau";
+      case "cta": return "Bloc CTA";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
@@ -533,6 +534,23 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 updateBlock={updateBlock}
                 inputClass={inputClass}
               />
+            )}
+
+            {block.type === "cta" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                <AdminTextField
+                  label="Texte"
+                  placeholder="Texte du bouton"
+                  value={(block as BlockCTA).texte || ""}
+                  onChange={(val) => updateBlock(block.id, { texte: val })}
+                />
+                <AdminTextField
+                  label="URL"
+                  placeholder="https://... ou /lien"
+                  value={(block as BlockCTA).url || ""}
+                  onChange={(val) => updateBlock(block.id, { url: val })}
+                />
+              </div>
             )}
 
             {block.type === "telechargement" && (
@@ -1234,7 +1252,7 @@ function AdminTableBlock({
                         value={header}
                         onChange={(e) => handleUpdateHeader(colIdx, e.target.value)}
                         placeholder={`Colonne ${colIdx + 1}`}
-                        className="w-full h-10 bg-transparent text-white font-semibold text-[14px] focus:outline-none placeholder-white/50 text-center px-5 placeholder:text-center"
+                        className="w-full h-10 bg-transparent text-white font-semibold text-[14px] focus:outline-none placeholder-[#D7D4DC] text-center px-6 placeholder:text-center"
                       />
                       {headers.length > 1 && (
                         <Tooltip content="Supprimer la colonne" placement="top" offset={10} asChild>
@@ -1277,10 +1295,8 @@ function AdminTableBlock({
                         type="text"
                         value={row[colIdx] ?? ""}
                         onChange={(e) => handleUpdateCell(rowIdx, colIdx, e.target.value)}
-                        placeholder="Texte de la cellule"
-                        className={`w-full h-10 px-3 text-[14px] font-semibold text-[#5D6494] bg-transparent focus:outline-none focus:bg-[#F4F5FE] transition-colors ${
-                          colIdx > 0 ? "text-center placeholder:text-center" : "text-left"
-                        }`}
+                        placeholder="Texte"
+                        className="w-full h-10 text-[14px] font-semibold text-[#5D6494] bg-transparent focus:outline-none placeholder-[#D7D4DC] text-center px-2 placeholder:text-center"
                       />
                     </td>
                   ))}

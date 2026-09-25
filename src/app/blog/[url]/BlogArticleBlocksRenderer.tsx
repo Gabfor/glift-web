@@ -51,6 +51,7 @@ type ContentBlock = {
   type: string;
   titre?: string;
   texte?: string;
+  url?: string;
   ancreId?: string;
   programme_id?: string;
   table_rows?: any[];
@@ -410,6 +411,59 @@ export default function BlogArticleBlocksRenderer({
     return () => document.removeEventListener("click", handleAnchorClick);
   }, []);
 
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const storageKey = `article_scroll_${window.location.pathname}`;
+
+    const isReload =
+      (performance.getEntriesByType("navigation")[0] as PerformanceNavigationTiming)?.type === "reload" ||
+      (window.performance as any)?.navigation?.type === 1;
+
+    let isRestoring = false;
+    let timeouts: NodeJS.Timeout[] = [];
+
+    if (isReload) {
+      const saved = sessionStorage.getItem(storageKey);
+      if (saved) {
+        const targetY = parseInt(saved, 10);
+        if (!isNaN(targetY) && targetY > 0 && !window.location.hash) {
+          isRestoring = true;
+          const restore = () => {
+            window.scrollTo({ top: targetY, behavior: "instant" });
+          };
+          restore();
+          timeouts.push(setTimeout(restore, 50));
+          timeouts.push(setTimeout(restore, 150));
+          timeouts.push(setTimeout(restore, 350));
+          timeouts.push(
+            setTimeout(() => {
+              restore();
+              isRestoring = false;
+            }, 700)
+          );
+        }
+      }
+    } else {
+      sessionStorage.removeItem(storageKey);
+    }
+
+    const savePosition = () => {
+      if (!isRestoring) {
+        sessionStorage.setItem(storageKey, window.scrollY.toString());
+      }
+    };
+
+    window.addEventListener("scroll", savePosition, { passive: true });
+    window.addEventListener("beforeunload", savePosition);
+
+    return () => {
+      timeouts.forEach(clearTimeout);
+      window.removeEventListener("scroll", savePosition);
+      window.removeEventListener("beforeunload", savePosition);
+    };
+  }, []);
+
   if (!blocks || blocks.length === 0) return null;
 
   return (
@@ -689,39 +743,6 @@ export default function BlogArticleBlocksRenderer({
             const rows = block.rows || [];
             if (headers.length === 0 && rows.length === 0) return null;
 
-            const isColumnCentered = (header: string, colIdx: number) => {
-              if (colIdx > 0) return true;
-              const h = (header || "").toLowerCase().trim();
-              if (
-                [
-                  "séries",
-                  "series",
-                  "répétitions",
-                  "repetitions",
-                  "reps",
-                  "poids",
-                  "repos",
-                  "effort",
-                  "charge",
-                  "temps",
-                  "sets",
-                  "durée",
-                  "duree",
-                  "semaine",
-                  "semaines",
-                  "jour",
-                  "jours",
-                ].includes(h)
-              ) {
-                return true;
-              }
-              const colValues = rows.map((r: string[]) => r[colIdx] || "").filter((v: string) => v.trim() !== "");
-              if (colValues.length > 0 && colValues.every((v: string) => v.trim().length <= 12)) {
-                return true;
-              }
-              return false;
-            };
-
             return (
               <div
                 key={key}
@@ -739,22 +760,19 @@ export default function BlogArticleBlocksRenderer({
                       className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
                       style={{ borderSpacing: "0px", marginBottom: "0px" }}
                     >
-                      <thead className="bg-[#7069FA] text-white text-left h-10">
+                      <thead className="bg-[#f7f7ff] text-[#5d6494] text-left h-10">
                         <tr style={{ height: "40px" }}>
                           {headers.map((header: string, hIdx: number) => {
                             const isFirst = hIdx === 0;
                             const isLast = hIdx === headers.length - 1;
-                            const centered = isColumnCentered(header, hIdx);
                             return (
                               <th
                                 key={hIdx}
-                                className={`text-[15px] font-semibold ${
+                                className={`text-[15px] font-semibold text-center px-2 ${
                                   !isLast ? "border-r border-[#ECE9F1]" : ""
                                 } ${
                                   isFirst ? "rounded-tl-[5px]" : ""
-                                } ${isLast ? "rounded-tr-[5px]" : ""} ${
-                                  centered ? "text-center px-2" : "text-left px-3"
-                                }`}
+                                } ${isLast ? "rounded-tr-[5px]" : ""}`}
                                 style={{ height: "40px" }}
                               >
                                 {header}
@@ -774,8 +792,6 @@ export default function BlogArticleBlocksRenderer({
                               {headers.map((header: string, cIdx: number) => {
                                 const cellValue = row[cIdx] || "";
                                 const isFirst = cIdx === 0;
-                                const isLast = cIdx === headers.length - 1;
-                                const centered = isColumnCentered(header, cIdx);
                                 return (
                                   <td
                                     key={cIdx}
@@ -785,9 +801,7 @@ export default function BlogArticleBlocksRenderer({
                                     <div
                                       className={`w-full h-10 border-t ${
                                         !isFirst ? "border-l border-[#ECE9F1]" : ""
-                                      } text-[14px] font-semibold text-[#5D6494] truncate flex items-center ${
-                                        centered ? "justify-center text-center px-2" : "justify-start text-left px-3"
-                                      }`}
+                                      } text-[14px] font-semibold text-[#5D6494] truncate flex items-center justify-center text-center px-2`}
                                       style={{
                                         height: "40px",
                                         lineHeight: "40px",
@@ -834,6 +848,26 @@ export default function BlogArticleBlocksRenderer({
               </div>
             </React.Fragment>
           );
+
+          case "cta": {
+            if (!block.texte && !block.url) return null;
+            const isExternal = block.url?.startsWith("http://") || block.url?.startsWith("https://");
+            return (
+              <div
+                key={key}
+                id={block.ancreId || undefined}
+                className="flex justify-center w-full scroll-mt-[100px]"
+              >
+                <CTAButton
+                  href={block.url || "#"}
+                  target={isExternal ? "_blank" : undefined}
+                  rel={isExternal ? "noopener noreferrer" : undefined}
+                >
+                  {block.texte || "En savoir plus"}
+                </CTAButton>
+              </div>
+            );
+          }
 
           case "programme":
             return (
