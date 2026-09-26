@@ -146,7 +146,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
   };
 
   const inputClass =
-    "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150";
+    "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
 
   const [updatedYear, updatedMonth, updatedDay] = getDateParts(pageData.updated_at);
 
@@ -554,7 +554,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               newBlock = { id: newId, type: "cta", texte: "", url: "" };
               break;
             case "liste":
-              newBlock = { id: newId, type: "liste", titre: "À retenir", ancreId: "", items: ["", "", ""] };
+              newBlock = { id: newId, type: "liste", titre: "", ancreId: "", items: ["", "", ""] };
               break;
             default:
               break;

@@ -157,7 +157,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
   }
 
   const [updatedYear, updatedMonth, updatedDay] = getDateParts(pageData.updated_at);
-  const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150";
+  const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
   const textareaClass = "min-h-[70px] h-[70px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 resize-none";
 
   return (
@@ -581,7 +581,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 newBlock = { id: newId, type: "cta", texte: "", url: "" };
                 break;
               case "liste":
-                newBlock = { id: newId, type: "liste", titre: "À retenir", ancreId: "", items: ["", "", ""] };
+                newBlock = { id: newId, type: "liste", titre: "", ancreId: "", items: ["", "", ""] };
                 break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });

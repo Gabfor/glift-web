@@ -871,8 +871,8 @@ export default function BlogArticleBlocksRenderer({
           }
 
           case "liste": {
-            const listItems = block.items || [];
-            const validItems = listItems.filter((it) => it && it.trim() !== "");
+            const listItems: string[] = block.items || [];
+            const validItems = listItems.filter((it: string) => it && it.trim() !== "");
             if (!block.titre && validItems.length === 0) return null;
 
             return (
@@ -887,7 +887,7 @@ export default function BlogArticleBlocksRenderer({
                   </h3>
                 )}
                 <div className="flex flex-col gap-[10px]">
-                  {validItems.map((item, idx) => {
+                  {validItems.map((item: string, idx: number) => {
                     const numStr = String(idx + 1).padStart(2, "0");
                     return (
                       <div key={idx} className="flex items-start gap-[10px]">

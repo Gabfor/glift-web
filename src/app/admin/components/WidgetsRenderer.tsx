@@ -81,7 +81,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
     onChangeBlocks(newBlocks);
   };
 
-  const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150";
+  const inputClass = "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
   const textareaClass = "min-h-[100px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 resize-y";
 
   const getBlockTitle = (type: string) => {
@@ -1390,10 +1390,10 @@ function AdminListBlock({
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="flex flex-col">
-          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre de la liste</label>
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre</label>
           <input
             type="text"
-            placeholder="ex: À retenir"
+            placeholder="Titre"
             value={block.titre || ""}
             onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
             className={inputClass}
@@ -1423,7 +1423,7 @@ function AdminListBlock({
                 </span>
                 <input
                   type="text"
-                  placeholder={`Élément ${index + 1}`}
+                  placeholder="Texte"
                   value={item}
                   onChange={(e) => handleUpdateItem(index, e.target.value)}
                   className={inputClass}

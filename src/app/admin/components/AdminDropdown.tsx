@@ -348,7 +348,7 @@ export default function AdminDropdown({
         `}
       >
         <span
-          className={`pr-[10px] ${isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
+          className={`pr-[10px] truncate min-w-0 text-left ${isShowingPlaceholder ? "text-[#D7D4DC]" : "text-[#3A416F]"
             }`}
         >
           {allowTyping && typedValue !== ""
