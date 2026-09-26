@@ -1,4 +1,5 @@
 import { ContentBlock } from "@/app/admin/create-blog-article/blogArticleForm";
+import { stripHtml } from "@/lib/utils";
 
 export type PageFormState = {
   id?: string;
@@ -70,7 +71,7 @@ export const mapPageRowToForm = (row: any): PageFormState => {
     texte,
     description_aide,
     seo_title: row.seo_title || "",
-    seo_description: row.seo_description || "",
+    seo_description: stripHtml(row.seo_description) || "",
     noindex: !!row.noindex,
     nofollow: !!row.nofollow,
     canonical_override: row.canonical_override || "",
@@ -91,7 +92,7 @@ export const buildPagePayload = (form: PageFormState) => {
       ? [{ id: "contact-desc-aide", type: "description_aide", texte: form.description_aide || "" }]
       : form.content_blocks,
     seo_title: form.seo_title || null,
-    seo_description: form.seo_description || null,
+    seo_description: stripHtml(form.seo_description) || null,
     noindex: form.noindex,
     nofollow: form.nofollow,
     canonical_override: form.canonical_override || null,

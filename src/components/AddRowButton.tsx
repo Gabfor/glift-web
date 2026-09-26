@@ -11,9 +11,10 @@ type Props = {
   disabled?: boolean;
   locked?: boolean;
   adminMode?: boolean;
+  className?: string;
 };
 
-export default function AddRowButton({ icon, setIcon, onClick, disabled, locked, adminMode }: Props) {
+export default function AddRowButton({ icon, setIcon, onClick, disabled, locked, adminMode, className }: Props) {
   const isEffectiveAdmin = adminMode || (typeof window !== "undefined" && window.location.host.startsWith("admin."));
   const defaultPlusIcon = isEffectiveAdmin ? "/icons/admin_plus.svg" : "/icons/plus.svg";
   const hoverPlusIcon = isEffectiveAdmin ? "/icons/admin_plus_hover.svg" : "/icons/plus_hover.svg";
@@ -24,7 +25,7 @@ export default function AddRowButton({ icon, setIcon, onClick, disabled, locked,
 
   if (locked) {
     return (
-      <div className="flex justify-center mt-4">
+      <div className={`flex justify-center ${className ?? "mt-4"}`}>
         <svg
           width="20"
           height="20"
@@ -47,7 +48,7 @@ export default function AddRowButton({ icon, setIcon, onClick, disabled, locked,
   }
 
   return (
-    <div className="flex justify-center mt-4">
+    <div className={`flex justify-center ${className ?? "mt-4"}`}>
       <Tooltip content={disabled ? "Chargement..." : "Ajouter une ligne"} placement="bottom" delay={500}>
         <Image
           src={currentIcon}

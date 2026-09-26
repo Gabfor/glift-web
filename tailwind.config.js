@@ -67,24 +67,28 @@ module.exports = {
 			keyframes: {
 				'accordion-down': {
 					from: {
-						height: '0'
+						height: '0',
+						opacity: '0.6'
 					},
 					to: {
-						height: 'var(--radix-accordion-content-height)'
+						height: 'var(--radix-accordion-content-height)',
+						opacity: '1'
 					}
 				},
 				'accordion-up': {
 					from: {
-						height: 'var(--radix-accordion-content-height)'
+						height: 'var(--radix-accordion-content-height)',
+						opacity: '1'
 					},
 					to: {
-						height: '0'
+						height: '0',
+						opacity: '0.6'
 					}
 				}
 			},
 			animation: {
-				'accordion-down': 'accordion-down 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-				'accordion-up': 'accordion-up 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+				'accordion-down': 'accordion-down 0.32s cubic-bezier(0.25, 1, 0.5, 1)',
+				'accordion-up': 'accordion-up 0.28s cubic-bezier(0.25, 1, 0.5, 1)'
 			}
 		}
 	},

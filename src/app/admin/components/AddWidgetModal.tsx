@@ -137,6 +137,24 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                 <div className="w-[45%] h-[75px] bg-[#F4F5FE] rounded-[4px]" />
               </div>
             </button>
+
+            {/* 9. Bloc FAQ (Page) */}
+            <button
+              onClick={() => onSelect("faq")}
+              className={cardClassName}
+            >
+              <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                Bloc FAQ
+              </span>
+              <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-full flex items-center justify-between pb-[4px] border-b border-[#F4F5FE]">
+                    <div className="w-[65%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                    <div className="w-[8px] h-[5px] border-r-2 border-b-2 border-[#F4F5FE] rotate-45 mb-[2px]" />
+                  </div>
+                ))}
+              </div>
+            </button>
           </>
         ) : (
           <>
@@ -189,10 +207,23 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                   </div>
                 </button>
 
-                {/* Vide 4 (Legal) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* 4. Bloc FAQ (Legal) */}
+                <button
+                  onClick={() => onSelect("faq")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc FAQ
+                  </span>
+                  <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="w-full flex items-center justify-between pb-[4px] border-b border-[#F4F5FE]">
+                        <div className="w-[65%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                        <div className="w-[8px] h-[5px] border-r-2 border-b-2 border-[#F4F5FE] rotate-45 mb-[2px]" />
+                      </div>
+                    ))}
+                  </div>
+                </button>
               </>
             ) : articleType === "Conseil" ? (
               <>
@@ -286,10 +317,23 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                   </div>
                 </button>
 
-                {/* Vide 8 (Conseil) */}
-                <div className="flex items-center justify-center w-full h-[172px] rounded-[20px] border border-dashed border-[#D7D4DC]">
-                  <span className="text-[#3A416F] font-semibold text-[15px]">Vide</span>
-                </div>
+                {/* 8. Bloc FAQ (Conseil) */}
+                <button
+                  onClick={() => onSelect("faq")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc FAQ
+                  </span>
+                  <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="w-full flex items-center justify-between pb-[4px] border-b border-[#F4F5FE]">
+                        <div className="w-[65%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                        <div className="w-[8px] h-[5px] border-r-2 border-b-2 border-[#F4F5FE] rotate-45 mb-[2px]" />
+                      </div>
+                    ))}
+                  </div>
+                </button>
               </>
             ) : (
               <>
@@ -386,6 +430,24 @@ export default function AddWidgetModal({ articleType, onClose, onSelect }: AddWi
                       <div className="w-[8px] h-[8px] bg-[#F4F5FE] rounded-full shrink-0" />
                       <div className="w-[70%] h-[6px] bg-[#F4F5FE] rounded-full" />
                     </div>
+                  </div>
+                </button>
+
+                {/* 9. Bloc FAQ (Programme) */}
+                <button
+                  onClick={() => onSelect("faq")}
+                  className={cardClassName}
+                >
+                  <span className="text-[#5D6494] font-semibold text-[15px] mb-4 group-hover:text-[#3A416F] transition-colors duration-200">
+                    Bloc FAQ
+                  </span>
+                  <div className="w-[85%] flex flex-col gap-[8px] justify-center mt-1">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="w-full flex items-center justify-between pb-[4px] border-b border-[#F4F5FE]">
+                        <div className="w-[65%] h-[6px] bg-[#F4F5FE] rounded-full" />
+                        <div className="w-[8px] h-[5px] border-r-2 border-b-2 border-[#F4F5FE] rotate-45 mb-[2px]" />
+                      </div>
+                    ))}
                   </div>
                 </button>
               </>

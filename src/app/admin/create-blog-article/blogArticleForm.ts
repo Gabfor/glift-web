@@ -47,6 +47,18 @@ export type BlockListe = BaseBlock & {
   items: string[];
 };
 
+export type FAQItem = {
+  id?: string;
+  question: string;
+  reponse: string;
+};
+
+export type BlockFAQ = BaseBlock & {
+  type: "faq";
+  titre?: string;
+  items: FAQItem[];
+};
+
 export type BlockProgramme = BaseBlock & {
   type: "programme";
   titre: string;
@@ -214,6 +226,7 @@ export type ContentBlock =
   | BlockTableau
   | BlockCTA
   | BlockListe
+  | BlockFAQ
   | BlockProgramme 
   | BlockTelechargement 
   | BlockSeance

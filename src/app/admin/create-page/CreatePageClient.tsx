@@ -270,13 +270,14 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                         <div className="flex justify-between mb-[5px]">
                           <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
                           <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
+                            {(pageData.seo_description || "").length}/155
                           </span>
                         </div>
-                        <RichTextEditor
-                          value={pageData.seo_description}
-                          onChange={(val) => setPageData({ ...pageData, seo_description: val })}
-                          minHeight="100px"
+                        <textarea
+                          placeholder="Meta description de la page"
+                          value={pageData.seo_description || ""}
+                          onChange={(e) => setPageData({ ...pageData, seo_description: e.target.value })}
+                          className={textareaClass}
                         />
                       </div>
 
@@ -582,6 +583,19 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                 break;
               case "liste":
                 newBlock = { id: newId, type: "liste", titre: "", ancreId: "", items: ["", "", ""] };
+                break;
+              case "faq":
+                newBlock = {
+                  id: newId,
+                  type: "faq",
+                  titre: "",
+                  ancreId: "",
+                  items: [
+                    { question: "", reponse: "" },
+                    { question: "", reponse: "" },
+                    { question: "", reponse: "" }
+                  ]
+                };
                 break;
             }
             if (newBlock) setPageData({ ...pageData, content_blocks: [...(pageData.content_blocks || []), newBlock as ContentBlock] });

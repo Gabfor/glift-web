@@ -148,6 +148,9 @@ export default function CreateLegalPageClient({ pageId }: Props) {
   const inputClass =
     "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
 
+  const textareaClass =
+    "min-h-[70px] h-[70px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 resize-none";
+
   const [updatedYear, updatedMonth, updatedDay] = getDateParts(pageData.updated_at);
 
   return (
@@ -411,13 +414,14 @@ export default function CreateLegalPageClient({ pageId }: Props) {
                     <div className="flex justify-between mb-[5px]">
                       <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
                       <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        {pageData.seo_description.replace(/<[^>]*>/g, "").length}/155
+                        {(pageData.seo_description || "").length}/155
                       </span>
                     </div>
-                    <RichTextEditor
-                      value={pageData.seo_description}
-                      onChange={(val) => setPageData({ ...pageData, seo_description: val })}
-                      minHeight="100px"
+                    <textarea
+                      placeholder="Meta description de la page"
+                      value={pageData.seo_description || ""}
+                      onChange={(e) => setPageData({ ...pageData, seo_description: e.target.value })}
+                      className={textareaClass}
                     />
                   </div>
 
@@ -555,6 +559,19 @@ export default function CreateLegalPageClient({ pageId }: Props) {
               break;
             case "liste":
               newBlock = { id: newId, type: "liste", titre: "", ancreId: "", items: ["", "", ""] };
+              break;
+            case "faq":
+              newBlock = {
+                id: newId,
+                type: "faq",
+                titre: "",
+                ancreId: "",
+                items: [
+                  { question: "", reponse: "" },
+                  { question: "", reponse: "" },
+                  { question: "", reponse: "" }
+                ]
+              };
               break;
             default:
               break;

@@ -15,6 +15,7 @@ import { ContentBlock } from "./blogArticleForm";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import { MAIN_GOALS } from "@/components/account/constants";
 import { generateSlugFromTitle } from "@/utils/slugUtils";
+import { stripHtml } from "@/lib/utils";
 
 type Props = {
   articleId: string | null;
@@ -128,7 +129,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           is_featured: !!data.is_featured,
           is_ai_generated: !!data.is_ai_generated,
           seo_title: data.seo_title || "",
-          seo_description: data.seo_description || "",
+          seo_description: stripHtml(data.seo_description) || "",
           noindex: !!data.noindex,
           nofollow: !!data.nofollow,
           canonical_override: data.canonical_override || "",
@@ -201,7 +202,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         is_featured: article.is_featured,
         is_ai_generated: article.is_ai_generated,
         seo_title: article.seo_title || null,
-        seo_description: article.seo_description || null,
+        seo_description: stripHtml(article.seo_description) || null,
         noindex: article.noindex,
         nofollow: article.nofollow,
         canonical_override: article.canonical_override || null,
@@ -506,13 +507,14 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                     <div className="flex justify-between mb-[5px]">
                       <span className="text-[16px] text-[#3A416F] font-bold">Meta description</span>
                       <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        {article.seo_description.replace(/<[^>]*>/g, "").length}/155
+                        {(article.seo_description || "").length}/155
                       </span>
                     </div>
-                    <RichTextEditor
-                      value={article.seo_description}
-                      onChange={(val) => setArticle({ ...article, seo_description: val })}
-                      minHeight="100px"
+                    <textarea
+                      placeholder="Meta description de l'article"
+                      value={article.seo_description || ""}
+                      onChange={(e) => setArticle({ ...article, seo_description: e.target.value })}
+                      className={textareaClass}
                     />
                   </div>
 
@@ -951,6 +953,19 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                 titre: "",
                 ancreId: "",
                 items: ["", "", ""]
+              };
+              break;
+            case "faq":
+              newBlock = {
+                id: newId,
+                type: "faq",
+                titre: "",
+                ancreId: "",
+                items: [
+                  { question: "", reponse: "" },
+                  { question: "", reponse: "" },
+                  { question: "", reponse: "" }
+                ]
               };
               break;
             case "programme":

@@ -17,6 +17,7 @@ import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { motion, AnimatePresence } from "framer-motion";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 
 const PlaceholderImage = ({ width, height, className = "" }: { width?: number | string, height?: number | string, className?: string }) => (
   <div 
@@ -52,7 +53,7 @@ type ContentBlock = {
   titre?: string;
   texte?: string;
   url?: string;
-  items?: string[];
+  items?: any[];
   ancreId?: string;
   programme_id?: string;
   table_rows?: any[];
@@ -827,28 +828,45 @@ export default function BlogArticleBlocksRenderer({
             );
           }
 
-          case "source":
+          case "source": {
+            const prevBlock = blocks.slice(0, index).reverse().find((b) => {
+              if (!b) return false;
+              if (b.type === "card" || b.type === "bonus") return b.enabled !== false;
+              if (b.type === "cta") return Boolean(b.texte || b.url);
+              if (b.type === "liste") {
+                const listItems = b.items || [];
+                return Boolean(b.titre || listItems.some((it: string) => it && it.trim() !== ""));
+              }
+              if (b.type === "faq") {
+                const faqItems = b.items || [];
+                return Boolean(b.titre || faqItems.some((it: any) => it && ((typeof it === "object" && (it.question || it.reponse || it.answer)) || (typeof it === "string" && it.trim() !== ""))));
+              }
+              return true;
+            });
+            const isAfterFAQ = prevBlock?.type === "faq";
+
             return (
               <React.Fragment key={key}>
-                <div className="w-full h-[1px] bg-[#E7E8EA]" />
+                {!isAfterFAQ && <div className="w-full h-[1px] bg-[#E7E8EA]" />}
                 <div
                   id={block.ancreId || undefined}
                   className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px]"
                 >
-                {block.titre && (
-                  <h3 className="text-[14px] font-bold text-[#2E3271]">
-                    {block.titre}
-                  </h3>
-                )}
-                {block.texte && (
-                  <div
-                    className="text-[12px] text-[#5D6494] font-semibold [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
-                  />
-                )}
-              </div>
-            </React.Fragment>
-          );
+                  {block.titre && (
+                    <h3 className="text-[14px] font-bold text-[#2E3271]">
+                      {block.titre}
+                    </h3>
+                  )}
+                  {block.texte && (
+                    <div
+                      className="text-[12px] text-[#5D6494] font-semibold [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
+                      dangerouslySetInnerHTML={{ __html: block.texte }}
+                    />
+                  )}
+                </div>
+              </React.Fragment>
+            );
+          }
 
           case "cta": {
             if (!block.texte && !block.url) return null;
@@ -879,29 +897,73 @@ export default function BlogArticleBlocksRenderer({
               <div
                 key={key}
                 id={block.ancreId || undefined}
-                className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] flex flex-col gap-[10px] scroll-mt-[100px]"
+                className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] flex flex-col gap-[10px] scroll-mt-[100px] my-[10px]"
               >
                 {block.titre && (
                   <h3 className="text-[20px] md:text-[22px] font-bold text-[#2E3271] mb-0">
                     {block.titre}
                   </h3>
                 )}
-                <div className="flex flex-col gap-[10px]">
+                <div className="flex flex-col gap-[20px]">
                   {validItems.map((item: string, idx: number) => {
                     const numStr = String(idx + 1).padStart(2, "0");
                     return (
-                      <div key={idx} className="flex items-start gap-[10px]">
-                        <span className="text-[14px] font-bold text-[#7069FA] tracking-wide shrink-0 select-none pt-[1px]">
+                      <div key={idx} className="flex items-start gap-[12px]">
+                        <span className="text-[15px] font-bold text-[#7069FA] tracking-wide shrink-0 select-none leading-[1.6]">
                           {numStr}
                         </span>
                         <div
-                          className="text-[14px] font-semibold text-[#5D6494] leading-[1.6] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_strong]:font-bold [&_b]:font-bold"
+                          className="text-[15px] font-semibold text-[#5D6494] leading-[1.6] [&_p]:m-0 [&_p]:inline [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_strong]:font-bold [&_b]:font-bold [&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#554de0] flex-1"
                           dangerouslySetInnerHTML={{ __html: item }}
                         />
                       </div>
                     );
                   })}
                 </div>
+              </div>
+            );
+          }
+
+          case "faq": {
+            const faqItems: any[] = block.items || [];
+            const validItems = faqItems.filter(
+              (it) => it && ((typeof it === "object" && (it.question || it.reponse || it.answer)) || (typeof it === "string" && it.trim() !== ""))
+            );
+            if (!block.titre && validItems.length === 0) return null;
+
+            return (
+              <div
+                key={key}
+                id={block.ancreId || undefined}
+                className="w-full flex flex-col scroll-mt-[100px]"
+              >
+                {block.titre && (
+                  <h3 className="text-[22px] sm:text-[24px] md:text-[26px] font-bold text-[#2E3271] mb-[15px]">
+                    {block.titre}
+                  </h3>
+                )}
+                <Accordion type="single" collapsible className="w-full">
+                  {validItems.map((item: any, idx: number) => {
+                    const question = typeof item === "string" ? item : item.question || "";
+                    const reponse = typeof item === "object" ? item.reponse || item.answer || "" : "";
+                    if (!question && !reponse) return null;
+
+                    return (
+                      <AccordionItem key={idx} value={`faq-${key}-${idx}`} className="border-b border-[#ECE9F1]">
+                        <AccordionTrigger className="hover:no-underline text-[15px] font-bold text-[#5D6494] hover:text-[#3A416F] data-[state=open]:text-[#3A416F] py-[18px] md:py-[20px] transition-colors">
+                          <h3 className="text-[15px] font-bold text-inherit m-0 p-0 font-[inherit] inline">
+                            {question}
+                          </h3>
+                        </AccordionTrigger>
+                        {reponse && (
+                          <AccordionContent className="pb-[20px] pr-[34px] text-[15px] font-semibold text-[#5D6494] leading-[1.7] prose prose-sm max-w-none [&_p]:text-[15px] [&_p]:font-semibold [&_p]:text-[#5D6494] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#554de0]">
+                            <div dangerouslySetInnerHTML={{ __html: reponse }} />
+                          </AccordionContent>
+                        )}
+                      </AccordionItem>
+                    );
+                  })}
+                </Accordion>
               </div>
             );
           }

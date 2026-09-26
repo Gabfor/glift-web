@@ -22,7 +22,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
   const [articlesResult, blogConfigResult] = await Promise.all([
     supabase
       .from("blog_articles")
-      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe")
+      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, niveau, nombre_seances, duree_moyenne")
       .in("id", idsToFetch)
       .eq("is_published", true)
       .limit(2),

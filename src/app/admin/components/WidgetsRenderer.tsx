@@ -4,13 +4,14 @@ import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
 import RichTextEditor from "@/components/ui/RichTextEditor";
 import Tooltip from "@/components/Tooltip";
-import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau, BlockCTA, BlockListe } from "../create-blog-article/blogArticleForm";
+import { ContentBlock, SeanceRow, BlockPartenaires, BlockTableau, BlockCTA, BlockListe, BlockFAQ, FAQItem } from "../create-blog-article/blogArticleForm";
 import AdminSeanceTable from "./AdminSeanceTable";
 import AddRowButton from "@/components/AddRowButton";
 import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import { TrashIcon, TrashHoverIcon } from "@/components/icons/TrashIcons";
 
 type Props = {
   blocks: ContentBlock[];
@@ -98,6 +99,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
       case "tableau": return "Bloc tableau";
       case "cta": return "Bloc CTA";
       case "liste": return "Bloc liste";
+      case "faq": return "Bloc FAQ";
       case "programme": return "Bloc programme";
       case "telechargement": return "Bloc téléchargement";
       case "seance": return "Bloc séance";
@@ -557,6 +559,14 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             {block.type === "liste" && (
               <AdminListBlock
                 block={block as BlockListe}
+                updateBlock={updateBlock}
+                inputClass={inputClass}
+              />
+            )}
+
+            {block.type === "faq" && (
+              <AdminFAQBlock
+                block={block as BlockFAQ}
                 updateBlock={updateBlock}
                 inputClass={inputClass}
               />
@@ -1413,43 +1423,46 @@ function AdminListBlock({
 
       <div className="flex flex-col gap-3 mt-1">
         <label className="text-[16px] text-[#3A416F] font-bold">Éléments de la liste</label>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
           {items.map((item, index) => {
             const numStr = String(index + 1).padStart(2, "0");
             return (
-              <div key={index} className="flex items-center gap-3">
-                <span className="text-[14px] font-bold text-[#3A416F] w-[26px] text-center shrink-0 select-none">
+              <div key={index} className="flex items-start gap-3">
+                <span className="text-[14px] font-bold text-[#3A416F] w-[26px] text-center shrink-0 select-none pt-[12px]">
                   {numStr}
                 </span>
-                <input
-                  type="text"
-                  placeholder="Texte"
-                  value={item}
-                  onChange={(e) => handleUpdateItem(index, e.target.value)}
-                  className={inputClass}
-                />
-                <Tooltip content="Supprimer" placement="top" offset={10}>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteItem(index)}
-                    className="p-1 group cursor-pointer shrink-0"
-                  >
-                    <Image
-                      src="/icons/admin_supp_colonne.svg"
-                      alt="Supprimer"
-                      width={16}
-                      height={16}
-                      className="group-hover:hidden"
-                    />
-                    <Image
-                      src="/icons/admin_supp_colonne_hover.svg"
-                      alt="Supprimer"
-                      width={16}
-                      height={16}
-                      className="hidden group-hover:block"
-                    />
-                  </button>
-                </Tooltip>
+                <div className="flex-1 min-w-0">
+                  <RichTextEditor
+                    value={item || ""}
+                    onChange={(val) => handleUpdateItem(index, val)}
+                    placeholder="Texte"
+                    minHeight="60px"
+                  />
+                </div>
+                <div className="pt-[10px] shrink-0">
+                  <Tooltip content="Supprimer" placement="top" offset={10}>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItem(index)}
+                      className="p-1 group cursor-pointer shrink-0"
+                    >
+                      <Image
+                        src="/icons/admin_supp_colonne.svg"
+                        alt="Supprimer"
+                        width={16}
+                        height={16}
+                        className="group-hover:hidden"
+                      />
+                      <Image
+                        src="/icons/admin_supp_colonne_hover.svg"
+                        alt="Supprimer"
+                        width={16}
+                        height={16}
+                        className="hidden group-hover:block"
+                      />
+                    </button>
+                  </Tooltip>
+                </div>
               </div>
             );
           })}
@@ -1460,6 +1473,134 @@ function AdminListBlock({
           setIcon={setPlusIcon}
           onClick={handleAddItem}
           adminMode={true}
+        />
+      </div>
+    </div>
+  );
+}
+
+function AdminFAQBlock({
+  block,
+  updateBlock,
+  inputClass,
+}: {
+  block: BlockFAQ;
+  updateBlock: (id: string, updates: Partial<ContentBlock>) => void;
+  inputClass: string;
+}) {
+  const [plusIcon, setPlusIcon] = useState("/icons/admin_plus.svg");
+  const items = block.items && block.items.length > 0 ? block.items : [{ question: "", reponse: "" }];
+
+  const handleUpdateItem = (index: number, field: "question" | "reponse", val: string) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: val };
+    updateBlock(block.id, { items: newItems });
+  };
+
+  const handleAddItem = () => {
+    updateBlock(block.id, { items: [...items, { question: "", reponse: "" }] });
+  };
+
+  const handleDeleteItem = (index: number) => {
+    if (items.length <= 1) {
+      updateBlock(block.id, { items: [{ question: "", reponse: "" }] });
+      return;
+    }
+    const newItems = items.filter((_, i) => i !== index);
+    updateBlock(block.id, { items: newItems });
+  };
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre</label>
+          <input
+            type="text"
+            placeholder="Titre"
+            value={block.titre || ""}
+            onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id</label>
+          <input
+            type="text"
+            placeholder="Id"
+            value={block.ancreId || ""}
+            onChange={(e) => updateBlock(block.id, { ancreId: e.target.value })}
+            className={inputClass}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-6">
+        {items.map((item, index) => {
+          return (
+            <div key={index} className="flex flex-col">
+              {/* Question Divider Bar */}
+              <div className="relative flex items-center justify-between bg-[#FBFCFE] h-[50px] mb-[12px] z-10">
+                {/* Conteneur du nom centré avec z-index pour passer au-dessus de la ligne */}
+                <div className="flex-1 flex justify-center items-center relative z-10 pointer-events-none">
+                  <div className="flex items-center text-[16px] text-[#D7D4DC] font-semibold bg-[#FBFCFE] p-2 pointer-events-auto">
+                    <span>Question</span>
+                  </div>
+                </div>
+
+                {/* Poubelle à droite avec fond pour masquer la ligne */}
+                <div className="flex items-center absolute right-0 z-20 bg-[#FBFCFE] py-2 pl-2">
+                  <Tooltip content="Supprimer">
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItem(index)}
+                      className="relative w-[20px] h-[20px] transition duration-300 ease-in-out cursor-pointer"
+                      aria-label="Supprimer"
+                    >
+                      <div className="relative w-full h-full">
+                        <TrashIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0 pointer-events-none" />
+                        <TrashHoverIcon className="absolute top-0 left-0 h-full w-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100 pointer-events-none" />
+                      </div>
+                    </button>
+                  </Tooltip>
+                </div>
+
+                {/* La ligne (séparateur) en dessous de tout */}
+                <div className="absolute top-[25px] left-0 w-full h-[1px] bg-[#ECE9F1] z-0" />
+              </div>
+
+              {/* Champ Question */}
+              <div className="flex flex-col mb-4">
+                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Question</label>
+                <input
+                  type="text"
+                  placeholder="Question"
+                  value={item.question || ""}
+                  onChange={(e) => handleUpdateItem(index, "question", e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+
+              {/* Champ Réponse */}
+              <div className="flex flex-col">
+                <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Réponse</label>
+                <RichTextEditor
+                  value={item.reponse || ""}
+                  onChange={(val) => handleUpdateItem(index, "reponse", val)}
+                  placeholder="Réponse"
+                  minHeight="100px"
+                />
+              </div>
+            </div>
+          );
+        })}
+
+        <AddRowButton
+          icon={plusIcon}
+          setIcon={setPlusIcon}
+          onClick={handleAddItem}
+          adminMode={true}
+          className="mt-0"
         />
       </div>
     </div>

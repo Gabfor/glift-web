@@ -1,4 +1,5 @@
 import { ContentBlock } from "@/app/admin/create-blog-article/blogArticleForm";
+import { stripHtml } from "@/lib/utils";
 
 export type LegalPageFormState = {
   id?: string;
@@ -39,7 +40,7 @@ export const mapLegalPageRowToForm = (row: any): LegalPageFormState => {
     updated_at: row.updated_at || "",
     content_blocks: row.content_blocks || [],
     seo_title: row.seo_title || "",
-    seo_description: row.seo_description || "",
+    seo_description: stripHtml(row.seo_description) || "",
     noindex: !!row.noindex,
     nofollow: !!row.nofollow,
     canonical_override: row.canonical_override || "",
@@ -55,7 +56,7 @@ export const buildLegalPagePayload = (form: LegalPageFormState) => {
     updated_at: form.updated_at || null,
     content_blocks: form.content_blocks,
     seo_title: form.seo_title || null,
-    seo_description: form.seo_description || null,
+    seo_description: stripHtml(form.seo_description) || null,
     noindex: form.noindex,
     nofollow: form.nofollow,
     canonical_override: form.canonical_override || null,
