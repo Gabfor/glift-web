@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { useEditor, EditorContent } from '@tiptap/react';
-import { Extension, Node, mergeAttributes } from '@tiptap/core';
+import { Extension, Node, Mark, mergeAttributes } from '@tiptap/core';
 import { Selection } from '@tiptap/pm/state';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
@@ -14,7 +14,8 @@ import {
     MdFormatBold, MdFormatItalic, MdFormatUnderlined, MdFormatStrikethrough,
     MdFormatListBulleted, MdFormatListNumbered, MdLink, MdLinkOff, MdOndemandVideo, MdImage,
     MdHelpOutline, MdClose, MdEmojiEmotions,
-    MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight
+    MdFormatAlignLeft, MdFormatAlignCenter, MdFormatAlignRight,
+    MdSuperscript
 } from "react-icons/md";
 import { Quicksand } from "next/font/google";
 import RichTextLinkModal from "./RichTextLinkModal";
@@ -37,6 +38,7 @@ interface RichTextEditorProps {
     editorClassName?: string;
     containerClassName?: string;
     minimal?: boolean;
+    compact?: boolean;
     minHeight?: string;
 }
 
@@ -238,17 +240,66 @@ const ImageCaption = Node.create({
     },
 });
 
+declare module '@tiptap/core' {
+    interface Commands<ReturnType> {
+        superscript: {
+            setSuperscript: () => ReturnType;
+            toggleSuperscript: () => ReturnType;
+            unsetSuperscript: () => ReturnType;
+        };
+    }
+}
+
+const Superscript = Mark.create({
+    name: 'superscript',
+
+    parseHTML() {
+        return [
+            {
+                tag: 'sup',
+            },
+        ];
+    },
+
+    renderHTML({ HTMLAttributes }) {
+        return ['sup', mergeAttributes(HTMLAttributes), 0];
+    },
+
+    addCommands() {
+        return {
+            setSuperscript: () => ({ commands }: any) => {
+                return commands.setMark(this.name);
+            },
+            toggleSuperscript: () => ({ commands }: any) => {
+                return commands.toggleMark(this.name);
+            },
+            unsetSuperscript: () => ({ commands }: any) => {
+                return commands.unsetMark(this.name);
+            },
+        } as any;
+    },
+
+    addKeyboardShortcuts() {
+        return {
+            'Mod-.': () => (this.editor.commands as any).toggleSuperscript(),
+        };
+    },
+});
+
 const ToolbarButton = ({
     onClick,
     isActive = false,
+    title,
     children
 }: {
     onClick: () => void;
     isActive?: boolean;
+    title?: string;
     children: React.ReactNode;
 }) => (
     <button
         onClick={onClick}
+        title={title}
         className={`p-1 rounded transition-colors ${isActive ? 'text-[#3A416F] bg-[#FAFAFF]' : 'text-[#5D6494] hover:text-[#3A416F]'
             }`}
         type="button"
@@ -265,6 +316,7 @@ export default function RichTextEditor({
     editorClassName, 
     containerClassName,
     minimal = false,
+    compact = false,
     minHeight
 }: RichTextEditorProps) {
     const pathname = usePathname();
@@ -303,6 +355,7 @@ export default function RichTextEditor({
                 },
             }),
             Underline,
+            Superscript,
             GlobalAttributes,
             ImageCaption,
             Placeholder.configure({
@@ -331,9 +384,9 @@ export default function RichTextEditor({
         content: sanitizedValue,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none px-4 py-3 font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'} [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:my-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:my-2 [&_p]:mt-0 [&_p]:mb-3.5`,
+                class: `prose prose-sm focus:outline-none ${compact ? 'px-3 py-1.5 text-[14px]' : 'px-4 py-3'} font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'} [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:my-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:my-2 [&_p]:mt-0 ${compact ? '[&_p]:mb-0' : '[&_p]:mb-3.5'}`,
                 spellcheck: "true",
-                style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? 'min-height: 345px' : '',
+                style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? (compact ? 'min-height: 38px' : 'min-height: 345px') : '',
             },
             transformPastedHTML(html) {
                 // Interdire les <h1> : rétrogradation automatique en <p> lors du copier-coller
@@ -467,80 +520,96 @@ export default function RichTextEditor({
                     ? "focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]"
                     : "focus-within:!border-[#A1A5FD] focus-within:ring-1 focus-within:ring-[#5D6494]"
             } flex flex-col relative w-full ${containerClassName || 'resize-y overflow-auto'}`}
-            style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: '345px' } : {}}
+            style={!containerClassName && minHeight ? { minHeight } : !containerClassName ? { minHeight: compact ? '76px' : '345px' } : {}}
         >
-            <div className="flex items-center gap-1 border-b border-[#D7D4DC] h-[40px] shrink-0 px-2 bg-white shadow-glift sticky top-0 z-10 w-full flex-wrap">
-                {/* Format de texte : Normal (<p>), Sous-titre (<h2>), Sous-section (<h3>) */}
-                <button
-                    onClick={() => editor?.chain().focus().setParagraph().run()}
-                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
-                        editor?.isActive('paragraph') && !editor?.isActive('heading')
-                            ? 'bg-[#3A416F] text-white'
-                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
-                    }`}
-                    type="button"
-                    title="Texte normal (<p>)"
-                >
-                    Normal
-                </button>
+            <div className={`flex items-center gap-1 border-b border-[#D7D4DC] ${compact ? 'h-[34px]' : 'h-[40px]'} shrink-0 px-2 bg-white shadow-glift sticky top-0 z-10 w-full overflow-x-auto no-scrollbar`}>
+                {!compact && (
+                    <>
+                        {/* Format de texte : Normal (<p>), Sous-titre (<h2>), Sous-section (<h3>) */}
+                        <button
+                            onClick={() => editor?.chain().focus().setParagraph().run()}
+                            className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                                editor?.isActive('paragraph') && !editor?.isActive('heading')
+                                    ? 'bg-[#3A416F] text-white'
+                                    : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                            }`}
+                            type="button"
+                            title="Texte normal (<p>)"
+                        >
+                            Normal
+                        </button>
 
-                <button
-                    onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
-                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
-                        editor?.isActive('heading', { level: 2 })
-                            ? 'bg-[#3A416F] text-white'
-                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
-                    }`}
-                    type="button"
-                    title="Sous-titre (<h2>)"
-                >
-                    H2
-                </button>
+                        <button
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+                            className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                                editor?.isActive('heading', { level: 2 })
+                                    ? 'bg-[#3A416F] text-white'
+                                    : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                            }`}
+                            type="button"
+                            title="Sous-titre (<h2>)"
+                        >
+                            H2
+                        </button>
 
-                <button
-                    onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
-                    className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
-                        editor?.isActive('heading', { level: 3 })
-                            ? 'bg-[#3A416F] text-white'
-                            : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
-                    }`}
-                    type="button"
-                    title="Sous-section (<h3>)"
-                >
-                    H3
-                </button>
+                        <button
+                            onClick={() => editor?.chain().focus().toggleHeading({ level: 3 }).run()}
+                            className={`px-2 h-[26px] rounded-[4px] text-[12px] font-bold transition-all duration-150 flex items-center justify-center ${
+                                editor?.isActive('heading', { level: 3 })
+                                    ? 'bg-[#3A416F] text-white'
+                                    : 'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#F4F5FE]'
+                            }`}
+                            type="button"
+                            title="Sous-section (<h3>)"
+                        >
+                            H3
+                        </button>
 
-                <div className="w-[1px] h-[20px] bg-[#D7D4DC] mx-1" />
+                        <div className="w-[1px] h-[20px] bg-[#D7D4DC] mx-1" />
+                    </>
+                )}
 
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleBold().run()}
                     isActive={editor?.isActive('bold') ?? false}
+                    title="Gras"
                 >
-                    <MdFormatBold size={20} />
+                    <MdFormatBold size={compact ? 18 : 20} />
                 </ToolbarButton>
 
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleItalic().run()}
                     isActive={editor?.isActive('italic') ?? false}
+                    title="Italique"
                 >
-                    <MdFormatItalic size={20} />
+                    <MdFormatItalic size={compact ? 18 : 20} />
                 </ToolbarButton>
 
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleUnderline().run()}
                     isActive={editor?.isActive('underline') ?? false}
+                    title="Souligné"
                 >
-                    <MdFormatUnderlined size={20} />
+                    <MdFormatUnderlined size={compact ? 18 : 20} />
                 </ToolbarButton>
 
                 <ToolbarButton
                     onClick={() => editor?.chain().focus().toggleStrike().run()}
                     isActive={editor?.isActive('strike') ?? false}
+                    title="Barré"
                 >
-                    <MdFormatStrikethrough size={20} />
+                    <MdFormatStrikethrough size={compact ? 18 : 20} />
                 </ToolbarButton>
 
-                {!minimal && (
+                <ToolbarButton
+                    onClick={() => (editor?.chain().focus() as any).toggleSuperscript().run()}
+                    isActive={editor?.isActive('superscript') ?? false}
+                    title="Exposant"
+                >
+                    <MdSuperscript size={compact ? 18 : 20} />
+                </ToolbarButton>
+
+                {!minimal && !compact && (
                     <>
                         <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
 
@@ -567,64 +636,75 @@ export default function RichTextEditor({
                     </>
                 )}
 
-                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
-
-                <ToolbarButton
-                    onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                    isActive={editor?.isActive('bulletList') ?? false}
-                >
-                    <MdFormatListBulleted size={20} />
-                </ToolbarButton>
-
-                <ToolbarButton
-                    onClick={() => editor?.chain().focus().toggleOrderedList().run()}
-                    isActive={editor?.isActive('orderedList') ?? false}
-                >
-                    <MdFormatListNumbered size={20} />
-                </ToolbarButton>
-
-                {!minimal && (
+                {!compact && (
                     <>
                         <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
 
                         <ToolbarButton
+                            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+                            isActive={editor?.isActive('bulletList') ?? false}
+                        >
+                            <MdFormatListBulleted size={20} />
+                        </ToolbarButton>
+
+                        <ToolbarButton
+                            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+                            isActive={editor?.isActive('orderedList') ?? false}
+                        >
+                            <MdFormatListNumbered size={20} />
+                        </ToolbarButton>
+                    </>
+                )}
+
+                {!minimal && (
+                    <>
+                        <div className={`w-[1px] ${compact ? 'h-[18px]' : 'h-[24px]'} bg-[#D7D4DC] mx-1`} />
+
+                        <ToolbarButton
                             onClick={setLink}
                             isActive={editor?.isActive('link') ?? false}
+                            title="Insérer un lien"
                         >
-                            <MdLink size={20} />
+                            <MdLink size={compact ? 18 : 20} />
                         </ToolbarButton>
 
                         <ToolbarButton
                             onClick={() => editor?.chain().focus().unsetLink().run()}
                             isActive={false}
+                            title="Supprimer le lien"
                         >
-                            <MdLinkOff size={20} />
+                            <MdLinkOff size={compact ? 18 : 20} />
                         </ToolbarButton>
 
-                        <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+                        {!compact && (
+                            <>
+                                <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
 
-                        <ToolbarButton
-                            onClick={addImage}
-                            isActive={editor?.isActive('image') ?? false}
-                        >
-                            <MdImage size={20} />
-                        </ToolbarButton>
+                                <ToolbarButton
+                                    onClick={addImage}
+                                    isActive={editor?.isActive('image') ?? false}
+                                >
+                                    <MdImage size={20} />
+                                </ToolbarButton>
 
-                        <ToolbarButton
-                            onClick={addYoutubeVideo}
-                            isActive={editor?.isActive('youtube') ?? false}
-                        >
-                            <MdOndemandVideo size={20} />
-                        </ToolbarButton>
+                                <ToolbarButton
+                                    onClick={addYoutubeVideo}
+                                    isActive={editor?.isActive('youtube') ?? false}
+                                >
+                                    <MdOndemandVideo size={20} />
+                                </ToolbarButton>
+                            </>
+                        )}
 
-                        <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
+                        <div className={`w-[1px] ${compact ? 'h-[18px]' : 'h-[24px]'} bg-[#D7D4DC] mx-1`} />
 
                         <div className="relative">
                             <ToolbarButton
                                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                                 isActive={showEmojiPicker}
+                                title="Emoji"
                             >
-                                <MdEmojiEmotions size={20} />
+                                <MdEmojiEmotions size={compact ? 18 : 20} />
                             </ToolbarButton>
 
                             {showEmojiPicker && (
@@ -643,7 +723,7 @@ export default function RichTextEditor({
                             )}
                         </div>
 
-                        {withHelpLink && (
+                        {!compact && withHelpLink && (
                             <>
                                 <div className="w-[1px] h-[24px] bg-[#D7D4DC] mx-1" />
                                 <div className="relative">
@@ -752,6 +832,11 @@ export default function RichTextEditor({
         .ProseMirror a:hover *,
         .ProseMirror a[class*="text-"]:hover {
             color: #6660E4 !important;
+        }
+        .ProseMirror sup {
+            font-size: 0.75em;
+            vertical-align: super;
+            line-height: 0;
         }
         .ProseMirror iframe {
             max-width: 100%;

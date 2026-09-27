@@ -845,12 +845,32 @@ export default function BlogArticleBlocksRenderer({
             });
             const isAfterFAQ = prevBlock?.type === "faq";
 
+            const formatSourceText = (html?: string) => {
+              if (!html) return "";
+              return html
+                .replace(
+                  /(<(?:p|li|div)[^>]*>)(\s*(?:<[^>]+>\s*)*)\[(\d+)\]/gi,
+                  (match, openTag, innerTags, num) => {
+                    const tagWithId = openTag.includes('id="') || openTag.includes("id='")
+                      ? openTag
+                      : openTag.replace(/<(p|li|div)/i, `<$1 id="source-${num}"`);
+                    return `${tagWithId}${innerTags}[${num}]`;
+                  }
+                )
+                .replace(
+                  /(<br\s*\/?>\s*)\[(\d+)\]/gi,
+                  (match, br, num) => {
+                    return `${br}<span id="source-${num}" class="scroll-mt-[100px] inline-block">[${num}]</span>`;
+                  }
+                );
+            };
+
             return (
               <React.Fragment key={key}>
                 {!isAfterFAQ && <div className="w-full h-[1px] bg-[#E7E8EA]" />}
                 <div
                   id={block.ancreId || undefined}
-                  className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px]"
+                  className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px] scroll-mt-[100px] [&_[id^=source-]]:scroll-mt-[100px]"
                 >
                   {block.titre && (
                     <h3 className="text-[14px] font-bold text-[#2E3271]">
@@ -860,7 +880,7 @@ export default function BlogArticleBlocksRenderer({
                   {block.texte && (
                     <div
                       className="text-[12px] text-[#5D6494] font-semibold [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
-                      dangerouslySetInnerHTML={{ __html: block.texte }}
+                      dangerouslySetInnerHTML={{ __html: formatSourceText(block.texte) }}
                     />
                   )}
                 </div>

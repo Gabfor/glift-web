@@ -925,7 +925,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               newBlock = { id: newId, type: "texte", texte: "" };
               break;
             case "source":
-              newBlock = { id: newId, type: "source", titre: "", texte: "" };
+              newBlock = { id: newId, type: "source", titre: "", ancreId: "", texte: "" };
               break;
             case "note":
               newBlock = { id: newId, type: "note", texte: "" };

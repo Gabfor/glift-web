@@ -498,15 +498,27 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
 
             {block.type === "source" && (
               <>
-                <div className="flex flex-col">
-                  <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre des sources</label>
-                  <input 
-                    type="text" 
-                    placeholder="Titre" 
-                    value={block.titre || ""} 
-                    onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
-                    className={inputClass}
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Titre des sources</label>
+                    <input 
+                      type="text" 
+                      placeholder="Titre" 
+                      value={block.titre || ""} 
+                      onChange={(e) => updateBlock(block.id, { titre: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Id</label>
+                    <input 
+                      type="text" 
+                      placeholder="Id" 
+                      value={block.ancreId || ""} 
+                      onChange={(e) => updateBlock(block.id, { ancreId: e.target.value })}
+                      className={inputClass}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col">
                   <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
@@ -1428,7 +1440,7 @@ function AdminListBlock({
             const numStr = String(index + 1).padStart(2, "0");
             return (
               <div key={index} className="flex items-start gap-3">
-                <span className="text-[14px] font-bold text-[#3A416F] w-[26px] text-center shrink-0 select-none pt-[12px]">
+                <span className="text-[14px] font-bold text-[#3A416F] w-[26px] text-center shrink-0 select-none pt-[7px]">
                   {numStr}
                 </span>
                 <div className="flex-1 min-w-0">
@@ -1436,10 +1448,11 @@ function AdminListBlock({
                     value={item || ""}
                     onChange={(val) => handleUpdateItem(index, val)}
                     placeholder="Texte"
-                    minHeight="60px"
+                    compact
+                    minHeight="38px"
                   />
                 </div>
-                <div className="pt-[10px] shrink-0">
+                <div className="pt-[7px] shrink-0">
                   <Tooltip content="Supprimer" placement="top" offset={10}>
                     <button
                       type="button"
