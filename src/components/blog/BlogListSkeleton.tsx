@@ -18,7 +18,7 @@ export default function BlogListSkeleton() {
         {/* Featured articles skeleton */}
         <section>
           <div className="h-4 bg-[#E6E8F5] rounded w-[150px] mb-[20px]" />
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {Array.from({ length: 4 }).map((_, i) => (
               <BlogArticleCardSkeleton key={`featured-${i}`} />
             ))}
@@ -28,7 +28,7 @@ export default function BlogListSkeleton() {
         {/* Recent articles skeleton */}
         <section>
           <div className="h-4 bg-[#E6E8F5] rounded w-[150px] mb-[20px] mt-[10px]" />
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {Array.from({ length: 4 }).map((_, i) => (
               <BlogArticleCardSkeleton key={`recent-${i}`} />
             ))}

@@ -6,6 +6,7 @@ import BlogArticleBlocksRenderer from "./BlogArticleBlocksRenderer";
 import RelatedArticles from "./RelatedArticles";
 import Tooltip from "@/components/Tooltip";
 import BlogListClient from "../BlogListClient";
+import BlogIntroBlock from "@/components/blog/BlogIntroBlock";
 import type { Metadata } from "next";
 
 // Next.js Route Cache & revalidation (opt-in)
@@ -112,17 +113,29 @@ export async function generateMetadata({
   // 2. Tente de voir si c'est une catégorie
   const categoryName = categoryMapping[slug];
   if (categoryName) {
-    const catTitle = `Conseils & Programmes ${categoryName} | Glift`;
-    const catDesc = `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`;
+    const { data: pageConfig } = await (supabase.from("pages") as any)
+      .select("*")
+      .in("url", [`blog/${slug}`, `blog/${url}`, slug, url])
+      .eq("is_published", true)
+      .maybeSingle();
+
+    const title = pageConfig?.seo_title || (pageConfig?.titre ? pageConfig.titre.replace(/<[^>]*>/g, "").trim() : `Conseils & Programmes ${categoryName} | Glift`);
+    const description = pageConfig?.seo_description || (pageConfig?.description ? pageConfig.description.replace(/<[^>]*>/g, "").trim() : `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`);
+
+    const robots: any = {};
+    if (pageConfig?.noindex) robots.index = false;
+    if (pageConfig?.nofollow) robots.follow = false;
+
     return {
-      title: catTitle,
-      description: catDesc,
+      title,
+      description,
+      robots: Object.keys(robots).length > 0 ? robots : undefined,
       alternates: {
-        canonical: `/blog/${url}`,
+        canonical: pageConfig?.canonical_override || `/blog/${url}`,
       },
       openGraph: {
-        title: catTitle,
-        description: catDesc,
+        title,
+        description,
         url: `${siteUrl}/blog/${url}`,
         siteName: "Glift",
         locale: "fr_FR",
@@ -130,8 +143,8 @@ export async function generateMetadata({
       },
       twitter: {
         card: "summary_large_image",
-        title: catTitle,
-        description: catDesc,
+        title,
+        description,
       },
     };
   }
@@ -313,9 +326,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             })
           }}
         />
-        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px]">
+        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
           {/* Container pour le fil d'ariane aligné à gauche */}
-          <div className="max-w-[1152px] mx-auto px-5 md:px-0 mb-10">
+          <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
               <span>›</span>
@@ -327,7 +340,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             </div>
           </div>
 
-          <div className="max-w-[760px] mx-auto px-5 md:px-0">
+          <div className="max-w-[760px] mx-auto">
             <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
@@ -468,7 +481,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
 
           {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
           <div className="bg-[#FBFCFE]">
-            <div className="max-w-[760px] mx-auto px-5 md:px-0">
+            <div className="max-w-[760px] mx-auto">
               <RelatedArticles
                 articleLie1Id={article.article_lie_1_id}
                 articleLie2Id={article.article_lie_2_id}
@@ -516,26 +529,111 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
   // 2. Check if it's a category
   const categoryName = categoryMapping[slug];
   if (categoryName) {
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+
+    // 1. Fetch category page configuration from the `pages` table
+    const { data: pageConfig } = await (supabase.from("pages") as any)
+      .select("*")
+      .in("url", [`blog/${slug}`, `blog/${url}`, slug, url])
+      .eq("is_published", true)
+      .maybeSingle();
+
     const { data: allArticles } = await (supabase.from("blog_articles") as any)
       .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
 
-    return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
-        <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
-          <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0 uppercase">
-            {categoryName}
-          </h1>
-          <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
-            <p>
-              Découvrez tous nos articles sur le thème <strong>{categoryName}</strong>.
-            </p>
-          </div>
-        </div>
+    // Extract extra text from content_blocks if present
+    let extraText = "";
+    if (pageConfig?.content_blocks) {
+      const blocks = (pageConfig.content_blocks as any) || [];
+      const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "texte") : null;
+      if (textBlock && textBlock.texte) {
+        extraText = textBlock.texte;
+      }
+    }
 
-        <BlogListClient initialArticles={allArticles || []} initialCategory={categoryName} />
-      </main>
+    const titleToDisplay = pageConfig?.titre || categoryName;
+    const descriptionToDisplay = pageConfig?.description || `<p>Découvrez tous nos articles sur le thème <strong>${categoryName}</strong>.</p>`;
+
+    // JSON-LD schemas
+    const breadcrumbSchema = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Accueil",
+          "item": siteUrl
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Blog",
+          "item": `${siteUrl}/blog`
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": categoryName,
+          "item": `${siteUrl}/blog/${slug}`
+        }
+      ]
+    };
+
+    const collectionSchema = {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      "name": pageConfig?.seo_title || `Conseils & Programmes ${categoryName} | Glift`,
+      "description": pageConfig?.seo_description || `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`,
+      "url": `${siteUrl}/blog/${slug}`
+    };
+
+    return (
+      <>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+        />
+        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
+          {/* Fil d'ariane (Breadcrumbs) */}
+          <div className="max-w-[1152px] mx-auto mb-10">
+            <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
+              <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
+                Blog
+              </Link>
+              <span>›</span>
+              <span className="text-[#3A416F]">{categoryName}</span>
+            </div>
+          </div>
+
+          <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+            {pageConfig?.surtitre && (
+              <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
+                {pageConfig.surtitre}
+              </div>
+            )}
+            <h1 
+              className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center prose-titles [&_p]:m-0"
+              dangerouslySetInnerHTML={{ __html: titleToDisplay }}
+            />
+            {descriptionToDisplay && (
+              <div 
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+                dangerouslySetInnerHTML={{ __html: descriptionToDisplay }}
+              />
+            )}
+            {extraText && <BlogIntroBlock html={extraText} />}
+          </div>
+
+          <BlogListClient initialArticles={allArticles || []} initialCategory={categoryName} />
+        </main>
+      </>
     );
   }
 

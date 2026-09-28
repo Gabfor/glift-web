@@ -45,10 +45,11 @@ export const emptyPage: PageFormState = {
 
 export const mapPageRowToForm = (row: any): PageFormState => {
   let texte = "";
-  if (row.id === BLOG_PAGE_ID) {
+  const isBlog = row.id === BLOG_PAGE_ID || (row.url && (row.url === "blog" || row.url.startsWith("blog/")));
+  if (isBlog) {
     const blocks = row.content_blocks || [];
     const textBlock = Array.isArray(blocks) ? blocks.find((b: any) => b.type === "texte") : null;
-    texte = textBlock ? textBlock.texte || "" : DEFAULT_BLOG_TEXT;
+    texte = textBlock ? textBlock.texte || "" : (row.id === BLOG_PAGE_ID ? DEFAULT_BLOG_TEXT : "");
   }
 
   let description_aide = "";
@@ -79,6 +80,7 @@ export const mapPageRowToForm = (row: any): PageFormState => {
 };
 
 export const buildPagePayload = (form: PageFormState) => {
+  const isBlog = form.id === BLOG_PAGE_ID || (form.url && (form.url === "blog" || form.url.startsWith("blog/")));
   const payload: any = {
     titre: form.titre,
     surtitre: form.surtitre,
@@ -86,7 +88,7 @@ export const buildPagePayload = (form: PageFormState) => {
     url: form.url,
     is_published: form.is_published,
     langue: form.langue,
-    content_blocks: form.id === BLOG_PAGE_ID
+    content_blocks: isBlog
       ? [{ id: "blog-text", type: "texte", texte: form.texte || "" }]
       : form.id === CONTACT_PAGE_ID
       ? [{ id: "contact-desc-aide", type: "description_aide", texte: form.description_aide || "" }]

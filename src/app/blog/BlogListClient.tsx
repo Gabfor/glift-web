@@ -102,7 +102,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
             <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
               Articles à la une
             </h2>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
               {featuredArticles.map((article) => (
                 <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
               ))}
@@ -117,7 +117,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
               <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
                 Articles récents
               </h2>
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
                 {paginatedRecent.map((article) => (
                   <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
                 ))}

@@ -54,15 +54,6 @@ const getDateParts = (value: string): [string, string, string] => {
 
 export default function CreatePageClient({ pageId }: { pageId: string | null }) {
   const router = useRouter();
-  const isLockedPage =
-    pageId === "59822297-b8b2-4041-bfa6-03793221fcf6" || // Dashboard
-    pageId === "eb4e258a-0876-421e-b653-176c8c08ed3d" || // Glift Shop
-    pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062" || // Glift Store
-    pageId === "90c6b3f6-1b46-4711-8882-28177874b51d" || // Trainings
-    pageId === "eb40db10-0d10-47af-b102-62e2763bef86" || // Help / Aide
-    pageId === COMPTE_PAGE_ID || // Compte / Mon compte
-    pageId === CONTACT_PAGE_ID || // Contact
-    pageId === BLOG_PAGE_ID; // Blog
   const supabaseFull = useMemo(() => createClient(), []);
 
   // --- Generic PAGE state ---
@@ -72,6 +63,23 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  const isBlogPage =
+    pageId === BLOG_PAGE_ID ||
+    pageData.url === "blog" ||
+    pageData.url.startsWith("blog/");
+
+  const isLockedPage =
+    pageId === "59822297-b8b2-4041-bfa6-03793221fcf6" || // Dashboard
+    pageId === "eb4e258a-0876-421e-b653-176c8c08ed3d" || // Glift Shop
+    pageId === "fd7e055c-bf17-4222-a8f8-c27b014d3062" || // Glift Store
+    pageId === "90c6b3f6-1b46-4711-8882-28177874b51d" || // Trainings
+    pageId === "eb40db10-0d10-47af-b102-62e2763bef86" || // Help / Aide
+    pageId === COMPTE_PAGE_ID || // Compte / Mon compte
+    pageId === CONTACT_PAGE_ID || // Contact
+    pageId === BLOG_PAGE_ID || // Blog
+    pageData.url === "blog" ||
+    pageData.url.startsWith("blog/");
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     status: false,
@@ -391,7 +399,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
                           />
                         </div>
                       )}
-                      {pageId === BLOG_PAGE_ID && (
+                      {isBlogPage && (
                         <div className="flex flex-col">
                           <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Texte</label>
                           <RichTextEditor

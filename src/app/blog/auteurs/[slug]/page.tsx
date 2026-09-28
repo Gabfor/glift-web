@@ -201,7 +201,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           })
         }}
       />
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -350,7 +350,7 @@ export default async function AuthorDetailPage({ params }: Props) {
         </p>
 
         {articles.length > 0 ? (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center mt-6">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center mt-6">
             {articles.map((article) => (
               <BlogArticleCard
                 key={article.id}
