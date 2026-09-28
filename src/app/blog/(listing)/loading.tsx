@@ -2,12 +2,12 @@ import BlogListSkeleton from "@/components/blog/BlogListSkeleton";
 
 export default function BlogLoading() {
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
         <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
           Blog
         </h1>
-        <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
+        <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
           <p>
             Découvrez nos conseils, programmes et astuces pour progresser
             <br className="hidden sm:block" />

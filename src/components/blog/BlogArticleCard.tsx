@@ -10,6 +10,7 @@ type Props = {
     titre: string;
     description: string;
     image_url: string;
+    image_mobile?: string;
     image_alt?: string;
     type: string;
     categorie?: string;
@@ -21,33 +22,77 @@ type Props = {
   maxWidth?: string;
   imageHeight?: string;
   blogUrl?: string;
+  className?: string;
 };
 
-export default function BlogArticleCard({ article, maxWidth = "270px", imageHeight = "180px", blogUrl = "/blog" }: Props) {
+export default function BlogArticleCard({ 
+  article, 
+  maxWidth, 
+  imageHeight, 
+  blogUrl = "/blog",
+  className = "" 
+}: Props) {
   const isProgramme = article.type === "Programme";
 
   return (
     <div 
-      className="w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full shadow-glift hover:shadow-glift-hover transition-shadow duration-200"
-      style={{ maxWidth }}
+      className={`w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col h-full shadow-glift hover:shadow-glift-hover transition-shadow duration-200 ${className}`}
+      style={maxWidth ? { maxWidth } : {}}
     >
       <Link href={`${blogUrl}/${article.url}`} className="block">
-        <div 
-          className="relative w-full bg-[#F4F5FE] cursor-pointer"
-          style={{ height: imageHeight }}
-        >
-          <Image
-            src={article.image_url || "/images/placeholder_image.jpg"}
-            alt={article.image_alt || article.titre}
-            fill
-            className="w-full h-full object-cover rounded-t-[15px]"
-            unoptimized
-          />
-          {/* Badge Type (CONSEIL...) */}
-          <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
-            {article.type || "Conseil"}
+        {article.image_mobile ? (
+          <>
+            <div 
+              className="relative w-full h-[180px] md:hidden bg-[#F4F5FE] cursor-pointer"
+              style={imageHeight ? { height: imageHeight } : {}}
+            >
+              <Image
+                src={article.image_mobile}
+                alt={article.image_alt || article.titre}
+                fill
+                className="w-full h-full object-cover rounded-t-[15px]"
+                unoptimized
+              />
+              {/* Badge Type (CONSEIL...) */}
+              <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+                {article.type || "Conseil"}
+              </div>
+            </div>
+            <div 
+              className="relative w-full h-[180px] hidden md:block bg-[#F4F5FE] cursor-pointer"
+              style={imageHeight ? { height: imageHeight } : {}}
+            >
+              <Image
+                src={article.image_url || "/images/placeholder_image.jpg"}
+                alt={article.image_alt || article.titre}
+                fill
+                className="w-full h-full object-cover rounded-t-[15px]"
+                unoptimized
+              />
+              {/* Badge Type (CONSEIL...) */}
+              <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+                {article.type || "Conseil"}
+              </div>
+            </div>
+          </>
+        ) : (
+          <div 
+            className="relative w-full h-[180px] bg-[#F4F5FE] cursor-pointer"
+            style={imageHeight ? { height: imageHeight } : {}}
+          >
+            <Image
+              src={article.image_url || "/images/placeholder_image.jpg"}
+              alt={article.image_alt || article.titre}
+              fill
+              className="w-full h-full object-cover rounded-t-[15px]"
+              unoptimized
+            />
+            {/* Badge Type (CONSEIL...) */}
+            <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+              {article.type || "Conseil"}
+            </div>
           </div>
-        </div>
+        )}
       </Link>
 
       <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col items-start">
@@ -115,13 +160,15 @@ export default function BlogArticleCard({ article, maxWidth = "270px", imageHeig
           {article.description}
         </p>
 
-        <Link href={`${blogUrl}/${article.url}`} className="mt-auto mx-auto">
-          <CTAButton
-            className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center"
-          >
-            Lire cet article
-          </CTAButton>
-        </Link>
+        <div className="w-full mt-auto flex justify-center">
+          <Link href={`${blogUrl}/${article.url}`} className="w-full md:w-auto">
+            <CTAButton
+              className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center md:px-[30px]"
+            >
+              Lire cet article
+            </CTAButton>
+          </Link>
+        </div>
       </div>
     </div>
   );

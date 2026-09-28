@@ -22,7 +22,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
   const [articlesResult, blogConfigResult] = await Promise.all([
     supabase
       .from("blog_articles")
-      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, niveau, nombre_seances, duree_moyenne")
+      .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, niveau, nombre_seances, duree_moyenne")
       .in("id", idsToFetch)
       .eq("is_published", true)
       .limit(2),
@@ -61,14 +61,13 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
         </Link>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-[30px] justify-start">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-[30px] justify-start">
         {relatedArticles.map((article: any) => (
           <BlogArticleCard 
             key={article.id} 
             article={article} 
-            maxWidth="368px"
-            imageHeight="245px"
             blogUrl={blogUrl}
+            className="w-full max-w-full sm:max-w-[368px]"
           />
         ))}
       </div>

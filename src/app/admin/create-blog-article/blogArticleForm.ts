@@ -256,6 +256,7 @@ export type BlogArticleFormState = {
   lieu: string;
   intensite: string;
   image: string;
+  image_mobile: string;
   image_alt: string;
   article_lie_1: string;
   article_lie_2: string;
@@ -287,6 +288,7 @@ export const emptyBlogArticle: BlogArticleFormState = {
   lieu: "",
   intensite: "",
   image: "",
+  image_mobile: "",
   image_alt: "",
   article_lie_1: "",
   article_lie_2: "",

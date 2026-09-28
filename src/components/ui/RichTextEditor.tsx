@@ -778,7 +778,7 @@ export default function RichTextEditor({
             padding-left: 22px;
             margin-left: 0;
             margin-top: 8px !important;
-            margin-bottom: 12px !important;
+            margin-bottom: 14px !important;
         }
         .ProseMirror ul {
             list-style-type: disc;

@@ -200,7 +200,7 @@ export default async function BlogSubpathPage({
         />
         <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
-          <div className="max-w-[1152px] mx-auto px-4 md:px-0 mb-10">
+          <div className="max-w-[1152px] mx-auto px-5 md:px-0 mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
               <span>›</span>
@@ -212,7 +212,7 @@ export default async function BlogSubpathPage({
             </div>
           </div>
 
-          <div className="max-w-[760px] mx-auto px-4 md:px-0">
+          <div className="max-w-[760px] mx-auto px-5 md:px-0">
             <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
@@ -290,18 +290,43 @@ export default async function BlogSubpathPage({
               )}
             </div>
 
-            {/* Image principale */}
-            {article.image_url && (
-              <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
-                <Image
-                  src={article.image_url}
-                  alt={article.image_alt || article.titre}
-                  fill
-                  className="object-cover"
-                  priority
-                  unoptimized
-                />
-              </div>
+            {/* Image principale (Responsive Mobile / Desktop) */}
+            {(article.image_url || article.image_mobile) && (
+              article.image_mobile ? (
+                <>
+                  <div className="w-full relative aspect-video md:hidden bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                    <Image
+                      src={article.image_mobile}
+                      alt={article.image_alt || article.titre}
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized
+                    />
+                  </div>
+                  <div className="w-full relative aspect-video hidden md:block bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                    <Image
+                      src={article.image_url || article.image_mobile}
+                      alt={article.image_alt || article.titre}
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                  <Image
+                    src={article.image_url}
+                    alt={article.image_alt || article.titre}
+                    fill
+                    className="object-cover"
+                    priority
+                    unoptimized
+                  />
+                </div>
+              )
             )}
 
             {/* Contenu dynamique */}
@@ -325,7 +350,7 @@ export default async function BlogSubpathPage({
 
           {/* Section articles liés */}
           <div className="bg-[#FBFCFE]">
-            <div className="max-w-[760px] mx-auto px-4 md:px-0">
+            <div className="max-w-[760px] mx-auto px-5 md:px-0">
               <RelatedArticles
                 articleLie1Id={article.article_lie_1_id}
                 articleLie2Id={article.article_lie_2_id}
@@ -374,12 +399,12 @@ export default async function BlogSubpathPage({
   const categoryName = categoryMapping[slug];
   if (categoryName) {
     const { data: allArticles } = await (supabase.from("blog_articles") as any)
-      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
+      .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0 uppercase">
             {categoryName}

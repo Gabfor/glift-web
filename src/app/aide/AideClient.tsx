@@ -230,7 +230,7 @@ function AideContent({
   };
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px]">
+    <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
 
         {/* Header Section */}
@@ -395,7 +395,7 @@ export default function AidePage({
   const { contactUrl } = useDashboardUrl();
   return (
     <Suspense fallback={
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center items-start">
+      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center items-start">
         <div className="w-full max-w-[1152px] mx-auto text-center flex flex-col items-center">
             {/* Header Section */}
             {initialPageContent.surtitre && (

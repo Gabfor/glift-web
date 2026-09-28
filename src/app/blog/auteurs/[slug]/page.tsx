@@ -41,6 +41,7 @@ type Article = {
   titre: string;
   description: string;
   image_url: string;
+  image_mobile?: string;
   image_alt?: string;
   type: string;
   categorie: string;
@@ -167,7 +168,7 @@ export default async function AuthorDetailPage({ params }: Props) {
   try {
     const { data: dbArticles } = await (supabase.from("blog_articles") as any)
       .select(
-        "id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne, created_at, auteur"
+        "id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne, created_at, auteur"
       )
       .eq("is_published", true)
       .eq("auteur", authorFullName)
@@ -200,7 +201,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           })
         }}
       />
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -220,7 +221,7 @@ export default async function AuthorDetailPage({ params }: Props) {
       </div>
 
       {/* Header text content */}
-      <div className="max-w-[760px] mx-auto px-4 md:px-0 text-center mb-12">
+      <div className="max-w-[760px] mx-auto text-center mb-12">
         <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
           {authorFullName}
         </h1>
@@ -349,7 +350,7 @@ export default async function AuthorDetailPage({ params }: Props) {
         </p>
 
         {articles.length > 0 ? (
-          <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center mt-6">
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center mt-6">
             {articles.map((article) => (
               <BlogArticleCard
                 key={article.id}

@@ -63,31 +63,75 @@ export async function generateMetadata({
     if (article.nofollow) robots.follow = false;
 
     const authorName = (article as any).auteur || "Gabriel Fort";
+    const parts = authorName.trim().split(/\s+/);
+    const authorSlug = getAuthorSlug(parts[0], parts.slice(1).join(" ") || "");
+
+    const ogImages = article.image_url
+      ? [
+          {
+            url: article.image_url,
+            width: 1200,
+            height: 630,
+            alt: article.image_alt || plainTitle,
+          },
+        ]
+      : undefined;
 
     return {
       title: plainTitle,
       description: plainDescription,
-      authors: [{ name: authorName }],
+      authors: [{ name: authorName, url: `${siteUrl}/blog/auteurs/${authorSlug}` }],
       publisher: "Glift",
       robots: Object.keys(robots).length > 0 ? robots : undefined,
       alternates: {
         canonical: article.canonical_override || `/blog/${url}`,
         languages: languages,
       },
-      openGraph: article.image_url ? {
-        images: [{ url: article.image_url, alt: article.image_alt || article.titre }],
-      } : undefined,
+      openGraph: {
+        title: plainTitle,
+        description: plainDescription,
+        url: `${siteUrl}/blog/${url}`,
+        siteName: "Glift",
+        locale: isoLang === "en" ? "en_US" : "fr_FR",
+        type: "article",
+        publishedTime: article.created_at,
+        modifiedTime: article.updated_at || article.created_at,
+        authors: [`${siteUrl}/blog/auteurs/${authorSlug}`],
+        section: article.categorie || "Musculation",
+        images: ogImages,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: plainTitle,
+        description: plainDescription,
+        images: article.image_url ? [article.image_url] : undefined,
+      },
     };
   }
 
   // 2. Tente de voir si c'est une catégorie
   const categoryName = categoryMapping[slug];
   if (categoryName) {
+    const catTitle = `Conseils & Programmes ${categoryName} | Glift`;
+    const catDesc = `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`;
     return {
-      title: `Conseils & Programmes ${categoryName}`,
-      description: `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`,
+      title: catTitle,
+      description: catDesc,
       alternates: {
         canonical: `/blog/${url}`,
+      },
+      openGraph: {
+        title: catTitle,
+        description: catDesc,
+        url: `${siteUrl}/blog/${url}`,
+        siteName: "Glift",
+        locale: "fr_FR",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: catTitle,
+        description: catDesc,
       },
     };
   }
@@ -159,6 +203,23 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
       };
     }
 
+    // Extract FAQ items for Schema.org FAQPage (GEO boost)
+    const contentBlocks = article.content_blocks as any[] || [];
+    const faqBlocks = contentBlocks.filter((b) => b && b.type === "faq" && Array.isArray(b.items) && b.items.length > 0);
+    const faqQuestions: { question: string; answer: string }[] = [];
+    faqBlocks.forEach((fb) => {
+      fb.items.forEach((item: any) => {
+        const q = typeof item === "string" ? item : item.question || "";
+        const a = typeof item === "object" ? item.reponse || item.answer || "" : "";
+        if (q && a) {
+          faqQuestions.push({
+            question: q.replace(/<[^>]*>/g, "").trim(),
+            answer: a.replace(/<[^>]*>/g, "").trim(),
+          });
+        }
+      });
+    });
+
     return (
       <>
         <script
@@ -173,14 +234,19 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               "image": article.image_url ? [article.image_url] : [],
               "datePublished": article.created_at,
               "dateModified": article.updated_at || article.created_at,
+              "articleSection": article.categorie || "Musculation",
+              "isAccessibleForFree": true,
               "author": {
                 "@type": "Person",
                 "name": authorName,
-                "url": `${siteUrl}/blog/auteurs/${authorSlug}`
+                "url": `${siteUrl}/blog/auteurs/${authorSlug}`,
+                "jobTitle": authorDetails?.poste_actuel || "Auteur",
+                "description": authorDetails?.description_courte || authorDetails?.description
               },
               "publisher": {
                 "@type": "Organization",
                 "name": "Glift",
+                "url": siteUrl,
                 "logo": {
                   "@type": "ImageObject",
                   "url": `${siteUrl}/logo-glift.svg`
@@ -193,6 +259,25 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             })
           }}
         />
+        {faqQuestions.length > 0 && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": faqQuestions.map((faq) => ({
+                  "@type": "Question",
+                  "name": faq.question,
+                  "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": faq.answer
+                  }
+                }))
+              })
+            }}
+          />
+        )}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -230,7 +315,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
         />
         <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px]">
           {/* Container pour le fil d'ariane aligné à gauche */}
-          <div className="max-w-[1152px] mx-auto px-4 md:px-0 mb-10">
+          <div className="max-w-[1152px] mx-auto px-5 md:px-0 mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
               <span>›</span>
@@ -242,7 +327,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             </div>
           </div>
 
-          <div className="max-w-[760px] mx-auto px-4 md:px-0">
+          <div className="max-w-[760px] mx-auto px-5 md:px-0">
             <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
@@ -255,7 +340,10 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               >
                 {authorName}
               </Link>
-              , {dateLabel} {formatArticleDate(dateToDisplay)}
+              , {dateLabel}{" "}
+              <time dateTime={dateToDisplay} className="text-inherit">
+                {formatArticleDate(dateToDisplay)}
+              </time>
             </div>
 
             <p className="text-[14px] text-[#5D6494] font-semibold mb-[20px] text-left">
@@ -320,18 +408,43 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               )}
             </div>
 
-            {/* Image principale */}
-            {article.image_url && (
-              <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
-                <Image
-                  src={article.image_url}
-                  alt={article.image_alt || article.titre}
-                  fill
-                  className="object-cover"
-                  priority
-                  unoptimized
-                />
-              </div>
+            {/* Image principale (Responsive Mobile / Desktop) */}
+            {(article.image_url || article.image_mobile) && (
+              article.image_mobile ? (
+                <>
+                  <div className="w-full relative aspect-video md:hidden bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                    <Image
+                      src={article.image_mobile}
+                      alt={article.image_alt || article.titre}
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized
+                    />
+                  </div>
+                  <div className="w-full relative aspect-video hidden md:block bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                    <Image
+                      src={article.image_url || article.image_mobile}
+                      alt={article.image_alt || article.titre}
+                      fill
+                      className="object-cover"
+                      priority
+                      unoptimized
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="w-full relative aspect-video bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
+                  <Image
+                    src={article.image_url}
+                    alt={article.image_alt || article.titre}
+                    fill
+                    className="object-cover"
+                    priority
+                    unoptimized
+                  />
+                </div>
+              )
             )}
 
             {/* Contenu dynamique */}
@@ -355,7 +468,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
 
           {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
           <div className="bg-[#FBFCFE]">
-            <div className="max-w-[760px] mx-auto px-4 md:px-0">
+            <div className="max-w-[760px] mx-auto px-5 md:px-0">
               <RelatedArticles
                 articleLie1Id={article.article_lie_1_id}
                 articleLie2Id={article.article_lie_2_id}
@@ -404,17 +517,17 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
   const categoryName = categoryMapping[slug];
   if (categoryName) {
     const { data: allArticles } = await (supabase.from("blog_articles") as any)
-      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
+      .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0 uppercase">
             {categoryName}
           </h1>
-          <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
+          <div className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0">
             <p>
               Découvrez tous nos articles sur le thème <strong>{categoryName}</strong>.
             </p>

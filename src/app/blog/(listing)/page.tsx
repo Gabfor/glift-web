@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import BlogListClient from "../BlogListClient";
+import BlogIntroBlock from "@/components/blog/BlogIntroBlock";
 import type { Metadata } from "next";
 
 export const revalidate = 60; // Mise à jour auto toutes les minutes
@@ -26,12 +27,27 @@ export async function generateMetadata(): Promise<Metadata> {
   if (pageConfig.noindex) robots.index = false;
   if (pageConfig.nofollow) robots.follow = false;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+
   return {
     title: plainTitle,
     description: plainDescription,
     robots: Object.keys(robots).length > 0 ? robots : undefined,
     alternates: {
       canonical: pageConfig.canonical_override || "/blog",
+    },
+    openGraph: {
+      title: plainTitle,
+      description: plainDescription,
+      url: `${siteUrl}/blog`,
+      siteName: "Glift",
+      locale: "fr_FR",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: plainTitle,
+      description: plainDescription,
     },
   };
 }
@@ -58,7 +74,7 @@ export default async function BlogPage() {
 
   // 2. Fetch blog articles
   const { data: articles } = await (supabase.from("blog_articles") as any)
-    .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
+    .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
@@ -73,7 +89,7 @@ export default async function BlogPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+    <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
         {pageConfig?.surtitre && (
           <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -86,16 +102,11 @@ export default async function BlogPage() {
         />
         {pageConfig?.description && (
           <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[700px] mx-auto leading-relaxed [&_p]:m-0"
+            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[500px] mx-auto leading-relaxed [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: pageConfig.description }}
           />
         )}
-        {extraText && (
-          <div 
-            className="w-full max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-4 last:[&_p]:mb-0"
-            dangerouslySetInnerHTML={{ __html: extraText }}
-          />
-        )}
+        {extraText && <BlogIntroBlock html={extraText} />}
       </div>
 
       <BlogListClient initialArticles={articles || []} />

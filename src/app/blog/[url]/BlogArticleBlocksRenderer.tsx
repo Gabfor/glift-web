@@ -577,7 +577,7 @@ export default function BlogArticleBlocksRenderer({
                     background: dynamicGradient,
                   }}
                 >
-                  <div className="max-w-[1152px] mx-auto px-4 md:px-0 grid grid-cols-1 lg:grid-cols-[1fr_1.35fr] gap-8 lg:gap-10 items-center">
+                  <div className="max-w-[1152px] mx-auto px-5 md:px-0 grid grid-cols-1 lg:grid-cols-[1fr_1.35fr] gap-8 lg:gap-10 items-center">
                     
                     {/* Colonne gauche (Texte + Bonus épuré) */}
                     <div className="flex flex-col justify-center">
@@ -879,7 +879,7 @@ export default function BlogArticleBlocksRenderer({
                   )}
                   {block.texte && (
                     <div
-                      className="text-[12px] text-[#5D6494] font-semibold [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
+                      className="text-[12px] text-[#5D6494] font-semibold break-words [&_a]:break-all [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
                       dangerouslySetInnerHTML={{ __html: formatSourceText(block.texte) }}
                     />
                   )}
@@ -917,7 +917,7 @@ export default function BlogArticleBlocksRenderer({
               <div
                 key={key}
                 id={block.ancreId || undefined}
-                className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] flex flex-col gap-[10px] scroll-mt-[100px] my-[10px]"
+                className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] sm:p-[30px] flex flex-col gap-[10px] scroll-mt-[100px] my-[10px]"
               >
                 {block.titre && (
                   <h3 className="text-[20px] md:text-[22px] font-bold text-[#2E3271] mb-0">

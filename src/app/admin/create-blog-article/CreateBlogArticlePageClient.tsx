@@ -121,6 +121,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           lieu: data.lieu || "",
           intensite: data.intensite || "",
           image: data.image_url || "",
+          image_mobile: data.image_mobile || "",
           image_alt: data.image_alt || "",
           article_lie_1: data.article_lie_1_id || "",
           article_lie_2: data.article_lie_2_id || "",
@@ -194,6 +195,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         lieu: article.lieu || null,
         intensite: article.intensite || null,
         image_url: article.image || null,
+        image_mobile: article.image_mobile || null,
         image_alt: article.image_alt || null,
         article_lie_1_id: article.article_lie_1 || null,
         article_lie_2_id: article.article_lie_2 || null,
@@ -754,11 +756,12 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
 
               {!collapsedSections.images && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
-                  {/* Image principale */}
+                  {/* Row 1 */}
+                  {/* Image principale (Site) */}
                   <div className="flex flex-col">
                     <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">760px x 400px</span>
+                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Site)</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1200px x 800px</span>
                     </div>
                     <ImageUploader
                       value={article.image || ""}
@@ -766,17 +769,33 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                       placeholder="Importer un fichier"
                     />
                   </div>
-                  {/* Alt image */}
+                  {/* Alt image principale */}
                   <div className="flex flex-col">
-                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image</label>
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image principale</label>
                     <input
                       type="text"
-                      placeholder="Alt de l'image"
+                      placeholder="Alt de l'image principale"
                       value={article.image_alt || ""}
                       onChange={(e) => setArticle({ ...article, image_alt: e.target.value })}
                       className={inputClass}
                     />
                   </div>
+
+                  {/* Row 2 */}
+                  {/* Image principale (Mobile) */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Mobile)</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">700px x 360px</span>
+                    </div>
+                    <ImageUploader
+                      value={article.image_mobile || ""}
+                      onChange={(url) => setArticle({ ...article, image_mobile: url })}
+                      placeholder="Importer un fichier"
+                    />
+                  </div>
+                  {/* Empty Right Column for Row 2 */}
+                  <div className="hidden md:block"></div>
                 </div>
               )}
             </div>

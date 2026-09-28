@@ -419,7 +419,7 @@ export default function AdminEntrainementDetailPage() {
   }
 
   return (
-    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-4 pt-[100px] md:pt-[140px]`}>
+    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-5 pt-[100px] md:pt-[140px]`}>
       <div className="max-w-[1152px] mx-auto relative z-10">
 
         <BackLink

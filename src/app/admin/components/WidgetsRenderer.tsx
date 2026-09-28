@@ -212,9 +212,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 </div>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   <div className="flex flex-col">
-                    <div className="flex justify-between items-end mb-[5px]">
+                    <div className="flex justify-between items-baseline mb-[5px]">
                       <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
-                      <span className="text-[#A0A2B8] text-[12px] font-semibold">466 x 350px</span>
+                      <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">466px x 350px</span>
                     </div>
                     <ImageUploader 
                       value={block.image || ""} 
@@ -662,9 +662,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   {/* Image */}
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <label className="text-[#2E3271] font-bold text-[16px]">Image</label>
-                      <span className="text-[12px] text-[#A1A5C1]">700 x 355px</span>
+                    <div className="flex justify-between items-baseline mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Image</span>
+                      <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">700px x 355px</span>
                     </div>
                     <ImageUploader
                       value={block.image}
@@ -731,7 +731,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       <div className="flex flex-col">
                         <div className="flex justify-between items-baseline mb-[5px]">
                           <span className="text-[16px] text-[#3A416F] font-bold">Partenaire {position}</span>
-                          <span className="text-[#C2BFC6] text-xs font-semibold">222px x 102px</span>
+                          <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">222px x 102px</span>
                         </div>
                         <ImageUploader
                           value={slot.logo_url || ""}

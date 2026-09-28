@@ -441,7 +441,7 @@ const AccountCreationPage = () => {
 
   if (!plan || !stepMetadata) {
     return (
-      <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
+      <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-5">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-glift">
           <h1 className="text-[26px] font-bold text-[#2E3271]">Choisis une formule</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
@@ -459,7 +459,7 @@ const AccountCreationPage = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-4 pt-[100px] md:pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-5 pt-[100px] md:pt-[140px]">
       <div className="w-full max-w-3xl flex flex-col items-center">
         <h1 className="text-center text-[26px] sm:text-[30px] font-bold text-[#2E3271]">{stepMetadata.title}</h1>
         <p className="mt-2 text-center text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-snug whitespace-pre-line">

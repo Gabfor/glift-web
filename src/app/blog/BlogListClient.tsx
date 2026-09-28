@@ -12,6 +12,7 @@ type Article = {
   titre: string;
   description: string;
   image_url: string;
+  image_mobile?: string;
   image_alt?: string;
   type: string;
   categorie: string;
@@ -73,23 +74,25 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
   return (
     <div className="max-w-[1152px] mx-auto">
       {/* Filtres par catégorie */}
-      <div className="flex flex-wrap justify-center gap-2 my-[30px]">
-        {dynamicCategories.length > 1 && dynamicCategories.map((cat) => {
-          const isActive = selectedCategory === cat;
-          return (
-            <Link key={cat} href={getCategoryUrl(cat)} scroll={false}>
-              <button
-                className={`px-[30px] h-[44px] rounded-full text-[16px] font-semibold transition-all duration-200 border ${
-                  isActive
-                    ? "bg-[#3A416F] text-white border-[#3A416F]"
-                    : "bg-[#FBFCFE] text-[#3A416F] border-[#3A416F] hover:bg-[#3A416F] hover:text-white"
-                }`}
-              >
-                {cat}
-              </button>
-            </Link>
-          );
-        })}
+      <div className="w-auto -mx-5 sm:mx-0 sm:w-full my-[30px] overflow-x-auto no-scrollbar">
+        <div className="flex items-center justify-start sm:justify-center gap-2 min-w-max px-5 sm:px-0 mx-auto">
+          {dynamicCategories.length > 1 && dynamicCategories.map((cat) => {
+            const isActive = selectedCategory === cat;
+            return (
+              <Link key={cat} href={getCategoryUrl(cat)} scroll={false} className="shrink-0">
+                <button
+                  className={`px-5 sm:px-[30px] h-[38px] sm:h-[44px] rounded-full text-[14px] sm:text-[16px] font-semibold transition-all duration-200 border whitespace-nowrap ${
+                    isActive
+                      ? "bg-[#3A416F] text-white border-[#3A416F]"
+                      : "bg-[#FBFCFE] text-[#3A416F] border-[#3A416F] hover:bg-[#3A416F] hover:text-white"
+                  }`}
+                >
+                  {cat}
+                </button>
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <div className="flex flex-col gap-[30px]">
@@ -99,7 +102,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
             <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
               Articles à la une
             </h2>
-            <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center">
               {featuredArticles.map((article) => (
                 <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
               ))}
@@ -114,7 +117,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
               <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
                 Articles récents
               </h2>
-              <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(260px,1fr))] justify-center">
+              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-center">
                 {paginatedRecent.map((article) => (
                   <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
                 ))}

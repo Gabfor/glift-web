@@ -129,7 +129,7 @@ function ContactForm({ initialPageContent, fromAideInitial = false }: ContactCli
     };
 
     return (
-        <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
+        <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
             <div className="max-w-[1152px] w-full mx-auto flex flex-col items-center">
                 {initialPageContent.surtitre && (
                     <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -270,7 +270,7 @@ export default function ContactClient({ initialPageContent, fromAideInitial = fa
 
     return (
         <Suspense fallback={
-            <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
+            <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[80px] md:pb-[100px]">
                 <div className="max-w-[1152px] w-full mx-auto flex flex-col items-center">
                     {initialPageContent.surtitre && (
                         <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">

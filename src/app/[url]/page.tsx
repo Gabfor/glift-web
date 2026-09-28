@@ -317,7 +317,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
+      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
         <div className="max-w-[1152px] mx-auto">
           <ShopHeader initialPageContent={shopPageContent} />
         </div>
@@ -390,7 +390,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-4 pt-[100px] md:pt-[140px]">
+      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
         <div className="max-w-[1152px] mx-auto">
           <StoreHeader initialPageContent={storePageContent} />
         </div>
@@ -407,7 +407,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   if (page.id === "f9709b0b-b513-4d53-a6ef-d9cda3f0a706") {
     // Fetch blog articles
     const { data: articles } = await (supabase.from("blog_articles") as any)
-      .select("id, url, titre, description, image_url, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
+      .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
 
@@ -424,7 +424,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     }
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-4">
+      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           {page.surtitre && (
             <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">

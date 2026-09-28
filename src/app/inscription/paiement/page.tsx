@@ -84,7 +84,7 @@ const PaymentPage = () => {
 
   if (!plan || plan !== "premium" || !stepMetadata) {
     return (
-      <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-4">
+      <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-5">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-glift">
           <h1 className="text-[26px] font-bold text-[#2E3271]">Redirection nécessaire</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
@@ -102,7 +102,7 @@ const PaymentPage = () => {
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-4 pt-[100px] md:pt-[140px]">
+    <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-5 pt-[100px] md:pt-[140px]">
       <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
         <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[10px]">
           Moyen de paiement
