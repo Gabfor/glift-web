@@ -12,7 +12,7 @@ import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
-const ITEMS_PER_PAGE = 8;
+const ITEMS_PER_BATCH = 12;
 
 type OfferQueryRow = {
   id: string;
@@ -203,6 +203,7 @@ const processOffers = (
 
 export default function ShopGrid({
   sortBy,
+  visibleCount = 12,
   currentPage,
   filters,
   onOfferClick,
@@ -216,7 +217,8 @@ export default function ShopGrid({
   onResetFilters,
 }: {
   sortBy: string;
-  currentPage: number;
+  visibleCount?: number;
+  currentPage?: number;
   filters: string[];
   onOfferClick: (offer: ShopOffer) => void;
   onCountChange?: (count: number) => void;
@@ -242,8 +244,10 @@ export default function ShopGrid({
     return initialUserProfile;
   }, [profile, initialUserProfile]);
 
+  const targetCount = visibleCount ?? (currentPage ? currentPage * ITEMS_PER_BATCH : ITEMS_PER_BATCH);
+
   const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
-  const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, ITEMS_PER_PAGE));
+  const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, targetCount));
   const [loading, setLoading] = useState(initialOffers.length === 0);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
   const rawOffersCacheRef = useRef<ShopOffer[]>(initialOffers.length > 0 ? initialOffers : []);
@@ -333,7 +337,7 @@ export default function ShopGrid({
 
   const lastStateRef = useRef({
     sortBy,
-    currentPage,
+    targetCount,
     filters: JSON.stringify(filters),
     favoritesOnly,
   });
@@ -343,13 +347,13 @@ export default function ShopGrid({
 
     const stateChanged =
       lastStateRef.current.sortBy !== sortBy ||
-      lastStateRef.current.currentPage !== currentPage ||
+      lastStateRef.current.targetCount !== targetCount ||
       lastStateRef.current.filters !== JSON.stringify(filters) ||
       lastStateRef.current.favoritesOnly !== favoritesOnly;
 
     lastStateRef.current = {
       sortBy,
-      currentPage,
+      targetCount,
       filters: JSON.stringify(filters),
       favoritesOnly,
     };
@@ -385,11 +389,10 @@ export default function ShopGrid({
 
       if (onCountChange) onCountChange(processed.length);
 
-      const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-      const paginated = processed.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+      const displayed = processed.slice(0, targetCount);
 
       setAllOffers(processed);
-      setOffers(paginated);
+      setOffers(displayed);
       setLoading(false);
       hasLoadedOnceRef.current = true;
     };
@@ -511,7 +514,7 @@ export default function ShopGrid({
           )}
 
           <div className="flex flex-col gap-5 md:hidden">
-            {allOffers.map((offer) => (
+            {offers.map((offer) => (
               <ShopCard
                 key={offer.id}
                 offer={offer}

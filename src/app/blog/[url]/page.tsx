@@ -590,6 +590,8 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
       "url": `${siteUrl}/blog/${slug}`
     };
 
+    const hasExtraText = Boolean(extraText && extraText.trim() !== "");
+
     return (
       <>
         <script
@@ -619,16 +621,16 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               </div>
             )}
             <h1 
-              className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center prose-titles [&_p]:m-0"
+              className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center prose-titles [&_p]:m-0 ${descriptionToDisplay || hasExtraText ? "mb-[20px]" : "mb-0"}`}
               dangerouslySetInnerHTML={{ __html: titleToDisplay }}
             />
             {descriptionToDisplay && (
               <div 
-                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+                className={`text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed ${hasExtraText ? "mb-8" : "mb-0"} [&_p]:m-0`}
                 dangerouslySetInnerHTML={{ __html: descriptionToDisplay }}
               />
             )}
-            {extraText && <BlogIntroBlock html={extraText} />}
+            {hasExtraText && <BlogIntroBlock html={extraText} />}
           </div>
 
           <BlogListClient initialArticles={allArticles || []} initialCategory={categoryName} />

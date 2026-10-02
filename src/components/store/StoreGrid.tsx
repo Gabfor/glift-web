@@ -15,8 +15,11 @@ import { StoreProgram, StoreProfile } from "@/types/store";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import CTAButton from "@/components/CTAButton";
 
+const ITEMS_PER_BATCH = 12;
+
 export default function StoreGrid({
   sortBy,
+  visibleCount = 12,
   currentPage,
   filters,
   initialPrograms = [],
@@ -29,7 +32,8 @@ export default function StoreGrid({
   onResetFilters,
 }: {
   sortBy: string;
-  currentPage: number;
+  visibleCount?: number;
+  currentPage?: number;
   filters: string[];
   initialPrograms?: StoreProgram[];
   initialUserProfile?: StoreProfile | null;
@@ -40,14 +44,16 @@ export default function StoreGrid({
   onResetFavorites?: () => void;
   onResetFilters?: () => void;
 }) {
+  const targetCount = visibleCount ?? (currentPage ? currentPage * ITEMS_PER_BATCH : ITEMS_PER_BATCH);
+
   const isDefaultQuery =
-    currentPage === 1 &&
+    targetCount === 12 &&
     sortBy === "relevance" &&
     filters.every((f) => f === "") &&
     !favoritesOnly;
 
   const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
-  const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, 8));
+  const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, targetCount));
   const [loading, setLoading] = useState(
     initialPrograms.length === 0 || !isDefaultQuery
   );
@@ -59,7 +65,7 @@ export default function StoreGrid({
 
   const previousQueryRef = useRef<{
     sortBy: string;
-    currentPage: number;
+    targetCount: number;
     filters: string[];
     isAuthenticated: boolean;
     userProfile: StoreProfile | null;
@@ -68,7 +74,7 @@ export default function StoreGrid({
     initialPrograms.length > 0 && isDefaultQuery
       ? {
           sortBy,
-          currentPage,
+          targetCount,
           filters: [...filters],
           isAuthenticated: initialIsAuthenticated,
           userProfile: initialUserProfile,
@@ -145,7 +151,7 @@ export default function StoreGrid({
           if (sortBy === "relevance") {
             const sorted = sortProgramsByRelevance(allPrograms, userProfile, loadedFavs);
             setAllPrograms(sorted);
-            setPrograms(sorted.slice(0, 8));
+            setPrograms(sorted.slice(0, targetCount));
           }
         }
       }
@@ -243,7 +249,7 @@ export default function StoreGrid({
       hasLoadedOnceRef.current = true;
       previousQueryRef.current = {
         sortBy,
-        currentPage,
+        targetCount,
         filters: [...filters],
         isAuthenticated,
         userProfile,
@@ -254,23 +260,38 @@ export default function StoreGrid({
     }
 
     const previousQuery = previousQueryRef.current;
-    const hasQueryChanged =
+    const filterOrSortChanged =
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
-      previousQuery.currentPage !== currentPage ||
       previousQuery.isAuthenticated !== isAuthenticated ||
       previousQuery.favoritesOnly !== favoritesOnly ||
       JSON.stringify(previousQuery.userProfile) !== JSON.stringify(userProfile) ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
-    if (!hasQueryChanged && hasLoadedOnceRef.current) {
+    const countChanged = previousQuery?.targetCount !== targetCount;
+
+    if (!filterOrSortChanged && !countChanged && hasLoadedOnceRef.current) {
+      setLoading(false);
+      return;
+    }
+
+    if (!filterOrSortChanged && countChanged && allPrograms.length > 0) {
+      previousQueryRef.current = {
+        sortBy,
+        targetCount,
+        filters: [...filters],
+        isAuthenticated,
+        userProfile,
+        favoritesOnly,
+      };
+      setPrograms(allPrograms.slice(0, targetCount));
       setLoading(false);
       return;
     }
 
     previousQueryRef.current = {
       sortBy,
-      currentPage,
+      targetCount,
       filters: [...filters],
       isAuthenticated,
       userProfile,
@@ -294,8 +315,6 @@ export default function StoreGrid({
       }
 
       const supabase = createClient();
-      const start = (currentPage - 1) * 8;
-      const end = start + 7;
       const order = getOrderForSortBy(sortBy);
 
       let query = supabase
@@ -373,7 +392,7 @@ export default function StoreGrid({
         if (onCountChange) onCountChange(mappedPrograms.length);
 
         setAllPrograms(mappedPrograms);
-        setPrograms(mappedPrograms.slice(start, end + 1));
+        setPrograms(mappedPrograms.slice(0, targetCount));
       }
 
       hasLoadedOnceRef.current = true;
@@ -385,7 +404,7 @@ export default function StoreGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile, isAuthenticated, isUserContextLoading, favoritesOnly, favorites]);
+  }, [sortBy, targetCount, filters, userProfile, isAuthenticated, isUserContextLoading, favoritesOnly, favorites]);
 
   const hasActiveFilters = filters.some(
     (f) => f && f.trim() !== "" && f.toLowerCase() !== "tous" && f !== "__none__"
@@ -441,9 +460,9 @@ export default function StoreGrid({
             )
           )}
 
-          {/* Vue Mobile (< md) : Tous les programmes en défilement continu */}
+          {/* Vue Mobile (< md) */}
           <div className="flex flex-col gap-5 md:hidden">
-            {allPrograms.map((program) => (
+            {programs.map((program) => (
               <StoreCard
                 key={program.id}
                 program={program}

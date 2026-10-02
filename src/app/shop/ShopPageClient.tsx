@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import ShopBannerSliderClient from "@/components/ShopBannerSliderClient";
 import ShopFilters from "@/components/shop/ShopFilters";
 import ShopGrid from "@/components/shop/ShopGrid";
-import Pagination from "@/components/pagination/Pagination";
+import LoadMore from "@/components/pagination/LoadMore";
 import OfferCodeModal from "@/components/OfferCodeModal";
 import { createClient } from "@/lib/supabaseClient";
 import { ShopOffer, ShopProfile } from "@/types/shop";
@@ -29,7 +29,7 @@ export default function ShopPageClient({
   initialFavorites = [],
 }: Props) {
   const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [filters, setFilters] = useState<string[]>(["", "", "", ""]);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
@@ -43,10 +43,10 @@ export default function ShopPageClient({
       const savedSort = sessionStorage.getItem("glift_shop_sortBy");
       if (savedSort) setSortBy(savedSort);
 
-      const savedPage = sessionStorage.getItem("glift_shop_page");
-      if (savedPage) {
-        const p = Number.parseInt(savedPage, 10);
-        if (p) setCurrentPage(p);
+      const savedCount = sessionStorage.getItem("glift_shop_visibleCount");
+      if (savedCount) {
+        const c = Number.parseInt(savedCount, 10);
+        if (c) setVisibleCount(c);
       }
 
       const savedFilters = sessionStorage.getItem("glift_shop_filters");
@@ -67,12 +67,12 @@ export default function ShopPageClient({
     try {
       sessionStorage.setItem("glift_shop_sortBy", sortBy);
       sessionStorage.setItem("glift_shop_filters", JSON.stringify(filters));
-      sessionStorage.setItem("glift_shop_page", currentPage.toString());
+      sessionStorage.setItem("glift_shop_visibleCount", visibleCount.toString());
       sessionStorage.setItem("glift_shop_favoritesOnly", String(favoritesOnly));
     } catch {
       // ignore
     }
-  }, [sortBy, filters, currentPage, favoritesOnly, isRestored]);
+  }, [sortBy, filters, visibleCount, favoritesOnly, isRestored]);
 
   const handleOfferClick = (offer: ShopOffer) => {
     setSelectedOffer(offer);
@@ -105,46 +105,43 @@ export default function ShopPageClient({
           initialUserProfile={initialUserProfile}
           onFavoritesOnlyToggle={() => {
             setFavoritesOnly((prev) => !prev);
-            setCurrentPage(1);
+            setVisibleCount(12);
           }}
           onSortChange={(value: string) => {
             setSortBy(value);
-            setCurrentPage(1);
+            setVisibleCount(12);
           }}
           onFiltersChange={(newFilters: string[]) => {
             setFilters(newFilters);
-            setCurrentPage(1);
+            setVisibleCount(12);
           }}
         />
         <ShopGrid
           sortBy={sortBy}
-          currentPage={currentPage}
+          visibleCount={visibleCount}
           filters={filters}
           favoritesOnly={favoritesOnly}
           onOfferClick={handleOfferClick}
           onCountChange={setTotalItems}
-          initialOffers={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
+          initialOffers={visibleCount === 12 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
           initialUserProfile={initialUserProfile}
           initialIsAuthenticated={initialIsAuthenticated}
           initialFavorites={initialFavorites}
           onResetFavorites={() => {
             setFavoritesOnly(false);
-            setCurrentPage(1);
+            setVisibleCount(12);
           }}
           onResetFilters={() => {
             setFilters(["", "", "", ""]);
-            setCurrentPage(1);
+            setVisibleCount(12);
           }}
         />
-        {totalItems > 8 && (
-          <div className="hidden md:block">
-            <Pagination
-              currentPage={currentPage}
-              totalItems={totalItems}
-              onPageChange={(page: number) => setCurrentPage(page)}
-            />
-          </div>
-        )}
+        <LoadMore
+          currentCount={Math.min(visibleCount, totalItems)}
+          totalCount={totalItems}
+          onLoadMore={() => setVisibleCount((prev) => prev + 12)}
+          label="offres"
+        />
       </div>
 
       {showCodeModal && selectedOffer && (

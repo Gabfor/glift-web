@@ -84,11 +84,17 @@ module.exports = {
 						height: '0',
 						opacity: '0.6'
 					}
+				},
+				'flame-flicker': {
+					'0%, 100%': { transform: 'skewX(0deg) rotate(0deg)' },
+					'25%': { transform: 'skewX(-5deg) rotate(-2deg)' },
+					'75%': { transform: 'skewX(5deg) rotate(2deg)' },
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.32s cubic-bezier(0.25, 1, 0.5, 1)',
-				'accordion-up': 'accordion-up 0.28s cubic-bezier(0.25, 1, 0.5, 1)'
+				'accordion-up': 'accordion-up 0.28s cubic-bezier(0.25, 1, 0.5, 1)',
+				'flame': 'flame-flicker 1.2s ease-in-out infinite',
 			}
 		}
 	},

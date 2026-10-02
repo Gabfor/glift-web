@@ -412,10 +412,12 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
         <div className="mt-[15px] flex justify-center">
           <CTAButton
             onClick={handleClick}
-            className="w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
+            className="group w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
           >
             <span className="inline-flex items-center gap-2">
-              <Image src="/icons/deal.svg" alt="" width={20} height={20} />
+              <span className="inline-flex items-center justify-center origin-[50%_95%] group-hover:animate-flame group-hover-animate-flame transition-transform">
+                <Image src="/icons/deal.svg" alt="" width={20} height={20} />
+              </span>
               En profiter
             </span>
           </CTAButton>

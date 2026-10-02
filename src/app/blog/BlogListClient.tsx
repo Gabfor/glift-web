@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
-import Pagination from "@/components/pagination/Pagination";
+import LoadMore from "@/components/pagination/LoadMore";
 import Link from "next/link";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
@@ -28,16 +28,17 @@ type Props = {
   initialCategory?: string;
 };
 
+const ITEMS_PER_BATCH = 12;
+
 export default function BlogListClient({ initialArticles, initialCategory = "Tous" }: Props) {
   const { blogUrl } = useDashboardUrl();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
-  const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 8;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
 
   // Sync state if initialCategory changes (e.g. navigation between category pages)
   useEffect(() => {
     setSelectedCategory(initialCategory);
-    setCurrentPage(1);
+    setVisibleCount(ITEMS_PER_BATCH);
   }, [initialCategory]);
 
   // Dynamically generate categories from existing articles (filter out null/undefined/empty)
@@ -54,6 +55,16 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
     return selectedCategory === "Tous" || article.categorie === selectedCategory;
   });
 
+  const isCategoryPage = selectedCategory !== "Tous";
+
+  // Category page: unified list with featured articles placed first
+  const sortedCategoryArticles = [...filteredArticles].sort((a, b) => {
+    if (a.is_featured && !b.is_featured) return -1;
+    if (!a.is_featured && b.is_featured) return 1;
+    return 0;
+  });
+
+  // Main blog page: split into Featured & Recent
   const allFeatured = filteredArticles.filter((a) => a.is_featured);
   const featuredArticles = allFeatured.slice(0, 4);
   const allRecent = [
@@ -61,8 +72,8 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
     ...filteredArticles.filter((a) => !a.is_featured),
   ];
 
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedRecent = allRecent.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const displayedCategoryArticles = sortedCategoryArticles.slice(0, visibleCount);
+  const displayedRecent = allRecent.slice(0, visibleCount);
 
   const getCategoryUrl = (cat: string) => {
     if (!cat || cat === "Tous") return blogUrl;
@@ -96,58 +107,93 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
       </div>
 
       <div className="flex flex-col gap-[30px]">
-        {/* Section Articles à la une */}
-        {featuredArticles.length > 0 && (
+        {isCategoryPage ? (
+          /* Page Catégorie : Grille unifiée */
           <section>
-            <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
-              Articles à la une
-            </h2>
-            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-              {featuredArticles.map((article) => (
-                <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
-              ))}
-            </div>
-          </section>
-        )}
+            {sortedCategoryArticles.length > 0 ? (
+              <>
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+                  {displayedCategoryArticles.map((article) => (
+                    <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
+                  ))}
+                </div>
 
-        {/* Section Articles récents */}
-        <section>
-          {allRecent.length > 0 ? (
-            <>
-              <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
-                Articles récents
-              </h2>
-              <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-                {paginatedRecent.map((article) => (
-                  <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
-                ))}
-              </div>
-
-              {allRecent.length > ITEMS_PER_PAGE && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalItems={allRecent.length}
-                  itemsPerPage={ITEMS_PER_PAGE}
-                  onPageChange={setCurrentPage}
-                  className="mt-[50px]"
+                <LoadMore
+                  currentCount={displayedCategoryArticles.length}
+                  totalCount={sortedCategoryArticles.length}
+                  onLoadMore={() => setVisibleCount((prev) => prev + ITEMS_PER_BATCH)}
+                  label="articles"
                 />
+              </>
+            ) : (
+              <div className="text-center py-20">
+                <p className="text-[#5D6494] text-[18px] font-semibold">
+                  Aucun article ne correspond dans cette catégorie.
+                </p>
+                <Link href={blogUrl}>
+                  <button 
+                    className="mt-4 text-[#7069FA] font-bold hover:underline"
+                  >
+                    Voir tous les articles
+                  </button>
+                </Link>
+              </div>
+            )}
+          </section>
+        ) : (
+          /* Page Blog principale ("Tous") : Articles à la une + Articles récents */
+          <>
+            {/* Section Articles à la une */}
+            {featuredArticles.length > 0 && (
+              <section>
+                <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
+                  Articles à la une
+                </h2>
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+                  {featuredArticles.map((article) => (
+                    <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Section Articles récents */}
+            <section>
+              {allRecent.length > 0 ? (
+                <>
+                  <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-[20px] tracking-wider text-left">
+                    Articles récents
+                  </h2>
+                  <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
+                    {displayedRecent.map((article) => (
+                      <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
+                    ))}
+                  </div>
+
+                  <LoadMore
+                    currentCount={displayedRecent.length}
+                    totalCount={allRecent.length}
+                    onLoadMore={() => setVisibleCount((prev) => prev + ITEMS_PER_BATCH)}
+                    label="articles"
+                  />
+                </>
+              ) : featuredArticles.length === 0 && (
+                <div className="text-center py-20">
+                  <p className="text-[#5D6494] text-[18px] font-semibold">
+                    Aucun article ne correspond dans cette catégorie.
+                  </p>
+                  <Link href={blogUrl}>
+                    <button 
+                      className="mt-4 text-[#7069FA] font-bold hover:underline"
+                    >
+                      Voir tous les articles
+                    </button>
+                  </Link>
+                </div>
               )}
-            </>
-          ) : featuredArticles.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-[#5D6494] text-[18px] font-semibold">
-                Aucun article ne correspond dans cette catégorie.
-              </p>
-              <Link href={blogUrl}>
-                <button 
-                  className="mt-4 text-[#7069FA] font-bold hover:underline"
-                >
-                  Voir tous les articles
-                </button>
-              </Link>
-            </div>
-          )}
-        </section>
+            </section>
+          </>
+        )}
       </div>
     </div>
   );

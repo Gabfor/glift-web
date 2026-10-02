@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import StoreFilters from "@/components/store/StoreFilters";
 import StoreGrid from "@/components/store/StoreGrid";
-import Pagination from "@/components/pagination/Pagination";
+import LoadMore from "@/components/pagination/LoadMore";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
 import { StoreProgram, StoreProfile } from "@/types/store";
@@ -24,7 +24,7 @@ export default function StorePageClient({
   initialFavorites = [],
 }: StorePageClientProps) {
   const [sortBy, setSortBy] = useState("relevance");
-  const [currentPage, setCurrentPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(12);
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
@@ -38,10 +38,10 @@ export default function StorePageClient({
       const savedSort = sessionStorage.getItem("glift_store_sortBy");
       if (savedSort) setSortBy(savedSort);
 
-      const savedPage = sessionStorage.getItem("glift_store_page");
-      if (savedPage) {
-        const p = Number.parseInt(savedPage, 10);
-        if (p) setCurrentPage(p);
+      const savedCount = sessionStorage.getItem("glift_store_visibleCount");
+      if (savedCount) {
+        const c = Number.parseInt(savedCount, 10);
+        if (c) setVisibleCount(c);
       }
 
       const savedFilters = sessionStorage.getItem("glift_store_filters");
@@ -62,10 +62,10 @@ export default function StorePageClient({
     try {
       sessionStorage.setItem("glift_store_sortBy", sortBy);
       sessionStorage.setItem("glift_store_filters", JSON.stringify(filters));
-      sessionStorage.setItem("glift_store_page", currentPage.toString());
+      sessionStorage.setItem("glift_store_visibleCount", visibleCount.toString());
       sessionStorage.setItem("glift_store_favoritesOnly", String(favoritesOnly));
     } catch { /* ignore */ }
-  }, [sortBy, filters, currentPage, favoritesOnly, isRestored]);
+  }, [sortBy, filters, visibleCount, favoritesOnly, isRestored]);
 
   return (
     <div className="max-w-[1152px] mx-auto">
@@ -75,45 +75,42 @@ export default function StorePageClient({
         favoritesOnly={favoritesOnly}
         onFavoritesOnlyToggle={() => {
           setFavoritesOnly((prev) => !prev);
-          setCurrentPage(1);
+          setVisibleCount(12);
         }}
         onSortChange={(value) => {
           setSortBy(value);
-          setCurrentPage(1);
+          setVisibleCount(12);
         }}
         onFiltersChange={(newFilters) => {
           setFilters(newFilters);
-          setCurrentPage(1);
+          setVisibleCount(12);
         }}
       />
       <StoreGrid
         sortBy={sortBy}
-        currentPage={currentPage}
+        visibleCount={visibleCount}
         filters={filters}
         favoritesOnly={favoritesOnly}
         onCountChange={setTotalPrograms}
         onResetFavorites={() => {
           setFavoritesOnly(false);
-          setCurrentPage(1);
+          setVisibleCount(12);
         }}
         onResetFilters={() => {
           setFilters(["", "", "", "", "", "", ""]);
-          setCurrentPage(1);
+          setVisibleCount(12);
         }}
-        initialPrograms={currentPage === 1 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialPrograms : undefined}
+        initialPrograms={visibleCount === 12 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialPrograms : undefined}
         initialUserProfile={initialUserProfile}
         initialIsAuthenticated={initialIsAuthenticated}
         initialFavorites={initialFavorites}
       />
-      {totalPrograms > 8 && (
-        <div className="hidden md:block">
-          <Pagination
-            currentPage={currentPage}
-            totalItems={totalPrograms}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
-      )}
+      <LoadMore
+        currentCount={Math.min(visibleCount, totalPrograms)}
+        totalCount={totalPrograms}
+        onLoadMore={() => setVisibleCount((prev) => prev + 12)}
+        label="programmes"
+      />
     </div>
   );
 }

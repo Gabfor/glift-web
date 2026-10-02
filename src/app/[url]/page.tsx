@@ -437,7 +437,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           />
           {page.description && (
             <div 
-              className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[700px] mx-auto leading-relaxed [&_p]:m-0"
+              className={`text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed ${extraText ? "mb-8" : "mb-0"} [&_p]:m-0`}
               dangerouslySetInnerHTML={{ __html: page.description }}
             />
           )}

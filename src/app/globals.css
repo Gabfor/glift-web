@@ -622,4 +622,23 @@ input:checked+.slider:before {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* Animation vacillement doux du sommet de la flamme */
+@keyframes flame-sway {
+  0%, 100% {
+    transform: skewX(0deg) rotate(0deg);
+  }
+  25% {
+    transform: skewX(-5deg) rotate(-2deg);
+  }
+  75% {
+    transform: skewX(5deg) rotate(2deg);
+  }
+}
+
+.group:hover .group-hover-animate-flame,
+.animate-flame {
+  transform-origin: 50% 95%;
+  animation: flame-sway 1.2s ease-in-out infinite;
 }

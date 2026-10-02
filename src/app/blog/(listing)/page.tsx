@@ -88,6 +88,8 @@ export default async function BlogPage() {
     }
   }
 
+  const hasExtraText = Boolean(extraText && extraText.trim() !== "");
+
   return (
     <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
@@ -97,16 +99,16 @@ export default async function BlogPage() {
           </div>
         )}
         <h1 
-          className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center prose-titles [&_p]:m-0"
+          className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center prose-titles [&_p]:m-0 ${pageConfig?.description || hasExtraText ? "mb-[20px]" : "mb-0"}`}
           dangerouslySetInnerHTML={{ __html: pageConfig?.titre || "Blog" }}
         />
         {pageConfig?.description && (
           <div 
-            className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] mb-8 text-center max-w-[500px] mx-auto leading-relaxed [&_p]:m-0"
+            className={`text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed ${hasExtraText ? "mb-8" : "mb-0"} [&_p]:m-0`}
             dangerouslySetInnerHTML={{ __html: pageConfig.description }}
           />
         )}
-        {extraText && <BlogIntroBlock html={extraText} />}
+        {hasExtraText && <BlogIntroBlock html={extraText} />}
       </div>
 
       <BlogListClient initialArticles={articles || []} />
