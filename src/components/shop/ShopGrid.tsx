@@ -251,6 +251,7 @@ export default function ShopGrid({
   const [loading, setLoading] = useState(initialOffers.length === 0);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
   const rawOffersCacheRef = useRef<ShopOffer[]>(initialOffers.length > 0 ? initialOffers : []);
+  const allOffersRef = useRef<ShopOffer[]>(initialOffers);
   const hasLoadedOnceRef = useRef<boolean>(initialOffers.length > 0);
 
   // Load favorites from Supabase DB (or localStorage fallback) on client mount
@@ -345,11 +346,21 @@ export default function ShopGrid({
   useEffect(() => {
     let isActive = true;
 
-    const stateChanged =
+    const filterOrSortChanged =
       lastStateRef.current.sortBy !== sortBy ||
-      lastStateRef.current.targetCount !== targetCount ||
       lastStateRef.current.filters !== JSON.stringify(filters) ||
       lastStateRef.current.favoritesOnly !== favoritesOnly;
+
+    const countChanged = lastStateRef.current.targetCount !== targetCount;
+
+    // Si seul le nombre visible a changé et que nous avons déjà les offres traitées, on met à jour directement l'affichage
+    if (!filterOrSortChanged && countChanged && allOffersRef.current.length > 0) {
+      lastStateRef.current.targetCount = targetCount;
+      setOffers(allOffersRef.current.slice(0, targetCount));
+      return;
+    }
+
+    const stateChanged = filterOrSortChanged || countChanged;
 
     lastStateRef.current = {
       sortBy,
@@ -391,6 +402,7 @@ export default function ShopGrid({
 
       const displayed = processed.slice(0, targetCount);
 
+      allOffersRef.current = processed;
       setAllOffers(processed);
       setOffers(displayed);
       setLoading(false);
@@ -417,6 +429,7 @@ export default function ShopGrid({
       if (error) {
         console.error("Error fetching shop offers:", error);
         if (rawOffersCacheRef.current.length === 0) {
+          allOffersRef.current = [];
           setAllOffers([]);
           setOffers([]);
           setLoading(false);
@@ -437,7 +450,7 @@ export default function ShopGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, currentPage, filters, userProfile, favoritesOnly, favorites]);
+  }, [sortBy, targetCount, currentPage, filters, userProfile, favoritesOnly, favorites]);
 
   const { contactUrl } = useDashboardUrl();
 

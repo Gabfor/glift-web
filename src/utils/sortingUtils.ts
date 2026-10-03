@@ -18,7 +18,13 @@ export function calculateProgramRelevance(
 
   if (!userProfile) return score;
 
-  // 1. Gender Rule
+  // 1. Plan Accessibility Rule for Starter Users (+15 points)
+  const userPlan = userProfile.subscription_plan?.toString().trim().toLowerCase();
+  if (userPlan === "starter" && program.plan === "starter") {
+    score += 15;
+  }
+
+  // 2. Gender Rule
   const userGender = userProfile.gender?.toString().trim().toLowerCase();
   if (userGender) {
     const pg = program.gender.trim().toLowerCase();

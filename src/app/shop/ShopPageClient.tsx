@@ -34,7 +34,7 @@ export default function ShopPageClient({
   const [favoritesOnly, setFavoritesOnly] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<ShopOffer | null>(null);
   const [showCodeModal, setShowCodeModal] = useState(false);
-  const [totalItems, setTotalItems] = useState(0);
+  const [totalItems, setTotalItems] = useState(initialOffers.length);
   const [isRestored, setIsRestored] = useState(false);
 
   // Restore from sessionStorage on mount after hydration
@@ -123,7 +123,7 @@ export default function ShopPageClient({
           favoritesOnly={favoritesOnly}
           onOfferClick={handleOfferClick}
           onCountChange={setTotalItems}
-          initialOffers={visibleCount === 12 && filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
+          initialOffers={filters.every(f => f === "") && sortBy === "relevance" && !favoritesOnly ? initialOffers : undefined}
           initialUserProfile={initialUserProfile}
           initialIsAuthenticated={initialIsAuthenticated}
           initialFavorites={initialFavorites}
@@ -140,7 +140,7 @@ export default function ShopPageClient({
           currentCount={Math.min(visibleCount, totalItems)}
           totalCount={totalItems}
           onLoadMore={() => setVisibleCount((prev) => prev + 12)}
-          label="offres"
+          label="bons plans"
         />
       </div>
 

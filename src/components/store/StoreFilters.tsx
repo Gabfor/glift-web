@@ -13,8 +13,9 @@ import StoreMobileFilterDrawer, {
 } from "@/components/store/StoreMobileFilterDrawer";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
-import { StoreProgram } from "@/types/store";
+import { StoreProgram, StoreProfile } from "@/types/store";
 import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
+import { haveStringArrayChanged } from "@/utils/arrayUtils";
 
 type Props = {
   sortBy: string;
@@ -23,6 +24,8 @@ type Props = {
   initialFilters?: string[];
   favoritesOnly?: boolean;
   onFavoritesOnlyToggle?: () => void;
+  initialUserProfile?: StoreProfile | null;
+  initialIsAuthenticated?: boolean;
 };
 
 type ProgramStoreField = {
@@ -217,6 +220,8 @@ export default function StoreFilters({
   initialFilters,
   favoritesOnly = false,
   onFavoritesOnlyToggle,
+  initialUserProfile = null,
+  initialIsAuthenticated = false,
 }: Props) {
   const sortOptions: SortOption[] = [
     { value: "relevance", label: "Pertinence" },
@@ -228,13 +233,46 @@ export default function StoreFilters({
   const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
   const [rawPrograms, setRawPrograms] = useState<StoreProgram[]>([]);
 
-  const [selectedFilters, setSelectedFilters] = useState(initialFilters ?? ["", "", "", "", "", "", ""]);
+  const [selectedFilters, setSelectedFilters] = useState(() => {
+    if (initialFilters && initialFilters.some((f) => f !== "")) {
+      return initialFilters;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const savedToggle = localStorage.getItem("glift_store_included_only");
+        if (savedToggle === "true") {
+          return ["", "", "", "", "", "", "Oui"];
+        }
+      } catch { /* ignore */ }
+    }
+    return initialFilters ?? ["", "", "", "", "", "", ""];
+  });
+
+  // Keep internal filters in sync with parent when initialFilters changes (e.g. storage restoration)
+  useEffect(() => {
+    if (initialFilters) {
+      setSelectedFilters((current) => {
+        if (haveStringArrayChanged(initialFilters, current)) {
+          return initialFilters;
+        }
+        return current;
+      });
+    }
+  }, [initialFilters]);
+
   const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
   const [openMobileSortMenu, setOpenMobileSortMenu] = useState(false);
   const mobileSortRef = useRef<HTMLDivElement>(null);
 
-  const { user, isPremiumUser, isUserDataLoaded } = useUser();
-  const isAuthenticated = !!user;
+  const { user, isPremiumUser: contextIsPremium, isUserDataLoaded } = useUser();
+  const isAuthenticated = !!user || Boolean(initialIsAuthenticated);
+  const isPremiumUser = isUserDataLoaded
+    ? contextIsPremium
+    : initialUserProfile?.subscription_plan === "premium";
+  const showSubscriptionToggle =
+    isAuthenticated &&
+    !isPremiumUser &&
+    (isUserDataLoaded || initialUserProfile?.subscription_plan === "starter");
 
   // Close mobile sort dropdown on outside click
   useEffect(() => {
@@ -487,7 +525,7 @@ export default function StoreFilters({
       },
     ];
 
-    if (isUserDataLoaded && isAuthenticated && !isPremiumUser) {
+    if (showSubscriptionToggle) {
       sections.push({
         title: "Disponibilité",
         options: availabilityOptions.map((o) => o.value),
@@ -503,9 +541,7 @@ export default function StoreFilters({
     durationOptions,
     partnerOptions,
     availabilityOptions,
-    isUserDataLoaded,
-    isAuthenticated,
-    isPremiumUser,
+    showSubscriptionToggle,
   ]);
 
   // Convert selectedFilters array to drawer Map<string, Set<string>>
@@ -653,10 +689,10 @@ export default function StoreFilters({
           favoriteIconActive="/icons/coeur_red.svg"
           favoriteIconInactive="/icons/coeur_grey.svg"
           rightContent={
-            isUserDataLoaded && isAuthenticated && !isPremiumUser ? (
+            showSubscriptionToggle ? (
               <div className="flex items-center gap-[10px]">
                 <span className="text-[16px] font-semibold text-[#3A416F]">
-                  Masquer les programmes bloqués
+                  Inclus avec mon abonnement
                 </span>
                 <ToggleSwitch
                   checked={selectedFilters[6] === "Oui"}

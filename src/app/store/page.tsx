@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createServerClient } from "@/lib/supabaseServer";
 import StorePageClient from "./StorePageClient";
 import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
@@ -88,14 +89,26 @@ export default async function StorePage() {
     }
   }
 
-  // 2. Fetch total count
-  const { count: totalCount } = await supabase
+  // 2. Fetch cookie & calculate initial subscription toggle
+  const cookieStore = await cookies();
+  const isIncludedOnly = cookieStore.get("glift_store_included_only")?.value === "true";
+  const shouldFilterStarter = isIncludedOnly && (userProfile?.subscription_plan === "starter");
+  const initialFilters = ["", "", "", "", "", "", shouldFilterStarter ? "Oui" : ""];
+
+  // 3. Fetch total count (filtered by plan starter if shouldFilterStarter)
+  let countQuery = supabase
     .from("program_store")
     .select("*", { count: "exact", head: true })
     .eq("status", "ON");
 
-  // 3. Fetch first batch of programs for initial display (Default relevance sort)
-  const { data: rawPrograms } = await supabase
+  if (shouldFilterStarter) {
+    countQuery = countQuery.eq("plan", "starter");
+  }
+
+  const { count: totalCount } = await countQuery;
+
+  // 4. Fetch first batch of programs for initial display (Default relevance sort)
+  let programsQuery = supabase
     .from("program_store")
     .select(`
       id,
@@ -120,6 +133,12 @@ export default async function StorePage() {
       partner_name
     `)
     .eq("status", "ON");
+
+  if (shouldFilterStarter) {
+    programsQuery = programsQuery.eq("plan", "starter");
+  }
+
+  const { data: rawPrograms } = await programsQuery;
 
   const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
   const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, initialFavorites);
@@ -146,6 +165,7 @@ export default async function StorePage() {
           initialUserProfile={userProfile}
           initialIsAuthenticated={!!user}
           initialFavorites={initialFavorites}
+          initialFilters={initialFilters}
         />
       </div>
     </main>

@@ -27,6 +27,7 @@ export default function StoreGrid({
   initialIsAuthenticated = false,
   initialFavorites = [],
   favoritesOnly = false,
+  initialFilters,
   onCountChange,
   onResetFavorites,
   onResetFilters,
@@ -40,6 +41,7 @@ export default function StoreGrid({
   initialIsAuthenticated?: boolean;
   initialFavorites?: string[];
   favoritesOnly?: boolean;
+  initialFilters?: string[];
   onCountChange?: (count: number) => void;
   onResetFavorites?: () => void;
   onResetFilters?: () => void;
@@ -49,8 +51,10 @@ export default function StoreGrid({
   const isDefaultQuery =
     targetCount === 12 &&
     sortBy === "relevance" &&
-    filters.every((f) => f === "") &&
-    !favoritesOnly;
+    !favoritesOnly &&
+    (initialFilters
+      ? !haveStringArrayChanged(filters, initialFilters)
+      : filters.every((f) => f === ""));
 
   const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
   const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, targetCount));
