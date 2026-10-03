@@ -22,6 +22,7 @@ export default function StoreGridSkeleton() {
             <div className="space-y-2">
               <div className="h-3 bg-[#E6E8F5] rounded" />
               <div className="h-3 bg-[#E6E8F5] rounded" />
+              <div className="h-3 bg-[#E6E8F5] rounded" />
               <div className="h-3 bg-[#E6E8F5] rounded w-3/4" />
             </div>
             <div className="mt-auto">

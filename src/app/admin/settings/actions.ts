@@ -100,16 +100,18 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             if (p.content_blocks) extractUrlsFromBlocks(p.content_blocks as any[]);
         });
 
-        // G. Blog Articles (NEW)
+        // G. Blog Articles
         const { data: blogArticles } = await (supabase as any)
             .from("blog_articles")
-            .select("content_blocks");
+            .select("content_blocks, image_url, image_mobile");
         
         blogArticles?.forEach((a: any) => {
+            if (a.image_url) usedUrls.add(a.image_url);
+            if (a.image_mobile) usedUrls.add(a.image_mobile);
             if (a.content_blocks) extractUrlsFromBlocks(a.content_blocks as any[]);
         });
 
-        // H. Legal Pages (NEW)
+        // H. Legal Pages
         const { data: legalPages } = await (supabase as any)
             .from("legal_pages")
             .select("content_blocks");
@@ -118,9 +120,20 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             if (p.content_blocks) extractUrlsFromBlocks(p.content_blocks as any[]);
         });
 
-        // I. Avatars (Requires Admin Client)
+        // H bis. Auteurs
         try {
-            const adminClient = createAdminClient();
+            const { data: auteurs } = await (supabase as any)
+                .from("auteurs")
+                .select("image_url");
+            
+            auteurs?.forEach((a: any) => {
+                if (a.image_url) usedUrls.add(a.image_url);
+            });
+        } catch { /* ignore */ }
+
+        // I. Avatars (Requires Admin Client)
+        const adminClient = createAdminClient();
+        try {
             let page = 1;
             let hasMore = true;
 
@@ -138,7 +151,6 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
                     users.forEach(u => {
                         const meta = u.user_metadata;
                         if (meta?.avatar_url) usedUrls.add(meta.avatar_url);
-                        // We could also check meta.avatar_path directly, but strict URL matching is safest for now
                     });
                     page++;
                 }
@@ -167,11 +179,11 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         const cleanBucket = async (bucketName: string, folder: string = "") => {
             // Recursive Lister for specific deep buckets like avatars
             if (bucketName === "avatars") {
-                const { data: rootItems } = await supabase.storage.from(bucketName).list();
+                const { data: rootItems } = await adminClient.storage.from(bucketName).list();
                 if (rootItems) {
                     for (const item of rootItems) {
                         if (!item.id) { // It's a folder
-                            const { data: subFiles } = await supabase.storage.from(bucketName).list(item.name);
+                            const { data: subFiles } = await adminClient.storage.from(bucketName).list(item.name);
                             if (subFiles && subFiles.length > 0) {
                                 const subToDelete: string[] = [];
                                 for (const sub of subFiles) {
@@ -188,7 +200,7 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
                                 }
 
                                 if (subToDelete.length > 0) {
-                                    await supabase.storage.from(bucketName).remove(subToDelete);
+                                    await adminClient.storage.from(bucketName).remove(subToDelete);
                                     totalDeleted += subToDelete.length;
                                     deletedFiles.push(...subToDelete.map(f => `${bucketName}/${f}`));
                                 }
@@ -200,7 +212,7 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             }
 
             // Normal flat buckets
-            const { data: files, error } = await supabase.storage.from(bucketName).list(folder, { limit: 1000 });
+            const { data: files, error } = await adminClient.storage.from(bucketName).list(folder, { limit: 1000 });
             if (error) {
                 console.error(`Error listing bucket ${bucketName}/${folder}:`, error);
                 return;
@@ -224,7 +236,7 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
             }
 
             if (toDelete.length > 0) {
-                const { error: deleteError } = await supabase.storage.from(bucketName).remove(toDelete);
+                const { error: deleteError } = await adminClient.storage.from(bucketName).remove(toDelete);
                 if (deleteError) {
                     console.error(`Error deleting from ${bucketName}:`, deleteError);
                 } else {

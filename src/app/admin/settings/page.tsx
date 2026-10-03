@@ -62,6 +62,7 @@ export default function AdminSettingsPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isCleaning, setIsCleaning] = useState(false);
+    const [cleanupFeedback, setCleanupFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
     const supabase = createClient();
     const settingsService = new SettingsService(supabase);
@@ -403,18 +404,27 @@ export default function AdminSettingsPage() {
                         </div>
 
                         {/* Dashed Container */}
-                        <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex items-center pl-6 py-6">
+                        <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex flex-wrap items-center pl-6 py-6 gap-4">
                             <CTAButton
                                 onClick={async () => {
                                     setIsCleaning(true);
+                                    setCleanupFeedback(null);
                                     try {
                                         const result = await cleanupOrphanedImages();
                                         console.log(result.message);
                                         if (result.details && result.details.length > 0) {
                                             console.log("Deleted files:", result.details);
                                         }
+                                        setCleanupFeedback({
+                                            type: result.success ? 'success' : 'error',
+                                            message: result.message,
+                                        });
                                     } catch (e: any) {
                                         console.error("Erreur lors du nettoyage:", e);
+                                        setCleanupFeedback({
+                                            type: 'error',
+                                            message: "Erreur lors du nettoyage: " + (e?.message || "Erreur inconnue"),
+                                        });
                                     } finally {
                                         setIsCleaning(false);
                                     }
@@ -430,6 +440,11 @@ export default function AdminSettingsPage() {
                                 />
                                 Vider Buckets
                             </CTAButton>
+                            {cleanupFeedback && (
+                                <span className={`text-sm font-semibold ${cleanupFeedback.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                    {cleanupFeedback.message}
+                                </span>
+                            )}
                         </div>
                     </div>
                 </div>

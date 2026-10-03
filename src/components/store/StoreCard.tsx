@@ -202,7 +202,7 @@ export default function StoreCard({
             ))}
           </div>
 
-          <p className="text-[14px] text-[#5D6494] font-semibold mb-[15px] text-left line-clamp-3 leading-relaxed md:min-h-[63px]">
+          <p className="text-[14px] text-[#5D6494] font-semibold mb-[15px] text-left line-clamp-4 leading-relaxed md:min-h-[84px]">
             {program.description}
           </p>
         </div>
