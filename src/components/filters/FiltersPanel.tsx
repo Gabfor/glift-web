@@ -20,6 +20,7 @@ export type FilterGroup = {
   placeholder: string;
   options: FilterOption[];
   allOptions?: FilterOption[];
+  sortOptions?: boolean;
 };
 
 type FiltersPanelProps = {
@@ -249,6 +250,7 @@ export default function FiltersPanel({
               selected={selectedFilters[index] ?? ""}
               onSelect={(value) => onFilterChange(index, value)}
               disabled={filter.options.length === 0}
+              sortOptions={filter.sortOptions}
             />
           ))}
         </div>

@@ -51,8 +51,29 @@ export default function DropdownFilter({
   const [showTopGradient, setShowTopGradient] = useState(false);
   const [showBottomGradient, setShowBottomGradient] = useState(false);
 
+  const getLevelRank = (labelStr: string): number => {
+    const norm = labelStr
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+    if (norm.includes("debutant")) return 0;
+    if (norm.includes("intermediaire")) return 1;
+    if (norm.includes("confirme")) return 2;
+    return 999;
+  };
+
   const preparedOptions = useMemo(() => {
     const clonedOptions = [...options];
+
+    if (label.trim().toLowerCase() === "niveau") {
+      return clonedOptions.sort((a, b) => {
+        const rankA = getLevelRank(a.label);
+        const rankB = getLevelRank(b.label);
+        if (rankA !== rankB) return rankA - rankB;
+        return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+      });
+    }
 
     if (!sortOptions) {
       return clonedOptions;
@@ -61,7 +82,7 @@ export default function DropdownFilter({
     return clonedOptions.sort((a, b) =>
       a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
     );
-  }, [options, sortOptions]);
+  }, [label, options, sortOptions]);
 
   // Selected values as a Set for multi-select
   const selectedValues = useMemo(() => {

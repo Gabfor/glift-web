@@ -370,10 +370,10 @@ export default function AdminContentBlogPage() {
                     </div>
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
-                  {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("Date", "created_at", "w-[120px]")}
-                  {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
-                  {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
+                  {renderHeaderCell("Titre", "titre", "truncate max-w-[300px]")}
+                  {renderHeaderCell("Date", "created_at", "w-[110px]")}
+                  {renderHeaderCell("Mis en avant", "is_featured", "w-[130px] text-center justify-center")}
+                  {renderHeaderCell("ID de l'article", "id", "w-[300px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                 </tr>
               </thead>
@@ -404,10 +404,10 @@ export default function AdminContentBlogPage() {
                     </button>
                   </th>
                   {renderHeaderCell("Statut", "is_published", "w-[82px]")}
-                  {renderHeaderCell("Titre", "titre", "w-auto")}
-                  {renderHeaderCell("Date", "created_at", "w-[120px]")}
-                  {renderHeaderCell("Mis en avant", "is_featured", "w-[160px] text-center justify-center")}
-                  {renderHeaderCell("ID de l'article", "id", "w-[330px]")}
+                  {renderHeaderCell("Titre", "titre", "truncate max-w-[300px]")}
+                  {renderHeaderCell("Date", "created_at", "w-[110px]")}
+                  {renderHeaderCell("Mis en avant", "is_featured", "w-[130px] text-center justify-center")}
+                  {renderHeaderCell("ID de l'article", "id", "w-[300px]")}
                   {renderHeaderCell("Langue", "langue", "w-[80px] px-3")}
                 </tr>
               </thead>
@@ -447,14 +447,16 @@ export default function AdminContentBlogPage() {
                         </span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`/admin/create-blog-article?id=${a.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
-                          {a.titre}
-                        </Link>
+                        <Tooltip content={a.titre}>
+                          <Link href={`/admin/create-blog-article?id=${a.id}`} className="truncate max-w-[300px] block hover:text-[#2E3271] transition-colors cursor-pointer">
+                            {a.titre}
+                          </Link>
+                        </Tooltip>
                       </td>
-                      <td className="px-4 font-semibold text-[#5D6494] align-middle">
+                      <td className="w-[110px] px-4 font-semibold text-[#5D6494] align-middle">
                         {new Date(a.created_at).toLocaleDateString("fr-FR")}
                       </td>
-                      <td className="px-4 align-middle">
+                      <td className="w-[130px] px-4 align-middle">
                         <div className="flex items-center justify-center">
                           <button
                             onClick={() => handleToggleFeatured(a.id, a.is_featured ?? false)}
@@ -479,9 +481,9 @@ export default function AdminContentBlogPage() {
                           </button>
                         </div>
                       </td>
-                      <td className="w-[330px] px-4 font-semibold text-[#5D6494] text-left align-middle">
+                      <td className="w-[300px] px-4 font-semibold text-[#5D6494] text-left align-middle">
                         <div className="flex items-center gap-2">
-                          <span className="truncate w-[280px]">{a.id}</span>
+                          <span className="truncate w-[250px]">{a.id}</span>
                           <Tooltip
                             content="Copié !"
                             delay={0}
@@ -512,7 +514,7 @@ export default function AdminContentBlogPage() {
                           </Tooltip>
                         </div>
                       </td>
-                      <td className="px-4">
+                      <td className="w-[80px] px-4">
                         <div className="flex items-center justify-center">
                           <Image src="/flags/france.svg" alt="Français" width={20} height={15} className="object-contain" />
                         </div>

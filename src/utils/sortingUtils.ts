@@ -98,6 +98,21 @@ export function calculateProgramRelevance(
 }
 
 /**
+ * Vérifie si le contenu cible exclusivement le sexe opposé à l'utilisateur
+ */
+export function isOppositeGender(
+  itemGender: string | null | undefined,
+  userGender: string | null | undefined
+): boolean {
+  if (!userGender || !itemGender) return false;
+  const ug = userGender.trim().toLowerCase();
+  const ig = itemGender.trim().toLowerCase();
+  if (ug === "homme") return ig === "femme";
+  if (ug === "femme") return ig === "homme";
+  return false;
+}
+
+/**
  * Trie les programmes par pertinence
  */
 export function sortProgramsByRelevance(
@@ -105,7 +120,18 @@ export function sortProgramsByRelevance(
   userProfile: StoreProfile | null,
   favorites: string[] = []
 ): StoreProgram[] {
+  const userGender = userProfile?.gender?.toString().trim().toLowerCase();
+
   return [...programs].sort((a, b) => {
+    // 0. Règle de séparation stricte de genre : les programmes du sexe opposé sont relégués à la fin
+    if (userGender) {
+      const isOppositeA = isOppositeGender(a.gender, userGender);
+      const isOppositeB = isOppositeGender(b.gender, userGender);
+      if (isOppositeA !== isOppositeB) {
+        return isOppositeA ? 1 : -1;
+      }
+    }
+
     const isFavA = favorites.includes(a.id);
     const isFavB = favorites.includes(b.id);
     const scoreA = calculateProgramRelevance(a, userProfile, isFavA);

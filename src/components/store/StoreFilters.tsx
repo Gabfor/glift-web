@@ -106,6 +106,37 @@ const toStringOptions = (
     .map((value) => ({ value, label: value }));
 };
 
+const getLevelRank = (value: string): number => {
+  const norm = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  if (norm.includes("debutant")) return 0;
+  if (norm.includes("intermediaire")) return 1;
+  if (norm.includes("confirme")) return 2;
+  return 999;
+};
+
+const toLevelOptions = (
+  values: Set<string>,
+  exclusions: string[] = []
+): FilterOption[] => {
+  const exclusionSet = new Set(exclusions.map((value) => value.toLowerCase()));
+
+  return Array.from(values)
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0 && value !== "__none__")
+    .filter((value) => !exclusionSet.has(value.toLowerCase()))
+    .sort((a, b) => {
+      const rankA = getLevelRank(a);
+      const rankB = getLevelRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      return a.localeCompare(b, "fr", { sensitivity: "base" });
+    })
+    .map((value) => ({ value, label: value }));
+};
+
 const buildDurationOptions = (durations: number[], selected: string) => {
   if (durations.length === 0) {
     if (!selected || selected === "__none__") return [];
@@ -441,13 +472,13 @@ export default function StoreFilters({
     return {
       genderOptions: toStringOptions(genderValues, ["tous", "mixte", "unisexe"]),
       goalOptions: toStringOptions(goalValues),
-      levelOptions: toStringOptions(levelValues, ["tous niveaux"]),
+      levelOptions: toLevelOptions(levelValues, ["tous niveaux"]),
       locationOptions: toStringOptions(locationValues),
       durationOptions: buildDurationOptions(durationValues, selectedFilters[4] ?? ""),
 
       allGenderOptions: toStringOptions(allGenderValues, ["tous", "mixte", "unisexe"]),
       allGoalOptions: toStringOptions(allGoalValues),
-      allLevelOptions: toStringOptions(allLevelValues, ["tous niveaux"]),
+      allLevelOptions: toLevelOptions(allLevelValues, ["tous niveaux"]),
       allLocationOptions: allLocationFallback(),
       allDurationOptions: buildDurationOptions(allDurationValues, ""),
       partnerOptions: toStringOptions(partnerValues),
@@ -475,6 +506,7 @@ export default function StoreFilters({
       placeholder: "Tous les niveaux",
       options: levelOptions,
       allOptions: allLevelOptions,
+      sortOptions: false,
     },
     {
       label: "Lieu",
