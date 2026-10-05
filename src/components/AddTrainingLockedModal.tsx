@@ -48,7 +48,7 @@ export default function AddTrainingLockedModal({
                 className="mb-6"
             />
 
-            <div className="space-y-4 text-[14px] font-medium text-[#5D6494] leading-[1.6]">
+            <div className="space-y-4 text-[14px] font-semibold text-[#5D6494] leading-[1.6]">
                 <p>
                     En cliquant sur <span className="font-bold text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui te permettra d’ajouter de nouveaux entraînements.
                 </p>

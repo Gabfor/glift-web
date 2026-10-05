@@ -223,8 +223,18 @@ export function sortOffersByRelevance(
 ): ShopOffer[] {
   const now = Date.now();
   const favoriteSet = new Set(favoriteOfferIds);
+  const userGender = userProfile?.gender?.toString().trim().toLowerCase();
 
   return [...offers].sort((a, b) => {
+    // 0. Règle de séparation stricte de genre : les offres du sexe opposé sont reléguées à la fin
+    if (userGender) {
+      const isOppositeA = isOppositeGender(a.gender, userGender);
+      const isOppositeB = isOppositeGender(b.gender, userGender);
+      if (isOppositeA !== isOppositeB) {
+        return isOppositeA ? 1 : -1;
+      }
+    }
+
     const scoreA = calculateOfferRelevance(a, userProfile, now, favoriteSet.has(a.id));
     const scoreB = calculateOfferRelevance(b, userProfile, now, favoriteSet.has(b.id));
 

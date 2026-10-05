@@ -250,6 +250,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     });
 
     const [successPlan, setSuccessPlan] = useState<'premium' | 'starter' | null>(null);
+    const successPlanRef = useRef<'premium' | 'starter' | null>(null);
+    useEffect(() => {
+        successPlanRef.current = successPlan;
+    }, [successPlan]);
     const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
     const [paymentError, setPaymentError] = useState<string | null>(null);
     const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
@@ -353,7 +357,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             fetch(`/api/user/subscription-details?t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
-                    if (Date.now() - lastActionTime.current < 5000) return;
+                    if (Date.now() - lastActionTime.current < 10000) return;
 
                     // Handle Payment Errors
                     if (data && (data.lastInvoiceErrorCode || data.lastInvoiceError)) {
@@ -403,8 +407,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             setShowSuccessMessage(true);
                         } else {
                             // Active Stripe subscription (auto-renews) AND NO local cancellation date
-                            setShowSuccessMessage(false);
-                            setSuccessPlan(null);
+                            if (successPlanRef.current !== 'premium' && !isCardReadded && !isUndoingDowngrade) {
+                                setShowSuccessMessage(false);
+                                setSuccessPlan(null);
+                            }
                         }
                     } else {
                         // NO Stripe subscription (or error)
@@ -420,8 +426,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             setSubscriptionEndDate(Math.floor(new Date(premiumTrialEndAt!).getTime() / 1000));
                             setShowSuccessMessage(true);
                         } else {
-                            setShowSuccessMessage(false);
-                            setSuccessPlan(null);
+                            if (successPlanRef.current !== 'premium' && !isCardReadded && !isUndoingDowngrade) {
+                                setShowSuccessMessage(false);
+                                setSuccessPlan(null);
+                            }
                         }
                     }
                 })
@@ -437,7 +445,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
     // Check for expiry locally
     useEffect(() => {
-        if (paymentMethod) {
+        if (paymentMethod && effectiveIsPremium) {
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
@@ -449,8 +457,15 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     title: "Ton moyen de paiement a expiré",
                     description: (
                         <span>
-                            Pour continuer à bénéficier d’un abonnement Premium une fois la période de facturation actuelle terminée, renseigne un nouveau moyen de paiement avant le{" "}
-                            <span className="font-bold text-[#BB1111]">{formattedEndDate || "la fin de la période"}</span>.
+                            Pour continuer à bénéficier d’un abonnement Premium une fois la période de facturation actuelle terminée, renseigne un nouveau moyen de paiement avant{" "}
+                            {formattedEndDate ? (
+                                <>
+                                    le <span className="font-bold text-[#BB1111]">{formattedEndDate}</span>
+                                </>
+                            ) : (
+                                <span className="font-bold text-[#BB1111]">la fin de la période</span>
+                            )}
+                            .
                         </span>
                     ),
                     variant: "error"
@@ -465,17 +480,16 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 });
                 setShowModalMessage(true);
             } else {
-                // Clear error messages if resolved?
-                // Don't clear success messages!
-                // We need to distinguish error modal from success modal?
-                // They share `showModalMessage` and `successMessage` state.
-                // We should only clear if currently showing an ERROR.
                 if (successMessage.variant === 'error') {
                     setShowModalMessage(false);
                 }
             }
+        } else {
+            if (successMessage.variant === 'error') {
+                setShowModalMessage(false);
+            }
         }
-    }, [paymentMethod, paymentError, paymentErrorCode, formattedEndDate]);
+    }, [paymentMethod, paymentError, paymentErrorCode, formattedEndDate, effectiveIsPremium]);
 
     const isCurrentPlan =
         (effectiveIsPremium && selectedPlan === "premium") ||
@@ -487,11 +501,13 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         setLoading(true);
         triggerLoader(0); // Trigger global loader indefinitely until we finish
         lastActionTime.current = Date.now(); // Mark action start time
+        setShowModalMessage(false);
         // Do NOT clear success message immediately if switching context? 
         // Better to clear it to avoid confusion.
         if (!options?.isUndo) {
             setShowSuccessMessage(false);
             setSuccessPlan(null);
+            successPlanRef.current = null;
             setIsCardReadded(false);
         }
         try {
@@ -539,13 +555,16 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 // If we confirmed payment, it is a success even if status in data was initial
                 if (isPremiumSuccess || isStarterSuccess || (data.clientSecret && !data.error)) {
                     setSuccessPlan(selectedPlan);
+                    successPlanRef.current = selectedPlan;
                     if (data.currentPeriodEnd) {
                         setSubscriptionEndDate(data.currentPeriodEnd);
                     }
+                    setShowModalMessage(false);
                     setShowSuccessMessage(true);
                     if (isStarterSuccess && (isPremiumUser || isTrialActive)) {
                         setSelectedPlan("premium");
                     }
+                    lastActionTime.current = Date.now();
                     // Refresh user context to update UI to 'Premium' state without reload
                     await refreshUser();
                 }
@@ -780,7 +799,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 </>
             )}
             {
-                showModalMessage && (
+                showModalMessage && !showSuccessMessage && (
                     <div className="mb-6 w-full max-w-[564px] mx-auto">
                         <ModalMessage
                             variant={successMessage.variant}
@@ -805,7 +824,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 </div>
             )}
 
-            {!isPremiumUser && !isTrialActive && (trial === true || Boolean(profile?.premium_trial_started_at) || Boolean(profile?.premium_end_at) || Boolean(profile?.premium_trial_end_at)) && !showSuccessMessage && (
+            {!isPremiumUser && !isTrialActive && (trial === true || Boolean(profile?.premium_trial_started_at) || Boolean(profile?.premium_end_at) || Boolean(profile?.premium_trial_end_at)) && !showSuccessMessage && !showModalMessage && (
                 <div className="mb-6 w-full max-w-[564px] mx-auto">
                     {isCardExpired ? (
                         <ModalMessage
@@ -882,7 +901,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     price="0 €"
                     period="/mois"
                     isSelected={selectedPlan === "starter"}
-                    onSelect={() => setSelectedPlan("starter")}
+                    onSelect={() => {
+                        setSelectedPlan("starter");
+                        setShowModalMessage(false);
+                    }}
                 />
                 <PlanOption
                     title="Abonnement Premium"
@@ -890,7 +912,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     price="2,49 €"
                     period="/mois"
                     isSelected={selectedPlan === "premium"}
-                    onSelect={() => setSelectedPlan("premium")}
+                    onSelect={() => {
+                        setSelectedPlan("premium");
+                        setShowModalMessage(false);
+                    }}
                 />
             </div>
 
@@ -1007,11 +1032,19 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
 
                                                         if (paymentMethod) {
                                                             // Updated existing
-                                                            setSuccessMessage({
-                                                                title: "Moyen de paiement modifié avec succès",
-                                                                description: "Ton changement de moyen de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
-                                                                variant: "success"
-                                                            });
+                                                            if (!isPremiumUser) {
+                                                                setSuccessMessage({
+                                                                    title: "Moyen de paiement enregistré avec succès",
+                                                                    description: "Ton moyen de paiement a bien été enregistré. Tu peux désormais réactiver ton abonnement Premium à tout moment.",
+                                                                    variant: "success"
+                                                                });
+                                                            } else {
+                                                                setSuccessMessage({
+                                                                    title: "Moyen de paiement modifié avec succès",
+                                                                    description: "Ton changement de moyen de paiement a bien été pris en compte. Ce nouveau moyen de paiement sera utilisé pour le prochain prélèvement.",
+                                                                    variant: "success"
+                                                                });
+                                                            }
                                                             setShowModalMessage(true);
                                                         } else {
                                                             if (wasAlreadyPremium) {
