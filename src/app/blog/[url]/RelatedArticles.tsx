@@ -44,7 +44,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
     <div>
       <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
       
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-[20px] gap-6">
+      <div className="flex justify-between items-start md:items-center mb-[20px] gap-6">
         <div className="flex flex-col gap-1">
           <h2 className="text-[14px] font-bold text-[#3A416F] uppercase tracking-wider">
             Articles liés
@@ -55,7 +55,7 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
         </div>
         <Link
           href={blogUrl}
-          className="h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center transition cursor-pointer"
+          className="hidden md:flex h-[44px] px-[30px] w-fit group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full items-center justify-center transition cursor-pointer shrink-0"
         >
           Voir tous les articles
         </Link>
@@ -70,6 +70,15 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
             className="w-full max-w-full sm:max-w-[368px]"
           />
         ))}
+      </div>
+
+      <div className="mt-[30px] md:hidden">
+        <Link
+          href={blogUrl}
+          className="h-[44px] px-[30px] w-full group border border-[var(--color-brand-strong)] text-[var(--color-brand-strong)] hover:text-white hover:bg-[var(--color-brand-strong)] font-semibold rounded-full flex items-center justify-center transition cursor-pointer"
+        >
+          Voir tous les articles
+        </Link>
       </div>
     </div>
   );

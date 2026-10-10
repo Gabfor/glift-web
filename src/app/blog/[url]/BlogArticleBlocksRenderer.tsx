@@ -317,6 +317,7 @@ export default function BlogArticleBlocksRenderer({
   isFeaturePage = false,
   pageUrl,
 }: BlogArticleBlocksRendererProps) {
+  const { isAuthenticated } = useUser();
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
 
   const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
@@ -832,7 +833,7 @@ export default function BlogArticleBlocksRenderer({
             const prevBlock = blocks.slice(0, index).reverse().find((b) => {
               if (!b) return false;
               if (b.type === "card" || b.type === "bonus") return b.enabled !== false;
-              if (b.type === "cta") return Boolean(b.texte || b.url);
+              if (b.type === "cta") return isAuthenticated ? false : Boolean(b.texte || b.url);
               if (b.type === "liste") {
                 const listItems = b.items || [];
                 return Boolean(b.titre || listItems.some((it: string) => it && it.trim() !== ""));
@@ -889,21 +890,33 @@ export default function BlogArticleBlocksRenderer({
           }
 
           case "cta": {
+            if (isAuthenticated) return null;
             if (!block.texte && !block.url) return null;
             const isExternal = block.url?.startsWith("http://") || block.url?.startsWith("https://");
             return (
               <div
                 key={key}
                 id={block.ancreId || undefined}
-                className="flex justify-center w-full scroll-mt-[100px]"
+                className="flex flex-col items-center justify-center w-full scroll-mt-[100px] gap-2"
               >
                 <CTAButton
                   href={block.url || "#"}
                   target={isExternal ? "_blank" : undefined}
                   rel={isExternal ? "noopener noreferrer" : undefined}
+                  className="w-full sm:w-auto"
                 >
                   {block.texte || "En savoir plus"}
                 </CTAButton>
+                {/* Texte centré sous le CTA (comme dans le footer non connecté) */}
+                <span className="text-[14px] font-semibold text-[#5D6494] flex items-center justify-center gap-2 text-center">
+                  <span className="relative flex items-center justify-center w-2 h-2 shrink-0">
+                    {/* Onde accentuée */}
+                    <span className="absolute -inset-0.5 rounded-full bg-[#00D591] opacity-65 animate-ping"></span>
+                    {/* Point central */}
+                    <span className="relative w-2 h-2 rounded-full bg-[#00D591] block"></span>
+                  </span>
+                  {trialDays < 1 ? "1 heure" : `${trialDays} jours`} pour tester
+                </span>
               </div>
             );
           }

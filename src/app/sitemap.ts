@@ -89,7 +89,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // Catégories du blog
-  const categories = ['nutrition', 'entrainement', 'sante', 'motivation', 'lifestyle'];
+  const categories = ['nutrition', 'entrainement', 'sante', 'motivation', 'lifestyle', 'recette'];
   const categoryUrls = categories.map(cat => ({
     url: `${siteUrl}/${blogBaseUrl}/${cat}`,
     lastModified: new Date(),

@@ -245,7 +245,7 @@ export type BlogArticleFormState = {
   titre: string;
   description: string;
   url: string;
-  categorie: string;
+  categorie: string[];
   sexe: string;
   langue: string;
   niveau: string;
@@ -277,7 +277,7 @@ export const emptyBlogArticle: BlogArticleFormState = {
   titre: "",
   description: "",
   url: "",
-  categorie: "",
+  categorie: [],
   sexe: "",
   langue: "Français",
   niveau: "",

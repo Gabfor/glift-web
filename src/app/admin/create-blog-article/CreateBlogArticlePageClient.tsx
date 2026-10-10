@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
+import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import Image from "next/image";
@@ -104,13 +105,27 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
 
       if (rawData && !error) {
         const data = rawData as any;
+        let parsedCategories: string[] = [];
+        if (Array.isArray(data.categorie)) {
+          parsedCategories = data.categorie.filter((c: any): c is string => typeof c === "string" && c.trim() !== "");
+        } else if (typeof data.categorie === "string") {
+          try {
+            const parsed = JSON.parse(data.categorie);
+            parsedCategories = Array.isArray(parsed)
+              ? parsed.filter((c: any): c is string => typeof c === "string" && c.trim() !== "")
+              : (data.categorie.trim() ? [data.categorie.trim()] : []);
+          } catch {
+            parsedCategories = data.categorie.trim() ? [data.categorie.trim()] : [];
+          }
+        }
+
         const fetchedArticle: BlogArticleFormState = {
           id: data.id,
           type: data.type || "Conseil",
           titre: data.titre || "",
           description: data.description || "",
           url: data.url || "",
-          categorie: data.categorie || "",
+          categorie: parsedCategories,
           sexe: data.sexe || "",
           langue: data.langue || "Français",
           niveau: data.niveau || "",
@@ -184,7 +199,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         titre: article.titre,
         description: article.description,
         url: article.url,
-        categorie: article.categorie || null,
+        categorie: article.categorie && article.categorie.length > 0 ? article.categorie : null,
         sexe: article.sexe || null,
         langue: article.langue || "Français",
         niveau: article.niveau || null,
@@ -234,7 +249,11 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
       }
     } catch (err: any) {
       console.error("Erreur de sauvegarde:", err);
-      alert("Erreur lors de la sauvegarde: " + err.message);
+      if (err.message?.includes("blog_articles_url_key") || err.code === "23505") {
+        alert("Cette URL est déjà utilisée par un autre article. Veuillez modifier le champ « URL » (section Introduction) pour la rendre unique.");
+      } else {
+        alert("Erreur lors de la sauvegarde: " + err.message);
+      }
     } finally {
       setIsSaving(false);
     }
@@ -277,7 +296,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                 Conseil
               </button>
               <button
-                onClick={() => setArticle({ ...article, type: "Programme", categorie: article.categorie || "Entraînement" })}
+                onClick={() => setArticle({ ...article, type: "Programme", categorie: article.categorie.length > 0 ? article.categorie : ["Entraînement"] })}
                 className={`relative z-10 h-[30px] w-[110px] flex items-center justify-center text-[14px] font-semibold rounded-full transition-colors duration-200 ${
                   article.type === "Programme"
                     ? "text-[#3A416F]"
@@ -595,17 +614,18 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   {/* Catégories & Genre */}
                   <div className="flex flex-col">
                     <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Catégories</label>
-                    <AdminDropdown
+                    <AdminMultiSelectDropdown
                       label=""
-                      placeholder="Sélectionnez la catégorie"
+                      placeholder="Sélectionnez les catégories"
                       selected={article.categorie}
-                      onSelect={(value) => setArticle({ ...article, categorie: value })}
+                      onChange={(values) => setArticle({ ...article, categorie: values })}
                       options={[
                         { value: "Nutrition", label: "Nutrition" },
                         { value: "Entraînement", label: "Entraînement" },
                         { value: "Santé", label: "Santé" },
                         { value: "Motivation", label: "Motivation" },
                         { value: "Lifestyle", label: "Lifestyle" },
+                        { value: "Recette", label: "Recette" },
                       ]}
                     />
                   </div>

@@ -149,7 +149,12 @@ export default function AdminContentBlogPage() {
     // Filtre
     const filtered = articles.filter((a) => {
       const matchesSearch = !term || a.titre?.toLowerCase().includes(term) || a.url?.toLowerCase().includes(term);
-      const matchesCategory = !categoryFilter || a.categorie === categoryFilter;
+      const matchesCategory =
+        !categoryFilter ||
+        (Array.isArray(a.categorie)
+          ? a.categorie.includes(categoryFilter)
+          : typeof a.categorie === "string" &&
+            (a.categorie === categoryFilter || a.categorie.includes(categoryFilter)));
       return matchesSearch && matchesCategory;
     });
 
@@ -310,6 +315,7 @@ export default function AdminContentBlogPage() {
                 { value: "Santé", label: "Santé" },
                 { value: "Motivation", label: "Motivation" },
                 { value: "Lifestyle", label: "Lifestyle" },
+                { value: "Recette", label: "Recette" },
               ]}
             />
           </div>

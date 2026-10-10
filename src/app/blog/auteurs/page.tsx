@@ -130,7 +130,7 @@ export default async function AuteursPage() {
           <Link href="/blog" className="hover:text-[#2E3271] transition-colors">
             Blog
           </Link>
-          <span>›</span>
+          <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
           <span className="text-[#3A416F]">Auteurs</span>
         </div>
       </div>

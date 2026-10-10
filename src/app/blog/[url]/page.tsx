@@ -19,8 +19,25 @@ const categoryMapping: Record<string, string> = {
   "sante": "Santé",
   "santé": "Santé",
   "motivation": "Motivation",
-  "lifestyle": "Lifestyle"
+  "lifestyle": "Lifestyle",
+  "recette": "Recette",
 };
+
+function parseArticleCategories(cat: unknown): string[] {
+  if (Array.isArray(cat)) {
+    return cat.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+  }
+  if (typeof cat === "string") {
+    try {
+      const parsed = JSON.parse(cat);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+      }
+    } catch {}
+    return cat.trim() ? [cat.trim()] : [];
+  }
+  return [];
+}
 
 export async function generateMetadata({
   params,
@@ -36,7 +53,7 @@ export async function generateMetadata({
 
   // 1. Tente de récupérer un article de blog
   const { data: articles } = await (supabase.from("blog_articles") as any)
-    .select("titre, description, image_url, image_alt, langue, seo_title, seo_description, noindex, nofollow, canonical_override, auteur")
+    .select("titre, description, image_url, image_alt, langue, categorie, seo_title, seo_description, noindex, nofollow, canonical_override, auteur")
     .eq("url", url)
     .eq("is_published", true)
     .limit(1);
@@ -98,7 +115,7 @@ export async function generateMetadata({
         publishedTime: article.created_at,
         modifiedTime: article.updated_at || article.created_at,
         authors: [`${siteUrl}/blog/auteurs/${authorSlug}`],
-        section: article.categorie || "Musculation",
+        section: parseArticleCategories(article.categorie)[0] || "Musculation",
         images: ogImages,
       },
       twitter: {
@@ -233,6 +250,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
       });
     });
 
+    const articleCategories = parseArticleCategories(article.categorie);
+    const primaryCategory = articleCategories[0] || "Conseils";
+
     return (
       <>
         <script
@@ -247,7 +267,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               "image": article.image_url ? [article.image_url] : [],
               "datePublished": article.created_at,
               "dateModified": article.updated_at || article.created_at,
-              "articleSection": article.categorie || "Musculation",
+              "articleSection": primaryCategory,
               "isAccessibleForFree": true,
               "author": {
                 "@type": "Person",
@@ -313,8 +333,8 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 {
                   "@type": "ListItem",
                   "position": 3,
-                  "name": article.categorie || "Conseils",
-                  "item": `${siteUrl}/blog/${(article.categorie || "conseils").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`
+                  "name": primaryCategory,
+                  "item": `${siteUrl}/blog/${primaryCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`
                 },
                 {
                   "@type": "ListItem",
@@ -331,11 +351,11 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
-              <span>›</span>
-              <Link href={`${blogUrl}/${(article.categorie || "Conseils").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`} className="hover:text-[#2E3271] transition-colors">
-                {article.categorie || "Conseils"}
+              <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
+              <Link href={`${blogUrl}/${primaryCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`} className="hover:text-[#2E3271] transition-colors">
+                {primaryCategory}
               </Link>
-              <span>›</span>
+              <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[#3A416F] truncate max-w-[200px] sm:max-w-none">{article.titre}</span>
             </div>
           </div>
@@ -384,9 +404,11 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                     )}
                   </>
                 ) : (
-                  <div className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
-                    <span>{article.categorie || "Lifestyle"}</span>
-                  </div>
+                  (articleCategories.length > 0 ? articleCategories : ["Lifestyle"]).map((cat) => (
+                    <div key={cat} className="bg-[#F4F5FE] text-[#A1A5FD] text-[12px] font-semibold px-[12px] h-[30px] rounded-[5px] inline-flex items-center">
+                      <span>{cat}</span>
+                    </div>
+                  ))
                 )}
 
                 {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
@@ -609,7 +631,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
                 Blog
               </Link>
-              <span>›</span>
+              <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[#3A416F]">{categoryName}</span>
             </div>
           </div>

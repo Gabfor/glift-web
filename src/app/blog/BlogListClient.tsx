@@ -15,7 +15,7 @@ type Article = {
   image_mobile?: string;
   image_alt?: string;
   type: string;
-  categorie: string;
+  categorie: string | string[];
   sexe: string;
   is_featured?: boolean;
   niveau?: string;
@@ -29,6 +29,22 @@ type Props = {
 };
 
 const ITEMS_PER_BATCH = 12;
+
+function getArticleCategories(cat: unknown): string[] {
+  if (Array.isArray(cat)) {
+    return cat.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+  }
+  if (typeof cat === "string") {
+    try {
+      const parsed = JSON.parse(cat);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+      }
+    } catch {}
+    return cat.trim() ? [cat.trim()] : [];
+  }
+  return [];
+}
 
 export default function BlogListClient({ initialArticles, initialCategory = "Tous" }: Props) {
   const { blogUrl } = useDashboardUrl();
@@ -44,15 +60,15 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
   // Dynamically generate categories from existing articles (filter out null/undefined/empty)
   const validArticleCategories = Array.from(
     new Set(
-      initialArticles
-        .map((a) => a.categorie)
-        .filter((c): c is string => typeof c === "string" && c.trim() !== "")
+      initialArticles.flatMap((a) => getArticleCategories(a.categorie))
     )
   ).sort();
   const dynamicCategories = ["Tous", ...validArticleCategories];
 
   const filteredArticles = initialArticles.filter((article) => {
-    return selectedCategory === "Tous" || article.categorie === selectedCategory;
+    if (selectedCategory === "Tous") return true;
+    const cats = getArticleCategories(article.categorie);
+    return cats.includes(selectedCategory);
   });
 
   const isCategoryPage = selectedCategory !== "Tous";

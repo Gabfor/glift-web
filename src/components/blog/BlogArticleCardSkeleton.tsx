@@ -18,7 +18,7 @@ export default function BlogArticleCardSkeleton({
         <div className="mt-[15px] ml-[15px] bg-[#E6E8F5] h-[20px] w-[60px] rounded-[10px]" />
       </div>
 
-      <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col items-start gap-4">
+      <div className="pt-5 px-2.5 pb-5 flex-1 flex flex-col items-start gap-4">
         {/* Title */}
         <div className="w-full">
           <div className="h-4 bg-[#E6E8F5] rounded mb-2 w-[90%]" />
@@ -36,6 +36,7 @@ export default function BlogArticleCardSkeleton({
         <div className="w-full flex-1">
           <div className="h-3 bg-[#E6E8F5] rounded mb-1.5 w-[100%]" />
           <div className="h-3 bg-[#E6E8F5] rounded mb-1.5 w-[90%]" />
+          <div className="h-3 bg-[#E6E8F5] rounded mb-1.5 w-[95%]" />
           <div className="h-3 bg-[#E6E8F5] rounded w-[70%]" />
         </div>
 

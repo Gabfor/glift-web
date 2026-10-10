@@ -32,15 +32,17 @@ export default function AdminMultiSelectDropdown({
   const menuRef = useRef<HTMLDivElement>(null);
 
   // ✅ sécurité : toujours forcer selected en tableau
-  const selectedArray: string[] = Array.isArray(selected)
-    ? selected
-    : typeof selected === "string"
+  const rawSelected: unknown = selected;
+  const selectedArray: string[] = Array.isArray(rawSelected)
+    ? rawSelected
+    : typeof rawSelected === "string"
       ? (() => {
         try {
-          const parsed = JSON.parse(selected);
-          return Array.isArray(parsed) ? parsed : [];
+          const parsed = JSON.parse(rawSelected);
+          return Array.isArray(parsed) ? parsed : [rawSelected];
         } catch {
-          return [];
+          const trimmed = rawSelected.trim();
+          return trimmed ? [trimmed] : [];
         }
       })()
       : [];

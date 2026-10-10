@@ -13,7 +13,7 @@ type Props = {
     image_mobile?: string;
     image_alt?: string;
     type: string;
-    categorie?: string;
+    categorie?: string | string[];
     sexe?: string;
     niveau?: string;
     nombre_seances?: string;
@@ -25,6 +25,22 @@ type Props = {
   className?: string;
 };
 
+function getCategories(cat: unknown): string[] {
+  if (Array.isArray(cat)) {
+    return cat.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+  }
+  if (typeof cat === "string") {
+    try {
+      const parsed = JSON.parse(cat);
+      if (Array.isArray(parsed)) {
+        return parsed.filter((c): c is string => typeof c === "string" && c.trim() !== "");
+      }
+    } catch {}
+    return cat.trim() ? [cat.trim()] : [];
+  }
+  return [];
+}
+
 export default function BlogArticleCard({ 
   article, 
   maxWidth, 
@@ -33,6 +49,8 @@ export default function BlogArticleCard({
   className = "" 
 }: Props) {
   const isProgramme = article.type === "Programme";
+  const categories = getCategories(article.categorie);
+  const displayCategories = categories.length > 0 ? categories : ["Lifestyle"];
 
   return (
     <div 
@@ -54,7 +72,7 @@ export default function BlogArticleCard({
                 unoptimized
               />
               {/* Badge Type (CONSEIL...) */}
-              <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+              <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>
                 {article.type || "Conseil"}
               </div>
             </div>
@@ -70,7 +88,7 @@ export default function BlogArticleCard({
                 unoptimized
               />
               {/* Badge Type (CONSEIL...) */}
-              <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+              <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>
                 {article.type || "Conseil"}
               </div>
             </div>
@@ -88,14 +106,14 @@ export default function BlogArticleCard({
               unoptimized
             />
             {/* Badge Type (CONSEIL...) */}
-            <div className="absolute top-[15px] left-[15px] bg-[#6660E4] text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center">
+            <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>
               {article.type || "Conseil"}
             </div>
           </div>
         )}
       </Link>
 
-      <div className="pt-2 px-2.5 pb-5 flex-1 flex flex-col items-start">
+      <div className="pt-5 px-2.5 pb-5 flex-1 flex flex-col items-start">
         <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left leading-tight line-clamp-2">
           <Link href={`${blogUrl}/${article.url}`}>
             {article.titre}
@@ -128,9 +146,11 @@ export default function BlogArticleCard({
           ) : (
             <>
               {/* Pour les articles classiques (Conseil...) */}
-              <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
-                {article.categorie || "Lifestyle"}
-              </span>
+              {displayCategories.map((cat) => (
+                <span key={cat} className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
+                  {cat}
+                </span>
+              ))}
             </>
           )}
 
@@ -156,7 +176,7 @@ export default function BlogArticleCard({
           ) : null}
         </div>
         
-        <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left line-clamp-3 leading-relaxed">
+        <p className="text-[14px] text-[#5D6494] font-semibold mb-5 text-left line-clamp-4 leading-relaxed">
           {article.description}
         </p>
 

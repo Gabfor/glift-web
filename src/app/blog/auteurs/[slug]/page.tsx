@@ -44,7 +44,7 @@ type Article = {
   image_mobile?: string;
   image_alt?: string;
   type: string;
-  categorie: string;
+  categorie: string | string[];
   sexe: string;
   is_featured?: boolean;
   niveau?: string;
@@ -208,14 +208,14 @@ export default async function AuthorDetailPage({ params }: Props) {
           <Link href="/blog" className="hover:text-[#2E3271] transition-colors">
             Blog
           </Link>
-          <span>›</span>
+          <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
           <Link
             href="/blog/auteurs"
             className="hover:text-[#2E3271] transition-colors"
           >
             Auteurs
           </Link>
-          <span>›</span>
+          <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
           <span className="text-[#3A416F]">{authorFullName}</span>
         </div>
       </div>

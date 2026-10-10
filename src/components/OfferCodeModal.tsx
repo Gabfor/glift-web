@@ -191,7 +191,7 @@ export default function OfferModal({
                 e.currentTarget.blur();
                 handleCopy();
               }}
-              className="h-[45px] w-full cursor-pointer select-none rounded-[5px] border border-[#D7D4DC] px-[15px] pr-[40px] text-center text-[16px] font-bold text-[#5D6494] transition-all duration-150 hover:border-[#C2BFC6] focus:outline-none"
+              className="h-[45px] w-full cursor-pointer select-none rounded-[5px] border border-[#D7D4DC] px-[15px] pr-[40px] text-center text-[16px] font-bold text-[#3A416F] transition-all duration-150 hover:border-[#C2BFC6] focus:outline-none"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
               <Tooltip
