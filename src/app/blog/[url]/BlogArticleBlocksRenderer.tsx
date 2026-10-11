@@ -828,13 +828,13 @@ export default function BlogArticleBlocksRenderer({
             return (
               <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
-                  <h2 className="text-[22px] font-bold text-[#2E3271]">
+                  <h2 className="text-[22px] font-bold text-[#2E3271] leading-tight">
                     {block.titre}
                   </h2>
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -845,13 +845,13 @@ export default function BlogArticleBlocksRenderer({
             return (
               <div key={key} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
-                  <h2 className="text-[16px] font-bold text-[#2E3271]">
+                  <h2 className="text-[16px] font-bold text-[#2E3271] leading-tight">
                     {block.titre}
                   </h2>
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -863,7 +863,7 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] ${isConceptPage ? 'max-w-[500px] mx-auto text-center' : ''}`}>
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -1144,7 +1144,7 @@ export default function BlogArticleBlocksRenderer({
           case "programme":
             return (
               <div key={key} data-article-anchor="true" className="flex flex-col scroll-mt-[100px]" id={block.ancreId || "programme"}>
-                <h2 className="text-[22px] font-bold text-[#2E3271] mb-2">
+                <h2 className="text-[22px] font-bold text-[#2E3271] leading-tight mb-2">
                   Présentation et structure du programme
                 </h2>
                 <div
@@ -1153,7 +1153,7 @@ export default function BlogArticleBlocksRenderer({
                   <p>Voici, en un coup d’oeil, les informations clés du programme :</p>
                 </div>
                 <div
-                  className="bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] md:p-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[15px]"
+                  className="bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] sm:p-[25px] md:p-[30px] grid grid-cols-1 sm:grid-cols-2 landscape:grid-cols-2 gap-x-6 sm:gap-x-8 md:gap-x-12 gap-y-[15px]"
                 >
                   <CharacteristicItem icon="/icons/front_objectif.svg" label="Objectif" value={articleMeta?.objectif} />
                   <CharacteristicItem icon="/icons/front_temps.svg" label="Durée moyenne des séances" value={articleMeta?.duree_moyenne ? `${articleMeta.duree_moyenne} min` : undefined} />
@@ -1565,7 +1565,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
 
 function CharacteristicItem({ icon, label, value }: { icon: string; label: string; value?: string | null }) {
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-3 sm:gap-4">
       <img src={icon} alt="" className="w-[28px] h-[28px] shrink-0" />
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="text-[14px] font-semibold text-[#5D6494]">{label} :</span>

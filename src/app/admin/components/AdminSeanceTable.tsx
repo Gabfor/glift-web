@@ -364,6 +364,23 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
         />
       )}
 
+      {readOnly && (
+        <div className="flex justify-center mt-4 mb-1 md:hidden landscape:hidden">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D7D4DC] bg-white text-[13px] font-semibold text-[#5D6494] select-none">
+            <span className="w-[20px] h-[20px] shrink-0 inline-flex items-center justify-center animate-shake-screen">
+              <Image
+                src="/icons/rotate_screen.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="w-5 h-5 shrink-0"
+              />
+            </span>
+            <span>Tourne ton téléphone</span>
+          </div>
+        </div>
+      )}
+
       {/* Details des exercices */}
       <div className="mt-5 flex flex-col gap-5">
         {(() => {

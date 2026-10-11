@@ -508,6 +508,14 @@ input:checked+.slider:before {
 @layer components {
 
   /* Rich Text (Tiptap / Prose) Custom Styles */
+  .prose h2 {
+    line-height: 1.25 !important;
+  }
+
+  .prose h3 {
+    line-height: 1.35 !important;
+  }
+
   .prose strong,
   .prose b {
     color: #3A416F;
@@ -620,6 +628,33 @@ input:checked+.slider:before {
 .animate-float-delayed {
   animation: float 4s ease-in-out infinite;
   animation-delay: 2s;
+}
+
+@keyframes shake-screen {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  8%, 24% {
+    transform: rotate(-18deg);
+  }
+  16%, 32% {
+    transform: rotate(18deg);
+  }
+  40% {
+    transform: rotate(-8deg);
+  }
+  48% {
+    transform: rotate(8deg);
+  }
+  56% {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-shake-screen {
+  animation: shake-screen 2.2s ease-in-out infinite;
+  transform-origin: 50% 50% !important;
+  display: inline-flex;
 }
 
 /* Dégradé luminescent pastel style ClickUp en pure CSS */
