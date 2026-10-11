@@ -319,6 +319,7 @@ export default function BlogArticleBlocksRenderer({
 }: BlogArticleBlocksRendererProps) {
   const { isAuthenticated } = useUser();
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
   const siteSettings = useSiteSettings();
@@ -467,10 +468,149 @@ export default function BlogArticleBlocksRenderer({
     };
   }, []);
 
+  // Ancrage visuel automatique lors du basculement d'orientation (portrait <-> paysage)
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let isLandscapeMode = window.innerWidth > window.innerHeight && window.innerHeight < 550;
+    let anchor: { el: HTMLElement | null; isTop: boolean } = { el: null, isTop: true };
+    let isAdjusting = false;
+    let adjustTimeout: NodeJS.Timeout | null = null;
+
+    // Détecte l'élément de contenu actuellement visualisé en haut de l'écran
+    const captureCurrentAnchor = () => {
+      if (isAdjusting) return;
+
+      const scrollY = window.scrollY || window.pageYOffset || 0;
+      if (scrollY <= 60) {
+        anchor = { el: null, isTop: true };
+        return;
+      }
+
+      if (!containerRef.current) return;
+
+      const targetY = isLandscapeMode ? 15 : 85;
+      const elements = containerRef.current.querySelectorAll<HTMLElement>(
+        "tr, [data-training-table='true'], [data-article-anchor='true'], h2, h3, p, [role='note'], table"
+      );
+
+      let bestEl: HTMLElement | null = null;
+      let minDiff = Infinity;
+
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i];
+        const rect = el.getBoundingClientRect();
+
+        // Ignorer les éléments invisibles
+        if (rect.height < 5) continue;
+
+        // L'élément doit être dans la zone de lecture active
+        if (rect.bottom > targetY - 15) {
+          const diff = Math.abs(rect.top - targetY);
+          if (diff < minDiff) {
+            minDiff = diff;
+            bestEl = el;
+          }
+          if (rect.top > targetY + 180) {
+            break;
+          }
+        }
+      }
+
+      if (bestEl) {
+        anchor = { el: bestEl, isTop: false };
+      }
+    };
+
+    // Aligne l'élément mémorisé sur la ligne de référence de la nouvelle orientation
+    const applyAnchorScroll = () => {
+      if (anchor.isTop) {
+        window.scrollTo({ top: 0, behavior: "instant" });
+        return;
+      }
+
+      if (!anchor.el || !document.body.contains(anchor.el)) {
+        return;
+      }
+
+      const isNowLandscape = window.innerWidth > window.innerHeight && window.innerHeight < 550;
+      const targetY = isNowLandscape ? 15 : 85;
+      const rect = anchor.el.getBoundingClientRect();
+      const diff = rect.top - targetY;
+
+      if (Math.abs(diff) > 2) {
+        window.scrollBy({ top: diff, behavior: "instant" });
+      }
+    };
+
+    const handleRotation = () => {
+      const currentIsLandscape = window.innerWidth > window.innerHeight && window.innerHeight < 550;
+      
+      // Ne déclencher que s'il y a un vrai changement de mode d'orientation (portrait <-> paysage)
+      if (currentIsLandscape === isLandscapeMode) {
+        return;
+      }
+
+      isLandscapeMode = currentIsLandscape;
+      isAdjusting = true;
+
+      document.documentElement.classList.add("instant-scroll");
+      document.documentElement.style.setProperty("scroll-behavior", "auto", "important");
+      document.body.style.setProperty("scroll-behavior", "auto", "important");
+
+      if (adjustTimeout) clearTimeout(adjustTimeout);
+
+      // On applique l'ajustement immédiatement, puis une seconde fois après la stabilisation du layout par le navigateur
+      requestAnimationFrame(applyAnchorScroll);
+
+      adjustTimeout = setTimeout(() => {
+        applyAnchorScroll();
+        document.documentElement.classList.remove("instant-scroll");
+        document.documentElement.style.removeProperty("scroll-behavior");
+        document.body.style.removeProperty("scroll-behavior");
+        isAdjusting = false;
+      }, 150);
+    };
+
+    // Mettre à jour l'ancre dès que l'utilisateur scrolle
+    let scrollDebounce: NodeJS.Timeout | null = null;
+    const onScroll = () => {
+      if (isAdjusting) return;
+      if (scrollDebounce) clearTimeout(scrollDebounce);
+      scrollDebounce = setTimeout(captureCurrentAnchor, 100);
+    };
+
+    // Initialisation
+    const initTimer = setTimeout(captureCurrentAnchor, 400);
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", handleRotation);
+    window.addEventListener("orientationchange", () => {
+      // Sur orientationchange, laisser un court délai au navigateur mobile pour mettre à jour les dimensions du viewport
+      setTimeout(handleRotation, 50);
+    });
+    if (typeof screen !== "undefined" && screen.orientation) {
+      screen.orientation.addEventListener("change", () => {
+        setTimeout(handleRotation, 50);
+      });
+    }
+
+    return () => {
+      clearTimeout(initTimer);
+      if (adjustTimeout) clearTimeout(adjustTimeout);
+      if (scrollDebounce) clearTimeout(scrollDebounce);
+      document.documentElement.classList.remove("instant-scroll");
+      document.documentElement.style.removeProperty("scroll-behavior");
+      document.body.style.removeProperty("scroll-behavior");
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", handleRotation);
+    };
+  }, []);
+
   if (!blocks || blocks.length === 0) return null;
 
   return (
-    <div className={`flex flex-col gap-[30px] w-full ${isConceptPage ? "text-[16px]" : "text-[15px]"} text-[#5D6494] leading-[1.7] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}>
+    <div ref={containerRef} className={`flex flex-col gap-[30px] w-full ${isConceptPage ? "text-[16px]" : "text-[15px]"} text-[#5D6494] leading-[1.7] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]`}>
       {blocks.map((block, index) => {
         const key = block.id;
 
@@ -1003,7 +1143,7 @@ export default function BlogArticleBlocksRenderer({
 
           case "programme":
             return (
-              <div key={key} className="flex flex-col scroll-mt-[100px]" id={block.ancreId || "programme"}>
+              <div key={key} data-article-anchor="true" className="flex flex-col scroll-mt-[100px]" id={block.ancreId || "programme"}>
                 <h2 className="text-[22px] font-bold text-[#2E3271] mb-2">
                   Présentation et structure du programme
                 </h2>
@@ -1013,7 +1153,7 @@ export default function BlogArticleBlocksRenderer({
                   <p>Voici, en un coup d’oeil, les informations clés du programme :</p>
                 </div>
                 <div
-                  className="bg-white rounded-[15px] border border-[#D7D4DC] p-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[15px]"
+                  className="bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] md:p-[30px] grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-[15px]"
                 >
                   <CharacteristicItem icon="/icons/front_objectif.svg" label="Objectif" value={articleMeta?.objectif} />
                   <CharacteristicItem icon="/icons/front_temps.svg" label="Durée moyenne des séances" value={articleMeta?.duree_moyenne ? `${articleMeta.duree_moyenne} min` : undefined} />
@@ -1033,7 +1173,7 @@ export default function BlogArticleBlocksRenderer({
             const isCollapsed = collapsedState[seanceKey] !== undefined ? collapsedState[seanceKey] : defaultCollapsed;
             
             return (
-              <div key={seanceKey} id={block.ancreId || undefined} className="flex flex-col scroll-mt-[100px]">
+              <div key={seanceKey} id={block.ancreId || undefined} data-article-anchor="true" className="flex flex-col scroll-mt-[100px]">
                 {block.titre && (
                   <div 
                     className="flex items-center justify-between cursor-pointer select-none"
@@ -1053,7 +1193,7 @@ export default function BlogArticleBlocksRenderer({
                   </div>
                 )}
                 
-                <div className={`transition-all duration-300 overflow-hidden ${isCollapsed ? "h-0 opacity-0 mt-0" : "opacity-100"}`}>
+                <div className={`transition-all duration-300 ${isCollapsed ? "h-0 opacity-0 mt-0 overflow-hidden" : "opacity-100"}`}>
                   {block.texte && (
                     <div
                       className={`prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-3.5 ${block.titre ? "mt-[20px]" : ""}`}
@@ -1061,7 +1201,7 @@ export default function BlogArticleBlocksRenderer({
                     />
                   )}
                   {block.table_rows && block.table_rows.length > 0 && (
-                    <div className="overflow-x-auto w-full p-[1px]">
+                    <div className="w-full">
                       <AdminSeanceTable
                         rows={block.table_rows}
                         setRows={() => {}}
@@ -1371,13 +1511,13 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
   };
 
   return (
-    <div id={ancreId} className="flex justify-center scroll-mt-[100px]">
-      <div className="min-h-[44px] flex items-center justify-center">
+    <div id={ancreId} className="w-full flex justify-center scroll-mt-[100px]">
+      <div className="w-full md:w-auto min-h-[44px] flex items-center justify-center">
         {isAuthenticated && !isRestricted ? (
           <CTAButton
             onClick={handleDownload}
             loading={loading}
-            className="text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
+            className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
           >
             <span className="inline-flex items-center gap-2">
               <Image src="/icons/download.svg" alt="" width={20} height={20} />
@@ -1391,7 +1531,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
               setShowModal(true);
             }}
             variant="inactive"
-            className="group text-[16px] font-semibold"
+            className="group w-full md:w-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
               <div className="relative w-[15px] h-[15px]">

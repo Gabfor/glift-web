@@ -290,21 +290,38 @@ export default function TrainingRow({
 
       <td className="px-0 py-0" style={{ maxWidth: "60px", width: "60px" }}>
         <div className={`flex items-center h-10 border-l border-t border-[#ECE9F1] ${readOnly ? "justify-center" : "justify-end"}`}>
-          <input
-            type="number"
-            value={row.series}
-            disabled
-            className={`w-9 h-8 border-none px-2 py-1 rounded-md focus:outline-none training-input-series ${readOnly ? "text-center" : "text-left"} ${row.locked ? "!text-[#D7D4DC]" : defaultTextClass
+          {readOnly ? (
+            <span
+              className={`w-9 h-8 flex items-center justify-center font-semibold text-[14px] ${
+                row.locked ? "text-[#D7D4DC]" : "text-[#5D6494]"
               }`}
-            style={{
-              backgroundColor: "transparent",
-              border: "none",
-              WebkitAppearance: "none",
-              MozAppearance: "textfield",
-              color: row.locked ? "#D7D4DC" : activeTextColor,
-              WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
-            }}
-          />
+              style={{
+                color: row.locked ? "#D7D4DC" : activeTextColor,
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+              }}
+            >
+              {row.series}
+            </span>
+          ) : (
+            <input
+              type="number"
+              value={row.series}
+              readOnly
+              tabIndex={-1}
+              className={`w-9 h-8 border-none px-2 py-1 rounded-md focus:outline-none training-input-series text-left pointer-events-none ${
+                row.locked ? "!text-[#D7D4DC]" : defaultTextClass
+              }`}
+              style={{
+                backgroundColor: "transparent",
+                border: "none",
+                WebkitAppearance: "none",
+                MozAppearance: "textfield",
+                color: row.locked ? "#D7D4DC" : activeTextColor,
+                WebkitTextFillColor: row.locked ? "#D7D4DC" : activeTextColor,
+                opacity: 1,
+              }}
+            />
+          )}
           {!readOnly && (
             <div className="flex flex-col items-center justify-between">
               <button

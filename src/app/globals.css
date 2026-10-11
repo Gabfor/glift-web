@@ -86,6 +86,13 @@ html {
   scrollbar-gutter: stable;
 }
 
+/* Désactive le scroll smooth lors de la rotation de l'écran pour un ancrage immédiat sans mouvement visible */
+html.instant-scroll,
+html.instant-scroll *,
+html.instant-scroll body {
+  scroll-behavior: auto !important;
+}
+
 /* Désactive le scroll-lock appliqué dynamiquement par Radix */
 body[style*="overflow: hidden"] {
   overflow: auto !important;
@@ -173,15 +180,15 @@ input[type="number"] {
 }
 
 /* Centrer le texte uniquement dans le champ "Séries" */
-input.training-input-series {
+input.training-input-series,
+input.training-input-series:disabled {
   text-align: center;
-  /* Centre le texte à l'intérieur du champ Séries */
   color: var(--color-text-body);
-  /* Couleur du texte (exemple : couleur bleue foncée) */
+  -webkit-text-fill-color: var(--color-text-body);
+  opacity: 1 !important;
+  -webkit-opacity: 1 !important;
   font-size: 14px;
-  /* Taille de la police du texte */
   font-weight: 600;
-  /* Poids de la police (font-semibold) */
 }
 
 .input-centered {

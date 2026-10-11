@@ -339,19 +339,23 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
         </div>
       </div>
       )}
-      <TrainingTable
-        rows={trainingRows}
-        setRows={handleSetTrainingRows}
-        handleEffortChange={handleEffortChange}
-        handleCheckboxChange={handleCheckboxChange}
-        handleIncrementSeries={handleIncrementSeries}
-        handleDecrementSeries={handleDecrementSeries}
-        handleIconHover={handleIconHover}
-        columns={adminColumns}
-        setIsEditing={() => {}}
-        adminMode={adminMode}
-        readOnly={readOnly}
-      />
+      <div data-training-table="true" data-article-anchor="true" className="-mx-5 md:mx-0 my-0 overflow-x-auto px-5 md:px-0 p-[1px] no-scrollbar">
+        <div className="inline-block min-w-[600px] w-full align-top">
+          <TrainingTable
+            rows={trainingRows}
+            setRows={handleSetTrainingRows}
+            handleEffortChange={handleEffortChange}
+            handleCheckboxChange={handleCheckboxChange}
+            handleIncrementSeries={handleIncrementSeries}
+            handleDecrementSeries={handleDecrementSeries}
+            handleIconHover={handleIconHover}
+            columns={adminColumns}
+            setIsEditing={() => {}}
+            adminMode={adminMode}
+            readOnly={readOnly}
+          />
+        </div>
+      </div>
       {!readOnly && (
         <AddRowButton
           icon={plusIcon}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MouseEvent as ReactMouseEvent } from "react";
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
@@ -30,8 +30,54 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
   const [allowTransition, setAllowTransition] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isCompactDevice, setIsCompactDevice] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [hasPaymentMethod, setHasPaymentMethod] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    setIsHeaderVisible(true);
+  }, [pathname]);
+
+  // Détection du mode compact (mobile vertical < 768px OU mobile paysage hauteur < 550px)
+  useEffect(() => {
+    const updateDimensions = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const landscapeMobile = w > h && h < 550;
+      setIsCompactDevice(w < 768 || landscapeMobile);
+
+      // Si on bascule en mode paysage mobile, masquer automatiquement le header
+      if (landscapeMobile) {
+        setIsHeaderVisible(false);
+      } else {
+        // En mode portrait (ou sur grand écran), si on est en haut de page, réafficher le header
+        if (window.scrollY <= 20) {
+          setIsHeaderVisible(true);
+        }
+      }
+    };
+
+    updateDimensions();
+    window.addEventListener("resize", updateDimensions);
+    window.addEventListener("orientationchange", updateDimensions);
+    if (typeof screen !== "undefined" && screen.orientation) {
+      screen.orientation.addEventListener("change", updateDimensions);
+    }
+
+    return () => {
+      window.removeEventListener("resize", updateDimensions);
+      window.removeEventListener("orientationchange", updateDimensions);
+      if (typeof screen !== "undefined" && screen.orientation) {
+        screen.orientation.removeEventListener("change", updateDimensions);
+      }
+    };
+  }, []);
 
   const { logoUrl, logoAlt } = useSiteSettings();
 
@@ -73,7 +119,9 @@ export default function Header({ disconnected = false }: HeaderProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
+    let lastScroll = window.scrollY;
+
     const handleScroll = () => {
       let scroll = window.scrollY;
       if (document.body.classList.contains("manual-scroll-lock") || document.body.style.position === "fixed") {
@@ -82,7 +130,32 @@ export default function Header({ disconnected = false }: HeaderProps) {
           scroll = Math.abs(top);
         }
       }
+
       setIsSticky(scroll > 10);
+
+      // En responsive : masquer le header au scroll vers le bas, réafficher au scroll vers le haut
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+      const isNearBottomBounce = maxScroll > 0 && scroll >= maxScroll - 15;
+
+      if (!isNearBottomBounce) {
+        const diff = scroll - lastScroll;
+        const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight < 550;
+
+        if (scroll <= 10) {
+          // En paysage mobile, ne pas forcer l'affichage du header au sommet
+          if (!isLandscape) {
+            setIsHeaderVisible(true);
+          }
+        } else if (diff > 8) {
+          // Scroll vers le bas : masquer le header sur mobile
+          setIsHeaderVisible(false);
+        } else if (diff < -8) {
+          // Scroll vers le haut : réafficher le header sur mobile
+          setIsHeaderVisible(true);
+        }
+      }
+
+      lastScroll = scroll;
     };
 
     // Initial check
@@ -140,6 +213,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
   }, [isMobileMenuOpen]);
 
   useEffect(() => {
+    if (!isMobileMenuOpen) return;
+
+    document.documentElement.classList.add("manual-scroll-lock");
+    document.body.classList.add("manual-scroll-lock");
+
+    return () => {
+      document.documentElement.classList.remove("manual-scroll-lock");
+      document.body.classList.remove("manual-scroll-lock");
+    };
+  }, [isMobileMenuOpen]);
+
+  useEffect(() => {
     if (showAuthenticatedUI && isPremiumUser && hasPaymentMethod === null) {
       fetch("/api/user/payment-methods", { cache: "no-store" })
         .then(res => res.json())
@@ -190,9 +275,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
     setIsMobileMenuOpen(false);
   };
 
+  const shouldHideHeader = isMounted && isCompactDevice && !isHeaderVisible && !isMobileMenuOpen;
+
   return (
     <>
-      <div className="fixed top-0 left-0 w-full z-[100]">
+      <div
+        className={`fixed top-0 left-0 w-full z-[100] transition-transform duration-300 ease-in-out ${
+          shouldHideHeader ? "-translate-y-full" : "translate-y-0"
+        }`}
+      >
         {shouldShowPaymentBanner && (
           <div className="w-full min-h-[36px] py-1.5 md:py-0 md:h-[36px] bg-[var(--color-brand-primary)] flex items-center justify-center px-4 text-center">
             {/* Version Desktop (md et +) */}
@@ -222,7 +313,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
         )}
 
         <header
-          className={`w-full ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${isSticky || isMobileMenuOpen
+          className={`w-full ${allowTransition ? "transition-all duration-300 ease-in-out" : ""} ${(isMounted && isSticky) || isMobileMenuOpen
             ? "bg-white shadow-glift"
             : "bg-transparent shadow-none"
             }`}
@@ -524,19 +615,21 @@ export default function Header({ disconnected = false }: HeaderProps) {
             )}
           </div>
         </div>
+      </header>
+    </div>
 
-        {/* Mobile Menu Backdrop Overlay (glift-mobile barrierColor) */}
-        <div
-          className={`md:hidden fixed inset-0 z-40 bg-[#2E3142]/60 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            }`}
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
+    {/* Mobile Menu Backdrop Overlay (glift-mobile barrierColor) */}
+    <div
+      className={`md:hidden fixed inset-0 z-[110] bg-[#2E3142]/60 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      onClick={() => setIsMobileMenuOpen(false)}
+    />
 
-        {/* Mobile Menu Slide-in Drawer */}
-        <div
-          className={`md:hidden fixed top-0 left-0 bottom-0 z-50 w-[82vw] max-w-[310px] h-full bg-white shadow-glift-hover overflow-y-auto p-6 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-        >
+    {/* Mobile Menu Slide-in Drawer */}
+    <div
+      className={`md:hidden fixed inset-y-0 left-0 z-[120] w-[82vw] max-w-[310px] h-full bg-white shadow-glift-hover overflow-y-auto p-6 transition-transform duration-300 ease-in-out ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+    >
           <div className="flex flex-col">
             {/* Drawer Header */}
             <div className="flex items-center justify-between pb-4 border-b border-[#F0F2F6]">
@@ -772,8 +865,6 @@ export default function Header({ disconnected = false }: HeaderProps) {
             </div>
           </div>
         </div>
-      </header>
-    </div>
 
     {/* Espaceur dans le flux du document pour décaler automatiquement le contenu de la page de la hauteur exacte du bandeau */}
     {shouldShowPaymentBanner && (

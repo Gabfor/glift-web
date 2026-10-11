@@ -74,6 +74,7 @@ type Props = {
   onDragActiveChange?: (active: boolean) => void;
   adminMode?: boolean;
   readOnly?: boolean;
+  className?: string;
 };
 
 export default function TrainingTable({
@@ -89,6 +90,7 @@ export default function TrainingTable({
   onDragActiveChange,
   adminMode,
   readOnly = false,
+  className,
 }: Props) {
   const dndId = useId();
   const sensors = useSensors(
@@ -318,7 +320,7 @@ export default function TrainingTable({
   const primaryColor = adminMode ? "#3A416F" : "#7069FA";
 
   return (
-    <div className="relative">
+    <div className={`relative ${className || "min-w-[600px]"}`}>
       {getSupersetGroups().map((group) => (
         !dragActive || !dragGroup.some(r => r.superset_id === group.id) ? (
           <div
