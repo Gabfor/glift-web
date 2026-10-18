@@ -7,6 +7,7 @@ import RelatedArticles from "./RelatedArticles";
 import Tooltip from "@/components/Tooltip";
 import BlogListClient from "../BlogListClient";
 import BlogIntroBlock from "@/components/blog/BlogIntroBlock";
+import ShinyAuthorImage from "@/components/ShinyAuthorImage";
 import type { Metadata } from "next";
 
 // Next.js Route Cache & revalidation (opt-in)
@@ -271,6 +272,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               "isAccessibleForFree": true,
               "author": {
                 "@type": "Person",
+                "@id": `${siteUrl}/blog/auteurs/${authorSlug}#person`,
                 "name": authorName,
                 "url": `${siteUrl}/blog/auteurs/${authorSlug}`,
                 "jobTitle": authorDetails?.poste_actuel || "Auteur",
@@ -509,38 +511,49 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 articleLie2Id={article.article_lie_2_id}
               />
 
-              {authorDetails && (
-                <div className="mt-[30px]">
-                  <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
-                  <div className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
-                    <div className="relative w-[80px] h-[80px] rounded-[10px] overflow-hidden shrink-0 border border-[#ECE9F1]">
-                      <Image
-                        src={authorDetails.image_url || "/images/gabriel_fort.png"}
-                        alt={authorDetails.image_alt || `${authorDetails.prenom} ${authorDetails.nom}`}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
-                      <h4 className="text-[14px] font-bold text-[#2E3271] mb-1">
-                        Article rédigé par {authorDetails.prenom} {authorDetails.nom}
-                      </h4>
-                      <div
-                        className="text-[12px] text-[#5D6494] font-semibold leading-relaxed mb-3 [&_p]:m-0"
-                        dangerouslySetInnerHTML={{
-                          __html: authorDetails.description_courte || authorDetails.description,
-                        }}
-                      />
-                      <Link
-                        href={`/blog/auteurs/${getAuthorSlug(authorDetails.prenom, authorDetails.nom)}`}
-                        className="text-[12px] text-[#5D6494] hover:text-[#3A416F] font-semibold underline transition-colors"
-                      >
-                        Voir les articles {getDePreposition(authorDetails.prenom)}{authorDetails.prenom} {authorDetails.nom}
-                      </Link>
+              {authorDetails && (() => {
+                const isGabriel =
+                  authorDetails.prenom?.trim().toLowerCase() === "gabriel" &&
+                  authorDetails.nom?.trim().toLowerCase() === "fort";
+                const isShiny = Boolean(authorDetails.is_shiny);
+                const authorImg = authorDetails.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
+
+                return (
+                  <div className="mt-[30px]">
+                    <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
+                    <div className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
+                      <div className="relative w-[80px] h-[80px] rounded-[10px] overflow-hidden shrink-0 border border-[#ECE9F1]">
+                        <ShinyAuthorImage
+                          src={authorImg}
+                          alt={authorDetails.image_alt || `${authorDetails.prenom} ${authorDetails.nom}`}
+                          isShiny={isShiny}
+                          sizes="80px"
+                          className="w-full h-full object-cover rounded-[10px]"
+                          containerClassName="w-full h-full rounded-[10px]"
+                          priority
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
+                        <h4 className="text-[14px] font-bold text-[#2E3271] mb-1">
+                          Article rédigé par {authorDetails.prenom} {authorDetails.nom}
+                        </h4>
+                        <div
+                          className="text-[12px] text-[#5D6494] font-semibold leading-relaxed mb-3 [&_p]:m-0"
+                          dangerouslySetInnerHTML={{
+                            __html: authorDetails.description_courte || authorDetails.description,
+                          }}
+                        />
+                        <Link
+                          href={`/blog/auteurs/${getAuthorSlug(authorDetails.prenom, authorDetails.nom)}`}
+                          className="text-[12px] text-[#5D6494] hover:text-[#3A416F] font-semibold underline transition-colors"
+                        >
+                          Voir les articles {getDePreposition(authorDetails.prenom)}{authorDetails.prenom} {authorDetails.nom}
+                        </Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </div>
           </div>
         </main>

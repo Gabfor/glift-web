@@ -5,6 +5,7 @@ create table if not exists public.auteurs (
   nom text not null,
   poste_actuel text,
   image_url text,
+  image_mobile text,
   image_alt text,
   experience text,
   expertise text,

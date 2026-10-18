@@ -6,7 +6,11 @@ import type { User } from "@supabase/supabase-js";
 import { Row } from "@/types/training";
 import { usePathname } from "next/navigation";
 
-export function useTrainingRows(trainingId: string, user: User | null) {
+export function useTrainingRows(
+  trainingId: string,
+  user: User | null,
+  isPremiumUser: boolean = false
+) {
   const supabase = useSupabaseClient();
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -28,6 +32,8 @@ export function useTrainingRows(trainingId: string, user: User | null) {
     (typeof window !== "undefined" && window.location.host.startsWith("admin."));
   const tableName = isAdmin ? "training_rows_admin" : "training_rows";
   const effectiveTableNameRef = useRef<string>(tableName);
+  const isSavingRef = useRef(false);
+  const pendingSaveRef = useRef(false);
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -321,159 +327,109 @@ export function useTrainingRows(trainingId: string, user: User | null) {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     saveTimeoutRef.current = setTimeout(async () => {
-      // ✅ PATCH ajouté ici
       if (isEditing || !fullyLoaded) return;
+      if (isSavingRef.current) {
+        pendingSaveRef.current = true;
+        return;
+      }
 
-      const rowsWithOrder = rows.map((row, index) => ({ ...row, _finalOrder: index }));
-
-      // Calculate superset_id_locked logic
-      const supersetLocks = new Map<string, boolean>();
-      rowsWithOrder.forEach(row => {
-        if (row.superset_id) {
-          if (row.locked) {
-            supersetLocks.set(row.superset_id, true);
-          } else if (!supersetLocks.has(row.superset_id)) {
-            supersetLocks.set(row.superset_id, false);
+      isSavingRef.current = true;
+      try {
+        // Garantit que chaque ligne possède immédiatement un UUID unique
+        let hadMissingIds = false;
+        const rowsWithId = rows.map((row) => {
+          if (!row.id) {
+            hadMissingIds = true;
+            return { ...row, id: crypto.randomUUID() };
           }
-        }
-      });
-
-      const rowsWithSupersetLock = rowsWithOrder.map(row => {
-        if (row.superset_id) {
-          return {
-            ...row,
-            superset_id_locked: supersetLocks.get(row.superset_id) || false
-          };
-        }
-        return {
-          ...row,
-          superset_id_locked: false
-        };
-      });
-
-      const newRowsWithOrder = rowsWithSupersetLock.filter((row) => !row.id);
-      const existingRowsWithOrder = rowsWithSupersetLock.filter((row) => !!row.id);
-
-      const newRows = newRowsWithOrder.map((row) => {
-        const payload: Record<string, any> = {
-          training_id: trainingId,
-          user_id: user.id,
-          order: row._finalOrder,
-          series: row.series,
-          repetitions: row.repetitions,
-          poids: row.poids,
-          repos: row.repos,
-          effort: row.effort,
-          checked: row.checked,
-          exercice: row.exercice,
-          materiel: row.materiel,
-          superset_id: row.superset_id,
-          link: row.link,
-          note: row.note,
-        };
-        if (!isAdmin) {
-          payload.locked = row.locked ?? false;
-          payload.superset_id_locked = row.superset_id_locked ?? false;
-        }
-        return payload;
-      });
-
-      const existingRows = existingRowsWithOrder.map((row) => {
-        const payload: Record<string, any> = {
-          id: row.id!,
-          training_id: trainingId,
-          user_id: user.id,
-          order: row._finalOrder,
-          series: row.series,
-          repetitions: row.repetitions,
-          poids: row.poids,
-          repos: row.repos,
-          effort: row.effort,
-          checked: row.checked,
-          exercice: row.exercice,
-          materiel: row.materiel,
-          superset_id: row.superset_id,
-          link: row.link,
-          note: row.note,
-        };
-        if (!isAdmin) {
-          payload.locked = row.locked ?? false;
-          payload.superset_id_locked = row.superset_id_locked ?? false;
-        }
-        return payload;
-      });
-
-      const currentIds = rows.filter(r => r.id).map(r => r.id as string);
-      const deletedIds = previousIdsRef.current.filter(id => !currentIds.includes(id));
-      previousIdsRef.current = currentIds;
-
-      const targetTable = effectiveTableNameRef.current || tableName;
-
-      if (deletedIds.length > 0) {
-        await supabase
-          .from(targetTable)
-          .delete()
-          .in("id", deletedIds);
-      }
-
-      let insertedRows: { id: string; order: number }[] = [];
-
-      if (newRows.length > 0) {
-        const { data: insertedData, error: insertError } = await supabase
-          .from(targetTable)
-          .insert(newRows)
-          .select("id, order");
-
-        if (insertError) {
-          console.error("❌ Erreur insertion lignes entraînement :", insertError);
-        } else if (insertedData) {
-          insertedRows = insertedData.map((row) => ({ id: row.id, order: row.order }));
-        }
-      }
-
-      if (existingRows.length > 0) {
-        const { error: upsertError } = await supabase.from(targetTable).upsert(existingRows);
-        if (upsertError) {
-          console.error("❌ Erreur mise à jour lignes entraînement :", upsertError);
-        }
-      }
-
-      if (insertedRows.length > 0) {
-        const insertedMap = new Map(insertedRows.map((row) => [row.order, row.id]));
-        setRows((previousRows) => {
-          const updatedRows = previousRows.map((row, index) => {
-            if (row.id) {
-              return row;
-            }
-
-            const newId = insertedMap.get(index);
-            if (!newId) {
-              return row;
-            }
-
-            return {
-              ...row,
-              id: newId,
-            };
-          });
-
-          lastSavedRef.current = JSON.stringify(
-            updatedRows.map((row) => {
-              const { iconHovered: _iconHovered, ...rest } = row;
-              void _iconHovered;
-              return rest;
-            })
-          );
-
-          return updatedRows;
+          return row;
         });
 
-        skipNextSaveRef.current = true;
-      }
+        if (hadMissingIds) {
+          setRows(rowsWithId);
+        }
 
-      saveTimeoutRef.current = null;
+        const rowsWithOrder = rowsWithId.map((row, index) => ({ ...row, _finalOrder: index }));
+
+        // Calculate superset_id_locked logic
+        const supersetLocks = new Map<string, boolean>();
+        rowsWithOrder.forEach(row => {
+          if (row.superset_id) {
+            if (row.locked) {
+              supersetLocks.set(row.superset_id, true);
+            } else if (!supersetLocks.has(row.superset_id)) {
+              supersetLocks.set(row.superset_id, false);
+            }
+          }
+        });
+
+        const rowsWithSupersetLock = rowsWithOrder.map(row => {
+          if (row.superset_id) {
+            return {
+              ...row,
+              superset_id_locked: supersetLocks.get(row.superset_id) || false
+            };
+          }
+          return {
+            ...row,
+            superset_id_locked: false
+          };
+        });
+
+        const allRowsPayload = rowsWithSupersetLock.map((row) => {
+          const payload: Record<string, any> = {
+            id: row.id,
+            training_id: trainingId,
+            user_id: user.id,
+            order: row._finalOrder,
+            series: row.series,
+            repetitions: row.repetitions,
+            poids: row.poids,
+            repos: row.repos,
+            effort: row.effort,
+            checked: row.checked,
+            exercice: row.exercice,
+            materiel: row.materiel,
+            superset_id: row.superset_id,
+            link: row.link,
+            note: row.note,
+          };
+          if (!isAdmin) {
+            payload.locked = row.locked ?? false;
+            payload.superset_id_locked = row.superset_id_locked ?? false;
+          }
+          return payload;
+        });
+
+        const currentIds = rowsWithId.map(r => r.id).filter((id): id is string => Boolean(id));
+        const deletedIds = previousIdsRef.current.filter(id => !currentIds.includes(id));
+        previousIdsRef.current = currentIds;
+
+        const targetTable = effectiveTableNameRef.current || tableName;
+
+        if (deletedIds.length > 0) {
+          await supabase
+            .from(targetTable)
+            .delete()
+            .in("id", deletedIds);
+        }
+
+        if (allRowsPayload.length > 0) {
+          const { error: upsertError } = await supabase.from(targetTable).upsert(allRowsPayload);
+          if (upsertError) {
+            console.error("❌ Erreur mise à jour lignes entraînement :", upsertError);
+          }
+        }
+      } finally {
+        isSavingRef.current = false;
+        saveTimeoutRef.current = null;
+        if (pendingSaveRef.current) {
+          pendingSaveRef.current = false;
+          lastSavedRef.current = "";
+        }
+      }
     }, 600);
-  }, [rows, trainingId, user, supabase, tableName, isEditing]);
+  }, [rows, trainingId, user, supabase, tableName, isEditing, isPremiumUser]);
 
   return {
     rows,

@@ -1,0 +1,51 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Base pearlescent pastel blend -->
+    <linearGradient id="base" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#edd9f8" />
+      <stop offset="25%" stop-color="#fcddec" />
+      <stop offset="55%" stop-color="#e8e8fc" />
+      <stop offset="80%" stop-color="#d5f8fb" />
+      <stop offset="100%" stop-color="#f5e8ff" />
+    </linearGradient>
+
+    <!-- Diagonal iridescent prism band 1 -->
+    <linearGradient id="prism1" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0" />
+      <stop offset="30%" stop-color="#d6f8fa" stop-opacity="0.8" />
+      <stop offset="46%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="60%" stop-color="#ffd5ec" stop-opacity="0.75" />
+      <stop offset="80%" stop-color="#e4d7fc" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+    </linearGradient>
+
+    <!-- Secondary diagonal prism band 2 -->
+    <linearGradient id="prism2" x1="0%" y1="60%" x2="100%" y2="40%">
+      <stop offset="10%" stop-color="#fbcfe8" stop-opacity="0.5" />
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0.6" />
+      <stop offset="75%" stop-color="#cffafe" stop-opacity="0.6" />
+      <stop offset="100%" stop-color="#e0e7ff" stop-opacity="0.4" />
+    </linearGradient>
+
+    <!-- Specular glare top-right -->
+    <radialGradient id="glare" cx="68%" cy="28%" r="42%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95" />
+      <stop offset="35%" stop-color="#ffffff" stop-opacity="0.4" />
+      <stop offset="80%" stop-color="#ffffff" stop-opacity="0" />
+    </radialGradient>
+
+    <!-- Bottom rim reflection -->
+    <radialGradient id="rim" cx="30%" cy="85%" r="45%">
+      <stop offset="0%" stop-color="#ffd6ea" stop-opacity="0.6" />
+      <stop offset="70%" stop-color="#edd8fd" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#edd8fd" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <!-- Fill without border for background-image usage -->
+  <rect width="256" height="256" fill="url(#base)" />
+  <rect width="256" height="256" fill="url(#rim)" />
+  <rect width="256" height="256" fill="url(#prism2)" />
+  <rect width="256" height="256" fill="url(#prism1)" />
+  <rect width="256" height="256" fill="url(#glare)" />
+</svg>

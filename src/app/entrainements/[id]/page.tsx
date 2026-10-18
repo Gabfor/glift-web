@@ -170,7 +170,7 @@ export default function AdminEntrainementDetailPage() {
   }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router, trainingsTableName]);
 
   // ✅ Training data
-  const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user);
+  const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user, isPremiumUser);
 
   // 🔒 Synchronous row count tracking to prevent race conditions on rapid clicks
   const rowCountRef = useRef(0);
@@ -393,7 +393,7 @@ export default function AdminEntrainementDetailPage() {
       return [
         ...prev,
         {
-          id: undefined,
+          id: crypto.randomUUID(),
           series: 4,
           repetitions: Array(4).fill(""),
           poids: Array(4).fill(""),
@@ -530,17 +530,18 @@ export default function AdminEntrainementDetailPage() {
           onClick={() => {
             if (rowsLoading) return;
 
-            // Check against REF for immediate feedback during rapid clicks
-            const currentCount = rowCountRef.current;
+            // Check against current count (both state and ref)
+            const currentCount = Math.max(rowCountRef.current, rows.length);
             const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= 10;
 
             if (isLocked) {
               setShowLockedModal(true);
-            } else {
-              // Optimistically increment ref to block subsequent clicks immediately
-              rowCountRef.current = currentCount + 1;
-              handleAddRow();
+              return;
             }
+
+            // Optimistically increment ref to block subsequent clicks immediately
+            rowCountRef.current = currentCount + 1;
+            handleAddRow();
           }}
           disabled={rowsLoading}
           locked={!isAdminRoute && !isPremiumUser && rows.length >= 10}

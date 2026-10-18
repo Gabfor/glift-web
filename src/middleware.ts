@@ -156,6 +156,7 @@ export async function middleware(req: NextRequest) {
       "/reinitialiser-mot-de-passe",
       "/administrateurs",
       "/auteurs",
+      "/blog/auteurs",
       "/content-blog",
       "/create-admin",
       "/create-auteur",
@@ -232,7 +233,12 @@ export async function middleware(req: NextRequest) {
     // / -> /admin
     // Exception pour /deconnexion qui n'a pas de dossier admin spécifique et utilise la page globale src/app/deconnexion/page.tsx
     const isGlobalRoute = pathname === "/deconnexion";
-    const internalPath = isGlobalRoute ? pathname : `/admin${pathname === "/" ? "" : pathname}`;
+    const isBlogAuteursFallback = pathname === "/blog/auteurs" || pathname.startsWith("/blog/auteurs/");
+    const internalPath = isBlogAuteursFallback
+      ? "/admin/auteurs"
+      : isGlobalRoute
+        ? pathname
+        : `/admin${pathname === "/" ? "" : pathname}`;
     requestHeaders.set("x-pathname", internalPath);
 
     const rewriteRes = NextResponse.rewrite(new URL(`${internalPath}${req.nextUrl.search}`, req.url), {
@@ -266,6 +272,14 @@ export async function middleware(req: NextRequest) {
     // ✅ Redirection automatique de /concept -> /
     if (pathname.startsWith("/concept")) {
       const redirectRes = NextResponse.redirect(new URL("/", req.url));
+      copyCookies(res, redirectRes);
+      return redirectRes;
+    }
+
+    // ✅ Redirection publique de /auteurs -> /blog/auteurs (uniquement sur le domaine public)
+    if (pathname === "/auteurs" || pathname.startsWith("/auteurs/")) {
+      const rest = pathname.slice("/auteurs".length);
+      const redirectRes = NextResponse.redirect(new URL(`/blog/auteurs${rest}${req.nextUrl.search}`, req.url));
       copyCookies(res, redirectRes);
       return redirectRes;
     }

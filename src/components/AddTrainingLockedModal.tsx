@@ -35,7 +35,7 @@ export default function AddTrainingLockedModal({
                     <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Annuler
                     </CTAButton>
-                    <CTAButton onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton isAdmin={false} onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Débloquer
                     </CTAButton>
                 </div>

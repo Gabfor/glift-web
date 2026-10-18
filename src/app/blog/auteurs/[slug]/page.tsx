@@ -8,11 +8,13 @@ import {
   faFacebookF,
   faXTwitter,
   faInstagram,
+  faTiktok,
   faYoutube,
   faLinkedinIn,
 } from "@fortawesome/free-brands-svg-icons";
 import { Globe } from "lucide-react";
-import BlogArticleCard from "@/components/blog/BlogArticleCard";
+import AuthorArticlesClient from "./AuthorArticlesClient";
+import ShinyAuthorImage from "@/components/ShinyAuthorImage";
 
 export const revalidate = 60; // Auto-update cache every minute
 
@@ -26,6 +28,7 @@ type Author = {
   nom: string;
   poste_actuel: string;
   image_url: string;
+  image_mobile?: string;
   image_alt: string;
   experience: string;
   expertise: string;
@@ -33,6 +36,7 @@ type Author = {
   description: string;
   liens_sociaux: { platform: string; url: string }[];
   statut: boolean;
+  is_shiny?: boolean;
 };
 
 type Article = {
@@ -71,6 +75,8 @@ function getSocialIcon(platform: string) {
       return faXTwitter;
     case "instagram":
       return faInstagram;
+    case "tiktok":
+      return faTiktok;
     case "youtube":
       return faYoutube;
     case "linkedin":
@@ -80,22 +86,74 @@ function getSocialIcon(platform: string) {
   }
 }
 
+function getSocialLogo(platform: string): string | null {
+  switch (platform.toLowerCase()) {
+    case "facebook":
+      return "/logos/logo_facebook.png";
+    case "twitter":
+    case "x":
+      return "/logos/logo_X.png";
+    case "instagram":
+      return "/logos/logo_instagram.png";
+    case "tiktok":
+      return "/logos/logo_tiktok.png";
+    case "youtube":
+      return "/logos/logo_youtube.png";
+    default:
+      return null;
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const author = await fetchAuthorBySlug(slug);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
 
   if (!author) {
     return {
-      title: "Auteur introuvable",
+      title: "Auteur introuvable | Glift",
     };
   }
 
   const name = `${author.prenom} ${author.nom}`;
+  const title = `${name} – ${author.poste_actuel || "Auteur & Expert Musculation"} | Glift`;
+  const description = author.description_courte || `Découvrez le profil, le parcours et les articles de musculation rédigés par ${name} sur Glift.`;
+  const canonicalUrl = `${siteUrl}/blog/auteurs/${slug}`;
+  const imageUrl = author.image_url ? (author.image_url.startsWith("http") ? author.image_url : `${siteUrl}${author.image_url}`) : `${siteUrl}/images/gabriel_fort.png`;
+
   return {
-    title: name,
-    description: author.description_courte || `Profil de l'auteur ${name}`,
+    title,
+    description,
     alternates: {
-      canonical: `/blog/auteurs/${slug}`,
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      type: "profile",
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: "Glift",
+      locale: "fr_FR",
+      images: [
+        {
+          url: imageUrl,
+          width: 800,
+          height: 800,
+          alt: author.image_alt || name,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+    robots: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
     },
   };
 }
@@ -143,6 +201,7 @@ async function fetchAuthorBySlug(slug: string): Promise<Author | null> {
         { platform: "facebook", url: "#" },
         { platform: "twitter", url: "#" },
         { platform: "instagram", url: "#" },
+        { platform: "tiktok", url: "#" },
         { platform: "youtube", url: "#" },
       ],
       statut: true,
@@ -182,23 +241,111 @@ export default async function AuthorDetailPage({ params }: Props) {
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
+  const authorEntityId = `${siteUrl}/blog/auteurs/${slug}#person`;
+  const authorImageUrl = author.image_url ? (author.image_url.startsWith('http') ? author.image_url : `${siteUrl}${author.image_url}`) : `${siteUrl}/images/gabriel_fort.png`;
+
+  // Liens sociaux externes valides pour sameAs (signal d'autorité GEO)
+  const sameAsLinks = (author.liens_sociaux || [])
+    .map(link => link.url)
+    .filter(url => url && url.startsWith('http') && !url.includes('#'));
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Accueil",
+        "item": siteUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Blog",
+        "item": `${siteUrl}/blog`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Auteurs",
+        "item": `${siteUrl}/blog/auteurs`
+      },
+      {
+        "@type": "ListItem",
+        "position": 4,
+        "name": authorFullName,
+        "item": `${siteUrl}/blog/auteurs/${slug}`
+      }
+    ]
+  };
+
+  const personProfileSchema = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    "@id": `${siteUrl}/blog/auteurs/${slug}#webpage`,
+    "url": `${siteUrl}/blog/auteurs/${slug}`,
+    "name": `${authorFullName} – Profil Auteur | Glift`,
+    "isPartOf": {
+      "@type": "WebSite",
+      "@id": `${siteUrl}/#website`,
+      "url": siteUrl,
+      "name": "Glift"
+    },
+    "mainEntity": {
+      "@type": "Person",
+      "@id": authorEntityId,
+      "name": authorFullName,
+      "givenName": author.prenom,
+      "familyName": author.nom,
+      "jobTitle": author.poste_actuel,
+      "image": authorImageUrl,
+      "description": author.description_courte,
+      "url": `${siteUrl}/blog/auteurs/${slug}`,
+      ...(sameAsLinks.length > 0 ? { "sameAs": sameAsLinks } : {}),
+      "worksFor": {
+        "@type": "Organization",
+        "@id": `${siteUrl}/#organization`,
+        "name": "Glift",
+        "url": siteUrl,
+        "logo": {
+          "@type": "ImageObject",
+          "url": `${siteUrl}/logo-glift.svg`
+        }
+      },
+      "hasOccupation": {
+        "@type": "Occupation",
+        "name": author.poste_actuel
+      },
+      "knowsAbout": [
+        "Musculation",
+        "Programmes de musculation",
+        "Hypertrophie musculaire",
+        "Nutrition sportive",
+        "Force athlétique",
+        "Discipline sportive"
+      ],
+      ...(author.expertise ? {
+        "hasCredential": {
+          "@type": "EducationalOccupationalCredential",
+          "name": author.expertise
+        }
+      } : {})
+    }
+  };
 
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "ProfilePage",
-            "mainEntity": {
-              "@type": "Person",
-              "name": authorFullName,
-              "jobTitle": author.poste_actuel,
-              "image": author.image_url ? (author.image_url.startsWith('http') ? author.image_url : `${siteUrl}${author.image_url}`) : undefined,
-              "description": author.description_courte
-            }
-          })
+          __html: JSON.stringify(breadcrumbSchema)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(personProfileSchema)
         }}
       />
       <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
@@ -221,11 +368,11 @@ export default async function AuthorDetailPage({ params }: Props) {
       </div>
 
       {/* Header text content */}
-      <div className="max-w-[760px] mx-auto text-center mb-12">
+      <div className="max-w-[760px] mx-auto text-center mb-[30px] md:mb-12">
         <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
           {authorFullName}
         </h1>
-        <p className="text-[16px] text-[#5D6494] font-semibold mb-[20px]">
+        <p className="text-[16px] text-[#5D6494] font-semibold">
           {author.poste_actuel}
         </p>
       </div>
@@ -234,39 +381,86 @@ export default async function AuthorDetailPage({ params }: Props) {
       <div className="max-w-[1152px] mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start mb-[30px]">
         {/* Left Column: Image + Socials */}
         <div className="w-full md:w-[270px] flex flex-col items-center shrink-0">
-          <div className="relative w-[270px] h-[270px] rounded-[20px] overflow-hidden border border-[#ECE9F1]">
-            <Image
-              src={author.image_url || "/images/gabriel_fort.png"}
-              alt={author.image_alt || authorFullName}
-              fill
-              className="object-cover"
-              priority
-            />
-          </div>
+          {(() => {
+            const isGabriel =
+              author.prenom?.trim().toLowerCase() === "gabriel" &&
+              author.nom?.trim().toLowerCase() === "fort";
+            const isShiny = Boolean(author.is_shiny);
+
+            const desktopCutout = author.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
+            const mobileCutout = author.image_mobile || author.image_url || (isGabriel ? "/images/gabrielfort_mobile.png" : "/images/gabriel_fort.png");
+
+            return (
+              <div className="relative w-full h-[180px] sm:h-[220px] md:w-[270px] md:h-[270px] rounded-[20px] overflow-hidden border border-[#ECE9F1]">
+                {author.image_mobile ? (
+                  <>
+                    <ShinyAuthorImage
+                      src={mobileCutout}
+                      alt={author.image_alt || authorFullName}
+                      isShiny={isShiny}
+                      sizes="(max-width: 768px) 100vw, 270px"
+                      className="w-full h-full object-cover md:hidden rounded-[20px]"
+                      containerClassName="w-full h-full md:hidden rounded-[20px]"
+                      priority
+                    />
+                    <ShinyAuthorImage
+                      src={desktopCutout}
+                      alt={author.image_alt || authorFullName}
+                      isShiny={isShiny}
+                      sizes="270px"
+                      className="w-full h-full object-cover hidden md:block rounded-[20px]"
+                      containerClassName="w-full h-full hidden md:block rounded-[20px]"
+                      priority
+                    />
+                  </>
+                ) : (
+                  <ShinyAuthorImage
+                    src={desktopCutout}
+                    alt={author.image_alt || authorFullName}
+                    isShiny={isShiny}
+                    sizes="(max-width: 768px) 100vw, 270px"
+                    className="w-full h-full object-cover rounded-[20px]"
+                    containerClassName="w-full h-full rounded-[20px]"
+                    priority
+                  />
+                )}
+              </div>
+            );
+          })()}
           {/* Social Links under image */}
           {author.liens_sociaux && author.liens_sociaux.length > 0 && (
-            <div className="flex items-center justify-center gap-4 mt-5">
+            <div className="flex items-center justify-center gap-[10px] mt-5">
               {author.liens_sociaux.map((link, idx) => {
                 if (!link.url || !link.platform) return null;
                 const isWebsite =
                   link.platform.toLowerCase() === "website" ||
                   link.platform.toLowerCase() === "site web" ||
                   link.platform.toLowerCase() === "globe";
+                const customLogo = getSocialLogo(link.platform);
+
                 return (
                   <a
                     key={idx}
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#5D6494] hover:text-[#3A416F] transition-colors duration-200"
+                    className="w-[30px] h-[30px] flex items-center justify-center hover:opacity-80 transition-opacity duration-200 shrink-0"
                     aria-label={link.platform}
                   >
-                    {isWebsite ? (
-                      <Globe className="w-[20px] h-[20px]" />
+                    {customLogo ? (
+                      <Image
+                        src={customLogo}
+                        alt={link.platform}
+                        width={30}
+                        height={30}
+                        className="w-[30px] h-[30px] object-contain shrink-0"
+                      />
+                    ) : isWebsite ? (
+                      <Globe className="w-[30px] h-[30px] text-[#5D6494] hover:text-[#3A416F] transition-colors" />
                     ) : (
                       <FontAwesomeIcon
                         icon={getSocialIcon(link.platform)}
-                        className="w-[20px] h-[20px]"
+                        className="w-[30px] h-[30px] text-[#5D6494] hover:text-[#3A416F] transition-colors"
                       />
                     )}
                   </a>
@@ -280,10 +474,30 @@ export default async function AuthorDetailPage({ params }: Props) {
         <div className="flex-1">
 
           {/* Metadata (Experience / Expertises) */}
-          <div className="flex flex-col gap-0 mb-[10px]">
+          <div className="flex flex-col gap-0 mb-[14px] md:mb-[10px]">
             {author.experience && (
               <>
-                <div className="flex items-center gap-4 text-[14px] font-semibold">
+                {/* Mobile version (mockup stacked) */}
+                <div className="flex items-start gap-[10px] md:hidden">
+                  <Image
+                    src="/icons/experience.svg"
+                    alt=""
+                    width={18}
+                    height={18}
+                    className="shrink-0 mt-[2px]"
+                  />
+                  <div className="flex flex-col gap-[6px]">
+                    <span className="text-[#3a416f] font-bold text-[14px]">
+                      Expérience
+                    </span>
+                    <span className="text-[#5D6494] text-[14px] font-semibold leading-relaxed">
+                      {author.experience}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop version */}
+                <div className="hidden md:flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
                     <Image
                       src="/icons/experience.svg"
@@ -300,12 +514,32 @@ export default async function AuthorDetailPage({ params }: Props) {
                     {author.experience}
                   </span>
                 </div>
-                <div className="w-full h-[1px] bg-[#EBECEE] my-[10px]" />
+                <div className="w-full h-[1px] bg-[#EBECEE] my-[14px] md:my-[10px]" />
               </>
             )}
             {author.expertise && (
               <>
-                <div className="flex items-center gap-4 text-[14px] font-semibold">
+                {/* Mobile version (mockup stacked) */}
+                <div className="flex items-start gap-[10px] md:hidden">
+                  <Image
+                    src="/icons/expertise.svg"
+                    alt=""
+                    width={18}
+                    height={20}
+                    className="shrink-0 mt-[2px]"
+                  />
+                  <div className="flex flex-col gap-[6px]">
+                    <span className="text-[#3a416f] font-bold text-[14px]">
+                      Expertises
+                    </span>
+                    <span className="text-[#5D6494] text-[14px] font-semibold leading-relaxed">
+                      {author.expertise}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop version */}
+                <div className="hidden md:flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
                     <Image
                       src="/icons/expertise.svg"
@@ -322,7 +556,7 @@ export default async function AuthorDetailPage({ params }: Props) {
                     {author.expertise}
                   </span>
                 </div>
-                <div className="w-full h-[1px] bg-[#EBECEE] my-[10px]" />
+                <div className="w-full h-[1px] bg-[#EBECEE] my-[14px] md:my-[10px]" />
               </>
             )}
           </div>
@@ -340,34 +574,18 @@ export default async function AuthorDetailPage({ params }: Props) {
       {/* Separation line */}
       <div className="max-w-[1152px] mx-auto w-full h-[1px] bg-[#ECE9F1] my-[30px]" />
 
-      {/* Articles Grid Section */}
-      <div className="max-w-[1152px] mx-auto">
-        <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-1 tracking-wider">
-          Les articles de {author.prenom} {author.nom}
-        </h2>
-        <p className="text-[14px] text-[#5D6494] mb-8 font-semibold">
-          Voici tous les articles réalisés par {author.prenom} {author.nom}.
-        </p>
+        {/* Articles Grid Section with LoadMore */}
+        <div className="max-w-[1152px] mx-auto">
+          <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-1 tracking-wider">
+            Les articles de {author.prenom} {author.nom}
+          </h2>
+          <p className="text-[14px] text-[#5D6494] mb-8 font-semibold">
+            Voici tous les articles réalisés par {author.prenom} {author.nom}.
+          </p>
 
-        {articles.length > 0 ? (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center mt-6">
-            {articles.map((article) => (
-              <BlogArticleCard
-                key={article.id}
-                article={article}
-                blogUrl="/blog"
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <p className="text-[#5D6494] text-[16px] font-semibold">
-              Aucun article n'a été rédigé par cet auteur pour le moment.
-            </p>
-          </div>
-        )}
-      </div>
-    </main>
+          <AuthorArticlesClient articles={articles} authorName={authorFullName} />
+        </div>
+      </main>
     </>
   );
 }

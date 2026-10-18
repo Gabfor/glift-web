@@ -124,10 +124,11 @@ export async function cleanupOrphanedImages(): Promise<CleanupResult> {
         try {
             const { data: auteurs } = await (supabase as any)
                 .from("auteurs")
-                .select("image_url");
+                .select("image_url, image_mobile");
             
             auteurs?.forEach((a: any) => {
                 if (a.image_url) usedUrls.add(a.image_url);
+                if (a.image_mobile) usedUrls.add(a.image_mobile);
             });
         } catch { /* ignore */ }
 
