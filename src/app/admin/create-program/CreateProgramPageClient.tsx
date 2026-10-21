@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
@@ -41,6 +42,27 @@ export default function CreateProgramPageClient({
   );
   const showLoader = useMinimumVisibility(loading);
   const shouldRefreshOnShowRef = useRef(Boolean(programId) && !initialProgram);
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    status: false,
+    introduction: true,
+    images: true,
+    details: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections((prev) => {
+      const isCurrentlyCollapsed = prev[section];
+      const nextState: Record<string, boolean> = {};
+      Object.keys(prev).forEach((key) => {
+        nextState[key] = true;
+      });
+      if (isCurrentlyCollapsed) {
+        nextState[section] = false;
+      }
+      return nextState;
+    });
+  };
 
   const performProgramRefresh = useCallback(
     async (id: string) => {
@@ -190,334 +212,438 @@ export default function CreateProgramPageClient({
             </h2>
 
             {!loading && (
-              <div className="flex flex-col gap-5">
-                {/* SECTION 1: STATUT DE L’OFFRE */}
+              <div className="flex flex-col gap-8 w-full">
+                {/* SECTION 1: STATUT DU PROGRAMME */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Statut de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Statut */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le statut"
-                        selected={program.status}
-                        onSelect={(value) => setProgram({ ...program, status: value })}
-                        options={[
-                          { value: "ON", label: "ON" },
-                          { value: "OFF", label: "OFF" },
-                        ]}
+                  <div
+                    onClick={() => toggleSection("status")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Statut du programme
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.status ? "rotate-180" : ""
+                        } group-hover:hidden`}
                       />
-                    </div>
-
-                    {/* Id du programme lié */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-[5px]">Id du programme lié</label>
-                      <input
-                        type="text"
-                        placeholder="Insérez l'id du programme lié"
-                        value={program.linked_program_id}
-                        onChange={(e) => setProgram({ ...program, linked_program_id: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* Plan */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-[5px]">Plan</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le plan"
-                        selected={program.plan}
-                        onSelect={(value) => setProgram({ ...program, plan: value as "starter" | "premium" })}
-                        options={[
-                          { value: "starter", label: "Starter" },
-                          { value: "premium", label: "Premium" },
-                        ]}
-                      />
-                    </div>
-                    {/* Généré par IA */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez"
-                        selected={program.is_ai_generated ? "OUI" : "NON"}
-                        onSelect={(value) => setProgram({ ...program, is_ai_generated: value === "OUI" })}
-                        options={[
-                          { value: "OUI", label: "OUI" },
-                          { value: "NON", label: "NON" },
-                        ]}
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.status ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.status && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Statut */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-[5px]">Statut</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le statut"
+                          selected={program.status}
+                          onSelect={(value) => setProgram({ ...program, status: value })}
+                          options={[
+                            { value: "ON", label: "ON" },
+                            { value: "OFF", label: "OFF" },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Id du programme lié */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-[5px]">Id du programme lié</label>
+                        <input
+                          type="text"
+                          placeholder="Insérez l'id du programme lié"
+                          value={program.linked_program_id}
+                          onChange={(e) => setProgram({ ...program, linked_program_id: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {/* Plan */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-[5px]">Plan</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le plan"
+                          selected={program.plan}
+                          onSelect={(value) => setProgram({ ...program, plan: value as "starter" | "premium" })}
+                          options={[
+                            { value: "starter", label: "Starter" },
+                            { value: "premium", label: "Premium" },
+                          ]}
+                        />
+                      </div>
+                      {/* Généré par IA */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-[5px]">Généré par IA</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez"
+                          selected={program.is_ai_generated ? "OUI" : "NON"}
+                          onSelect={(value) => setProgram({ ...program, is_ai_generated: value === "OUI" })}
+                          options={[
+                            { value: "OUI", label: "OUI" },
+                            { value: "NON", label: "NON" },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* SECTION 2: TITRES ET DESCRIPTION DU PROGRAMME */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Titres et description du programme
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Left Column: Title & Short Title */}
-                    <div className="flex flex-col gap-5">
-                      {/* Titre */}
-                      <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {program.title.length}/52
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Titre du programme"
-                          value={program.title}
-                          onChange={(e) => setProgram({ ...program, title: e.target.value })}
-                          className={inputClass}
-                        />
-                      </div>
-
-                      {/* Titre raccourci */}
-                      <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {program.shortName.length}/28
-                          </span>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Titre du programme" // Placeholder from mockup says 'Titre du programme'
-                          value={program.shortName}
-                          onChange={(e) =>
-                            setProgram({
-                              ...program,
-                              shortName: e.target.value,
-                            })
-                          }
-                          className={inputClass}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Right Column: Description (Full Height) */}
-                    <div className="flex flex-col h-full">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          {program.description.length}/169
-                        </span>
-                      </div>
-                      <textarea
-                        placeholder="Description du programme"
-                        value={program.description}
-                        onChange={(e) => setProgram({ ...program, description: e.target.value })}
-                        className={`${textareaClass} h-full`}
-                        style={{ minHeight: '143px', height: '100%' }} // Ensure it stretches
+                  <div
+                    onClick={() => toggleSection("introduction")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Titres et description du programme
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.introduction ? "rotate-180" : ""
+                        } group-hover:hidden`}
+                      />
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.introduction ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.introduction && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Left Column: Title & Short Title */}
+                      <div className="flex flex-col gap-5">
+                        {/* Titre */}
+                        <div className="flex flex-col">
+                          <div className="flex justify-between mb-[5px]">
+                            <span className="text-[16px] text-[#3A416F] font-bold">Titre</span>
+                            <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                              {program.title.length}/52
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Titre du programme"
+                            value={program.title}
+                            onChange={(e) => setProgram({ ...program, title: e.target.value })}
+                            className={inputClass}
+                          />
+                        </div>
+
+                        {/* Titre raccourci */}
+                        <div className="flex flex-col">
+                          <div className="flex justify-between mb-[5px]">
+                            <span className="text-[16px] text-[#3A416F] font-bold">Titre raccourci</span>
+                            <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                              {program.shortName.length}/28
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Titre du programme"
+                            value={program.shortName}
+                            onChange={(e) =>
+                              setProgram({
+                                ...program,
+                                shortName: e.target.value,
+                              })
+                            }
+                            className={inputClass}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Right Column: Description (Full Height) */}
+                      <div className="flex flex-col h-full">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Description</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {program.description.length}/169
+                          </span>
+                        </div>
+                        <textarea
+                          placeholder="Description du programme"
+                          value={program.description}
+                          onChange={(e) => setProgram({ ...program, description: e.target.value })}
+                          className={`${textareaClass} h-full`}
+                          style={{ minHeight: '143px', height: '100%' }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* SECTION 3: IMAGES DU PROGRAMME */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Images du programme
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Row 1 */}
-                    {/* Image principale (Site) */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Site)</span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">540px x 360px</span>
-                      </div>
-                      <ImageUploader
-                        value={program.image}
-                        onChange={(url) => setProgram({ ...program, image: url })}
-                        placeholder="Importer un fichier"
+                  <div
+                    onClick={() => toggleSection("images")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Images du programme
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.images ? "rotate-180" : ""
+                        } group-hover:hidden`}
                       />
-                    </div>
-                    {/* Alt image principale */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image principale</label>
-                      <input
-                        type="text"
-                        placeholder="Alt de l’image principale"
-                        value={program.image_alt}
-                        onChange={(e) => setProgram({ ...program, image_alt: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* Row 2 */}
-                    {/* Image principale (Mobile) */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Mobile)</span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">350px x 180px</span>
-                      </div>
-                      <ImageUploader
-                        value={program.image_mobile}
-                        onChange={(url) => setProgram({ ...program, image_mobile: url })}
-                        placeholder="Importer un fichier"
-                      />
-                    </div>
-                    {/* Empty Right Column for Row 2 */}
-                    <div className="hidden md:block"></div>
-
-                    {/* Row 3 */}
-                    {/* Image du partenaire */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">140px x 140px</span>
-                      </div>
-                      <ImageUploader
-                        value={program.partner_image}
-                        onChange={(url) => setProgram({ ...program, partner_image: url })}
-                        placeholder="Importer un fichier"
-                      />
-                    </div>
-                    {/* Alt image partenaire */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image partenaire</label>
-                      <input
-                        type="text"
-                        placeholder="Alt de l’image du partenaire"
-                        value={program.partner_image_alt}
-                        onChange={(e) => setProgram({ ...program, partner_image_alt: e.target.value })}
-                        className={inputClass}
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.images ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.images && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Row 1 */}
+                      {/* Image principale (Site) */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Site)</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1080px x 720px</span>
+                        </div>
+                        <ImageUploader
+                          value={program.image}
+                          onChange={(url) => setProgram({ ...program, image: url })}
+                          placeholder="Importer un fichier"
+                        />
+                      </div>
+                      {/* Alt image principale */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image principale</label>
+                        <input
+                          type="text"
+                          placeholder="Alt de l’image principale"
+                          value={program.image_alt}
+                          onChange={(e) => setProgram({ ...program, image_alt: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {/* Row 2 */}
+                      {/* Image principale (Mobile) */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Mobile)</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1080px x 540px</span>
+                        </div>
+                        <ImageUploader
+                          value={program.image_mobile}
+                          onChange={(url) => setProgram({ ...program, image_mobile: url })}
+                          placeholder="Importer un fichier"
+                        />
+                      </div>
+                      {/* Empty Right Column for Row 2 */}
+                      <div className="hidden md:block"></div>
+
+                      {/* Row 3 */}
+                      {/* Image du partenaire */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">280px x 280px</span>
+                        </div>
+                        <ImageUploader
+                          value={program.partner_image}
+                          onChange={(url) => setProgram({ ...program, partner_image: url })}
+                          placeholder="Importer un fichier"
+                        />
+                      </div>
+                      {/* Alt image partenaire */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Alt image partenaire</label>
+                        <input
+                          type="text"
+                          placeholder="Alt de l’image du partenaire"
+                          value={program.partner_image_alt}
+                          onChange={(e) => setProgram({ ...program, partner_image_alt: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* SECTION 4: DÉTAILS DU PROGRAMME */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Détails du programme
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Row 1: Genre | Objectif */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Genre</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le genre"
-                        selected={program.gender}
-                        onSelect={(value) => setProgram({ ...program, gender: value })}
-                        options={[
-                          { value: "Tous", label: "Tous" },
-                          { value: "Homme", label: "Homme" },
-                          { value: "Femme", label: "Femme" },
-                        ]}
+                  <div
+                    onClick={() => toggleSection("details")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Détails du programme
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.details ? "rotate-180" : ""
+                        } group-hover:hidden`}
                       />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez un objectif"
-                        selected={program.goal}
-                        onSelect={(value) => setProgram({ ...program, goal: value })}
-                        sortStrategy="none"
-                        options={MAIN_GOALS.map((goal) => ({
-                          value: goal,
-                          label: goal,
-                        }))}
-                      />
-                    </div>
-
-                    {/* Row 2: Niveau | Durée */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le niveau"
-                        selected={program.level}
-                        onSelect={(value) => setProgram({ ...program, level: value })}
-                        options={[
-                          { value: "Tous niveaux", label: "Tous niveaux" },
-                          { value: "Débutant", label: "Débutant" },
-                          { value: "Intermédiaire", label: "Intermédiaire" },
-                          { value: "Confirmé", label: "Confirmé" },
-                        ]}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée moyenne</label>
-                      <input
-                        type="text"
-                        placeholder="Durée moyenne"
-                        value={program.duration}
-                        onChange={(e) => setProgram({ ...program, duration: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* Row 3: Nombre de séances | Lieu */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
-                      <input
-                        type="number"
-                        placeholder="Nombre de séances"
-                        value={program.sessions || ""}
-                        onChange={(e) => setProgram({ ...program, sessions: Number(e.target.value) })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le lieu"
-                        selected={program.location}
-                        onSelect={(value) => setProgram({ ...program, location: value })}
-                        options={[
-                          { value: "Salle", label: "Salle" },
-                          { value: "Domicile", label: "Domicile" },
-                        ]}
-                      />
-                    </div>
-
-                    {/* Row 4: Nom du partenaire | Lien du partenaire */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nom du partenaire</label>
-                      <input
-                        type="text"
-                        placeholder="Nom du partenaire"
-                        value={program.partner_name}
-                        onChange={(e) => setProgram({ ...program, partner_name: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien du partenaire</label>
-                      <input
-                        type="text"
-                        placeholder="Lien du partenaire"
-                        value={program.partner_link}
-                        onChange={(e) => setProgram({ ...program, partner_link: e.target.value })}
-                        className={inputClass}
-                      />
-                    </div>
-
-                    {/* Row 5: Lien en savoir plus | Empty */}
-                    <div className="flex flex-col">
-                      <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien “En savoir plus”</label>
-                      <input
-                        type="text"
-                        placeholder="Lien vers la fiche"
-                        value={program.link}
-                        onChange={(e) => setProgram({ ...program, link: e.target.value })}
-                        className={inputClass}
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.details ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.details && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Row 1: Genre | Objectif */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Genre</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le genre"
+                          selected={program.gender}
+                          onSelect={(value) => setProgram({ ...program, gender: value })}
+                          options={[
+                            { value: "Tous", label: "Tous" },
+                            { value: "Homme", label: "Homme" },
+                            { value: "Femme", label: "Femme" },
+                          ]}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Objectif</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez un objectif"
+                          selected={program.goal}
+                          onSelect={(value) => setProgram({ ...program, goal: value })}
+                          sortStrategy="none"
+                          options={MAIN_GOALS.map((goal) => ({
+                            value: goal,
+                            label: goal,
+                          }))}
+                        />
+                      </div>
+
+                      {/* Row 2: Niveau | Durée */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Niveau</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le niveau"
+                          selected={program.level}
+                          onSelect={(value) => setProgram({ ...program, level: value })}
+                          options={[
+                            { value: "Tous niveaux", label: "Tous niveaux" },
+                            { value: "Débutant", label: "Débutant" },
+                            { value: "Intermédiaire", label: "Intermédiaire" },
+                            { value: "Confirmé", label: "Confirmé" },
+                          ]}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Durée moyenne</label>
+                        <input
+                          type="text"
+                          placeholder="Durée moyenne"
+                          value={program.duration}
+                          onChange={(e) => setProgram({ ...program, duration: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {/* Row 3: Nombre de séances | Lieu */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nombre de séances</label>
+                        <input
+                          type="number"
+                          placeholder="Nombre de séances"
+                          value={program.sessions || ""}
+                          onChange={(e) => setProgram({ ...program, sessions: Number(e.target.value) })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lieu</label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le lieu"
+                          selected={program.location}
+                          onSelect={(value) => setProgram({ ...program, location: value })}
+                          options={[
+                            { value: "Salle", label: "Salle" },
+                            { value: "Domicile", label: "Domicile" },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Row 4: Nom du partenaire | Lien du partenaire */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Nom du partenaire</label>
+                        <input
+                          type="text"
+                          placeholder="Nom du partenaire"
+                          value={program.partner_name}
+                          onChange={(e) => setProgram({ ...program, partner_name: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien du partenaire</label>
+                        <input
+                          type="text"
+                          placeholder="Lien du partenaire"
+                          value={program.partner_link}
+                          onChange={(e) => setProgram({ ...program, partner_link: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+
+                      {/* Row 5: Lien en savoir plus | Empty */}
+                      <div className="flex flex-col">
+                        <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">Lien “En savoir plus”</label>
+                        <input
+                          type="text"
+                          placeholder="Lien vers la fiche"
+                          value={program.link}
+                          onChange={(e) => setProgram({ ...program, link: e.target.value })}
+                          className={inputClass}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* BOUTON */}

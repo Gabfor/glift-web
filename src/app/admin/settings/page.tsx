@@ -206,7 +206,7 @@ export default function AdminSettingsPage() {
                         <div className="flex flex-col gap-[10px]">
                             <div className="flex justify-between items-baseline mb-[5px]">
                                 <span className="text-[16px] text-[#3A416F] font-bold">Logo</span>
-                                <span className="text-[#C2BFC6] text-xs font-semibold">147px x 35px</span>
+                                <span className="text-[#C2BFC6] text-xs font-semibold">294px x 70px</span>
                             </div>
                             <ImageUploader
                                 value={logoUrl}

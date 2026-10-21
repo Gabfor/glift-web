@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { createClient } from "@/lib/supabaseClient";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
@@ -80,6 +81,29 @@ export default function CreateOfferPageClient({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const showLoader = useMinimumVisibility(loading);
   const shouldRefreshOnShowRef = useRef(Boolean(offerId) && !initialOffer);
+
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+    status: false,
+    dates: true,
+    introduction: true,
+    images: true,
+    details: true,
+    informations: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setCollapsedSections((prev) => {
+      const isCurrentlyCollapsed = prev[section];
+      const nextState: Record<string, boolean> = {};
+      Object.keys(prev).forEach((key) => {
+        nextState[key] = true;
+      });
+      if (isCurrentlyCollapsed) {
+        nextState[section] = false;
+      }
+      return nextState;
+    });
+  };
 
   const performOfferRefresh = useCallback(
     async (id: string) => {
@@ -275,56 +299,107 @@ export default function CreateOfferPageClient({
             )}
 
             {!loading && (
-              <div className="flex flex-col gap-5">
-                {/* STATUT DE L'OFFRE */}
+              <div className="flex flex-col gap-8 w-full">
+                {/* SECTION 0: STATUT DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Statut de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Statut */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1">
-                        Statut
-                      </label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le statut"
-                        selected={offer.status}
-                        onSelect={(value) =>
-                          setOffer({ ...offer, status: value })
-                        }
-                        options={[
-                          { value: "ON", label: "ON" },
-                          { value: "OFF", label: "OFF" },
-                        ]}
+                  <div
+                    onClick={() => toggleSection("status")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Statut de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.status ? "rotate-180" : ""
+                        } group-hover:hidden`}
                       />
-                    </div>
-                    {/* Boostée */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1">
-                        Boostée
-                      </label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez"
-                        selected={offer.boost}
-                        onSelect={(value) => setOffer({ ...offer, boost: value })}
-                        options={[
-                          { value: "OUI", label: "OUI" },
-                          { value: "NON", label: "NON" },
-                        ]}
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.status ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.status && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Statut */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1">
+                          Statut
+                        </label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le statut"
+                          selected={offer.status}
+                          onSelect={(value) =>
+                            setOffer({ ...offer, status: value })
+                          }
+                          options={[
+                            { value: "ON", label: "ON" },
+                            { value: "OFF", label: "OFF" },
+                          ]}
+                        />
+                      </div>
+                      {/* Boostée */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1">
+                          Boostée
+                        </label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez"
+                          selected={offer.boost}
+                          onSelect={(value) => setOffer({ ...offer, boost: value })}
+                          options={[
+                            { value: "OUI", label: "OUI" },
+                            { value: "NON", label: "NON" },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* DATES DE L'OFFRE */}
+                {/* SECTION 1: DATES DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Dates de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                  <div
+                    onClick={() => toggleSection("dates")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Dates de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.dates ? "rotate-180" : ""
+                        } group-hover:hidden`}
+                      />
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.dates ? "rotate-180" : ""
+                        } hidden group-hover:block`}
+                      />
+                    </div>
+                  </div>
+
+                  {!collapsedSections.dates && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
                     {/* Date de début */}
                     <div className="flex flex-col">
                       <div className="flex items-center justify-between mb-1">
@@ -497,362 +572,469 @@ export default function CreateOfferPageClient({
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+              </div>
 
-                {/* TITRE ET DESCRIPTION DE L'OFFRE */}
+                {/* SECTION 2: TITRE ET DESCRIPTION DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Titre et description de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
-                    {/* Titre avec compteur */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">
-                          Titre
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          {offer.name.length}/52
-                        </span>
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Titre du programme"
-                        value={offer.name}
-                        onChange={(e) =>
-                          setOffer({ ...offer, name: e.target.value })
-                        }
-                        className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
-                                 border border-[#D7D4DC] hover:border-[#C2BFC6]
-                                 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
-                                 transition-all duration-150 truncate"
+                  <div
+                    onClick={() => toggleSection("introduction")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Titre et description de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.introduction ? "rotate-180" : ""
+                        } group-hover:hidden`}
+                      />
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.introduction ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
+                  </div>
 
-                    {/* Description légal avec insertion dynamique */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-1">
-                        <label className="text-[#3A416F] font-bold">
-                          Description légal
-                        </label>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => insertAtCursor("{date}")}
-                            className="px-2 py-[2px] text-[12px] font-semibold border border-[#3A416F] text-[#3A416F] rounded-full hover:bg-[#3A416F] hover:text-[#fff] transition"
-                          >
-                            Date de fin
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => insertAtCursor("{site}")}
-                            className="px-2 py-[2px] text-[12px] font-semibold border border-[#3A416F] text-[#3A416F] rounded-full hover:bg-[#3A416F] hover:text-[#fff] transition"
-                          >
-                            Site web
-                          </button>
+                  {!collapsedSections.introduction && (
+                    <div className="flex flex-col mt-[10px]">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mb-5">
+                        {/* Titre avec compteur */}
+                        <div className="flex flex-col">
+                          <div className="flex justify-between mb-[5px]">
+                            <span className="text-[16px] text-[#3A416F] font-bold">
+                              Titre
+                            </span>
+                            <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                              {offer.name.length}/52
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            placeholder="Titre du programme"
+                            value={offer.name}
+                            onChange={(e) =>
+                              setOffer({ ...offer, name: e.target.value })
+                            }
+                            className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494]
+                                     border border-[#D7D4DC] hover:border-[#C2BFC6]
+                                     focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
+                                     transition-all duration-150 truncate"
+                          />
+                        </div>
+
+                        {/* Description légal avec insertion dynamique */}
+                        <div className="flex flex-col">
+                          <div className="flex justify-between mb-1">
+                            <label className="text-[#3A416F] font-bold">
+                              Description légal
+                            </label>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => insertAtCursor("{date}")}
+                                className="px-2 py-[2px] text-[12px] font-semibold border border-[#3A416F] text-[#3A416F] rounded-full hover:bg-[#3A416F] hover:text-[#fff] transition"
+                              >
+                                Date de fin
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => insertAtCursor("{site}")}
+                                className="px-2 py-[2px] text-[12px] font-semibold border border-[#3A416F] text-[#3A416F] rounded-full hover:bg-[#3A416F] hover:text-[#fff] transition"
+                              >
+                                Site web
+                              </button>
+                            </div>
+                          </div>
+                          <textarea
+                            ref={textareaRef}
+                            value={offer.condition}
+                            onChange={(e) =>
+                              setOffer({ ...offer, condition: e.target.value })
+                            }
+                            className="w-full h-[100px] text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494]
+                                    border border-[#D7D4DC] hover:border-[#C2BFC6]
+                                    focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
+                                    transition-all duration-150"
+                            placeholder="Description légale de l’offre"
+                          />
                         </div>
                       </div>
-                      <textarea
-                        ref={textareaRef}
-                        value={offer.condition}
-                        onChange={(e) =>
-                          setOffer({ ...offer, condition: e.target.value })
-                        }
-                        className="w-full h-[100px] text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] py-[10px] rounded-[5px] bg-white text-[#5D6494]
-                                border border-[#D7D4DC] hover:border-[#C2BFC6]
-                                focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494]
-                                transition-all duration-150"
-                        placeholder="Description légale de l’offre"
-                      />
-                    </div>
-                  </div>
 
-                  {/* Description (RichTextEditor) */}
-                  <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">
-                        Description
-                      </span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        {offer.description
-                          ? offer.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").length
-                          : 0}
-                        /80
-                      </span>
+                      {/* Description (RichTextEditor) */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">
+                            Description
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            {offer.description
+                              ? offer.description.replace(/<[^>]*>/g, "").replace(/&nbsp;/g, " ").length
+                              : 0}
+                            /80
+                          </span>
+                        </div>
+                        <RichTextEditor
+                          value={offer.description}
+                          onChange={(content) =>
+                            setOffer({ ...offer, description: content })
+                          }
+                          placeholder="Description de l’offre"
+                          withHelpLink
+                          minHeight="140px"
+                        />
+                      </div>
                     </div>
-                    <RichTextEditor
-                      value={offer.description}
-                      onChange={(content) =>
-                        setOffer({ ...offer, description: content })
-                      }
-                      placeholder="Description de l’offre"
-                      withHelpLink
-                      minHeight="140px"
-                    />
-                  </div>
+                  )}
                 </div>
 
-                {/* IMAGES DE L'OFFRE */}
+                {/* SECTION 3: IMAGES DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Images de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Image principale (Site) */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">
-                          Image principale (Site)
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          540px x 360px
-                        </span>
-                      </div>
-                      <ImageUploader
-                        value={offer.image}
-                        onChange={(url) => setOffer({ ...offer, image: url })}
+                  <div
+                    onClick={() => toggleSection("images")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Images de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.images ? "rotate-180" : ""
+                        } group-hover:hidden`}
+                      />
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.images ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
-
-                    {/* Alt image principale */}
-                    <AdminTextField
-                      label="Alt image principale"
-                      value={offer.image_alt}
-                      onChange={(value) =>
-                        setOffer({ ...offer, image_alt: value })
-                      }
-                      placeholder="Alt de l'image principale"
-                      labelClassName="mb-1"
-                    />
-
-                    {/* Image principale (Mobile) */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">
-                          Image principale (Mobile)
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          350px x 180px
-                        </span>
-                      </div>
-                      <ImageUploader
-                        value={offer.image_mobile}
-                        onChange={(url) =>
-                          setOffer({ ...offer, image_mobile: url })
-                        }
-                      />
-                    </div>
-
-                    {/* Image slider */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">
-                          Image slider
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          564px x 250px
-                        </span>
-                      </div>
-                      <ImageUploader
-                        value={offer.slider_image}
-                        onChange={(url) =>
-                          setOffer({ ...offer, slider_image: url })
-                        }
-                      />
-                    </div>
-
-                    {/* Image de la marque */}
-                    <div className="flex flex-col">
-                      <div className="flex justify-between mb-[5px]">
-                        <span className="text-[16px] text-[#3A416F] font-bold">
-                          Image de la marque
-                        </span>
-                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                          140px x 140px
-                        </span>
-                      </div>
-                      <ImageUploader
-                        value={offer.brand_image}
-                        onChange={(url) =>
-                          setOffer({ ...offer, brand_image: url })
-                        }
-                      />
-                    </div>
-
-                    {/* Alt image marque */}
-                    <AdminTextField
-                      label="Alt image marque"
-                      value={offer.brand_image_alt}
-                      onChange={(value) =>
-                        setOffer({ ...offer, brand_image_alt: value })
-                      }
-                      placeholder="Alt de l'image marque"
-                      labelClassName="mb-1"
-                    />
                   </div>
+
+                  {!collapsedSections.images && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Image principale (Site) */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">
+                            Image principale (Site)
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            1080px x 720px
+                          </span>
+                        </div>
+                        <ImageUploader
+                          value={offer.image}
+                          onChange={(url) => setOffer({ ...offer, image: url })}
+                        />
+                      </div>
+
+                      {/* Alt image principale */}
+                      <AdminTextField
+                        label="Alt image principale"
+                        value={offer.image_alt}
+                        onChange={(value) =>
+                          setOffer({ ...offer, image_alt: value })
+                        }
+                        placeholder="Alt de l'image principale"
+                        labelClassName="mb-1"
+                      />
+
+                      {/* Image principale (Mobile) */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">
+                            Image principale (Mobile)
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            1080px x 540px
+                          </span>
+                        </div>
+                        <ImageUploader
+                          value={offer.image_mobile}
+                          onChange={(url) =>
+                            setOffer({ ...offer, image_mobile: url })
+                          }
+                        />
+                      </div>
+
+                      {/* Image slider */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">
+                            Image slider
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            1128px x 500px
+                          </span>
+                        </div>
+                        <ImageUploader
+                          value={offer.slider_image}
+                          onChange={(url) =>
+                            setOffer({ ...offer, slider_image: url })
+                          }
+                        />
+                      </div>
+
+                      {/* Image de la marque */}
+                      <div className="flex flex-col">
+                        <div className="flex justify-between mb-[5px]">
+                          <span className="text-[16px] text-[#3A416F] font-bold">
+                            Image de la marque
+                          </span>
+                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                            280px x 280px
+                          </span>
+                        </div>
+                        <ImageUploader
+                          value={offer.brand_image}
+                          onChange={(url) =>
+                            setOffer({ ...offer, brand_image: url })
+                          }
+                        />
+                      </div>
+
+                      {/* Alt image marque */}
+                      <AdminTextField
+                        label="Alt image marque"
+                        value={offer.brand_image_alt}
+                        onChange={(value) =>
+                          setOffer({ ...offer, brand_image_alt: value })
+                        }
+                        placeholder="Alt de l'image marque"
+                        labelClassName="mb-1"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {/* DÉTAILS DE L'OFFRE */}
+                {/* SECTION 4: DÉTAILS DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Détails de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Genre */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
-                        Genre
-                      </label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le genre"
-                        selected={offer.gender}
-                        onSelect={(value) =>
-                          setOffer({ ...offer, gender: value })
-                        }
-                        options={[
-                          { value: "Tous", label: "Tous" },
-                          { value: "Homme", label: "Homme" },
-                          { value: "Femme", label: "Femme" },
-                        ]}
+                  <div
+                    onClick={() => toggleSection("details")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Détails de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.details ? "rotate-180" : ""
+                        } group-hover:hidden`}
                       />
-                    </div>
-
-                    {/* Catégorie */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
-                        Catégorie
-                      </label>
-                      <AdminMultiSelectDropdown
-                        label=""
-                        placeholder="Sélectionnez la catégorie"
-                        selected={offer.type}
-                        onChange={(values: string[]) =>
-                          setOffer({ ...offer, type: values })
-                        }
-                        options={offerTypes}
-                      />
-                    </div>
-
-                    {/* Pays */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
-                        Pays
-                      </label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez un pays"
-                        selected={offer.pays}
-                        onSelect={(value) => setOffer({ ...offer, pays: value })}
-                        options={[
-                          { value: "Tous", label: "Tous", iconSrc: "/flags/europe.svg" },
-                          ...COUNTRIES.map((c) => ({
-                            value: c,
-                            label: c,
-                            iconSrc: getCountryFlagIcon(c),
-                          })),
-                        ]}
-                      />
-                    </div>
-
-                    {/* Sport */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
-                        Sport
-                      </label>
-                      <AdminMultiSelectDropdown
-                        label=""
-                        placeholder="Sélectionnez un sport"
-                        selected={offer.sport}
-                        onChange={(values: string[]) =>
-                          setOffer({ ...offer, sport: values })
-                        }
-                        options={[
-                          { value: "Boxe", label: "Boxe" },
-                          { value: "Football", label: "Football" },
-                          { value: "Musculation", label: "Musculation" },
-                          { value: "Running", label: "Running" },
-                          { value: "Yoga", label: "Yoga" },
-                        ]}
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.details ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
                   </div>
+
+                  {!collapsedSections.details && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Genre */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
+                          Genre
+                        </label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le genre"
+                          selected={offer.gender}
+                          onSelect={(value) =>
+                            setOffer({ ...offer, gender: value })
+                          }
+                          options={[
+                            { value: "Tous", label: "Tous" },
+                            { value: "Homme", label: "Homme" },
+                            { value: "Femme", label: "Femme" },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Catégorie */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
+                          Catégorie
+                        </label>
+                        <AdminMultiSelectDropdown
+                          label=""
+                          placeholder="Sélectionnez la catégorie"
+                          selected={offer.type}
+                          onChange={(values: string[]) =>
+                            setOffer({ ...offer, type: values })
+                          }
+                          options={offerTypes}
+                        />
+                      </div>
+
+                      {/* Pays */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
+                          Pays
+                        </label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez un pays"
+                          selected={offer.pays}
+                          onSelect={(value) => setOffer({ ...offer, pays: value })}
+                          options={[
+                            { value: "Tous", label: "Tous", iconSrc: "/flags/europe.svg" },
+                            ...COUNTRIES.map((c) => ({
+                              value: c,
+                              label: c,
+                              iconSrc: getCountryFlagIcon(c),
+                            })),
+                          ]}
+                        />
+                      </div>
+
+                      {/* Sport */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1 text-[16px]">
+                          Sport
+                        </label>
+                        <AdminMultiSelectDropdown
+                          label=""
+                          placeholder="Sélectionnez un sport"
+                          selected={offer.sport}
+                          onChange={(values: string[]) =>
+                            setOffer({ ...offer, sport: values })
+                          }
+                          options={[
+                            { value: "Boxe", label: "Boxe" },
+                            { value: "Football", label: "Football" },
+                            { value: "Musculation", label: "Musculation" },
+                            { value: "Running", label: "Running" },
+                            { value: "Yoga", label: "Yoga" },
+                          ]}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                {/* INFORMATIONS DE L'OFFRE */}
+                {/* SECTION 5: INFORMATIONS DE L'OFFRE */}
                 <div className="flex flex-col">
-                  <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase mb-[20px]">
-                    Informations de l’offre
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                    {/* Type de modale */}
-                    <div className="flex flex-col">
-                      <label className="text-[#3A416F] font-bold mb-1">
-                        Type de modale
-                      </label>
-                      <AdminDropdown
-                        label=""
-                        placeholder="Sélectionnez le type de modale"
-                        selected={offer.modal}
-                        onSelect={(value) => setOffer({ ...offer, modal: value })}
-                        options={[
-                          { value: "Avec code", label: "Avec code" },
-                          { value: "Sans code", label: "Sans code" },
-                        ]}
+                  <div
+                    onClick={() => toggleSection("informations")}
+                    className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                  >
+                    <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                      Informations de l’offre
+                    </h3>
+                    <div className="relative w-[18px] h-[18px]">
+                      <Image
+                        src="/icons/chevron_bloc.svg"
+                        alt="Chevron"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.informations ? "rotate-180" : ""
+                        } group-hover:hidden`}
+                      />
+                      <Image
+                        src="/icons/chevron_bloc_hover.svg"
+                        alt="Chevron Hover"
+                        fill
+                        className={`object-contain transition-transform duration-200 ${
+                          !collapsedSections.informations ? "rotate-180" : ""
+                        } hidden group-hover:block`}
                       />
                     </div>
-
-                    {/* Code de réduction */}
-                    <AdminTextField
-                      label="Code de réduction"
-                      value={offer.code}
-                      onChange={(value) => setOffer({ ...offer, code: value })}
-                      placeholder="Insérez le code de réduction"
-                      labelClassName="mb-1"
-                    />
-
-                    {/* Boutique */}
-                    <AdminTextField
-                      label="Boutique"
-                      value={offer.shop}
-                      onChange={(value) => setOffer({ ...offer, shop: value })}
-                      placeholder="Nom de la boutique"
-                      labelClassName="mb-1"
-                    />
-
-                    {/* Site internet */}
-                    <AdminTextField
-                      label="Site internet"
-                      value={offer.shop_website}
-                      onChange={(value) =>
-                        setOffer({ ...offer, shop_website: value })
-                      }
-                      placeholder="Lien du site internet"
-                      labelClassName="mb-1"
-                    />
-
-                    {/* Lien de redirection */}
-                    <AdminTextField
-                      label="Lien de redirection"
-                      value={offer.shop_link}
-                      onChange={(value) =>
-                        setOffer({ ...offer, shop_link: value })
-                      }
-                      placeholder="Lien de redirection"
-                      labelClassName="mb-1"
-                    />
-
-                    {/* Frais de livraison */}
-                    <AdminTextField
-                      label="Frais de livraison"
-                      value={offer.shipping}
-                      onChange={(value) =>
-                        setOffer({ ...offer, shipping: value })
-                      }
-                      placeholder="Frais de livraison"
-                      labelClassName="mb-1"
-                    />
                   </div>
+
+                  {!collapsedSections.informations && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                      {/* Type de modale */}
+                      <div className="flex flex-col">
+                        <label className="text-[#3A416F] font-bold mb-1">
+                          Type de modale
+                        </label>
+                        <AdminDropdown
+                          label=""
+                          placeholder="Sélectionnez le type de modale"
+                          selected={offer.modal}
+                          onSelect={(value) => setOffer({ ...offer, modal: value })}
+                          options={[
+                            { value: "Avec code", label: "Avec code" },
+                            { value: "Sans code", label: "Sans code" },
+                          ]}
+                        />
+                      </div>
+
+                      {/* Code de réduction */}
+                      <AdminTextField
+                        label="Code de réduction"
+                        value={offer.code}
+                        onChange={(value) => setOffer({ ...offer, code: value })}
+                        placeholder="Insérez le code de réduction"
+                        labelClassName="mb-1"
+                      />
+
+                      {/* Boutique */}
+                      <AdminTextField
+                        label="Boutique"
+                        value={offer.shop}
+                        onChange={(value) => setOffer({ ...offer, shop: value })}
+                        placeholder="Nom de la boutique"
+                        labelClassName="mb-1"
+                      />
+
+                      {/* Site internet */}
+                      <AdminTextField
+                        label="Site internet"
+                        value={offer.shop_website}
+                        onChange={(value) =>
+                          setOffer({ ...offer, shop_website: value })
+                        }
+                        placeholder="Lien du site internet"
+                        labelClassName="mb-1"
+                      />
+
+                      {/* Lien de redirection */}
+                      <AdminTextField
+                        label="Lien de redirection"
+                        value={offer.shop_link}
+                        onChange={(value) =>
+                          setOffer({ ...offer, shop_link: value })
+                        }
+                        placeholder="Lien de redirection"
+                        labelClassName="mb-1"
+                      />
+
+                      {/* Frais de livraison */}
+                      <AdminTextField
+                        label="Frais de livraison"
+                        value={offer.shipping}
+                        onChange={(value) =>
+                          setOffer({ ...offer, shipping: value })
+                        }
+                        placeholder="Frais de livraison"
+                        labelClassName="mb-1"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* BOUTON */}

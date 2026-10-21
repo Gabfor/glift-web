@@ -99,6 +99,8 @@ function getSocialLogo(platform: string): string | null {
       return "/logos/logo_tiktok.png";
     case "youtube":
       return "/logos/logo_youtube.png";
+    case "linkedin":
+      return "/logos/logo_linkedin.png";
     default:
       return null;
   }

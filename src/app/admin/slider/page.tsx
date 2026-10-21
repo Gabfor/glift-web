@@ -381,8 +381,8 @@ export default function AdminSliderPage() {
                           </span>
                           <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
                             {type === "single"
-                              ? "1152px x 250px"
-                              : "564px x 250px"}
+                              ? "2304px x 500px"
+                              : "1128px x 500px"}
                           </span>
                         </div>
 
