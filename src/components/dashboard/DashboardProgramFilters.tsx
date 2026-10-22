@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
@@ -76,6 +76,30 @@ export default function DashboardProgramFilters(
   const selectedTraining = selectedTrainingId;
   const selectedExercise = selectedExerciseId;
 
+  // Latest callbacks/selections kept in refs so that data-fetching effects
+  // don't re-run (and disable the dropdowns) each time the parent re-renders
+  // with new inline callbacks.
+  const latestRef = useRef({
+    onProgramChange,
+    onTrainingChange,
+    onExerciseChange,
+    onProgramOptionsChange,
+    onProgramsLoadingChange,
+    selectedProgram,
+    selectedTraining,
+    selectedExercise,
+  });
+  latestRef.current = {
+    onProgramChange,
+    onTrainingChange,
+    onExerciseChange,
+    onProgramOptionsChange,
+    onProgramsLoadingChange,
+    selectedProgram,
+    selectedTraining,
+    selectedExercise,
+  };
+
   const hasInitialSelections =
     selectedProgram !== "" ||
     selectedTraining !== "" ||
@@ -104,21 +128,15 @@ export default function DashboardProgramFilters(
     setHasUserInteracted(true);
   }, []);
 
-  const updateProgramOptions = useCallback(
-    (nextOptions: FilterOption[]) => {
-      setProgramOptions(nextOptions);
-      onProgramOptionsChange?.(nextOptions);
-    },
-    [onProgramOptionsChange],
-  );
+  const updateProgramOptions = useCallback((nextOptions: FilterOption[]) => {
+    setProgramOptions(nextOptions);
+    latestRef.current.onProgramOptionsChange?.(nextOptions);
+  }, []);
 
-  const updateProgramsLoadingState = useCallback(
-    (isLoading: boolean) => {
-      setLoadingPrograms(isLoading);
-      onProgramsLoadingChange?.(isLoading);
-    },
-    [onProgramsLoadingChange],
-  );
+  const updateProgramsLoadingState = useCallback((isLoading: boolean) => {
+    setLoadingPrograms(isLoading);
+    latestRef.current.onProgramsLoadingChange?.(isLoading);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -128,8 +146,8 @@ export default function DashboardProgramFilters(
         if (isMounted) {
           updateProgramOptions([]);
           updateProgramsLoadingState(false);
-          if (selectedProgram) {
-            onProgramChange?.("");
+          if (latestRef.current.selectedProgram) {
+            latestRef.current.onProgramChange?.("");
           }
         }
         return;
@@ -151,8 +169,8 @@ export default function DashboardProgramFilters(
       if (error) {
         console.error("Erreur lors du chargement des programmes :", error.message);
         updateProgramOptions([]);
-        if (selectedProgram) {
-          onProgramChange?.("");
+        if (latestRef.current.selectedProgram) {
+          latestRef.current.onProgramChange?.("");
         }
       } else {
         const programs = data ?? [];
@@ -185,14 +203,7 @@ export default function DashboardProgramFilters(
     return () => {
       isMounted = false;
     };
-  }, [
-    onProgramChange,
-    selectedProgram,
-    supabase,
-    updateProgramOptions,
-    updateProgramsLoadingState,
-    user?.id,
-  ]);
+  }, [supabase, updateProgramOptions, updateProgramsLoadingState, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -201,11 +212,11 @@ export default function DashboardProgramFilters(
       setTrainingOptions([]);
       setLoadingTrainings(false);
       setHasFetchedTrainings(false);
-      if (selectedTraining) {
-        onTrainingChange?.("");
+      if (latestRef.current.selectedTraining) {
+        latestRef.current.onTrainingChange?.("");
       }
-      if (selectedExercise) {
-        onExerciseChange?.("");
+      if (latestRef.current.selectedExercise) {
+        latestRef.current.onExerciseChange?.("");
       }
       return () => {
         isMounted = false;
@@ -233,11 +244,11 @@ export default function DashboardProgramFilters(
           error.message,
         );
         setTrainingOptions([]);
-        if (selectedTraining) {
-          onTrainingChange?.("");
+        if (latestRef.current.selectedTraining) {
+          latestRef.current.onTrainingChange?.("");
         }
-        if (selectedExercise) {
-          onExerciseChange?.("");
+        if (latestRef.current.selectedExercise) {
+          latestRef.current.onExerciseChange?.("");
         }
       } else {
         const trainings = data ?? [];
@@ -260,14 +271,7 @@ export default function DashboardProgramFilters(
     return () => {
       isMounted = false;
     };
-  }, [
-    onExerciseChange,
-    onTrainingChange,
-    selectedExercise,
-    selectedProgram,
-    selectedTraining,
-    supabase,
-  ]);
+  }, [selectedProgram, supabase]);
 
   useEffect(() => {
     if (loadingPrograms) {
@@ -337,7 +341,7 @@ export default function DashboardProgramFilters(
     return "Sélectionnez un programme";
   })();
 
-  const isProgramDisabled = loadingPrograms || programOptions.length === 0;
+  const isProgramDisabled = programOptions.length === 0;
 
   const trainingPlaceholder = (() => {
     if (selectedProgram && loadingTrainings) {

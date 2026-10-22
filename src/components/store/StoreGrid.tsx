@@ -241,7 +241,7 @@ export default function StoreGrid({
     if (!isUserContextLoading) {
       fetchExtendedProfile();
     }
-  }, [user, isPremiumUser, isUserContextLoading]);
+  }, [user?.id, isPremiumUser, isUserContextLoading]);
 
   // ➜ Fetch programs
   useEffect(() => {

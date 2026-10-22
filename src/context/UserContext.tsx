@@ -76,6 +76,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
   const [profile, setProfile] = useState<any | null>(null);
   const latestAuthEventRef = useRef<AuthChangeEvent | null>(null);
+  const userRef = useRef<CustomUser | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // We no longer restore from session synchronously because reading session.user
   // triggers the Supabase warning. We rely fully on fetchUser() via Supabase Auth server.
@@ -117,7 +121,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       if (user) {
         const customUser = user as CustomUser;
-        setUser(customUser);
+        // Keep the same reference if nothing changed, to avoid cascading
+        // re-renders/refetches in consumers on background refreshes (tab focus).
+        setUser((prev) =>
+          prev && JSON.stringify(prev) === JSON.stringify(customUser) ? prev : customUser,
+        );
 
         /* 
          * SIMPLIFICATION (Antigravity):
@@ -135,7 +143,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Source de vérité unique : table profiles
-        setProfile(profileData);
+        setProfile((prev: any) =>
+          JSON.stringify(prev) === JSON.stringify(profileData) ? prev : profileData,
+        );
         const planFromProfile = profileData?.subscription_plan;
         setIsPremiumUser(planFromProfile === "premium");
 
@@ -345,7 +355,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         // This reduces flicker potential on tab focus.
         // We only fetch if it's SIGNED_IN, USER_UPDATED, or INITIAL_SESSION (implicitly handled by mount)
         // or if we don't have a user yet.
-        if (event === 'TOKEN_REFRESHED' && user) {
+        if (event === 'TOKEN_REFRESHED' && userRef.current) {
           return;
         }
 

@@ -249,7 +249,7 @@ export default async function AuteursPage() {
           __html: JSON.stringify(collectionSchema)
         }}
       />
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
+      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -262,8 +262,8 @@ export default async function AuteursPage() {
       </div>
 
       {/* Header text content */}
-      <div className="max-w-[1152px] mx-auto text-center mb-12 flex flex-col items-center">
-        <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
+      <div className="max-w-[1152px] mx-auto text-center mb-12">
+        <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
           {pageConfig?.titre || "Auteurs"}
         </h1>
         {pageConfig?.description ? (

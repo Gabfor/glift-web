@@ -167,7 +167,7 @@ export default function AdminEntrainementDetailPage() {
     };
 
     void fetchTrainingInfo();
-  }, [user, isPremiumUser, isAdminRoute, trainingId, supabase, router, trainingsTableName]);
+  }, [user?.id, isPremiumUser, isAdminRoute, trainingId, supabase, router, trainingsTableName]);
 
   // ✅ Training data
   const { rows, setRows, rowsLoading, selectedRowIds, setSelectedRowIds } = useTrainingRows(trainingId, user, isPremiumUser);

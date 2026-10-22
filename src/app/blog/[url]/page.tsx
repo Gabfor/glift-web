@@ -637,7 +637,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
         />
-        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
+        <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
           {/* Fil d'ariane (Breadcrumbs) */}
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -649,19 +649,19 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             </div>
           </div>
 
-          <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
+          <div className="max-w-[1152px] mx-auto text-center">
             {pageConfig?.surtitre && (
               <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
                 {pageConfig.surtitre}
               </div>
             )}
             <h1 
-              className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center prose-titles [&_p]:m-0 ${descriptionToDisplay || hasExtraText ? "mb-[20px]" : "mb-0"}`}
+              className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
               dangerouslySetInnerHTML={{ __html: titleToDisplay }}
             />
             {descriptionToDisplay && (
               <div 
-                className={`text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed ${hasExtraText ? "mb-8" : "mb-0"} [&_p]:m-0`}
+                className={`text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed ${hasExtraText ? "mb-8" : "mb-[30px]"} [&_p]:m-0`}
                 dangerouslySetInnerHTML={{ __html: descriptionToDisplay }}
               />
             )}
