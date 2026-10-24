@@ -59,59 +59,6 @@ export default function DashboardRecordCard({
 
     const goalBaseRingColor = hasGoal ? DEFAULT_GOAL_BASE_RING_COLOR : EMPTY_GOAL_RING_COLOR;
 
-    const GoalCircle = () => (
-        <div className="relative h-[134px] w-[134px]">
-            <svg viewBox="0 0 36 36" className="h-full w-full">
-                <path
-                    stroke={goalBaseRingColor}
-                    strokeWidth="1.61"
-                    fill="none"
-                    d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
-                />
-                {hasGoal && goalProgress !== null && (
-                    <path
-                        stroke={goalRingColor}
-                        strokeWidth="1.61"
-                        strokeDasharray={`${goalProgress}, 100`}
-                        strokeLinecap="round"
-                        fill="none"
-                        d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
-                        className="transition-[stroke-dasharray] duration-500 ease-out"
-                    />
-                )}
-            </svg>
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <Image
-                    src={goalIconSrc}
-                    alt=""
-                    width={20}
-                    height={20}
-                    className="mb-1"
-                />
-                {hasGoal && goalProgress !== null ? (
-                    <>
-                        <span className={`text-[24px] font-bold leading-none transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
-                            {Math.round(goalProgress)}%
-                        </span>
-                        <span className={`text-[10px] font-bold leading-tight mt-1 max-w-[60px] transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
-                            de l&apos;objectif atteint
-                        </span>
-                    </>
-                ) : (
-                    <>
-                        <span className="text-[24px] font-bold text-[#D7D4DC] leading-none transition-all duration-200">
-                            0%
-                        </span>
-                        <span className="text-[10px] font-bold text-[#D7D4DC] leading-tight mt-1 max-w-[90px] transition-all duration-200">
-                            Aucun objectif défini
-                        </span>
-                    </>
-                )}
-            </div>
-            {/* Small Trophy Icon at top center of ring? Or kept separate? Mock shows text inside. Let's stick to text inside. */}
-        </div>
-    );
-
     // Date logic: 40x40 box, current date if empty/invalid
     const { dayStr, monthStr } = useMemo(() => {
         let label = dateLabel;
@@ -187,7 +134,55 @@ export default function DashboardRecordCard({
 
             {/* Center Circle */}
             <div className="flex-1 flex items-center justify-center transition-all duration-200">
-                <GoalCircle />
+                <div className="relative h-[134px] w-[134px]">
+                    <svg viewBox="0 0 36 36" className="h-full w-full">
+                        <path
+                            stroke={goalBaseRingColor}
+                            strokeWidth="1.61"
+                            fill="none"
+                            d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
+                        />
+                        {hasGoal && goalProgress !== null && (
+                            <path
+                                stroke={goalRingColor}
+                                strokeWidth="1.61"
+                                strokeDasharray={`${goalProgress}, 100`}
+                                strokeLinecap="round"
+                                fill="none"
+                                d="M18 2.0845a15.9155 15.9155 0 0 1 0 31.831a15.9155 15.9155 0 0 1 0 -31.831"
+                                className="transition-[stroke-dasharray] duration-500 ease-out"
+                            />
+                        )}
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                        <Image
+                            src={goalIconSrc}
+                            alt=""
+                            width={20}
+                            height={20}
+                            className="mb-1"
+                        />
+                        {hasGoal && goalProgress !== null ? (
+                            <>
+                                <span className={`text-[24px] font-bold leading-none transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
+                                    {Math.round(goalProgress)}%
+                                </span>
+                                <span className={`text-[10px] font-bold leading-tight mt-1 max-w-[60px] transition-all duration-200 ${hasReachedGoal ? 'text-[#00D591]' : 'text-[#7069FA]'}`}>
+                                    de l&apos;objectif atteint
+                                </span>
+                            </>
+                        ) : (
+                            <>
+                                <span className="text-[24px] font-bold text-[#D7D4DC] leading-none transition-all duration-200">
+                                    0%
+                                </span>
+                                <span className="text-[10px] font-bold text-[#D7D4DC] leading-tight mt-1 max-w-[90px] transition-all duration-200">
+                                    Aucun objectif défini
+                                </span>
+                            </>
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* Footer Button */}

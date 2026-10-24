@@ -73,9 +73,8 @@ export default function RecordsCarousel({
         else if (distance === 1 || (total > 2 && distance === -(total - 1))) type = "next";
 
         // Dimensions
-        // Container: 270px. Card: 220px.
         // Active: 220px x 339px.
-        // Prev/Next: Scale 0.882 -> 194px x 299px.
+        // Prev/Next: 194px x 299px.
 
         const width = type === "active" ? "220px" : "194px";
         const height = type === "active" ? "339px" : "299px";
@@ -83,21 +82,34 @@ export default function RecordsCarousel({
         const zIndex = type === "active" ? 10 : 5;
         const isVisible = type !== "hidden";
 
-        // Positioning
-        // Base setup: left: 50%, x: -50% (Centers the card)
+        // Positioning:
+        // - active: Centered horizontally (left: 50%, x: -50%)
+        // - prev: Aligned to the left edge of the container (left: 0%, x: 0%)
+        // - next: Aligned to the right edge of the container (left: 100%, x: -100%)
+        let left = "50%";
+        let x = "-50%";
 
-        // Prev: -38px offset.
-        // Next: +38px offset.
-
-        let xOffset = 0;
-        if (type === "prev") xOffset = -38;
-        if (type === "next") xOffset = 38;
+        if (type === "prev") {
+            left = "0%";
+            x = "0%";
+        } else if (type === "next") {
+            left = "100%";
+            x = "-100%";
+        } else if (type === "hidden") {
+            if (distance < 0) {
+                left = "0%";
+                x = "0%";
+            } else {
+                left = "100%";
+                x = "-100%";
+            }
+        }
 
         const boxShadow = type === "active" ? "-12px 0px 20px -18px rgba(93, 100, 148, 0.15), 12px 0px 20px -18px rgba(93, 100, 148, 0.15)" : "none";
 
         return {
-            left: "50%",
-            x: `calc(-50% + ${xOffset}px)`,
+            left,
+            x,
             y: "-50%",
             width,
             height,
@@ -108,6 +120,116 @@ export default function RecordsCarousel({
         };
     };
 
+    const pointerStartX = React.useRef<number | null>(null);
+    const pointerStartY = React.useRef<number | null>(null);
+    const isSwiping = React.useRef(false);
+    const lastSlideTime = React.useRef(0);
+
+    const triggerSlide = (direction: "next" | "prev") => {
+        const now = Date.now();
+        if (now - lastSlideTime.current < 250) return;
+        lastSlideTime.current = now;
+
+        const total = slides.length;
+        if (total <= 1) return;
+
+        if (direction === "next") {
+            const nextIdx = (index + 1) % total;
+            setIndex(nextIdx);
+            if (onIndexChange) onIndexChange(nextIdx);
+        } else {
+            const prevIdx = (index - 1 + total) % total;
+            setIndex(prevIdx);
+            if (onIndexChange) onIndexChange(prevIdx);
+        }
+    };
+
+    const handlePointerDown = (e: React.PointerEvent) => {
+        if (e.pointerType === "mouse" && e.button !== 0) return;
+        pointerStartX.current = e.clientX;
+        pointerStartY.current = e.clientY;
+        isSwiping.current = false;
+    };
+
+    const handlePointerMove = (e: React.PointerEvent) => {
+        if (pointerStartX.current === null || pointerStartY.current === null) return;
+        const deltaX = e.clientX - pointerStartX.current;
+        const deltaY = e.clientY - pointerStartY.current;
+
+        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            isSwiping.current = true;
+        }
+    };
+
+    const handlePointerUp = (e: React.PointerEvent) => {
+        if (pointerStartX.current === null || pointerStartY.current === null) return;
+        const deltaX = e.clientX - pointerStartX.current;
+        const deltaY = e.clientY - pointerStartY.current;
+
+        pointerStartX.current = null;
+        pointerStartY.current = null;
+
+        const threshold = 35;
+        if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX < -threshold) {
+                triggerSlide("next");
+            } else if (deltaX > threshold) {
+                triggerSlide("prev");
+            }
+        }
+
+        setTimeout(() => {
+            isSwiping.current = false;
+        }, 120);
+    };
+
+    const handlePointerCancel = () => {
+        pointerStartX.current = null;
+        pointerStartY.current = null;
+        setTimeout(() => {
+            isSwiping.current = false;
+        }, 120);
+    };
+
+    // Native touch event fallbacks
+    const handleTouchStart = (e: React.TouchEvent) => {
+        pointerStartX.current = e.touches[0].clientX;
+        pointerStartY.current = e.touches[0].clientY;
+        isSwiping.current = false;
+    };
+
+    const handleTouchMove = (e: React.TouchEvent) => {
+        if (pointerStartX.current === null || pointerStartY.current === null) return;
+        const deltaX = e.touches[0].clientX - pointerStartX.current;
+        const deltaY = e.touches[0].clientY - pointerStartY.current;
+
+        if (Math.abs(deltaX) > 10 && Math.abs(deltaX) > Math.abs(deltaY)) {
+            isSwiping.current = true;
+        }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        if (pointerStartX.current === null || pointerStartY.current === null) return;
+        const deltaX = e.changedTouches[0].clientX - pointerStartX.current;
+        const deltaY = e.changedTouches[0].clientY - pointerStartY.current;
+
+        pointerStartX.current = null;
+        pointerStartY.current = null;
+
+        const threshold = 35;
+        if (Math.abs(deltaX) > threshold && Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (deltaX < -threshold) {
+                triggerSlide("next");
+            } else if (deltaX > threshold) {
+                triggerSlide("prev");
+            }
+        }
+
+        setTimeout(() => {
+            isSwiping.current = false;
+        }, 120);
+    };
+
     return (
         <div className="relative h-full w-full perspective-1000">
             {/* perspective class might need tailwind config or manual style if not present, but usually irrelevant for 2D transforms pretending to be 3D */}
@@ -116,7 +238,16 @@ export default function RecordsCarousel({
             perspective: 1000px;
         }
       `}</style>
-            <div className="record-carousel-container relative w-full h-full">
+            <div
+                className="record-carousel-container relative w-full h-full touch-pan-y select-none"
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerCancel}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
                 {slides.map((slide, i) => {
                     const styles = getSlideStyles(i);
                     const isActive = i === index;
@@ -148,6 +279,11 @@ export default function RecordsCarousel({
                                 ease: "easeInOut",
                             }}
                             onClick={(e) => {
+                                // Ignore synthetic clicks when swiping
+                                if (isSwiping.current || Date.now() - lastSlideTime.current < 200) {
+                                    return;
+                                }
+
                                 // Smart Navigation: Active card overlaps side cards.
                                 // If user clicks the edge of the active card, interpret as interaction with side card.
                                 if (isActive) {
@@ -158,16 +294,19 @@ export default function RecordsCarousel({
 
                                     if (x < w * 0.25) {
                                         const prev = (i - 1 + total) % total;
+                                        setIndex(prev);
                                         if (onIndexChange) onIndexChange(prev);
                                         return;
                                     } else if (x > w * 0.75) {
                                         const next = (i + 1) % total;
+                                        setIndex(next);
                                         if (onIndexChange) onIndexChange(next);
                                         return;
                                     }
                                     return; // Center click on active card does nothing navigation-wise
                                 }
 
+                                setIndex(i);
                                 if (onIndexChange) onIndexChange(i);
                                 slide.onClick?.();
                             }}

@@ -1481,7 +1481,7 @@ export default function DashboardExerciseBlock({
       </div>
 
       {/* ZONE 2: Records Carousel (approx 25% width or flex: 1) */}
-      <div className="w-full xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
+      <div className="w-full max-w-[390px] mx-auto xl:max-w-none xl:mx-0 xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
         {isLoadingData ? (
           <div className="w-[220px] h-[339px] rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-glift animate-pulse flex flex-col justify-between">
             <div className="w-full flex flex-col gap-4">
