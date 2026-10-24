@@ -718,22 +718,13 @@ export default function DashboardExerciseBlock({
   }, [goal]);
 
   const goalRecordValue = useMemo(() => {
-    if (!normalizedGoal || !rawSessions || rawSessions.length === 0) {
+    if (!normalizedGoal) {
       return 0;
     }
 
-    // Sort to get the latest session (descending by date)
-    const latestSession = [...rawSessions].sort(
-      (a, b) => new Date(b.performedAt).getTime() - new Date(a.performedAt).getTime()
-    )[0];
-
-    if (!latestSession) return 0;
-
-    const metrics = aggregateSessionMetrics(latestSession);
-    const rawValue = getValueForCurve(metrics, normalizedGoal.type);
-
-    return rawValue !== null && Number.isFinite(rawValue) ? roundValue(rawValue) : 0;
-  }, [normalizedGoal, rawSessions]);
+    const matchingRecord = records.find((record) => record.curveType === normalizedGoal.type);
+    return typeof matchingRecord?.value === "number" ? matchingRecord.value : 0;
+  }, [normalizedGoal, records]);
 
   const rawGoalProgress =
     normalizedGoal && normalizedGoal.target > 0
