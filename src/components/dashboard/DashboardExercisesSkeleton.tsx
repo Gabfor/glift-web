@@ -17,10 +17,10 @@ export default function DashboardExercisesSkeleton({
         {skeletonExercises.map((_, index) => (
           <div key={index} className="w-full flex flex-col xl:flex-row gap-[24px]">
             {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
-            <div className="flex-1 xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] h-[339px]">
-              <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
+            <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] h-[339px] flex-shrink-0 xl:flex-shrink">
+              <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
                 <div className="h-[16px] w-[150px] bg-[#F0F1FB] rounded" />
-                <div className="flex items-center gap-[20px]">
+                <div className="flex items-center gap-2 sm:gap-[20px]">
                   <div className="h-[20px] w-[20px] bg-[#F0F1FB] rounded" />
                   <div className="h-[20px] w-[20px] bg-[#F0F1FB] rounded" />
                 </div>

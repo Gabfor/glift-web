@@ -1318,13 +1318,13 @@ export default function DashboardExerciseBlock({
   return (
     <div className="w-full flex flex-col xl:flex-row gap-[24px]">
       {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
-      <div className="flex-1 xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px]">
+      <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px] flex-shrink-0 xl:flex-shrink">
         {/* Header inside Zone 1 */}
-        <div className="h-[60px] flex items-center justify-between px-[30px] border-b border-[#D7D4DC]">
-          <h2 className="text-[16px] font-bold text-[#2E3271] truncate mr-[20px]" title={name}>
+        <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
+          <h2 className="text-[16px] font-bold text-[#2E3271] truncate mr-2 sm:mr-[20px]" title={name}>
             {name}
           </h2>
-          <div className="flex items-center gap-[20px] shrink-0">
+          <div className="flex items-center gap-2 sm:gap-[20px] shrink-0">
             <Tooltip content="Nombre de séances">
               <DashboardExerciseDropdown
                 value={sessionCount}
