@@ -1600,7 +1600,7 @@ export default function DashboardExerciseBlock({
               setSelectedGoalType(value);
             }}
             options={CURVE_OPTIONS.map(({ value, label }) => ({ value, label }))}
-            placeholder="Sélectionnez un type d'objectif"
+            placeholder="Sélectionne un type d'objectif"
             touched={goalTypeTouched}
             setTouched={setGoalTypeTouched}
             clearable={false}

@@ -8,7 +8,10 @@ export default function DashboardFiltersSkeleton({
   className?: string;
 }) {
   return (
-    <div className={clsx("flex flex-wrap items-center gap-4", className)}>
+    <div className={clsx("space-y-6", className)}>
+      <div className="flex justify-end">
+        <div className="h-10 w-full sm:w-[189px] rounded-[5px] bg-[#E6E8F5]" />
+      </div>
       <div className="flex flex-wrap gap-4 grow">
         {skeletonFilters.map((_, index) => (
           <div key={index} className="flex flex-col gap-2">
@@ -17,7 +20,6 @@ export default function DashboardFiltersSkeleton({
           </div>
         ))}
       </div>
-      <div className="ml-auto self-end h-10 w-[189px] rounded-[5px] bg-[#E6E8F5]" />
     </div>
   );
 }

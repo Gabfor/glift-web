@@ -58,14 +58,13 @@ export default function StoreGrid({
 
   const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
   const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, targetCount));
-  const [loading, setLoading] = useState(
-    initialPrograms.length === 0 || !isDefaultQuery
-  );
+  const [loading, setLoading] = useState(initialPrograms.length === 0);
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
   const [userProfile, setUserProfile] = useState<StoreProfile | null>(initialUserProfile);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
 
   const hasLoadedOnceRef = useRef(initialPrograms.length > 0 && isDefaultQuery);
+  const unfilteredProgramsRef = useRef<StoreProgram[]>(initialPrograms.length > 0 ? initialPrograms : []);
 
   const previousQueryRef = useRef<{
     sortBy: string;
@@ -156,6 +155,9 @@ export default function StoreGrid({
             const sorted = sortProgramsByRelevance(allPrograms, userProfile, loadedFavs);
             setAllPrograms(sorted);
             setPrograms(sorted.slice(0, targetCount));
+            if (unfilteredProgramsRef.current.length > 0) {
+              unfilteredProgramsRef.current = sortProgramsByRelevance(unfilteredProgramsRef.current, userProfile, loadedFavs);
+            }
           }
         }
       }
@@ -268,18 +270,19 @@ export default function StoreGrid({
       !previousQuery ||
       previousQuery.sortBy !== sortBy ||
       previousQuery.isAuthenticated !== isAuthenticated ||
-      previousQuery.favoritesOnly !== favoritesOnly ||
       JSON.stringify(previousQuery.userProfile) !== JSON.stringify(userProfile) ||
       haveStringArrayChanged(previousQuery.filters, filters);
 
+    const favoritesToggled = previousQuery?.favoritesOnly !== favoritesOnly;
     const countChanged = previousQuery?.targetCount !== targetCount;
 
-    if (!filterOrSortChanged && !countChanged && hasLoadedOnceRef.current) {
+    if (!filterOrSortChanged && !favoritesToggled && !countChanged && hasLoadedOnceRef.current) {
       setLoading(false);
       return;
     }
 
-    if (!filterOrSortChanged && countChanged && allPrograms.length > 0) {
+    // Si seuls les favoris ou le targetCount ont changé et qu'on a déjà les programmes filtrés en mémoire
+    if (!filterOrSortChanged && unfilteredProgramsRef.current.length > 0) {
       previousQueryRef.current = {
         sortBy,
         targetCount,
@@ -288,7 +291,15 @@ export default function StoreGrid({
         userProfile,
         favoritesOnly,
       };
-      setPrograms(allPrograms.slice(0, targetCount));
+
+      let mappedPrograms = unfilteredProgramsRef.current;
+      if (favoritesOnly) {
+        mappedPrograms = mappedPrograms.filter((p) => favorites.includes(p.id));
+      }
+
+      if (onCountChange) onCountChange(mappedPrograms.length);
+      setAllPrograms(mappedPrograms);
+      setPrograms(mappedPrograms.slice(0, targetCount));
       setLoading(false);
       return;
     }
@@ -302,15 +313,16 @@ export default function StoreGrid({
       favoritesOnly,
     };
 
-    if (!hasLoadedOnceRef.current) {
+    if (!hasLoadedOnceRef.current || allPrograms.length === 0) {
       setLoading(true);
     }
 
     let isActive = true;
 
     const fetchPrograms = async () => {
-      if (filters.some((f) => f === "__none__") || (favoritesOnly && favorites.length === 0)) {
+      if (filters.some((f) => f === "__none__")) {
         if (onCountChange) onCountChange(0);
+        unfilteredProgramsRef.current = [];
         setAllPrograms([]);
         setPrograms([]);
         hasLoadedOnceRef.current = true;
@@ -388,6 +400,8 @@ export default function StoreGrid({
         if (sortBy === "relevance") {
           mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, favorites);
         }
+
+        unfilteredProgramsRef.current = mappedPrograms;
 
         if (favoritesOnly) {
           mappedPrograms = mappedPrograms.filter((p) => favorites.includes(p.id));

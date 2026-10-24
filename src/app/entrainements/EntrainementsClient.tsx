@@ -406,7 +406,7 @@ export default function EntrainementsPage({
   }
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
+    <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
       <div
         id="training-scroll-container"
         className="max-w-[1152px] mx-auto text-center flex flex-col items-center"

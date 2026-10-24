@@ -235,7 +235,7 @@ export default async function ShopPage() {
   };
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] overflow-x-clip">
+    <main className="relative flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px] overflow-x-clip">
       {/* Fond dégradé dynamique */}
       <ConceptGradientBackground initialSettings={settings} />
 

@@ -317,7 +317,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
+      <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
         <div className="max-w-[1152px] mx-auto">
           <ShopHeader initialPageContent={shopPageContent} />
         </div>
@@ -390,7 +390,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     };
 
     return (
-      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
+      <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
         <div className="max-w-[1152px] mx-auto">
           <StoreHeader initialPageContent={storePageContent} />
         </div>

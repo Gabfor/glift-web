@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import CTAButton from "@/components/CTAButton";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
@@ -11,6 +14,8 @@ import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
 import DashboardExerciseBlock from "@/app/dashboard/DashboardExerciseBlock";
 import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 import type { Database } from "@/lib/supabase/types";
+import StatsRedIcon from "/public/icons/stats_red.svg";
+import StatsGreenIcon from "/public/icons/stats_green.svg";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -427,6 +432,7 @@ export default function DashboardClient({
   initialPageContent: { surtitre: string; titre: string; description: string };
 }) {
   const { user } = useUser();
+  const { storeUrl, trainingsUrl } = useDashboardUrl();
   const supabase = useMemo(() => createClient(), []);
 
   const [selectedProgram, setSelectedProgram] = useState("");
@@ -454,6 +460,30 @@ export default function DashboardClient({
   const [hasLoadedDisplaySettings, setHasLoadedDisplaySettings] = useState(false);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
   const pageContent = initialPageContent;
+
+  const statsSliderRef = useRef<HTMLDivElement>(null);
+  const isDraggingStatsRef = useRef(false);
+  const startXStatsRef = useRef(0);
+  const scrollLeftStatsRef = useRef(0);
+
+  const handleStatsMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!statsSliderRef.current) return;
+    isDraggingStatsRef.current = true;
+    startXStatsRef.current = e.pageX - statsSliderRef.current.offsetLeft;
+    scrollLeftStatsRef.current = statsSliderRef.current.scrollLeft;
+  };
+
+  const handleStatsMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDraggingStatsRef.current || !statsSliderRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - statsSliderRef.current.offsetLeft;
+    const walk = (x - startXStatsRef.current) * 1.5;
+    statsSliderRef.current.scrollLeft = scrollLeftStatsRef.current - walk;
+  };
+
+  const handleStatsMouseUpOrLeave = () => {
+    isDraggingStatsRef.current = false;
+  };
 
   // Load display settings from LocalStorage
   useEffect(() => {
@@ -594,11 +624,47 @@ export default function DashboardClient({
     weightUnit,
   ]);
 
+  const [responsiveCardWidth, setResponsiveCardWidth] = useState<number>(205);
+  const measureLabelsRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const updateWidth = () => {
+      if (!measureLabelsRef.current) return;
+      const elements = measureLabelsRef.current.children;
+      let maxWidth = 0;
+      for (let i = 0; i < elements.length; i++) {
+        const el = elements[i] as HTMLElement;
+        const width = el.getBoundingClientRect().width;
+        if (width > maxWidth) {
+          maxWidth = width;
+        }
+      }
+      if (maxWidth > 0) {
+        // Marge à gauche = 20px (px-5), même marge à droite = 20px -> + 40px
+        const totalWidth = Math.ceil(maxWidth + 40);
+        setResponsiveCardWidth(totalWidth);
+      }
+    };
+
+    updateWidth();
+
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+      document.fonts.ready.then(updateWidth);
+    }
+
+    window.addEventListener("resize", updateWidth);
+    return () => window.removeEventListener("resize", updateWidth);
+  }, [statsCards]);
+
+  const hasInitiallyLoadedRef = useRef(false);
+
+  if (hasLoadedPreferences && !areFiltersLoading && !isLoadingExercises) {
+    hasInitiallyLoadedRef.current = true;
+  }
+
   const isGlobalLoading =
-    !hasLoadedPreferences ||
-    areFiltersLoading ||
-    isLoadingExercises ||
-    isLoadingStats;
+    !hasInitiallyLoadedRef.current &&
+    (!hasLoadedPreferences || areFiltersLoading || isLoadingExercises);
 
   useEffect(() => {
     if (isLoadingExercises || !hasFetchedExercises) return;
@@ -1091,8 +1157,8 @@ export default function DashboardClient({
   }, [selectedTraining, supabase, user?.id]);
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
-      <div className="max-w-[1152px] mx-auto">
+    <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
+      <div className="max-w-[1152px] mx-auto w-full">
         <div className="text-center">
           {pageContent && (
             <>
@@ -1106,7 +1172,7 @@ export default function DashboardClient({
                 dangerouslySetInnerHTML={{ __html: pageContent.titre }} 
               />
               <div 
-                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0" 
+                className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0" 
                 dangerouslySetInnerHTML={{ __html: pageContent.description }} 
               />
             </>
@@ -1121,111 +1187,143 @@ export default function DashboardClient({
             }`}
             aria-hidden={isGlobalLoading}
           >
-            <DashboardProgramFilters
-              onProgramChange={(programId) => {
-                setSelectedProgram(programId);
-                setSelectedTraining("");
-                setSelectedExercise("");
-              }}
-              onTrainingChange={(trainingId) => {
-                setSelectedTraining(trainingId);
-                setSelectedExercise("");
-              }}
-              onExerciseChange={setSelectedExercise}
-              selectedProgramId={selectedProgram}
-              selectedTrainingId={selectedTraining}
-              selectedExerciseId={selectedExercise}
-              exerciseOptions={exerciseOptions}
-              loadingExercises={isLoadingExercises}
-              hasFetchedExercises={hasFetchedExercises}
-              showStats={showStats}
-              onShowStatsChange={setShowStats}
-              onProgramOptionsChange={handleProgramOptionsChange}
-              onFiltersLoadingChange={setAreFiltersLoading}
-            />
+            {/* Élément invisible pour calculer dynamiquement la largeur du plus long intitulé */}
+            <div
+              ref={measureLabelsRef}
+              aria-hidden="true"
+              className="invisible absolute pointer-events-none -left-[9999px] -top-[9999px]"
+            >
+              {statsCards.map((card) => (
+                <span
+                  key={card.id}
+                  className="text-[12px] font-bold whitespace-nowrap"
+                >
+                  {card.label}
+                </span>
+              ))}
+            </div>
+
+            {/* Bouton Masquer / Afficher les vignettes en haut à droite */}
+            <div className="mt-[40px] flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowStats(!showStats)}
+                className="w-full sm:w-auto h-10 sm:min-w-[215px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center justify-center sm:justify-start gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
+                aria-pressed={showStats}
+              >
+                <span className="relative size-4">
+                  <Image
+                    src={showStats ? StatsRedIcon : StatsGreenIcon}
+                    alt=""
+                    fill
+                    sizes="16px"
+                    className="object-contain"
+                  />
+                </span>
+                <span>{showStats ? "Masquer les vignettes" : "Afficher les vignettes"}</span>
+              </button>
+            </div>
 
             {showStats && (
-              <div className="mt-[30px] mb-[30px] flex flex-wrap gap-[24px]">
-                {statsCards.map((card) => {
-                  const diff = card.value - card.previousValue;
-                  const absDiff = Math.abs(diff);
-                  const isPositive = diff > 0;
-                  const isNegative = diff < 0; 
+              <div className="mt-[20px] mb-[30px]">
+                <div
+                  ref={statsSliderRef}
+                  onMouseDown={handleStatsMouseDown}
+                  onMouseMove={handleStatsMouseMove}
+                  onMouseUp={handleStatsMouseUpOrLeave}
+                  onMouseLeave={handleStatsMouseUpOrLeave}
+                  className="w-auto -mx-5 xl:mx-0 xl:w-full overflow-x-auto no-scrollbar cursor-grab active:cursor-grabbing xl:cursor-default"
+                >
+                  <div
+                    style={
+                      {
+                        "--stat-card-width": `${responsiveCardWidth}px`,
+                      } as React.CSSProperties
+                    }
+                    className="flex items-stretch justify-start gap-[24px] min-w-max px-5 xl:px-0 pb-2 pt-1 xl:overflow-x-visible xl:flex-wrap"
+                  >
+                    {statsCards.map((card) => {
+                      const diff = card.value - card.previousValue;
+                      const absDiff = Math.abs(diff);
+                      const isPositive = diff > 0;
+                      const isNegative = diff < 0; 
 
-                  let arrowIcon = "/icons/Arrow_green_up.svg";
-                  let diffColor = "text-[#00D591]"; // Green
+                      let arrowIcon = "/icons/Arrow_green_up.svg";
+                      let diffColor = "text-[#00D591]"; // Green
 
-                  if (diff > 0) {
-                    arrowIcon = "/icons/Arrow_green_up.svg";
-                    diffColor = "text-[#00D591]";
-                  } else if (diff < 0) {
-                    arrowIcon = "/icons/Arrow_red_down.svg";
-                    diffColor = "text-[#EF4F4E]";
-                  } else {
-                    arrowIcon = "/icons/Arrow_green_up.svg";
-                  }
+                      if (diff > 0) {
+                        arrowIcon = "/icons/Arrow_green_up.svg";
+                        diffColor = "text-[#00D591]";
+                      } else if (diff < 0) {
+                        arrowIcon = "/icons/Arrow_red_down.svg";
+                        diffColor = "text-[#EF4F4E]";
+                      } else {
+                        arrowIcon = "/icons/Arrow_green_up.svg";
+                      }
 
-                  const diffFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
-                  const formattedDiff = diffFormatter.format(Math.round(Math.abs(diff)));
+                      const diffFormatter = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+                      const formattedDiff = diffFormatter.format(Math.round(Math.abs(diff)));
 
-                  return (
-                    <div
-                      key={card.id}
-                      className="flex w-[270px] flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5"
-                    >
-                      <div className="flex w-full items-center justify-start gap-3">
-                        <div className="flex items-center justify-center">
-                          <Image
-                            src={card.icon}
-                            alt=""
-                            width={28}
-                            height={28}
-                            className="h-[28px] w-[28px]"
-                          />
-                        </div>
-
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-[30px] font-bold leading-none text-[#3A416F]">
-                            <StatsValue
-                              value={card.value}
-                              format={card.format}
-                              precision={card.precision}
-                              isLoading={isLoadingStats}
-                            />
-                          </span>
-                          {Math.round(Math.abs(diff)) >= 1 && (
-                            <div className={`flex items-center gap-1 mb-1 transition-opacity duration-700 ${diffColor} ${showTrends ? "opacity-100" : "opacity-0"}`}>
+                      return (
+                        <div
+                          key={card.id}
+                          className="flex w-[var(--stat-card-width,205px)] xl:w-[270px] shrink-0 flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5 select-none"
+                        >
+                          <div className="flex w-full items-center justify-start gap-3">
+                            <div className="flex items-center justify-center">
                               <Image
-                                src={arrowIcon}
+                                src={card.icon}
                                 alt=""
-                                width={12}
-                                height={12}
-                                className="h-3 w-3"
+                                width={28}
+                                height={28}
+                                className="h-[28px] w-[28px]"
                               />
-                              <span className="text-[10px] font-semibold">
-                                {diff > 0 ? "+" : ""}{formattedDiff}
-                              </span>
                             </div>
-                          )}
-                        </div>
-                      </div>
 
-                      <div className="flex flex-col gap-0.5">
-                        <p className="text-[12px] font-bold text-[#3A416F]">
-                          {card.label}
-                        </p>
-                        <p className="text-[10px] font-semibold text-[#5D6494]">
-                          7 derniers jours
-                        </p>
-                        <p className="text-[10px] font-semibold text-[#C2BFC6]">
-                          VS les 7 derniers jours
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-[30px] font-bold leading-none text-[#3A416F]">
+                                <StatsValue
+                                  value={card.value}
+                                  format={card.format}
+                                  precision={card.precision}
+                                  isLoading={isLoadingStats}
+                                />
+                              </span>
+                              {Math.round(Math.abs(diff)) >= 1 && (
+                                <div className={`flex items-center gap-1 mb-1 transition-opacity duration-700 ${diffColor} ${showTrends ? "opacity-100" : "opacity-0"}`}>
+                                  <Image
+                                    src={arrowIcon}
+                                    alt=""
+                                    width={12}
+                                    height={12}
+                                    className="h-3 w-3"
+                                  />
+                                  <span className="text-[10px] font-semibold">
+                                    {diff > 0 ? "+" : ""}{formattedDiff}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-0.5">
+                            <p className="text-[12px] font-bold text-[#3A416F] whitespace-nowrap">
+                              {card.label}
+                            </p>
+                            <p className="text-[10px] font-semibold text-[#5D6494]">
+                              7 derniers jours
+                            </p>
+                            <p className="text-[10px] font-semibold text-[#C2BFC6]">
+                              VS les 7 derniers jours
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
                 {(stats as any).debugProgramIds && ((stats as any).debugProgramIds as string[]).length > 0 && (
-                  <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600 w-full basis-full">
+                  <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600 w-full">
                     <p className="font-bold">Programmes inclus dans les stats :</p>
                     <p>{((stats as any).debugProgramIds as string[]).join(", ")}</p>
                   </div>
@@ -1233,16 +1331,49 @@ export default function DashboardClient({
               </div>
             )}
 
-            {hasLoadedPreferences && hasLoadedProgramList && !hasProgramOptions && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">
-                Aucun programme trouvé.
-              </p>
-            )}
+            {/* Champs dropdown sous les vignettes de stats */}
+            <div className="mt-[30px] mb-[30px]">
+              <DashboardProgramFilters
+                onProgramChange={(programId) => {
+                  setSelectedProgram(programId);
+                  setSelectedTraining("");
+                  setSelectedExercise("");
+                }}
+                onTrainingChange={(trainingId) => {
+                  setSelectedTraining(trainingId);
+                  setSelectedExercise("");
+                }}
+                onExerciseChange={setSelectedExercise}
+                selectedProgramId={selectedProgram}
+                selectedTrainingId={selectedTraining}
+                selectedExerciseId={selectedExercise}
+                exerciseOptions={exerciseOptions}
+                loadingExercises={isLoadingExercises}
+                hasFetchedExercises={hasFetchedExercises}
+                onProgramOptionsChange={handleProgramOptionsChange}
+                onFiltersLoadingChange={setAreFiltersLoading}
+              />
+            </div>
 
-            {hasLoadedPreferences && hasProgramOptions && !selectedProgram && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">
-                Aucun programme sélectionné.
-              </p>
+            {hasLoadedPreferences && !selectedProgram && (
+              <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun programme pour le moment....
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                  <Link href={trainingsUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
+                    Crée un entraînement
+                  </Link>{" "}
+                  dès maintenant ou rends toi dans le{" "}
+                  <Link href={storeUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
+                    Store
+                  </Link>{" "}
+                  pour trouver ton prochain programme !
+                </p>
+                <CTAButton href={storeUrl}>
+                  Aller sur le Store
+                </CTAButton>
+              </div>
             )}
 
             {selectedProgram !== "" && selectedTraining === "" && (
@@ -1252,7 +1383,7 @@ export default function DashboardClient({
             )}
 
             {selectedTraining !== "" && (
-              <div className={`${showStats ? "" : "mt-[30px]"}`}>
+              <div className="mt-[30px]">
                 {fetchError ? (
                   <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
                 ) : trainingExercises.length === 0 ? (

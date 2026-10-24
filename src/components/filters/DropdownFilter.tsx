@@ -25,6 +25,7 @@ type DropdownFilterProps = {
   maxWidth?: number;
   allOptions?: FilterOption[];
   isMultiSelect?: boolean;
+  fullWidthResponsive?: boolean;
 };
 
 export default function DropdownFilter({
@@ -39,6 +40,7 @@ export default function DropdownFilter({
   maxWidth,
   allOptions = [],
   isMultiSelect = true,
+  fullWidthResponsive = false,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -288,7 +290,7 @@ export default function DropdownFilter({
 
   return (
     <div
-      className={`inline-flex flex-col gap-[5px] relative ${className ?? ""}`}
+      className={`inline-flex flex-col gap-[5px] relative ${fullWidthResponsive ? "w-full sm:w-auto" : ""} ${className ?? ""}`}
       ref={menuRef}
     >
       <div className="flex items-center justify-between">
@@ -348,7 +350,7 @@ export default function DropdownFilter({
         </span>
         <span className="shrink-0" style={{ width: 8.73, height: 6.13 }} />
       </button>
-      <div className="relative">
+      <div className={`relative ${fullWidthResponsive ? "w-full" : ""}`}>
         <button
           type="button"
           ref={buttonRef}
@@ -372,16 +374,22 @@ export default function DropdownFilter({
             text-[16px]
             font-semibold
             cursor-pointer
+            ${fullWidthResponsive ? "w-full sm:w-[var(--dropdown-width)] max-w-none sm:max-w-[var(--dropdown-max-width)]" : ""}
           `}
           style={{
-            ...(calculatedWidth
-              ? {
-                  width: typeof maxWidth === "number" ? Math.min(calculatedWidth, maxWidth) : calculatedWidth,
-                  maxWidth: typeof maxWidth === "number" ? maxWidth : calculatedWidth,
-                }
-              : typeof maxWidth === "number"
-                ? { maxWidth }
-                : undefined),
+            ...(fullWidthResponsive
+              ? ({
+                  "--dropdown-width": `${calculatedWidth ? (typeof maxWidth === "number" ? Math.min(calculatedWidth, maxWidth) : calculatedWidth) : (typeof maxWidth === "number" ? maxWidth : 270)}px`,
+                  "--dropdown-max-width": `${typeof maxWidth === "number" ? maxWidth : (calculatedWidth ?? 270)}px`,
+                } as React.CSSProperties)
+              : calculatedWidth
+                ? {
+                    width: typeof maxWidth === "number" ? Math.min(calculatedWidth, maxWidth) : calculatedWidth,
+                    maxWidth: typeof maxWidth === "number" ? maxWidth : calculatedWidth,
+                  }
+                : typeof maxWidth === "number"
+                  ? { maxWidth }
+                  : undefined),
           }}
         >
           <span
@@ -421,7 +429,7 @@ export default function DropdownFilter({
 
         {open && (
           <div
-            className="absolute left-0 mt-[10px] min-w-full w-max max-w-[320px] bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden"
+            className={`absolute left-0 mt-[10px] min-w-full ${fullWidthResponsive ? "w-full max-w-full sm:w-max sm:max-w-[320px]" : "w-max max-w-[320px]"} bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden`}
           >
             {/* Top Gradient */}
             <div

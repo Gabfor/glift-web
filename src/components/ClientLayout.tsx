@@ -83,7 +83,7 @@ function ClientLayoutContent({
     (isAdminSubdomain && (pathname === "/connexion" || pathname === "/reinitialiser-mot-de-passe"));
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col bg-[#FBFCFE]">
       {showLoader ? (
         <GliftLoader className={isComptePage ? "bg-white" : undefined} isAdmin={isAdminPage} />
       ) : null}
@@ -97,13 +97,11 @@ function ClientLayoutContent({
       ) : (
         <Header disconnected={shouldForceDisconnected} />
       )}
-      {isAdminPage ? (
-        <div className="relative z-10">{children}</div>
-      ) : (
-        children
-      )}
-      {!isAdminPage && <Footer />}
+      <div className={`flex-1 flex flex-col ${isAdminPage ? "relative z-10" : ""}`}>
+        {children}
+      </div>
+      {!isAdminPage && <Footer className="mt-auto" />}
       {process.env.NODE_ENV === "development" && <AuthDebug />}
-    </>
+    </div>
   );
 }

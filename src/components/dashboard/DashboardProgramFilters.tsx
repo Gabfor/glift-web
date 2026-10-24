@@ -1,14 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import Image from "next/image";
 import DropdownFilter, {
   type FilterOption,
 } from "@/components/filters/DropdownFilter";
 import { createClient } from "@/lib/supabaseClient";
 import { useUser } from "@/context/UserContext";
-import StatsRedIcon from "/public/icons/stats_red.svg";
-import StatsGreenIcon from "/public/icons/stats_green.svg";
 
 const FALLBACK_PROGRAM_LABEL = "Programme sans titre";
 const FALLBACK_TRAINING_LABEL = "Entraînement sans titre";
@@ -334,48 +331,48 @@ export default function DashboardProgramFilters(
   const programPlaceholder = (() => {
     if (programOptions.length === 0) {
       return loadingPrograms
-        ? "Sélectionnez un programme"
+        ? "Sélectionne un programme"
         : "Aucun programme disponible";
     }
 
-    return "Sélectionnez un programme";
+    return "Sélectionne un programme";
   })();
 
   const isProgramDisabled = programOptions.length === 0;
 
   const trainingPlaceholder = (() => {
     if (selectedProgram && loadingTrainings) {
-      return "Sélectionnez un entraînement";
+      return "Sélectionne un entraînement";
     }
 
     if (selectedProgram && trainingOptions.length === 0) {
       return "Aucun entraînement disponible";
     }
 
-    return "Sélectionnez un entraînement";
+    return "Sélectionne un entraînement";
   })();
 
   const isTrainingDisabled = selectedProgram === "" || loadingTrainings || trainingOptions.length === 0;
   const exercisePlaceholder = (() => {
     if (!selectedTraining) {
-      return "Sélectionnez un exercice";
+      return "Sélectionne un exercice";
     }
 
     if (loadingExercises) {
-      return "Sélectionnez un exercice";
+      return "Sélectionne un exercice";
     }
 
     if (exerciseOptions.length === 0) {
       return "Aucun exercice disponible";
     }
 
-    return "Sélectionnez un exercice";
+    return "Sélectionne un exercice";
   })();
   const isExerciseDisabled = selectedTraining === "" || loadingExercises || exerciseOptions.length === 0;
 
   return (
-    <div className="mt-[40px] flex flex-wrap items-center gap-4">
-      <div className="flex flex-wrap gap-4 grow">
+    <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 w-full">
+      <div className="flex flex-col sm:flex-row flex-wrap gap-4 grow w-full">
         <DropdownFilter
           label="Programme"
           placeholder={programPlaceholder}
@@ -387,11 +384,12 @@ export default function DashboardProgramFilters(
             onTrainingChange?.("");
             onExerciseChange?.("");
           }}
-          className="min-w-[240px] max-w-[270px] w-full"
+          className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-[270px]"
           disabled={isProgramDisabled}
           maxWidth={270}
           sortOptions={false}
           isMultiSelect={false}
+          fullWidthResponsive
         />
         <DropdownFilter
           label="Entraînement"
@@ -405,11 +403,12 @@ export default function DashboardProgramFilters(
             }
             onExerciseChange?.("");
           }}
-          className="min-w-[240px] max-w-[270px] w-full"
+          className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-[270px]"
           disabled={isTrainingDisabled}
           maxWidth={270}
           sortOptions={false}
           isMultiSelect={false}
+          fullWidthResponsive
         />
         <DropdownFilter
           label="Exercice"
@@ -422,30 +421,14 @@ export default function DashboardProgramFilters(
               onExerciseChange(value);
             }
           }}
-          className="min-w-[240px] max-w-[270px] w-full"
+          className="w-full sm:w-auto sm:min-w-[240px] sm:max-w-[270px]"
           disabled={isExerciseDisabled}
           sortOptions={false}
           maxWidth={270}
           isMultiSelect={false}
+          fullWidthResponsive
         />
       </div>
-      <button
-        type="button"
-        onClick={() => onShowStatsChange?.(!showStats)}
-        className="ml-auto self-end h-10 min-w-[189px] border border-[#D7D4DC] rounded-[5px] px-3 flex items-center gap-2 text-[16px] font-semibold text-[#3A416F] bg-white hover:border-[#C2BFC6] transition"
-        aria-pressed={showStats}
-      >
-        <span className="relative size-4">
-          <Image
-            src={showStats ? StatsRedIcon : StatsGreenIcon}
-            alt=""
-            fill
-            sizes="16px"
-            className="object-contain"
-          />
-        </span>
-        <span>{showStats ? "Masquer les stats" : "Afficher les stats"}</span>
-      </button>
     </div>
   );
 }
