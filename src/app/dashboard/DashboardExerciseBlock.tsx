@@ -77,6 +77,15 @@ type AggregatedSessionMetrics = {
 
 
 
+export const SESSION_OPTIONS = [
+  { value: "5", label: "5 dernières séances" },
+  { value: "7", label: "7 dernières séances" },
+  { value: "10", label: "10 dernières séances" },
+] as const;
+
+export const DESKTOP_SESSION_OPTIONS = SESSION_OPTIONS;
+export const MOBILE_SESSION_OPTIONS = SESSION_OPTIONS;
+
 const parseSessionCount = (value: string): number => {
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
@@ -321,10 +330,10 @@ const formatTooltipDate = (value: unknown): string => {
   }
 
   const day = parsedDate.getDate().toString().padStart(2, "0");
-  const month = MONTH_SHORT_LABELS[parsedDate.getMonth()];
+  const month = (parsedDate.getMonth() + 1).toString().padStart(2, "0");
   const year = parsedDate.getFullYear();
 
-  return `${day} ${month} ${year}`;
+  return `${day}/${month}/${year}`;
 };
 
 type AxisTickProps = {
@@ -632,6 +641,24 @@ export default function DashboardExerciseBlock({
   const [goalTargetError, setGoalTargetError] = useState<string | null>(null);
   const [favoriteRecordTypes, setFavoriteRecordTypes] = useState<Set<string>>(new Set());
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 1279px)");
+    const updateMatch = () => setIsMobile(media.matches);
+    updateMatch();
+    media.addEventListener("change", updateMatch);
+    return () => media.removeEventListener("change", updateMatch);
+  }, []);
+
+  const sessionOptions = SESSION_OPTIONS;
+
+  const effectiveSessionCount = useMemo(() => {
+    if (sessionCount === "5" || sessionCount === "7" || sessionCount === "10") {
+      return sessionCount;
+    }
+    return "7";
+  }, [sessionCount]);
 
   // Load favorites from local storage
   // Load favorites from local storage
@@ -868,7 +895,7 @@ export default function DashboardExerciseBlock({
 
   useEffect(() => {
     const userId = user?.id ?? null;
-    const sessionLimit = parseSessionCount(sessionCount);
+    const sessionLimit = parseSessionCount(effectiveSessionCount);
 
     if (!userId || sessionLimit === 0) {
       setRawSessions([]);
@@ -985,7 +1012,7 @@ export default function DashboardExerciseBlock({
       return dateA - dateB;
     });
 
-    const limit = parseSessionCount(sessionCount);
+    const limit = parseSessionCount(effectiveSessionCount);
     // Take the last N sessions for the chart
     const chartSessions = sortedSessions.slice(-limit);
 
@@ -1080,7 +1107,7 @@ export default function DashboardExerciseBlock({
 
     const computedRecords = CURVE_OPTIONS.map(({ value }) => bestRecordsMap[value]);
     setRecords(computedRecords);
-  }, [curveType, currentUnit, rawSessions, weightUnit]);
+  }, [curveType, currentUnit, rawSessions, weightUnit, effectiveSessionCount]);
 
   // Ref to track if we've already prioritized the favorite on load
   const hasPrioritizedRef = useRef(false);
@@ -1158,7 +1185,13 @@ export default function DashboardExerciseBlock({
       interval = Math.ceil(interval / 5) * 5;
     }
 
-    const chartMaxY = realMinY + interval * (desiredGridLines - 1);
+    let chartMaxY = realMinY + interval * (desiredGridLines - 1);
+
+    // Ensure the highest point has headroom from the top line (symmetrical to bottom padding)
+    if (chartMaxY - maxV < interval * 0.2) {
+      interval += interval >= 5 ? 5 : 1;
+      chartMaxY = realMinY + interval * (desiredGridLines - 1);
+    }
 
     // Generate ticks
     const ticks: number[] = [];
@@ -1206,6 +1239,9 @@ export default function DashboardExerciseBlock({
     return finalWidth;
   }, [chartAxisData, currentUnit]);
 
+  const yAxisLeftPad = isMobile ? 16 : 30;
+  const yAxisGap = isMobile ? 24 : 24;
+
   const yAxisWidth = useMemo(() => {
     // 1. Calculate max text width
     let maxLabelWidth = 0;
@@ -1219,16 +1255,16 @@ export default function DashboardExerciseBlock({
     // Fallback
     if (maxLabelWidth === 0) maxLabelWidth = 40;
 
-    // 2. Return total width: 30px (Left Pad) + maxLabelWidth + 20px (Gap)
-    return 30 + maxLabelWidth + 20;
-  }, [chartAxisData, currentUnit]);
+    // 2. Return total width: Left Pad + maxLabelWidth + Gap
+    return yAxisLeftPad + maxLabelWidth + yAxisGap;
+  }, [chartAxisData, currentUnit, yAxisLeftPad, yAxisGap]);
 
   const chartMargin = useMemo(() => ({
     top: 40,
-    right: 20,
+    right: isMobile ? 10 : 20,
     bottom: 15,
     left: 0
-  }), []);
+  }), [isMobile]);
 
   const currentRecord = records[currentRecordIndex] ?? null;
   const recordUnitLabel = currentRecord ? (currentRecord.curveType.includes("poids") ? (weightUnit === "kg" ? "Kg" : "Lb") : "Rép.") : "";
@@ -1327,13 +1363,9 @@ export default function DashboardExerciseBlock({
           <div className="flex items-center gap-2 sm:gap-[20px] shrink-0">
             <Tooltip content="Nombre de séances">
               <DashboardExerciseDropdown
-                value={sessionCount}
+                value={effectiveSessionCount}
                 onChange={onSessionChange}
-                options={[
-                  { value: "5", label: "5 dernières séances" },
-                  { value: "10", label: "10 dernières séances" },
-                  { value: "15", label: "15 dernières séances" },
-                ]}
+                options={sessionOptions}
                 iconSrc="/icons/tableau.svg"
                 iconHoverSrc="/icons/tableau_hover.svg"
                 selectedValueClassName="hidden"
@@ -1420,7 +1452,7 @@ export default function DashboardExerciseBlock({
                     interval={0}
                     tick={({ x, y, payload }: any) => (
                       <text
-                        x={30} // Fixed start position
+                        x={yAxisLeftPad} // 16px on mobile (aligned with px-4 header), 30px on desktop
                         y={y}
                         fill="#3A416F"
                         fontSize={12}

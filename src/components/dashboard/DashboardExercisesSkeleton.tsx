@@ -1,3 +1,4 @@
+import React, { Fragment } from "react";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
 
 const skeletonExercises = Array.from({ length: 3 });
@@ -10,12 +11,15 @@ export default function DashboardExercisesSkeleton({
   showFilters = true,
 }: DashboardExercisesSkeletonProps) {
   return (
-    <div className="space-y-[30px]">
-      <div className="animate-pulse space-y-[30px]">
-        {showFilters && <DashboardFiltersSkeleton className="mt-[30px]" />}
+    <div>
+      <div className="animate-pulse">
+        {showFilters && <DashboardFiltersSkeleton className="my-[30px]" />}
 
-        {skeletonExercises.map((_, index) => (
-          <div key={index} className="w-full flex flex-col xl:flex-row gap-[24px]">
+        <div>
+          {skeletonExercises.map((_, index) => (
+            <Fragment key={index}>
+              {index > 0 && <div className="w-full h-[1px] bg-[#E7E8EA] my-[20px]" />}
+              <div className="w-full flex flex-col xl:flex-row gap-[24px]">
             {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
             <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] h-[339px] flex-shrink-0 xl:flex-shrink">
               <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
@@ -61,8 +65,10 @@ export default function DashboardExercisesSkeleton({
               </div>
             </div>
           </div>
+        </Fragment>
         ))}
       </div>
     </div>
+  </div>
   );
 }

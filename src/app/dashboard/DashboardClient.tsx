@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import CTAButton from "@/components/CTAButton";
@@ -19,13 +19,13 @@ import StatsGreenIcon from "/public/icons/stats_green.svg";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
+  { value: "7", label: "7 dernières séances" },
   { value: "10", label: "10 dernières séances" },
-  { value: "15", label: "15 dernières séances" },
 ] as const;
 
 type SessionValue = (typeof SESSION_OPTIONS)[number]["value"];
 
-const DEFAULT_SESSION_VALUE: SessionValue = SESSION_OPTIONS[2].value;
+const DEFAULT_SESSION_VALUE: SessionValue = "7";
 const FALLBACK_CURVE_VALUE: CurveOptionValue = CURVE_OPTIONS[0].value;
 
 type TrainingExercise = {
@@ -303,6 +303,13 @@ const isSessionValue = (value: unknown): value is SessionValue =>
   typeof value === "string" &&
   SESSION_OPTIONS.some((option) => option.value === value);
 
+const normalizeSessionValue = (value: unknown): SessionValue => {
+  if (isSessionValue(value)) {
+    return value;
+  }
+  return DEFAULT_SESSION_VALUE;
+};
+
 const isCurveValue = (value: unknown): value is CurveOptionValue =>
   typeof value === "string" &&
   CURVE_OPTIONS.some((option) => option.value === value);
@@ -347,10 +354,11 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
         goal?: unknown;
       };
 
-      if (!isSessionValue(sessionCount) || !isCurveValue(curveType)) {
+      if (!isCurveValue(curveType)) {
         return accumulator;
       }
 
+      const validSessionCount = normalizeSessionValue(sessionCount);
       const parsedRecordCurveType = isCurveValue(recordCurveType)
         ? recordCurveType
         : curveType;
@@ -360,7 +368,7 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
       return {
         ...accumulator,
         [exerciseId]: {
-          sessionCount,
+          sessionCount: validSessionCount,
           curveType,
           recordCurveType: parsedRecordCurveType,
           goal: parsedGoal,
@@ -769,6 +777,8 @@ export default function DashboardClient({
           const stringVal = String(rawSessionCount);
           if (SESSION_OPTIONS.some((o) => o.value === stringVal)) {
             setDefaultSessionCount(stringVal as SessionValue);
+          } else {
+            setDefaultSessionCount(DEFAULT_SESSION_VALUE);
           }
         }
       }
@@ -1395,47 +1405,51 @@ export default function DashboardClient({
                     Aucun exercice ne correspond à votre sélection.
                   </p>
                 ) : (
-                  <div className="space-y-[30px]">
-                    {filteredExercises.map((exercise) => {
+                  <div>
+                    {filteredExercises.map((exercise, index) => {
                       const settings = getExerciseSettings(exercise.id);
                       return (
-                        <DashboardExerciseBlock
-                          key={exercise.id}
-                          id={exercise.id}
-                          name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
-                          sessionCount={settings.sessionCount}
-                          curveType={settings.curveType}
-                          recordType={settings.recordCurveType}
-                          goal={settings.goal}
-                          onSessionChange={(nextValue: string) => {
-                            if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
+                        <Fragment key={exercise.id}>
+                          {index > 0 && (
+                            <div className="w-full h-[1px] bg-[#E7E8EA] my-[20px]" />
+                          )}
+                          <DashboardExerciseBlock
+                            id={exercise.id}
+                            name={exercise.exercice?.trim() || FALLBACK_EXERCISE_LABEL}
+                            sessionCount={settings.sessionCount}
+                            curveType={settings.curveType}
+                            recordType={settings.recordCurveType}
+                            goal={settings.goal}
+                            onSessionChange={(nextValue: string) => {
+                              if (SESSION_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  sessionCount: nextValue as SessionValue,
+                                });
+                              }
+                            }}
+                            onCurveChange={(nextValue: string) => {
+                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  curveType: nextValue as CurveOptionValue,
+                                });
+                              }
+                            }}
+                            onRecordTypeChange={(nextValue: string) => {
+                              if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
+                                updateExerciseSettings(exercise.id, {
+                                  recordCurveType: nextValue as CurveOptionValue,
+                                });
+                              }
+                            }}
+                            onGoalChange={(nextGoal: DashboardExerciseGoal | null) => {
                               updateExerciseSettings(exercise.id, {
-                                sessionCount: nextValue as SessionValue,
+                                goal: nextGoal,
                               });
-                            }
-                          }}
-                          onCurveChange={(nextValue: string) => {
-                            if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                              updateExerciseSettings(exercise.id, {
-                                curveType: nextValue as CurveOptionValue,
-                              });
-                            }
-                          }}
-                          onRecordTypeChange={(nextValue: string) => {
-                            if (CURVE_OPTIONS.some((o) => o.value === nextValue)) {
-                              updateExerciseSettings(exercise.id, {
-                                recordCurveType: nextValue as CurveOptionValue,
-                              });
-                            }
-                          }}
-                          onGoalChange={(nextGoal: DashboardExerciseGoal | null) => {
-                            updateExerciseSettings(exercise.id, {
-                              goal: nextGoal,
-                            });
-                          }}
-                          onGoalCompletionChange={handleGoalCompletionChange}
-                          weightUnit={weightUnit}
-                        />
+                            }}
+                            onGoalCompletionChange={handleGoalCompletionChange}
+                            weightUnit={weightUnit}
+                          />
+                        </Fragment>
                       );
                     })}
                   </div>

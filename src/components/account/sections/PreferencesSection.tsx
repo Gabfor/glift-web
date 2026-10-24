@@ -100,7 +100,7 @@ const createInitialState = (): PreferencesState => ({
   showEffort: true,
   showMateriel: true,
   showRepos: true,
-  sessionCount: "15",
+  sessionCount: "7",
   communications: COMMUNICATION_FIELDS.reduce(
     (acc, field) => {
       acc[field.key] = false
@@ -140,7 +140,10 @@ const createStateFromPreferences = (
     showEffort: row.show_effort ?? base.showEffort,
     showMateriel: row.show_materiel ?? base.showMateriel,
     showRepos: row.show_repos ?? base.showRepos,
-    sessionCount: row.default_session_count ? String(row.default_session_count) : base.sessionCount,
+    sessionCount:
+      row.default_session_count && String(row.default_session_count) !== "15"
+        ? String(row.default_session_count)
+        : base.sessionCount,
     communications,
   }
 }
@@ -181,7 +184,7 @@ export default function PreferencesSection() {
 
   const [weightUnit, setWeightUnit] = useState<WeightUnit>(initialStateRef.current.weightUnit)
   const [weightTouched, setWeightTouched] = useState(false)
-  const [sessionCount, setSessionCount] = useState<string>("15")
+  const [sessionCount, setSessionCount] = useState<string>("7")
   const [defaultCurve, setDefaultCurve] = useState<CurveOptionValue>(
     initialStateRef.current.defaultCurve,
   )
@@ -383,8 +386,8 @@ export default function PreferencesSection() {
                   }}
                   options={[
                     { value: "5", label: "5 dernières séances" },
+                    { value: "7", label: "7 dernières séances" },
                     { value: "10", label: "10 dernières séances" },
-                    { value: "15", label: "15 dernières séances" },
                   ]}
                   touched={false}
                   setTouched={() => { }}
