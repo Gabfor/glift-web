@@ -1587,6 +1587,7 @@ export default function DashboardExerciseBlock({
         open={isGoalModalOpen}
         title="Objectif"
         onClose={handleCloseGoalModal}
+        contentClassName="!overflow-visible"
         footerWrapperClassName="mt-[5px]"
         footer={
           <div className="flex justify-center gap-3 sm:gap-4 w-full">
@@ -1630,6 +1631,7 @@ export default function DashboardExerciseBlock({
             containerClassName="w-full max-w-[368px]"
             width="w-full"
             buttonRoundedClassName="rounded-[5px]"
+            menuMaxHeightClassName="max-h-[280px]"
           />
 
           <div className="w-full max-w-[368px]">
@@ -1637,7 +1639,7 @@ export default function DashboardExerciseBlock({
               label="Objectif à atteindre"
               value={goalTarget}
               onChange={handleGoalTargetChange}
-              placeholder="Renseignez votre objectif"
+              placeholder="Renseigne ton objectif"
               inputClassName="rounded-[5px]"
               error={goalTargetError ?? undefined}
             />

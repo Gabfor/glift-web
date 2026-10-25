@@ -11,7 +11,9 @@ import DroppableProgram, {
   type LoadingTrainingState,
 } from "@/components/DroppableProgram";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
-import ProgramsSkeleton from "@/components/training/ProgramsSkeleton";
+import ProgramsSkeleton, {
+  type ProgramSkeletonMeta,
+} from "@/components/training/ProgramsSkeleton";
 import AddTrainingLockedModal from "@/components/AddTrainingLockedModal";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
@@ -99,6 +101,22 @@ export default function EntrainementsPage({
   const [newlyDownloadedId, setNewlyDownloadedId] = useState<string | null>(null);
   const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
   const isMountedRef = useRef(true);
+
+  const [cachedStructure, setCachedStructure] = useState<ProgramSkeletonMeta[] | null>(null);
+
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem("programs_skeleton_structure");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCachedStructure(parsed);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -246,6 +264,19 @@ export default function EntrainementsPage({
     (lastIdx, { program }, i) => (program.trainings.length > 0 ? i : lastIdx),
     -1
   );
+
+  useEffect(() => {
+    if (!isLoading && isUserDataLoaded && programsToRender.length > 0) {
+      try {
+        const struct: ProgramSkeletonMeta[] = programsToRender.map(({ program }) => ({
+          trainingCount: program.trainings ? program.trainings.length : 0,
+        }));
+        localStorage.setItem("programs_skeleton_structure", JSON.stringify(struct));
+      } catch {
+        // ignore
+      }
+    }
+  }, [isLoading, isUserDataLoaded, programsToRender]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { id, data } = event.active;
@@ -426,7 +457,7 @@ export default function EntrainementsPage({
         />
 
         {showSkeleton ? (
-          <ProgramsSkeleton />
+          <ProgramsSkeleton structure={cachedStructure ?? undefined} />
         ) : (
           <DndContext
             sensors={sensors}

@@ -41,8 +41,6 @@ export default function DashboardRecordCard({
     onCancelGoal,
     isActive = true,
 }: DashboardRecordCardProps) {
-    const [isHeartHovered, setIsHeartHovered] = useState(false);
-
     // Derived values
     const hasReachedGoal = goalProgress !== null && goalProgress >= 100;
     const goalIconSrc = hasGoal
@@ -93,23 +91,42 @@ export default function DashboardRecordCard({
                     {/* Icon Top Left */}
                     <Image src={iconSrc} alt="" width={18} height={18} />
 
-                    {/* Heart Top Right */}
+                    {/* Pin Top Right */}
                     <button
-                        className="text-[#EF4F4E] transition-transform duration-200"
+                        type="button"
+                        className="group relative w-[18px] h-[18px] flex items-center justify-center transition-transform duration-200 cursor-pointer focus:outline-none"
                         onClick={(e) => {
                             e.stopPropagation();
                             if (onFavoriteToggle) onFavoriteToggle();
                         }}
-                        onMouseEnter={() => setIsHeartHovered(true)}
-                        onMouseLeave={() => setIsHeartHovered(false)}
+                        aria-label={isFavorite ? "Détacher des favoris" : "Épingler en favori"}
                     >
-                        <Image
-                            src={isFavorite ? "/icons/coeur_red.svg" : (isHeartHovered ? "/icons/coeur_hover.svg" : "/icons/coeur_grey.svg")}
-                            alt="Favori"
-                            width={18}
-                            height={18}
-                            className="transition-opacity duration-200"
-                        />
+                        {isFavorite ? (
+                            <Image
+                                src="/icons/pin_purple.svg"
+                                alt="Épinglé"
+                                width={18}
+                                height={18}
+                                className="pointer-events-none object-contain"
+                            />
+                        ) : (
+                            <>
+                                <Image
+                                    src="/icons/pin_grey.svg"
+                                    alt="Épingler"
+                                    width={18}
+                                    height={18}
+                                    className="pointer-events-none object-contain transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-0"
+                                />
+                                <Image
+                                    src="/icons/pin_grey_hover.svg"
+                                    alt="Épingler"
+                                    width={18}
+                                    height={18}
+                                    className="pointer-events-none object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-150 [@media(hover:hover)]:group-hover:opacity-100"
+                                />
+                            </>
+                        )}
                     </button>
                 </div>
 

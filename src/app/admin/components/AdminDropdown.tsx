@@ -33,6 +33,7 @@ export default function AdminDropdown({
   onClear,
   sortStrategy = "label",
   defaultScrollToValue,
+  menuMaxHeightClassName = "max-h-[220px]",
 }: {
   label: string;
   options: DropdownOption[];
@@ -52,6 +53,7 @@ export default function AdminDropdown({
   onClear?: () => void;
   sortStrategy?: SortStrategy;
   defaultScrollToValue?: string;
+  menuMaxHeightClassName?: string;
 }) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -121,7 +123,7 @@ export default function AdminDropdown({
   }, [open]);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
         setOpen(false);
         buttonRef.current?.blur();
@@ -130,9 +132,13 @@ export default function AdminDropdown({
 
     if (open) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("touchstart", handleClickOutside);
     }
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, [open]);
 
   // Définir bordure normale (hors succès)
@@ -385,7 +391,7 @@ export default function AdminDropdown({
           />
           <div
             ref={listRef}
-            className="overflow-y-auto max-h-[220px] scrollable-dropdown py-1.5"
+            className={`overflow-y-auto scrollable-dropdown py-1.5 ${menuMaxHeightClassName}`}
             onScroll={(e) => {
               const target = e.currentTarget;
               const isAtBottom =

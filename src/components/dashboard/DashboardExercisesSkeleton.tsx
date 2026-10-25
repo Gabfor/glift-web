@@ -5,15 +5,17 @@ const skeletonExercises = Array.from({ length: 3 });
 
 type DashboardExercisesSkeletonProps = {
   showFilters?: boolean;
+  showStats?: boolean;
 };
 
 export default function DashboardExercisesSkeleton({
   showFilters = true,
+  showStats = false,
 }: DashboardExercisesSkeletonProps) {
   return (
     <div>
       <div className="animate-pulse">
-        {showFilters && <DashboardFiltersSkeleton className="my-[30px]" />}
+        {showFilters && <DashboardFiltersSkeleton showStats={showStats} className="my-[30px]" />}
 
         <div>
           {skeletonExercises.map((_, index) => (
@@ -21,7 +23,7 @@ export default function DashboardExercisesSkeleton({
               {index > 0 && <div className="w-full h-[1px] bg-[#E7E8EA] my-[20px]" />}
               <div className="w-full flex flex-col xl:flex-row gap-[24px]">
             {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
-            <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] h-[339px] flex-shrink-0 xl:flex-shrink">
+            <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px] flex-shrink-0 xl:flex-shrink">
               <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
                 <div className="h-[16px] w-[150px] bg-[#F0F1FB] rounded" />
                 <div className="flex items-center gap-2 sm:gap-[20px]">

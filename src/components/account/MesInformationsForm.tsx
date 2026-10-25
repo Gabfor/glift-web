@@ -27,6 +27,7 @@ import ErrorMessage from "@/components/ui/ErrorMessage"
 import MissingField from "./fields/MissingField"
 import ProfilePictureBlock from "./fields/ProfilePictureBlock"
 import MesInformationsFormSkeleton from "./MesInformationsFormSkeleton"
+import useMinimumVisibility from "@/hooks/useMinimumVisibility"
 
 export default function MesInformationsForm({ user }: { user: User | null }) {
   const {
@@ -144,7 +145,9 @@ export default function MesInformationsForm({ user }: { user: User | null }) {
     }
   }, [hasChanges, isInitialLoading])
 
-  if (isInitialLoading) {
+  const showSkeleton = useMinimumVisibility(isInitialLoading, 400)
+
+  if (showSkeleton) {
     return <MesInformationsFormSkeleton />
   }
 

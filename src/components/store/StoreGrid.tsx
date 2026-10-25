@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { createClient } from "@/lib/supabaseClient";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
@@ -59,6 +60,7 @@ export default function StoreGrid({
   const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
   const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, targetCount));
   const [loading, setLoading] = useState(initialPrograms.length === 0);
+  const showSkeleton = useMinimumVisibility(loading, 400);
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
   const [userProfile, setUserProfile] = useState<StoreProfile | null>(initialUserProfile);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
@@ -430,7 +432,7 @@ export default function StoreGrid({
 
   return (
     <>
-      {loading ? (
+      {showSkeleton ? (
         <StoreGridSkeleton />
       ) : (
         <div className="relative mt-8">

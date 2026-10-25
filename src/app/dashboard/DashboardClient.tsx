@@ -8,6 +8,7 @@ import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import DashboardProgramFilters from "@/components/dashboard/DashboardProgramFilters";
 import DashboardExercisesSkeleton from "@/components/dashboard/DashboardExercisesSkeleton";
 import DashboardFiltersSkeleton from "@/components/dashboard/DashboardFiltersSkeleton";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import { CURVE_OPTIONS, type CurveOptionValue } from "@/constants/curveOptions";
@@ -455,7 +456,21 @@ export default function DashboardClient({
     useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
   const [defaultSessionCount, setDefaultSessionCount] = useState<SessionValue>(DEFAULT_SESSION_VALUE);
   const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
-  const [showStats, setShowStats] = useState(false);
+  const [showStats, setShowStats] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("glift_dashboard_show_stats");
+      if (saved !== null) {
+        return saved === "true";
+      }
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("glift_dashboard_show_stats", String(showStats));
+    }
+  }, [showStats]);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
@@ -673,6 +688,8 @@ export default function DashboardClient({
   const isGlobalLoading =
     !hasInitiallyLoadedRef.current &&
     (!hasLoadedPreferences || areFiltersLoading || isLoadingExercises);
+
+  const showSkeleton = useMinimumVisibility(isGlobalLoading, 400);
 
   useEffect(() => {
     if (isLoadingExercises || !hasFetchedExercises) return;
@@ -1056,12 +1073,15 @@ export default function DashboardClient({
 
           if (numericWeights.length > 0) {
             const avgSetWeight = numericWeights.reduce((a, b) => a + b, 0) / numericWeights.length;
-            if (isCurrent) {
-              currentWeightSum += avgSetWeight;
-              currentWeightCount += 1;
-            } else {
-              previousWeightSum += avgSetWeight;
-              previousWeightCount += 1;
+            // Exclure les séries au poids du corps ou sans charge (0 kg) pour ne pas fausser la moyenne des charges soulevées
+            if (avgSetWeight > 0) {
+              if (isCurrent) {
+                currentWeightSum += avgSetWeight;
+                currentWeightCount += 1;
+              } else {
+                previousWeightSum += avgSetWeight;
+                previousWeightCount += 1;
+              }
             }
           }
         }
@@ -1189,13 +1209,21 @@ export default function DashboardClient({
           )}
         </div>
 
-        <div className="relative">
+        <div className="relative w-full">
+          {/* SKELETON (in-flow to reserve height and keep layout stable) */}
+          {showSkeleton && (
+            <div className="w-full animate-pulse space-y-[30px]">
+              <DashboardFiltersSkeleton showStats={showStats} />
+              <DashboardExercisesSkeleton showFilters={false} />
+            </div>
+          )}
+
           {/* CONTENT (mounted to allow data fetching but hidden if loading) */}
           <div
             className={`transition-opacity duration-200 ${
-              isGlobalLoading ? "pointer-events-none opacity-0 h-0 overflow-hidden" : "opacity-100"
+              showSkeleton ? "pointer-events-none opacity-0 h-0 overflow-hidden" : "opacity-100"
             }`}
-            aria-hidden={isGlobalLoading}
+            aria-hidden={showSkeleton}
           >
             {/* Élément invisible pour calculer dynamiquement la largeur du plus long intitulé */}
             <div
@@ -1277,10 +1305,10 @@ export default function DashboardClient({
                       return (
                         <div
                           key={card.id}
-                          className="flex w-[var(--stat-card-width,205px)] xl:w-[270px] shrink-0 flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5 select-none"
+                          className="flex h-[135px] w-[var(--stat-card-width,205px)] xl:w-[270px] shrink-0 flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5 select-none"
                         >
-                          <div className="flex w-full items-center justify-start gap-3">
-                            <div className="flex items-center justify-center">
+                          <div className="flex h-[36px] w-full items-center justify-start gap-3">
+                            <div className="flex items-center justify-center shrink-0">
                               <Image
                                 src={card.icon}
                                 alt=""
@@ -1458,15 +1486,6 @@ export default function DashboardClient({
             )}
           </div>
 
-          {/* SKELETON (Global) */}
-          {isGlobalLoading && (
-            <div className="pointer-events-none absolute top-0 left-0 right-0 w-full">
-              <div className="animate-pulse space-y-[30px]">
-                <DashboardFiltersSkeleton />
-                <DashboardExercisesSkeleton showFilters={false} />
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </main>

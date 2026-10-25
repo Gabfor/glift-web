@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { createClientComponentClient } from "@/lib/supabase/client";
 import ShopCard from "./ShopCard";
 import ShopGridSkeleton from "./ShopGridSkeleton";
+import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { ShopOffer, ShopProfile } from "@/types/shop";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { isOfferMatchingCountry } from "@/utils/shopUtils";
@@ -249,6 +250,7 @@ export default function ShopGrid({
   const [allOffers, setAllOffers] = useState<ShopOffer[]>(initialOffers);
   const [offers, setOffers] = useState<ShopOffer[]>(() => initialOffers.slice(0, targetCount));
   const [loading, setLoading] = useState(initialOffers.length === 0);
+  const showSkeleton = useMinimumVisibility(loading, 400);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
   const rawOffersCacheRef = useRef<ShopOffer[]>(initialOffers.length > 0 ? initialOffers : []);
   const allOffersRef = useRef<ShopOffer[]>(initialOffers);
@@ -466,7 +468,7 @@ export default function ShopGrid({
 
   return (
     <>
-      {loading ? (
+      {showSkeleton ? (
         <ShopGridSkeleton />
       ) : (
         <div className="relative mt-8">

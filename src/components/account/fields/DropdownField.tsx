@@ -45,6 +45,10 @@ export type DropdownFieldProps = {
    * Strategy for sorting options. Defaults to "label".
    */
   sortStrategy?: "label" | "month" | "year-desc" | "none"
+  /**
+   * Optional custom max-height class for dropdown list.
+   */
+  menuMaxHeightClassName?: string
 }
 
 export default function DropdownField({
@@ -64,6 +68,7 @@ export default function DropdownField({
   onClear,
   buttonRoundedClassName = "rounded-[5px]",
   sortStrategy,
+  menuMaxHeightClassName,
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
@@ -121,6 +126,7 @@ export default function DropdownField({
           success={showSuccess}
           buttonClassName={buttonClassName}
           sortStrategy={sortStrategy}
+          menuMaxHeightClassName={menuMaxHeightClassName}
         />
         {endAdornment && (
           <div
