@@ -410,7 +410,7 @@ export default function StoreGrid({
     return () => {
       isActive = false;
     };
-  }, [sortBy, targetCount, filters, userProfile, isAuthenticated, isUserContextLoading, favoritesOnly, favorites]);
+  }, [sortBy, targetCount, filters, userProfile, isAuthenticated, favoritesOnly, favorites]);
 
   const hasActiveFilters = filters.some(
     (f) => f && f.trim() !== "" && f.toLowerCase() !== "tous" && f !== "__none__"

@@ -264,20 +264,9 @@ export default function StoreFilters({
   const [programs, setPrograms] = useState<NormalizedProgramStoreField[]>([]);
   const [rawPrograms, setRawPrograms] = useState<StoreProgram[]>([]);
 
-  const [selectedFilters, setSelectedFilters] = useState(() => {
-    if (initialFilters && initialFilters.some((f) => f !== "")) {
-      return initialFilters;
-    }
-    if (typeof window !== "undefined") {
-      try {
-        const savedToggle = localStorage.getItem("glift_store_included_only");
-        if (savedToggle === "true") {
-          return ["", "", "", "", "", "", "Oui"];
-        }
-      } catch { /* ignore */ }
-    }
-    return initialFilters ?? ["", "", "", "", "", "", ""];
-  });
+  const [selectedFilters, setSelectedFilters] = useState<string[]>(
+    () => initialFilters ?? ["", "", "", "", "", "", ""]
+  );
 
   // Keep internal filters in sync with parent when initialFilters changes (e.g. storage restoration)
   useEffect(() => {

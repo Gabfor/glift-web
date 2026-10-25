@@ -31,21 +31,7 @@ export default function StorePageClient({
   const [totalPrograms, setTotalPrograms] = useState(initialTotalCount);
   const [loadingCount, setLoadingCount] = useState(false);
   const [favoritesOnly, setFavoritesOnly] = useState(false);
-  const [filters, setFilters] = useState<string[]>(() => {
-    if (initialFilters && initialFilters.some((f) => f !== "")) {
-      return initialFilters;
-    }
-    if (typeof window !== "undefined") {
-      try {
-        const savedToggle = localStorage.getItem("glift_store_included_only");
-        if (savedToggle === "true") {
-          document.cookie = "glift_store_included_only=true; path=/; max-age=31536000; SameSite=Lax";
-          return ["", "", "", "", "", "", "Oui"];
-        }
-      } catch { /* ignore */ }
-    }
-    return initialFilters ?? ["", "", "", "", "", "", ""];
-  });
+  const [filters, setFilters] = useState<string[]>(initialFilters ?? ["", "", "", "", "", "", ""]);
   const [isRestored, setIsRestored] = useState(false);
   const { user, isPremiumUser } = useUser();
 
@@ -67,18 +53,27 @@ export default function StorePageClient({
         restoredFilters = ["", "", "", "", "", "", ""];
       }
 
-      // Restore persisted toggle state ("Inclus avec mon abonnement") from localStorage
-      const savedToggle = localStorage.getItem("glift_store_included_only");
-      if (savedToggle === "true") {
-        restoredFilters[6] = "Oui";
-        document.cookie = "glift_store_included_only=true; path=/; max-age=31536000; SameSite=Lax";
-      } else if (savedToggle === "false") {
+      // Le toggle "Inclus avec mon abonnement" ne s'applique QUE si l'utilisateur est un membre Starter
+      const isStarterUser =
+        initialUserProfile?.subscription_plan === "starter" ||
+        (initialIsAuthenticated && user && !isPremiumUser);
+
+      if (isStarterUser) {
+        const savedToggle = localStorage.getItem("glift_store_included_only");
+        if (savedToggle === "true") {
+          restoredFilters[6] = "Oui";
+          document.cookie = "glift_store_included_only=true; path=/; max-age=31536000; SameSite=Lax";
+        } else if (savedToggle === "false") {
+          restoredFilters[6] = "";
+          document.cookie = "glift_store_included_only=false; path=/; max-age=31536000; SameSite=Lax";
+        } else if (initialFilters[6] === "Oui") {
+          restoredFilters[6] = "Oui";
+          localStorage.setItem("glift_store_included_only", "true");
+          document.cookie = "glift_store_included_only=true; path=/; max-age=31536000; SameSite=Lax";
+        }
+      } else {
+        // Pour les utilisateurs non connectés ou premium, aucun filtrage starter automatique
         restoredFilters[6] = "";
-        document.cookie = "glift_store_included_only=false; path=/; max-age=31536000; SameSite=Lax";
-      } else if (initialFilters[6] === "Oui") {
-        restoredFilters[6] = "Oui";
-        localStorage.setItem("glift_store_included_only", "true");
-        document.cookie = "glift_store_included_only=true; path=/; max-age=31536000; SameSite=Lax";
       }
 
       setFilters(restoredFilters);
