@@ -107,7 +107,6 @@ export default function StoreCard({
               alt={program.image_alt || program.title}
               fill
               className="object-cover rounded-t-[15px]"
-              unoptimized
             />
           </div>
           <div className="relative w-full h-[180px] hidden md:block">
@@ -116,7 +115,6 @@ export default function StoreCard({
               alt={program.image_alt || program.title}
               fill
               className="object-cover rounded-t-[15px]"
-              unoptimized
             />
           </div>
         </>
@@ -127,7 +125,6 @@ export default function StoreCard({
             alt={program.image_alt || program.title}
             fill
             className="object-cover rounded-t-[15px]"
-            unoptimized
           />
         </div>
       )}

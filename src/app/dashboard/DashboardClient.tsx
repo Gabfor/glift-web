@@ -1567,6 +1567,10 @@ export default function DashboardClient({
               <div className="mt-[30px]">
                 {fetchError ? (
                   <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
+                ) : isLoadingExercises || !hasFetchedExercises ? (
+                  <div className="flex justify-center py-10">
+                    <div className="w-8 h-8 border-2 border-[#7069FA] border-t-transparent rounded-full animate-spin" />
+                  </div>
                 ) : trainingExercises.length === 0 ? (
                   <p className="text-center text-[#5D6494] font-semibold">
                     Aucun exercice n&apos;a été trouvé pour cet entraînement.

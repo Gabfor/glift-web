@@ -69,7 +69,6 @@ export default function BlogArticleCard({
                 alt={article.image_alt || article.titre}
                 fill
                 className="w-full h-full object-cover rounded-t-[15px]"
-                unoptimized
               />
               {/* Badge Type (CONSEIL...) */}
               <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>
@@ -85,7 +84,6 @@ export default function BlogArticleCard({
                 alt={article.image_alt || article.titre}
                 fill
                 className="w-full h-full object-cover rounded-t-[15px]"
-                unoptimized
               />
               {/* Badge Type (CONSEIL...) */}
               <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>
@@ -103,7 +101,6 @@ export default function BlogArticleCard({
               alt={article.image_alt || article.titre}
               fill
               className="w-full h-full object-cover rounded-t-[15px]"
-              unoptimized
             />
             {/* Badge Type (CONSEIL...) */}
             <div className={`absolute top-[15px] left-[15px] ${isProgramme ? "bg-[#6660E4]" : "bg-[#3A416F]"} text-white text-[10px] h-[20px] px-[10px] font-bold uppercase rounded-[10px] shadow-glift tracking-wider flex items-center justify-center`}>

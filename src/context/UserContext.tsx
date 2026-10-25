@@ -357,9 +357,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
-        // INITIAL_SESSION est émis juste après l'abonnement : le chargement initial
-        // est déjà assuré par fetchUser(false) ci-dessus, inutile de le doubler.
-        if (event === 'INITIAL_SESSION') {
+        // Si INITIAL_SESSION est émis et que l'utilisateur est déjà chargé, inutile de le doubler.
+        // Sinon, on s'assure de charger la session initialisée.
+        if (event === 'INITIAL_SESSION' && userRef.current) {
           return;
         }
 

@@ -5,6 +5,15 @@ const nextConfig = {
     removeConsole:
       process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
+  experimental: {
+    optimizePackageImports: [
+      '@fortawesome/free-brands-svg-icons',
+      '@fortawesome/react-fontawesome',
+      'lucide-react',
+      'react-icons',
+      'swiper',
+    ],
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [

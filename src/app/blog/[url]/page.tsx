@@ -456,7 +456,6 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                       fill
                       className="object-cover"
                       priority
-                      unoptimized
                     />
                   </div>
                   <div className="w-full relative aspect-video hidden md:block bg-[#F4F5FE] rounded-[15px] overflow-hidden mb-[40px] shadow-glift">
@@ -466,7 +465,6 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                       fill
                       className="object-cover"
                       priority
-                      unoptimized
                     />
                   </div>
                 </>
@@ -478,7 +476,6 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                     fill
                     className="object-cover"
                     priority
-                    unoptimized
                   />
                 </div>
               )

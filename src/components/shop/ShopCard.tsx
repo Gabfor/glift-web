@@ -145,7 +145,6 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
               alt={offer.image_alt || offer.name}
               fill
               className="object-cover rounded-t-[15px]"
-              unoptimized
             />
           </div>
           <div className="relative w-full h-[180px] hidden md:block">
@@ -154,7 +153,6 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
               alt={offer.image_alt || offer.name}
               fill
               className="object-cover rounded-t-[15px]"
-              unoptimized
             />
           </div>
         </>
@@ -165,7 +163,6 @@ export default function ShopCard({ offer, onOfferClick, isFavorite = false, onTo
             alt={offer.image_alt || offer.name}
             fill
             className="object-cover rounded-t-[15px]"
-            unoptimized
           />
         </div>
       )}

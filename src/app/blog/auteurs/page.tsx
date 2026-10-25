@@ -283,7 +283,7 @@ export default async function AuteursPage() {
       {/* Authors list container */}
       <div className="max-w-[1152px] mx-auto pb-16">
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
-          {authors.map((author) => {
+          {authors.map((author, index) => {
             const authorFullName = `${author.prenom} ${author.nom}`;
             const authorSlug = getAuthorSlug(author.prenom, author.nom);
             const authorUrl = `/blog/auteurs/${authorSlug}`;
@@ -312,8 +312,7 @@ export default async function AuteursPage() {
                       sizes="(max-width: 768px) 100vw, 270px"
                       className="w-full h-full object-cover rounded-t-[15px]"
                       containerClassName="w-full h-[180px] md:hidden rounded-t-[15px]"
-                      priority
-                      unoptimized
+                      priority={index < 2}
                     />
                     <ShinyAuthorImage
                       src={desktopCutout}
@@ -322,8 +321,7 @@ export default async function AuteursPage() {
                       sizes="270px"
                       className="w-full h-full object-cover rounded-t-[15px]"
                       containerClassName="w-full h-[180px] hidden md:block rounded-t-[15px]"
-                      priority
-                      unoptimized
+                      priority={index < 2}
                     />
                   </>
                 ) : (
@@ -334,8 +332,7 @@ export default async function AuteursPage() {
                     sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 270px"
                     className="w-full h-full object-cover rounded-t-[15px]"
                     containerClassName="w-full h-[180px] rounded-t-[15px]"
-                    priority
-                    unoptimized
+                    priority={index < 2}
                   />
                 )}
 
