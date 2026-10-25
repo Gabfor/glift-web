@@ -1,5 +1,3 @@
-"use server";
-
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { AuthApiError, isAuthSessionMissingError } from "@supabase/auth-js";
@@ -9,7 +7,6 @@ import { ISO_TO_COUNTRY_MAP, DEFAULT_COUNTRY } from "@/utils/geoUtils";
 // Helper pour copier proprement les cookies entre deux réponses Next.js
 const copyCookies = (from: NextResponse, to: NextResponse) => {
   const cookies = from.cookies.getAll();
-  console.log(`[MIDDLEWARE] copyCookies - copying ${cookies.length} cookies:`, cookies.map(c => c.name));
   cookies.forEach((cookie) => {
     to.cookies.set(cookie.name, cookie.value, {
       path: cookie.path,
@@ -63,6 +60,14 @@ export async function middleware(req: NextRequest) {
   // Charge la session utilisateur côté serveur
   type SupabaseUser = Awaited<ReturnType<typeof supabase.auth.getUser>>["data"]["user"];
   let user: SupabaseUser = null;
+
+  // Sans cookie d'auth Supabase, le visiteur est forcément anonyme :
+  // on évite un aller-retour réseau vers Supabase Auth à chaque page publique.
+  const hasAuthCookie = req.cookies
+    .getAll()
+    .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+
+  if (hasAuthCookie) {
   try {
     const {
       data: { user: fetchedUser },
@@ -110,12 +115,11 @@ export async function middleware(req: NextRequest) {
       throw error;
     }
   }
+  }
 
   // A request is for the admin subdomain if:
   // - the host starts with "admin."
   const isAdminSubdomain = host.startsWith("admin.");
-
-  console.log(`[MIDDLEWARE] Entry - pathname: ${pathname} host: ${host} isAdminSubdomain: ${isAdminSubdomain} user exists: ${!!user} is_admin: ${user?.user_metadata?.is_admin}`);
 
   // Helper to build redirect URLs between subdomains
   const getSubdomainUrl = (subdomain: "admin" | "app", pathAndSearch: string) => {

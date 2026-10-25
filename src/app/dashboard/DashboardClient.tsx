@@ -1001,6 +1001,13 @@ export default function DashboardClient({
     const fetchStats = async () => {
       setIsLoadingStats(true);
 
+      const now = new Date();
+      const day7 = new Date();
+      day7.setDate(now.getDate() - 7);
+      const day14 = new Date();
+      day14.setDate(now.getDate() - 14);
+
+      // Les vignettes comparent uniquement J-7→J et J-14→J-7 : inutile de charger l'historique complet.
       const { data, error } = await supabase
         .from("training_session_exercises")
         .select(
@@ -1023,7 +1030,8 @@ export default function DashboardClient({
             )
           `,
         )
-        .eq("training_sessions.user_id", user.id);
+        .eq("training_sessions.user_id", user.id)
+        .gte("training_sessions.performed_at", day14.toISOString());
 
       if (!isMounted) {
         return;
@@ -1074,14 +1082,6 @@ export default function DashboardClient({
       let currentTotalRepsSum = 0;
       let previousTotalRepsSum = 0;
 
-      const now = new Date();
-      const day7 = new Date();
-      day7.setDate(now.getDate() - 7);
-      const day14 = new Date();
-      day14.setDate(now.getDate() - 14);
-
-      console.log("Dashboard fetchStats: Date ranges:", { now, day7, day14 });
-
       // Map to store calculated durations per session to avoid re-calculating
       const sessionDurations = new Map<string, number>();
 
@@ -1107,10 +1107,6 @@ export default function DashboardClient({
         // 2. If a specific program is selected, exclude all others
         // Ensure both IDs are treated as strings for comparison
         if (selectedProgram && String(programId) !== String(selectedProgram)) {
-          console.log(`Skipping: Not selected program. RowId=${programId}, Selected=${selectedProgram}`);
-          console.log("Debug Session Object:", JSON.stringify(row.session, null, 2));
-          // Log the raw row to be absolutely sure
-          console.log("Debug Full Row:", JSON.stringify(row, null, 2));
           continue;
         }
 
@@ -1200,14 +1196,6 @@ export default function DashboardClient({
         }
       }
 
-      const usedProgramIds = new Set<string>();
-      for (const row of rows) {
-        const p = row.session?.program;
-        if (p && p.dashboard !== false && p.id) {
-          usedProgramIds.add(p.id);
-        }
-      }
-
       setStats({
         sessions: {
           current: currentSessions.size,
@@ -1241,11 +1229,6 @@ export default function DashboardClient({
           current: currentDurationSum,
           previous: previousDurationSum,
         },
-        // DEBUG: Add program IDs to stats object (needs type update or just quick hack for display)
-        // Let's use a temporary state or just console.log? 
-        // User asked to "give" the ID. 
-        // I will add a temporary field to stats for display.
-        debugProgramIds: Array.from(usedProgramIds)
       } as any);
       setIsLoadingStats(false);
     };
@@ -1508,12 +1491,6 @@ export default function DashboardClient({
                     })}
                   </div>
                 </div>
-                {(stats as any).debugProgramIds && ((stats as any).debugProgramIds as string[]).length > 0 && (
-                  <div className="mt-4 p-4 bg-gray-100 rounded text-xs text-gray-600 w-full">
-                    <p className="font-bold">Programmes inclus dans les stats :</p>
-                    <p>{((stats as any).debugProgramIds as string[]).join(", ")}</p>
-                  </div>
-                )}
               </div>
             )}
 

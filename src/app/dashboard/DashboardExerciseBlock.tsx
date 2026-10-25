@@ -1196,40 +1196,6 @@ export default function DashboardExerciseBlock({
     };
   }, [chartData]);
 
-  const unused_yAxisWidth = useMemo(() => {
-    if (typeof window === "undefined") {
-      return Y_AXIS_WIDTH;
-    }
-
-    if (chartAxisData.ticks.length === 0) {
-      return Y_AXIS_WIDTH;
-    }
-
-    const maxTickValue = Math.max(...chartAxisData.ticks);
-    const formattedValue = maxTickValue.toLocaleString("fr-FR", {
-      maximumFractionDigits: 2,
-    });
-    const font = "700 12px Quicksand, sans-serif";
-    const label = `${formattedValue}${currentUnit ? ` ${currentUnit}` : ""}`;
-
-    // Measure exact width in browser
-    const measuredWidth = measureTextWidth(label, font);
-    // Fallback if 0 (SSR or error): use heuristic 6px/char
-    const textWidth = measuredWidth > 0 ? measuredWidth : label.length * 6;
-
-    // 10px (start offset) + text width + 6px (visually comfortable gap)
-    const finalWidth = 10 + textWidth + 6;
-
-    console.log('[DashboardChartDebug] yAxisWidth calculation (v6 Reduced Gap):', {
-      maxTickValue,
-      label,
-      measuredWidth,
-      finalWidth
-    });
-
-    return finalWidth;
-  }, [chartAxisData, currentUnit]);
-
   const yAxisLeftPad = isMobile ? 16 : 30;
   const yAxisGap = isMobile ? 24 : 24;
 

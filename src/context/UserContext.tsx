@@ -85,7 +85,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   // triggers the Supabase warning. We rely fully on fetchUser() via Supabase Auth server.
 
   const fetchUser = useCallback(async (background = false) => {
-    console.log("[UserContext] fetchUser started. Background:", background);
     if (!background) {
       setIsLoading(true);
     }
@@ -94,7 +93,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         data: { user },
         error,
       } = await supabase.auth.getUser();
-      console.log("[UserContext] fetchUser getUser finished. User:", user?.email, "Error:", error?.message);
 
       if (error) {
         const errorMsg = (error.message || "").toLowerCase();
@@ -359,14 +357,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        // INITIAL_SESSION est émis juste après l'abonnement : le chargement initial
+        // est déjà assuré par fetchUser(false) ci-dessus, inutile de le doubler.
+        if (event === 'INITIAL_SESSION') {
+          return;
+        }
+
         void fetchUser(true);
       },
     );
 
+    // "focus" et "visibilitychange" se déclenchent tous deux au retour sur l'onglet :
+    // on limite à un rafraîchissement en arrière-plan toutes les 30 secondes.
+    const BACKGROUND_REFRESH_MIN_INTERVAL_MS = 30_000;
+    let lastBackgroundRefreshAt = Date.now();
+
     const handleVisibilityOrFocus = () => {
-      if (document.visibilityState === "visible") {
-        void fetchUser(true);
+      if (document.visibilityState !== "visible") {
+        return;
       }
+      const nowMs = Date.now();
+      if (nowMs - lastBackgroundRefreshAt < BACKGROUND_REFRESH_MIN_INTERVAL_MS) {
+        return;
+      }
+      lastBackgroundRefreshAt = nowMs;
+      void fetchUser(true);
     };
 
     window.addEventListener("focus", handleVisibilityOrFocus);

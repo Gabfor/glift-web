@@ -75,8 +75,6 @@ function ClientLayoutContent({
   // Combine auth loading and manual global loading
   const showLoader = useMinimumVisibility(isLoading || isGlobalLoading);
 
-  console.log("[ClientLayoutContent] isLoading:", isLoading, "isGlobalLoading:", isGlobalLoading, "showLoader:", showLoader, "pathname:", pathname, "isAdminPage:", isAdminPage, "isAdminSubdomain:", isAdminSubdomain);
-
   const isAdminAuthPage =
     pathname === "/admin/connexion" ||
     pathname === "/admin/reinitialiser-mot-de-passe" ||

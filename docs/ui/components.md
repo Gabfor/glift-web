@@ -44,3 +44,37 @@
   | Bannière vérif e-mail | `Container` 36px couleur `brandPrimary`, texte centre `14px` semibold | Timer recalculé chaque minute depuis date d’expiration. |
   | Dropdown | `PopupMenuButton` custom avec bord `surfaceSubtle`, fond blanc, highlight `surfaceHighlight` | Chevron animé (rotation 180°). |
   | Avatar placeholder | `CircleAvatar` fond `brandPrimary`, initiale uppercase | Remplacé par `Image.network` si avatar dispo. |
+
+## Modal & ModalMessage (`Modal.tsx`, `ModalMessage.tsx`)
+- **`Modal`** : Conteneur de dialogue accessible avec arrière-plan estompé (`bg-black/60 backdrop-blur-xs`), verrouillage du focus, fermeture à la touche Échap et au clic extérieur, z-index élevé (`z-50`).
+  - Titre standardisé en tête avec bouton de fermeture croix SVG.
+  - Largeurs paramétrables (`maxWidthClass` : `max-w-md`, `max-w-lg`, etc.).
+- **`ModalMessage`** : Boîte d'information et d'alerte contextuelle insérée en haut de formulaire modal.
+  - Variantes : `info` (bleu/violet), `warning` (ambre), `error` (rouge), `success` (vert).
+  - Structure : icône vectorielle dédiée + titre en gras + texte descriptif explicatif.
+
+## Modale des Vignettes de Statistiques (`StatVignettesModal.tsx`, `StatVignettesFields.tsx`)
+- **Règles d'espacement strictes** :
+  - Espacement vertical entre les champs dropdowns : **20px** (`space-y-[20px]`).
+  - Espacement entre le dernier champ et les boutons d'action (CTA) : **30px** (`footerWrapperClassName="!mt-[30px]"`).
+- **Positionnement intelligent des menus déroulants (`placement`)** :
+  - Dropdowns 1 et 2 : ouverture descendante (`placement="auto"` ou `"bottom"`).
+  - Dropdowns 3 et 4 : ouverture ascendante forcée (`placement="top"`) pour éviter la coupure du menu hors de l'écran sur mobile et petits écrans.
+- **Boutons d'action** :
+  - "Annuler" (`variant="secondary"`).
+  - "Enregistrer" (`variant="active"`, avec indicateur de chargement `loading={isSaving}`).
+
+## Infobulle d'Information Interactive (`InfoTooltipAdornment.tsx`)
+- **Comportement & Rendu Portal** :
+  - Infobulle montée sur `document.body` via React Portal pour s'affranchir de tout contexte d'empilement (`overflow: hidden` ou conteneurs parents).
+  - Rendu conditionné à l'état `ready: true` avec calcul synchrone par `useIsomorphicLayoutEffect` et événement clic/survol, éliminant tout clignotement ou apparition fugitive au point d'origine `(0, 0)`.
+- **Découplage Positionnement / Animation** :
+  - Conteneur externe fixe : gère strictement les coordonnées cartésiennes absolues et la translation de centrage de flèche (`translate-y-[-50%]` ou `translate-x-[-50%]`).
+  - Bulle interne animée : applique l'animation d'apparition Tailwind avec glissement directionnel fluide sans écraser la translation du conteneur (`slide-in-from-top-1` si flèche en haut, `slide-in-from-left-1` si flèche à droite, `slide-in-from-right-1` si flèche à gauche).
+
+## Règle Globale d'Espacement du Footer
+- **Dégagement vertical minimal garanti au-dessus du footer** sur l'ensemble des pages du site :
+  - Sur ordinateur (Desktop) : **100px minimum** (`md:mt-[100px]`).
+  - Sur mobile / tablette (Responsive) : **50px minimum** (`mt-[50px]`).
+  - Implémenté sur `ClientLayout.tsx`, `FooterPublic.tsx` et `FooterLogged.tsx`.
+
