@@ -16,6 +16,12 @@ import {
   CURVE_OPTIONS,
   type CurveOptionValue,
 } from "@/constants/curveOptions"
+import StatVignettesFields from "@/components/dashboard/StatVignettesFields"
+import {
+  DEFAULT_STAT_VIGNETTES,
+  sanitizeStatVignettes,
+  type StatVignetteKey,
+} from "@/constants/statVignettes"
 
 const WEIGHT_UNIT_OPTIONS = ["Kg", "Lb"] as const
 type WeightUnit = (typeof WEIGHT_UNIT_OPTIONS)[number]
@@ -195,6 +201,12 @@ export default function PreferencesSection() {
   const [communications, setCommunications] = useState<Record<CommunicationKey, boolean>>(
     () => ({ ...initialStateRef.current.communications }),
   )
+  const [statVignettes, setStatVignettes] = useState<
+    [StatVignetteKey, StatVignetteKey, StatVignetteKey, StatVignetteKey]
+  >(DEFAULT_STAT_VIGNETTES)
+  const initialVignettesRef = useRef<
+    [StatVignetteKey, StatVignetteKey, StatVignetteKey, StatVignetteKey]
+  >(DEFAULT_STAT_VIGNETTES)
   const [isLoadingPreferences, setIsLoadingPreferences] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
@@ -217,17 +229,30 @@ export default function PreferencesSection() {
 
       setIsLoadingPreferences(true)
 
-      const { data, error } = await supabase
-        .from("preferences")
-        .select(
-          "id, weight_unit, curve, show_effort, show_materiel, show_repos, show_link, show_notes, newsletter, newsletter_shop, newsletter_store, survey, default_session_count",
-        )
-        .eq("id", user.id)
-        .maybeSingle()
+      const [prefsResponse, dashboardResponse] = await Promise.all([
+        supabase
+          .from("preferences")
+          .select(
+            "id, weight_unit, curve, show_effort, show_materiel, show_repos, show_link, show_notes, newsletter, newsletter_shop, newsletter_store, survey, default_session_count",
+          )
+          .eq("id", user.id)
+          .maybeSingle(),
+        supabase
+          .from("dashboard_preferences")
+          .select("exercise_settings")
+          .eq("user_id", user.id)
+          .maybeSingle(),
+      ])
 
       if (!isActive) {
         return
       }
+
+      const { data, error } = prefsResponse
+      const rawVignettes = (dashboardResponse.data?.exercise_settings as any)?.statVignettes
+      const sanitizedVignettes = sanitizeStatVignettes(rawVignettes)
+      setStatVignettes(sanitizedVignettes)
+      initialVignettesRef.current = sanitizedVignettes
 
       if (error && error.code !== "PGRST116") {
         // console.error("Erreur lors du chargement des préférences", error)
@@ -264,7 +289,12 @@ export default function PreferencesSection() {
     }
   }, [supabase, user?.id])
 
+  const hasVignettesChanged = statVignettes.some(
+    (v, i) => v !== initialVignettesRef.current[i],
+  )
+
   const hasChanges =
+    hasVignettesChanged ||
     weightUnit !== initialStateRef.current.weightUnit ||
     defaultCurve !== initialStateRef.current.defaultCurve ||
     showEffort !== initialStateRef.current.showEffort ||
@@ -298,15 +328,39 @@ export default function PreferencesSection() {
         default_session_count: sessionCount ? parseInt(sessionCount) : null,
       }
 
-      const { error } = await supabase
-        .from("preferences")
-        .upsert(payload, { onConflict: "id" })
+      const { data: existingDashboard } = await supabase
+        .from("dashboard_preferences")
+        .select("exercise_settings")
+        .eq("user_id", user.id)
+        .maybeSingle()
+
+      const existingSettings = (existingDashboard?.exercise_settings as any) || {}
+
+      const [{ error }] = await Promise.all([
+        supabase.from("preferences").upsert(payload, { onConflict: "id" }),
+        supabase.from("dashboard_preferences").upsert(
+          {
+            user_id: user.id,
+            exercise_settings: {
+              ...existingSettings,
+              statVignettes,
+            },
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        ),
+      ])
 
       if (error) {
         console.error("Erreur lors de la mise à jour des préférences", JSON.stringify(error, null, 2))
         setIsSubmitting(false)
         return
       }
+
+      initialVignettesRef.current = [...statVignettes]
+      try {
+        localStorage.setItem("dashboard_stat_vignettes", JSON.stringify(statVignettes))
+      } catch {}
 
       initialStateRef.current = {
         weightUnit,
@@ -468,6 +522,26 @@ export default function PreferencesSection() {
                   }}
                 />
               </div>
+            </div>
+          </div>
+
+          <div className="mt-[30px] flex w-full text-left flex-col gap-4">
+            <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
+              Réglage des vignettes statistiques
+            </h3>
+            <p className="text-[13px] sm:text-[15px] font-semibold text-[#5D6494] leading-snug">
+              Choisis la statistique à afficher dans chacun des 4 emplacements de ton tableau de bord.
+            </p>
+
+            <div className="w-full max-w-[368px]">
+              <StatVignettesFields
+                values={statVignettes}
+                onChange={(newVignettes) => {
+                  setStatVignettes(newVignettes)
+                  setShowSuccessMessage(false)
+                }}
+                weightUnit={weightUnit === "Lb" ? "lb" : "kg"}
+              />
             </div>
           </div>
 

@@ -17,6 +17,14 @@ import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 import type { Database } from "@/lib/supabase/types";
 import StatsRedIcon from "/public/icons/stats_red.svg";
 import StatsGreenIcon from "/public/icons/stats_green.svg";
+import SettingDashboardIcon from "/public/icons/setting_dashboard.svg";
+import StatVignettesModal from "@/components/dashboard/StatVignettesModal";
+import Tooltip from "@/components/Tooltip";
+import {
+  DEFAULT_STAT_VIGNETTES,
+  sanitizeStatVignettes,
+  type StatVignetteKey,
+} from "@/constants/statVignettes";
 
 const SESSION_OPTIONS = [
   { value: "5", label: "5 dernières séances" },
@@ -36,32 +44,9 @@ type TrainingExercise = {
 
 const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
 
-const STATS_CARD_METADATA = [
-  {
-    id: "sessions",
-    icon: "/icons/stat_seance.svg",
-    label: "Séances terminées",
-  },
-  {
-    id: "time",
-    icon: "/icons/stat_temps.svg",
-    label: "Minutes en moyenne",
-  },
-  {
-    id: "weight",
-    icon: "/icons/stat_poids.svg",
-    label: "Kg soulevés en moyenne",
-  },
-  {
-    id: "reps",
-    icon: "/icons/stat_rep.svg",
-    label: "Répétitions en moyenne",
-  },
-] as const;
-
-type StatsCardMetadata = (typeof STATS_CARD_METADATA)[number];
-
-type StatsCard = Omit<StatsCardMetadata, "label"> & {
+type StatsCard = {
+  id: string;
+  icon: string;
   label: string;
   value: number;
   previousValue: number;
@@ -225,6 +210,10 @@ type DashboardStats = {
   time: StatMetric;
   weight: StatMetric;
   reps: StatMetric;
+  volume: StatMetric;
+  sets: StatMetric;
+  totalReps: StatMetric;
+  totalTime: StatMetric;
 };
 
 const createEmptyStats = (): DashboardStats => ({
@@ -232,6 +221,10 @@ const createEmptyStats = (): DashboardStats => ({
   time: { current: 0, previous: 0 },
   weight: { current: 0, previous: 0 },
   reps: { current: 0, previous: 0 },
+  volume: { current: 0, previous: 0 },
+  sets: { current: 0, previous: 0 },
+  totalReps: { current: 0, previous: 0 },
+  totalTime: { current: 0, previous: 0 },
 });
 
 const MIN_FAKE_DURATION_MINUTES = 30;
@@ -411,6 +404,7 @@ const parseExerciseSettings = (value: unknown): ParsedExercisePreferences => {
 const buildExerciseSettingsPayload = (
   settings: ExerciseDisplaySettings,
   selectedExerciseId: string,
+  statVignettes?: [StatVignetteKey, StatVignetteKey, StatVignetteKey, StatVignetteKey],
 ) => {
   const normalizedSettings = Object.entries(settings).reduce<ExerciseDisplaySettings>(
     (accumulator, [exerciseId, exerciseSettings]) => {
@@ -432,6 +426,7 @@ const buildExerciseSettingsPayload = (
   return {
     selectedExerciseId: selectedExerciseId || null,
     exercises: normalizedSettings,
+    ...(statVignettes ? { statVignettes } : {}),
   };
 };
 
@@ -456,21 +451,34 @@ export default function DashboardClient({
     useState<CurveOptionValue>(FALLBACK_CURVE_VALUE);
   const [defaultSessionCount, setDefaultSessionCount] = useState<SessionValue>(DEFAULT_SESSION_VALUE);
   const [weightUnit, setWeightUnit] = useState<"kg" | "lb">("kg");
-  const [showStats, setShowStats] = useState<boolean>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("glift_dashboard_show_stats");
-      if (saved !== null) {
-        return saved === "true";
-      }
-    }
-    return false;
-  });
+  const [showStats, setShowStats] = useState<boolean>(false);
+  const isHydratedRef = useRef(false);
+
+  const [activeVignettes, setActiveVignettes] = useState<
+    [StatVignetteKey, StatVignetteKey, StatVignetteKey, StatVignetteKey]
+  >(DEFAULT_STAT_VIGNETTES);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem("glift_dashboard_show_stats");
+      if (saved !== null) {
+        setShowStats(saved === "true");
+      }
+      const cached = localStorage.getItem("dashboard_stat_vignettes");
+      if (cached) {
+        setActiveVignettes(sanitizeStatVignettes(JSON.parse(cached)));
+      }
+    } catch {}
+    isHydratedRef.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!isHydratedRef.current) return;
+    try {
       localStorage.setItem("glift_dashboard_show_stats", String(showStats));
-    }
+    } catch {}
   }, [showStats]);
+  const [showVignettesModal, setShowVignettesModal] = useState(false);
   const [hasLoadedPreferences, setHasLoadedPreferences] = useState(false);
   const [selectedExercise, setSelectedExercise] = useState("");
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
@@ -594,56 +602,98 @@ export default function DashboardClient({
   const statsCards = useMemo<StatsCard[]>(() => {
     const formatInteger = (input: number) =>
       integerFormatter.format(Math.max(0, Math.round(input)));
-    const formatWeight = (input: number) =>
-      weightFormatter.format(Math.max(0, Math.round(input)));
 
-    return STATS_CARD_METADATA.map((metadata) => {
-      switch (metadata.id) {
+    return activeVignettes.map((vignetteKey) => {
+      const isLb = weightUnit === "lb";
+
+      switch (vignetteKey) {
         case "sessions":
           return {
-            ...metadata,
+            id: "sessions",
+            icon: "/icons/stat_seance.svg",
+            label: "Séances d'entraînement",
             value: stats.sessions.current,
             previousValue: stats.sessions.previous,
             format: formatInteger,
             precision: 0,
-          } satisfies StatsCard;
+          };
         case "time":
           return {
-            ...metadata,
+            id: "time",
+            icon: "/icons/stat_temps.svg",
+            label: "Minutes par séance en moyenne",
             value: stats.time.current,
             previousValue: stats.time.previous,
             format: formatInteger,
             precision: 0,
-          } satisfies StatsCard;
+          };
         case "weight":
-          const isLb = weightUnit === "lb";
-          // User requested NO value conversion, just label change.
-          const weightValue = stats.weight.current;
-          const previousWeightValue = stats.weight.previous;
-
           return {
-            ...metadata,
+            id: "weight",
+            icon: "/icons/stat_poids.svg",
             label: isLb ? "Lb soulevés en moyenne" : "Kg soulevés en moyenne",
-            value: weightValue,
-            previousValue: previousWeightValue,
+            value: stats.weight.current,
+            previousValue: stats.weight.previous,
             format: formatInteger,
             precision: 0,
-          } satisfies StatsCard;
+          };
         case "reps":
-        default:
           return {
-            ...metadata,
+            id: "reps",
+            icon: "/icons/stat_rep.svg",
+            label: "Répétitions par série en moyenne",
             value: stats.reps.current,
             previousValue: stats.reps.previous,
             format: formatInteger,
             precision: 0,
-          } satisfies StatsCard;
+          };
+        case "volume":
+          return {
+            id: "volume",
+            icon: "/icons/stat_poids.svg",
+            label: isLb ? "Volume total soulevé (lb)" : "Volume total soulevé (kg)",
+            value: stats.volume.current,
+            previousValue: stats.volume.previous,
+            format: formatInteger,
+            precision: 0,
+          };
+        case "sets":
+          return {
+            id: "sets",
+            icon: "/icons/stat_seance.svg",
+            label: "Séries effectuées au total",
+            value: stats.sets.current,
+            previousValue: stats.sets.previous,
+            format: formatInteger,
+            precision: 0,
+          };
+        case "totalReps":
+          return {
+            id: "totalReps",
+            icon: "/icons/stat_rep.svg",
+            label: "Répétitions effectuées au total",
+            value: stats.totalReps.current,
+            previousValue: stats.totalReps.previous,
+            format: formatInteger,
+            precision: 0,
+          };
+        case "totalTime":
+        default:
+          return {
+            id: "totalTime",
+            icon: "/icons/stat_temps.svg",
+            label: "Minutes d'entraînement au total",
+            value: stats.totalTime.current,
+            previousValue: stats.totalTime.previous,
+            format: formatInteger,
+            precision: 0,
+          };
       }
     });
   }, [
+    activeVignettes,
     integerFormatter,
     stats,
-    weightFormatter,
     weightUnit,
   ]);
 
@@ -811,6 +861,14 @@ export default function DashboardClient({
         setAreFiltersLoading(false);
       } else {
         const preferences = data?.[0] as DashboardPreferencesRow | undefined;
+        const rawVignettes = (preferences?.exercise_settings as any)?.statVignettes;
+        if (rawVignettes) {
+          const sanitized = sanitizeStatVignettes(rawVignettes);
+          setActiveVignettes(sanitized);
+          try {
+            localStorage.setItem("dashboard_stat_vignettes", JSON.stringify(sanitized));
+          } catch {}
+        }
         const nextSelectedProgram = preferences?.selected_program_id ?? "";
         const nextSelectedTraining = preferences?.selected_training_id ?? "";
         const parsedPreferences = parseExerciseSettings(preferences?.exercise_settings);
@@ -877,6 +935,7 @@ export default function DashboardClient({
         exercise_settings: buildExerciseSettingsPayload(
           exerciseDisplaySettings,
           selectedExercise,
+          activeVignettes,
         ),
         show_stats: showStats,
         updated_at: new Date().toISOString(),
@@ -885,6 +944,7 @@ export default function DashboardClient({
     };
     void persistPreferences();
   }, [
+    activeVignettes,
     exerciseDisplaySettings,
     hasLoadedPreferences,
     selectedProgram,
@@ -894,6 +954,40 @@ export default function DashboardClient({
     supabase,
     user?.id,
   ]);
+
+  const handleSaveVignettes = async (
+    newVignettes: [StatVignetteKey, StatVignetteKey, StatVignetteKey, StatVignetteKey],
+  ) => {
+    setActiveVignettes(newVignettes);
+    try {
+      localStorage.setItem("dashboard_stat_vignettes", JSON.stringify(newVignettes));
+    } catch {}
+
+    if (!user?.id) return;
+
+    const { data: currentPrefs } = await supabase
+      .from("dashboard_preferences")
+      .select("exercise_settings")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const currentSettings = (currentPrefs?.exercise_settings as any) || {};
+
+    const payload: DashboardPreferencesInsert = {
+      user_id: user.id,
+      selected_program_id: selectedProgram || null,
+      selected_training_id: selectedTraining || null,
+      selected_exercise_id: selectedExercise || null,
+      exercise_settings: {
+        ...currentSettings,
+        statVignettes: newVignettes,
+      },
+      show_stats: showStats,
+      updated_at: new Date().toISOString(),
+    };
+
+    await supabase.from("dashboard_preferences").upsert(payload, { onConflict: "user_id" });
+  };
 
   useEffect(() => {
     if (!user?.id || !showStats) {
@@ -970,6 +1064,15 @@ export default function DashboardClient({
       let currentRepCount = 0;
       let previousRepSum = 0;
       let previousRepCount = 0;
+
+      let currentVolumeSum = 0;
+      let previousVolumeSum = 0;
+
+      let currentSetsCount = 0;
+      let previousSetsCount = 0;
+
+      let currentTotalRepsSum = 0;
+      let previousTotalRepsSum = 0;
 
       const now = new Date();
       const day7 = new Date();
@@ -1057,17 +1160,21 @@ export default function DashboardClient({
             .map((weight) => parseNumericValue(weight))
             .filter((weight): weight is number => weight != null);
 
-          // We consider valid sets those with at least one weight or rep count
-          // If weights are present, usage average of weights in that set
-          // If not, we skip weight tracking for this set but might track reps
+          if (isCurrent) {
+            currentSetsCount += 1;
+          } else {
+            previousSetsCount += 1;
+          }
 
           if (repetitions !== null) {
             if (isCurrent) {
               currentRepSum += repetitions;
               currentRepCount += 1;
+              currentTotalRepsSum += repetitions;
             } else {
               previousRepSum += repetitions;
               previousRepCount += 1;
+              previousTotalRepsSum += repetitions;
             }
           }
 
@@ -1078,9 +1185,15 @@ export default function DashboardClient({
               if (isCurrent) {
                 currentWeightSum += avgSetWeight;
                 currentWeightCount += 1;
+                if (repetitions !== null && repetitions > 0) {
+                  currentVolumeSum += avgSetWeight * repetitions;
+                }
               } else {
                 previousWeightSum += avgSetWeight;
                 previousWeightCount += 1;
+                if (repetitions !== null && repetitions > 0) {
+                  previousVolumeSum += avgSetWeight * repetitions;
+                }
               }
             }
           }
@@ -1111,6 +1224,22 @@ export default function DashboardClient({
         reps: {
           current: currentRepCount > 0 ? currentRepSum / currentRepCount : 0,
           previous: previousRepCount > 0 ? previousRepSum / previousRepCount : 0
+        },
+        volume: {
+          current: currentVolumeSum,
+          previous: previousVolumeSum,
+        },
+        sets: {
+          current: currentSetsCount,
+          previous: previousSetsCount,
+        },
+        totalReps: {
+          current: currentTotalRepsSum,
+          previous: previousTotalRepsSum,
+        },
+        totalTime: {
+          current: currentDurationSum,
+          previous: previousDurationSum,
         },
         // DEBUG: Add program IDs to stats object (needs type update or just quick hack for display)
         // Let's use a temporary state or just console.log? 
@@ -1242,7 +1371,7 @@ export default function DashboardClient({
             </div>
 
             {/* Bouton Masquer / Afficher les vignettes en haut à droite */}
-            <div className="mt-[40px] flex justify-end">
+            <div className="mt-[40px] flex items-center justify-end gap-2.5">
               <button
                 type="button"
                 onClick={() => setShowStats(!showStats)}
@@ -1260,6 +1389,25 @@ export default function DashboardClient({
                 </span>
                 <span>{showStats ? "Masquer les vignettes" : "Afficher les vignettes"}</span>
               </button>
+
+              <Tooltip content="Réglage des vignettes">
+                <button
+                  type="button"
+                  onClick={() => setShowVignettesModal(true)}
+                  aria-label="Réglage des vignettes"
+                  className="group h-10 w-10 flex-shrink-0 border border-[#D7D4DC] rounded-[5px] flex items-center justify-center bg-white hover:border-[#C2BFC6] transition"
+                >
+                  <span className="relative w-[18px] h-[17px] flex items-center justify-center transition-transform duration-300 group-hover:rotate-45">
+                    <Image
+                      src={SettingDashboardIcon}
+                      alt=""
+                      width={18}
+                      height={17}
+                      className="w-[18px] h-[17px] object-contain"
+                    />
+                  </span>
+                </button>
+              </Tooltip>
             </div>
 
             {showStats && (
@@ -1415,9 +1563,15 @@ export default function DashboardClient({
             )}
 
             {selectedProgram !== "" && selectedTraining === "" && (
-              <p className="mt-8 text-center text-[#5D6494] font-semibold">
-                Aucun entraînement sélectionné.
-              </p>
+              <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
+                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                  Oups ! Aucun entraînement pour le moment....
+                </h2>
+                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed max-w-[550px] text-center">
+                  Sélectionne un entraînement dans le menu déroulant pour
+                  afficher tes performances exercice par exercice.
+                </p>
+              </div>
             )}
 
             {selectedTraining !== "" && (
@@ -1488,6 +1642,13 @@ export default function DashboardClient({
 
         </div>
       </div>
+      <StatVignettesModal
+        open={showVignettesModal}
+        onClose={() => setShowVignettesModal(false)}
+        vignettes={activeVignettes}
+        onSave={handleSaveVignettes}
+        weightUnit={weightUnit}
+      />
     </main>
   );
 }

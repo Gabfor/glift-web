@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import type { KeyboardEvent } from "react";
 import Image from "next/image";
+import clsx from "clsx";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 
@@ -13,6 +14,7 @@ export type DropdownOption = {
 };
 
 type SortStrategy = "label" | "month" | "year-desc" | "none";
+export type DropdownPlacement = "bottom" | "top" | "auto";
 
 export default function AdminDropdown({
   label,
@@ -34,6 +36,7 @@ export default function AdminDropdown({
   sortStrategy = "label",
   defaultScrollToValue,
   menuMaxHeightClassName = "max-h-[220px]",
+  placement = "bottom",
 }: {
   label: string;
   options: DropdownOption[];
@@ -54,8 +57,10 @@ export default function AdminDropdown({
   sortStrategy?: SortStrategy;
   defaultScrollToValue?: string;
   menuMaxHeightClassName?: string;
+  placement?: DropdownPlacement;
 }) {
   const [open, setOpen] = useState(false);
+  const [openUpwards, setOpenUpwards] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -121,6 +126,34 @@ export default function AdminDropdown({
       setTypedValue("");
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open) {
+      setOpenUpwards(false);
+      return;
+    }
+
+    if (placement === "top") {
+      setOpenUpwards(true);
+      return;
+    }
+
+    if (placement === "auto") {
+      if (buttonRef.current) {
+        const rect = buttonRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        if (spaceBelow < 250 && spaceAbove > spaceBelow) {
+          setOpenUpwards(true);
+        } else {
+          setOpenUpwards(false);
+        }
+      }
+      return;
+    }
+
+    setOpenUpwards(false);
+  }, [open, placement]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | TouchEvent) => {
@@ -308,7 +341,7 @@ export default function AdminDropdown({
 
   return (
     <div
-      className={`flex flex-col relative transition-all duration-300 ${className}`}
+      className={`flex flex-col relative transition-all duration-300 ${open ? "z-30" : "z-0"} ${className}`}
       ref={containerRef}
     >
       {(label || (clearable && !isShowingPlaceholder)) && (
@@ -383,7 +416,12 @@ export default function AdminDropdown({
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-[10px] w-full bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden">
+        <div
+          className={clsx(
+            "absolute left-0 w-full bg-white rounded-[5px] z-50 shadow-glift-hover overflow-hidden",
+            openUpwards ? "bottom-full mb-[10px]" : "top-full mt-[10px]"
+          )}
+        >
           {/* Top Gradient */}
           <div
             className={`absolute top-0 left-0 right-[16px] h-[24px] bg-gradient-to-b from-white to-transparent pointer-events-none transition-opacity duration-200 z-10 ${showTopGradient ? "opacity-100" : "opacity-0"

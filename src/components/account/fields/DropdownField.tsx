@@ -49,6 +49,14 @@ export type DropdownFieldProps = {
    * Optional custom max-height class for dropdown list.
    */
   menuMaxHeightClassName?: string
+  /**
+   * Hide the empty helper/success spacing div when there is no success message.
+   */
+  hideHelperText?: boolean
+  /**
+   * Direction where the dropdown opens ("bottom", "top" or "auto").
+   */
+  placement?: "bottom" | "top" | "auto"
 }
 
 export default function DropdownField({
@@ -69,6 +77,8 @@ export default function DropdownField({
   buttonRoundedClassName = "rounded-[5px]",
   sortStrategy,
   menuMaxHeightClassName,
+  hideHelperText = false,
+  placement,
 }: DropdownFieldProps) {
   const hasSelection = selected !== ''
   const showSuccess = !!success && touched
@@ -127,6 +137,7 @@ export default function DropdownField({
           buttonClassName={buttonClassName}
           sortStrategy={sortStrategy}
           menuMaxHeightClassName={menuMaxHeightClassName}
+          placement={placement}
         />
         {endAdornment && (
           <div
@@ -140,9 +151,16 @@ export default function DropdownField({
         )}
       </div>
 
-      <div className="min-h-[20px] mt-[5px] text-[13px] font-medium leading-snug">
-        {showSuccess && <SuccessMsg>{success}</SuccessMsg>}
-      </div>
+      {(!hideHelperText || showSuccess) && (
+        <div
+          className={clsx(
+            "text-[13px] font-medium leading-snug",
+            hideHelperText ? "mt-[5px]" : "min-h-[20px] mt-[5px]"
+          )}
+        >
+          {showSuccess && <SuccessMsg>{success}</SuccessMsg>}
+        </div>
+      )}
     </div>
   )
 }
