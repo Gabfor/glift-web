@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import clsx from "clsx";
 import DropdownField from "@/components/account/fields/DropdownField";
+import InfoTooltipAdornment from "@/components/account/fields/InfoTooltipAdornment";
 import {
   STAT_VIGNETTE_OPTIONS,
   type StatVignetteKey,
@@ -16,6 +17,8 @@ interface StatVignettesFieldsProps {
   weightUnit?: "kg" | "lb";
   gapClassName?: string;
   hideHelperText?: boolean;
+  showTooltips?: boolean;
+  placement?: "bottom" | "top" | "auto";
 }
 
 const VIGNETTE_LABELS = [
@@ -31,6 +34,8 @@ export default function StatVignettesFields({
   weightUnit = "kg",
   gapClassName = "gap-[20px]",
   hideHelperText = true,
+  showTooltips = false,
+  placement,
 }: StatVignettesFieldsProps) {
   const optionsWithUnit = useMemo(() => {
     const isLb = weightUnit === "lb";
@@ -85,7 +90,15 @@ export default function StatVignettesFields({
             width="w-full"
             menuMaxHeightClassName="max-h-[220px] sm:max-h-[250px]"
             hideHelperText={hideHelperText}
-            placement={index >= 2 ? "top" : "auto"}
+            placement={placement ?? (index >= 2 ? "top" : "auto")}
+            endAdornment={
+              showTooltips ? (
+                <InfoTooltipAdornment
+                  message={`Ce réglage détermine la statistique affichée dans la ${VIGNETTE_LABELS[index]} de ton tableau de bord.`}
+                  ariaLabel={`Plus d’informations sur la ${VIGNETTE_LABELS[index]}`}
+                />
+              ) : undefined
+            }
           />
         </div>
       ))}

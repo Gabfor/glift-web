@@ -100,7 +100,7 @@ function ClientLayoutContent({
       <div className={`flex-1 flex flex-col ${isAdminPage ? "relative z-10" : ""}`}>
         {children}
       </div>
-      {!isAdminPage && <Footer className="mt-auto" />}
+      {!isAdminPage && <Footer className="mt-[50px] md:mt-[100px]" />}
       {process.env.NODE_ENV === "development" && <AuthDebug />}
     </div>
   );

@@ -407,7 +407,7 @@ export default function PreferencesSection() {
 
           <div className="flex w-full text-left flex-col gap-5 pt-[14px]">
             <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
-              Réglages de la plateforme
+              Réglages des courbes du tableau de bord
             </h3>
 
             <div className="flex flex-col gap-2">
@@ -483,55 +483,13 @@ export default function PreferencesSection() {
                   }
                 />
               </div>
-
-              <div className="flex flex-col gap-[21px] mt-2">
-
-                <PreferenceToggleRow
-                  field={{
-                    title: "Afficher la colonne Effort",
-                    description: "Affiche la colonne Effort dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
-                  }}
-                  checked={showEffort}
-                  onCheckedChange={(checked) => {
-                    setShowEffort(checked)
-                    setShowSuccessMessage(false)
-                  }}
-                />
-
-                <PreferenceToggleRow
-                  field={{
-                    title: "Afficher la colonne Matériel",
-                    description: "Affiche la colonne Matériel dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
-                  }}
-                  checked={showMateriel}
-                  onCheckedChange={(checked) => {
-                    setShowMateriel(checked)
-                    setShowSuccessMessage(false)
-                  }}
-                />
-
-                <PreferenceToggleRow
-                  field={{
-                    title: "Afficher la colonne Repos",
-                    description: "Affiche la colonne Repos dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
-                  }}
-                  checked={showRepos}
-                  onCheckedChange={(checked) => {
-                    setShowRepos(checked)
-                    setShowSuccessMessage(false)
-                  }}
-                />
-              </div>
             </div>
           </div>
 
           <div className="mt-[30px] flex w-full text-left flex-col gap-4">
             <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
-              Réglage des vignettes statistiques
+              Réglages des vignettes de statistiques du tableau de bord
             </h3>
-            <p className="text-[13px] sm:text-[15px] font-semibold text-[#5D6494] leading-snug">
-              Choisis la statistique à afficher dans chacun des 4 emplacements de ton tableau de bord.
-            </p>
 
             <div className="w-full max-w-[368px]">
               <StatVignettesFields
@@ -541,6 +499,54 @@ export default function PreferencesSection() {
                   setShowSuccessMessage(false)
                 }}
                 weightUnit={weightUnit === "Lb" ? "lb" : "kg"}
+                showTooltips
+                hideHelperText={false}
+                gapClassName="gap-2"
+                placement="bottom"
+              />
+            </div>
+          </div>
+
+          <div className="mt-[30px] flex w-full text-left flex-col gap-[21px]">
+            <h3 className="text-[13px] sm:text-[14px] font-semibold uppercase text-[#D7D4DC] tracking-wide">
+              Réglages des tableaux d’entraînement
+            </h3>
+
+            <div className="flex flex-col gap-[21px]">
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Effort",
+                  description: "Affiche la colonne Effort dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
+                }}
+                checked={showEffort}
+                onCheckedChange={(checked) => {
+                  setShowEffort(checked)
+                  setShowSuccessMessage(false)
+                }}
+              />
+
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Matériel",
+                  description: "Affiche la colonne Matériel dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
+                }}
+                checked={showMateriel}
+                onCheckedChange={(checked) => {
+                  setShowMateriel(checked)
+                  setShowSuccessMessage(false)
+                }}
+              />
+
+              <PreferenceToggleRow
+                field={{
+                  title: "Afficher la colonne Repos",
+                  description: "Affiche la colonne Repos dans les tableaux d’exercices. Ce réglage est valable également pour l’application mobile."
+                }}
+                checked={showRepos}
+                onCheckedChange={(checked) => {
+                  setShowRepos(checked)
+                  setShowSuccessMessage(false)
+                }}
               />
             </div>
           </div>

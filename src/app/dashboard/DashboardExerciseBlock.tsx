@@ -1343,9 +1343,9 @@ export default function DashboardExerciseBlock({
   };
 
   return (
-    <div className="w-full flex flex-col xl:flex-row gap-[24px]">
+    <div className="w-full flex flex-col landscape:flex-row lg:flex-row gap-[16px] sm:gap-[24px]">
       {/* ZONE 1: Graphique + Header (approx 75% width or flex: 3) */}
-      <div className="w-full xl:w-auto xl:flex-[3] flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px] flex-shrink-0 xl:flex-shrink">
+      <div className="w-full landscape:w-auto landscape:flex-[3] landscape:flex-shrink landscape:min-w-0 lg:w-auto lg:flex-[3] lg:flex-shrink lg:min-w-0 flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px] flex-shrink-0">
         {/* Header inside Zone 1 */}
         <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
           <h2 className="text-[16px] font-bold text-[#2E3271] truncate mr-2 sm:mr-[20px]" title={name}>
@@ -1504,7 +1504,7 @@ export default function DashboardExerciseBlock({
       </div>
 
       {/* ZONE 2: Records Carousel (approx 25% width or flex: 1) */}
-      <div className="w-full max-w-[390px] mx-auto xl:max-w-none xl:mx-0 xl:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
+      <div className="w-full max-w-[390px] mx-auto landscape:max-w-none landscape:mx-0 landscape:w-[270px] lg:max-w-none lg:mx-0 lg:w-[270px] flex-shrink-0 flex items-center justify-center h-[339px]">
         {isLoadingData ? (
           <div className="w-[220px] h-[339px] rounded-[24px] border border-[#D7D4DC] bg-white p-[20px] shadow-glift animate-pulse flex flex-col justify-between">
             <div className="w-full flex flex-col gap-4">
