@@ -7,17 +7,26 @@ import AdminHeaderSimple from "@/app/admin/components/AdminHeaderSimple";
 import Footer from "@/components/Footer";
 import { useUser, UserProvider } from "@/context/UserContext";
 import SupabaseProvider from "@/components/SupabaseProvider";
-import AuthDebug from "@/components/AuthDebug";
 import GliftLoader from "@/components/ui/GliftLoader";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import type { Session } from "@supabase/supabase-js";
+import dynamic from "next/dynamic";
 
-import { Session } from "@supabase/supabase-js";
+const MatrixRainBackground = dynamic(
+  () => import("@/components/ui/MatrixRainBackground"),
+  { ssr: false }
+);
+
+const AuthDebug = dynamic(
+  () => import("@/components/AuthDebug"),
+  { ssr: false }
+);
 
 interface ClientLayoutProps {
   children: React.ReactNode;
   disconnected?: boolean;
   initialSession: Session | null;
-  isAdminSubdomain: boolean;
+  isAdminSubdomain?: boolean;
 }
 
 import { GlobalLoaderProvider, useGlobalLoader } from "@/context/GlobalLoaderContext";
@@ -29,7 +38,10 @@ export default function ClientLayout({
   isAdminSubdomain,
 }: ClientLayoutProps) {
   const pathname = usePathname();
-  const isAdminPage = pathname?.startsWith("/admin") || isAdminSubdomain;
+  const isSubdomain =
+    isAdminSubdomain ??
+    (typeof window !== "undefined" ? window.location.hostname.startsWith("admin.") : false);
+  const isAdminPage = Boolean(pathname?.startsWith("/admin") || isSubdomain);
   const isComptePage = pathname?.startsWith("/compte");
 
   return (
@@ -38,9 +50,9 @@ export default function ClientLayout({
         <GlobalLoaderProvider>
           <ClientLayoutContent
             disconnected={disconnected}
-            isAdminPage={Boolean(isAdminPage)}
+            isAdminPage={isAdminPage}
             isComptePage={Boolean(isComptePage)}
-            isAdminSubdomain={isAdminSubdomain}
+            isAdminSubdomain={isSubdomain}
           >
             {children}
           </ClientLayoutContent>
@@ -58,8 +70,6 @@ interface ClientLayoutContentProps {
   isAdminSubdomain: boolean;
 }
 
-import MatrixRainBackground from "@/components/ui/MatrixRainBackground";
-
 function ClientLayoutContent({
   children,
   disconnected,
@@ -72,13 +82,24 @@ function ClientLayoutContent({
   const pathname = usePathname();
   const shouldForceDisconnected = disconnected || !isAuthenticated;
 
-  // Combine auth loading and manual global loading
-  const showLoader = useMinimumVisibility(isLoading || isGlobalLoading);
-
   const isAdminAuthPage =
     pathname === "/admin/connexion" ||
     pathname === "/admin/reinitialiser-mot-de-passe" ||
     (isAdminSubdomain && (pathname === "/connexion" || pathname === "/reinitialiser-mot-de-passe"));
+
+  // Routes protégées qui requièrent d'attendre la validation d'authentification
+  const isProtectedRoute = Boolean(
+    pathname?.startsWith("/tableau-de-bord") ||
+    pathname?.startsWith("/dashboard") ||
+    pathname?.startsWith("/entrainements") ||
+    pathname?.startsWith("/compte") ||
+    (isAdminPage && !isAdminAuthPage)
+  );
+
+  // Les pages publiques (accueil, blog, store, shop, etc.) s'affichent instantanément
+  // sans être masquées par un loader plein écran pendant l'appel auth/profil.
+  const shouldBlockWithLoader = isGlobalLoading || (isLoading && isProtectedRoute);
+  const showLoader = useMinimumVisibility(shouldBlockWithLoader);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#FBFCFE]">

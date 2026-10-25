@@ -48,9 +48,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { createClient } from "@/lib/supabase/server";
-import { headers } from "next/headers";
-
 export default async function RootLayout({
   children,
   params,
@@ -60,12 +57,6 @@ export default async function RootLayout({
 }) {
   const resolvedParams = await params;
   const locale = resolvedParams?.lang || "fr";
-  const supabase = await createClient();
-
-  const headersList = await headers();
-  const host = headersList.get("host") || "";
-  const isAdminSubdomain = host.startsWith("admin.");
-
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://glift.io";
 
   const rootSchema = {
@@ -132,7 +123,7 @@ export default async function RootLayout({
       </head>
       <body className={quicksand.className}>
         <UnlockScroll />
-        <ClientLayoutWrapper initialSession={null} isAdminSubdomain={isAdminSubdomain}>{children}</ClientLayoutWrapper>
+        <ClientLayoutWrapper initialSession={null}>{children}</ClientLayoutWrapper>
       </body>
     </html>
   );

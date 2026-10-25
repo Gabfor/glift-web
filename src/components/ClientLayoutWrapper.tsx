@@ -14,7 +14,7 @@ export default function ClientLayoutWrapper({
 }: {
   children: React.ReactNode;
   initialSession: Session | null;
-  isAdminSubdomain: boolean;
+  isAdminSubdomain?: boolean;
 }) {
   const pathname = usePathname();
 

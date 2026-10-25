@@ -102,8 +102,8 @@ export default function StoreGrid({
     }
   };
 
-  // ➜ UserContext provides auth state and computed premium status
-  const { user, isPremiumUser, isLoading: isUserContextLoading } = useUser();
+  // ➜ UserContext provides auth state, profile and computed premium status
+  const { user, isPremiumUser, isLoading: isUserContextLoading, profile } = useUser();
 
   // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
@@ -212,40 +212,26 @@ export default function StoreGrid({
     [favorites, user?.id]
   );
 
-  // ➜ Auth & Extended Profile check once on load
+  // ➜ Auth & Extended Profile synchronisé directement depuis UserContext (zéro requête réseau parasite)
   useEffect(() => {
-    const supabase = createClient();
-    const fetchExtendedProfile = async () => {
-      setIsAuthenticated(!!user);
+    setIsAuthenticated(!!user);
 
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
-          .eq("id", user.id)
-          .single();
-        if (data) {
-          const effectivePlan = isPremiumUser ? 'premium' : 'starter';
-          const nextProfile = {
-            ...data,
-            subscription_plan: effectivePlan,
-          } as any;
-          setUserProfile((prev) => {
-            if (JSON.stringify(prev) === JSON.stringify(nextProfile)) {
-              return prev;
-            }
-            return nextProfile;
-          });
+    if (user && profile) {
+      const effectivePlan = isPremiumUser ? "premium" : "starter";
+      const nextProfile = {
+        ...profile,
+        subscription_plan: effectivePlan,
+      } as any;
+      setUserProfile((prev) => {
+        if (JSON.stringify(prev) === JSON.stringify(nextProfile)) {
+          return prev;
         }
-      } else {
-        setUserProfile((prev) => (prev === null ? prev : null));
-      }
-    };
-
-    if (!isUserContextLoading) {
-      fetchExtendedProfile();
+        return nextProfile;
+      });
+    } else if (!user && !isUserContextLoading) {
+      setUserProfile((prev) => (prev === null ? prev : null));
     }
-  }, [user?.id, isPremiumUser, isUserContextLoading]);
+  }, [user, profile, isPremiumUser, isUserContextLoading]);
 
   // ➜ Fetch programs
   useEffect(() => {

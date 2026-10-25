@@ -22,7 +22,16 @@ import RichTextLinkModal from "./RichTextLinkModal";
 import RichTextVideoModal from "./RichTextVideoModal";
 import RichTextHelpLinkModal from "./RichTextHelpLinkModal";
 import RichTextImageModal from "./RichTextImageModal";
-import EmojiPicker from 'emoji-picker-react';
+import dynamic from 'next/dynamic';
+
+const EmojiPicker = dynamic(() => import('emoji-picker-react'), {
+    ssr: false,
+    loading: () => (
+        <div className="w-[300px] h-[400px] flex items-center justify-center bg-white rounded-[8px] text-xs text-[#5D6494]">
+            Chargement...
+        </div>
+    ),
+});
 
 const quicksand = Quicksand({
     subsets: ["latin"],
