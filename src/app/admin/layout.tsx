@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
-import AdminHeader from "@/components/AdminHeader";
-import { Quicksand } from "next/font/google";
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
-
-const quicksand = Quicksand({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Glift – Admin",
@@ -36,7 +28,7 @@ export default async function AdminLayout({
     pathname === "/admin/reinitialiser-mot-de-passe";
 
   if (isAdminAuthPage) {
-    return <div className={quicksand.className}>{children}</div>;
+    return <>{children}</>;
   }
 
   const supabase = await createServerClient();
@@ -59,10 +51,5 @@ export default async function AdminLayout({
     redirect("/");
   }
 
-  return (
-    <div className={quicksand.className}>
-      <AdminHeader />
-      {children}
-    </div>
-  );
+  return <>{children}</>;
 }
