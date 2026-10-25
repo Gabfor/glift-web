@@ -1541,20 +1541,32 @@ export default function DashboardClient({
               />
             </div>
 
-            {hasLoadedPreferences && !selectedProgram && (
+            {hasLoadedPreferences && hasLoadedProgramList && !selectedProgram && (
               <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
                 <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
                   Oups ! Aucun programme pour le moment....
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
-                  <Link href={trainingsUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
-                    Crée un entraînement
-                  </Link>{" "}
-                  dès maintenant ou rends toi dans le{" "}
-                  <Link href={storeUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
-                    Store
-                  </Link>{" "}
-                  pour trouver ton prochain programme !
+                  {hasProgramOptions ? (
+                    <>
+                      Sélectionne un programme dans le menu déroulant ou rends toi dans le{" "}
+                      <Link href={storeUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
+                        Store
+                      </Link>{" "}
+                      pour en trouver un nouveau !
+                    </>
+                  ) : (
+                    <>
+                      <Link href={trainingsUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
+                        Crée un entraînement
+                      </Link>{" "}
+                      dès maintenant ou rends toi dans le{" "}
+                      <Link href={storeUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
+                        Store
+                      </Link>{" "}
+                      pour trouver ton prochain programme !
+                    </>
+                  )}
                 </p>
                 <CTAButton href={storeUrl}>
                   Aller sur le Store
