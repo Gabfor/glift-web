@@ -51,6 +51,8 @@ type ProgramTrainingSummary = {
 };
 
 import ProgramHideWarningModal from "./ProgramHideWarningModal";
+import ProgramMenu from "./ProgramMenu";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 export default function ProgramEditor({
   name,
@@ -90,6 +92,8 @@ export default function ProgramEditor({
   const [trainingsData, setTrainingsData] = useState<ProgramTrainingSummary[]>([]);
   const [localName, setLocalName] = useState(name ?? "");
   const [showHideWarningModal, setShowHideWarningModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showVisibility, setShowVisibility] = useState(false);
 
   const handleClearName = useCallback(() => {
     setLocalName("");
@@ -297,14 +301,15 @@ export default function ProgramEditor({
 
 
   return (
-    <div
-      className={`relative flex items-center justify-between h-[50px] mb-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}
-      style={{ zIndex }}
+    <>
+      <div
+      className={`relative flex items-center justify-between h-[50px] mb-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"} ${isMobileMenuOpen ? "z-50" : ""}`}
+      style={{ zIndex: isMobileMenuOpen ? 50 : zIndex }}
     >
       {/* Conteneur du nom du programme centré avec z-index pour passer au-dessus de la ligne */}
-      <div className="flex-1 flex justify-center items-center relative z-10">
+      <div className="flex-1 flex justify-center items-center relative z-10 px-10 md:px-0">
         {editingIndex === index ? (
-          <div className="relative max-w-[250px]">
+          <div className="relative max-w-[250px] w-full">
             <input
               ref={inputRef}
               value={localName}
@@ -360,7 +365,14 @@ export default function ProgramEditor({
             className={`group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer p-2 hover:text-[#C2BFC6] ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}
             onClick={handleStartEditClick}
           >
-            <span>{name || DEFAULT_PROGRAM_NAME}</span>
+            <div className="flex items-center gap-2">
+              <span className="truncate max-w-[200px] sm:max-w-none">{name || DEFAULT_PROGRAM_NAME}</span>
+              {isNew && (
+                <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center">
+                  NOUVEAU
+                </span>
+              )}
+            </div>
             <Tooltip content="Editer">
               <div
                 className="relative ml-1 w-[15px] h-[15px] cursor-pointer select-none"
@@ -386,9 +398,9 @@ export default function ProgramEditor({
         )}
       </div>
 
-      {/* Icônes alignées à gauche avec z-index pour passer au-dessus de la ligne */}
+      {/* Icônes alignées à gauche (Desktop uniquement) */}
       {!adminMode && (
-        <div className={`flex items-center absolute left-0 z-10 p-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}>
+        <div className={`hidden md:flex items-center absolute left-0 z-10 p-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}>
           {trainingsData.length > 0 ? (
             <>
               <Tooltip content="Descendre">
@@ -470,73 +482,73 @@ export default function ProgramEditor({
                   </div>
                 </button>
               </Tooltip>
-
-              {isNew && (
-                <span className="ml-2 text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center">
-                  NOUVEAU
-                </span>
-              )}
             </>
           ) : (
             <>
-              <button
-                type="button"
-                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-                disabled
-                aria-label="Descendre désactivée"
-              >
-                <div className="relative w-full h-full">
-                  <Image
-                    src="/icons/move_down.svg"
-                    alt="Descendre désactivée"
-                    fill
-                    sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full opacity-100"
-                  />
-                </div>
-              </button>
+              <Tooltip content="Descendre">
+                <button
+                  type="button"
+                  className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                  disabled
+                  aria-label="Descendre désactivée"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/move_down.svg"
+                      alt="Descendre désactivée"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
 
-              <button
-                type="button"
-                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-                disabled
-                aria-label="Monter désactivée"
-              >
-                <div className="relative w-full h-full">
-                  <Image
-                    src="/icons/move_up.svg"
-                    alt="Monter désactivée"
-                    fill
-                    sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full opacity-100"
-                  />
-                </div>
-              </button>
+              <Tooltip content="Monter">
+                <button
+                  type="button"
+                  className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                  disabled
+                  aria-label="Monter désactivée"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/move_up.svg"
+                      alt="Monter désactivée"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
 
-              <button
-                type="button"
-                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-                disabled
-                aria-label="Dupliquer désactivée"
-              >
-                <div className="relative w-full h-full">
-                  <Image
-                    src="/icons/duplicate.svg"
-                    alt="Dupliquer désactivée"
-                    fill
-                    sizes="100%"
-                    className="absolute top-0 left-0 w-full h-full opacity-100"
-                  />
-                </div>
-              </button>
+              <Tooltip content="Dupliquer">
+                <button
+                  type="button"
+                  className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                  disabled
+                  aria-label="Dupliquer désactivée"
+                >
+                  <div className="relative w-full h-full">
+                    <Image
+                      src="/icons/duplicate.svg"
+                      alt="Dupliquer désactivée"
+                      fill
+                      sizes="100%"
+                      className="absolute top-0 left-0 w-full h-full opacity-100"
+                    />
+                  </div>
+                </button>
+              </Tooltip>
             </>
           )}
         </div>
       )}
 
-      {/* Icônes alignées à droite avec z-index pour passer au-dessus de la ligne */}
+      {/* Icônes alignées à droite (Desktop uniquement) */}
       {!adminMode && (
-        <div className={`flex items-center gap-3 absolute right-0 z-10 p-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}>
+        <div className={`hidden md:flex items-center gap-3 absolute right-0 z-10 p-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}>
           {trainingsData.length > 0 ? (
             <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
               <button
@@ -564,22 +576,24 @@ export default function ProgramEditor({
               </button>
             </Tooltip>
           ) : (
-            <button
-              type="button"
-              className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-              disabled
-              aria-label={isAppVisible ? "Masquer" : "Afficher"}
-            >
-              <div className="relative w-full h-full">
-                <Image
-                  src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
-                  alt={isAppVisible ? "Masquer" : "Afficher"}
-                  fill
-                  sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-100"
-                />
-              </div>
-            </button>
+            <Tooltip content={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}>
+              <button
+                type="button"
+                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={isAppVisible ? "/icons/app.svg" : "/icons/app_hidden.svg"}
+                    alt={isAppVisible ? "Masquer dans l'app" : "Afficher dans l'app"}
+                    fill
+                    sizes="100%"
+                    className="absolute top-0 left-0 w-full h-full opacity-100"
+                  />
+                </div>
+              </button>
+            </Tooltip>
           )}
           {trainingsData.length > 0 ? (
             <Tooltip
@@ -636,34 +650,42 @@ export default function ProgramEditor({
               </button>
             </Tooltip>
           ) : (
-            <button
-              type="button"
-              className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
-              disabled
-              aria-label={
+            <Tooltip
+              content={
                 isDashboardVisible
                   ? "Masquer dans le tableau de bord"
                   : "Afficher dans le tableau de bord"
               }
             >
-              <div className="relative w-full h-full">
-                <Image
-                  src={
-                    isDashboardVisible
-                      ? "/icons/dashboard.svg"
-                      : "/icons/dashboard_hidden.svg"
-                  }
-                  alt={
-                    isDashboardVisible
-                      ? "Masquer dans le tableau de bord"
-                      : "Afficher dans le tableau de bord"
-                  }
-                  fill
-                  sizes="100%"
-                  className="absolute top-0 left-0 w-full h-full opacity-100"
-                />
-              </div>
-            </button>
+              <button
+                type="button"
+                className="relative w-[25px] h-[25px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label={
+                  isDashboardVisible
+                    ? "Masquer dans le tableau de bord"
+                    : "Afficher dans le tableau de bord"
+                }
+              >
+                <div className="relative w-full h-full">
+                  <Image
+                    src={
+                      isDashboardVisible
+                        ? "/icons/dashboard.svg"
+                        : "/icons/dashboard_hidden.svg"
+                    }
+                    alt={
+                      isDashboardVisible
+                        ? "Masquer dans le tableau de bord"
+                        : "Afficher dans le tableau de bord"
+                    }
+                    fill
+                    sizes="100%"
+                    className="absolute top-0 left-0 w-full h-full opacity-100"
+                  />
+                </div>
+              </button>
+            </Tooltip>
           )}
           {trainingsData.length > 0 ? (
             <Tooltip content="Supprimer">
@@ -680,18 +702,35 @@ export default function ProgramEditor({
               </button>
             </Tooltip>
           ) : (
-            <button
-              type="button"
-              className="relative w-[20px] h-[20px] opacity-50 cursor-not-allowed"
-              disabled
-              aria-label="Supprimer désactivé"
-            >
-              <div className="relative w-full h-full">
-                <TrashIcon className="absolute top-0 left-0 h-full w-full opacity-100" />
-              </div>
-            </button>
+            <Tooltip content="Supprimer">
+              <button
+                type="button"
+                className="relative w-[20px] h-[20px] opacity-50 cursor-not-allowed"
+                disabled
+                aria-label="Supprimer désactivé"
+              >
+                <div className="relative w-full h-full">
+                  <TrashIcon className="absolute top-0 left-0 h-full w-full opacity-100" />
+                </div>
+              </button>
+            </Tooltip>
           )}
         </div>
+      )}
+
+      {/* Menu responsive mobile (Mobile uniquement) */}
+      {!adminMode && (
+        <ProgramMenu
+          isFirst={isFirst}
+          isLastActive={isLastActive}
+          onMoveUp={onMoveUp}
+          onMoveDown={onMoveDown}
+          onDuplicate={onDuplicate}
+          onToggleVisibility={() => setShowVisibility((prev) => !prev)}
+          onDelete={onDelete}
+          hasTrainings={trainingsData.length > 0}
+          onOpenChange={setIsMobileMenuOpen}
+        />
       )}
       {adminMode ? (
         <>
@@ -712,6 +751,58 @@ export default function ProgramEditor({
         }}
       />
     </div>
+
+    {/* Panneau de visibilité mobile du programme (identique à VisibilityPanel) */}
+    {!adminMode && showVisibility && (
+      <div className="md:hidden bg-white p-4 border border-[#D7D4DC] rounded-[8px] shadow-glift mb-4 relative z-10 w-full animate-in fade-in duration-200">
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité</div>
+          <button
+            type="button"
+            onClick={() => setShowVisibility(false)}
+            className="relative w-[24px] h-[24px]"
+          >
+            <Image
+              src="/icons/close.svg"
+              alt="Fermer"
+              fill
+              sizes="100%"
+              className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-100 hover:opacity-0"
+            />
+            <Image
+              src="/icons/close_hover.svg"
+              alt="Fermer (hover)"
+              fill
+              sizes="100%"
+              className="absolute top-0 left-0 w-full h-full transition-opacity duration-300 ease-in-out opacity-0 hover:opacity-100"
+            />
+          </button>
+        </div>
+
+        <div className="flex justify-between items-center mb-4">
+          <span className="text-[16px] font-semibold text-[#5D6494]">Application mobile</span>
+          <ToggleSwitch
+            checked={isAppVisible}
+            isAdmin={false}
+            onCheckedChange={handleAppClick}
+            disabled={trainingsData.length === 0}
+            ariaLabel="Basculer la visibilité sur l’application mobile"
+          />
+        </div>
+
+        <div className="flex justify-between items-center">
+          <span className="text-[16px] font-semibold text-[#5D6494]">Tableau de bord</span>
+          <ToggleSwitch
+            checked={isDashboardVisible}
+            isAdmin={false}
+            onCheckedChange={handleDashboardClick}
+            disabled={trainingsData.length === 0 || isUpdatingDashboardVisibility}
+            ariaLabel="Basculer la visibilité sur le tableau de bord"
+          />
+        </div>
+      </div>
+    )}
+  </>
   );
 }
 

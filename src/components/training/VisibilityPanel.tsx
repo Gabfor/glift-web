@@ -18,7 +18,7 @@ interface VisibilityPanelProps {
 
 export default function VisibilityPanel({ training, onClose, onUpdateVisibility }: VisibilityPanelProps) {
   return (
-    <div className="bg-white p-4 border border-[#D7D4DC] mt-[-1px] w-[270px] rounded-b-[8px] rounded-t-none">
+    <div className="bg-white p-4 border border-[#D7D4DC] mt-[-1px] w-full rounded-b-[8px] rounded-t-none">
       <div className="flex justify-between items-center mb-4">
         <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité</div>
         <button onClick={onClose} className="relative w-[24px] h-[24px]">
@@ -43,6 +43,7 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
         <span className="text-[16px] font-semibold text-[#5D6494]">Application mobile</span>
         <ToggleSwitch
           checked={!!training.app}
+          isAdmin={false}
           onCheckedChange={async (checked) => {
             await onUpdateVisibility({ app: checked })
           }}
@@ -51,13 +52,14 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
       </div>
 
       <div className="flex justify-between items-center">
-        <span className="text-[16px] font-semibold text-[#5D6494]">Dashboard</span>
+        <span className="text-[16px] font-semibold text-[#5D6494]">Tableau de bord</span>
         <ToggleSwitch
           checked={!!training.dashboard}
+          isAdmin={false}
           onCheckedChange={async (checked) => {
             await onUpdateVisibility({ dashboard: checked })
           }}
-          ariaLabel="Basculer la visibilité sur le dashboard"
+          ariaLabel="Basculer la visibilité sur le tableau de bord"
         />
       </div>
     </div>

@@ -17,6 +17,8 @@ import ProgramsSkeleton, {
 import AddTrainingLockedModal from "@/components/AddTrainingLockedModal";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
+import { useSmoothAutoScroll } from "@/hooks/useSmoothAutoScroll";
+import { cn } from "@/lib/utils";
 
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
@@ -25,20 +27,15 @@ import {
   rectIntersection,
   useSensor,
   useSensors,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   DragEndEvent,
   DragStartEvent,
   DragOverEvent,
+  AutoScrollActivator,
+  DragOverlay,
 } from "@dnd-kit/core";
-import { DragOverlay } from "@dnd-kit/core";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
-
-const MINIMUM_TRAINING_SPINNER_DURATION = 1000;
-
-const wait = (duration: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, duration);
-  });
 
 import TrainingDeleteWarningModal from "@/components/TrainingDeleteWarningModal";
 
@@ -84,14 +81,22 @@ export default function EntrainementsPage({
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
 
+  useSmoothAutoScroll(Boolean(activeTraining));
+
   const [openVisibilityIds, setOpenVisibilityIds] = useState<string[]>([]);
   const [programsDuringDrag, setProgramsDuringDrag] = useState<Program[] | null>(null);
 
   const router = useRouter();
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 5,
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     })
   );
@@ -235,18 +240,10 @@ export default function EntrainementsPage({
   }, [programs, isPremiumUser, isLoading, isUserDataLoaded, supabase]);
 
   const handleTrainingNavigation = useCallback(
-    async (trainingId: string) => {
-      console.log("Navigating to:", trainingId);
-      if (loadingTraining) {
-        console.log("Navigation blocked: already loading", loadingTraining);
-        return;
-      }
-      setLoadingTraining({ id: trainingId, type: "open" });
-      await wait(MINIMUM_TRAINING_SPINNER_DURATION);
-      if (!isMountedRef.current) return;
+    (trainingId: string) => {
       router.push(`/entrainements/${trainingId}`);
     },
-    [loadingTraining, router]
+    [router]
   );
 
   const basePrograms = programsDuringDrag ?? programs;
@@ -279,6 +276,13 @@ export default function EntrainementsPage({
   }, [isLoading, isUserDataLoaded, programsToRender]);
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(50);
+      } catch {
+        // ignore
+      }
+    }
     const { id, data } = event.active;
     setActiveProgramId(data?.current?.programId ?? null);
 
@@ -324,7 +328,15 @@ export default function EntrainementsPage({
     });
   };
 
+  const handleDragCancel = () => {
+    setActiveTraining(null);
+    setActiveProgramId(null);
+    setProgramsDuringDrag(null);
+  };
+
   const handleDragEnd = async (event: DragEndEvent) => {
+    setActiveTraining(null);
+    setActiveProgramId(null);
     setProgramsDuringDrag(null);
     if (!isPremiumUser) return;
 
@@ -437,7 +449,12 @@ export default function EntrainementsPage({
   }
 
   return (
-    <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
+    <main
+      className={cn(
+        "flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] transition-[padding] duration-200 ease-out",
+        activeTraining ? "pb-[65vh]" : "pb-[60px] md:pb-[80px]"
+      )}
+    >
       <div
         id="training-scroll-container"
         className="max-w-[1152px] mx-auto text-center flex flex-col items-center"
@@ -452,8 +469,8 @@ export default function EntrainementsPage({
           dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Entraînements" }}
         />
         <div 
-          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[700px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
-          dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Gérez vos programmes et vos entraînements." }}
+          className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] text-center max-w-[500px] mx-auto leading-relaxed mb-8 [&_p]:m-0"
+          dangerouslySetInnerHTML={{ __html: pageIntro?.description || "Organise tes entraînements et choisis les séances que tu souhaites synchroniser dans ton app ou sur ton tableau de bord." }}
         />
 
         {showSkeleton ? (
@@ -465,6 +482,8 @@ export default function EntrainementsPage({
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
+            onDragCancel={handleDragCancel}
+            autoScroll={false}
           >
             {programsToRender.map(({ program, originalIndex }, index) => {
               const computedZIndex = programsToRender.length - index;
@@ -520,14 +539,10 @@ export default function EntrainementsPage({
                       handleReorderTrainings(programId, ids)
                     }
                     onAddTraining={async () => {
-                      if (loadingTraining) return;
                       if (!program.id) return;
 
                       const newData = await handleAddTraining(program.id);
                       if (newData?.id) {
-                        setLoadingTraining({ id: newData.id, type: "add" });
-                        await wait(MINIMUM_TRAINING_SPINNER_DURATION);
-                        if (!isMountedRef.current) return;
                         router.push(`/entrainements/${newData.id}?new=1`);
                       }
                     }}

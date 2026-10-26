@@ -8,7 +8,6 @@ import type * as React from 'react'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 import Spinner from '@/components/ui/Spinner'
-import useMinimumVisibility from '@/hooks/useMinimumVisibility'
 import Tooltip from '@/components/Tooltip'
 import { Training } from '@/types/training'
 
@@ -21,7 +20,7 @@ type Props = {
   onToggleVisibility: () => void
   showVisibility: boolean
   dragDisabled: boolean
-  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
+  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
   simulateDrag?: boolean
   isLoading?: boolean
   isLocked?: boolean
@@ -70,7 +69,7 @@ export default function SortableItem({
   };
 
   const handleVisibilityUpdate = async (
-    updates: Partial<{ app: boolean }>
+    updates: Partial<{ app: boolean; dashboard: boolean }>
   ) => {
     const { error } = await supabase
       .from('trainings')
@@ -86,10 +85,11 @@ export default function SortableItem({
   }
 
   const [menuOpen, setMenuOpen] = useState(false)
-  const showLoader = useMinimumVisibility(isLoading, 2000)
+  const showLoader = Boolean(isLoading)
   const spinnerColorClass = 'text-[#D7D4DC]'
 
   const handleMainClick = () => {
+    if (isDragging) return;
     console.log("Item clicked:", training.id, "Locked:", isLocked);
     if (isLocked) {
       if (onUnlockClick) onUnlockClick();
@@ -98,21 +98,25 @@ export default function SortableItem({
     onClick(training.id);
   };
 
+  const { "aria-disabled": _ariaDisabled, ...cleanAttributes } = attributes;
+
   const content = (
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
+      {...cleanAttributes}
 
       className={cn(
-        'w-[270px] rounded-[8px] transition-shadow duration-300 ease-in-out',
+        'w-full sm:w-[270px] rounded-[8px] transition-shadow duration-300 ease-in-out',
         showVisibility ? 'shadow-glift-hover' : 'shadow-glift hover:shadow-glift-hover',
         menuOpen ? 'z-50' : 'z-0'
       )}
     >
       <div
+        {...(!dragDisabled && !isLocked ? listeners : {})}
+        style={{ WebkitTouchCallout: "none" }}
         className={cn(
-          "w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px]",
+          "w-full sm:w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] select-none touch-manipulation",
           showVisibility
             ? "rounded-t-[8px] rounded-b-none"
             : "rounded-[8px]",
@@ -129,7 +133,6 @@ export default function SortableItem({
               ? "cursor-default" // Pas de drag si bloqué
               : "cursor-grab active:cursor-grabbing"
           )}
-          {...(!dragDisabled && !isLocked ? listeners : {})}
           onClick={(e) => e.stopPropagation()}
         >
           {isLocked ? (
@@ -171,7 +174,9 @@ export default function SortableItem({
               ariaLabel="Chargement de l’entraînement"
             />
           ) : (
-            <span className="block w-full truncate text-center leading-normal">{training.name}</span>
+            <span className={cn("block w-full truncate text-center leading-normal", isLocked ? "text-[#D7D4DC]" : "text-[#3A416F]")}>
+              {training.name}
+            </span>
           )}
         </div>
 
@@ -179,6 +184,8 @@ export default function SortableItem({
         <div
           className="w-[25px] h-[25px] flex-shrink-0 z-10 flex items-center justify-center"
           onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
         >
           {!isLocked && (
             <TrainingCardMenu
@@ -205,7 +212,7 @@ export default function SortableItem({
 
   if (isLocked) {
     return (
-      <Tooltip content="Entraînement bloqué" placement="top">
+      <Tooltip content="Entraînement bloqué" placement="top" asChild className="w-full sm:w-auto">
         {content}
       </Tooltip>
     );

@@ -459,7 +459,8 @@ input:checked+.slider:before {
   button[disabled],
   input[type="button"]:disabled,
   input[type="submit"]:disabled,
-  [aria-disabled="true"],
+  button[aria-disabled="true"],
+  a[aria-disabled="true"],
   .disabled {
     color: var(--color-border-soft) !important;
   }
@@ -467,7 +468,8 @@ input:checked+.slider:before {
   /* Ensure descendants also inherit the disabled text color (like spans inside buttons) */
   button:disabled *,
   button[disabled] *,
-  [aria-disabled="true"] *,
+  button[aria-disabled="true"] *,
+  a[aria-disabled="true"] *,
   .disabled * {
     color: inherit !important;
   }

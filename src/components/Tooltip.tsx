@@ -22,6 +22,7 @@ export type TooltipProps = {
   asChild?: boolean;
   contentClassName?: string;
   arrowClassName?: string;
+  className?: string;
 };
 
 type TooltipChildProps = {
@@ -43,6 +44,7 @@ export default function Tooltip({
   forceVisible = false,
   disableHover = false,
   asChild = false,
+  className,
   contentClassName,
   arrowClassName,
 }: TooltipProps) {
@@ -221,7 +223,7 @@ export default function Tooltip({
         onMouseEnter={disableHover ? undefined : handleMouseEnter}
         onMouseLeave={disableHover ? undefined : handleMouseLeave}
         onClick={hideTooltip}
-        className="inline-flex items-center"
+        className={clsx("inline-flex items-center", className)}
       >
         {children}
       </div>

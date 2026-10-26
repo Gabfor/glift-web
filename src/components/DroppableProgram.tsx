@@ -29,7 +29,7 @@ interface Props {
   setOpenVisibilityIds: React.Dispatch<React.SetStateAction<string[]>>
   showVisibilityTrainingId?: string | null
   setShowVisibilityTrainingId?: (id: string | null) => void
-  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean }>) => void
+  onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
   loadingTraining?: LoadingTrainingState
   isFirstProgram?: boolean
   onUnlockClick?: () => void
@@ -128,13 +128,13 @@ export default function DroppableProgram(props: Props) {
               />
             );
           })}
-          <div className="ml-0">
+          <div className="ml-0 w-full sm:w-auto">
             <button
               // We always enable the button if it's Premium OR enabled.
               // If it is NOT enabled (Basic limit reached), we STILL want it clickable to show the modal.
               disabled={false}
               className={cn(
-                "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-[270px] h-[60px] transition",
+                "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-full sm:w-[270px] h-[60px] transition",
                 !isAddEnabled
                   ? "border-[#D7D4DC] text-[#D7D4DC] cursor-pointer" // Gray but clickable
                   : adminMode

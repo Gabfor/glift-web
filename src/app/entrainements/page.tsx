@@ -24,7 +24,7 @@ export default async function EntrainementsPage() {
   const initialPageContent = {
     surtitre: data?.surtitre ?? "",
     titre: data?.titre || "Entraînements",
-    description: data?.description ?? "Gérez vos programmes et vos entraînements.",
+    description: data?.description ?? "Organise tes entraînements et choisis les séances que tu souhaites synchroniser dans ton app ou sur ton tableau de bord.",
   };
 
   return <EntrainementsClient initialPageContent={initialPageContent} />;

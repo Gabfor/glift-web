@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 interface Training {
   id: string;
@@ -8,9 +9,25 @@ interface Training {
   app: boolean;
 }
 
-export default function DragPreviewItem({ training }: { training: Training }) {
+interface DragPreviewItemProps {
+  training: Training;
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+export default function DragPreviewItem({
+  training,
+  className,
+  style,
+}: DragPreviewItemProps) {
   return (
-    <div className="w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC] text-[#3A416F] shadow-glift-hover-strong cursor-grabbing select-none">
+    <div
+      style={style}
+      className={cn(
+        "pointer-events-none w-full h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC] text-[#3A416F] shadow-glift-hover-strong cursor-grabbing select-none",
+        className
+      )}
+    >
       {/* Zone de gauche : Drag */}
       <div className="w-[25px] h-[25px] flex-shrink-0 group relative flex items-center justify-center">
         <Image

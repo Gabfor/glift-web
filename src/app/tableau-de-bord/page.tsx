@@ -24,7 +24,7 @@ export default async function TableauDeBordPage() {
   const initialPageContent = {
     surtitre: data?.surtitre ?? (data === null ? "Tableau de bord" : ""),
     titre: data?.titre || "Tableau de bord",
-    description: data?.description ?? (data === null ? "Votre espace personnalisé de suivi." : ""),
+    description: data?.description ?? (data === null ? "Analyse tes performances, visualise ta progression à l'aide des graphiques et atteins tes objectifs exercice par exercice." : ""),
   };
 
   return <DashboardClient initialPageContent={initialPageContent} />;

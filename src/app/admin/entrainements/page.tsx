@@ -12,22 +12,21 @@ import { notifyTrainingChange } from "@/components/ProgramEditor";
 import BackLink from "@/components/BackLink";
 import {
   DndContext,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   rectIntersection,
   DragStartEvent,
   DragEndEvent,
+  AutoScrollActivator,
+  DragOverlay,
 } from "@dnd-kit/core";
-import { DragOverlay } from "@dnd-kit/core";
 import DragPreviewItem from "@/components/training/DragPreviewItem";
+import { useSmoothAutoScroll } from "@/hooks/useSmoothAutoScroll";
+import { cn } from "@/lib/utils";
 
-const MINIMUM_TRAINING_SPINNER_DURATION = 1000;
 
-const wait = (duration: number) =>
-  new Promise<void>((resolve) => {
-    setTimeout(resolve, duration);
-  });
 
 export default function AdminSingleProgramPage() {
   type TrainingsAdminRow = Database["public"]["Tables"]["trainings_admin"]["Row"];
@@ -37,13 +36,26 @@ export default function AdminSingleProgramPage() {
   const [originalName, setOriginalName] = useState<string>("Nouveau programme");
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [activeTraining, setActiveTraining] = useState<Training | null>(null);
+  useSmoothAutoScroll(Boolean(activeTraining));
   const [openVisibilityIds, setOpenVisibilityIds] = useState<string[]>([]);
   const [loadingTraining, setLoadingTraining] = useState<{ id: string; type: "open" | "add" } | null>(null);
 
   const supabase = useSupabaseClient();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const sensors = useSensors(useSensor(PointerSensor));
+  const sensors = useSensors(
+    useSensor(MouseSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
+      },
+    })
+  );
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -227,10 +239,6 @@ export default function AdminSingleProgramPage() {
       locked: false,
     };
 
-    // 4. Gestion de l'état de chargement et navigation (parité avec page publique)
-    setLoadingTraining({ id: data.id, type: "add" });
-    await wait(MINIMUM_TRAINING_SPINNER_DURATION);
-    
     if (!isMountedRef.current) return;
 
     setProgram(prev => {
@@ -379,6 +387,13 @@ export default function AdminSingleProgramPage() {
   };
 
   const handleDragStart = (event: DragStartEvent) => {
+    if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
+      try {
+        navigator.vibrate(50);
+      } catch {
+        // ignore
+      }
+    }
     const { id } = event.active;
     const training = program?.trainings.find((t) => t.id === id);
     if (training) setActiveTraining(training);
@@ -401,11 +416,7 @@ export default function AdminSingleProgramPage() {
     handleReorderTrainings(reordered.map((t) => t.id));
   };
 
-  const handleTrainingNavigation = async (trainingId: string) => {
-    if (loadingTraining) return;
-    setLoadingTraining({ id: trainingId, type: "open" });
-    await wait(MINIMUM_TRAINING_SPINNER_DURATION);
-    if (!isMountedRef.current) return;
+  const handleTrainingNavigation = (trainingId: string) => {
     router.push(`/admin/entrainements/${trainingId}`);
   };
 
@@ -414,7 +425,12 @@ export default function AdminSingleProgramPage() {
   const isEditing = !!searchParams?.get("edit");
 
   return (
-    <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px]">
+    <main
+      className={cn(
+        "min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] transition-[padding] duration-200 ease-out",
+        activeTraining ? "pb-[65vh]" : "pb-[100px]"
+      )}
+    >
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center relative z-10">
         <BackLink
           className="mb-6 self-start"
@@ -431,6 +447,8 @@ export default function AdminSingleProgramPage() {
           collisionDetection={rectIntersection}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveTraining(null)}
+          autoScroll={false}
         >
           <div className="relative w-full max-w-[1152px] mb-[20px] mt-[20px]">
             <ProgramEditor

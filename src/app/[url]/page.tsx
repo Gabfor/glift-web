@@ -135,7 +135,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         initialPageContent={{
           surtitre: page.surtitre || "",
           titre: page.titre || "",
-          description: page.description || "",
+          description: page.description || "Analyse tes performances, visualise ta progression à l'aide des graphiques et atteins tes objectifs exercice par exercice.",
         }}
       />
     );
@@ -155,7 +155,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         initialPageContent={{
           surtitre: page.surtitre ?? "",
           titre: page.titre || "Entraînements",
-          description: page.description ?? "Gérez vos programmes et vos entraînements.",
+          description: page.description ?? "Organise tes entraînements et choisis les séances que tu souhaites synchroniser dans ton app ou sur ton tableau de bord.",
         }}
       />
     );
