@@ -95,7 +95,7 @@ export default function DroppableProgram(props: Props) {
   const isAddEnabled = adminMode || isPremiumUser || allowAddTraining; // True if Admin OR Premium OR (Basic + count == 0)
 
   return (
-    <div ref={setNodeRef}>
+    <div ref={setNodeRef} className="min-h-[64px]">
       <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
         <div className="flex flex-wrap gap-4 items-start">
           {filteredTrainings.map((training, index) => {

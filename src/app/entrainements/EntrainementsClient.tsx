@@ -25,6 +25,10 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
   DndContext,
   rectIntersection,
+  pointerWithin,
+  closestCenter,
+  MeasuringStrategy,
+  type CollisionDetection,
   useSensor,
   useSensors,
   MouseSensor,
@@ -275,6 +279,52 @@ export default function EntrainementsPage({
     }
   }, [isLoading, isUserDataLoaded, programsToRender]);
 
+  const lastOverId = useRef<string | null>(null);
+  const programsDuringDragRef = useRef(programsDuringDrag);
+  programsDuringDragRef.current = programsDuringDrag;
+  const programsRef = useRef(programs);
+  programsRef.current = programs;
+
+  const customCollisionDetection: CollisionDetection = useCallback((args) => {
+    // 1. Check pointerWithin first
+    const pointerCollisions = pointerWithin(args);
+    let collisions = pointerCollisions;
+
+    // 2. If no direct pointer collisions, check rectIntersection
+    if (collisions.length === 0) {
+      collisions = rectIntersection(args);
+    }
+
+    // 3. Fallback to closestCenter
+    if (collisions.length === 0) {
+      collisions = closestCenter(args);
+    }
+
+    if (collisions.length > 0) {
+      const currentPrograms = programsDuringDragRef.current ?? programsRef.current;
+      // Prioritize SortableItem (training card) over DroppableProgram (container)
+      const itemCollision = collisions.find((c) =>
+        currentPrograms.some((p) => p.trainings.some((t) => t.id === c.id))
+      );
+
+      const selectedCollision = itemCollision ?? collisions[0];
+      lastOverId.current = String(selectedCollision.id);
+      return [selectedCollision];
+    }
+
+    // 4. If completely outside, return lastOverId if still in droppableContainers
+    if (lastOverId.current) {
+      const lastContainer = args.droppableContainers.find(
+        (c) => c.id === lastOverId.current
+      );
+      if (lastContainer) {
+        return [{ id: lastOverId.current, data: { droppableContainer: lastContainer } }];
+      }
+    }
+
+    return [];
+  }, []);
+
   const handleDragStart = (event: DragStartEvent) => {
     if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
       try {
@@ -285,6 +335,7 @@ export default function EntrainementsPage({
     }
     const { id, data } = event.active;
     setActiveProgramId(data?.current?.programId ?? null);
+    lastOverId.current = String(id);
 
     const current = programs
       .flatMap((p) => p.trainings)
@@ -297,156 +348,183 @@ export default function EntrainementsPage({
   const handleDragOver = (event: DragOverEvent) => {
     if (!isPremiumUser) return;
     const { active, over } = event;
-    const fromProgramId = activeProgramId;
-    const toProgramId = over?.data?.current?.programId;
+    if (!over) return;
 
-    if (!over || !fromProgramId || !toProgramId) return;
-    if (fromProgramId === toProgramId) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
 
-    const training = programs
-      .find((p) => p.id === fromProgramId)
-      ?.trainings.find((t: Training) => t.id === active.id);
+    if (activeId === overId) return;
 
-    if (!training) return;
+    const currentPrograms = programsDuringDrag ?? programs;
 
-    let newIndex = 0;
-    const destProgram = (programsDuringDrag ?? programs).find((p) => p.id === toProgramId);
-    const destTrainings: Training[] = destProgram?.trainings ?? [];
+    // Which program currently holds activeId?
+    const fromProgram = currentPrograms.find((p) =>
+      p.trainings.some((t) => t.id === activeId)
+    );
+    const fromProgramId = fromProgram?.id;
 
-    if (over.id && typeof over.id === 'string') {
-      if (over.id.toString().startsWith('add-button-')) {
-        newIndex = destTrainings.length;
-      } else {
-        const index = destTrainings.findIndex((t: Training) => t.id === over.id);
-        newIndex = index >= 0 ? index + 1 : destTrainings.length;
-      }
+    // Which program does overId belong to?
+    const toProgram = currentPrograms.find(
+      (p) => p.id === overId || p.trainings.some((t) => t.id === overId)
+    );
+    const toProgramId = toProgram?.id ?? over.data?.current?.programId;
+
+    if (!fromProgramId || !toProgramId) return;
+
+    const activeTrainingItem =
+      activeTraining ??
+      programs
+        .flatMap((p) => p.trainings)
+        .find((t) => t.id === activeId);
+
+    if (!activeTrainingItem) return;
+
+    // Case 1: Moving between DIFFERENT programs
+    if (fromProgramId !== toProgramId) {
+      setProgramsDuringDrag((prev) => {
+        const currentList = prev ?? programs;
+        const destProgram = currentList.find((p) => p.id === toProgramId);
+        const destTrainings = destProgram?.trainings ?? [];
+
+        let newIndex: number;
+        if (overId === toProgramId || overId.startsWith("add-button-")) {
+          newIndex = destTrainings.length;
+        } else {
+          const overIndex = destTrainings.findIndex((t) => t.id === overId);
+          newIndex = overIndex >= 0 ? overIndex : destTrainings.length;
+        }
+
+        return currentList.map((program) => {
+          if (program.id === fromProgramId) {
+            return {
+              ...program,
+              trainings: program.trainings.filter((t) => t.id !== activeId),
+            };
+          }
+          if (program.id === toProgramId) {
+            const trainingsWithoutActive = program.trainings.filter(
+              (t) => t.id !== activeId
+            );
+            const clampedIndex = Math.max(
+              0,
+              Math.min(newIndex, trainingsWithoutActive.length)
+            );
+            trainingsWithoutActive.splice(clampedIndex, 0, activeTrainingItem);
+            return {
+              ...program,
+              trainings: trainingsWithoutActive,
+            };
+          }
+          return program;
+        });
+      });
+      return;
     }
 
-    setProgramsDuringDrag((prev) => {
-      if (!prev) return prev;
-      return moveTrainingLocallyImmutable(prev, training, fromProgramId, toProgramId, newIndex);
-    });
+    // Case 2: Moving WITHIN the SAME program (reordering in real-time so other cards shift)
+    if (fromProgramId === toProgramId) {
+      if (overId === toProgramId || overId.startsWith("add-button-")) {
+        return;
+      }
+
+      setProgramsDuringDrag((prev) => {
+        const currentList = prev ?? programs;
+        const program = currentList.find((p) => p.id === fromProgramId);
+        if (!program) return prev;
+
+        const oldIndex = program.trainings.findIndex((t) => t.id === activeId);
+        const newIndex = program.trainings.findIndex((t) => t.id === overId);
+
+        if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) {
+          return prev;
+        }
+
+        const newTrainings = [...program.trainings];
+        const [moved] = newTrainings.splice(oldIndex, 1);
+        newTrainings.splice(newIndex, 0, moved);
+
+        return currentList.map((p) =>
+          p.id === fromProgramId ? { ...p, trainings: newTrainings } : p
+        );
+      });
+    }
   };
 
   const handleDragCancel = () => {
     setActiveTraining(null);
     setActiveProgramId(null);
     setProgramsDuringDrag(null);
+    lastOverId.current = null;
   };
 
   const handleDragEnd = async (event: DragEndEvent) => {
+    const finalPrograms = programsDuringDrag;
+    const initialFromProgramId = activeProgramId;
+
     setActiveTraining(null);
     setActiveProgramId(null);
     setProgramsDuringDrag(null);
+    lastOverId.current = null;
+
     if (!isPremiumUser) return;
 
     const { active, over } = event;
     if (!over) return;
 
-    const fromProgramId = activeProgramId;
-    const toProgramId = over?.data?.current?.programId ?? null;
-    const trainingId = active.id as string;
+    const trainingId = String(active.id);
 
-    if (active.id === over.id && fromProgramId === toProgramId) {
+    // Find where the training is in finalPrograms
+    const currentProgram = finalPrograms?.find((p) =>
+      p.trainings.some((t) => t.id === trainingId)
+    );
+    const finalProgramId = currentProgram?.id ?? over.data?.current?.programId;
+
+    if (!initialFromProgramId || !finalProgramId) return;
+
+    // Case A: Moved to a DIFFERENT program
+    if (initialFromProgramId !== finalProgramId) {
+      const position = currentProgram
+        ? currentProgram.trainings.findIndex((t) => t.id === trainingId)
+        : 0;
+      const validPosition = position >= 0 ? position : 0;
+
+      const training = programs
+        .find((p) => p.id === initialFromProgramId)
+        ?.trainings.find((t) => t.id === trainingId);
+
+      if (training) {
+        moveTrainingLocally(training, initialFromProgramId, finalProgramId, validPosition);
+      }
+
+      await moveTrainingToAnotherProgram(
+        trainingId,
+        initialFromProgramId,
+        finalProgramId,
+        validPosition
+      );
+      notifyTrainingChange(finalProgramId);
       return;
     }
 
-    if (fromProgramId && toProgramId && fromProgramId !== toProgramId) {
-      const destProgram = programs.find((p) => p.id === toProgramId);
-      const destTrainings = destProgram?.trainings ?? [];
+    // Case B: Reordered within the SAME program
+    if (initialFromProgramId === finalProgramId) {
+      const originalProgram = programs.find((p) => p.id === initialFromProgramId);
+      const originalTrainings = originalProgram?.trainings ?? [];
+      const newTrainings = currentProgram?.trainings ?? [];
 
-      let position = destTrainings.length;
+      const newIds = newTrainings.map((t) => t.id);
+      const oldIds = originalTrainings.map((t) => t.id);
 
-      if (over.id && typeof over.id === 'string') {
-        if (over.id.toString().startsWith('add-button-')) {
-          position = destTrainings.length;
-        } else if (over.id === active.id) {
-          position = destTrainings.length;
-        } else {
-          const index = destTrainings.findIndex((t: Training) => t.id === over.id);
-          const containsDragged = destTrainings.some((t: Training) => t.id === active.id);
+      const hasChanged =
+        newIds.length !== oldIds.length ||
+        newIds.some((id, idx) => id !== oldIds[idx]);
 
-          if (!containsDragged) {
-            position = index >= 0 ? index : destTrainings.length;
-          } else {
-            const adjustedIndex = destTrainings
-              .filter((t: Training) => t.id !== active.id)
-              .findIndex((t: Training) => t.id === over.id);
-            position = adjustedIndex >= 0 ? adjustedIndex : destTrainings.length;
-          }
-        }
-      }
-
-      const alreadyInTarget = destTrainings.some((t: Training) => t.id === trainingId);
-      if (!alreadyInTarget) {
-        const training = programs
-          .find((p) => p.id === fromProgramId)
-          ?.trainings.find((t: Training) => t.id === trainingId);
-        if (training) {
-          moveTrainingLocally(training, fromProgramId, toProgramId, position);
-        }
-      }
-
-      await moveTrainingToAnotherProgram(trainingId, fromProgramId, toProgramId, position);
-      notifyTrainingChange(toProgramId);
-
-    } else if (fromProgramId === toProgramId) {
-      const program = programs.find((p) => p.id === fromProgramId);
-      if (!program) return;
-      const oldIndex = program.trainings.findIndex((t: Training) => t.id === active.id);
-      const newIndex = program.trainings.findIndex((t: Training) => t.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
-        const reorderedIds = [...program.trainings];
-        const [moved] = reorderedIds.splice(oldIndex, 1);
-        reorderedIds.splice(newIndex, 0, moved);
-
-        if (fromProgramId) {
-          reorderTrainingsLocally(
-            fromProgramId,
-            reorderedIds.map((t: Training) => t.id)
-          );
-          await handleReorderTrainings(
-            fromProgramId,
-            reorderedIds.map((t: Training) => t.id)
-          );
-        }
+      if (hasChanged) {
+        reorderTrainingsLocally(initialFromProgramId, newIds);
+        await handleReorderTrainings(initialFromProgramId, newIds);
       }
     }
   };
-
-  function moveTrainingLocallyImmutable(
-    currentPrograms: Program[],
-    training: Training,
-    fromProgramId: string,
-    toProgramId: string,
-    position: number
-  ): Program[] {
-    return currentPrograms.map((program): Program => {
-      if (program.id === fromProgramId) {
-        return {
-          ...program,
-          trainings: program.trainings.filter((t: Training) => t.id !== training.id),
-        };
-      }
-      if (program.id === toProgramId) {
-        const alreadyInTarget = program.trainings.some((t: Training) => t.id === training.id);
-        let newTrainings = [...program.trainings];
-
-        if (!alreadyInTarget) {
-          newTrainings.splice(position, 0, training);
-        } else {
-          newTrainings = newTrainings.filter((t: Training) => t.id !== training.id);
-          newTrainings.splice(position, 0, training);
-        }
-
-        return {
-          ...program,
-          trainings: newTrainings,
-        };
-      }
-      return program;
-    });
-  }
 
   return (
     <main
@@ -478,7 +556,12 @@ export default function EntrainementsPage({
         ) : (
           <DndContext
             sensors={sensors}
-            collisionDetection={rectIntersection}
+            collisionDetection={customCollisionDetection}
+            measuring={{
+              droppable: {
+                strategy: MeasuringStrategy.Always,
+              },
+            }}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
