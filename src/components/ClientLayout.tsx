@@ -88,7 +88,8 @@ function ClientLayoutContent({
     (isAdminSubdomain && (pathname === "/connexion" || pathname === "/reinitialiser-mot-de-passe"));
 
   // Routes protégées qui requièrent d'attendre la validation d'authentification
-  const isProtectedRoute = Boolean(
+  const isLogoutPage = pathname === "/deconnexion";
+  const isProtectedRoute = !isLogoutPage && Boolean(
     pathname?.startsWith("/tableau-de-bord") ||
     pathname?.startsWith("/dashboard") ||
     pathname?.startsWith("/entrainements") ||

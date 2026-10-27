@@ -39,10 +39,17 @@ const sanitizeCookieOptions = (
     delete sanitized.secure;
   }
 
+  // Si c'est une suppression de cookie, forcer l'expiration immédiate (maxAge: 0, expires: epoch)
+  if (isRemoval) {
+    sanitized.maxAge = 0;
+    sanitized.expires = new Date(0);
+    return sanitized;
+  }
+
   // Ne pas briser la persistance du code-verifier PKCE (crucial pour le changement de mot de passe)
   const isCodeVerifier = name.includes("code-verifier");
 
-  if (shouldPersist || isRemoval || isCodeVerifier) {
+  if (shouldPersist || isCodeVerifier) {
     return sanitized;
   }
 
@@ -74,11 +81,16 @@ const createCookieBridge = (): CookieMethodsBrowser => ({
     const shouldPersist = rememberPreference !== "0";
 
     cookies.forEach(({ name, value, options }) => {
+      const isRemoval =
+        value === "" ||
+        (options && options.maxAge !== undefined && options.maxAge <= 0) ||
+        (options?.expires instanceof Date && options.expires.getTime() <= Date.now());
+
       const sanitizedOptions = sanitizeCookieOptions(
         name,
         options,
         shouldPersist,
-        value === "",
+        isRemoval,
       );
 
       document.cookie = serialize(name, value, sanitizedOptions);

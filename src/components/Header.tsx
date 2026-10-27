@@ -605,7 +605,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 <button
                   onClick={() => {
                     setDropdownOpen(false);
-                    router.push("/deconnexion");
+                    window.location.href = "/deconnexion";
                   }}
                   className="block w-[158px] text-left text-[16px] text-[var(--color-accent-danger)] hover:text-[var(--color-accent-danger-hover)] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[var(--color-danger-surface)]"
                 >
@@ -837,7 +837,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      router.push("/deconnexion");
+                      window.location.href = "/deconnexion";
                     }}
                     className="w-full h-[44px] rounded-full bg-[#EF4F4E] hover:bg-[#E03E3D] text-white font-semibold text-[16px] flex items-center justify-center transition-colors cursor-pointer"
                   >

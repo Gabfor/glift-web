@@ -216,7 +216,7 @@ export default function AdminHeader() {
                 <button
                   onClick={() => {
                     setDropdownOpen(false);
-                    router.push("/deconnexion");
+                    window.location.href = "/deconnexion";
                   }}
                   className="block w-[158px] text-left text-[16px] text-[#EF4F4E] hover:text-[#BA2524] font-semibold py-[8px] px-2 mx-[10px] rounded-[5px] hover:bg-[#FFF1F1]"
                 >

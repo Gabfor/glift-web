@@ -29,11 +29,10 @@ type TooltipChildProps = {
   onMouseEnter?: React.MouseEventHandler<HTMLElement>;
   onMouseLeave?: React.MouseEventHandler<HTMLElement>;
   onClick?: React.MouseEventHandler<HTMLElement>;
+  ref?: React.Ref<HTMLElement>;
 };
 
-type TooltipChildElement = ReactElement<TooltipChildProps> & {
-  ref?: React.Ref<HTMLElement> | string;
-};
+type TooltipChildElement = ReactElement<TooltipChildProps>;
 
 export default function Tooltip({
   children,
@@ -191,10 +190,11 @@ export default function Tooltip({
 
   if (asChild && React.isValidElement(children)) {
     const child = children as TooltipChildElement;
+    const rawRef = (child.props as any)?.ref;
     const existingRef =
-      typeof child.ref === "string"
+      typeof rawRef === "string"
         ? undefined
-        : child.ref;
+        : rawRef;
     const mergedRef = mergeRefs<HTMLElement>(existingRef, setTriggerRef);
 
     const childProps: TooltipChildProps & { ref: React.RefCallback<HTMLElement> } = {

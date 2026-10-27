@@ -348,6 +348,12 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
         latestAuthEventRef.current = event;
 
+        // Sur déconnexion explicite, le state utilisateur a déjà été réinitialisé à null :
+        // on ne déclenche aucun fetch réseau superflu.
+        if (event === 'SIGNED_OUT') {
+          return;
+        }
+
         // SIMPLIFICATION (Antigravity):
         // Avoid re-fetching user on TOKEN_REFRESHED if we already have a user.
         // This reduces flicker potential on tab focus.
