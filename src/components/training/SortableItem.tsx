@@ -3,9 +3,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { useSupabaseClient } from '@supabase/auth-helpers-react'
 import VisibilityPanel from '@/components/training/VisibilityPanel'
 import TrainingCardMenu from '@/components/TrainingCardMenu'
+import EditableTitle from '@/components/EditableTitle'
 import Image from 'next/image'
 import type * as React from 'react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import Spinner from '@/components/ui/Spinner'
 import Tooltip from '@/components/Tooltip'
@@ -17,6 +18,7 @@ type Props = {
   onClick: (id: string) => void
   onDelete: (id: string) => void
   onDuplicate: (id: string) => void
+  onRename?: (id: string, newName: string) => void | Promise<void>
   onToggleVisibility: () => void
   showVisibility: boolean
   dragDisabled: boolean
@@ -34,6 +36,7 @@ export default function SortableItem({
   onClick,
   onDelete,
   onDuplicate,
+  onRename,
   onToggleVisibility,
   showVisibility,
   dragDisabled,
@@ -46,6 +49,30 @@ export default function SortableItem({
 }: Props) {
   const supabase = useSupabaseClient()
 
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedName, setEditedName] = useState(training.name)
+
+  useEffect(() => {
+    if (!isEditing) {
+      setEditedName(training.name)
+    }
+  }, [training.name, isEditing])
+
+  const handleSaveRename = () => {
+    const trimmed = editedName.trim()
+    if (trimmed && trimmed !== training.name && onRename) {
+      onRename(training.id, trimmed)
+    } else {
+      setEditedName(training.name)
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancelRename = () => {
+    setEditedName(training.name)
+    setIsEditing(false)
+  }
+
   const {
     attributes,
     listeners,
@@ -56,7 +83,7 @@ export default function SortableItem({
   } = useSortable({
     id: training.id,
     data: { programId },
-    disabled: simulateDrag || dragDisabled || isLocked,
+    disabled: simulateDrag || dragDisabled || isLocked || isEditing,
   })
 
   const style: React.CSSProperties = {
@@ -66,7 +93,7 @@ export default function SortableItem({
     opacity: isDragging ? 0 : 1,
     // Only force pointer-events: none when dragging. Otherwise let it inherit (auto).
     ...(isDragging ? { pointerEvents: 'none' } : {}),
-  };
+  }
 
   const handleVisibilityUpdate = async (
     updates: Partial<{ app: boolean; dashboard: boolean }>
@@ -89,16 +116,16 @@ export default function SortableItem({
   const spinnerColorClass = 'text-[#D7D4DC]'
 
   const handleMainClick = () => {
-    if (isDragging) return;
-    console.log("Item clicked:", training.id, "Locked:", isLocked);
+    if (isDragging || isEditing) return
+    console.log("Item clicked:", training.id, "Locked:", isLocked)
     if (isLocked) {
-      if (onUnlockClick) onUnlockClick();
-      return;
+      if (onUnlockClick) onUnlockClick()
+      return
     }
-    onClick(training.id);
-  };
+    onClick(training.id)
+  }
 
-  const { "aria-disabled": _ariaDisabled, ...cleanAttributes } = attributes;
+  const { "aria-disabled": _ariaDisabled, ...cleanAttributes } = attributes
 
   const content = (
     <div
@@ -113,7 +140,7 @@ export default function SortableItem({
       )}
     >
       <div
-        {...(!dragDisabled && !isLocked ? listeners : {})}
+        {...(!dragDisabled && !isLocked && !isEditing ? listeners : {})}
         style={{ WebkitTouchCallout: "none" }}
         className={cn(
           "w-full sm:w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] select-none touch-manipulation",
@@ -129,8 +156,8 @@ export default function SortableItem({
         <div
           className={cn(
             "w-[25px] h-[25px] flex-shrink-0 group relative flex items-center justify-center",
-            dragDisabled || isLocked
-              ? "cursor-default" // Pas de drag si bloqué
+            dragDisabled || isLocked || isEditing
+              ? "cursor-default" // Pas de drag si bloqué ou en cours d'édition
               : "cursor-grab active:cursor-grabbing"
           )}
           onClick={(e) => e.stopPropagation()}
@@ -164,8 +191,8 @@ export default function SortableItem({
 
         {/* Titre */}
         <div
-          className="flex-1 px-6 flex items-center justify-center min-w-0 h-full cursor-pointer"
-          onClick={handleMainClick}
+          className="flex-1 px-2 sm:px-3 flex items-center justify-center min-w-0 h-full"
+          onClick={isEditing ? (e) => e.stopPropagation() : handleMainClick}
         >
           {showLoader ? (
             <Spinner
@@ -173,8 +200,22 @@ export default function SortableItem({
               className={cn(spinnerColorClass)}
               ariaLabel="Chargement de l’entraînement"
             />
+          ) : isEditing ? (
+            <EditableTitle
+              editing={isEditing}
+              setEditing={setIsEditing}
+              programName={editedName}
+              setProgramName={setEditedName}
+              handleBlur={handleSaveRename}
+              setIsEditing={setIsEditing}
+              onCancel={handleCancelRename}
+              className="w-full flex items-center justify-center"
+              wrapperClassName="max-w-none w-full"
+              inputClassName="text-[16px] sm:text-[16px] px-3.5 py-1.5 pr-9"
+              autoScrollOnEdit
+            />
           ) : (
-            <span className={cn("block w-full truncate text-center leading-normal", isLocked ? "text-[#D7D4DC]" : "text-[#3A416F]")}>
+            <span className={cn("block w-full truncate text-center leading-normal cursor-pointer", isLocked ? "text-[#D7D4DC]" : "text-[#3A416F]")}>
               {training.name}
             </span>
           )}
@@ -190,6 +231,7 @@ export default function SortableItem({
           {!isLocked && (
             <TrainingCardMenu
               onOpen={() => onClick(training.id)}
+              onRename={() => setIsEditing(true)}
               onDuplicate={() => onDuplicate(training.id)}
               onToggleVisibility={onToggleVisibility}
               onDelete={() => onDelete(training.id)}
@@ -208,15 +250,15 @@ export default function SortableItem({
         />
       )}
     </div>
-  );
+  )
 
   if (isLocked) {
     return (
       <Tooltip content="Entraînement bloqué" placement="top" asChild className="w-full sm:w-auto">
         {content}
       </Tooltip>
-    );
+    )
   }
 
-  return content;
+  return content
 }

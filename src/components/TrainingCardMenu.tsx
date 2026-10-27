@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 type TrainingCardMenuProps = {
   onOpen: () => void
+  onRename?: () => void
   onDuplicate: () => void
   onToggleVisibility: () => void
   onDelete: () => void
@@ -15,6 +16,7 @@ type TrainingCardMenuProps = {
 
 export default function TrainingCardMenu({
   onOpen,
+  onRename,
   onDuplicate,
   onToggleVisibility,
   onDelete,
@@ -109,6 +111,18 @@ export default function TrainingCardMenu({
               >
                 Ouvrir
               </button>
+              {onRename && (
+                <button
+                  type="button"
+                  onClick={() => handleSelect(onRename)}
+                  className={cn(
+                    baseMenuItemClass,
+                    'text-[#5D6494] hover:text-[#3A416F] hover:bg-[#FAFAFF]'
+                  )}
+                >
+                  Renommer
+                </button>
+              )}
               {!enableRestrictedMenu && (
                 <>
                   <button

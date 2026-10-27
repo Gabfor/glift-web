@@ -19,6 +19,7 @@ interface Props {
   onAddTraining: () => void | Promise<void>
   onDeleteTraining: (id: string) => void
   onDuplicateTraining: (id: string) => void
+  onRenameTraining?: (id: string, newName: string) => void | Promise<void>
   onDropTraining: (
     trainingId: string,
     fromProgramId: string,
@@ -46,6 +47,7 @@ export default function DroppableProgram(props: Props) {
     onAddTraining,
     onDeleteTraining,
     onDuplicateTraining,
+    onRenameTraining,
     openVisibilityIds,
     setOpenVisibilityIds,
     onUpdateTrainingVisibility,
@@ -111,6 +113,7 @@ export default function DroppableProgram(props: Props) {
                 onClick={onClickTraining}
                 onDelete={onDeleteTraining}
                 onDuplicate={onDuplicateTraining}
+                onRename={onRenameTraining}
                 onToggleVisibility={() => {
                   setOpenVisibilityIds((prev) =>
                     prev.includes(training.id)

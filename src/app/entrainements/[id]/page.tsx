@@ -234,6 +234,9 @@ export default function AdminEntrainementDetailPage() {
       setEditing(true);
       setIsEditing(true);
       setProgramName("");
+    } else if (searchParams?.get("edit") === "1" || searchParams?.get("rename") === "1") {
+      setEditing(true);
+      setIsEditing(true);
     }
   }, [searchParams, setProgramName]);
 

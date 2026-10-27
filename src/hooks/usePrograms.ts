@@ -871,12 +871,33 @@ export default function usePrograms() {
     await updateAllProgramPositionsInSupabase(reindexed);
   };
 
+  const handleRenameTraining = async (trainingId: string, newName: string) => {
+    setPrograms((prev) =>
+      prev.map((prog) => ({
+        ...prog,
+        trainings: prog.trainings.map((t) =>
+          t.id === trainingId ? { ...t, name: newName } : t
+        ),
+      }))
+    );
+
+    const { error } = await supabase
+      .from("trainings")
+      .update({ name: newName })
+      .eq("id", trainingId);
+
+    if (error) {
+      console.error("Erreur renommage entraînement :", error);
+    }
+  };
+
   return {
     programs,
     setPrograms,
     fetchProgramsWithTrainings,
     handleReorderTrainings,
     handleDuplicateTraining,
+    handleRenameTraining,
     handleSubmit,
     handleAddTraining,
     handleDeleteTraining,

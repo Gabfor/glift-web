@@ -386,6 +386,25 @@ export default function AdminSingleProgramPage() {
     notifyTrainingChange(program.id);
   };
 
+  const handleRenameTraining = async (trainingId: string, newName: string) => {
+    if (!program) return;
+    setProgram({
+      ...program,
+      trainings: program.trainings.map((t) =>
+        t.id === trainingId ? { ...t, name: newName } : t
+      ),
+    });
+
+    const { error } = await supabase
+      .from("trainings_admin")
+      .update({ name: newName })
+      .eq("id", trainingId);
+
+    if (error) {
+      console.error("Error renaming training in admin:", error);
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
     if (typeof window !== "undefined" && typeof navigator !== "undefined" && navigator.vibrate) {
       try {
@@ -492,6 +511,7 @@ export default function AdminSingleProgramPage() {
               onAddTraining={handleAddTraining}
               onDeleteTraining={handleDeleteTraining}
               onDuplicateTraining={handleDuplicateTraining}
+              onRenameTraining={handleRenameTraining}
               onDropTraining={async () => { }}
               openVisibilityIds={openVisibilityIds}
               setOpenVisibilityIds={setOpenVisibilityIds}

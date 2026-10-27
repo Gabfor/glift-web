@@ -54,6 +54,7 @@ export default function EntrainementsPage({
     fetchProgramsWithTrainings,
     handleReorderTrainings,
     handleDuplicateTraining,
+    handleRenameTraining,
     handleSubmit,
     handleAddTraining,
     handleDeleteTraining,
@@ -647,6 +648,7 @@ export default function EntrainementsPage({
                     onDuplicateTraining={(id: string) =>
                       handleDuplicateTraining(program.id, id)
                     }
+                    onRenameTraining={handleRenameTraining}
                     onDropTraining={moveTrainingToAnotherProgram}
                     openVisibilityIds={openVisibilityIds}
                     setOpenVisibilityIds={setOpenVisibilityIds}
