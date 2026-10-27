@@ -143,6 +143,43 @@ export default function EntrainementsPage({
     }
   }, []);
 
+  const scrolledProgramIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!newlyDownloadedId || showSkeleton || scrolledProgramIdRef.current === newlyDownloadedId) return;
+
+    let retryTimeout: NodeJS.Timeout;
+    let attempts = 0;
+
+    const tryScroll = () => {
+      attempts++;
+      const targetElement = document.getElementById(`program-${newlyDownloadedId}`);
+      if (targetElement) {
+        scrolledProgramIdRef.current = newlyDownloadedId;
+        requestAnimationFrame(() => {
+          const isMobile = window.innerWidth < 768;
+          const headerOffset = isMobile ? 85 : 110;
+          const rect = targetElement.getBoundingClientRect();
+          const targetY = rect.top + window.scrollY - headerOffset;
+
+          window.scrollTo({
+            top: Math.max(0, targetY),
+            behavior: "smooth",
+          });
+        });
+      } else if (attempts < 10) {
+        retryTimeout = setTimeout(tryScroll, 100);
+      }
+    };
+
+    const initialTimer = setTimeout(tryScroll, 100);
+
+    return () => {
+      clearTimeout(initialTimer);
+      clearTimeout(retryTimeout);
+    };
+  }, [showSkeleton, newlyDownloadedId, programs]);
+
   useEffect(() => {
     const channel = new BroadcastChannel("glift-refresh");
     channel.onmessage = (event) => {
@@ -575,7 +612,8 @@ export default function EntrainementsPage({
               return (
                 <div
                   key={program.id || originalIndex}
-                  className="relative w-full max-w-[1152px] mb-[20px]"
+                  id={`program-${program.id}`}
+                  className="relative w-full max-w-[1152px] mb-[20px] scroll-mt-[100px]"
                   style={{ zIndex: computedZIndex }}
                 >
                   <ProgramEditor

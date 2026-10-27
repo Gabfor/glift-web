@@ -365,14 +365,7 @@ export default function ProgramEditor({
             className={`group flex items-center text-[16px] text-[#D7D4DC] font-semibold transition cursor-pointer p-2 hover:text-[#C2BFC6] ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}
             onClick={handleStartEditClick}
           >
-            <div className="flex items-center gap-2">
-              <span className="truncate max-w-[200px] sm:max-w-none">{name || DEFAULT_PROGRAM_NAME}</span>
-              {isNew && (
-                <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center">
-                  NOUVEAU
-                </span>
-              )}
-            </div>
+            <span className="truncate max-w-[200px] sm:max-w-none">{name || DEFAULT_PROGRAM_NAME}</span>
             <Tooltip content="Editer">
               <div
                 className="relative ml-1 w-[15px] h-[15px] cursor-pointer select-none"
@@ -543,6 +536,22 @@ export default function ProgramEditor({
               </Tooltip>
             </>
           )}
+          {isNew && (
+            <span className="ml-2.5 text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] flex items-center select-none">
+              NOUVEAU
+            </span>
+          )}
+        </div>
+      )}
+
+      {/* Badge nouveau sur mobile (cercle dans un cercle) */}
+      {!adminMode && isNew && (
+        <div className={`flex md:hidden items-center absolute left-0 z-10 p-2 ${adminMode ? "bg-transparent" : "bg-[#FBFCFE]"}`}>
+          <Tooltip content="Nouveau programme">
+            <div className="w-[20px] h-[20px] rounded-full bg-[#DCFAF1] flex items-center justify-center select-none">
+              <div className="w-[10px] h-[10px] rounded-full bg-[#00D591]" />
+            </div>
+          </Tooltip>
         </div>
       )}
 
