@@ -1551,9 +1551,19 @@ export default function DashboardExerciseBlock({
       {/* GOAL MODAL */}
       <Modal
         open={isGoalModalOpen}
-        title="Objectif"
+        title={
+          <div className="flex flex-col items-center gap-3">
+            <Image
+              src="/icons/objectif_purple.svg"
+              alt="Objectif"
+              width={35}
+              height={35}
+              priority
+            />
+            <span>{hasGoal ? "Modifier un objectif" : "Définir un objectif"}</span>
+          </div>
+        }
         onClose={handleCloseGoalModal}
-        contentClassName="!overflow-visible"
         footerWrapperClassName="mt-[5px]"
         footer={
           <div className="flex justify-center gap-3 sm:gap-4 w-full">

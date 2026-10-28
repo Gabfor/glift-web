@@ -676,6 +676,16 @@ input:checked+.slider:before {
   scrollbar-width: none;
 }
 
+/* Modal responsive height constraints */
+.modal-overlay-container {
+  height: 100vh;
+  height: 100dvh;
+}
+.modal-dialog-container {
+  max-height: 85vh;
+  max-height: 85dvh;
+}
+
 /* Animation vacillement doux du sommet de la flamme */
 @keyframes flame-sway {
   0%, 100% {

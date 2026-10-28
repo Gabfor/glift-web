@@ -94,7 +94,7 @@ export default function Modal({
   return createPortal(
     <div
       className={clsx(
-        "fixed inset-0 z-[1000] flex items-center justify-center p-4",
+        "fixed inset-0 modal-overlay-container z-[1000] flex items-center justify-center p-4 sm:p-6",
         className
       )}
     >
@@ -110,7 +110,7 @@ export default function Modal({
         aria-modal="true"
         aria-labelledby={labelId}
         className={clsx(
-          "relative z-10 w-[564px] max-w-[92vw] max-h-[90vh] overflow-y-auto rounded-[20px] bg-white p-5 sm:p-8 shadow-glift-hover animate-in fade-in zoom-in-95 duration-300",
+          "relative z-10 w-[564px] max-w-[92vw] modal-dialog-container overflow-y-auto no-scrollbar rounded-[20px] bg-white p-5 sm:p-8 shadow-glift-hover animate-in fade-in zoom-in-95 duration-300",
           contentClassName
         )}
       >

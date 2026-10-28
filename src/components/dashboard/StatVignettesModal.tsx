@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Modal from "@/components/ui/Modal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import CTAButton from "@/components/CTAButton";
@@ -49,9 +50,20 @@ export default function StatVignettesModal({
     <Modal
       open={open}
       onClose={onClose}
-      title="Réglage des vignettes"
+      title={
+        <div className="flex flex-col items-center gap-3">
+          <Image
+            src="/icons/reglages_purple.svg"
+            alt="Réglage des vignettes"
+            width={37}
+            height={35}
+            priority
+          />
+          <span>Réglage des vignettes</span>
+        </div>
+      }
       closeDisabled={isSaving}
-      contentClassName="!overflow-visible max-w-[500px]"
+      contentClassName="max-w-[500px]"
       footerWrapperClassName="!mt-[30px]"
       footer={
         <div className="flex justify-center gap-3 sm:gap-4 w-full">
