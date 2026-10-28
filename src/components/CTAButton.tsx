@@ -70,7 +70,6 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         pathname?.startsWith("/content-blog") ||
         pathname?.startsWith("/help") ||
         pathname?.startsWith("/users") ||
-        pathname?.startsWith("/entrainements") ||
         pathname?.startsWith("/create-") ||
         pathname?.startsWith("/slider") ||
         pathname?.startsWith("/legal") ||

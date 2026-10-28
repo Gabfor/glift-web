@@ -132,6 +132,7 @@ export default function OfferModal({
             Annuler
           </CTAButton>
           <CTAButton
+            isAdmin={false}
             className="w-full md:w-auto"
             onClick={() => {
               onConfirm();

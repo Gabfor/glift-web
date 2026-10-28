@@ -647,9 +647,12 @@ export default function EntrainementsPage({
                     isNew={program.id === newlyDownloadedId}
                     shouldWarnOnHide={
                       !isPremiumUser &&
-                      program.app !== false && // It is currently visible
-                      programsToRender.filter(p => p.program.app !== false && p.program.trainings.length > 0).length === 1 && // It is the only one visible
-                      programsToRender.filter(p => p.program.app !== false && p.program.trainings.length > 0)[0].program.id === program.id // And it's this one
+                      program.app !== false &&
+                      program.trainings.some(
+                        (t, idx) =>
+                          t.locked === false ||
+                          (programs.find((p) => p.trainings.length > 0)?.id === program.id && idx === 0 && t.locked !== true)
+                      )
                     }
                   />
 
@@ -670,15 +673,10 @@ export default function EntrainementsPage({
                     }}
                     onDeleteTraining={(id: string) => {
                       if (!isPremiumUser) {
-                        const training = program.trainings.find(t => t.id === id);
-                        const isLocked = training?.locked ?? true;
-
-                        if (!isLocked) {
-                          setShowTrainingDeleteWarningModal(true);
-                          setTrainingIdToDelete(id);
-                          setProgramIdForTrainingDelete(program.id);
-                          return;
-                        }
+                        setShowTrainingDeleteWarningModal(true);
+                        setTrainingIdToDelete(id);
+                        setProgramIdForTrainingDelete(program.id);
+                        return;
                       }
 
                       handleDeleteTraining(program.id, id);
@@ -715,6 +713,19 @@ export default function EntrainementsPage({
 
       <ProgramDeleteModal
         show={showProgramDeleteModal}
+        isStarterActiveWarning={
+          !isPremiumUser &&
+          Boolean(
+            programIdToDelete &&
+            programs
+              .find((p) => p.id === programIdToDelete)
+              ?.trainings.some(
+                (t, idx) =>
+                  t.locked === false ||
+                  (programs.find((p) => p.trainings.length > 0)?.id === programIdToDelete && idx === 0)
+              )
+          )
+        }
         onCancel={() => {
           setShowProgramDeleteModal(false);
           setProgramIdToDelete(null);
@@ -744,6 +755,7 @@ export default function EntrainementsPage({
       />
 
       <UnlockTrainingModal
+        type="training"
         isOpen={showUnlockModal}
         onClose={() => setShowUnlockModal(false)}
         onUnlock={() => router.push("/compte#mon-abonnement")}

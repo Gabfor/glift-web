@@ -72,6 +72,7 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
             </CTAButton>
           )}
           <CTAButton
+            isAdmin={false}
             className="flex-1 w-full sm:w-auto sm:flex-initial"
             onClick={() => {
               const normalizedLink = normalizeLink(link);

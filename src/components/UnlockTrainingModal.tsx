@@ -9,13 +9,17 @@ interface UnlockTrainingModalProps {
     isOpen: boolean;
     onClose: () => void;
     onUnlock: () => void;
+    type?: "training" | "exercise";
 }
 
 export default function UnlockTrainingModal({
     isOpen,
     onClose,
     onUnlock,
+    type = "training",
 }: UnlockTrainingModalProps) {
+    const isExercise = type === "exercise";
+
     return (
         <Modal
             open={isOpen}
@@ -26,7 +30,7 @@ export default function UnlockTrainingModal({
                         <path d="M24 18V27" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
                         <circle cx="24" cy="33" r="2" fill="white" />
                     </svg>
-                    <span>Exercice bloqué</span>
+                    <span>{isExercise ? "Exercice bloqué" : "Entraînement bloqué"}</span>
                 </div>
             }
             onClose={onClose}
@@ -35,7 +39,7 @@ export default function UnlockTrainingModal({
                     <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Annuler
                     </CTAButton>
-                    <CTAButton onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton isAdmin={false} onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
                         Débloquer
                     </CTAButton>
                 </div>
@@ -43,14 +47,18 @@ export default function UnlockTrainingModal({
         >
             <ModalMessage
                 variant="info"
-                title="Pourquoi cet exercice est-il bloqué ?"
-                description="Cet exercice est bloqué car ta formule d’abonnement actuelle te limite à 10 exercices utilisables."
+                title={isExercise ? "Pourquoi cet exercice est-il bloqué ?" : "Pourquoi cet entraînement est-il bloqué ?"}
+                description={
+                    isExercise
+                        ? "Cet exercice est bloqué car ta formule d’abonnement actuelle te limite à 10 exercices utilisables."
+                        : "Cet entraînement est bloqué car ta formule d’abonnement actuelle te limite à un seul entraînement utilisable."
+                }
                 className="mb-6"
             />
 
             <div className="space-y-4 text-[14px] font-semibold text-[#5D6494] leading-relaxed">
                 <p>
-                    En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi cet exercice.
+                    En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi {isExercise ? "cet exercice" : "cet entraînement"}.
                 </p>
                 <p>
                     En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu pourras continuer à utiliser gratuitement un seul entraînement de 10 exercices maximum.

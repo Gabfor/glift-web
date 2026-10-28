@@ -40,6 +40,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                 Annuler
               </CTAButton>
               <CTAButton
+                isAdmin={false}
                 onClick={() => {
                   onClose();
                   router.push("/compte#mon-abonnement");
@@ -62,6 +63,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                 Connexion
               </CTAButton>
               <CTAButton
+                isAdmin={false}
                 onClick={() => {
                   onClose();
                   router.push("/tarifs");

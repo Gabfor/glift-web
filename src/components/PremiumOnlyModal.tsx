@@ -35,6 +35,7 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
             Annuler
           </CTAButton>
           <CTAButton
+            isAdmin={false}
             onClick={() => {
               onClose();
               router.push("/compte#mon-abonnement");

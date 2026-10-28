@@ -453,6 +453,7 @@ export default function TrainingTable({
         </DragOverlay>
       </DndContext>
       <UnlockTrainingModal
+        type="exercise"
         isOpen={isUnlockModalOpen}
         onClose={() => setIsUnlockModalOpen(false)}
         onUnlock={() => {

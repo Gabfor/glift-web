@@ -6,9 +6,15 @@ interface ProgramDeleteModalProps {
   show: boolean;
   onCancel: () => void;
   onConfirm: () => void | Promise<void>;
+  isStarterActiveWarning?: boolean;
 }
 
-export default function ProgramDeleteModal({ show, onCancel, onConfirm }: ProgramDeleteModalProps) {
+export default function ProgramDeleteModal({
+  show,
+  onCancel,
+  onConfirm,
+  isStarterActiveWarning = false,
+}: ProgramDeleteModalProps) {
   return (
     <Modal
       open={show}
@@ -19,7 +25,7 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
             <path d="M24 18V27" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
             <circle cx="24" cy="33" r="2" fill="white" />
           </svg>
-          <span>Supprimer un programme</span>
+          <span>Supprimer ce programme</span>
         </div>
       }
       onClose={onCancel}
@@ -51,12 +57,24 @@ export default function ProgramDeleteModal({ show, onCancel, onConfirm }: Progra
       <ModalMessage
         variant="warning"
         title="Attention"
-        description="La suppression d&apos;un programme d&apos;entraînements est définitive."
+        description={
+          isStarterActiveWarning
+            ? "Si tu supprimes le programme contenant ton seul entraînement actif, tu n’auras plus d’entraînement disponible sur le site et dans l’app à moins d’en créer un nouveau."
+            : "La suppression d'un programme d'entraînements est définitive."
+        }
         className="mb-6"
       />
 
       <p className="mb-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> ce programme d’entraînements ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
+        {isStarterActiveWarning ? (
+          <>
+            En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue. <span className="text-[#3A416F] font-bold">Tu pourras cependant créer un nouveau programme avec un nouvel entraînement de 10 exercices maximum.</span>
+          </>
+        ) : (
+          <>
+            En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> ce programme d’entraînements ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
+          </>
+        )}
       </p>
       <p className="mb-6 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
         Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <a href="#" className="text-[#3A416F] font-bold underline">Aide</a> du site.

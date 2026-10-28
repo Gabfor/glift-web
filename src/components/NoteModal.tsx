@@ -45,7 +45,7 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
               Annuler
             </CTAButton>
           )}
-          <CTAButton onClick={() => onSave(note)} className="flex-1 w-full sm:w-auto sm:flex-initial">
+          <CTAButton isAdmin={false} onClick={() => onSave(note)} className="flex-1 w-full sm:w-auto sm:flex-initial">
             Enregistrer
           </CTAButton>
         </div>
