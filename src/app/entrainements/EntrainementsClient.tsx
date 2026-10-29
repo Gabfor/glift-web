@@ -283,6 +283,7 @@ export default function EntrainementsPage({
 
   const handleTrainingNavigation = useCallback(
     (trainingId: string) => {
+      setLoadingTraining({ id: trainingId, type: "open" });
       router.push(`/entrainements/${trainingId}`);
     },
     [router]
@@ -581,7 +582,7 @@ export default function EntrainementsPage({
           </div>
         )}
         <h1 
-          className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
+          className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
           dangerouslySetInnerHTML={{ __html: pageIntro?.titre || "Entraînements" }}
         />
         <div 
@@ -664,11 +665,19 @@ export default function EntrainementsPage({
                       handleReorderTrainings(programId, ids)
                     }
                     onAddTraining={async () => {
-                      if (!program.id) return;
+                      if (!program.id || loadingTraining) return;
 
-                      const newData = await handleAddTraining(program.id);
-                      if (newData?.id) {
-                        router.push(`/entrainements/${newData.id}?new=1`);
+                      setLoadingTraining({ id: program.id, type: "add" });
+                      try {
+                        const newData = await handleAddTraining(program.id);
+                        if (newData?.id) {
+                          router.push(`/entrainements/${newData.id}?new=1`);
+                        } else {
+                          setLoadingTraining(null);
+                        }
+                      } catch (err) {
+                        console.error("Erreur lors de l'ajout d'entraînement :", err);
+                        setLoadingTraining(null);
                       }
                     }}
                     onDeleteTraining={(id: string) => {

@@ -143,7 +143,7 @@ function CreateHelpForm() {
                     Aide
                 </BackLink>
                 <div className="w-full max-w-3xl mx-auto px-4 sm:px-0">
-                    <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+                    <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
                         {isEditing ? "Modifier l'aide" : "Créer une aide"}
                     </h2>
 

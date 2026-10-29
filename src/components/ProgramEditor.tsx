@@ -765,7 +765,7 @@ export default function ProgramEditor({
     {!adminMode && showVisibility && (
       <div className="md:hidden bg-white p-4 border border-[#D7D4DC] rounded-[8px] shadow-glift mb-4 relative z-10 w-full animate-in fade-in duration-200">
         <div className="flex justify-between items-center mb-4">
-          <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité</div>
+          <div className="text-[16px] font-semibold text-[#3A416F]">Visibilité du programme</div>
           <button
             type="button"
             onClick={() => setShowVisibility(false)}

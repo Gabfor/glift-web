@@ -24,7 +24,7 @@ import { useUser } from "@/context/UserContext";
 import { createClient } from "@/lib/supabaseClient";
 import DashboardRecordCard from "@/components/dashboard/DashboardRecordCard";
 import RecordsCarousel from "@/components/dashboard/RecordsCarousel";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardExerciseGoal } from "@/app/dashboard/types";
 
 export interface DashboardExerciseBlockProps {
@@ -432,6 +432,7 @@ type ExtendedRechartsDotProps = Omit<RechartsDotProps, "payload" | "value"> & {
   dataKey?: string;
   payload?: RechartsDotPayload;
   value?: number | string | (number | string)[] | null | undefined;
+  index?: number;
 };
 
 type RechartsDotRenderProps = ExtendedRechartsDotProps & { key?: React.Key };
@@ -465,8 +466,9 @@ const DashboardExerciseDot = ({
     dotPositionMap.set(payload as Record<string, unknown>, { x: cx, y: cy });
   }
 
-  const { value: _value, ...circleProps } = rest;
+  const { value: _value, points: _points, ...circleProps } = rest as any;
   void _value;
+  void _points;
 
   return (
     <g>
@@ -643,6 +645,19 @@ export default function DashboardExerciseBlock({
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  type ActiveDotInfo = {
+    index: number;
+    cx: number;
+    cy: number;
+    payload: ChartPoint;
+  };
+
+  const [selectedDotIndex, setSelectedDotIndex] = useState<number | null>(null);
+  const dotsRef = useRef<Map<number, ActiveDotInfo>>(new Map());
+  const touchStartPosRef = useRef<{ x: number; y: number } | null>(null);
+  const isSwipingRef = useRef(false);
+  const lastTouchTimeRef = useRef(0);
+
   useEffect(() => {
     const media = window.matchMedia("(max-width: 1279px)");
     const updateMatch = () => setIsMobile(media.matches);
@@ -650,6 +665,188 @@ export default function DashboardExerciseBlock({
     media.addEventListener("change", updateMatch);
     return () => media.removeEventListener("change", updateMatch);
   }, []);
+
+  useEffect(() => {
+    dotsRef.current.clear();
+    setSelectedDotIndex(null);
+  }, [id, sessionCount, curveType, recordType, chartData]);
+
+  useEffect(() => {
+    if (selectedDotIndex === null) return;
+
+    const handleDocumentInteraction = (e: MouseEvent | TouchEvent) => {
+      if (
+        chartContainerRef.current &&
+        !chartContainerRef.current.contains(e.target as Node)
+      ) {
+        setSelectedDotIndex(null);
+      }
+    };
+
+    const handleResize = () => setSelectedDotIndex(null);
+
+    document.addEventListener("mousedown", handleDocumentInteraction);
+    document.addEventListener("touchstart", handleDocumentInteraction);
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentInteraction);
+      document.removeEventListener("touchstart", handleDocumentInteraction);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [selectedDotIndex]);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.touches.length === 1) {
+      touchStartPosRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY,
+      };
+      isSwipingRef.current = false;
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!touchStartPosRef.current || e.touches.length !== 1) return;
+    const dx = e.touches[0].clientX - touchStartPosRef.current.x;
+    const dy = e.touches[0].clientY - touchStartPosRef.current.y;
+    if (Math.hypot(dx, dy) > 8) {
+      isSwipingRef.current = true;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    lastTouchTimeRef.current = Date.now();
+
+    if (isSwipingRef.current || !touchStartPosRef.current) {
+      return;
+    }
+
+    const rect = chartContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const tapX = touchStartPosRef.current.x - rect.left;
+    const tapY = touchStartPosRef.current.y - rect.top;
+
+    let closestDot: ActiveDotInfo | null = null;
+    let minDistance = Infinity;
+
+    for (const dot of dotsRef.current.values()) {
+      if (dot.payload?.value !== null && typeof dot.cx === "number" && typeof dot.cy === "number") {
+        const distX = Math.abs(dot.cx - tapX);
+        const distY = Math.abs(dot.cy - tapY);
+        const dist = Math.hypot(distX, distY);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestDot = dot;
+        }
+      }
+    }
+
+    if (
+      closestDot &&
+      (minDistance <= 48 || (Math.abs(closestDot.cx - tapX) <= 40 && tapY >= 0 && tapY <= rect.height))
+    ) {
+      e.preventDefault();
+      e.stopPropagation();
+      setSelectedDotIndex((prev) => (prev === closestDot!.index ? null : closestDot!.index));
+    } else {
+      if (selectedDotIndex !== null) {
+        e.preventDefault();
+        e.stopPropagation();
+        setSelectedDotIndex(null);
+      }
+    }
+  };
+
+  const handleChartClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (Date.now() - lastTouchTimeRef.current < 500) {
+      e.stopPropagation();
+      return;
+    }
+
+    const rect = chartContainerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+
+    let closestDot: ActiveDotInfo | null = null;
+    let minDistance = Infinity;
+
+    for (const dot of dotsRef.current.values()) {
+      if (dot.payload?.value !== null && typeof dot.cx === "number" && typeof dot.cy === "number") {
+        const distX = Math.abs(dot.cx - clickX);
+        const distY = Math.abs(dot.cy - clickY);
+        const dist = Math.hypot(distX, distY);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestDot = dot;
+        }
+      }
+    }
+
+    if (
+      closestDot &&
+      (minDistance <= 48 || (Math.abs(closestDot.cx - clickX) <= 40 && clickY >= 0 && clickY <= rect.height))
+    ) {
+      setSelectedDotIndex((prev) => (prev === closestDot!.index ? null : closestDot!.index));
+    } else {
+      setSelectedDotIndex(null);
+    }
+
+    e.stopPropagation();
+  };
+
+  const renderDashboardExerciseDotWithSelection = useCallback(
+    (baseRadius: number) => {
+      const RenderDashboardExerciseDot = ({
+        key: dotKey,
+        index,
+        cx = 0,
+        cy = 0,
+        payload,
+        ...restDotProps
+      }: RechartsDotRenderProps) => {
+        if (
+          typeof index === "number" &&
+          payload &&
+          typeof payload === "object" &&
+          !Array.isArray(payload) &&
+          (payload as any).value !== null
+        ) {
+          dotsRef.current.set(index, {
+            index,
+            cx,
+            cy,
+            payload: payload as ChartPoint,
+          });
+        }
+
+        const isSelected = selectedDotIndex !== null && selectedDotIndex === index;
+        const radius = isSelected ? CHART_ACTIVE_DOT_RADIUS : baseRadius;
+
+        return (
+          <DashboardExerciseDot
+            key={dotKey}
+            index={index}
+            cx={cx}
+            cy={cy}
+            payload={payload}
+            {...restDotProps}
+            interactionRadius={24}
+            radius={radius}
+          />
+        );
+      };
+
+      RenderDashboardExerciseDot.displayName = `DashboardExerciseDot_${baseRadius}`;
+      return RenderDashboardExerciseDot;
+    },
+    [selectedDotIndex],
+  );
+
+  const selectedDot = selectedDotIndex !== null ? dotsRef.current.get(selectedDotIndex) : null;
 
   const sessionOptions = SESSION_OPTIONS;
 
@@ -1368,7 +1565,14 @@ export default function DashboardExerciseBlock({
 
 
           {/* Chart Area */}
-          <div className="flex-1 relative h-full overflow-hidden">
+          <div
+            ref={chartContainerRef}
+            className="flex-1 relative h-full overflow-hidden"
+            onClickCapture={handleChartClick}
+            onTouchStartCapture={handleTouchStart}
+            onTouchMoveCapture={handleTouchMove}
+            onTouchEndCapture={handleTouchEnd}
+          >
             {!isLoadingData && !fetchError && chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%" className="dashboard-exercise-chart">
                 <AreaChart
@@ -1430,12 +1634,12 @@ export default function DashboardExerciseBlock({
                     fillOpacity={1}
                     fill={`url(#gradient-${id})`}
                     isAnimationActive={false}
-                    dot={renderDashboardExerciseDot(CHART_DOT_RADIUS)}
-                    activeDot={renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
+                    dot={renderDashboardExerciseDotWithSelection(CHART_DOT_RADIUS)}
+                    activeDot={selectedDotIndex !== null ? false : renderDashboardExerciseDot(CHART_ACTIVE_DOT_RADIUS)}
                   />
                   <RechartsTooltip
                     cursor={false}
-                    content={DashboardExerciseChartTooltip}
+                    content={selectedDotIndex !== null ? () => null : DashboardExerciseChartTooltip}
                     wrapperStyle={{ pointerEvents: "none" }}
                     allowEscapeViewBox={{ x: true, y: true }}
                     isAnimationActive={false}
@@ -1443,6 +1647,44 @@ export default function DashboardExerciseBlock({
                   />
                 </AreaChart>
               </ResponsiveContainer>
+            ) : null}
+
+            {selectedDot && typeof selectedDot.cx === "number" && typeof selectedDot.cy === "number" ? (
+              <Tooltip
+                key={`selected-${selectedDotIndex}-${selectedDot.cx}-${selectedDot.cy}`}
+                content={
+                  <div className="flex flex-col items-center gap-[6px]">
+                    <span className="text-[10px] font-medium leading-none text-[#ffffff]">
+                      {formatTooltipDate(selectedDot.payload.tooltipDate ?? selectedDot.payload.date)}
+                    </span>
+                    <span className="text-[12px] font-semibold leading-none text-[#ffffff]">
+                      {typeof selectedDot.payload.value === "number"
+                        ? `${selectedDot.payload.value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}${selectedDot.payload.unit ? ` ${selectedDot.payload.unit}` : ""}`
+                        : typeof selectedDot.payload.value === "string"
+                          ? selectedDot.payload.value
+                          : ""}
+                    </span>
+                  </div>
+                }
+                placement="top"
+                forceVisible
+                disableHover
+                asChild
+                contentClassName="relative flex flex-col items-center gap-[6px] rounded-md bg-[#2E3142] px-3 py-2 text-white shadow-glift-hover"
+                arrowClassName="bg-[#2E3142]"
+                offset={TOOLTIP_OFFSET_FROM_POINT_PX}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    top: selectedDot.cy,
+                    left: selectedDot.cx,
+                    width: 0,
+                    height: 0,
+                    pointerEvents: "none",
+                  }}
+                />
+              </Tooltip>
             ) : null}
 
             {isLoadingData ? (

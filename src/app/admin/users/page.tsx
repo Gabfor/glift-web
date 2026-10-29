@@ -829,7 +829,7 @@ export default function AdminUsersPage() {
           />
         ) : (
           <>
-            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+            <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
               Utilisateurs
             </h2>
 

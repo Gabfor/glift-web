@@ -264,7 +264,7 @@ export default async function BlogSubpathPage({
           </div>
 
           <div className="max-w-[760px] mx-auto">
-            <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
+            <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
 
@@ -551,7 +551,7 @@ export default async function BlogSubpathPage({
               </div>
             )}
             <h1 
-              className={`text-[30px] font-bold text-[#2E3271] leading-tight text-center prose-titles [&_p]:m-0 ${descriptionToDisplay || hasExtraText ? "mb-[20px]" : "mb-0"}`}
+              className={`text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight text-center prose-titles [&_p]:m-0 ${descriptionToDisplay || hasExtraText ? "mb-[20px]" : "mb-0"}`}
               dangerouslySetInnerHTML={{ __html: titleToDisplay }}
             />
             {descriptionToDisplay && (

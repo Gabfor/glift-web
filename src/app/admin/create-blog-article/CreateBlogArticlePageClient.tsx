@@ -272,7 +272,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           Blog
         </BackLink>
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-0 flex flex-col items-center">
-          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
+          <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
             {articleId ? "Modifier l'article" : "Créer l'article"}
           </h2>
 

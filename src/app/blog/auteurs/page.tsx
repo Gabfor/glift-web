@@ -263,7 +263,7 @@ export default async function AuteursPage() {
 
       {/* Header text content */}
       <div className="max-w-[1152px] mx-auto text-center mb-12">
-        <h1 className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
           {pageConfig?.titre || "Auteurs"}
         </h1>
         {pageConfig?.description ? (

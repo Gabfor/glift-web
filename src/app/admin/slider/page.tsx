@@ -287,7 +287,7 @@ export default function AdminSliderPage() {
   return (
     <main className="min-h-screen bg-transparent flex justify-center px-4 pt-[100px] md:pt-[140px] pb-[100px]">
       <div className="w-full max-w-3xl relative z-10">
-        <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-10">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
           Slider
         </h2>
 

@@ -277,7 +277,7 @@ export default function ProgramStorePage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
           Cartes Glift Store
         </h2>
 

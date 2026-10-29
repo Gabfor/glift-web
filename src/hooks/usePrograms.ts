@@ -469,7 +469,6 @@ export default function usePrograms() {
     } else {
       setPrograms(updatedPrograms);
     }
-    notifyTrainingChange(targetId);
     return data ?? null;
   };
 

@@ -443,7 +443,10 @@ export default function AdminEntrainementDetailPage() {
               }
             }
 
-            const { programDeleted } = await deleteEmptyTraining();
+            const { programDeleted, trainingDeleted } = await deleteEmptyTraining();
+            if (!trainingDeleted) {
+              notifyTrainingChange("all-programs");
+            }
 
             if (isEffectiveAdmin) {
               const isAdminSubdomain = typeof window !== "undefined" && window.location.host.startsWith("admin.");

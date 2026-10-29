@@ -131,7 +131,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
           </div>
         )}
         <h1
-          className="text-[24px] sm:text-[32px] md:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto mb-[10px] prose-titles [&_p]:m-0"
+          className="text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto mb-[10px] prose-titles [&_p]:m-0"
           dangerouslySetInnerHTML={{ __html: initialPageContent?.titre || "Bienvenue dans votre compte" }}
         />
         <div

@@ -371,7 +371,7 @@ export default async function AuthorDetailPage({ params }: Props) {
 
       {/* Header text content */}
       <div className="max-w-[760px] mx-auto text-center mb-[30px] md:mb-12">
-        <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
           {authorFullName}
         </h1>
         <p className="text-[16px] text-[#5D6494] font-semibold">

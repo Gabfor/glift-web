@@ -24,7 +24,7 @@ export default function DragPreviewItem({
     <div
       style={style}
       className={cn(
-        "pointer-events-none w-full h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC] text-[#3A416F] shadow-glift-hover-strong cursor-grabbing select-none",
+        "pointer-events-none w-full sm:w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC] text-[#3A416F] shadow-glift-hover-strong cursor-grabbing select-none",
         className
       )}
     >
@@ -39,7 +39,7 @@ export default function DragPreviewItem({
       </div>
 
       {/* Titre */}
-      <div className="flex-1 px-6 flex items-center justify-center min-w-0 h-full">
+      <div className="flex-1 px-2 sm:px-3 flex items-center justify-center min-w-0 h-full">
         <span className="block w-full truncate text-center leading-normal">{training.name}</span>
       </div>
 

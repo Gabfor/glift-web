@@ -326,17 +326,19 @@ export default function TrainingRow({
             <div className="flex flex-col items-center justify-between">
               <button
                 onClick={() => handleIncrementSeries(index)}
-                className="w-5 h-3 flex items-center justify-center mb-1"
+                className="w-5 h-3 flex items-center justify-center mb-1 group cursor-pointer disabled:pointer-events-none"
                 disabled={row.series >= 6 || row.locked}
               >
-                <img src="/icons/chevron_training_up.svg" alt="+" />
+                <img src="/icons/chevron_training_up.svg" alt="+" className="group-hover:hidden" />
+                <img src="/icons/chevron_training_up_hover.svg" alt="+" className="hidden group-hover:block" />
               </button>
               <button
                 onClick={() => handleDecrementSeries(index)}
-                className="w-5 h-3 flex items-center justify-center"
+                className="w-5 h-3 flex items-center justify-center group cursor-pointer disabled:pointer-events-none"
                 disabled={row.series <= 1 || row.locked}
               >
-                <img src="/icons/chevron_training_down.svg" alt="-" />
+                <img src="/icons/chevron_training_down.svg" alt="-" className="group-hover:hidden" />
+                <img src="/icons/chevron_training_down_hover.svg" alt="-" className="hidden group-hover:block" />
               </button>
             </div>
           )}
@@ -482,18 +484,20 @@ export default function TrainingRow({
                 {!readOnly && (
                   <div className="flex flex-col items-center ml-auto">
                     <button
-                      className="w-5 h-3 flex items-center justify-center mb-1"
+                      className="w-5 h-3 flex items-center justify-center mb-1 group cursor-pointer disabled:pointer-events-none"
                       onClick={() => handleEffortChange(index, subIndex, "up")}
                       disabled={eff === "trop facile" || row.locked}
                     >
-                      <img src="/icons/chevron_training_up.svg" alt="+" />
+                      <img src="/icons/chevron_training_up.svg" alt="+" className="group-hover:hidden" />
+                      <img src="/icons/chevron_training_up_hover.svg" alt="+" className="hidden group-hover:block" />
                     </button>
                     <button
-                      className="w-5 h-3 flex items-center justify-center"
+                      className="w-5 h-3 flex items-center justify-center group cursor-pointer disabled:pointer-events-none"
                       onClick={() => handleEffortChange(index, subIndex, "down")}
                       disabled={eff === "trop dur" || row.locked}
                     >
-                      <img src="/icons/chevron_training_down.svg" alt="-" />
+                      <img src="/icons/chevron_training_down.svg" alt="-" className="group-hover:hidden" />
+                      <img src="/icons/chevron_training_down_hover.svg" alt="-" className="hidden group-hover:block" />
                     </button>
                   </div>
                 )}

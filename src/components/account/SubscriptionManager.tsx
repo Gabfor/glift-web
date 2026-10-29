@@ -6,6 +6,7 @@ import Modal from "@/components/ui/Modal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import { PaymentMethod } from "@/lib/services/paymentService";
+import GliftSpinner from "@/components/ui/GliftSpinner";
 
 
 import { Elements } from "@stripe/react-stripe-js";
@@ -661,7 +662,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     if (isLoading) {
         return (
             <div className="w-full h-40 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7069FA]" />
+                <GliftSpinner size={32} />
             </div>
         );
     }

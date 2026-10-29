@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 import { useUser } from "@/context/UserContext";
 import { Training } from "@/types/training"; // Shared type
+import GliftSpinner from "@/components/ui/GliftSpinner";
 
 export type LoadingTrainingState = { id: string; type: "open" | "add" } | null;
 
@@ -95,6 +96,7 @@ export default function DroppableProgram(props: Props) {
   }, [isPremiumUser, isFirstProgram, filteredTrainings, programId]);
 
   const isAddEnabled = adminMode || isPremiumUser || allowAddTraining; // True if Admin OR Premium OR (Basic + count == 0)
+  const isAddingThisProgram = loadingTraining?.type === "add" && loadingTraining?.id === programId;
 
   return (
     <div ref={setNodeRef} className="min-h-[64px]">
@@ -135,16 +137,21 @@ export default function DroppableProgram(props: Props) {
             <button
               // We always enable the button if it's Premium OR enabled.
               // If it is NOT enabled (Basic limit reached), we STILL want it clickable to show the modal.
-              disabled={false}
+              disabled={isAddingThisProgram}
               className={cn(
-                "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-full sm:w-[270px] h-[60px] transition",
-                !isAddEnabled
-                  ? "border-[#D7D4DC] text-[#D7D4DC] cursor-pointer" // Gray but clickable
-                  : adminMode
-                    ? "border-[#5D6494] text-[#5D6494] hover:border-[#3A416F] hover:text-[#3A416F]"
-                    : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
+                "border-[2px] border-dashed text-[16px] font-semibold px-5 py-2 rounded-[8px] w-full sm:w-[270px] h-[60px] transition flex items-center justify-center",
+                isAddingThisProgram
+                  ? adminMode
+                    ? "border-[#5D6494] cursor-wait"
+                    : "border-[#A1A5FD] cursor-wait"
+                  : !isAddEnabled
+                    ? "border-[#D7D4DC] text-[#D7D4DC] cursor-pointer" // Gray but clickable
+                    : adminMode
+                      ? "border-[#5D6494] text-[#5D6494] hover:border-[#3A416F] hover:text-[#3A416F]"
+                      : "border-[#A1A5FD] text-[#A1A5FD] hover:border-[#7069FA] hover:text-[#7069FA]"
               )}
               onClick={() => {
+                if (isAddingThisProgram) return;
                 if (isAddEnabled) {
                   onAddTraining();
                 } else if (onAddLockedClick) {
@@ -152,7 +159,11 @@ export default function DroppableProgram(props: Props) {
                 }
               }}
             >
-              + Ajouter un entraînement
+              {isAddingThisProgram ? (
+                <GliftSpinner size={22} variant="purple" />
+              ) : (
+                "+ Ajouter un entraînement"
+              )}
             </button>
           </div>
         </div>

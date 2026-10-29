@@ -20,6 +20,7 @@ import StatsGreenIcon from "/public/icons/stats_green.svg";
 import SettingDashboardIcon from "/public/icons/setting_dashboard.svg";
 import StatVignettesModal from "@/components/dashboard/StatVignettesModal";
 import Tooltip from "@/components/Tooltip";
+import GliftSpinner from "@/components/ui/GliftSpinner";
 import {
   DEFAULT_STAT_VIGNETTES,
   sanitizeStatVignettes,
@@ -1310,7 +1311,7 @@ export default function DashboardClient({
                 </div>
               )}
               <h1 
-                className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0" 
+                className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0" 
                 dangerouslySetInnerHTML={{ __html: pageContent.titre }} 
               />
               <div 
@@ -1569,7 +1570,7 @@ export default function DashboardClient({
                   <p className="text-center text-[#E53E3E] font-semibold">{fetchError}</p>
                 ) : isLoadingExercises || !hasFetchedExercises ? (
                   <div className="flex justify-center py-10">
-                    <div className="w-8 h-8 border-2 border-[#7069FA] border-t-transparent rounded-full animate-spin" />
+                    <GliftSpinner size={32} />
                   </div>
                 ) : trainingExercises.length === 0 ? (
                   <p className="text-center text-[#5D6494] font-semibold">

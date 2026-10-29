@@ -101,7 +101,8 @@ body[style*="overflow: hidden"] {
 
 /* Permet de forcer le lock quand on le veut vraiment (ex: nos propres modales) */
 html.manual-scroll-lock,
-body.manual-scroll-lock {
+body.manual-scroll-lock,
+body.manual-scroll-lock[style*="overflow: hidden"] {
   overflow: hidden !important;
   overscroll-behavior: contain !important;
 }
@@ -676,14 +677,19 @@ input:checked+.slider:before {
   scrollbar-width: none;
 }
 
-/* Modal responsive height constraints */
+/* Modal responsive height constraints & overscroll containment */
 .modal-overlay-container {
   height: 100vh;
   height: 100dvh;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 .modal-dialog-container {
   max-height: 85vh;
   max-height: 85dvh;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Animation vacillement doux du sommet de la flamme */

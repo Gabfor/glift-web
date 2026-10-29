@@ -177,7 +177,7 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
           </BackLink>
 
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+            <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
               {pageId ? "Modifier la page" : "Créer une page"}
             </h2>
 

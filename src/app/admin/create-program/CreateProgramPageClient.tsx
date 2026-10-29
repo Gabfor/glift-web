@@ -207,7 +207,7 @@ export default function CreateProgramPageClient({
             Store
           </BackLink>
           <div className="w-full max-w-3xl mx-auto px-4 sm:px-0">
-            <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+            <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
               {programId ? "Modifier la carte" : "Créer une carte"}
             </h2>
 

@@ -152,7 +152,7 @@ export default function AdminConnexionPage() {
     <main className="min-h-screen bg-transparent flex justify-center px-4 pt-[100px] md:pt-[140px]">
       {showLoader ? <GliftLoader onShow={handleTransitionLoaderShow} isAdmin /> : null}
       <div className="w-full max-w-[564px] flex flex-col items-center relative z-10">
-        <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-6">
           Admin
         </h1>
 

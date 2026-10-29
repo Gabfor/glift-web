@@ -12,6 +12,7 @@ import { SettingsService } from "@/lib/services/settingsService";
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
+import { useScrollLock } from "@/utils/scrollLock";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
 const DEFAULT_GRACE_PERIOD_HOURS = 72;
@@ -212,17 +213,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
     };
   }, [isMobileMenuOpen]);
 
-  useEffect(() => {
-    if (!isMobileMenuOpen) return;
-
-    document.documentElement.classList.add("manual-scroll-lock");
-    document.body.classList.add("manual-scroll-lock");
-
-    return () => {
-      document.documentElement.classList.remove("manual-scroll-lock");
-      document.body.classList.remove("manual-scroll-lock");
-    };
-  }, [isMobileMenuOpen]);
+  useScrollLock(isMobileMenuOpen);
 
   useEffect(() => {
     if (showAuthenticatedUI && isPremiumUser && hasPaymentMethod === null) {

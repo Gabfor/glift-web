@@ -161,7 +161,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
           Pages légales
         </BackLink>
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-0 flex flex-col items-center">
-          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+          <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
             {pageId ? "Modifier la page légale" : "Créer une page légale"}
           </h2>
 

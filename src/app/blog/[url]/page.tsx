@@ -363,7 +363,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           </div>
 
           <div className="max-w-[760px] mx-auto">
-            <h1 className="text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
+            <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
 
@@ -653,7 +653,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               </div>
             )}
             <h1 
-              className="text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
+              className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
               dangerouslySetInnerHTML={{ __html: titleToDisplay }}
             />
             {descriptionToDisplay && (

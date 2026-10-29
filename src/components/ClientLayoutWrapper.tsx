@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import ClientLayout from "@/components/ClientLayout";
 
 import { Session } from "@supabase/supabase-js";
+import { forceUnlockScroll } from "@/utils/scrollLock";
 
 export default function ClientLayoutWrapper({
   children,
@@ -44,6 +45,7 @@ export default function ClientLayoutWrapper({
     if (typeof window !== "undefined" && "scrollRestoration" in history) {
       history.scrollRestoration = "manual";
     }
+    forceUnlockScroll();
     // Force scroll to top immediately
     window.scrollTo(0, 0);
   }, [pathname]);

@@ -311,7 +311,7 @@ export default function ResetPasswordPage() {
       {loader}
       <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-5 pt-[100px] md:pt-[140px]">
         <div className="w-full flex flex-col items-center px-4 sm:px-0">
-          <h1 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
+          <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[24px]">
             Modification du mot de passe
           </h1>
 

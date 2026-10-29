@@ -397,7 +397,7 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
           Utilisateurs
         </BackLink>
         <div className="flex w-full flex-col items-center px-4">
-          <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+          <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
             Modifier un utilisateur
           </h2>
           <div
@@ -421,7 +421,7 @@ export default function AdminUserEditor({ userId, onClose }: Props) {
         Utilisateurs
       </BackLink>
       <div className="flex w-full flex-col items-center px-4">
-        <h2 className="text-[26px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
           Modifier un utilisateur
         </h2>
 

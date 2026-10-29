@@ -157,6 +157,7 @@ export default function AdminSingleProgramPage() {
   };
 
   const handleAddTraining = async () => {
+    if (loadingTraining) return;
     let currentProgramId = program?.id;
 
     // 1. Si pas d'ID (création), on enregistre le programme d'abord
@@ -184,6 +185,7 @@ export default function AdminSingleProgramPage() {
     }
 
     if (!currentProgramId) return;
+    setLoadingTraining({ id: currentProgramId, type: "add" });
 
     const { data: user } = await supabase.auth.getUser();
     if (!user?.user?.id) return;
@@ -201,7 +203,10 @@ export default function AdminSingleProgramPage() {
       .select()
       .single();
 
-    if (!data || error) return;
+    if (!data || error) {
+      setLoadingTraining(null);
+      return;
+    }
 
     // 3. Création de la première ligne par défaut
     const defaultRow = {
@@ -229,26 +234,7 @@ export default function AdminSingleProgramPage() {
       console.error("❌ Erreur création première ligne entraînement admin :", firstRowError);
     }
 
-    const newTrainingData: Training = {
-      id: data.id,
-      name: data.name,
-      app: Boolean(data.app),
-      dashboard: true,
-      program_id: data.program_id ?? currentProgramId,
-      position: data.position ?? 0,
-      locked: false,
-    };
-
     if (!isMountedRef.current) return;
-
-    setProgram(prev => {
-      if (!prev) return prev;
-      // Éviter les doublons si le re-fetch d'init() (lié à replaceState) a déjà récupéré l'entraînement
-      if (prev.trainings.some(t => t.id === newTrainingData.id)) {
-        return prev;
-      }
-      return { ...prev, trainings: [...prev.trainings, newTrainingData] };
-    });
     router.push(`/admin/entrainements/${data.id}?new=1`);
   };
 
@@ -436,6 +422,7 @@ export default function AdminSingleProgramPage() {
   };
 
   const handleTrainingNavigation = (trainingId: string) => {
+    setLoadingTraining({ id: trainingId, type: "open" });
     router.push(`/admin/entrainements/${trainingId}`);
   };
 
@@ -457,7 +444,7 @@ export default function AdminSingleProgramPage() {
         >
           Programmes
         </BackLink>
-        <h1 className="text-[30px] font-bold text-[#2E3271] mb-[10px]">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-[10px]">
           {isEditing ? "Modifier le programme" : "Créer un programme"}
         </h1>
 

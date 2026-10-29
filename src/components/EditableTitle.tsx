@@ -184,17 +184,13 @@ function EditableTitle({
     handleClear();
   };
 
-  // Nouvelle fonction pour tronquer
   const getDisplayName = (name: string) => {
     if (!name || name === LEGACY_DEFAULT_TRAINING_NAME) return DEFAULT_TRAINING_NAME;
-    if (name.length > 27) {
-      return name.slice(0, 27) + "...";
-    }
     return name;
   };
 
   return (
-    <div className={className ?? "text-center mb-[40px]"}>
+    <div className={cn("text-center mb-[40px] max-w-full overflow-hidden", className)}>
       {loading ? (
         <div className="animate-pulse">
           <div className="h-[40px] w-1/3 mx-auto bg-gray-300 rounded-md" />
@@ -269,14 +265,17 @@ function EditableTitle({
       ) : (
         <div
           onClick={handleEnterEditMode}
-          className="group flex justify-center items-center gap-2 cursor-pointer w-fit mx-auto hover:text-[#3A416F] transition"
+          className="group flex justify-center items-center gap-2 cursor-pointer w-fit max-w-full mx-auto hover:text-[#2E3271] transition px-1"
         >
-          <p className="text-[30px] sm:text-[30px] font-bold text-[#3A416F] group-hover:text-[#3A416F]">
+          <p
+            title={programName || DEFAULT_TRAINING_NAME}
+            className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] group-hover:text-[#2E3271] truncate min-w-0"
+          >
             {getDisplayName(programName)}
           </p>
 
           <Tooltip content="Editer" asChild>
-            <div className="relative w-5 h-5 cursor-pointer select-none" onClick={handleEnterEditMode}>
+            <div className="relative w-5 h-5 shrink-0 cursor-pointer select-none" onClick={handleEnterEditMode}>
               <Image
                 src="/icons/edit.svg"
                 alt="modifier"

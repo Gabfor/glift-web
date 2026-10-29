@@ -8,7 +8,7 @@ import Image from 'next/image'
 import type * as React from 'react'
 import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
-import Spinner from '@/components/ui/Spinner'
+import GliftSpinner from '@/components/ui/GliftSpinner'
 import Tooltip from '@/components/Tooltip'
 import { Training } from '@/types/training'
 
@@ -113,7 +113,6 @@ export default function SortableItem({
 
   const [menuOpen, setMenuOpen] = useState(false)
   const showLoader = Boolean(isLoading)
-  const spinnerColorClass = 'text-[#D7D4DC]'
 
   const handleMainClick = () => {
     if (isDragging || isEditing) return
@@ -195,11 +194,7 @@ export default function SortableItem({
           onClick={isEditing ? (e) => e.stopPropagation() : handleMainClick}
         >
           {showLoader ? (
-            <Spinner
-              size="lg"
-              className={cn(spinnerColorClass)}
-              ariaLabel="Chargement de l’entraînement"
-            />
+            <GliftSpinner size={22} />
           ) : isEditing ? (
             <EditableTitle
               editing={isEditing}

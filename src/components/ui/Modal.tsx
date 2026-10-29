@@ -11,6 +11,8 @@ import {
   useState,
 } from "react"
 
+import { useScrollLock } from "@/utils/scrollLock"
+
 type ModalProps = PropsWithChildren<{
   open: boolean
   title: ReactNode
@@ -60,17 +62,7 @@ export default function Modal({
     return () => window.removeEventListener("keydown", handleKeyDown)
   }, [open, onClose, closeDisabled])
 
-  useEffect(() => {
-    if (!open) return;
-
-    document.documentElement.classList.add("manual-scroll-lock");
-    document.body.classList.add("manual-scroll-lock");
-
-    return () => {
-      document.documentElement.classList.remove("manual-scroll-lock");
-      document.body.classList.remove("manual-scroll-lock");
-    };
-  }, [open]);
+  useScrollLock(open)
 
   if (!mounted || !open) {
     return null;
@@ -97,6 +89,11 @@ export default function Modal({
         "fixed inset-0 modal-overlay-container z-[1000] flex items-center justify-center p-4 sm:p-6",
         className
       )}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) {
+          e.preventDefault();
+        }
+      }}
     >
       <div
         className="absolute inset-0 bg-[#2E3142]/60 animate-in fade-in duration-300 touch-none"

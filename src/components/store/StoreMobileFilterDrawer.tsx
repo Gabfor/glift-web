@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { StoreProgram } from "@/types/store";
+import { useScrollLock } from "@/utils/scrollLock";
 import CheckboxCheckedIcon from "/public/icons/checkbox_checked.svg";
 import CheckboxUncheckedIcon from "/public/icons/checkbox_unchecked.svg";
 
@@ -37,6 +38,8 @@ export default function StoreMobileFilterDrawer({
   // Temporary state inside the drawer
   const [tempFilters, setTempFilters] = useState<Record<string, Set<string>>>({});
 
+  useScrollLock(isOpen);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -54,14 +57,7 @@ export default function StoreMobileFilterDrawer({
         }
       });
       setTempFilters(copy);
-      // Prevent background scrolling
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
     }
-    return () => {
-      document.body.style.overflow = "";
-    };
   }, [isOpen, sections, selectedFilters]);
 
   // Check if any filter is active (i.e. at least one option is selected)
