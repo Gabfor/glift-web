@@ -198,7 +198,10 @@ export default function AdminSingleProgramPage() {
         name: "Nouvel entraînement",
         user_id: userId,
         program_id: currentProgramId,
-        position: program?.trainings.length || 0,
+        position:
+          program?.trainings && program.trainings.length > 0
+            ? Math.max(...program.trainings.map((t, idx) => (typeof t.position === "number" ? t.position : idx))) + 1
+            : 0,
       })
       .select()
       .single();

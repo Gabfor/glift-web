@@ -388,13 +388,25 @@ export default function usePrograms() {
     if (prefData?.show_repos ?? true) defaultVisibleColumns.push("repos");
     if (prefData?.show_effort ?? true) defaultVisibleColumns.push("effort");
 
+    const { data: existingTrainingsInDb } = await supabase
+      .from("trainings")
+      .select("position")
+      .eq("program_id", targetId);
+
+    const localTrainings = programs.find((p) => p.id === targetId)?.trainings ?? [];
+    const allPositions = [
+      ...(existingTrainingsInDb ?? []).map((t) => (typeof t.position === "number" ? t.position : 0)),
+      ...localTrainings.map((t, idx) => (typeof t.position === "number" ? t.position : idx)),
+    ];
+    const nextPosition = allPositions.length > 0 ? Math.max(...allPositions) + 1 : 0;
+
     const { data } = await supabase
       .from("trainings")
       .insert({
         user_id: user.id,
         name: "Nom de l'entraînement",
         program_id: targetId,
-        position: programs.find(p => p.id === targetId)?.trainings.length ?? 0,
+        position: nextPosition,
         app: false,
         dashboard: false,
         columns_settings: JSON.stringify(defaultVisibleColumns),
@@ -493,7 +505,18 @@ export default function usePrograms() {
     let updated = [...programs];
     const idx = updated.findIndex(p => p.id === programId);
     if (idx !== -1) {
-      updated[idx].trainings = updated[idx].trainings.filter((t: Training) => t.id !== trainingId);
+      const remainingTrainings = updated[idx].trainings
+        .filter((t: Training) => t.id !== trainingId)
+        .map((t: Training, index: number) => ({ ...t, position: index }));
+      updated[idx].trainings = remainingTrainings;
+
+      if (remainingTrainings.length > 0) {
+        await Promise.all(
+          remainingTrainings.map((t: Training, index: number) =>
+            supabase.from("trainings").update({ position: index }).eq("id", t.id)
+          )
+        );
+      }
 
       const isEmpty = updated[idx].trainings.length === 0;
       const hasOtherPrograms = updated.filter(p => p.id !== programId).length > 0;
