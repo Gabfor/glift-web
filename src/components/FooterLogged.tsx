@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -8,51 +8,68 @@ import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/fr
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLegalPages } from "@/hooks/useLegalPages";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
-
+ 
 interface FooterLinkItem {
   label: string;
   href: string;
   isButton?: boolean;
 }
-
+ 
 export default function FooterConnected({ className = "" }: { className?: string }) {
   const { logoUrl, logoAlt } = useSiteSettings();
   const { publishedUrls, isLoading } = useLegalPages();
-  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl, contactUrl } = useDashboardUrl();
-
+  const {
+    dashboardUrl,
+    shopUrl,
+    storeUrl,
+    trainingsUrl,
+    blogUrl,
+    helpUrl,
+    contactUrl,
+    isDashboardPublished,
+    isShopPublished,
+    isStorePublished,
+    isTrainingsPublished,
+    isBlogPublished,
+    isHelpPublished,
+    isContactPublished,
+    isAppsPublished,
+    isPressKitPublished,
+  } = useDashboardUrl();
+ 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-
+ 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => ({
       ...prev,
       [title]: !prev[title],
     }));
   };
-
+ 
   const sections: { title: string; links: FooterLinkItem[] }[] = [
     {
       title: "GLIFT",
       links: [
-        { label: "Tableau de bord", href: dashboardUrl },
-        { label: "Entraînements", href: trainingsUrl },
-        { label: "Glift Store", href: storeUrl },
-        { label: "Glift Shop", href: shopUrl },
-        { label: "Blog", href: blogUrl },
-      ],
+        isDashboardPublished && { label: "Tableau de bord", href: dashboardUrl },
+        isTrainingsPublished && { label: "Entraînements", href: trainingsUrl },
+        isStorePublished && { label: "Glift Store", href: storeUrl },
+        isShopPublished && { label: "Glift Shop", href: shopUrl },
+        isBlogPublished && { label: "Blog", href: blogUrl },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "APPS MOBILE",
       links: [
-        { label: "App iOS", href: "/apps" },
-        { label: "App Android", href: "/apps" },
-      ],
+        isAppsPublished && { label: "App iOS", href: "/apps" },
+        isAppsPublished && { label: "App Android", href: "/apps" },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "AIDE",
       links: [
-        { label: "Centre d'aide", href: helpUrl },
-        { label: "Nous contacter", href: contactUrl },
-      ],
+        isHelpPublished && { label: "Centre d'aide", href: helpUrl },
+        isContactPublished && { label: "Nous contacter", href: contactUrl },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "LIENS",
@@ -66,13 +83,13 @@ export default function FooterConnected({ className = "" }: { className?: string
     {
       title: "AUTRES",
       links: [
-        { label: "Press Kit", href: "/press-kit" },
+        isPressKitPublished && { label: "Press Kit", href: "/press-kit" },
         !isLoading && publishedUrls.includes("politique-des-cookies") && { label: "Politique de cookies", href: "/politique-des-cookies" },
         { label: "Gestion des cookies", href: "#", isButton: true },
       ].filter(Boolean) as FooterLinkItem[],
     },
   ];
-
+ 
   return (
     <footer className={`mt-[50px] md:mt-[100px] max-w-[1152px] w-full mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] px-5 md:px-0 pt-0 pb-[30px] ${className}`}>
       {/* Top Section - Logo uniquement */}
@@ -81,7 +98,7 @@ export default function FooterConnected({ className = "" }: { className?: string
           <Image src={logoUrl || "/logo_beta.svg"} alt={logoAlt || "Logo Glift"} width={0} height={0} sizes="100vw" className="w-auto h-[35px]" />
         </div>
       </div>
-
+ 
       {/* Mobile Accordion View (< lg) */}
       <div className="lg:hidden">
         {sections.map((sec) => (
@@ -112,7 +129,7 @@ export default function FooterConnected({ className = "" }: { className?: string
           </div>
         ))}
       </div>
-
+ 
       {/* Desktop Grid View (lg:) */}
       <div className="hidden lg:grid max-w-[1152px] mx-auto mt-[30px] grid-cols-5 gap-8">
         {sections.map((sec) => (
@@ -132,7 +149,7 @@ export default function FooterConnected({ className = "" }: { className?: string
           </div>
         ))}
       </div>
-
+ 
       {/* Copyright + Réseaux */}
       <div className="max-w-[1152px] mx-auto mt-[30px] md:mt-[20px] flex flex-col md:flex-row justify-between items-center text-[#5D6494] text-sm gap-4 md:gap-[20px] font-semibold">
         <p className="order-2 md:order-1 text-center md:text-left">Copyright © 2026 Glift. Tous droits réservés.</p>

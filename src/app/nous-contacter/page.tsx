@@ -22,7 +22,7 @@ export default async function NousContacterPage({
 
   if (data) {
     if (data.is_published === false) {
-      notFound();
+      redirect("/");
     }
     if (data.url && data.url !== "nous-contacter") {
       redirect(`/${data.url}`);

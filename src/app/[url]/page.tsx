@@ -4,7 +4,7 @@ import BlogArticleBlocksRenderer from "@/app/blog/[url]/BlogArticleBlocksRendere
 import DashboardClient from "@/app/dashboard/DashboardClient";
 import ConceptGradientBackground from "@/components/ConceptGradientBackground";
 import type { Metadata } from "next";
-
+ 
 export async function generateMetadata({ params }: { params: Promise<{ url: string }> }): Promise<Metadata> {
   const resolvedParams = await params;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
     .eq("url", resolvedParams.url)
     .eq("is_published", true)
     .limit(1);
-
+ 
   if (!pages || pages.length === 0) {
     // 2. Cherche dans les pages génériques
     const { data: genericPages } = await (supabase as any)
@@ -29,9 +29,9 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
     
     pages = genericPages;
   }
-
+ 
   if (!pages || pages.length === 0) return {};
-
+ 
   const page = pages[0];
   const title = page.seo_title || page.titre || "";
   const plainTitle = title.replace(/<[^>]*>/g, "").trim();
@@ -39,7 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
   const plainDescription = description.replace(/<[^>]*>/g, "").trim();
   
   const isoLang = page.langue && page.langue.toLowerCase().includes('ang') ? 'en' : 'fr';
-
+ 
   // Préparation des alternatives de langues (hreflang)
   const languages: Record<string, string> = {};
   if (isoLang === 'fr') {
@@ -49,11 +49,11 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
     languages['en'] = `${siteUrl}/${resolvedParams.url}`;
     languages['fr'] = `${siteUrl}/fr/${resolvedParams.url}`;
   }
-
+ 
   const robots: any = {};
   if (page.noindex) robots.index = false;
   if (page.nofollow) robots.follow = false;
-
+ 
   return {
     title: plainTitle,
     description: plainDescription,
@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
     },
   };
 }
-
+ 
 import ShopPageClient from "@/app/shop/ShopPageClient";
 import { mapOfferRowToOffer, OfferQueryRow, isOfferMatchingCountry } from "@/utils/shopUtils";
 import { resolveUserCountry } from "@/utils/geoUtils";
@@ -72,9 +72,9 @@ import { headers } from "next/headers";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import ShopHeader from "@/components/shop/ShopHeader";
-
+ 
 import StorePageClient from "@/app/store/StorePageClient";
-import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
+import { mapProgramRowToCard, ProgramQueryRow, filterUnpublishedProgramLinks } from "@/utils/storeUtils";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import { StoreProfile } from "@/types/store";
 import StoreHeader from "@/components/store/StoreHeader";
@@ -86,9 +86,9 @@ import ComptePageClient from "@/app/compte/ComptePageClient";
 import { PaymentService } from "@/lib/services/paymentService";
 import { COMPTE_PAGE_ID } from "@/app/admin/create-page/pageForm";
 import BackLink from "@/components/BackLink";
-
+ 
 export const revalidate = 60;
-
+ 
 export default async function LegalPage({ params }: { params: Promise<{ url: string }> }) {
   const resolvedParams = await params;
   const supabase = await createServerClient();
@@ -101,7 +101,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     .eq("url", resolvedParams.url)
     .eq("is_published", true)
     .limit(1);
-
+ 
   if (error || !pages || pages.length === 0) {
     // 2. Fallback to generic page
     const { data: genericPages, error: genericError } = await (supabase as any)
@@ -110,26 +110,45 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       .eq("url", resolvedParams.url)
       .eq("is_published", true)
       .limit(1);
-
+ 
     if (genericError || !genericPages || genericPages.length === 0) {
+      const [{ data: pausedLegal }, { data: pausedGeneric }] = await Promise.all([
+        (supabase as any)
+          .from("legal_pages")
+          .select("id, is_published")
+          .eq("url", resolvedParams.url)
+          .eq("is_published", false)
+          .limit(1),
+        (supabase as any)
+          .from("pages")
+          .select("id, is_published")
+          .eq("url", resolvedParams.url)
+          .eq("is_published", false)
+          .limit(1),
+      ]);
+ 
+      if ((pausedLegal && pausedLegal.length > 0) || (pausedGeneric && pausedGeneric.length > 0)) {
+        redirect("/");
+      }
+ 
       notFound();
     }
-
+ 
     pages = genericPages;
     isGenericPage = true;
   }
-
+ 
   const page = pages[0];
-
+ 
   if (page.id === "59822297-b8b2-4041-bfa6-03793221fcf6") {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
+ 
     if (!user) {
       redirect("/connexion");
     }
-
+ 
     return (
       <DashboardClient
         initialPageContent={{
@@ -140,16 +159,16 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       />
     );
   }
-
+ 
   if (page.id === "90c6b3f6-1b46-4711-8882-28177874b51d") {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
+ 
     if (!user) {
       redirect("/connexion");
     }
-
+ 
     return (
       <EntrainementsClient
         initialPageContent={{
@@ -160,7 +179,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       />
     );
   }
-
+ 
   if (page.id === "eb4e258a-0876-421e-b653-176c8c08ed3d") {
     // 1. Get user profile for relevance sorting
     const { data: { session } } = await supabase.auth.getSession();
@@ -177,27 +196,27 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         userProfile = profile as ShopProfile;
       }
     }
-
+ 
     const headersList = await headers();
     const geoCountryCode =
       headersList.get("x-geo-country-code") ||
       headersList.get("x-vercel-ip-country") ||
       headersList.get("cf-ipcountry");
     const userCountry = resolveUserCountry(userProfile?.country, geoCountryCode);
-
+ 
     const effectiveProfile: ShopProfile = {
       gender: userProfile?.gender ?? null,
       main_goal: userProfile?.main_goal ?? null,
       supplements: userProfile?.supplements ?? null,
       country: userCountry,
     };
-
+ 
     // 2. Fetch total count
     const { count: totalCount } = await supabase
       .from("offer_shop")
       .select("*", { count: "exact", head: true })
       .eq("status", "ON");
-
+ 
     // 3. Fetch offers for initial display (Default relevance sort)
     const { data: rawOffers } = await supabase
       .from("offer_shop")
@@ -226,21 +245,21 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         pays
       `)
       .eq("status", "ON");
-
+ 
     const mappedOffers = (rawOffers ?? [])
       .map(row => mapOfferRowToOffer(row as OfferQueryRow))
       .filter(offer => isOfferMatchingCountry(offer.pays, userCountry));
     const sortedOffers = sortOffersByRelevance(mappedOffers, effectiveProfile);
     const initialOffers = sortedOffers.slice(0, 8);
-
+ 
     // 4. Fetch Slider Configuration
     const { data: adminConfig } = await supabase
       .from("sliders_admin")
       .select("*")
       .single();
-
+ 
     let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[], isMobileActive: true };
-
+ 
     if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
       const normalizeSlides = (value: any): any[] => {
         if (!Array.isArray(value)) return [];
@@ -255,13 +274,13 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           return { image: "", alt: "", link: "" };
         });
       };
-
+ 
       const prioritySlides = normalizeSlides(adminConfig.slides);
       const slotCount = adminConfig.slot_count || 1;
       const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
-
+ 
       let offerSlides: any[] = [];
-
+ 
       if (slotsNeeded > 0) {
         const { data: offers } = await supabase
           .from("offer_shop")
@@ -274,7 +293,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           `)
           .eq("status", "ON")
           .neq("slider_image", null);
-
+ 
         if (offers) {
           offerSlides = (offers ?? [])
             .filter((o) => o.slider_image && isOfferMatchingCountry(o.pays, userCountry))
@@ -302,20 +321,20 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             }));
         }
       }
-
+ 
       sliderConfig = {
         type: adminConfig.type as "single" | "double",
         slides: [...prioritySlides, ...offerSlides].slice(0, slotCount),
         isMobileActive: adminConfig.is_mobile_active ?? true,
       };
     }
-
+ 
     const shopPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Glift Shop",
       description: page.description ?? "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.",
     };
-
+ 
     return (
       <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
         <div className="max-w-[1152px] mx-auto">
@@ -330,7 +349,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       </main>
     );
   }
-
+ 
   if (page.id === "fd7e055c-bf17-4222-a8f8-c27b014d3062") {
     // 1. Get user profile for relevance sorting
     const { data: { session } } = await supabase.auth.getSession();
@@ -347,13 +366,13 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         userProfile = profile as StoreProfile;
       }
     }
-
+ 
     // 2. Fetch total count
     const { count: totalCount } = await supabase
       .from("program_store")
       .select("*", { count: "exact", head: true })
       .eq("status", "ON");
-
+ 
     // 3. Fetch first batch of programs for initial display (Default relevance sort)
     const { data: rawPrograms } = await supabase
       .from("program_store")
@@ -378,17 +397,20 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         location
       `)
       .eq("status", "ON");
-
-    const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
+ 
+    const mappedPrograms = await filterUnpublishedProgramLinks(
+      supabase,
+      (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow))
+    );
     const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
     const initialPrograms = sortedPrograms.slice(0, 8);
-
+ 
     const storePageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Glift Store",
       description: page.description ?? "Téléchargez un programme pour l'utiliser directement dans Glift.",
     };
-
+ 
     return (
       <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
         <div className="max-w-[1152px] mx-auto">
@@ -403,16 +425,44 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       </main>
     );
   }
-
+ 
   if (page.id === "f9709b0b-b513-4d53-a6ef-d9cda3f0a706") {
     // Fetch blog articles
     const { data: articles } = await (supabase.from("blog_articles") as any)
       .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
-
+ 
+    const { data: unpublishedCategoryPages } = await (supabase.from("pages") as any)
+      .select("url")
+      .in("url", [
+        "blog/nutrition",
+        "blog/entrainement",
+        "blog/entraînement",
+        "blog/sante",
+        "blog/santé",
+        "blog/motivation",
+        "blog/lifestyle",
+        "blog/recette",
+        "nutrition",
+        "entrainement",
+        "entraînement",
+        "sante",
+        "santé",
+        "motivation",
+        "lifestyle",
+        "recette",
+      ])
+      .eq("is_published", false);
+ 
+    const disabledCategories: string[] = Array.isArray(unpublishedCategoryPages)
+      ? unpublishedCategoryPages
+          .map((p: any) => (typeof p.url === "string" ? p.url.replace(/^blog\//i, "") : ""))
+          .filter(Boolean)
+      : [];
+ 
     const defaultBlogText = "Que votre objectif soit la <strong>prise de masse musculaire</strong>, la <strong>perte de gras (sèche)</strong> ou le <strong>développement de votre force</strong>, vous êtes au bon endroit. Découvrez nos conseils d'entraînement, ainsi que nos programmes de musculation complets et détaillés, adaptés aux débutants comme aux pratiquants confirmés. Ne laissez plus vos résultats au hasard, <strong>passez au niveau supérieur</strong>.";
-
+ 
     // Extract extra text from content_blocks
     let extraText = defaultBlogText;
     if (page.content_blocks) {
@@ -422,7 +472,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         extraText = textBlock.texte;
       }
     }
-
+ 
     return (
       <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
@@ -448,8 +498,8 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             />
           )}
         </div>
-
-        <BlogListClient initialArticles={articles || []} />
+ 
+        <BlogListClient initialArticles={articles || []} disabledCategories={disabledCategories} />
       </main>
     );
   }
@@ -460,13 +510,13 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       .eq("status", "ON")
       .order("top", { ascending: false })
       .order("created_at", { ascending: false });
-
+ 
     const helpPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Aide",
       description: page.description ?? "Retrouvez les questions les plus fréquemment posées par nos utilisateurs.",
     };
-
+ 
     const cleanQuestions = (helpQuestions || []).filter((q: any) => q.question && q.answer);
     const faqSchema = {
       "@context": "https://schema.org",
@@ -480,7 +530,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         },
       })),
     };
-
+ 
     return (
       <>
         <script
@@ -491,45 +541,45 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       </>
     );
   }
-
+ 
   if (page.id === "c131a31e-4c74-4b53-bdf5-d41a87e5b61b") {
     const blocks = page.content_blocks || [];
     const textBlock = Array.isArray(blocks) ? (blocks as any[]).find((b: any) => b.type === "description_aide") : null;
     const description_aide = textBlock ? (textBlock as any).texte || "" : "";
-
+ 
     const contactPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Contactez-nous",
       description: page.description ?? "Vous souhaitez nous contacter ? Remplissez le formulaire ci-dessous et nous reviendrons vers vous rapidement.",
       description_aide,
     };
-
+ 
     return <ContactClient initialPageContent={contactPageContent} />;
   }
-
+ 
   if (page.id === COMPTE_PAGE_ID) {
     const {
       data: { user },
     } = await supabase.auth.getUser();
-
+ 
     if (!user) {
       redirect("/connexion");
     }
-
+ 
     const paymentService = new PaymentService(supabase as any);
     const [paymentMethods, profileResponse] = await Promise.all([
       paymentService.getUserPaymentMethods(user.id, user.email, user.app_metadata),
       supabase.from("profiles").select("subscription_plan").eq("id", user.id).single(),
     ]);
-
+ 
     const isPremium = profileResponse.data?.subscription_plan === "premium";
-
+ 
     const initialPageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "<p>Bienvenue dans votre compte</p>",
       description: page.description ?? "<p>Mettez à jour votre profil, modifiez vos informations ou votre abonnement.</p>",
     };
-
+ 
     return (
       <ComptePageClient
         initialPaymentMethods={paymentMethods}
@@ -538,13 +588,13 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       />
     );
   }
-
+ 
   const currentUrl = (resolvedParams.url || page.url || "").replace(/^\//, "").trim();
   const isFeaturePage = ["creation-programmes", "suivi-seances", "notation-ressenti", "visualisation-progression"].includes(currentUrl);
   const isConceptPage = currentUrl === "concept";
   const isTarifsPage = currentUrl === "tarifs";
   const isAppsPage = currentUrl === "apps";
-
+ 
   return (
     <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités, de la page tarifs et de la page apps */}
@@ -555,7 +605,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             Accueil
           </BackLink>
         )}
-
+ 
         {/* --- 1. Template Spécial : Pages Détails / Fonctionnalités --- */}
         {isFeaturePage ? (
           <>
@@ -633,13 +683,13 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             )}
           </>
         )}
-
+ 
         {!isGenericPage && page.updated_at && (
           <div className="text-[14px] text-[#5D6494] font-semibold text-center mb-[40px]">
             Dernière mise à jour : {new Date(page.updated_at).toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" })}
           </div>
         )}
-
+ 
         <article className="w-full [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
           <BlogArticleBlocksRenderer 
             blocks={page.content_blocks || []} 

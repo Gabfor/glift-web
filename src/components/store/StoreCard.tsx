@@ -1,17 +1,17 @@
 "use client";
-
+ 
 import Image from "next/image";
 import { downloadProgram } from "@/utils/downloadProgram";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import DownloadAuthModal from "@/components/DownloadAuthModal";
 import CTAButton from "@/components/CTAButton";
-
+ 
 import { createClient } from "@/lib/supabaseClient";
 import { useEffect } from "react";
 import Tooltip from "@/components/Tooltip";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
-
+ 
 type Props = {
   program: {
     id: string;
@@ -35,7 +35,7 @@ type Props = {
   isFavorite?: boolean;
   onToggleFavorite?: (programId: string) => void;
 };
-
+ 
 export default function StoreCard({
   program,
   isAuthenticated,
@@ -48,16 +48,16 @@ export default function StoreCard({
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [lockedHover, setLockedHover] = useState(false);
-
+ 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!onToggleFavorite) return;
     onToggleFavorite(program.id);
   };
-
+ 
   // Logic: Restricted if user is starter AND program is premium.
   const isRestricted = isAuthenticated && subscriptionPlan === 'starter' && program.plan === 'premium';
-
+ 
   const handleDownload = async () => {
     if (!isAuthenticated || loading || isRestricted) return;
     setLoading(true);
@@ -69,7 +69,7 @@ export default function StoreCard({
       router.push(trainingsUrl);
     }
   };
-
+ 
   const genderIcons =
     program.gender === "Tous"
       ? [{ src: "/icons/mixte.svg", label: "mixte" }]
@@ -78,7 +78,7 @@ export default function StoreCard({
         : program.gender === "Femme"
           ? [{ src: "/icons/femme.svg", label: "femme" }]
           : [];
-
+ 
   return (
     <div className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-glift hover:shadow-glift-hover transition-shadow duration-200">
       {/* BOUTON FAVORI (15px du haut et 15px de la droite) - Seulement si utilisateur connecté */}
@@ -128,7 +128,7 @@ export default function StoreCard({
           />
         </div>
       )}
-
+ 
       {/* IMAGE PARTENAIRE ENTRE IMAGE ET TITRE */}
       {program.partner_image && (
         <div className="flex justify-center -mt-8 relative z-10">
@@ -163,14 +163,14 @@ export default function StoreCard({
           )}
         </div>
       )}
-
+ 
       {/* CONTENU TEXTE */}
       <div className="p-[15px] pb-[20px] md:p-[10px] md:pb-[20px] flex-1 flex flex-col justify-between">
         <div>
           <h3 className="text-[#3A416F] text-[16px] font-bold mb-[10px] uppercase text-left line-clamp-2 md:min-h-[48px]">
             {program.title}
           </h3>
-
+ 
           <div className="flex justify-start flex-wrap gap-[5px] mb-[15px]">
             <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[25px] inline-flex items-center justify-center rounded-[5px]">
               {program.level}
@@ -198,12 +198,12 @@ export default function StoreCard({
               </Tooltip>
             ))}
           </div>
-
+ 
           <p className="text-[14px] text-[#5D6494] font-semibold mb-[15px] text-left line-clamp-4 leading-relaxed md:min-h-[84px]">
             {program.description}
           </p>
         </div>
-
+ 
         {/* BOUTON TÉLÉCHARGER & LIEN */}
           <div className="flex justify-center">
             {isAuthenticated && !isRestricted ? (
@@ -243,20 +243,22 @@ export default function StoreCard({
               </CTAButton>
             )}
           </div>
-
+ 
           {/* LIEN EN SAVOIR PLUS */}
-          <div className="text-center mt-[15px]">
-            <a
-              href={program.link || "#"}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-center text-[14px] text-[#5D6494] font-semibold cursor-pointer hover:text-[#3A416F] transition inline-block"
-            >
-              En savoir plus
-            </a>
-          </div>
+          {program.link && program.link.trim() !== "" && program.link.trim() !== "#" && (
+            <div className="text-center mt-[15px]">
+              <a
+                href={program.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-center text-[14px] text-[#5D6494] font-semibold cursor-pointer hover:text-[#3A416F] transition inline-block"
+              >
+                En savoir plus
+              </a>
+            </div>
+          )}
         </div>
-
+ 
       {/* MODALE DE CONNEXION */}
       <DownloadAuthModal
         show={showModal}

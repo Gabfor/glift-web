@@ -9,10 +9,10 @@ import BlogListClient from "../BlogListClient";
 import BlogIntroBlock from "@/components/blog/BlogIntroBlock";
 import ShinyAuthorImage from "@/components/ShinyAuthorImage";
 import type { Metadata } from "next";
-
+ 
 // Next.js Route Cache & revalidation (opt-in)
 export const revalidate = 60;
-
+ 
 const categoryMapping: Record<string, string> = {
   "nutrition": "Nutrition",
   "entrainement": "Entraînement",
@@ -23,7 +23,31 @@ const categoryMapping: Record<string, string> = {
   "lifestyle": "Lifestyle",
   "recette": "Recette",
 };
-
+ 
+const BLOG_SUBPAGE_URLS = [
+  "blog/nutrition",
+  "blog/entrainement",
+  "blog/entraînement",
+  "blog/sante",
+  "blog/santé",
+  "blog/motivation",
+  "blog/lifestyle",
+  "blog/recette",
+  "nutrition",
+  "entrainement",
+  "entraînement",
+  "sante",
+  "santé",
+  "motivation",
+  "lifestyle",
+  "recette",
+  "blog/auteurs",
+];
+ 
+function normalizeSlug(str: string): string {
+  return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+ 
 function parseArticleCategories(cat: unknown): string[] {
   if (Array.isArray(cat)) {
     return cat.filter((c): c is string => typeof c === "string" && c.trim() !== "");
@@ -39,7 +63,7 @@ function parseArticleCategories(cat: unknown): string[] {
   }
   return [];
 }
-
+ 
 export async function generateMetadata({
   params,
 }: {
@@ -49,16 +73,16 @@ export async function generateMetadata({
   const { url } = resolvedParams;
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
   const slug = decodeURIComponent(url).toLowerCase();
-
+ 
   const supabase = await createServerClient();
-
+ 
   // 1. Tente de récupérer un article de blog
   const { data: articles } = await (supabase.from("blog_articles") as any)
     .select("titre, description, image_url, image_alt, langue, categorie, seo_title, seo_description, noindex, nofollow, canonical_override, auteur")
     .eq("url", url)
     .eq("is_published", true)
     .limit(1);
-
+ 
   if (articles && articles.length > 0) {
     const article = articles[0];
     const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en' : 'fr';
@@ -71,20 +95,20 @@ export async function generateMetadata({
       languages['en'] = `${siteUrl}/blog/${url}`;
       languages['fr'] = `${siteUrl}/fr/blog/${url}`;
     }
-
+ 
     const title = article.seo_title || article.titre || "";
     const plainTitle = title.replace(/<[^>]*>/g, "").trim();
     const description = article.seo_description || article.description || "";
     const plainDescription = description.replace(/<[^>]*>/g, "").trim();
-
+ 
     const robots: any = {};
     if (article.noindex) robots.index = false;
     if (article.nofollow) robots.follow = false;
-
+ 
     const authorName = (article as any).auteur || "Gabriel Fort";
     const parts = authorName.trim().split(/\s+/);
     const authorSlug = getAuthorSlug(parts[0], parts.slice(1).join(" ") || "");
-
+ 
     const ogImages = article.image_url
       ? [
           {
@@ -95,7 +119,7 @@ export async function generateMetadata({
           },
         ]
       : undefined;
-
+ 
     return {
       title: plainTitle,
       description: plainDescription,
@@ -127,7 +151,7 @@ export async function generateMetadata({
       },
     };
   }
-
+ 
   // 2. Tente de voir si c'est une catégorie
   const categoryName = categoryMapping[slug];
   if (categoryName) {
@@ -136,14 +160,14 @@ export async function generateMetadata({
       .in("url", [`blog/${slug}`, `blog/${url}`, slug, url])
       .eq("is_published", true)
       .maybeSingle();
-
+ 
     const title = pageConfig?.seo_title || (pageConfig?.titre ? pageConfig.titre.replace(/<[^>]*>/g, "").trim() : `Conseils & Programmes ${categoryName} | Glift`);
     const description = pageConfig?.seo_description || (pageConfig?.description ? pageConfig.description.replace(/<[^>]*>/g, "").trim() : `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`);
-
+ 
     const robots: any = {};
     if (pageConfig?.noindex) robots.index = false;
     if (pageConfig?.nofollow) robots.follow = false;
-
+ 
     return {
       title,
       description,
@@ -166,38 +190,76 @@ export async function generateMetadata({
       },
     };
   }
-
+ 
   return {};
 }
-
+ 
 export default async function BlogArticlePage({ params }: { params: Promise<{ url: string }> }) {
   const resolvedParams = await params;
   const { url } = resolvedParams;
   const supabase = await createServerClient();
   const slug = decodeURIComponent(url).toLowerCase();
-
-  // Fetch blog dynamic URL
-  const { data: blogConfig } = await supabase
-    .from("pages")
-    .select("url")
-    .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
-    .single();
-
+ 
+  // Fetch blog dynamic URL and subpages publication status
+  const [{ data: blogConfig }, { data: subPages }] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("url, is_published")
+      .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
+      .maybeSingle(),
+    (supabase.from("pages") as any)
+      .select("url, is_published")
+      .in("url", BLOG_SUBPAGE_URLS),
+  ]);
+ 
+  if (blogConfig && blogConfig.is_published === false) {
+    redirect("/");
+  }
+ 
   if (blogConfig?.url && blogConfig.url !== "blog") {
     redirect(`/${blogConfig.url}/${url}`);
   }
-
+ 
   const blogUrl = blogConfig?.url ? `/${blogConfig.url}` : "/blog";
-
-  // 1. Fetch article
+ 
+  const disabledCategorySlugs = new Set<string>();
+  let isAuthorsPagePublished = true;
+ 
+  if (Array.isArray(subPages)) {
+    for (const sp of subPages) {
+      if (sp.url === "blog/auteurs") {
+        if (sp.is_published === false) {
+          isAuthorsPagePublished = false;
+        }
+      } else if (sp.is_published === false && typeof sp.url === "string") {
+        const cleanCatSlug = normalizeSlug(sp.url.replace(/^blog\//i, ""));
+        disabledCategorySlugs.add(cleanCatSlug);
+      }
+    }
+  }
+ 
+  // 1. Fetch article (including unpublished to handle hierarchical redirect)
   const { data: articles, error } = await (supabase.from("blog_articles") as any)
     .select("*")
     .eq("url", url) // Use original param for article lookup
-    .eq("is_published", true)
     .limit(1);
-
+ 
   if (!error && articles && articles.length > 0) {
     const article = articles[0];
+    const articleCategories = parseArticleCategories(article.categorie);
+    const primaryCategory = articleCategories[0] || "Conseils";
+    const primaryCatSlug = normalizeSlug(primaryCategory);
+    const isPrimaryCatActive =
+      Boolean(categoryMapping[primaryCatSlug]) && !disabledCategorySlugs.has(primaryCatSlug);
+ 
+    // If article is paused/unpublished, redirect to its parent category (if active) or /blog
+    if (article.is_published === false) {
+      if (isPrimaryCatActive) {
+        redirect(`${blogUrl}/${primaryCatSlug}`);
+      }
+      redirect(blogUrl);
+    }
+ 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
     const isoLang = article.langue && article.langue.toLowerCase().includes('ang') ? 'en-US' : 'fr-FR';
     const authorName = (article as any).auteur || "Gabriel Fort";
@@ -205,12 +267,12 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
     const prenom = parts[0];
     const nom = parts.slice(1).join(" ") || "";
     const authorSlug = getAuthorSlug(prenom, nom);
-
+ 
     const isUpdated = article.updated_at && 
       new Date(article.updated_at).getTime() > new Date(article.created_at).getTime() + 60000;
     const dateToDisplay = isUpdated ? article.updated_at : article.created_at;
     const dateLabel = isUpdated ? "mis à jour le" : "mis en ligne le";
-
+ 
     // Fetch author details
     let authorDetails: any = null;
     if (authorName) {
@@ -222,7 +284,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
         .maybeSingle();
       authorDetails = authorData;
     }
-
+ 
     if (!authorDetails && authorName === "Gabriel Fort") {
       authorDetails = {
         prenom: "Gabriel",
@@ -230,10 +292,14 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
         image_url: "/images/gabriel_fort.png",
         description_courte: "Passionné de musculation depuis l'adolescence et pratiquant régulier depuis plus de 11 ans , Gabriel Fort a créé l'outil qu'il aurait aimé avoir lorsqu'il a décidé de se lancer sérieusement dans la musculation.",
         description: "Passionné de musculation depuis l'adolescence et pratiquant régulier depuis plus de 11 ans , Gabriel Fort a créé l'outil qu'il aurait aimé avoir lorsqu'il a décidé de se lancer sérieusement dans la musculation.",
-        poste_actuel: "Fondateur de Glift"
+        poste_actuel: "Fondateur de Glift",
+        statut: true,
       };
     }
-
+ 
+    const isAuthorActive =
+      isAuthorsPagePublished && Boolean(authorDetails ? authorDetails.statut !== false : true);
+ 
     // Extract FAQ items for Schema.org FAQPage (GEO boost)
     const contentBlocks = article.content_blocks as any[] || [];
     const faqBlocks = contentBlocks.filter((b) => b && b.type === "faq" && Array.isArray(b.items) && b.items.length > 0);
@@ -250,10 +316,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
         }
       });
     });
-
-    const articleCategories = parseArticleCategories(article.categorie);
-    const primaryCategory = articleCategories[0] || "Conseils";
-
+ 
     return (
       <>
         <script
@@ -274,7 +337,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 "@type": "Person",
                 "@id": `${siteUrl}/blog/auteurs/${authorSlug}#person`,
                 "name": authorName,
-                "url": `${siteUrl}/blog/auteurs/${authorSlug}`,
+                ...(isAuthorActive ? { "url": `${siteUrl}/blog/auteurs/${authorSlug}` } : {}),
                 "jobTitle": authorDetails?.poste_actuel || "Auteur",
                 "description": authorDetails?.description_courte || authorDetails?.description
               },
@@ -330,13 +393,13 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                   "@type": "ListItem",
                   "position": 2,
                   "name": "Blog",
-                  "item": `${siteUrl}/blog`
+                  "item": `${siteUrl}${blogUrl}`
                 },
                 {
                   "@type": "ListItem",
                   "position": 3,
                   "name": primaryCategory,
-                  "item": `${siteUrl}/blog/${primaryCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`
+                  "item": `${siteUrl}${blogUrl}/${primaryCatSlug}`
                 },
                 {
                   "@type": "ListItem",
@@ -354,37 +417,45 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
               <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
               <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
-              <Link href={`${blogUrl}/${primaryCategory.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")}`} className="hover:text-[#2E3271] transition-colors">
-                {primaryCategory}
-              </Link>
+              {isPrimaryCatActive ? (
+                <Link href={`${blogUrl}/${primaryCatSlug}`} className="hover:text-[#2E3271] transition-colors">
+                  {primaryCategory}
+                </Link>
+              ) : (
+                <span>{primaryCategory}</span>
+              )}
               <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
               <span className="text-[#3A416F] truncate max-w-[200px] sm:max-w-none">{article.titre}</span>
             </div>
           </div>
-
+ 
           <div className="max-w-[760px] mx-auto">
             <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
-
+ 
             <div className="text-[14px] font-semibold text-[#5D6494] mb-[15px] text-left">
               Par{" "}
-              <Link
-                href={`/blog/auteurs/${authorSlug}`}
-                className="text-[#7069FA] hover:text-[#5b54e0] transition-colors"
-              >
-                {authorName}
-              </Link>
+              {isAuthorActive ? (
+                <Link
+                  href={`/blog/auteurs/${authorSlug}`}
+                  className="text-[#7069FA] hover:text-[#5b54e0] transition-colors"
+                >
+                  {authorName}
+                </Link>
+              ) : (
+                <span className="text-[#5D6494]">{authorName}</span>
+              )}
               , {dateLabel}{" "}
               <time dateTime={dateToDisplay} className="text-inherit">
                 {formatArticleDate(dateToDisplay)}
               </time>
             </div>
-
+ 
             <p className="text-[14px] text-[#5D6494] font-semibold mb-[20px] text-left">
               {article.description}
             </p>
-
+ 
             <div className="flex justify-between items-center mb-[20px] gap-[10px]">
               <div className="flex justify-start items-center gap-[5px] flex-wrap">
                 {article.type === "Programme" ? (
@@ -412,7 +483,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                     </div>
                   ))
                 )}
-
+ 
                 {(article.sexe === "Homme" || article.sexe === "Femme" || article.sexe === "Tous") && (
                   <div className="bg-[#F4F5FE] w-[30px] h-[30px] rounded-[5px] flex items-center justify-center">
                     <Image 
@@ -424,7 +495,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                   </div>
                 )}
               </div>
-
+ 
               {article.is_ai_generated && (
                 <Tooltip 
                   content={article.type === "Programme" ? "Programme généré avec l'aide de l'IA" : "Article généré avec l'aide de l'IA"}
@@ -444,7 +515,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 </Tooltip>
               )}
             </div>
-
+ 
             {/* Image principale (Responsive Mobile / Desktop) */}
             {(article.image_url || article.image_mobile) && (
               article.image_mobile ? (
@@ -480,7 +551,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 </div>
               )
             )}
-
+ 
             {/* Contenu dynamique */}
             <article className="mb-[50px]">
               <BlogArticleBlocksRenderer 
@@ -497,9 +568,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 }}
               />
             </article>
-
+ 
           </div>
-
+ 
           {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
           <div className="bg-[#FBFCFE]">
             <div className="max-w-[760px] mx-auto">
@@ -507,14 +578,14 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                 articleLie1Id={article.article_lie_1_id}
                 articleLie2Id={article.article_lie_2_id}
               />
-
+ 
               {authorDetails && (() => {
                 const isGabriel =
                   authorDetails.prenom?.trim().toLowerCase() === "gabriel" &&
                   authorDetails.nom?.trim().toLowerCase() === "fort";
                 const isShiny = Boolean(authorDetails.is_shiny);
                 const authorImg = authorDetails.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
-
+ 
                 return (
                   <div className="mt-[30px]">
                     <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
@@ -535,17 +606,19 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                           Article rédigé par {authorDetails.prenom} {authorDetails.nom}
                         </h4>
                         <div
-                          className="text-[12px] text-[#5D6494] font-semibold leading-relaxed mb-3 [&_p]:m-0"
+                          className={`text-[12px] text-[#5D6494] font-semibold leading-relaxed ${isAuthorActive ? "mb-3" : "mb-0"} [&_p]:m-0`}
                           dangerouslySetInnerHTML={{
                             __html: authorDetails.description_courte || authorDetails.description,
                           }}
                         />
-                        <Link
-                          href={`/blog/auteurs/${getAuthorSlug(authorDetails.prenom, authorDetails.nom)}`}
-                          className="text-[12px] text-[#5D6494] hover:text-[#3A416F] font-semibold underline transition-colors"
-                        >
-                          Voir les articles {getDePreposition(authorDetails.prenom)}{authorDetails.prenom} {authorDetails.nom}
-                        </Link>
+                        {isAuthorActive && (
+                          <Link
+                            href={`/blog/auteurs/${getAuthorSlug(authorDetails.prenom, authorDetails.nom)}`}
+                            className="text-[12px] text-[#5D6494] hover:text-[#3A416F] font-semibold underline transition-colors"
+                          >
+                            Voir les articles {getDePreposition(authorDetails.prenom)}{authorDetails.prenom} {authorDetails.nom}
+                          </Link>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -557,24 +630,27 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
       </>
     );
   }
-
+ 
   // 2. Check if it's a category
   const categoryName = categoryMapping[slug];
   if (categoryName) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
-
-    // 1. Fetch category page configuration from the `pages` table
+ 
+    // 1. Fetch category page configuration from the `pages` table (including unpublished to redirect)
     const { data: pageConfig } = await (supabase.from("pages") as any)
       .select("*")
       .in("url", [`blog/${slug}`, `blog/${url}`, slug, url])
-      .eq("is_published", true)
       .maybeSingle();
-
+ 
+    if (pageConfig && pageConfig.is_published === false) {
+      redirect(blogUrl);
+    }
+ 
     const { data: allArticles } = await (supabase.from("blog_articles") as any)
       .select("id, url, titre, description, image_url, image_mobile, image_alt, type, categorie, sexe, is_featured, niveau, nombre_seances, duree_moyenne")
       .eq("is_published", true)
       .order("created_at", { ascending: false });
-
+ 
     // Extract extra text from content_blocks if present
     let extraText = "";
     if (pageConfig?.content_blocks) {
@@ -584,10 +660,10 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
         extraText = textBlock.texte;
       }
     }
-
+ 
     const titleToDisplay = pageConfig?.titre || categoryName;
     const descriptionToDisplay = pageConfig?.description || `<p>Découvrez tous nos articles sur le thème <strong>${categoryName}</strong>.</p>`;
-
+ 
     // JSON-LD schemas
     const breadcrumbSchema = {
       "@context": "https://schema.org",
@@ -603,27 +679,27 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           "@type": "ListItem",
           "position": 2,
           "name": "Blog",
-          "item": `${siteUrl}/blog`
+          "item": `${siteUrl}${blogUrl}`
         },
         {
           "@type": "ListItem",
           "position": 3,
           "name": categoryName,
-          "item": `${siteUrl}/blog/${slug}`
+          "item": `${siteUrl}${blogUrl}/${slug}`
         }
       ]
     };
-
+ 
     const collectionSchema = {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
       "name": pageConfig?.seo_title || `Conseils & Programmes ${categoryName} | Glift`,
       "description": pageConfig?.seo_description || `Découvrez tous nos articles et programmes de musculation dédiés à la catégorie ${categoryName}.`,
-      "url": `${siteUrl}/blog/${slug}`
+      "url": `${siteUrl}${blogUrl}/${slug}`
     };
-
+ 
     const hasExtraText = Boolean(extraText && extraText.trim() !== "");
-
+ 
     return (
       <>
         <script
@@ -645,7 +721,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               <span className="text-[#3A416F]">{categoryName}</span>
             </div>
           </div>
-
+ 
           <div className="max-w-[1152px] mx-auto text-center">
             {pageConfig?.surtitre && (
               <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -664,16 +740,20 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
             )}
             {hasExtraText && <BlogIntroBlock html={extraText} />}
           </div>
-
-          <BlogListClient initialArticles={allArticles || []} initialCategory={categoryName} />
+ 
+          <BlogListClient
+            initialArticles={allArticles || []}
+            initialCategory={categoryName}
+            disabledCategories={Array.from(disabledCategorySlugs)}
+          />
         </main>
       </>
     );
   }
-
+ 
   notFound();
 }
-
+ 
 function getAuthorSlug(prenom: string, nom: string): string {
   return `${prenom}-${nom}`
     .toLowerCase()
@@ -683,14 +763,14 @@ function getAuthorSlug(prenom: string, nom: string): string {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
 }
-
+ 
 function getDePreposition(name: string): string {
   if (!name) return "de ";
   const firstLetter = name.charAt(0).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const elisionLetters = ["a", "e", "i", "o", "u", "y", "h"];
   return elisionLetters.includes(firstLetter) ? "d'" : "de ";
 }
-
+ 
 function formatArticleDate(dateStr: string): string {
   if (!dateStr) return "";
   try {

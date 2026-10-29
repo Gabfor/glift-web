@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabaseServer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -15,13 +15,13 @@ import {
 import { Globe } from "lucide-react";
 import AuthorArticlesClient from "./AuthorArticlesClient";
 import ShinyAuthorImage from "@/components/ShinyAuthorImage";
-
+ 
 export const revalidate = 60; // Auto-update cache every minute
-
+ 
 type Props = {
   params: Promise<{ slug: string }>;
 };
-
+ 
 type Author = {
   id: string;
   prenom: string;
@@ -38,7 +38,7 @@ type Author = {
   statut: boolean;
   is_shiny?: boolean;
 };
-
+ 
 type Article = {
   id: string;
   url: string;
@@ -57,7 +57,7 @@ type Article = {
   created_at: string;
   auteur?: string;
 };
-
+ 
 function getAuthorSlug(prenom: string, nom: string): string {
   return `${prenom}-${nom}`
     .toLowerCase()
@@ -65,7 +65,7 @@ function getAuthorSlug(prenom: string, nom: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9-]/g, "");
 }
-
+ 
 function getSocialIcon(platform: string) {
   switch (platform.toLowerCase()) {
     case "facebook":
@@ -85,7 +85,7 @@ function getSocialIcon(platform: string) {
       return faFacebookF;
   }
 }
-
+ 
 function getSocialLogo(platform: string): string | null {
   switch (platform.toLowerCase()) {
     case "facebook":
@@ -105,24 +105,24 @@ function getSocialLogo(platform: string): string | null {
       return null;
   }
 }
-
+ 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const author = await fetchAuthorBySlug(slug);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
-
-  if (!author) {
+ 
+  if (!author || author.statut === false) {
     return {
       title: "Auteur introuvable | Glift",
     };
   }
-
+ 
   const name = `${author.prenom} ${author.nom}`;
   const title = `${name} – ${author.poste_actuel || "Auteur & Expert Musculation"} | Glift`;
   const description = author.description_courte || `Découvrez le profil, le parcours et les articles de musculation rédigés par ${name} sur Glift.`;
   const canonicalUrl = `${siteUrl}/blog/auteurs/${slug}`;
   const imageUrl = author.image_url ? (author.image_url.startsWith("http") ? author.image_url : `${siteUrl}${author.image_url}`) : `${siteUrl}/images/gabriel_fort.png`;
-
+ 
   return {
     title,
     description,
@@ -159,27 +159,28 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-
+ 
 async function fetchAuthorBySlug(slug: string): Promise<Author | null> {
   const supabase = await createServerClient();
+  let hasDbAuthors = false;
   try {
     const { data: dbAuthors } = await (supabase as any)
       .from("auteurs")
-      .select("*")
-      .eq("statut", true);
-
+      .select("*");
+ 
     if (dbAuthors && dbAuthors.length > 0) {
+      hasDbAuthors = true;
       const match = (dbAuthors as Author[]).find(
         (a) => getAuthorSlug(a.prenom, a.nom) === slug
       );
-      if (match) return match;
+      return match || null;
     }
   } catch (err) {
     console.warn("Could not query database table auteurs:", err);
   }
-
-  // Fallback specifically for Gabriel Fort
-  if (slug === "gabriel-fort") {
+ 
+  // Fallback specifically for Gabriel Fort only if table is empty or query failed
+  if (!hasDbAuthors && slug === "gabriel-fort") {
     return {
       id: "1",
       prenom: "Gabriel",
@@ -209,21 +210,48 @@ async function fetchAuthorBySlug(slug: string): Promise<Author | null> {
       statut: true,
     };
   }
-
+ 
   return null;
 }
-
+ 
 export default async function AuthorDetailPage({ params }: Props) {
   const { slug } = await params;
-  const author = await fetchAuthorBySlug(slug);
-
+  const supabase = await createServerClient();
+ 
+  const [{ data: blogConfig }, { data: auteursPageConfig }, author] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("url, is_published")
+      .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
+      .maybeSingle(),
+    supabase
+      .from("pages")
+      .select("is_published")
+      .eq("url", "blog/auteurs")
+      .maybeSingle(),
+    fetchAuthorBySlug(slug),
+  ]);
+ 
+  if (blogConfig && blogConfig.is_published === false) {
+    redirect("/");
+  }
+ 
+  const blogUrl = blogConfig?.url ? `/${blogConfig.url}` : "/blog";
+ 
+  if (auteursPageConfig && auteursPageConfig.is_published === false) {
+    redirect(blogUrl);
+  }
+ 
   if (!author) {
     notFound();
   }
-
-  const supabase = await createServerClient();
+ 
+  if (author.statut === false) {
+    redirect("/blog/auteurs");
+  }
+ 
   const authorFullName = `${author.prenom} ${author.nom}`;
-
+ 
   // Fetch blog articles written by this author
   let articles: Article[] = [];
   try {
@@ -234,23 +262,23 @@ export default async function AuthorDetailPage({ params }: Props) {
       .eq("is_published", true)
       .eq("auteur", authorFullName)
       .order("created_at", { ascending: false });
-
+ 
     if (dbArticles) {
       articles = dbArticles as Article[];
     }
   } catch (err) {
     console.warn("Could not query blog_articles for author:", err);
   }
-
+ 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
   const authorEntityId = `${siteUrl}/blog/auteurs/${slug}#person`;
   const authorImageUrl = author.image_url ? (author.image_url.startsWith('http') ? author.image_url : `${siteUrl}${author.image_url}`) : `${siteUrl}/images/gabriel_fort.png`;
-
+ 
   // Liens sociaux externes valides pour sameAs (signal d'autorité GEO)
   const sameAsLinks = (author.liens_sociaux || [])
     .map(link => link.url)
     .filter(url => url && url.startsWith('http') && !url.includes('#'));
-
+ 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -265,7 +293,7 @@ export default async function AuthorDetailPage({ params }: Props) {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": `${siteUrl}/blog`
+        "item": `${siteUrl}${blogUrl}`
       },
       {
         "@type": "ListItem",
@@ -281,7 +309,7 @@ export default async function AuthorDetailPage({ params }: Props) {
       }
     ]
   };
-
+ 
   const personProfileSchema = {
     "@context": "https://schema.org",
     "@type": "ProfilePage",
@@ -335,7 +363,7 @@ export default async function AuthorDetailPage({ params }: Props) {
       } : {})
     }
   };
-
+ 
   return (
     <>
       <script
@@ -354,7 +382,7 @@ export default async function AuthorDetailPage({ params }: Props) {
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-          <Link href="/blog" className="hover:text-[#2E3271] transition-colors">
+          <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
             Blog
           </Link>
           <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
@@ -368,7 +396,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           <span className="text-[#3A416F]">{authorFullName}</span>
         </div>
       </div>
-
+ 
       {/* Header text content */}
       <div className="max-w-[760px] mx-auto text-center mb-[30px] md:mb-12">
         <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
@@ -378,7 +406,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           {author.poste_actuel}
         </p>
       </div>
-
+ 
       {/* Profile Details Section */}
       <div className="max-w-[1152px] mx-auto flex flex-col md:flex-row gap-8 md:gap-12 items-start mb-[30px]">
         {/* Left Column: Image + Socials */}
@@ -388,10 +416,10 @@ export default async function AuthorDetailPage({ params }: Props) {
               author.prenom?.trim().toLowerCase() === "gabriel" &&
               author.nom?.trim().toLowerCase() === "fort";
             const isShiny = Boolean(author.is_shiny);
-
+ 
             const desktopCutout = author.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
             const mobileCutout = author.image_mobile || author.image_url || (isGabriel ? "/images/gabrielfort_mobile.png" : "/images/gabriel_fort.png");
-
+ 
             return (
               <div className="relative w-full h-[180px] sm:h-[220px] md:w-[270px] md:h-[270px] rounded-[20px] overflow-hidden border border-[#ECE9F1]">
                 {author.image_mobile ? (
@@ -439,7 +467,7 @@ export default async function AuthorDetailPage({ params }: Props) {
                   link.platform.toLowerCase() === "site web" ||
                   link.platform.toLowerCase() === "globe";
                 const customLogo = getSocialLogo(link.platform);
-
+ 
                 return (
                   <a
                     key={idx}
@@ -471,10 +499,10 @@ export default async function AuthorDetailPage({ params }: Props) {
             </div>
           )}
         </div>
-
+ 
         {/* Right Column: Profile details */}
         <div className="flex-1">
-
+ 
           {/* Metadata (Experience / Expertises) */}
           <div className="flex flex-col gap-0 mb-[14px] md:mb-[10px]">
             {author.experience && (
@@ -497,7 +525,7 @@ export default async function AuthorDetailPage({ params }: Props) {
                     </span>
                   </div>
                 </div>
-
+ 
                 {/* Desktop version */}
                 <div className="hidden md:flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
@@ -539,7 +567,7 @@ export default async function AuthorDetailPage({ params }: Props) {
                     </span>
                   </div>
                 </div>
-
+ 
                 {/* Desktop version */}
                 <div className="hidden md:flex items-center gap-4 text-[14px] font-semibold">
                   <div className="flex items-center gap-2 w-[120px] shrink-0">
@@ -562,7 +590,7 @@ export default async function AuthorDetailPage({ params }: Props) {
               </>
             )}
           </div>
-
+ 
           {/* Bio Description */}
           <div
             className="text-[14px] text-[#5D6494] font-semibold leading-relaxed [&_p]:mb-4 last:[&_p]:mb-0"
@@ -572,10 +600,10 @@ export default async function AuthorDetailPage({ params }: Props) {
           />
         </div>
       </div>
-
+ 
       {/* Separation line */}
       <div className="max-w-[1152px] mx-auto w-full h-[1px] bg-[#ECE9F1] my-[30px]" />
-
+ 
         {/* Articles Grid Section with LoadMore */}
         <div className="max-w-[1152px] mx-auto">
           <h2 className="text-[14px] font-bold text-[#3A416F] uppercase mb-1 tracking-wider">
@@ -584,7 +612,7 @@ export default async function AuthorDetailPage({ params }: Props) {
           <p className="text-[14px] text-[#5D6494] mb-8 font-semibold">
             Voici tous les articles réalisés par {author.prenom} {author.nom}.
           </p>
-
+ 
           <AuthorArticlesClient articles={articles} authorName={authorFullName} />
         </div>
       </main>

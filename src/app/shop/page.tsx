@@ -7,9 +7,9 @@ import { resolveUserCountry } from "@/utils/geoUtils";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import type { Metadata } from "next";
-
+ 
 export const dynamic = "force-dynamic";
-
+ 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createServerClient();
   const { data: pageConfig } = await supabase
@@ -17,18 +17,18 @@ export async function generateMetadata(): Promise<Metadata> {
     .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
     .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
     .single();
-
+ 
   if (!pageConfig) return { title: "Shop" };
-
+ 
   const title = pageConfig.seo_title || pageConfig.titre || "Glift Shop";
   const plainTitle = title.replace(/<[^>]*>/g, "").trim();
   const description = pageConfig.seo_description || pageConfig.description || "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.";
   const plainDescription = description.replace(/<[^>]*>/g, "").trim();
-
+ 
   const robots: any = {};
   if (pageConfig.noindex) robots.index = false;
   if (pageConfig.nofollow) robots.follow = false;
-
+ 
   return {
     title: plainTitle,
     description: plainDescription,
@@ -38,10 +38,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-
+ 
 import ShopHeader from "@/components/shop/ShopHeader";
 import ConceptGradientBackground from "@/components/ConceptGradientBackground";
-
+ 
 export default async function ShopPage() {
   const supabase = await createServerClient();
   
@@ -49,17 +49,21 @@ export default async function ShopPage() {
   const [{ data: pageConfig }, { data: settingsData }] = await Promise.all([
     supabase
       .from("pages")
-      .select("surtitre, titre, description, url")
+      .select("surtitre, titre, description, url, is_published")
       .eq("id", "eb4e258a-0876-421e-b653-176c8c08ed3d")
       .single(),
     supabase.from("settings").select("key, value"),
   ]);
-
+ 
   const settings: Record<string, string> = {};
   settingsData?.forEach((item) => {
     settings[item.key] = item.value;
   });
-
+ 
+  if (pageConfig && pageConfig.is_published === false) {
+    redirect("/");
+  }
+ 
   if (pageConfig && pageConfig.url && pageConfig.url !== "shop") {
     redirect(`/${pageConfig.url}`);
   }
@@ -89,7 +93,7 @@ export default async function ShopPage() {
       initialFavorites = (favsRes.data as unknown as Array<{ offer_id: string }>).map((item) => String(item.offer_id));
     }
   }
-
+ 
   // 1b. Resolve effective country (User profile or IP Geolocation or default France)
   const headersList = await headers();
   const geoCountryCode =
@@ -97,20 +101,20 @@ export default async function ShopPage() {
     headersList.get("x-vercel-ip-country") ||
     headersList.get("cf-ipcountry");
   const userCountry = resolveUserCountry(userProfile?.country, geoCountryCode);
-
+ 
   const effectiveProfile: ShopProfile = {
     gender: userProfile?.gender ?? null,
     main_goal: userProfile?.main_goal ?? null,
     supplements: userProfile?.supplements ?? null,
     country: userCountry,
   };
-
+ 
   // 2. Fetch total count
   const { count: totalCount } = await supabase
     .from("offer_shop")
     .select("*", { count: "exact", head: true })
     .eq("status", "ON");
-
+ 
   // 3. Fetch offers for initial display (Default relevance sort)
   const { data: rawOffers } = await supabase
     .from("offer_shop")
@@ -141,7 +145,7 @@ export default async function ShopPage() {
       pays
     `)
     .eq("status", "ON");
-
+ 
   const mappedOffers = (rawOffers ?? [])
     .map((row) => mapOfferRowToOffer(row as OfferQueryRow))
     .filter((offer) => isOfferMatchingCountry(offer.pays, userCountry));
@@ -149,15 +153,15 @@ export default async function ShopPage() {
   // Perform relevance sorting on the server
   const sortedOffers = sortOffersByRelevance(mappedOffers, userProfile, initialFavorites);
   const initialOffers = sortedOffers;
-
+ 
   // 4. Fetch Slider Configuration
   const { data: adminConfig } = await supabase
     .from("sliders_admin")
     .select("*")
     .single();
-
+ 
   let sliderConfig = { type: "none" as "none" | "single" | "double", slides: [] as any[], isMobileActive: true };
-
+ 
   if (adminConfig && adminConfig.is_active && adminConfig.type !== "none") {
     // 4a. Normalize priority slides
     const normalizeSlides = (value: any): any[] => {
@@ -173,13 +177,13 @@ export default async function ShopPage() {
         return { image: "", alt: "", link: "" };
       });
     };
-
+ 
     const prioritySlides = normalizeSlides(adminConfig.slides);
     const slotCount = adminConfig.slot_count || 1;
     const slotsNeeded = Math.max(0, slotCount - prioritySlides.length);
-
+ 
     let offerSlides: any[] = [];
-
+ 
     if (slotsNeeded > 0) {
       const { data: offers } = await supabase
         .from("offer_shop")
@@ -192,7 +196,7 @@ export default async function ShopPage() {
         `)
         .eq("status", "ON")
         .neq("slider_image", null);
-
+ 
       if (offers) {
         offerSlides = (offers ?? [])
           .filter((o) => o.slider_image && isOfferMatchingCountry(o.pays, userCountry))
@@ -220,25 +224,25 @@ export default async function ShopPage() {
           }));
       }
     }
-
+ 
     sliderConfig = {
       type: adminConfig.type as "single" | "double",
       slides: [...prioritySlides, ...offerSlides].slice(0, slotCount),
       isMobileActive: adminConfig.is_mobile_active ?? true,
     };
   }
-
+ 
   const initialPageContent = {
     surtitre: pageConfig?.surtitre ?? "",
     titre: pageConfig?.titre || "Glift Shop",
     description: pageConfig?.description ?? "Retrouve une sélection des meilleurs bons plans et codes promo du moment. Le moyen idéal d'alléger ton budget.",
   };
-
+ 
   return (
     <main className="relative flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px] overflow-x-clip">
       {/* Fond dégradé dynamique */}
       <ConceptGradientBackground initialSettings={settings} />
-
+ 
       <div className="relative z-10 max-w-[1152px] mx-auto">
         <ShopHeader initialPageContent={initialPageContent} />
       </div>

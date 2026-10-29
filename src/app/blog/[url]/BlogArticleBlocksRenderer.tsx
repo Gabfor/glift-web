@@ -1451,19 +1451,21 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"auth" | "restricted">("auth");
-  const [programInfo, setProgramInfo] = useState<{ plan: string } | null>(null);
-
+  const [programInfo, setProgramInfo] = useState<{ plan: string; status?: string } | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(true);
+ 
   useEffect(() => {
     const trimmedId = programmeId?.trim();
     if (!trimmedId) return;
-
+ 
     const fetchInfo = async () => {
       const supabase = createClient();
       
       // 1. D'abord chercher par ID de Store
       let { data } = await supabase
         .from("program_store")
-        .select("plan")
+        .select("plan, status")
         .eq("id", trimmedId)
         .single();
       
@@ -1471,18 +1473,31 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
       if (!data) {
         const { data: storeData } = await supabase
           .from("program_store")
-          .select("plan")
+          .select("plan, status")
           .eq("linked_program_id", trimmedId)
           .maybeSingle();
         data = storeData;
       }
-
-      if (data) setProgramInfo(data);
+ 
+      if (data) {
+        setProgramInfo(data);
+        if ((data as any).status && (data as any).status !== "ON") {
+          setIsPaused(true);
+        }
+      }
+      setIsCheckingStatus(false);
     };
-    fetchInfo();
+    if (trimmedId) {
+      fetchInfo();
+    } else {
+      setIsPaused(true);
+      setIsCheckingStatus(false);
+    }
   }, [programmeId]);
-
+ 
   const isRestricted = isAuthenticated && !isPremiumUser && programInfo?.plan === "premium";
+ 
+  if (isCheckingStatus || isPaused) return null;
 
   const handleDownload = async () => {
     const trimmedId = programmeId?.trim();
@@ -1511,7 +1526,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
   };
 
   return (
-    <div id={ancreId} className="w-full flex justify-center scroll-mt-[100px]">
+    <div id={ancreId} className="w-full flex justify-center scroll-mt-[100px]" style={isCheckingStatus || isPaused ? { display: "none" } : undefined}>
       <div className="w-full md:w-auto min-h-[44px] flex items-center justify-center">
         {isAuthenticated && !isRestricted ? (
           <CTAButton

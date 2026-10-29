@@ -26,7 +26,22 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const router = useRouter();
   const { user, profile, isAuthenticated, isRecoverySession, isEmailVerified, gracePeriodExpiresAt, isPremiumUser, isUserDataLoaded } =
     useUser();
-  const { dashboardUrl, shopUrl, storeUrl, trainingsUrl, blogUrl, helpUrl } = useDashboardUrl();
+  const {
+    dashboardUrl,
+    shopUrl,
+    storeUrl,
+    trainingsUrl,
+    blogUrl,
+    helpUrl,
+    isDashboardPublished,
+    isShopPublished,
+    isStorePublished,
+    isTrainingsPublished,
+    isBlogPublished,
+    isHelpPublished,
+    isTarifsPublished,
+    isAppsPublished,
+  } = useDashboardUrl();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSticky, setIsSticky] = useState(false);
@@ -354,66 +369,78 @@ export default function Header({ disconnected = false }: HeaderProps) {
           <nav className="hidden md:flex text-[16px] text-[var(--color-text-body)] font-semibold h-full absolute left-1/2 transform -translate-x-1/2 z-10 top-0">
             {showAuthenticatedUI ? (
               <>
-                <Link
-                  href={dashboardUrl}
-                  className={
-                    pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Tableau de bord
-                </Link>
-                <Link
-                  href={trainingsUrl}
-                  className={
-                    pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Entraînements
-                </Link>
-                <Link
-                  href={storeUrl}
-                  className={
-                    pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Store
-                </Link>
-                <Link
-                  href={shopUrl}
-                  className={
-                    pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Shop
-                </Link>
-                <Link
-                  href={blogUrl}
-                  className={
-                    pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Blog
-                </Link>
-                <Link
-                  href={helpUrl}
-                  className={
-                    pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Aide
-                </Link>
+                {isDashboardPublished && (
+                  <Link
+                    href={dashboardUrl}
+                    className={
+                      pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Tableau de bord
+                  </Link>
+                )}
+                {isTrainingsPublished && (
+                  <Link
+                    href={trainingsUrl}
+                    className={
+                      pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Entraînements
+                  </Link>
+                )}
+                {isStorePublished && (
+                  <Link
+                    href={storeUrl}
+                    className={
+                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Store
+                  </Link>
+                )}
+                {isShopPublished && (
+                  <Link
+                    href={shopUrl}
+                    className={
+                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Shop
+                  </Link>
+                )}
+                {isBlogPublished && (
+                  <Link
+                    href={blogUrl}
+                    className={
+                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Blog
+                  </Link>
+                )}
+                {isHelpPublished && (
+                  <Link
+                    href={helpUrl}
+                    className={
+                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Aide
+                  </Link>
+                )}
               </>
             ) : (
               <>
@@ -427,66 +454,78 @@ export default function Header({ disconnected = false }: HeaderProps) {
                 >
                   Concept
                 </Link>
-                <Link
-                  href="/apps"
-                  className={
-                    pathname === "/apps"
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Apps
-                </Link>
-                <Link
-                  href="/tarifs"
-                  className={
-                    pathname === "/tarifs"
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Tarifs
-                </Link>
-                <Link
-                  href={storeUrl}
-                  className={
-                    pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Store
-                </Link>
-                <Link
-                  href={shopUrl}
-                  className={
-                    pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Shop
-                </Link>
-                <Link
-                  href={blogUrl}
-                  className={
-                    pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Blog
-                </Link>
-                <Link
-                  href={helpUrl}
-                  className={
-                    pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
-                      ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
-                      : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
-                  }
-                >
-                  Aide
-                </Link>
+                {isAppsPublished && (
+                  <Link
+                    href="/apps"
+                    className={
+                      pathname === "/apps"
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Apps
+                  </Link>
+                )}
+                {isTarifsPublished && (
+                  <Link
+                    href="/tarifs"
+                    className={
+                      pathname === "/tarifs"
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Tarifs
+                  </Link>
+                )}
+                {isStorePublished && (
+                  <Link
+                    href={storeUrl}
+                    className={
+                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Store
+                  </Link>
+                )}
+                {isShopPublished && (
+                  <Link
+                    href={shopUrl}
+                    className={
+                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Shop
+                  </Link>
+                )}
+                {isBlogPublished && (
+                  <Link
+                    href={blogUrl}
+                    className={
+                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Blog
+                  </Link>
+                )}
+                {isHelpPublished && (
+                  <Link
+                    href={helpUrl}
+                    className={
+                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                        ? "flex items-center h-full px-4 text-[var(--color-brand-primary)]"
+                        : "flex items-center h-full px-4 hover:text-[var(--color-text-heading)]"
+                    }
+                  >
+                    Aide
+                  </Link>
+                )}
               </>
             )}
           </nav>
@@ -657,72 +696,84 @@ export default function Header({ disconnected = false }: HeaderProps) {
             <nav className="flex flex-col py-4 border-b border-[#F0F2F6]">
               {showAuthenticatedUI ? (
                 <>
-                  <Link
-                    href={dashboardUrl}
-                    className={
-                      pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Tableau de bord
-                  </Link>
-                  <Link
-                    href={trainingsUrl}
-                    className={
-                      pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Entraînements
-                  </Link>
-                  <Link
-                    href={storeUrl}
-                    className={
-                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Store
-                  </Link>
-                  <Link
-                    href={shopUrl}
-                    className={
-                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Shop
-                  </Link>
-                  <Link
-                    href={blogUrl}
-                    className={
-                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Blog
-                  </Link>
-                  <Link
-                    href={helpUrl}
-                    className={
-                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Aide
-                  </Link>
+                  {isDashboardPublished && (
+                    <Link
+                      href={dashboardUrl}
+                      className={
+                        pathname === dashboardUrl || pathname === "/dashboard" || pathname === "/tableau-de-bord"
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Tableau de bord
+                    </Link>
+                  )}
+                  {isTrainingsPublished && (
+                    <Link
+                      href={trainingsUrl}
+                      className={
+                        pathname?.startsWith(trainingsUrl) || pathname?.startsWith("/entrainements")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Entraînements
+                    </Link>
+                  )}
+                  {isStorePublished && (
+                    <Link
+                      href={storeUrl}
+                      className={
+                        pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Store
+                    </Link>
+                  )}
+                  {isShopPublished && (
+                    <Link
+                      href={shopUrl}
+                      className={
+                        pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Shop
+                    </Link>
+                  )}
+                  {isBlogPublished && (
+                    <Link
+                      href={blogUrl}
+                      className={
+                        pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Blog
+                    </Link>
+                  )}
+                  {isHelpPublished && (
+                    <Link
+                      href={helpUrl}
+                      className={
+                        pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Aide
+                    </Link>
+                  )}
                 </>
               ) : (
                 <>
@@ -737,72 +788,84 @@ export default function Header({ disconnected = false }: HeaderProps) {
                   >
                     Concept
                   </Link>
-                  <Link
-                    href="/apps"
-                    className={
-                      pathname === "/apps"
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Apps
-                  </Link>
-                  <Link
-                    href="/tarifs"
-                    className={
-                      pathname === "/tarifs"
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Tarifs
-                  </Link>
-                  <Link
-                    href={storeUrl}
-                    className={
-                      pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Store
-                  </Link>
-                  <Link
-                    href={shopUrl}
-                    className={
-                      pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Shop
-                  </Link>
-                  <Link
-                    href={blogUrl}
-                    className={
-                      pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Blog
-                  </Link>
-                  <Link
-                    href={helpUrl}
-                    className={
-                      pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
-                        ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
-                        : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
-                    }
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    Aide
-                  </Link>
+                  {isAppsPublished && (
+                    <Link
+                      href="/apps"
+                      className={
+                        pathname === "/apps"
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Apps
+                    </Link>
+                  )}
+                  {isTarifsPublished && (
+                    <Link
+                      href="/tarifs"
+                      className={
+                        pathname === "/tarifs"
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Tarifs
+                    </Link>
+                  )}
+                  {isStorePublished && (
+                    <Link
+                      href={storeUrl}
+                      className={
+                        pathname?.startsWith(storeUrl) || pathname?.startsWith("/store")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Store
+                    </Link>
+                  )}
+                  {isShopPublished && (
+                    <Link
+                      href={shopUrl}
+                      className={
+                        pathname?.startsWith(shopUrl) || pathname?.startsWith("/shop")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Shop
+                    </Link>
+                  )}
+                  {isBlogPublished && (
+                    <Link
+                      href={blogUrl}
+                      className={
+                        pathname?.startsWith(blogUrl) || pathname?.startsWith("/blog")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Blog
+                    </Link>
+                  )}
+                  {isHelpPublished && (
+                    <Link
+                      href={helpUrl}
+                      className={
+                        pathname?.startsWith(helpUrl) || pathname?.startsWith("/aide")
+                          ? "py-2.5 text-[16px] font-bold text-[var(--color-brand-primary)]"
+                          : "py-2.5 text-[16px] font-bold text-[#3A416F] hover:text-[var(--color-brand-primary)]"
+                      }
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Aide
+                    </Link>
+                  )}
                 </>
               )}
             </nav>

@@ -1,5 +1,5 @@
 "use client";
-
+ 
 import { useEffect, useRef, useState, useCallback } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
@@ -9,15 +9,15 @@ import { createClientComponentClient } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/types";
 import { haveStringArrayChanged } from "@/utils/arrayUtils";
 import { useUser } from "@/context/UserContext";
-
-import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
-
+ 
+import { mapProgramRowToCard, ProgramQueryRow, filterUnpublishedProgramLinks } from "@/utils/storeUtils";
+ 
 import { StoreProgram, StoreProfile } from "@/types/store";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import CTAButton from "@/components/CTAButton";
-
+ 
 const ITEMS_PER_BATCH = 12;
-
+ 
 export default function StoreGrid({
   sortBy,
   visibleCount = 12,
@@ -48,7 +48,7 @@ export default function StoreGrid({
   onResetFilters?: () => void;
 }) {
   const targetCount = visibleCount ?? (currentPage ? currentPage * ITEMS_PER_BATCH : ITEMS_PER_BATCH);
-
+ 
   const isDefaultQuery =
     targetCount === 12 &&
     sortBy === "relevance" &&
@@ -56,7 +56,7 @@ export default function StoreGrid({
     (initialFilters
       ? !haveStringArrayChanged(filters, initialFilters)
       : filters.every((f) => f === ""));
-
+ 
   const [allPrograms, setAllPrograms] = useState<StoreProgram[]>(initialPrograms);
   const [programs, setPrograms] = useState<StoreProgram[]>(() => initialPrograms.slice(0, targetCount));
   const [loading, setLoading] = useState(initialPrograms.length === 0);
@@ -64,10 +64,10 @@ export default function StoreGrid({
   const [isAuthenticated, setIsAuthenticated] = useState(initialIsAuthenticated);
   const [userProfile, setUserProfile] = useState<StoreProfile | null>(initialUserProfile);
   const [favorites, setFavorites] = useState<string[]>(initialFavorites);
-
+ 
   const hasLoadedOnceRef = useRef(initialPrograms.length > 0 && isDefaultQuery);
   const unfilteredProgramsRef = useRef<StoreProgram[]>(initialPrograms.length > 0 ? initialPrograms : []);
-
+ 
   const previousQueryRef = useRef<{
     sortBy: string;
     targetCount: number;
@@ -87,7 +87,7 @@ export default function StoreGrid({
         }
       : null
   );
-
+ 
   const getOrderForSortBy = (sortBy: string) => {
     switch (sortBy) {
       case "relevance":
@@ -101,17 +101,17 @@ export default function StoreGrid({
         return { column: "created_at", ascending: false };
     }
   };
-
+ 
   // ➜ UserContext provides auth state, profile and computed premium status
   const { user, isPremiumUser, isLoading: isUserContextLoading, profile } = useUser();
-
+ 
   // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
     let isCancelled = false;
-
+ 
     async function loadFavorites() {
       let loadedFavs: string[] = initialFavorites;
-
+ 
       // 1. First read local cache
       try {
         const stored = localStorage.getItem("glift_favorite_programs");
@@ -121,14 +121,14 @@ export default function StoreGrid({
       } catch {
         // ignore
       }
-
+ 
       if (user?.id) {
         try {
           const supabase = createClientComponentClient();
           const { data, error } = await (supabase.from("user_store_favorites" as any) as any)
             .select("program_id")
             .eq("user_id", user.id);
-
+ 
           if (error) {
             console.error("Erreur Supabase lors du chargement des favoris Store :", error.message || error);
           } else if (data) {
@@ -143,14 +143,14 @@ export default function StoreGrid({
           console.error("Erreur inattendue lors du chargement des favoris Store :", err);
         }
       }
-
+ 
       if (!isCancelled) {
         const areFavsSame = (a: string[], b: string[]) => {
           if (a.length !== b.length) return false;
           const setA = new Set(a);
           return b.every((item) => setA.has(item));
         };
-
+ 
         if (!areFavsSame(favorites, loadedFavs)) {
           setFavorites(loadedFavs);
           if (sortBy === "relevance") {
@@ -164,28 +164,28 @@ export default function StoreGrid({
         }
       }
     }
-
+ 
     loadFavorites();
-
+ 
     return () => {
       isCancelled = true;
     };
   }, [user?.id]);
-
+ 
   const handleToggleFavorite = useCallback(
     async (programId: string) => {
       const isCurrentlyFav = favorites.includes(programId);
       const next = isCurrentlyFav
         ? favorites.filter((id) => id !== programId)
         : [...favorites, programId];
-
+ 
       setFavorites(next);
       try {
         localStorage.setItem("glift_favorite_programs", JSON.stringify(next));
       } catch {
         // ignore
       }
-
+ 
       if (user?.id) {
         try {
           const supabase = createClientComponentClient();
@@ -211,11 +211,11 @@ export default function StoreGrid({
     },
     [favorites, user?.id]
   );
-
+ 
   // ➜ Auth & Extended Profile synchronisé directement depuis UserContext (zéro requête réseau parasite)
   useEffect(() => {
     setIsAuthenticated(!!user);
-
+ 
     if (user && profile) {
       const effectivePlan = isPremiumUser ? "premium" : "starter";
       const nextProfile = {
@@ -232,7 +232,7 @@ export default function StoreGrid({
       setUserProfile((prev) => (prev === null ? prev : null));
     }
   }, [user, profile, isPremiumUser, isUserContextLoading]);
-
+ 
   // ➜ Fetch programs
   useEffect(() => {
     if (
@@ -252,7 +252,7 @@ export default function StoreGrid({
       setLoading(false);
       return;
     }
-
+ 
     const previousQuery = previousQueryRef.current;
     const filterOrSortChanged =
       !previousQuery ||
@@ -260,15 +260,15 @@ export default function StoreGrid({
       previousQuery.isAuthenticated !== isAuthenticated ||
       JSON.stringify(previousQuery.userProfile) !== JSON.stringify(userProfile) ||
       haveStringArrayChanged(previousQuery.filters, filters);
-
+ 
     const favoritesToggled = previousQuery?.favoritesOnly !== favoritesOnly;
     const countChanged = previousQuery?.targetCount !== targetCount;
-
+ 
     if (!filterOrSortChanged && !favoritesToggled && !countChanged && hasLoadedOnceRef.current) {
       setLoading(false);
       return;
     }
-
+ 
     // Si seuls les favoris ou le targetCount ont changé et qu'on a déjà les programmes filtrés en mémoire
     if (!filterOrSortChanged && unfilteredProgramsRef.current.length > 0) {
       previousQueryRef.current = {
@@ -279,19 +279,19 @@ export default function StoreGrid({
         userProfile,
         favoritesOnly,
       };
-
+ 
       let mappedPrograms = unfilteredProgramsRef.current;
       if (favoritesOnly) {
         mappedPrograms = mappedPrograms.filter((p) => favorites.includes(p.id));
       }
-
+ 
       if (onCountChange) onCountChange(mappedPrograms.length);
       setAllPrograms(mappedPrograms);
       setPrograms(mappedPrograms.slice(0, targetCount));
       setLoading(false);
       return;
     }
-
+ 
     previousQueryRef.current = {
       sortBy,
       targetCount,
@@ -300,13 +300,13 @@ export default function StoreGrid({
       userProfile,
       favoritesOnly,
     };
-
+ 
     if (!hasLoadedOnceRef.current || allPrograms.length === 0) {
       setLoading(true);
     }
-
+ 
     let isActive = true;
-
+ 
     const fetchPrograms = async () => {
       if (filters.some((f) => f === "__none__")) {
         if (onCountChange) onCountChange(0);
@@ -317,10 +317,10 @@ export default function StoreGrid({
         setLoading(false);
         return;
       }
-
+ 
       const supabase = createClient();
       const order = getOrderForSortBy(sortBy);
-
+ 
       let query = supabase
         .from("program_store")
         .select(`
@@ -329,9 +329,9 @@ export default function StoreGrid({
           link, downloads, created_at, plan, location, image_mobile, partner_name
         `)
         .eq("status", "ON");
-
+ 
       const [genderFilter, goalFilter, levelFilter, locationFilter, durationFilter, partnerFilter, availabilityFilter] = filters;
-
+ 
       if (genderFilter) {
         const genders = genderFilter.split(",").map((s) => s.trim());
         if (genders.length === 1) {
@@ -370,52 +370,55 @@ export default function StoreGrid({
           query = query.eq("plan", "premium");
         }
       }
-
+ 
       let finalQuery = query;
       if (order.column) {
         finalQuery = finalQuery.order(order.column, { ascending: order.ascending });
       }
-
+ 
       const { data, error } = await finalQuery.returns<ProgramQueryRow[]>();
-
+ 
       if (!isActive) return;
-
+ 
       if (error) {
         console.error("Erreur Supabase :", error.message);
       } else {
-        let mappedPrograms = (data ?? []).map(mapProgramRowToCard);
-
+        let mappedPrograms = await filterUnpublishedProgramLinks(
+          supabase,
+          (data ?? []).map(mapProgramRowToCard)
+        );
+ 
         if (sortBy === "relevance") {
           mappedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, favorites);
         }
-
+ 
         unfilteredProgramsRef.current = mappedPrograms;
-
+ 
         if (favoritesOnly) {
           mappedPrograms = mappedPrograms.filter((p) => favorites.includes(p.id));
         }
-
+ 
         if (onCountChange) onCountChange(mappedPrograms.length);
-
+ 
         setAllPrograms(mappedPrograms);
         setPrograms(mappedPrograms.slice(0, targetCount));
       }
-
+ 
       hasLoadedOnceRef.current = true;
       setLoading(false);
     };
-
+ 
     void fetchPrograms();
-
+ 
     return () => {
       isActive = false;
     };
   }, [sortBy, targetCount, filters, userProfile, isAuthenticated, favoritesOnly, favorites]);
-
+ 
   const hasActiveFilters = filters.some(
     (f) => f && f.trim() !== "" && f.toLowerCase() !== "tous" && f !== "__none__"
   );
-
+ 
   return (
     <>
       {showSkeleton ? (
@@ -465,7 +468,7 @@ export default function StoreGrid({
               </div>
             )
           )}
-
+ 
           {/* Vue Mobile (< md) */}
           <div className="flex flex-col gap-5 md:hidden">
             {programs.map((program) => (
@@ -479,7 +482,7 @@ export default function StoreGrid({
               />
             ))}
           </div>
-
+ 
           {/* Vue Desktop (md:) : Grille paginée */}
           <div className="hidden md:grid md:gap-6 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
             {programs.map((program) => (
@@ -493,7 +496,7 @@ export default function StoreGrid({
               />
             ))}
           </div>
-
+ 
         </div>
       )}
     </>

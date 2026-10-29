@@ -14,7 +14,7 @@ export default async function TableauDeBordPage() {
 
   if (data) {
     if (data.is_published === false) {
-      notFound();
+      redirect("/");
     }
     if (data.url && data.url !== "tableau-de-bord") {
       redirect(`/${data.url}`);

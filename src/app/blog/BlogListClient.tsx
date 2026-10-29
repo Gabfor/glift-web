@@ -1,11 +1,11 @@
 "use client";
-
+ 
 import { useState, useEffect } from "react";
 import BlogArticleCard from "@/components/blog/BlogArticleCard";
 import LoadMore from "@/components/pagination/LoadMore";
 import Link from "next/link";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
-
+ 
 type Article = {
   id: string;
   url: string;
@@ -22,14 +22,15 @@ type Article = {
   nombre_seances?: string;
   duree_moyenne?: string;
 };
-
+ 
 type Props = {
   initialArticles: Article[];
   initialCategory?: string;
+  disabledCategories?: string[];
 };
-
+ 
 const ITEMS_PER_BATCH = 12;
-
+ 
 function getArticleCategories(cat: unknown): string[] {
   if (Array.isArray(cat)) {
     return cat.filter((c): c is string => typeof c === "string" && c.trim() !== "");
@@ -45,41 +46,53 @@ function getArticleCategories(cat: unknown): string[] {
   }
   return [];
 }
-
-export default function BlogListClient({ initialArticles, initialCategory = "Tous" }: Props) {
+ 
+function normalizeCategorySlug(cat: string): string {
+  return cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+}
+ 
+export default function BlogListClient({
+  initialArticles,
+  initialCategory = "Tous",
+  disabledCategories = [],
+}: Props) {
   const { blogUrl } = useDashboardUrl();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_BATCH);
-
+ 
   // Sync state if initialCategory changes (e.g. navigation between category pages)
   useEffect(() => {
     setSelectedCategory(initialCategory);
     setVisibleCount(ITEMS_PER_BATCH);
   }, [initialCategory]);
-
-  // Dynamically generate categories from existing articles (filter out null/undefined/empty)
+ 
+  const disabledSlugs = new Set(disabledCategories.map(normalizeCategorySlug));
+ 
+  // Dynamically generate categories from existing articles (filter out null/undefined/empty and disabled categories)
   const validArticleCategories = Array.from(
     new Set(
       initialArticles.flatMap((a) => getArticleCategories(a.categorie))
     )
-  ).sort();
+  )
+    .filter((cat) => !disabledSlugs.has(normalizeCategorySlug(cat)))
+    .sort();
   const dynamicCategories = ["Tous", ...validArticleCategories];
-
+ 
   const filteredArticles = initialArticles.filter((article) => {
     if (selectedCategory === "Tous") return true;
     const cats = getArticleCategories(article.categorie);
     return cats.includes(selectedCategory);
   });
-
+ 
   const isCategoryPage = selectedCategory !== "Tous";
-
+ 
   // Category page: unified list with featured articles placed first
   const sortedCategoryArticles = [...filteredArticles].sort((a, b) => {
     if (a.is_featured && !b.is_featured) return -1;
     if (!a.is_featured && b.is_featured) return 1;
     return 0;
   });
-
+ 
   // Main blog page: split into Featured & Recent
   const allFeatured = filteredArticles.filter((a) => a.is_featured);
   const featuredArticles = allFeatured.slice(0, 4);
@@ -87,17 +100,17 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
     ...allFeatured.slice(4),
     ...filteredArticles.filter((a) => !a.is_featured),
   ];
-
+ 
   const displayedCategoryArticles = sortedCategoryArticles.slice(0, visibleCount);
   const displayedRecent = allRecent.slice(0, visibleCount);
-
+ 
   const getCategoryUrl = (cat: string) => {
     if (!cat || cat === "Tous") return blogUrl;
     // Standardize URL: no accents, lowercase
-    const slug = cat.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const slug = normalizeCategorySlug(cat);
     return `${blogUrl}/${slug}`;
   };
-
+ 
   return (
     <div className="max-w-[1152px] mx-auto">
       {/* Filtres par catégorie */}
@@ -121,7 +134,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
           })}
         </div>
       </div>
-
+ 
       <div className="flex flex-col gap-[30px]">
         {isCategoryPage ? (
           /* Page Catégorie : Grille unifiée */
@@ -133,7 +146,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
                     <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
                   ))}
                 </div>
-
+ 
                 <LoadMore
                   currentCount={displayedCategoryArticles.length}
                   totalCount={sortedCategoryArticles.length}
@@ -172,7 +185,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
                 </div>
               </section>
             )}
-
+ 
             {/* Section Articles récents */}
             <section>
               {allRecent.length > 0 ? (
@@ -185,7 +198,7 @@ export default function BlogListClient({ initialArticles, initialCategory = "Tou
                       <BlogArticleCard key={article.id} article={article} blogUrl={blogUrl} />
                     ))}
                   </div>
-
+ 
                   <LoadMore
                     currentCount={displayedRecent.length}
                     totalCount={allRecent.length}

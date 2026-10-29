@@ -37,9 +37,14 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
   // 2. Obtenir le linked_program_id depuis program_store
   const { data: storeProgram } = await supabase
     .from("program_store")
-    .select("linked_program_id, name_short")
+    .select("linked_program_id, name_short, status")
     .eq("id", storeProgramId)
-    .single<Pick<ProgramStoreRow, "linked_program_id" | "name_short">>();
+    .single<Pick<ProgramStoreRow, "linked_program_id" | "name_short" | "status">>();
+
+  if (storeProgram?.status && storeProgram.status !== "ON") {
+    console.warn("⛔ Programme Store en pause, téléchargement bloqué :", storeProgramId);
+    return null;
+  }
 
   if (storeProgram?.linked_program_id) {
     linkedProgramId = storeProgram.linked_program_id;
@@ -49,6 +54,16 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
   } else {
     // Fallback: Check if it's a direct admin programs ID
     console.log("ℹ️ ID non trouvé dans program_store, vérification dans programs_admin...");
+    const { data: linkedStoreProgram } = await supabase
+      .from("program_store")
+      .select("status")
+      .eq("linked_program_id", storeProgramId)
+      .maybeSingle();
+
+    if (linkedStoreProgram?.status && linkedStoreProgram.status !== "ON") {
+      console.warn("⛔ Programme Store lié en pause, téléchargement bloqué :", storeProgramId);
+      return null;
+    }
     const { data: adminProgram } = await supabase
       .from("programs_admin")
       .select("id, name")
@@ -82,41 +97,40 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
   console.log("✅ Programme admin récupéré :", programToCopy);
 
   // 4. Créer le programme utilisateur dans `programs`
-    // 🔢 Récupérer la position max des programmes de l'utilisateur
-    const { data: userPrograms, error: userProgramsError } = await supabase
+  // 🔢 Récupérer la position max des programmes de l'utilisateur
+  const { data: userPrograms, error: userProgramsError } = await supabase
     .from("programs")
     .select("position")
     .eq("user_id", user.id)
     .returns<UserProgramPositionRow[]>();
 
-    if (userProgramsError) {
-      console.error("Erreur récupération programmes utilisateur :", userProgramsError);
-      return null;
-    }
+  if (userProgramsError) {
+    console.error("Erreur récupération programmes utilisateur :", userProgramsError);
+    return null;
+  }
 
-    const positions = (userPrograms ?? [])
-      .map((p) => (typeof p.position === "number" ? p.position : 0));
-    const nextPosition = positions.length > 0
-        ? Math.max(...positions) + 1
-        : 0;
+  const positions = (userPrograms ?? [])
+    .map((p) => (typeof p.position === "number" ? p.position : 0));
+  const nextPosition = positions.length > 0
+    ? Math.max(...positions) + 1
+    : 0;
 
-    const insertObject = {
-      name: shortName ?? programToCopy.name ?? "Programme copié",
-      user_id: user.id,
-      position: nextPosition,
-      dashboard: true,
-      app: true,
-      created_at: new Date().toISOString(),
-    };
-    console.log("🛠️ Tentative insertion programme (minimaliste) :", insertObject);
+  const insertObject = {
+    name: shortName ?? programToCopy.name ?? "Programme copié",
+    user_id: user.id,
+    position: nextPosition,
+    dashboard: true,
+    app: true,
+    created_at: new Date().toISOString(),
+  };
+  console.log("🛠️ Tentative insertion programme (minimaliste) :", insertObject);
 
-    // ✅ Insertion du nouveau programme avec position
-    const { data: insertedProgram, error: insertProgramError } = await supabase
+  // ✅ Insertion du nouveau programme avec position
+  const { data: insertedProgram, error: insertProgramError } = await supabase
     .from("programs")
     .insert([insertObject])
     .select()
     .single<InsertedProgramRow>();
-
 
   if (insertProgramError || !insertedProgram) {
     console.error("❌ Erreur insertion programme utilisateur :", JSON.stringify(insertProgramError, null, 2));

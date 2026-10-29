@@ -2,13 +2,13 @@ import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createServerClient } from "@/lib/supabaseServer";
 import StorePageClient from "./StorePageClient";
-import { mapProgramRowToCard, ProgramQueryRow } from "@/utils/storeUtils";
+import { mapProgramRowToCard, ProgramQueryRow, filterUnpublishedProgramLinks } from "@/utils/storeUtils";
 import { sortProgramsByRelevance } from "@/utils/sortingUtils";
 import { StoreProfile } from "@/types/store";
 import type { Metadata } from "next";
-
+ 
 export const dynamic = "force-dynamic";
-
+ 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createServerClient();
   const { data: pageConfig } = await supabase
@@ -16,18 +16,18 @@ export async function generateMetadata(): Promise<Metadata> {
     .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
     .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
     .single();
-
+ 
   if (!pageConfig) return { title: "Store" };
-
+ 
   const title = pageConfig.seo_title || pageConfig.titre || "Glift Store";
   const plainTitle = title.replace(/<[^>]*>/g, "").trim();
   const description = pageConfig.seo_description || pageConfig.description || "Téléchargez des programmes de musculation professionnels.";
   const plainDescription = description.replace(/<[^>]*>/g, "").trim();
-
+ 
   const robots: any = {};
   if (pageConfig.noindex) robots.index = false;
   if (pageConfig.nofollow) robots.follow = false;
-
+ 
   return {
     title: plainTitle,
     description: plainDescription,
@@ -37,10 +37,10 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-
+ 
 import StoreHeader from "@/components/store/StoreHeader";
 import ConceptGradientBackground from "@/components/ConceptGradientBackground";
-
+ 
 export default async function StorePage() {
   const supabase = await createServerClient();
   
@@ -48,17 +48,21 @@ export default async function StorePage() {
   const [{ data: pageConfig }, { data: settingsData }] = await Promise.all([
     supabase
       .from("pages")
-      .select("surtitre, titre, description, url")
+      .select("surtitre, titre, description, url, is_published")
       .eq("id", "fd7e055c-bf17-4222-a8f8-c27b014d3062")
       .single(),
     supabase.from("settings").select("key, value"),
   ]);
-
+ 
   const settings: Record<string, string> = {};
   settingsData?.forEach((item) => {
     settings[item.key] = item.value;
   });
-
+ 
+  if (pageConfig && pageConfig.is_published === false) {
+    redirect("/");
+  }
+ 
   if (pageConfig && pageConfig.url && pageConfig.url !== "store") {
     redirect(`/${pageConfig.url}`);
   }
@@ -88,25 +92,25 @@ export default async function StorePage() {
       initialFavorites = (favsRes.data as unknown as Array<{ program_id: string }>).map((item) => String(item.program_id));
     }
   }
-
+ 
   // 2. Fetch cookie & calculate initial subscription toggle
   const cookieStore = await cookies();
   const isIncludedOnly = cookieStore.get("glift_store_included_only")?.value === "true";
   const shouldFilterStarter = isIncludedOnly && (userProfile?.subscription_plan === "starter");
   const initialFilters = ["", "", "", "", "", "", shouldFilterStarter ? "Oui" : ""];
-
+ 
   // 3. Fetch total count (filtered by plan starter if shouldFilterStarter)
   let countQuery = supabase
     .from("program_store")
     .select("*", { count: "exact", head: true })
     .eq("status", "ON");
-
+ 
   if (shouldFilterStarter) {
     countQuery = countQuery.eq("plan", "starter");
   }
-
+ 
   const { count: totalCount } = await countQuery;
-
+ 
   // 4. Fetch first batch of programs for initial display (Default relevance sort)
   let programsQuery = supabase
     .from("program_store")
@@ -133,28 +137,31 @@ export default async function StorePage() {
       partner_name
     `)
     .eq("status", "ON");
-
+ 
   if (shouldFilterStarter) {
     programsQuery = programsQuery.eq("plan", "starter");
   }
-
+ 
   const { data: rawPrograms } = await programsQuery;
-
-  const mappedPrograms = (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow));
+ 
+  const mappedPrograms = await filterUnpublishedProgramLinks(
+    supabase,
+    (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow))
+  );
   const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, initialFavorites);
   const initialPrograms = sortedPrograms;
-
+ 
   const initialPageContent = {
     surtitre: pageConfig?.surtitre ?? "",
     titre: pageConfig?.titre || "Glift Store",
     description: pageConfig?.description ?? "Téléchargez un programme pour l'utiliser directement dans Glift.",
   };
-
+ 
   return (
     <main className="relative flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px] overflow-x-clip">
       {/* Fond dégradé dynamique */}
       <ConceptGradientBackground initialSettings={settings} />
-
+ 
       <div className="relative z-10 max-w-[1152px] mx-auto">
         <StoreHeader initialPageContent={initialPageContent} />
       </div>

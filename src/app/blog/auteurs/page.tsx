@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabaseServer";
@@ -15,9 +15,9 @@ import {
   faLinkedinIn,
 } from "@fortawesome/free-brands-svg-icons";
 import { Globe } from "lucide-react";
-
+ 
 export const revalidate = 60; // Auto-update cache every minute
-
+ 
 export async function generateMetadata(): Promise<Metadata> {
   const supabase = await createServerClient();
   const { data: pageConfig } = await supabase
@@ -25,10 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
     .select("titre, description, seo_title, seo_description, noindex, nofollow, canonical_override")
     .eq("url", "blog/auteurs")
     .maybeSingle();
-
+ 
   const defaultTitle = "Nos experts et auteurs musculation & fitness | Glift";
   const defaultDesc = "Découvrez les profils de nos coachs et auteurs d'articles de musculation et nutrition. Apprenez de leur expérience et parcours pour progresser.";
-
+ 
   if (!pageConfig) {
     return {
       title: defaultTitle,
@@ -38,16 +38,16 @@ export async function generateMetadata(): Promise<Metadata> {
       },
     };
   }
-
+ 
   const title = pageConfig.seo_title || pageConfig.titre || defaultTitle;
   const plainTitle = title.replace(/<[^>]*>/g, "").trim();
   const description = pageConfig.seo_description || pageConfig.description || defaultDesc;
   const plainDescription = description.replace(/<[^>]*>/g, "").trim();
-
+ 
   const robots: any = {};
   if (pageConfig.noindex) robots.index = false;
   if (pageConfig.nofollow) robots.follow = false;
-
+ 
   return {
     title: plainTitle,
     description: plainDescription,
@@ -57,7 +57,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
 }
-
+ 
 type Author = {
   id: string;
   prenom: string;
@@ -72,7 +72,7 @@ type Author = {
   statut: boolean;
   is_shiny?: boolean;
 };
-
+ 
 function getSocialIcon(platform: string) {
   switch (platform.toLowerCase()) {
     case "facebook":
@@ -92,7 +92,7 @@ function getSocialIcon(platform: string) {
       return faFacebookF;
   }
 }
-
+ 
 function getSocialLogo(platform: string): string | null {
   switch (platform.toLowerCase()) {
     case "facebook":
@@ -112,14 +112,14 @@ function getSocialLogo(platform: string): string | null {
       return null;
   }
 }
-
+ 
 function getDePreposition(name: string): string {
   if (!name) return "de ";
   const firstLetter = name.trim().charAt(0).toLowerCase();
   const vowels = ["a", "e", "i", "o", "u", "y", "é", "è", "à", "ù", "â", "ê", "î", "ô", "û", "h"];
   return vowels.includes(firstLetter) ? "d'" : "de ";
 }
-
+ 
 function getAuthorSlug(prenom: string, nom: string): string {
   return `${prenom}-${nom}`
     .toLowerCase()
@@ -127,38 +127,52 @@ function getAuthorSlug(prenom: string, nom: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9-]/g, "");
 }
-
+ 
 export default async function AuteursPage() {
   const supabase = await createServerClient();
   let authors: Author[] = [];
-
-  // Fetch page configuration
-  const { data: pageConfig } = await supabase
-    .from("pages")
-    .select("is_published, titre, description")
-    .eq("url", "blog/auteurs")
-    .maybeSingle();
-
-  if (pageConfig && !pageConfig.is_published) {
-    notFound();
+  let hasDbAuthors = false;
+ 
+  // Fetch blog parent page configuration and auteurs page configuration
+  const [{ data: blogConfig }, { data: pageConfig }] = await Promise.all([
+    supabase
+      .from("pages")
+      .select("url, is_published")
+      .eq("id", "f9709b0b-b513-4d53-a6ef-d9cda3f0a706")
+      .maybeSingle(),
+    supabase
+      .from("pages")
+      .select("is_published, titre, description")
+      .eq("url", "blog/auteurs")
+      .maybeSingle(),
+  ]);
+ 
+  if (blogConfig && blogConfig.is_published === false) {
+    redirect("/");
   }
-
+ 
+  const blogUrl = blogConfig?.url ? `/${blogConfig.url}` : "/blog";
+ 
+  if (pageConfig && !pageConfig.is_published) {
+    redirect(blogUrl);
+  }
+ 
   try {
     const { data: dbAuthors } = await (supabase as any)
       .from("auteurs")
       .select("*")
-      .eq("statut", true)
       .order("nom", { ascending: true });
-
+ 
     if (dbAuthors && dbAuthors.length > 0) {
-      authors = dbAuthors as Author[];
+      hasDbAuthors = true;
+      authors = (dbAuthors as Author[]).filter((a) => a.statut !== false);
     }
   } catch (err) {
     console.warn("Could not query database table auteurs:", err);
   }
-
-  // Fallback to Gabriel Fort if empty or error
-  if (authors.length === 0) {
+ 
+  // Fallback to Gabriel Fort only if table is empty or query failed
+  if (!hasDbAuthors && authors.length === 0) {
     authors = [
       {
         id: "1",
@@ -182,9 +196,9 @@ export default async function AuteursPage() {
       },
     ];
   }
-
+ 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://glift.io';
-
+ 
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -199,7 +213,7 @@ export default async function AuteursPage() {
         "@type": "ListItem",
         "position": 2,
         "name": "Blog",
-        "item": `${siteUrl}/blog`
+        "item": `${siteUrl}${blogUrl}`
       },
       {
         "@type": "ListItem",
@@ -209,7 +223,7 @@ export default async function AuteursPage() {
       }
     ]
   };
-
+ 
   const collectionSchema = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -234,7 +248,7 @@ export default async function AuteursPage() {
       }))
     }
   };
-
+ 
   return (
     <>
       <script
@@ -253,14 +267,14 @@ export default async function AuteursPage() {
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-          <Link href="/blog" className="hover:text-[#2E3271] transition-colors">
+          <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
             Blog
           </Link>
           <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
           <span className="text-[#3A416F]">Auteurs</span>
         </div>
       </div>
-
+ 
       {/* Header text content */}
       <div className="max-w-[1152px] mx-auto text-center mb-12">
         <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
@@ -279,7 +293,7 @@ export default async function AuteursPage() {
           </p>
         )}
       </div>
-
+ 
       {/* Authors list container */}
       <div className="max-w-[1152px] mx-auto pb-16">
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(270px,1fr))] justify-center">
@@ -291,12 +305,12 @@ export default async function AuteursPage() {
               author.prenom?.trim().toLowerCase() === "gabriel" &&
               author.nom?.trim().toLowerCase() === "fort";
             const isShiny = Boolean(author.is_shiny);
-
+ 
             const finalDesc = (author.description_courte || author.description || "").trim();
-
+ 
             const desktopCutout = author.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
             const mobileCutout = author.image_mobile || author.image_url || (isGabriel ? "/images/gabrielfort_mobile.png" : "/images/gabriel_fort.png");
-
+ 
             return (
               <div
                 key={author.id}
@@ -335,7 +349,7 @@ export default async function AuteursPage() {
                     priority={index < 2}
                   />
                 )}
-
+ 
                 {/* Profile details */}
                 <div className="p-[15px] pb-[20px] flex-1 flex flex-col justify-between">
                   <div>
@@ -344,7 +358,7 @@ export default async function AuteursPage() {
                         {authorFullName}
                       </Link>
                     </h2>
-
+ 
                     {author.poste_actuel && (
                       <div className="flex justify-start mb-[10px]">
                         <span className="bg-[#F4F5FE] text-[#A1A5FD] text-[10px] font-semibold px-[8px] h-[22px] inline-flex items-center justify-center rounded-[5px]">
@@ -352,7 +366,7 @@ export default async function AuteursPage() {
                         </span>
                       </div>
                     )}
-
+ 
                     {/* Social links as in the mockup in 25px by 25px */}
                     {author.liens_sociaux && author.liens_sociaux.length > 0 && (
                       <div className="flex items-center gap-[8px] mb-[12px]">
@@ -363,7 +377,7 @@ export default async function AuteursPage() {
                             link.platform.toLowerCase() === "site web" ||
                             link.platform.toLowerCase() === "globe";
                           const customLogo = getSocialLogo(link.platform);
-
+ 
                           return (
                             <a
                               key={idx}
@@ -394,7 +408,7 @@ export default async function AuteursPage() {
                         })}
                       </div>
                     )}
-
+ 
                     <div
                       className="text-[14px] text-[#5D6494] font-semibold leading-relaxed mb-5 text-left [&_p]:m-0"
                       dangerouslySetInnerHTML={{
@@ -402,7 +416,7 @@ export default async function AuteursPage() {
                       }}
                     />
                   </div>
-
+ 
                   <div className="w-full mt-auto flex justify-center">
                     <CTAButton
                       href={authorUrl}

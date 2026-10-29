@@ -50,7 +50,7 @@ export default async function AidePage() {
 
   if (pageData) {
     if (pageData.is_published === false) {
-      notFound();
+      redirect("/");
     }
     if (pageData.url && pageData.url !== "aide") {
       redirect(`/${pageData.url}`);

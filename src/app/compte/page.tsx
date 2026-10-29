@@ -53,7 +53,7 @@ export default async function ComptePage() {
 
     if (pageData) {
         if (pageData.is_published === false) {
-            notFound();
+            redirect('/');
         }
         if (pageData.url && pageData.url !== 'compte') {
             redirect(`/${pageData.url}`);

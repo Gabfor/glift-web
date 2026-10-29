@@ -14,7 +14,7 @@ export default async function EntrainementsPage() {
 
   if (data) {
     if (data.is_published === false) {
-      notFound();
+      redirect("/");
     }
     if (data.url && data.url !== "entrainements") {
       redirect(`/${data.url}`);

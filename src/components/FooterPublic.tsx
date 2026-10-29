@@ -1,60 +1,74 @@
 "use client";
-
+ 
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import CTAButton from "@/components/CTAButton";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useLegalPages } from "@/hooks/useLegalPages";
-
+ 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebookF, faXTwitter, faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
-
+ 
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
-
+ 
 interface FooterLinkItem {
   label: string;
   href: string;
   isButton?: boolean;
 }
-
+ 
 export default function Footer({ className = "" }: { className?: string }) {
   const { logoUrl, logoAlt, trialDays } = useSiteSettings();
   const { publishedUrls, isLoading } = useLegalPages();
-  const { shopUrl, storeUrl, blogUrl, helpUrl, contactUrl } = useDashboardUrl();
-
+  const {
+    shopUrl,
+    storeUrl,
+    blogUrl,
+    helpUrl,
+    contactUrl,
+    isShopPublished,
+    isStorePublished,
+    isBlogPublished,
+    isHelpPublished,
+    isContactPublished,
+    isTarifsPublished,
+    isAppsPublished,
+    isPressKitPublished,
+  } = useDashboardUrl();
+ 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
-
+ 
   const toggleSection = (title: string) => {
     setOpenSections((prev) => ({
       ...prev,
       [title]: !prev[title],
     }));
   };
-
+ 
   const sections: { title: string; links: FooterLinkItem[] }[] = [
     {
       title: "GLIFT",
       links: [
-        { label: "Glift Store", href: storeUrl },
-        { label: "Glift Shop", href: shopUrl },
-        { label: "Tarifs", href: "/tarifs" },
-        { label: "Blog", href: blogUrl },
-      ],
+        isStorePublished && { label: "Glift Store", href: storeUrl },
+        isShopPublished && { label: "Glift Shop", href: shopUrl },
+        isTarifsPublished && { label: "Tarifs", href: "/tarifs" },
+        isBlogPublished && { label: "Blog", href: blogUrl },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "APPS MOBILE",
       links: [
-        { label: "App iOS", href: "/apps" },
-        { label: "App Android", href: "/apps" },
-      ],
+        isAppsPublished && { label: "App iOS", href: "/apps" },
+        isAppsPublished && { label: "App Android", href: "/apps" },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "AIDE",
       links: [
-        { label: "Centre d'aide", href: helpUrl },
-        { label: "Nous contacter", href: contactUrl },
-      ],
+        isHelpPublished && { label: "Centre d'aide", href: helpUrl },
+        isContactPublished && { label: "Nous contacter", href: contactUrl },
+      ].filter(Boolean) as FooterLinkItem[],
     },
     {
       title: "LIENS",
@@ -68,13 +82,13 @@ export default function Footer({ className = "" }: { className?: string }) {
     {
       title: "AUTRES",
       links: [
-        { label: "Press Kit", href: "/press-kit" },
+        isPressKitPublished && { label: "Press Kit", href: "/press-kit" },
         !isLoading && publishedUrls.includes("politique-des-cookies") && { label: "Politique de cookies", href: "/politique-des-cookies" },
         { label: "Gestion des cookies", href: "#", isButton: true },
       ].filter(Boolean) as FooterLinkItem[],
     },
   ];
-
+ 
   return (
     <footer className={`mt-[50px] md:mt-[100px] max-w-[1152px] w-full mx-auto bg-[#FBFCFE] text-[#5D6494] text-sm font-medium border-t border-[#ECE9F1] px-5 md:px-0 pt-[0px] pb-[30px] ${className}`}>
       {/* Top Section */}
@@ -88,7 +102,7 @@ export default function Footer({ className = "" }: { className?: string }) {
             Glift est une plateforme qui permet de digitaliser ses programmes de musculation, d’analyser ses performances et de progresser efficacement.
           </p>
         </div>
-
+ 
         {/* Right - CTA */}
         <div className="flex flex-col items-center gap-2 w-full lg:w-auto">
           <CTAButton href="/inscription?plan=premium" className="w-full lg:w-auto font-semibold text-[16px]">
@@ -106,7 +120,7 @@ export default function Footer({ className = "" }: { className?: string }) {
           </span>
         </div>
       </div>
-
+ 
       {/* Mobile Accordion View */}
       <div className="lg:hidden">
         {sections.map((sec) => (
@@ -137,7 +151,7 @@ export default function Footer({ className = "" }: { className?: string }) {
           </div>
         ))}
       </div>
-
+ 
       {/* Desktop Grid View */}
       <div className="hidden lg:grid max-w-[1152px] mx-auto mt-[30px] grid-cols-5 gap-8">
         {sections.map((sec) => (
@@ -157,7 +171,7 @@ export default function Footer({ className = "" }: { className?: string }) {
           </div>
         ))}
       </div>
-
+ 
       {/* Social Logos & Copyright */}
       <div className="max-w-[1152px] mx-auto mt-[30px] md:mt-[20px] flex flex-col md:flex-row justify-between items-center text-[#5D6494] text-sm gap-4 md:gap-[20px] font-semibold">
         <p className="order-2 md:order-1 text-center md:text-left">Copyright © 2026 Glift. Tous droits réservés.</p>
