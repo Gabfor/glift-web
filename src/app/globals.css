@@ -709,4 +709,17 @@ input:checked+.slider:before {
 .animate-flame {
   transform-origin: 50% 95%;
   animation: flame-sway 1.2s ease-in-out infinite;
-}
+}
+
+/* Mode paysage mobile (hauteur d'écran < 550px) : masquer le header pour libérer l'espace utile */
+@media (orientation: landscape) and (max-height: 550px) {
+  .header-landscape-hide {
+    transform: translateY(-100%) !important;
+    pointer-events: none !important;
+  }
+
+  .main-training-container {
+    padding-top: 24px !important;
+  }
+}
+

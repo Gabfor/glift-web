@@ -319,8 +319,25 @@ export default function TrainingTable({
 
   const primaryColor = adminMode ? "#3A416F" : "#7069FA";
 
+  const getTableMinWidth = () => {
+    let w = 0;
+    if (!readOnly) {
+      w += adminMode ? 40 : 60;
+    }
+    w += 180; // Exercices
+    if (isVisible("materiel")) w += 135;
+    w += 60;  // Séries
+    w += 157; // Répétitions
+    if (isVisible("poids")) w += 157;
+    if (isVisible("repos")) w += 60;
+    if (isVisible("effort")) w += 237;
+    return Math.max(600, w);
+  };
+
+  const minTableWidth = getTableMinWidth();
+
   return (
-    <div className={`relative ${className || "min-w-[600px]"}`}>
+    <div className={`relative ${className || ""}`} style={{ minWidth: `${minTableWidth}px` }}>
       {getSupersetGroups().map((group) => (
         !dragActive || !dragGroup.some(r => r.superset_id === group.id) ? (
           <div
@@ -364,6 +381,7 @@ export default function TrainingTable({
             <table
               className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
               style={{
+                minWidth: `${minTableWidth}px`,
                 borderSpacing: "0px",
                 marginBottom: isLastSupersetAtBottom ? "1px" : "0px"
               }}
@@ -436,7 +454,7 @@ export default function TrainingTable({
                   }}
                 />
               )}
-              <table className="w-full text-[14px] font-medium border-collapse table-fixed" style={{ borderSpacing: "0px" }}>
+              <table className="w-full text-[14px] font-medium border-collapse table-fixed" style={{ minWidth: `${minTableWidth}px`, borderSpacing: "0px" }}>
                 <tbody>
                   {dragGroup.map((row, index) => (
                     <TrainingRowOverlay

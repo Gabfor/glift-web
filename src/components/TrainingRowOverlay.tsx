@@ -77,7 +77,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
       </td>
 
       {isVisible("materiel") && (
-        <td className="px-0 py-0" style={{ height: "40px", padding: "0", width: "135px" }}>
+        <td className="px-0 py-0" style={{ height: "40px", padding: "0", maxWidth: "135px", width: "135px" }}>
           <input
             type="text"
             disabled

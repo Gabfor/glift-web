@@ -24,6 +24,7 @@ import { useCheckboxChange } from "@/utils/useCheckboxChange";
 import { useIconHover } from "@/utils/useIconHover";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
 import type { Row } from "@/types/training";
+import { generateUUID } from "@/utils/uuid";
 
 const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
 const LEGACY_DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
@@ -68,6 +69,12 @@ export default function AdminEntrainementDetailPage() {
   const pathname = usePathname();
 
   const [isAdminDomain, setIsAdminDomain] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.host.startsWith("admin.")) {
       setIsAdminDomain(true);
@@ -396,7 +403,7 @@ export default function AdminEntrainementDetailPage() {
       return [
         ...prev,
         {
-          id: crypto.randomUUID(),
+          id: generateUUID(),
           series: 4,
           repetitions: Array(4).fill(""),
           poids: Array(4).fill(""),
@@ -417,12 +424,12 @@ export default function AdminEntrainementDetailPage() {
 
   const isEffectiveAdmin = isAdminRoute || isAdminDomain || isAdminTraining;
 
-  if (!isAdminRoute && !isPremiumUser && !accessChecked) {
+  if (!isMounted || (!isAdminRoute && !isPremiumUser && !accessChecked)) {
     return <div className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"}`} />;
   }
 
   return (
-    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-5 pt-[100px] md:pt-[140px]`}>
+    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-5 pt-[100px] md:pt-[140px] main-training-container`}>
       <div className="max-w-[1152px] mx-auto relative z-10">
 
         <BackLink
@@ -505,28 +512,30 @@ export default function AdminEntrainementDetailPage() {
           saveColumnsInSupabase={saveColumnsInSupabase}
         />
 
-        <div className={`overflow-x-auto ${programNameLoading || rowsLoading ? "opacity-50" : ""}`}>
-          {programNameLoading || rowsLoading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-              <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-              <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-            </div>
-          ) : (
-            <TrainingTable
-              rows={rows}
-              setRows={setRows}
-              handleEffortChange={handleEffortChange}
-              handleCheckboxChange={handleCheckboxChange}
-              handleIncrementSeries={handleIncrementSeries}
-              handleDecrementSeries={handleDecrementSeries}
-              handleIconHover={handleIconHover}
-              columns={columns}
-              setIsEditing={setIsEditing}
-              onDragActiveChange={setDragActive}
-              adminMode={isAdminRoute || isAdminTraining}
-            />
-          )}
+        <div className={`-mx-5 md:mx-0 my-0 overflow-x-auto px-5 md:px-0 p-[1px] no-scrollbar ${programNameLoading || rowsLoading ? "opacity-50" : ""}`}>
+          <div className="w-full align-top">
+            {programNameLoading || rowsLoading ? (
+              <div className="animate-pulse space-y-4">
+                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
+                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
+                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
+              </div>
+            ) : (
+              <TrainingTable
+                rows={rows}
+                setRows={setRows}
+                handleEffortChange={handleEffortChange}
+                handleCheckboxChange={handleCheckboxChange}
+                handleIncrementSeries={handleIncrementSeries}
+                handleDecrementSeries={handleDecrementSeries}
+                handleIconHover={handleIconHover}
+                columns={columns}
+                setIsEditing={setIsEditing}
+                onDragActiveChange={setDragActive}
+                adminMode={isAdminRoute || isAdminTraining}
+              />
+            )}
+          </div>
         </div>
 
         <AddRowButton
@@ -552,6 +561,21 @@ export default function AdminEntrainementDetailPage() {
           disabled={rowsLoading}
           locked={!isAdminRoute && !isPremiumUser && rows.length >= 10}
         />
+
+        <div className="flex justify-center mt-4 mb-2 md:hidden landscape:hidden">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D7D4DC] bg-white text-[13px] font-semibold text-[#5D6494] select-none">
+            <span className="w-[20px] h-[20px] shrink-0 inline-flex items-center justify-center animate-shake-screen">
+              <Image
+                src="/icons/rotate_screen.svg"
+                alt=""
+                width={20}
+                height={20}
+                className="w-5 h-5 shrink-0"
+              />
+            </span>
+            <span>Tourne ton téléphone</span>
+          </div>
+        </div>
 
         <AddExerciseLockedModal
           isOpen={showLockedModal}

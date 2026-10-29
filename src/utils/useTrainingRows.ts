@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { User } from "@supabase/supabase-js";
 import { Row } from "@/types/training";
 import { usePathname } from "next/navigation";
+import { generateUUID } from "@/utils/uuid";
 
 export function useTrainingRows(
   trainingId: string,
@@ -340,7 +341,7 @@ export function useTrainingRows(
         const rowsWithId = rows.map((row) => {
           if (!row.id) {
             hadMissingIds = true;
-            return { ...row, id: crypto.randomUUID() };
+            return { ...row, id: generateUUID() };
           }
           return row;
         });

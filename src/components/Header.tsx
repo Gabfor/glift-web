@@ -48,6 +48,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
   const [allowTransition, setAllowTransition] = useState(false);
   const [isHeaderVisible, setIsHeaderVisible] = useState(true);
   const [isCompactDevice, setIsCompactDevice] = useState(false);
+  const [isLandscapeMobile, setIsLandscapeMobile] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [hasPaymentMethod, setHasPaymentMethod] = useState<boolean | null>(null);
@@ -57,7 +58,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
   }, []);
 
   useEffect(() => {
-    setIsHeaderVisible(true);
+    const isLandscape = typeof window !== "undefined" && window.innerWidth > window.innerHeight && window.innerHeight < 550;
+    if (!isLandscape) {
+      setIsHeaderVisible(true);
+    }
   }, [pathname]);
 
   // Détection du mode compact (mobile vertical < 768px OU mobile paysage hauteur < 550px)
@@ -66,6 +70,7 @@ export default function Header({ disconnected = false }: HeaderProps) {
       const w = window.innerWidth;
       const h = window.innerHeight;
       const landscapeMobile = w > h && h < 550;
+      setIsLandscapeMobile(landscapeMobile);
       setIsCompactDevice(w < 768 || landscapeMobile);
 
       // Si on bascule en mode paysage mobile, masquer automatiquement le header
@@ -157,11 +162,10 @@ export default function Header({ disconnected = false }: HeaderProps) {
         const diff = scroll - lastScroll;
         const isLandscape = window.innerWidth > window.innerHeight && window.innerHeight < 550;
 
-        if (scroll <= 10) {
-          // En paysage mobile, ne pas forcer l'affichage du header au sommet
-          if (!isLandscape) {
-            setIsHeaderVisible(true);
-          }
+        if (isLandscape) {
+          setIsHeaderVisible(false);
+        } else if (scroll <= 10) {
+          setIsHeaderVisible(true);
         } else if (diff > 8) {
           // Scroll vers le bas : masquer le header sur mobile
           setIsHeaderVisible(false);
@@ -281,12 +285,15 @@ export default function Header({ disconnected = false }: HeaderProps) {
     setIsMobileMenuOpen(false);
   };
 
-  const shouldHideHeader = isMounted && isCompactDevice && !isHeaderVisible && !isMobileMenuOpen;
+  const shouldHideHeader =
+    isMounted &&
+    ((isLandscapeMobile && !isMobileMenuOpen) ||
+      (isCompactDevice && !isHeaderVisible && !isMobileMenuOpen));
 
   return (
     <>
       <div
-        className={`fixed top-0 left-0 w-full z-[100] transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 w-full z-[100] transition-transform duration-300 ease-in-out header-landscape-hide ${
           shouldHideHeader ? "-translate-y-full" : "translate-y-0"
         }`}
       >

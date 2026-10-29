@@ -254,7 +254,7 @@ export default function TrainingRow({
       </td>
 
       {isVisible("materiel") && (
-        <td className="px-0 py-0">
+        <td className="px-0 py-0" style={{ maxWidth: "135px", width: "135px" }}>
           <input
             type="text"
             value={row.materiel}
@@ -428,7 +428,7 @@ export default function TrainingRow({
       )}
 
       {isVisible("repos") && (
-        <td className="px-0 py-0">
+        <td className="px-0 py-0" style={{ maxWidth: "60px", width: "60px" }}>
           <input
             type="number"
             readOnly={readOnly}

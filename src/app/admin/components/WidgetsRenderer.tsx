@@ -75,7 +75,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
     const blockToDuplicate = blocks[index];
     const newBlock = {
       ...blockToDuplicate,
-      id: crypto.randomUUID(),
+      id: uuidv4(),
     };
     const newBlocks = [...blocks];
     newBlocks.splice(index + 1, 0, newBlock);

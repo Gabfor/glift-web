@@ -1,4 +1,5 @@
 import { Row } from "@/types/training";
+import { generateUUID } from "@/utils/uuid";
 
 export function useSuperset(
   rows: Row[],
@@ -28,7 +29,7 @@ export function useSuperset(
         newRows[i].superset_id = null;
       });
     } else {
-      const newId = crypto.randomUUID();
+      const newId = generateUUID();
       selectedIndexes.forEach((i) => {
         newRows[i].superset_id = newId;
       });
