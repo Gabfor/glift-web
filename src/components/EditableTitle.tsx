@@ -190,7 +190,7 @@ function EditableTitle({
   };
 
   return (
-    <div className={cn("text-center mb-[40px] max-w-full overflow-hidden", className)}>
+    <div className={cn("text-center mb-[40px] max-w-full p-[2px]", className)}>
       {loading ? (
         <div className="animate-pulse">
           <div className="h-[40px] w-1/3 mx-auto bg-gray-300 rounded-md" />
