@@ -129,16 +129,16 @@ export default function TableActionsBar({
 
   useEffect(() => {
     const handleClickOutside = async (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (menuOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
-        await saveColumnsInSupabase(columns); // sauvegarde automatique à la fermeture du menu ✅
+        await saveColumnsInSupabase(columns);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [columns, saveColumnsInSupabase]);
+  }, [menuOpen, columns, saveColumnsInSupabase]);
 
   return (
     <div className="flex gap-4 items-center justify-end mb-4">
@@ -247,7 +247,12 @@ export default function TableActionsBar({
       <div ref={menuRef} className="relative inline-flex items-center">
         <Tooltip content="Colonnes">
           <button
-            onClick={() => setMenuOpen((prev) => !prev)}
+            onClick={() => {
+              if (menuOpen) {
+                void saveColumnsInSupabase(columns);
+              }
+              setMenuOpen((prev) => !prev);
+            }}
             onMouseEnter={() => setIconSrc(`${prefix}colonne_hover.svg`)}
             onMouseLeave={() => setIconSrc(`${prefix}colonne.svg`)}
           >
@@ -259,11 +264,11 @@ export default function TableActionsBar({
           <ColumnMenu
             columns={togglableColumns}
             onToggle={(name) => {
-              setColumns(prev =>
-                prev.map(col =>
-                  col.name === name ? { ...col, visible: !col.visible } : col
-                )
+              const nextColumns = columns.map((col) =>
+                col.name === name ? { ...col, visible: !col.visible } : col
               );
+              setColumns(nextColumns);
+              void saveColumnsInSupabase(nextColumns);
             }}
           />
         )}

@@ -336,6 +336,18 @@ export default function PreferencesSection() {
 
       const existingSettings = (existingDashboard?.exercise_settings as any) || {}
 
+      // Figer les colonnes actuelles sur les entraînements existants dont columns_settings est encore null
+      const previousColumns: string[] = []
+      if (initialStateRef.current.showMateriel) previousColumns.push("materiel")
+      if (initialStateRef.current.showRepos) previousColumns.push("repos")
+      if (initialStateRef.current.showEffort) previousColumns.push("effort")
+
+      await supabase
+        .from("trainings")
+        .update({ columns_settings: JSON.stringify(previousColumns) })
+        .eq("user_id", user.id)
+        .is("columns_settings", null)
+
       const [{ error }] = await Promise.all([
         supabase.from("preferences").upsert(payload, { onConflict: "id" }),
         supabase.from("dashboard_preferences").upsert(

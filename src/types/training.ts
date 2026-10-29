@@ -25,6 +25,7 @@ export interface Training {
   program_id: string;
   position: number;
   locked: boolean;
+  columns_settings?: string | null;
 }
 
 export interface Program {

@@ -63,7 +63,7 @@ export default function usePrograms() {
         // Try fetching with dashboard column
         const { data: dataWithDashboard, error: errorWithDashboard } = await supabase
           .from("programs")
-          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard, locked)`)
+          .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, dashboard, locked, columns_settings)`)
           .eq("user_id", user.id)
           .order("position", { ascending: true });
 
@@ -74,7 +74,7 @@ export default function usePrograms() {
           // Fallback: fetch without dashboard column on trainings
           const { data: dataWithoutDashboard, error: errorWithoutDashboard } = await supabase
             .from("programs")
-            .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, locked)`)
+            .select(`id, name, position, dashboard, app, trainings(id, name, program_id, position, app, locked, columns_settings)`)
             .eq("user_id", user.id)
             .order("position", { ascending: true });
 
@@ -377,6 +377,17 @@ export default function usePrograms() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user?.id) return;
 
+    const { data: prefData } = await supabase
+      .from("preferences")
+      .select("show_effort, show_materiel, show_repos")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    const defaultVisibleColumns: string[] = [];
+    if (prefData?.show_materiel ?? true) defaultVisibleColumns.push("materiel");
+    if (prefData?.show_repos ?? true) defaultVisibleColumns.push("repos");
+    if (prefData?.show_effort ?? true) defaultVisibleColumns.push("effort");
+
     const { data } = await supabase
       .from("trainings")
       .insert({
@@ -386,6 +397,7 @@ export default function usePrograms() {
         position: programs.find(p => p.id === targetId)?.trainings.length ?? 0,
         app: false,
         dashboard: false,
+        columns_settings: JSON.stringify(defaultVisibleColumns),
       })
       .select()
       .single();
@@ -631,6 +643,7 @@ export default function usePrograms() {
             user_id: userId,
             position: training.position,
             app: training.app ?? false,
+            columns_settings: training.columns_settings ?? null,
           })
           .select()
           .single();

@@ -140,6 +140,19 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
 
   console.log(`✅ ${adminTrainings.length} trainings récupérés depuis trainings_admin.`);
 
+  // 5b. Récupérer les préférences par défaut de l'utilisateur pour les colonnes
+  const { data: prefData } = await supabase
+    .from("preferences")
+    .select("show_effort, show_materiel, show_repos")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const defaultVisibleColumns: string[] = [];
+  if (prefData?.show_materiel ?? true) defaultVisibleColumns.push("materiel");
+  if (prefData?.show_repos ?? true) defaultVisibleColumns.push("repos");
+  if (prefData?.show_effort ?? true) defaultVisibleColumns.push("effort");
+  const defaultColumnsSettings = JSON.stringify(defaultVisibleColumns);
+
   // 6. Copier les trainings dans `trainings`
   const trainingMapping: Record<string, string> = {}; // id admin ➜ id utilisateur
 
@@ -152,7 +165,7 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
           user_id: user.id,
           program_id: newProgramId,
           position: training.position ?? null,
-          columns_settings: training.columns_settings ?? null,
+          columns_settings: defaultColumnsSettings,
           app: training.app ?? true,
         },
       ])

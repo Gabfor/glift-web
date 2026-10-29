@@ -43,7 +43,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
     const fetchColumnsSettings = async () => {
       if (!trainingId) return;
 
-      let { data, error } = await supabase
+      let { data } = await supabase
         .from(tableName)
         .select("columns_settings")
         .eq("id", trainingId)
@@ -64,97 +64,77 @@ export function useTrainingColumns(trainingId: string | undefined) {
         try {
           const visibleTogglableNames: string[] = JSON.parse(data.columns_settings);
 
-          // Fetch global preferences for show_effort and show_materiel
-          let showEffort = true;
-          let showMateriel = true;
-          let showRepos = true;
-
-          if (user?.id) {
-            const { data: prefData } = await supabase
-              .from('preferences')
-              .select('show_effort, show_materiel, show_repos')
-              .eq('id', user.id)
-              .maybeSingle();
-
-            if (prefData) {
-              if (prefData.show_effort !== undefined && prefData.show_effort !== null) {
-                showEffort = prefData.show_effort;
-              }
-              if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
-                showMateriel = prefData.show_materiel;
-              }
-              if (prefData.show_repos !== undefined && prefData.show_repos !== null) {
-                showRepos = prefData.show_repos;
-              }
-            }
-          }
-
-          const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
-            if (col.name === 'effort') {
-              return { ...col, visible: showEffort };
-            }
-            if (col.name === 'materiel') {
-              return { ...col, visible: showMateriel };
-            }
-            if (col.name === 'repos') {
-              return { ...col, visible: showRepos };
-            }
-            return {
+          if (Array.isArray(visibleTogglableNames)) {
+            const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => ({
               ...col,
               visible: visibleTogglableNames.includes(col.name),
-            };
-          });
+            }));
 
-          setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
+            setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
+            setLoading(false);
+            return;
+          }
         } catch (err) {
           console.error("❌ Erreur parsing columns_settings:", err);
-          setColumnsState([...FIXED_COLUMNS, ...TOGGLABLE_COLUMNS]);
         }
-      } else {
-        // Default case, also check preferences
-        let showEffort = true;
-        let showMateriel = true;
-        let showRepos = true;
-
-        if (user?.id) {
-          const { data: prefData } = await supabase
-            .from('preferences')
-            .select('show_effort, show_materiel, show_repos')
-            .eq('id', user.id)
-            .maybeSingle();
-
-          if (prefData) {
-            if (prefData.show_effort !== undefined && prefData.show_effort !== null) {
-              showEffort = prefData.show_effort;
-            }
-            if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
-              showMateriel = prefData.show_materiel;
-            }
-            if (prefData.show_repos !== undefined && prefData.show_repos !== null) {
-              showRepos = prefData.show_repos;
-            }
-          }
-        }
-        const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
-          if (col.name === 'effort') {
-            return { ...col, visible: showEffort };
-          }
-          if (col.name === 'materiel') {
-            return { ...col, visible: showMateriel };
-          }
-          if (col.name === 'repos') {
-            return { ...col, visible: showRepos };
-          }
-          return { ...col, visible: true }; // Default visible
-        });
-        setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
       }
 
+      // Fallback when columns_settings is null/undefined: initialize from global preferences
+      let showEffort = true;
+      let showMateriel = true;
+      let showRepos = true;
+
+      if (user?.id) {
+        const { data: prefData } = await supabase
+          .from("preferences")
+          .select("show_effort, show_materiel, show_repos")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (prefData) {
+          if (prefData.show_effort !== undefined && prefData.show_effort !== null) {
+            showEffort = prefData.show_effort;
+          }
+          if (prefData.show_materiel !== undefined && prefData.show_materiel !== null) {
+            showMateriel = prefData.show_materiel;
+          }
+          if (prefData.show_repos !== undefined && prefData.show_repos !== null) {
+            showRepos = prefData.show_repos;
+          }
+        }
+      }
+
+      const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
+        if (col.name === "effort") {
+          return { ...col, visible: showEffort };
+        }
+        if (col.name === "materiel") {
+          return { ...col, visible: showMateriel };
+        }
+        if (col.name === "repos") {
+          return { ...col, visible: showRepos };
+        }
+        return { ...col, visible: true };
+      });
+
+      const initialVisibleNames = updatedTogglableColumns
+        .filter((col) => col.visible)
+        .map((col) => col.name);
+
+      // Persist initial columns_settings so this training stays independent from future preference changes
+      await supabase
+        .from(tableName)
+        .update({
+          columns_settings: JSON.stringify(initialVisibleNames),
+        })
+        .eq("id", trainingId);
+
+      setColumnsState([...FIXED_COLUMNS, ...updatedTogglableColumns]);
       setLoading(false);
     };
 
     fetchColumnsSettings();
-  }, [trainingId, supabase, tableName, user?.id]);
+  }, [trainingId, supabase, tableName, isAdmin, user?.id]);
 
   const saveColumnsInSupabase = async (currentColumns: ColumnSetting[]) => {
     if (!trainingId) return;
@@ -176,32 +156,6 @@ export function useTrainingColumns(trainingId: string | undefined) {
 
     if (error) {
       console.error("❌ Erreur sauvegarde columns_settings:", error);
-    }
-
-    // Also update global preferences if effort or materiel changed
-    // We check if 'effort' or 'materiel' is in the visible list passed to this function
-    const effortColumn = currentColumns.find(c => c.name === 'effort');
-    const materielColumn = currentColumns.find(c => c.name === 'materiel');
-    const reposColumn = currentColumns.find(c => c.name === 'repos');
-
-    if (user?.id) {
-      const updates: any = {};
-      if (effortColumn) {
-        updates.show_effort = effortColumn.visible;
-      }
-      if (materielColumn) {
-        updates.show_materiel = materielColumn.visible;
-      }
-      if (reposColumn) {
-        updates.show_repos = reposColumn.visible;
-      }
-
-      if (Object.keys(updates).length > 0) {
-        await supabase
-          .from('preferences')
-          .update(updates)
-          .eq('id', user.id);
-      }
     }
   };
 
