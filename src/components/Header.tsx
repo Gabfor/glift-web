@@ -12,7 +12,7 @@ import { SettingsService } from "@/lib/services/settingsService";
 
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
-import { useScrollLock } from "@/utils/scrollLock";
+import { useScrollLock, isScrollLocked, isScrollRecentlyUnlocked, getSavedScrollY } from "@/utils/scrollLock";
 
 const HOUR_IN_MS = 60 * 60 * 1000;
 const DEFAULT_GRACE_PERIOD_HOURS = 72;
@@ -77,6 +77,18 @@ export default function Header({ disconnected = false }: HeaderProps) {
       if (landscapeMobile) {
         setIsHeaderVisible(false);
       } else {
+        // Ne pas forcer l'affichage du header si le défilement est verrouillé par une modale
+        // ou vient juste d'être restauré (évite que le header n'apparaisse à l'ouverture de la modale)
+        if (
+          isScrollLocked() ||
+          isScrollRecentlyUnlocked() ||
+          (typeof document !== "undefined" && (
+            document.body.classList.contains("manual-scroll-lock") ||
+            document.body.style.position === "fixed"
+          ))
+        ) {
+          return;
+        }
         // En mode portrait (ou sur grand écran), si on est en haut de page, réafficher le header
         if (window.scrollY <= 20) {
           setIsHeaderVisible(true);
@@ -144,6 +156,21 @@ export default function Header({ disconnected = false }: HeaderProps) {
     let lastScroll = window.scrollY;
 
     const handleScroll = () => {
+      // Si le défilement est verrouillé par une modale ou vient juste d’être restauré,
+      // on ignore pour éviter un saut d’écran ou un affichage intempestif du header
+      if (
+        isScrollLocked() ||
+        isScrollRecentlyUnlocked() ||
+        (typeof document !== "undefined" && (
+          document.body.classList.contains("manual-scroll-lock") ||
+          document.body.style.position === "fixed"
+        ))
+      ) {
+        const lockedY = getSavedScrollY() || (typeof document !== "undefined" ? Math.abs(parseInt(document.body.style.top || "0", 10)) : 0) || lastScroll;
+        lastScroll = lockedY;
+        setIsSticky(lockedY > 10);
+        return;
+      }
       let scroll = window.scrollY;
       if (document.body.classList.contains("manual-scroll-lock") || document.body.style.position === "fixed") {
         const top = parseInt(document.body.style.top || "0", 10);

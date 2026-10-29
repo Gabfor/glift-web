@@ -1,4 +1,5 @@
 import { useState } from "react";
+import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 import RichTextEditor from "@/components/ui/RichTextEditor";
@@ -24,18 +25,29 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
   return (
     <Modal
       open
-      title={title}
+      title={
+        <div className="flex flex-col items-center gap-3">
+          <Image
+            src="/icons/note_purple.svg"
+            alt="Note"
+            width={35}
+            height={35}
+            priority
+          />
+          <span>{title}</span>
+        </div>
+      }
       onClose={onCancel}
       footer={
         <div className="flex justify-center gap-3 sm:gap-5 w-full">
           {initialNote ? (
-            <CTAButton
-              variant="secondary"
+            <button
+              type="button"
               onClick={() => onSave("")}
-              className="flex-1 w-full sm:w-auto sm:flex-initial"
+              className="flex-1 w-full sm:w-auto sm:flex-initial px-4 py-2 font-semibold text-[#EF4F4E] hover:text-[#BA2524]"
             >
               Supprimer
-            </CTAButton>
+            </button>
           ) : (
             <CTAButton
               variant="secondary"

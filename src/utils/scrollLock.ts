@@ -1,9 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
+
+const useIsomorphicLayoutEffect =
+  typeof window !== "undefined" ? useLayoutEffect : useEffect;
 
 let activeLocksCount = 0;
 let savedScrollY = 0;
+let lastUnlockTimestamp = 0;
 let originalStyles = {
   position: "",
   top: "",
@@ -14,6 +18,10 @@ let originalStyles = {
 };
 
 let isMobileFixedLocked = false;
+
+export const isScrollLocked = () => activeLocksCount > 0;
+export const isScrollRecentlyUnlocked = () => Date.now() - lastUnlockTimestamp < 350;
+export const getSavedScrollY = () => savedScrollY;
 
 export const lockScroll = () => {
   if (typeof window === "undefined" || typeof document === "undefined") return;
@@ -74,10 +82,14 @@ export const unlockScroll = () => {
     return;
   }
 
+  lastUnlockTimestamp = Date.now();
+
   const body = document.body;
   const docEl = document.documentElement;
   const scrollYToRestore = savedScrollY;
 
+  // Disable smooth scroll temporarily so restoring scroll position is instantaneous and without visual jump
+  docEl.classList.add("instant-scroll");
   docEl.classList.remove("manual-scroll-lock");
   body.classList.remove("manual-scroll-lock");
 
@@ -90,18 +102,24 @@ export const unlockScroll = () => {
 
   if (isMobileFixedLocked) {
     isMobileFixedLocked = false;
-    window.scrollTo(0, scrollYToRestore);
+    window.scrollTo({ top: scrollYToRestore, left: 0, behavior: "instant" });
   }
+
+  requestAnimationFrame(() => {
+    docEl.classList.remove("instant-scroll");
+  });
 };
 
 export const forceUnlockScroll = () => {
   if (typeof window === "undefined" || typeof document === "undefined") return;
   activeLocksCount = 0;
+  lastUnlockTimestamp = Date.now();
 
   const body = document.body;
   const docEl = document.documentElement;
   const scrollYToRestore = savedScrollY;
 
+  docEl.classList.add("instant-scroll");
   docEl.classList.remove("manual-scroll-lock");
   body.classList.remove("manual-scroll-lock");
 
@@ -115,13 +133,17 @@ export const forceUnlockScroll = () => {
   if (isMobileFixedLocked) {
     isMobileFixedLocked = false;
     if (scrollYToRestore > 0) {
-      window.scrollTo(0, scrollYToRestore);
+      window.scrollTo({ top: scrollYToRestore, left: 0, behavior: "instant" });
     }
   }
+
+  requestAnimationFrame(() => {
+    docEl.classList.remove("instant-scroll");
+  });
 };
 
 export function useScrollLock(enabled: boolean) {
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!enabled) return;
     lockScroll();
     return () => {

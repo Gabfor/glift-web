@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 
@@ -51,7 +52,18 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
   return (
     <Modal
       open
-      title={title}
+      title={
+        <div className="flex flex-col items-center gap-3">
+          <Image
+            src="/icons/lien_purple.svg"
+            alt="Lien"
+            width={35}
+            height={35}
+            priority
+          />
+          <span>{title}</span>
+        </div>
+      }
       onClose={onCancel}
       footer={
         <div className="flex justify-center gap-3 sm:gap-5 w-full">

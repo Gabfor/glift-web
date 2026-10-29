@@ -244,6 +244,8 @@ export default function TableActionsBar({
         </Tooltip>
       )}
 
+      {selectedRowIds.length > 0 && <div className="w-px h-5 bg-[#ECE9F1]" />}
+
       <div ref={menuRef} className="relative inline-flex items-center">
         <Tooltip content="Colonnes">
           <button
