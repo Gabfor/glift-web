@@ -681,14 +681,9 @@ export default function EntrainementsPage({
                       }
                     }}
                     onDeleteTraining={(id: string) => {
-                      if (!isPremiumUser) {
-                        setShowTrainingDeleteWarningModal(true);
-                        setTrainingIdToDelete(id);
-                        setProgramIdForTrainingDelete(program.id);
-                        return;
-                      }
-
-                      handleDeleteTraining(program.id, id);
+                      setShowTrainingDeleteWarningModal(true);
+                      setTrainingIdToDelete(id);
+                      setProgramIdForTrainingDelete(program.id);
                     }}
                     onDuplicateTraining={(id: string) =>
                       handleDuplicateTraining(program.id, id)
@@ -749,6 +744,22 @@ export default function EntrainementsPage({
 
       <TrainingDeleteWarningModal
         show={showTrainingDeleteWarningModal}
+        isStarterActiveWarning={
+          !isPremiumUser &&
+          Boolean(
+            trainingIdToDelete &&
+            programs
+              .flatMap((p, pIdx) =>
+                p.trainings.map((t, tIdx) => ({
+                  id: t.id,
+                  isActiveStarter:
+                    t.locked === false ||
+                    (pIdx === 0 && tIdx === 0 && t.locked !== true),
+                }))
+              )
+              .find((t) => t.id === trainingIdToDelete)?.isActiveStarter
+          )
+        }
         onCancel={() => {
           setShowTrainingDeleteWarningModal(false);
           setTrainingIdToDelete(null);

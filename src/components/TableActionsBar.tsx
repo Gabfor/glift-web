@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { useUser } from "@/context/UserContext";
 import Tooltip from "@/components/Tooltip";
 import ColumnMenu from "@/components/ColumnMenu";
 import { Row } from "@/types/training";
@@ -32,6 +33,7 @@ type Props = {
   handleGroupSuperset: () => void;
   onLinkClick: (rowId: string) => void;
   onNoteClick?: () => void;
+  onDuplicateRow?: () => void;
   saveColumnsInSupabase: (columns: {
     name: string;
     label: string;
@@ -52,6 +54,7 @@ export default function TableActionsBar({
   handleGroupSuperset,
   onLinkClick,
   onNoteClick,
+  onDuplicateRow,
   saveColumnsInSupabase,
   adminMode,
 }: Props) {
@@ -63,10 +66,15 @@ export default function TableActionsBar({
 
   const prefix = isPageAdmin ? "/icons/admin_" : "/icons/";
 
+  const { isPremiumUser } = useUser();
+  const isStarterOverLimit = !isPageAdmin && !isPremiumUser && rows.length >= 10;
+  const canShowDuplicate = selectedRowIds.length === 1 && !isStarterOverLimit && !!onDuplicateRow;
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredSuperset, setHoveredSuperset] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(false);
   const [hoveredNote, setHoveredNote] = useState(false);
+  const [hoveredDuplicate, setHoveredDuplicate] = useState(false);
   const [hoveredDelete, setHoveredDelete] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -220,6 +228,31 @@ export default function TableActionsBar({
               />
             </button>
           </Tooltip>
+
+          {canShowDuplicate && (
+            <Tooltip content="Dupliquer">
+              <button
+                onClick={() => {
+                  onDuplicateRow?.();
+                  setHoveredDuplicate(false);
+                }}
+                onMouseEnter={() => setHoveredDuplicate(true)}
+                onMouseLeave={() => setHoveredDuplicate(false)}
+              >
+                <Image
+                  src={
+                    hoveredDuplicate
+                      ? "/icons/duplicate_exercice_hover.svg"
+                      : "/icons/duplicate_exercice.svg"
+                  }
+                  alt="Dupliquer"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                />
+              </button>
+            </Tooltip>
+          )}
         </>
       )}
 

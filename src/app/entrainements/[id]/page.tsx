@@ -394,6 +394,34 @@ export default function AdminEntrainementDetailPage() {
     }
   };
 
+  const handleDuplicateRow = () => {
+    if (selectedRowIds.length !== 1) return;
+    if (!isAdminRoute && !isPremiumUser && rows.length >= 10) return;
+
+    const selectedId = selectedRowIds[0];
+    const index = rows.findIndex((r) => r.id === selectedId);
+    if (index === -1) return;
+
+    const rowToDuplicate = rows[index];
+    const duplicatedRow: Row = {
+      ...rowToDuplicate,
+      id: generateUUID(),
+      repetitions: [...(rowToDuplicate.repetitions || [])],
+      poids: [...(rowToDuplicate.poids || [])],
+      effort: [...(rowToDuplicate.effort || [])],
+      checked: false,
+      iconHovered: false,
+      locked: false,
+    };
+
+    const newRows = [...rows];
+    newRows[index] = { ...newRows[index], checked: false };
+    newRows.splice(index + 1, 0, duplicatedRow);
+
+    setRows(newRows);
+    setSelectedRowIds([]);
+  };
+
   const handleAddRow = () => {
     setRows((prev) => {
       // 🔒 Double-check limit inside the updater to prevent race conditions
@@ -509,6 +537,7 @@ export default function AdminEntrainementDetailPage() {
             if (index !== -1) setSelectedNoteRowIndex(index);
             setShowNoteModal(true);
           }}
+          onDuplicateRow={handleDuplicateRow}
           saveColumnsInSupabase={saveColumnsInSupabase}
         />
 
