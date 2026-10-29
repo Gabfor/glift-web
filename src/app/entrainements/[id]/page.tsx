@@ -260,15 +260,43 @@ export default function AdminEntrainementDetailPage() {
       normalizedName === LEGACY_DEFAULT_TRAINING_NAME;
 
     const hasTableContent = rows.some((row) => !isRowContentEmpty(row));
+    const isEmpty = isNameMissing && !hasTableContent;
 
-    shouldDeleteRef.current = isNameMissing && !hasTableContent;
-  }, [programName, rows]);
+    shouldDeleteRef.current = isEmpty;
+
+    // Dès que l'entraînement a du contenu ou un nom personnalisé, ce n'est plus un brouillon temporaire
+    if (!isEmpty) {
+      if (!isAdminRoute && !isAdminTraining) {
+        void supabase
+          .from(trainingsTableName)
+          .update({ app: true, dashboard: true })
+          .eq("id", trainingId)
+          .eq("app", false);
+      }
+
+      if (typeof window !== "undefined" && window.location.search.includes("new=1")) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("new");
+        const newSearch = url.searchParams.toString();
+        window.history.replaceState(null, "", url.pathname + (newSearch ? `?${newSearch}` : ""));
+      }
+    }
+  }, [programName, rows, isAdminRoute, isAdminTraining, supabase, trainingId, trainingsTableName]);
 
   const deleteEmptyTraining = useCallback(async () => {
     if (isAdminRoute || isAdminTraining) return { trainingDeleted: false, programDeleted: false };
     if (hasDeletedRef.current) return { trainingDeleted: false, programDeleted: false };
     if (!isNewTrainingRef.current) return { trainingDeleted: false, programDeleted: false };
-    if (!shouldDeleteRef.current) return { trainingDeleted: false, programDeleted: false };
+    if (!shouldDeleteRef.current) {
+      if (isNewTrainingRef.current && !isAdminRoute && !isAdminTraining) {
+        await supabase
+          .from(trainingsTableName)
+          .update({ app: true, dashboard: true })
+          .eq("id", trainingId)
+          .eq("app", false);
+      }
+      return { trainingDeleted: false, programDeleted: false };
+    }
     if (!trainingId) return { trainingDeleted: false, programDeleted: false };
 
     let userId = user?.id ?? null;
