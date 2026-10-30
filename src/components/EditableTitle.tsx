@@ -25,6 +25,7 @@ type Props = {
   inputClassName?: string;
   autoSelect?: boolean;
   autoScrollOnEdit?: boolean;
+  adminMode?: boolean;
 };
 
 const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
@@ -44,6 +45,7 @@ function EditableTitle({
   inputClassName,
   autoSelect = false,
   autoScrollOnEdit = true,
+  adminMode = false,
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const pointerDownHandledRef = useRef(false);
@@ -225,7 +227,8 @@ function EditableTitle({
               }
             }}
             className={cn(
-              "text-[16px] sm:text-[18px] text-[#3A416F] placeholder-[#D7D4DC] font-semibold border border-[#D7D4DC] rounded-[5px] px-4 py-2 pr-10 text-left w-full focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD] transition bg-white",
+              "text-[16px] sm:text-[18px] text-[#3A416F] placeholder-[#D7D4DC] font-semibold border border-[#D7D4DC] rounded-[5px] px-4 py-2 pr-10 text-left w-full focus:outline-none focus:border-transparent focus:ring-2 transition bg-white",
+              adminMode ? "focus:ring-[#5D6499]" : "focus:ring-[#A1A5FD]",
               inputClassName
             )}
             placeholder="Nom de l'entraînement"

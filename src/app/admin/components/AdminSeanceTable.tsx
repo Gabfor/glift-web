@@ -451,7 +451,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
               if (visibleRows.length === 0) return null;
 
               return (
-                <div key={`blk-${bIdx}`} className={`flex flex-col pl-[15px] border-l-[3px] ${adminMode ? "border-[#A1A5FD]" : "border-[#7069FA]"} gap-5`}>
+                <div key={`blk-${bIdx}`} className={`flex flex-col pl-[15px] border-l-[3px] ${adminMode ? "border-[#5D6499]" : "border-[#7069FA]"} gap-5`}>
                   {visibleRows.map((r) => (
                     <div key={`details-${r.index}`} className="flex flex-col gap-[5px]">
                       <div className={`text-[16px] font-bold ${adminMode ? "text-[#3A416F]" : "text-[#7069FA]"} mb-[5px]`}>{r.row.exercice || "—"}</div>
@@ -510,6 +510,7 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
           initialLink={selectedRow.link || ""}
           onCancel={() => setShowLinkModal(false)}
           onSave={handleSaveLink}
+          adminMode={adminMode}
         />
       )}
     </div>

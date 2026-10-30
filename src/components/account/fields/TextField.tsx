@@ -1,6 +1,7 @@
 'use client'
 
 import clsx from 'clsx'
+import { usePathname } from 'next/navigation'
 import SuccessMsg from './SuccessMsg'
 import type { ReactNode } from 'react'
 
@@ -16,6 +17,7 @@ type Props = {
   endAdornment?: ReactNode
   placeholder?: string
   inputClassName?: string
+  isAdmin?: boolean
 }
 
 export default function TextField({
@@ -30,7 +32,14 @@ export default function TextField({
   endAdornment,
   placeholder,
   inputClassName = 'rounded-[5px]',
+  isAdmin,
 }: Props) {
+  const pathname = usePathname()
+  const isPageAdmin =
+    isAdmin ??
+    (pathname?.startsWith('/admin') ||
+      (typeof window !== 'undefined' &&
+        window.location.hostname.startsWith('admin.')))
   const showError = !!error
   const showSuccess = !!success && !showError
 
@@ -64,8 +73,8 @@ export default function TextField({
             showError
               ? 'border-[#EF4F4E] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]'
               : showSuccess
-              ? 'border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'
-              : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]',
+              ? (isPageAdmin ? 'border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6499]' : 'border-[#00D591] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]')
+              : (isPageAdmin ? 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#5D6499]' : 'border-[#D7D4DC] hover:border-[#C2BFC6] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#A1A5FD]'),
           )}
           placeholder={placeholder ?? label}
         />

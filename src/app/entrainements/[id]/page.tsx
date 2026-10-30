@@ -547,6 +547,7 @@ export default function AdminEntrainementDetailPage() {
           setProgramName={setProgramName}
           handleBlur={handleBlur}
           setIsEditing={setIsEditing}
+          adminMode={isAdminRoute || isAdminTraining}
         />
 
         <TableActionsBar
@@ -656,6 +657,7 @@ export default function AdminEntrainementDetailPage() {
               setSelectedLinkRowIndex(null);
             }}
             onSave={handleSaveLink}
+            adminMode={isAdminRoute || isAdminTraining}
           />
         )}
 

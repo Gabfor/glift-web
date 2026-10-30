@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useRef, useState } from "react";
 
 import Tooltip from "@/components/Tooltip";
@@ -12,6 +13,7 @@ type Props = {
   className?: string;
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   onSubmit?: () => void;
+  isAdmin?: boolean;
 };
 
 export default function SearchBar({
@@ -21,7 +23,15 @@ export default function SearchBar({
   className = "",
   onKeyDown,
   onSubmit,
+  isAdmin,
 }: Props) {
+  const pathname = usePathname();
+  const isPageAdmin =
+    isAdmin ??
+    (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" &&
+        window.location.hostname.startsWith("admin.")));
+
   const inputRef = useRef<HTMLInputElement>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -51,10 +61,10 @@ export default function SearchBar({
           onKeyDown?.(e);
         }}
         placeholder={placeholder || "Rechercher..."}
-        className="w-full pl-10 pr-10 py-2 rounded-[5px] bg-white text-[16px] font-semibold text-[#3A416F] placeholder-[#D7D4DC]
+        className={`w-full pl-10 pr-10 py-2 rounded-[5px] bg-white text-[16px] font-semibold text-[#3A416F] placeholder-[#D7D4DC]
                    border border-[#D7D4DC] hover:border-[#C2BFC6]
-                   focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#A1A5FD]
-                   transition-all duration-150"
+                   focus:border-transparent focus:outline-none focus:ring-2 ${isPageAdmin ? "focus:ring-[#5D6499]" : "focus:ring-[#A1A5FD]"}
+                   transition-all duration-150`}
       />
 
       {/* Icône reset à droite */}

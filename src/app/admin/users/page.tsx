@@ -1059,7 +1059,7 @@ export default function AdminUsersPage() {
                         min-w-[70px]
                         border
                         ${isRowsDropdownOpen
-                          ? "border-[#A1A5FD] focus:border-transparent focus:outline-none ring-2 ring-[#5D6494]"
+                          ? "border-[#5D6499] focus:border-transparent focus:outline-none ring-2 ring-[#5D6494]"
                           : "border-[#D7D4DC]"
                         }
                         rounded-[5px]
