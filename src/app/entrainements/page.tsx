@@ -27,5 +27,39 @@ export default async function EntrainementsPage() {
     description: data?.description ?? "Organise tes entraînements et choisis les séances que tu souhaites synchroniser dans ton app ou sur ton tableau de bord.",
   };
 
-  return <EntrainementsClient initialPageContent={initialPageContent} />;
+  let initialStructure: { trainingCount: number }[] | undefined = undefined;
+
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user?.id) {
+      const { data: programsData } = await supabase
+        .from("programs")
+        .select("id, position, trainings(id)")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
+
+      if (programsData && programsData.length > 0) {
+        const filtered = programsData.filter((p, index) => {
+          const count = Array.isArray(p.trainings) ? p.trainings.length : 0;
+          const isLast = index === programsData.length - 1;
+          return count > 0 || isLast;
+        });
+
+        if (filtered.length > 0) {
+          initialStructure = filtered.map((p) => ({
+            trainingCount: Array.isArray(p.trainings) ? p.trainings.length : 0,
+          }));
+        }
+      }
+    }
+  } catch (err) {
+    // Fallback silencieux vers le cache client
+  }
+
+  return (
+    <EntrainementsClient
+      initialPageContent={initialPageContent}
+      initialStructure={initialStructure}
+    />
+  );
 }

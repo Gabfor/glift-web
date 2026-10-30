@@ -45,8 +45,10 @@ import TrainingDeleteWarningModal from "@/components/TrainingDeleteWarningModal"
 
 export default function EntrainementsPage({
   initialPageContent,
+  initialStructure,
 }: {
   initialPageContent: { surtitre: string; titre: string; description: string };
+  initialStructure?: ProgramSkeletonMeta[];
 }) {
   const {
     programs,
@@ -112,21 +114,31 @@ export default function EntrainementsPage({
   const [loadingTraining, setLoadingTraining] = useState<LoadingTrainingState>(null);
   const isMountedRef = useRef(true);
 
-  const [cachedStructure, setCachedStructure] = useState<ProgramSkeletonMeta[] | null>(null);
+  const [cachedStructure, setCachedStructure] = useState<ProgramSkeletonMeta[] | null>(() => {
+    if (initialStructure && initialStructure.length > 0) {
+      return initialStructure;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("programs_skeleton_structure");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return null;
+  });
 
   useEffect(() => {
-    try {
-      const cached = localStorage.getItem("programs_skeleton_structure");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setCachedStructure(parsed);
-        }
-      }
-    } catch {
-      // ignore
+    if (initialStructure && initialStructure.length > 0) {
+      setCachedStructure(initialStructure);
     }
-  }, []);
+  }, [initialStructure]);
 
   useEffect(() => {
     isMountedRef.current = true;

@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 export default function LegalTableSkeleton() {
   return (
     <div className="animate-pulse">
@@ -9,27 +7,27 @@ export default function LegalTableSkeleton() {
             <tr>
               <th className="px-4 w-[48px]">
                 <div className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
-                  <div className="w-[15px] h-[15px] bg-[#E6E8F5] rounded-sm" />
+                  <div className="w-[15px] h-[15px] bg-[#ECE9F1] rounded-sm" />
                 </div>
               </th>
               <th className="w-[82px] px-4">
                 <div className="flex items-center gap-1">
-                  <div className="h-4 w-12 bg-[#E6E8F5] rounded" />
+                  <div className="h-4 w-12 bg-[#ECE9F1] rounded" />
                 </div>
               </th>
               <th className="w-auto px-4">
                 <div className="flex items-center gap-1">
-                  <div className="h-4 w-24 bg-[#E6E8F5] rounded" />
+                  <div className="h-4 w-24 bg-[#ECE9F1] rounded" />
                 </div>
               </th>
               <th className="w-[160px] px-4">
                 <div className="flex items-center gap-1">
-                  <div className="h-4 w-20 bg-[#E6E8F5] rounded" />
+                  <div className="h-4 w-20 bg-[#ECE9F1] rounded" />
                 </div>
               </th>
               <th className="w-[120px] px-4">
                 <div className="flex items-center gap-1">
-                  <div className="h-4 w-16 bg-[#E6E8F5] rounded" />
+                  <div className="h-4 w-16 bg-[#ECE9F1] rounded" />
                 </div>
               </th>
             </tr>
@@ -39,20 +37,20 @@ export default function LegalTableSkeleton() {
               <tr key={i} className="border-b border-[#ECE9F1] h-[60px]">
                 <td className="px-4">
                   <div className="flex items-center justify-center h-[60px] shrink-0 min-w-[15px]">
-                    <div className="w-[15px] h-[15px] bg-[#E6E8F5] rounded-sm" />
+                    <div className="w-[15px] h-[15px] bg-[#ECE9F1] rounded-sm" />
                   </div>
                 </td>
                 <td className="w-[82px] px-4 align-middle">
-                  <div className="w-[40px] h-[20px] bg-[#E6E8F5] rounded-full" />
+                  <div className="w-[40px] h-[20px] bg-[#ECE9F1] rounded-full" />
                 </td>
                 <td className="px-4 align-middle">
-                  <div className="w-[200px] h-4 bg-[#E6E8F5] rounded" />
+                  <div className="w-[200px] h-4 bg-[#ECE9F1] rounded" />
                 </td>
                 <td className="px-4 align-middle w-[160px]">
-                  <div className="w-[80px] h-4 bg-[#E6E8F5] rounded" />
+                  <div className="w-[80px] h-4 bg-[#ECE9F1] rounded" />
                 </td>
                 <td className="w-[120px] px-4 align-middle">
-                  <div className="w-5 h-4 bg-[#E6E8F5] rounded" />
+                  <div className="w-5 h-4 bg-[#ECE9F1] rounded" />
                 </td>
               </tr>
             ))}

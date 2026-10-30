@@ -9,31 +9,31 @@ export default function ShopGridSkeleton() {
           className="relative w-full bg-white rounded-[15px] border border-[#D7D4DC] overflow-hidden flex flex-col shadow-glift animate-pulse"
         >
           <div className="absolute top-0 right-0 overflow-hidden w-[110px] h-[110px]">
-            <div className="absolute bg-[#E6E8F5] rotate-45 w-[150px] h-[24px] right-[-30px] top-[30px]" />
+            <div className="absolute bg-[#ECE9F1] rotate-45 w-[150px] h-[24px] right-[-30px] top-[30px]" />
           </div>
-          <div className="w-full h-[180px] bg-[#E6E8F5]" />
+          <div className="w-full h-[180px] bg-[#ECE9F1]" />
           <div className="flex justify-center -mt-8">
-            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-[#E6E8F5]" />
+            <div className="w-[70px] h-[70px] rounded-full border-[3px] border-white bg-[#ECE9F1]" />
           </div>
           <div className="p-[15px] pb-[20px] md:p-[10px] md:pb-[20px] flex-1 flex flex-col gap-3">
-            <div className="h-4 bg-[#E6E8F5] rounded" />
+            <div className="h-4 bg-[#ECE9F1] rounded" />
             <div className="flex flex-wrap gap-[5px]">
-              <span className="w-[60px] h-[22px] bg-[#F0F1FB] rounded" />
-              <span className="w-[70px] h-[22px] bg-[#F0F1FB] rounded" />
-              <span className="w-[80px] h-[22px] bg-[#F0F1FB] rounded" />
+              <span className="w-[60px] h-[22px] bg-[#ECE9F1] rounded" />
+              <span className="w-[70px] h-[22px] bg-[#ECE9F1] rounded" />
+              <span className="w-[80px] h-[22px] bg-[#ECE9F1] rounded" />
             </div>
             <div className="space-y-2">
-              <div className="h-3 bg-[#E6E8F5] rounded" />
-              <div className="h-3 bg-[#E6E8F5] rounded" />
-              <div className="h-3 bg-[#E6E8F5] rounded" />
+              <div className="h-3 bg-[#ECE9F1] rounded" />
+              <div className="h-3 bg-[#ECE9F1] rounded" />
+              <div className="h-3 bg-[#ECE9F1] rounded" />
             </div>
             <div className="space-y-2">
-              <div className="h-3 bg-[#E6E8F5] rounded" />
-              <div className="h-3 bg-[#E6E8F5] rounded" />
-              <div className="h-3 bg-[#E6E8F5] rounded w-2/3" />
+              <div className="h-3 bg-[#ECE9F1] rounded" />
+              <div className="h-3 bg-[#ECE9F1] rounded" />
+              <div className="h-3 bg-[#ECE9F1] rounded w-2/3" />
             </div>
             <div className="mt-auto">
-              <div className="h-10 bg-[#E6E8F5] rounded-full w-full md:w-[170px] md:mx-auto" />
+              <div className="h-10 bg-[#ECE9F1] rounded-full w-full md:w-[170px] md:mx-auto" />
             </div>
           </div>
         </div>

@@ -18,65 +18,71 @@ interface ProgramsSkeletonProps {
 export default function ProgramsSkeleton({
   structure: propStructure,
 }: ProgramsSkeletonProps) {
-  const [structure, setStructure] = useState<ProgramSkeletonMeta[]>(
-    propStructure || DEFAULT_STRUCTURE
-  );
+  const [structure, setStructure] = useState<ProgramSkeletonMeta[]>(() => {
+    if (propStructure && propStructure.length > 0) {
+      return propStructure;
+    }
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("programs_skeleton_structure");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+    return DEFAULT_STRUCTURE;
+  });
 
   useEffect(() => {
     if (propStructure && propStructure.length > 0) {
       setStructure(propStructure);
-      return;
-    }
-    try {
-      const cached = localStorage.getItem("programs_skeleton_structure");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setStructure(parsed);
-        }
-      }
-    } catch {
-      // ignore
     }
   }, [propStructure]);
 
+  const itemsToRender = structure.length > 0 ? structure : [{ trainingCount: 0 }];
+
   return (
     <div className="w-full max-w-[1152px] animate-pulse">
-      {structure.map((item, programIndex) => (
+      {itemsToRender.map((item, programIndex) => (
         <div key={programIndex} className="relative w-full max-w-[1152px] mb-[20px]">
           {/* Header du programme - identique à ProgramEditor */}
           <div className="relative flex items-center justify-between h-[50px] mb-2 bg-[#FBFCFE]">
             {/* Icônes de gauche (descendre, monter, dupliquer - Desktop uniquement) */}
             <div className="hidden md:flex items-center absolute left-0 z-10 p-2 bg-[#FBFCFE]">
               <div className="w-[25px] h-[25px] flex items-center justify-center">
-                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#E6E8F5]" />
+                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#ECE9F1]" />
               </div>
               <div className="w-[25px] h-[25px] flex items-center justify-center">
-                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#E6E8F5]" />
+                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#ECE9F1]" />
               </div>
               <div className="w-[25px] h-[25px] flex items-center justify-center">
-                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#E6E8F5]" />
+                <div className="w-[18px] h-[18px] rounded-[4px] bg-[#ECE9F1]" />
               </div>
             </div>
 
             {/* Titre centré avec fond #FBFCFE au-dessus de la ligne */}
             <div className="flex-1 flex justify-center items-center relative z-10 px-10 md:px-0">
               <div className="flex items-center p-2 bg-[#FBFCFE]">
-                <div className="h-4 w-28 sm:w-36 rounded bg-[#E6E8F5]" />
-                <div className="ml-1.5 w-[15px] h-[15px] rounded-full bg-[#E6E8F5]" />
+                <div className="h-4 w-28 sm:w-36 rounded bg-[#ECE9F1]" />
+                <div className="ml-1.5 w-[15px] h-[15px] rounded-full bg-[#ECE9F1]" />
               </div>
             </div>
 
             {/* Icônes de droite (app, dashboard, poubelle - Desktop uniquement) */}
             <div className="hidden md:flex items-center gap-3 absolute right-0 z-10 p-2 bg-[#FBFCFE]">
               <div className="w-[25px] h-[25px] flex items-center justify-center">
-                <div className="w-[20px] h-[20px] rounded-[4px] bg-[#E6E8F5]" />
+                <div className="w-[20px] h-[20px] rounded-[4px] bg-[#ECE9F1]" />
               </div>
               <div className="w-[25px] h-[25px] flex items-center justify-center">
-                <div className="w-[20px] h-[20px] rounded-[4px] bg-[#E6E8F5]" />
+                <div className="w-[20px] h-[20px] rounded-[4px] bg-[#ECE9F1]" />
               </div>
               <div className="w-[20px] h-[20px] flex items-center justify-center">
-                <div className="w-[16px] h-[16px] rounded-[3px] bg-[#E6E8F5]" />
+                <div className="w-[16px] h-[16px] rounded-[3px] bg-[#ECE9F1]" />
               </div>
             </div>
 
@@ -84,7 +90,7 @@ export default function ProgramsSkeleton({
             {item.trainingCount > 0 && (
               <div className="flex md:hidden items-center absolute right-0 z-10 p-2 bg-[#FBFCFE]">
                 <div className="w-[30px] h-[30px] flex items-center justify-center">
-                  <div className="w-[18px] h-[18px] rounded-[4px] bg-[#E6E8F5]" />
+                  <div className="w-[18px] h-[18px] rounded-[4px] bg-[#ECE9F1]" />
                 </div>
               </div>
             )}
@@ -103,20 +109,20 @@ export default function ProgramsSkeleton({
                 <div className="w-full sm:w-[270px] h-[60px] flex items-center justify-between px-4 font-semibold text-[16px] rounded-[8px] bg-white border border-[#D7D4DC]">
                   {/* Icône de drag */}
                   <div className="w-[25px] h-[25px] flex-shrink-0 flex items-center justify-center">
-                    <div className="w-[18px] h-[18px] rounded-[4px] bg-[#E6E8F5]" />
+                    <div className="w-[18px] h-[18px] rounded-[4px] bg-[#ECE9F1]" />
                   </div>
 
                   {/* Titre de l'entraînement */}
                   <div className="flex-1 px-6 flex items-center justify-center min-w-0 h-full">
-                    <div className="h-4 w-24 sm:w-28 rounded bg-[#E6E8F5]" />
+                    <div className="h-4 w-24 sm:w-28 rounded bg-[#ECE9F1]" />
                   </div>
 
                   {/* Menu kebab 3 points */}
                   <div className="w-[25px] h-[25px] flex-shrink-0 flex items-center justify-center">
                     <div className="flex flex-col gap-0.5 items-center justify-center">
-                      <div className="w-1 h-1 rounded-full bg-[#E6E8F5]" />
-                      <div className="w-1 h-1 rounded-full bg-[#E6E8F5]" />
-                      <div className="w-1 h-1 rounded-full bg-[#E6E8F5]" />
+                      <div className="w-1 h-1 rounded-full bg-[#ECE9F1]" />
+                      <div className="w-1 h-1 rounded-full bg-[#ECE9F1]" />
+                      <div className="w-1 h-1 rounded-full bg-[#ECE9F1]" />
                     </div>
                   </div>
                 </div>

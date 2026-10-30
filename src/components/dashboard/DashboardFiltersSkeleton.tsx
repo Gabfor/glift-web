@@ -15,7 +15,7 @@ export default function DashboardFiltersSkeleton({
   return (
     <div className={clsx("space-y-6", className)}>
       <div className="flex justify-end">
-        <div className="h-10 w-full sm:w-[215px] rounded-[5px] bg-[#E6E8F5]" />
+        <div className="h-10 w-full sm:w-[215px] rounded-[5px] bg-[#ECE9F1]" />
       </div>
 
       {showStats && (
@@ -28,14 +28,14 @@ export default function DashboardFiltersSkeleton({
                   className="flex h-[135px] w-[205px] xl:w-[270px] shrink-0 flex-col items-start justify-center gap-[5px] rounded-[20px] border border-[#D7D4DC] bg-white px-5 py-5 select-none"
                 >
                   <div className="flex h-[36px] w-full items-center justify-start gap-3">
-                    <div className="h-[28px] w-[28px] rounded-full bg-[#E6E8F5] shrink-0" />
-                    <div className="h-[28px] w-[60px] rounded bg-[#E6E8F5]" />
+                    <div className="h-[28px] w-[28px] rounded-full bg-[#ECE9F1] shrink-0" />
+                    <div className="h-[28px] w-[60px] rounded bg-[#ECE9F1]" />
                   </div>
 
                   <div className="flex flex-col gap-1.5 mt-1 w-full">
-                    <div className="h-3.5 w-[130px] rounded bg-[#E6E8F5]" />
-                    <div className="h-2.5 w-[80px] rounded bg-[#E6E8F5]" />
-                    <div className="h-2.5 w-[100px] rounded bg-[#E6E8F5]" />
+                    <div className="h-3.5 w-[130px] rounded bg-[#ECE9F1]" />
+                    <div className="h-2.5 w-[80px] rounded bg-[#ECE9F1]" />
+                    <div className="h-2.5 w-[100px] rounded bg-[#ECE9F1]" />
                   </div>
                 </div>
               ))}
@@ -51,8 +51,8 @@ export default function DashboardFiltersSkeleton({
               key={index}
               className="flex flex-col gap-2 w-full sm:w-auto sm:min-w-[240px] sm:max-w-[270px]"
             >
-              <div className="h-4 w-[120px] rounded bg-[#E6E8F5]" />
-              <div className="h-10 w-full rounded-[5px] bg-[#E6E8F5]" />
+              <div className="h-4 w-[120px] rounded bg-[#ECE9F1]" />
+              <div className="h-10 w-full rounded-[5px] bg-[#ECE9F1]" />
             </div>
           ))}
         </div>

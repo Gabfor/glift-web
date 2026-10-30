@@ -6,13 +6,13 @@ export default function AdminSliderSkeleton() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
         <div className="flex flex-col gap-5 w-full mx-auto">
           <div className="flex flex-col gap-3">
-            <div className="h-5 w-40 rounded bg-[#E0E3F2]" />
-            <div className="h-12 rounded-lg bg-[#E0E3F2]" />
+            <div className="h-5 w-40 rounded bg-[#ECE9F1]" />
+            <div className="h-12 rounded-lg bg-[#ECE9F1]" />
           </div>
 
           <div className="flex flex-col gap-3">
-            <div className="h-5 w-48 rounded bg-[#E0E3F2]" />
-            <div className="h-12 rounded-lg bg-[#E0E3F2]" />
+            <div className="h-5 w-48 rounded bg-[#ECE9F1]" />
+            <div className="h-12 rounded-lg bg-[#ECE9F1]" />
           </div>
         </div>
 
@@ -20,14 +20,14 @@ export default function AdminSliderSkeleton() {
           {skeletonSlides.map((_, index) => (
             <div key={index} className="flex flex-col gap-5">
               <div className="flex items-center justify-between">
-                <div className="h-5 w-28 rounded bg-[#E0E3F2]" />
-                <div className="h-4 w-24 rounded bg-[#E0E3F2]" />
+                <div className="h-5 w-28 rounded bg-[#ECE9F1]" />
+                <div className="h-4 w-24 rounded bg-[#ECE9F1]" />
               </div>
 
               <div className="flex flex-col gap-5">
-                <div className="h-[180px] rounded-2xl bg-[#E0E3F2]" />
-                <div className="h-12 rounded-lg bg-[#E0E3F2]" />
-                <div className="h-12 rounded-lg bg-[#E0E3F2]" />
+                <div className="h-[180px] rounded-2xl bg-[#ECE9F1]" />
+                <div className="h-12 rounded-lg bg-[#ECE9F1]" />
+                <div className="h-12 rounded-lg bg-[#ECE9F1]" />
               </div>
             </div>
           ))}

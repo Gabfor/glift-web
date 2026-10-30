@@ -6,7 +6,7 @@ export default function MesInformationsFormSkeleton() {
   return (
     <div className="flex flex-col items-center gap-2">
       <div className="w-[564px] max-w-full mt-4 mb-[30px]">
-        <div className="h-[96px] rounded-[8px] bg-[#F4F5FE] animate-pulse" />
+        <div className="h-[96px] rounded-[8px] bg-[#F2F1F6] animate-pulse" />
       </div>
 
       <div className="w-[368px] max-w-full flex flex-col items-center mb-[30px]">
@@ -18,10 +18,10 @@ export default function MesInformationsFormSkeleton() {
         {fieldPlaceholders.map((_, index) => (
           <div
             key={index}
-            className="w-[368px] max-w-full h-[72px] bg-[#F4F5FE] rounded-[10px] animate-pulse"
+            className="w-[368px] max-w-full h-[72px] bg-[#F2F1F6] border border-[#ECE9F1] rounded-[10px] animate-pulse"
           />
         ))}
-        <div className="w-[368px] max-w-full h-[48px] bg-[#DFE0F6] rounded-[40px] animate-pulse" />
+        <div className="w-[368px] max-w-full h-[48px] bg-[#ECE9F1] rounded-[40px] animate-pulse" />
       </div>
     </div>
   )

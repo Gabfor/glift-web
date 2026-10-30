@@ -8,6 +8,7 @@ import { useUser } from "@/context/UserContext";
 import EditableTitle from "@/components/EditableTitle";
 import TrainingTable from "@/components/TrainingTable";
 import TableActionsBar from "@/components/TableActionsBar";
+import TrainingTableSkeleton from "@/components/training/TrainingTableSkeleton";
 import AddRowButton from "@/components/AddRowButton";
 import LinkModal from "@/components/LinkModal";
 import AddExerciseLockedModal from "@/components/AddExerciseLockedModal";
@@ -183,7 +184,14 @@ export default function AdminEntrainementDetailPage() {
   const rowCountRef = useRef(0);
   useEffect(() => {
     rowCountRef.current = rows.length;
-  }, [rows.length]);
+    if (!rowsLoading && rows.length > 0 && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`training_rows_count_${trainingId}`, rows.length.toString());
+      } catch {
+        // ignore
+      }
+    }
+  }, [rows.length, rowsLoading, trainingId]);
 
   // ✅ Column configuration
   const { columns, setColumns, togglableColumns, saveColumnsInSupabase } = useTrainingColumns(trainingId);
@@ -569,14 +577,10 @@ export default function AdminEntrainementDetailPage() {
           saveColumnsInSupabase={saveColumnsInSupabase}
         />
 
-        <div className={`-mx-5 md:mx-0 my-0 overflow-x-auto px-5 md:px-0 p-[1px] no-scrollbar ${programNameLoading || rowsLoading ? "opacity-50" : ""}`}>
+        <div className="-mx-5 md:mx-0 my-0 overflow-x-auto px-5 md:px-0 p-[1px] no-scrollbar">
           <div className="w-full align-top">
             {programNameLoading || rowsLoading ? (
-              <div className="animate-pulse space-y-4">
-                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-                <div className="h-[40px] w-full bg-gray-300 rounded-md" />
-              </div>
+              <TrainingTableSkeleton trainingId={trainingId} />
             ) : (
               <TrainingTable
                 rows={rows}
