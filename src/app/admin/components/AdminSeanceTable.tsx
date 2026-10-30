@@ -99,26 +99,66 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
 
   const handleIncrementSeries = (index: number) => {
     const row = trainingRows[index];
-    if (row.series < 6) {
-      handleUpdateRow(index, { 
-        series: row.series + 1, 
-        repetitions: [...row.repetitions, ""],
-        poids: [...row.poids, ""],
-        effort: [...row.effort, "parfait"]
-      });
-    }
+    if (!row) return;
+
+    const targetSupersetId = row.superset_id;
+    const indicesToUpdate = targetSupersetId
+      ? trainingRows
+          .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
+          .filter((i) => i !== -1)
+      : [index];
+
+    const canIncrementAll = indicesToUpdate.every(
+      (i) => (trainingRows[i]?.series ?? 0) < 6
+    );
+    if (!canIncrementAll) return;
+
+    const updated = [...trainingRows];
+    indicesToUpdate.forEach((i) => {
+      const r = trainingRows[i];
+      if (r) {
+        updated[i] = {
+          ...r,
+          series: r.series + 1,
+          repetitions: [...r.repetitions, ""],
+          poids: [...r.poids, ""],
+          effort: [...r.effort, "parfait"],
+        };
+      }
+    });
+    handleSetTrainingRows(updated);
   };
 
   const handleDecrementSeries = (index: number) => {
     const row = trainingRows[index];
-    if (row.series > 1) {
-      handleUpdateRow(index, { 
-        series: row.series - 1, 
-        repetitions: row.repetitions.slice(0, -1),
-        poids: row.poids.slice(0, -1),
-        effort: row.effort.slice(0, -1)
-      });
-    }
+    if (!row) return;
+
+    const targetSupersetId = row.superset_id;
+    const indicesToUpdate = targetSupersetId
+      ? trainingRows
+          .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
+          .filter((i) => i !== -1)
+      : [index];
+
+    const canDecrementAll = indicesToUpdate.every(
+      (i) => (trainingRows[i]?.series ?? 0) > 1
+    );
+    if (!canDecrementAll) return;
+
+    const updated = [...trainingRows];
+    indicesToUpdate.forEach((i) => {
+      const r = trainingRows[i];
+      if (r) {
+        updated[i] = {
+          ...r,
+          series: r.series - 1,
+          repetitions: r.repetitions.slice(0, -1),
+          poids: r.poids.slice(0, -1),
+          effort: r.effort.slice(0, -1),
+        };
+      }
+    });
+    handleSetTrainingRows(updated);
   };
 
   const handleIconHover = (index: number, value: boolean) => {
@@ -213,8 +253,9 @@ export default function AdminSeanceTable({ rows, setRows, readOnly = false, admi
     } else {
       // Group
       const newSupersetId = Math.random().toString(36).substring(2);
+      const firstExerciseRest = trainingRows[sortedSelectedIndices[0]]?.repos ?? "";
       for (const i of sortedSelectedIndices) {
-        updatedRows[i] = { ...updatedRows[i], superset_id: newSupersetId };
+        updatedRows[i] = { ...updatedRows[i], superset_id: newSupersetId, repos: firstExerciseRest };
       }
     }
     

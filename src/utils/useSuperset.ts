@@ -30,8 +30,11 @@ export function useSuperset(
       });
     } else {
       const newId = generateUUID();
+      const firstExerciseRest = rows[selectedIndexes[0]]?.repos ?? "";
+
       selectedIndexes.forEach((i) => {
         newRows[i].superset_id = newId;
+        newRows[i].repos = firstExerciseRest;
       });
     }
 

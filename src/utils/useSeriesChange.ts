@@ -62,30 +62,47 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        const currentRow = previousRows[index];
+        const targetRow = previousRows[index];
+        if (!targetRow) return previousRows;
 
-        if (!currentRow || currentRow.series >= MAX_SERIES) {
+        // Si la ligne appartient à un superset, propager à tout le groupe
+        const targetSupersetId = targetRow.superset_id;
+        const indicesToUpdate = targetSupersetId
+          ? previousRows
+              .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
+              .filter((i) => i !== -1)
+          : [index];
+
+        // Si l'un des exercices du groupe a déjà atteint le max (6), on bloque
+        const canIncrementAll = indicesToUpdate.every(
+          (i) => (previousRows[i]?.series ?? 0) < MAX_SERIES
+        );
+        if (!canIncrementAll) {
           return previousRows;
         }
 
-        const hiddenValues = getHiddenValues(currentRow);
-
-        const restoredRep = hiddenValues.repetitions.pop();
-        const restoredPoids = hiddenValues.poids.pop();
-        const restoredEffort = hiddenValues.effort.pop();
-
-        const updatedRow: Row = {
-          ...currentRow,
-          series: currentRow.series + 1,
-          repetitions: [...currentRow.repetitions, restoredRep ?? ""],
-          poids: [...currentRow.poids, restoredPoids ?? ""],
-          effort: [...currentRow.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE],
-        };
-
         const newRows = [...previousRows];
-        newRows[index] = updatedRow;
 
-        transferHiddenValues(currentRow, updatedRow);
+        indicesToUpdate.forEach((i) => {
+          const currentRow = previousRows[i];
+          if (!currentRow) return;
+
+          const hiddenValues = getHiddenValues(currentRow);
+          const restoredRep = hiddenValues.repetitions.pop();
+          const restoredPoids = hiddenValues.poids.pop();
+          const restoredEffort = hiddenValues.effort.pop();
+
+          const updatedRow: Row = {
+            ...currentRow,
+            series: currentRow.series + 1,
+            repetitions: [...currentRow.repetitions, restoredRep ?? ""],
+            poids: [...currentRow.poids, restoredPoids ?? ""],
+            effort: [...currentRow.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE],
+          };
+
+          newRows[i] = updatedRow;
+          transferHiddenValues(currentRow, updatedRow);
+        });
 
         return newRows;
       });
@@ -100,35 +117,52 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
           return previousRows;
         }
 
-        const currentRow = previousRows[index];
+        const targetRow = previousRows[index];
+        if (!targetRow) return previousRows;
 
-        if (!currentRow || currentRow.series <= MIN_SERIES) {
+        // Si la ligne appartient à un superset, propager à tout le groupe
+        const targetSupersetId = targetRow.superset_id;
+        const indicesToUpdate = targetSupersetId
+          ? previousRows
+              .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
+              .filter((i) => i !== -1)
+          : [index];
+
+        // Si l'un des exercices du groupe est déjà au minimum (1), on bloque
+        const canDecrementAll = indicesToUpdate.every(
+          (i) => (previousRows[i]?.series ?? 0) > MIN_SERIES
+        );
+        if (!canDecrementAll) {
           return previousRows;
         }
 
-        const hiddenValues = getHiddenValues(currentRow);
-
-        const removedRep = currentRow.repetitions[currentRow.repetitions.length - 1] ?? "";
-        const removedPoids = currentRow.poids[currentRow.poids.length - 1] ?? "";
-        const removedEffort =
-          currentRow.effort[currentRow.effort.length - 1] ?? DEFAULT_EFFORT_VALUE;
-
-        hiddenValues.repetitions.push(removedRep);
-        hiddenValues.poids.push(removedPoids);
-        hiddenValues.effort.push(removedEffort);
-
-        const updatedRow: Row = {
-          ...currentRow,
-          series: currentRow.series - 1,
-          repetitions: currentRow.repetitions.slice(0, -1),
-          poids: currentRow.poids.slice(0, -1),
-          effort: currentRow.effort.slice(0, -1),
-        };
-
         const newRows = [...previousRows];
-        newRows[index] = updatedRow;
 
-        transferHiddenValues(currentRow, updatedRow);
+        indicesToUpdate.forEach((i) => {
+          const currentRow = previousRows[i];
+          if (!currentRow) return;
+
+          const hiddenValues = getHiddenValues(currentRow);
+          const removedRep = currentRow.repetitions[currentRow.repetitions.length - 1] ?? "";
+          const removedPoids = currentRow.poids[currentRow.poids.length - 1] ?? "";
+          const removedEffort =
+            currentRow.effort[currentRow.effort.length - 1] ?? DEFAULT_EFFORT_VALUE;
+
+          hiddenValues.repetitions.push(removedRep);
+          hiddenValues.poids.push(removedPoids);
+          hiddenValues.effort.push(removedEffort);
+
+          const updatedRow: Row = {
+            ...currentRow,
+            series: currentRow.series - 1,
+            repetitions: currentRow.repetitions.slice(0, -1),
+            poids: currentRow.poids.slice(0, -1),
+            effort: currentRow.effort.slice(0, -1),
+          };
+
+          newRows[i] = updatedRow;
+          transferHiddenValues(currentRow, updatedRow);
+        });
 
         return newRows;
       });

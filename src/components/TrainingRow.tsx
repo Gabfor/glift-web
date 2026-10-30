@@ -450,9 +450,23 @@ export default function TrainingRow({
             placeholder="0"
             onChange={(e) => {
               if (readOnly) return;
+              const newRepos = e.target.value;
               setRows((prev) => {
                 const updated = [...prev];
-                updated[index].repos = e.target.value;
+                const currentRow = updated[index];
+                if (!currentRow) return prev;
+
+                const supersetId = currentRow.superset_id;
+                if (supersetId) {
+                  // Propager le repos à tous les exercices du superset
+                  updated.forEach((r, i) => {
+                    if (r.superset_id === supersetId) {
+                      updated[i] = { ...r, repos: newRepos };
+                    }
+                  });
+                } else {
+                  updated[index] = { ...currentRow, repos: newRepos };
+                }
                 return updated;
               });
             }}
