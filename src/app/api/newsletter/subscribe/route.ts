@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimiter";
 
 export async function POST(req: Request) {
   try {
+    const clientIp = getClientIp(req);
+    const ipLimit = checkRateLimit(`newsletter:ip:${clientIp}`, 5, 600000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { success: false, error: "Trop de requêtes. Merci de patienter quelques instants." },
+        { status: 429 }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email || typeof email !== "string" || !email.includes("@")) {

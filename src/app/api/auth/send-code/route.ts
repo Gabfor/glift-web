@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/server";
 import { EmailService } from "@/lib/services/emailService";
 import { encryptPayload } from "@/lib/otpToken";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimiter";
 
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate limiting by IP and email
+    const clientIp = getClientIp(req);
+    const ipLimit = checkRateLimit(`send-code:ip:${clientIp}`, 10, 600000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de demandes de code. Merci de patienter quelques minutes avant de réessayer." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { email, password, name, plan } = body;
 
@@ -17,9 +28,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Formule d'abonnement invalide." }, { status: 400 });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
+    // Rate limiting per target email (max 5 requests per 10 minutes)
+    const emailLimit = checkRateLimit(`send-code:email:${normalizedEmail}`, 5, 600000);
+    if (!emailLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de demandes de code pour cette adresse email. Merci de patienter quelques minutes avant de réessayer." },
+        { status: 429 }
+      );
+    }
+
     // 2. Check if email already exists
     const adminClient = createAdminClient();
-    const normalizedEmail = email.trim().toLowerCase();
     
     let emailExists = false;
     let page = 1;

@@ -2,9 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { EmailService } from "@/lib/services/emailService";
 import { getAbsoluteUrl } from "@/lib/url";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimiter";
 
 export async function POST(req: NextRequest) {
     try {
+        const clientIp = getClientIp(req);
+        const ipLimit = checkRateLimit(`resend-verif:ip:${clientIp}`, 5, 300000);
+        if (!ipLimit.allowed) {
+            return NextResponse.json(
+                { error: "Trop de tentatives d'envoi. Merci de patienter quelques minutes avant de réessayer." },
+                { status: 429 }
+            );
+        }
+
         const supabase = await createClient();
 
         // 1. Check if user is authenticated
@@ -18,6 +28,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Email introuvable" }, { status: 400 });
         }
 
+        const userLimit = checkRateLimit(`resend-verif:user:${user.id}`, 3, 300000);
+        if (!userLimit.allowed) {
+            return NextResponse.json(
+                { error: "Trop de tentatives d'envoi pour ce compte. Merci de patienter quelques minutes." },
+                { status: 429 }
+            );
+        }
+
         // Check verification status in PROFILES table (because auth.users.email_confirmed_at is true by default with Option A)
         const { data: profile, error: profileError } = await supabase
             .from("profiles")
@@ -27,7 +45,6 @@ export async function POST(req: NextRequest) {
 
         if (profileError) {
             console.error("Error checking profile:", profileError);
-            // Fail safe: proceed if we can't check, or block? Let's block to avoid spam if error.
             return NextResponse.json({ error: "Erreur lors de la vérification du profil" }, { status: 500 });
         }
 

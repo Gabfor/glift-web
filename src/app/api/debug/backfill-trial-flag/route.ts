@@ -1,8 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
+import { ensureAdmin } from "@/app/api/admin/users/utils";
+
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
+    const adminCheck = await ensureAdmin();
+    if (adminCheck.status !== 200) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
         typescript: true,
     });

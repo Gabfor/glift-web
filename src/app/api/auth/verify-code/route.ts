@@ -5,9 +5,19 @@ import { UserService } from "@/lib/services/userService";
 import { PaymentService } from "@/lib/services/paymentService";
 import { getAbsoluteUrl } from "@/lib/url";
 import { decryptPayload } from "@/lib/otpToken";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimiter";
 
 export async function POST(req: NextRequest) {
   try {
+    const clientIp = getClientIp(req);
+    const ipLimit = checkRateLimit(`verify-code:ip:${clientIp}`, 10, 600000);
+    if (!ipLimit.allowed) {
+      return NextResponse.json(
+        { error: "Trop de tentatives de validation. Merci de patienter quelques minutes avant de réessayer." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { code, token } = body;
 
@@ -106,8 +116,8 @@ export async function POST(req: NextRequest) {
       session: session,
     });
 
-  } catch (unhandledError) {
-    console.error("Erreur inattendue lors de la vérification du code", unhandledError);
+  } catch (err) {
+    console.error("Unexpected error in verify-code route:", err);
     return NextResponse.json(
       { error: "Une erreur interne est survenue." },
       { status: 500 }

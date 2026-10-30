@@ -1,20 +1,19 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { PaymentService } from '@/lib/services/paymentService';
+import { ensureAdmin } from '@/app/api/admin/users/utils';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
     try {
-        const userId = "136e5f62-088e-48c8-abdf-ff3922c01910"; // The user from debug report who had 'No Customer ID' but was fixed? 
-        // Wait, let's check the debug report again. 
-        // User 1: b260bbd5... (email test@glift.fr) -> RECOVERED
-        // User 2: 136e5f62... (fort.gaby@gmail.com) -> No Customer ID (but plan is premium??)
+        const adminCheck = await ensureAdmin();
+        if (adminCheck.status !== 200) {
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
 
-        // I should probably allow passing ID in query or try both.
-        // Let's default to the 'test@glift.fr' one first as that seems to be the active testing account.
-
-        const targetUserId = "3fb1bc66-9ddc-4c1c-8c2f-97bcd5bb9e66";
+        const { searchParams } = new URL(request.url);
+        const targetUserId = searchParams.get('user_id') || "3fb1bc66-9ddc-4c1c-8c2f-97bcd5bb9e66";
 
         const adminSupabase = createAdminClient();
 

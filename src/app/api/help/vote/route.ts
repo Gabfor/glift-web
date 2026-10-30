@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { checkRateLimit, getClientIp } from '@/lib/rateLimiter';
 
 // We explicitly use the service role key here to bypass RLS
 // because public non-authenticated users need to be able to vote.
@@ -11,6 +12,15 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
     try {
+        const clientIp = getClientIp(request);
+        const ipLimit = checkRateLimit(`help-vote:ip:${clientIp}`, 30, 600000);
+        if (!ipLimit.allowed) {
+            return NextResponse.json(
+                { error: "Trop de requêtes. Merci de patienter un instant." },
+                { status: 429 }
+            );
+        }
+
         const body = await request.json();
         const { questionId, voteType, action = 'add' } = body;
 

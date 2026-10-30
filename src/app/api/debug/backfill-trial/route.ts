@@ -1,6 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { ensureAdmin } from '@/app/api/admin/users/utils';
+
+export const dynamic = 'force-dynamic';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
     typescript: true,
@@ -8,6 +11,11 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 
 export async function GET(request: Request) {
     try {
+        const adminCheck = await ensureAdmin();
+        if (adminCheck.status !== 200) {
+            return NextResponse.json({ error: "Not found" }, { status: 404 });
+        }
+
         const supabase = createAdminClient();
 
         // 1. Get all users from Auth (to get emails)
