@@ -48,7 +48,7 @@ export default async function AdminLayout({
     .single();
 
   if (!profile?.is_admin) {
-    redirect("/");
+    redirect("/connexion");
   }
 
   return <>{children}</>;

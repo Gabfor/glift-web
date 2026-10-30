@@ -114,7 +114,18 @@ export default function AdminConnexionPage() {
       }
 
       // Vérification des droits administrateur
-      const isAdmin = data.user?.user_metadata?.is_admin === true;
+      let isAdmin = data.user?.user_metadata?.is_admin === true;
+      if (data.user?.id) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_admin")
+          .eq("id", data.user.id)
+          .maybeSingle();
+
+        if (profile?.is_admin !== undefined && profile?.is_admin !== null) {
+          isAdmin = profile.is_admin === true;
+        }
+      }
       console.log("[ADMIN LOGIN] User role check - isAdmin:", isAdmin);
 
       if (!isAdmin) {

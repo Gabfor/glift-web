@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { ensureAdmin } from "@/app/api/admin/users/utils";
 
 export type CleanupResult = {
     success: boolean;
@@ -10,6 +11,15 @@ export type CleanupResult = {
 };
 
 export async function cleanupOrphanedImages(): Promise<CleanupResult> {
+    const adminCheck = await ensureAdmin();
+    if (adminCheck.status !== 200) {
+        return {
+            success: false,
+            message: "Non autorisé",
+            deletedCount: 0,
+        };
+    }
+
     const supabase = await createClient(); // Regular client for DB
     const deletedFiles: string[] = [];
     let totalDeleted = 0;

@@ -251,6 +251,33 @@ export async function DELETE(request: NextRequest) {
     const adminClient = createAdminClient();
 
     for (const userId of body.ids) {
+      // 1. Nettoyage du bucket Storage (Avatars)
+      try {
+        const bucketName = process.env.NEXT_PUBLIC_SUPABASE_AVATARS_BUCKET || "avatars";
+        const { data: files } = await adminClient.storage.from(bucketName).list(userId);
+        if (files && files.length > 0) {
+          const pathsToRemove = files.map((f) => `${userId}/${f.name}`);
+          await adminClient.storage.from(bucketName).remove(pathsToRemove);
+        }
+      } catch (storageErr) {
+        console.warn(`[admin/users] storage cleanup warning for ${userId}`, storageErr);
+      }
+
+      // 2. Nettoyage du client et des abonnements Stripe
+      try {
+        const { data: authUserData } = await adminClient.auth.admin.getUserById(userId);
+        if (authUserData?.user) {
+          const { PaymentService } = await import("@/lib/services/paymentService");
+          const paymentService = new PaymentService(adminClient);
+          await paymentService.deleteCustomer(
+            userId,
+            authUserData.user.email || "",
+            authUserData.user.app_metadata
+          );
+        }
+      } catch (stripeErr) {
+        console.warn(`[admin/users] Stripe cleanup warning for ${userId}`, stripeErr);
+      }
       for (const table of TABLES_TO_CLEAN) {
         const { error } = await adminClient
           .from(table)
