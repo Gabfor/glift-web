@@ -288,15 +288,21 @@ export default function TrainingTable({
       if (row.superset_id && row.superset_id !== currentId) {
         if (currentId !== null && startIndex !== -1) {
           const groupRows = rows.slice(startIndex, index);
-          const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
-          groups.push({ id: currentId, start: startIndex, end: index - 1, locked: isLocked });
+          const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+          const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+          if (!(hasLocked && hasUnlocked)) {
+            groups.push({ id: currentId, start: startIndex, end: index - 1, locked: hasLocked });
+          }
         }
         currentId = row.superset_id;
         startIndex = index;
       } else if (!row.superset_id && currentId !== null) {
         const groupRows = rows.slice(startIndex, index);
-        const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
-        groups.push({ id: currentId, start: startIndex, end: index - 1, locked: isLocked });
+        const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+        const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+        if (!(hasLocked && hasUnlocked)) {
+          groups.push({ id: currentId, start: startIndex, end: index - 1, locked: hasLocked });
+        }
         currentId = null;
         startIndex = -1;
       }
@@ -304,11 +310,14 @@ export default function TrainingTable({
 
     if (currentId && startIndex !== -1) {
       const groupRows = rows.slice(startIndex);
-      const isLocked = groupRows.some(r => r.locked || r.superset_id_locked);
-      groups.push({ id: currentId, start: startIndex, end: rows.length - 1, locked: isLocked });
+      const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+      const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+      if (!(hasLocked && hasUnlocked)) {
+        groups.push({ id: currentId, start: startIndex, end: rows.length - 1, locked: hasLocked });
+      }
     }
 
-    return groups;
+    return groups.filter((g) => g.end > g.start);
   };
 
   const groups = getSupersetGroups();

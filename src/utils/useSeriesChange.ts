@@ -65,13 +65,18 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
         const targetRow = previousRows[index];
         if (!targetRow) return previousRows;
 
-        // Si la ligne appartient à un superset, propager à tout le groupe
+        // Si la ligne appartient à un superset, vérifier s'il est actif (pas à moitié bloqué)
         const targetSupersetId = targetRow.superset_id;
-        const indicesToUpdate = targetSupersetId
+        const allGroupIndices = targetSupersetId
           ? previousRows
               .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
               .filter((i) => i !== -1)
           : [index];
+
+        const isHalfLocked = allGroupIndices.some((i) => previousRows[i]?.locked);
+        // Si le superset a des lignes bloquées (ex: pos 11 bloquée), on ne modifie que la ligne active
+        // et on détache cette ligne du superset car son nombre de séries devient différent
+        const indicesToUpdate = isHalfLocked ? [index] : allGroupIndices;
 
         // Si l'un des exercices du groupe a déjà atteint le max (6), on bloque
         const canIncrementAll = indicesToUpdate.every(
@@ -98,6 +103,7 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
             repetitions: [...currentRow.repetitions, restoredRep ?? ""],
             poids: [...currentRow.poids, restoredPoids ?? ""],
             effort: [...currentRow.effort, restoredEffort ?? DEFAULT_EFFORT_VALUE],
+            superset_id: isHalfLocked ? null : currentRow.superset_id,
           };
 
           newRows[i] = updatedRow;
@@ -120,13 +126,18 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
         const targetRow = previousRows[index];
         if (!targetRow) return previousRows;
 
-        // Si la ligne appartient à un superset, propager à tout le groupe
+        // Si la ligne appartient à un superset, vérifier s'il est actif (pas à moitié bloqué)
         const targetSupersetId = targetRow.superset_id;
-        const indicesToUpdate = targetSupersetId
+        const allGroupIndices = targetSupersetId
           ? previousRows
               .map((r, i) => (r.superset_id === targetSupersetId ? i : -1))
               .filter((i) => i !== -1)
           : [index];
+
+        const isHalfLocked = allGroupIndices.some((i) => previousRows[i]?.locked);
+        // Si le superset a des lignes bloquées (ex: pos 11 bloquée), on ne modifie que la ligne active
+        // et on détache cette ligne du superset car son nombre de séries devient différent
+        const indicesToUpdate = isHalfLocked ? [index] : allGroupIndices;
 
         // Si l'un des exercices du groupe est déjà au minimum (1), on bloque
         const canDecrementAll = indicesToUpdate.every(
@@ -158,6 +169,7 @@ export function useSeriesChange(setRows: React.Dispatch<React.SetStateAction<Row
             repetitions: currentRow.repetitions.slice(0, -1),
             poids: currentRow.poids.slice(0, -1),
             effort: currentRow.effort.slice(0, -1),
+            superset_id: isHalfLocked ? null : currentRow.superset_id,
           };
 
           newRows[i] = updatedRow;

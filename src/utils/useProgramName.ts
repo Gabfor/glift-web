@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useSearchParams, usePathname } from "next/navigation";
 import type { PostgrestError } from "@supabase/supabase-js";
@@ -7,7 +7,9 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
   const supabase = useSupabaseClient();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const isNew = searchParams?.get("new") === "1";
+  const isNew =
+    searchParams?.get("new") === "1" ||
+    (typeof window !== "undefined" && window.location.search.includes("new=1"));
   const isAdmin =
     (pathname?.includes("/admin") ?? false) ||
     (typeof window !== "undefined" && window.location.host.startsWith("admin."));
@@ -19,9 +21,14 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
 
   const [programName, setProgramName] = useState("");
   const [loading, setLoading] = useState(true);
+  const initializedTrainingIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!trainingId) return;
+    if (initializedTrainingIdRef.current === trainingId) return;
+    initializedTrainingIdRef.current = trainingId;
+
+    let isCancelled = false;
 
     if (isNew) {
       setProgramName("");
@@ -36,16 +43,21 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
         .eq("id", trainingId)
         .maybeSingle();
 
+      if (isCancelled) return;
+
       if (!data && !isAdmin) {
         const { data: adminData } = await supabase
           .from("trainings_admin")
           .select("name")
           .eq("id", trainingId)
           .maybeSingle();
+        if (isCancelled) return;
         if (adminData) {
           data = adminData;
         }
       }
+
+      if (isCancelled) return;
 
       if (!data) {
         setProgramName(DEFAULT_TRAINING_NAME);
@@ -62,6 +74,10 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
     };
 
     fetchName();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [trainingId, supabase, isNew, tableName, isAdmin]);
 
   const handleBlur = async () => {

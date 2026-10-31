@@ -72,7 +72,6 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
           }}
-          title={row.exercice || undefined}
         />
       </td>
 

@@ -205,7 +205,6 @@ export default function TrainingRow({
               color: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
               WebkitTextFillColor: row.locked ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
             }}
-            title={row.exercice || undefined}
           >
             <span
               className="block truncate"
@@ -248,7 +247,6 @@ export default function TrainingRow({
                 : {}),
             }}
             placeholder="Nom de l’exercice"
-            title={row.exercice || undefined}
           />
         )}
       </td>

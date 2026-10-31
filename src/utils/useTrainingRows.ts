@@ -353,27 +353,36 @@ export function useTrainingRows(
         const rowsWithOrder = rowsWithId.map((row, index) => ({ ...row, _finalOrder: index }));
 
         // Calculate superset_id_locked logic
-        const supersetLocks = new Map<string, boolean>();
-        rowsWithOrder.forEach(row => {
+        // Un superset est considéré superset_id_locked uniquement si toutes ses lignes sont verrouillées
+        const supersetStats = new Map<string, { locked: number; unlocked: number }>();
+        rowsWithOrder.forEach((row) => {
           if (row.superset_id) {
+            const stats = supersetStats.get(row.superset_id) || { locked: 0, unlocked: 0 };
             if (row.locked) {
-              supersetLocks.set(row.superset_id, true);
-            } else if (!supersetLocks.has(row.superset_id)) {
-              supersetLocks.set(row.superset_id, false);
+              stats.locked++;
+            } else {
+              stats.unlocked++;
             }
+            supersetStats.set(row.superset_id, stats);
           }
         });
 
-        const rowsWithSupersetLock = rowsWithOrder.map(row => {
+        const supersetLocks = new Map<string, boolean>();
+        supersetStats.forEach((stats, id) => {
+          // Si toutes les lignes du superset sont bloquées, le superset est entièrement bloqué
+          supersetLocks.set(id, stats.locked > 0 && stats.unlocked === 0);
+        });
+
+        const rowsWithSupersetLock = rowsWithOrder.map((row) => {
           if (row.superset_id) {
             return {
               ...row,
-              superset_id_locked: supersetLocks.get(row.superset_id) || false
+              superset_id_locked: supersetLocks.get(row.superset_id) || false,
             };
           }
           return {
             ...row,
-            superset_id_locked: false
+            superset_id_locked: false,
           };
         });
 

@@ -203,7 +203,7 @@ export default function AdminEntrainementDetailPage() {
     const limit = 10;
     let hasChanges = false;
 
-    const updatedRows = rows.map((row, index) => {
+    let updatedRows = rows.map((row, index) => {
       // If admin or premium, everything is unlocked
       if (isAdminRoute || isPremiumUser) {
         if (row.locked) {
@@ -215,10 +215,6 @@ export default function AdminEntrainementDetailPage() {
 
       // Starter user: lock rows >= limit
       const shouldLock = index >= limit;
-      // If manually locked in DB (e.g. for some other reason), keep it locked?
-      // For now, strictly enforce index rule for Basic users.
-      // If user had previous locked rows < 10, should we unlock?
-      // Let's assume 'locked' column is exclusively for this feature.
       if (!!row.locked !== shouldLock) {
         hasChanges = true;
         return { ...row, locked: shouldLock };
@@ -226,8 +222,56 @@ export default function AdminEntrainementDetailPage() {
       return row;
     });
 
+    // En Premium : si des lignes débloquées partagent un superset mais ne sont plus compatibles
+    // (ex: l'utilisateur a modifié le nombre de séries de l'une d'elles ou l'a déplacée), on nettoie le superset
+    if (isAdminRoute || isPremiumUser) {
+      const supersetMap = new Map<string, { indices: number[]; seriesCounts: Set<number> }>();
+      updatedRows.forEach((row, idx) => {
+        if (row.superset_id) {
+          const entry = supersetMap.get(row.superset_id) || { indices: [], seriesCounts: new Set<number>() };
+          entry.indices.push(idx);
+          entry.seriesCounts.add(row.series);
+          supersetMap.set(row.superset_id, entry);
+        }
+      });
+
+      const invalidSupersetIds = new Set<string>();
+      supersetMap.forEach((entry, id) => {
+        // Moins de 2 lignes
+        if (entry.indices.length < 2) {
+          invalidSupersetIds.add(id);
+          return;
+        }
+        // Séries différentes (quelque chose a bougé)
+        if (entry.seriesCounts.size > 1) {
+          invalidSupersetIds.add(id);
+          return;
+        }
+        // Non consécutives (l'ordre a bougé)
+        const isConsecutive = entry.indices.every((val, i, arr) => i === 0 || val === arr[i - 1] + 1);
+        if (!isConsecutive) {
+          invalidSupersetIds.add(id);
+          return;
+        }
+      });
+
+      if (invalidSupersetIds.size > 0) {
+        updatedRows = updatedRows.map((row) => {
+          if (row.superset_id && invalidSupersetIds.has(row.superset_id)) {
+            hasChanges = true;
+            return {
+              ...row,
+              superset_id: null,
+              superset_id_locked: false,
+            };
+          }
+          return row;
+        });
+      }
+    }
+
     if (hasChanges) {
-      console.log("🔒 Enforcing starter limit: updating locked rows");
+      console.log("🔒 Enforcing starter limit & superset validity: updating rows");
       setRows(updatedRows);
     }
   }, [rows, isPremiumUser, isAdminRoute, rowsLoading, setRows]);
@@ -244,16 +288,20 @@ export default function AdminEntrainementDetailPage() {
   const [icon, setIcon] = useState("/icons/plus.svg");
   const [iconSrc, setIconSrc] = useState("/icons/colonne.svg");
   const [dragActive, setDragActive] = useState(false);
+  const hasHandledInitialQueryRef = useRef<string | null>(null);
   useEffect(() => {
+    if (!trainingId || hasHandledInitialQueryRef.current === trainingId) return;
     if (searchParams?.get("new") === "1") {
+      hasHandledInitialQueryRef.current = trainingId;
       setEditing(true);
       setIsEditing(true);
       setProgramName("");
     } else if (searchParams?.get("edit") === "1" || searchParams?.get("rename") === "1") {
+      hasHandledInitialQueryRef.current = trainingId;
       setEditing(true);
       setIsEditing(true);
     }
-  }, [searchParams, setProgramName]);
+  }, [searchParams, setProgramName, trainingId]);
 
   useEffect(() => {
     if (!isNewTrainingRef.current) {
@@ -282,14 +330,14 @@ export default function AdminEntrainementDetailPage() {
           .eq("app", false);
       }
 
-      if (typeof window !== "undefined" && window.location.search.includes("new=1")) {
+      if (!editing && typeof window !== "undefined" && window.location.search.includes("new=1")) {
         const url = new URL(window.location.href);
         url.searchParams.delete("new");
         const newSearch = url.searchParams.toString();
         window.history.replaceState(null, "", url.pathname + (newSearch ? `?${newSearch}` : ""));
       }
     }
-  }, [programName, rows, isAdminRoute, isAdminTraining, supabase, trainingId, trainingsTableName]);
+  }, [programName, rows, isAdminRoute, isAdminTraining, supabase, trainingId, trainingsTableName, editing]);
 
   const deleteEmptyTraining = useCallback(async () => {
     if (isAdminRoute || isAdminTraining) return { trainingDeleted: false, programDeleted: false };
