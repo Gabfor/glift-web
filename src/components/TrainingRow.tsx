@@ -97,6 +97,24 @@ export default function TrainingRow({
     event.currentTarget.select();
   }, []);
 
+  const handleInputKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    const currentInput = event.currentTarget;
+    const rowElement = currentInput.closest("tr");
+    if (!rowElement) return;
+
+    const inputs = Array.from(
+      rowElement.querySelectorAll<HTMLInputElement>(
+        "input.training-input:not(:disabled):not([readonly])"
+      )
+    );
+    const currentIndex = inputs.indexOf(currentInput);
+    if (currentIndex !== -1 && currentIndex < inputs.length - 1) {
+      inputs[currentIndex + 1].focus();
+    }
+  }, []);
+
   const sortableStyle: React.CSSProperties = {
     transform: transform
       ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)`
@@ -232,6 +250,7 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
+            onKeyDown={readOnly ? undefined : handleInputKeyDown}
             disabled={row.locked}
             className={`w-full border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
@@ -268,6 +287,7 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
+            onKeyDown={readOnly ? undefined : handleInputKeyDown}
             disabled={row.locked}
             className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
@@ -378,6 +398,7 @@ export default function TrainingRow({
                 });
               }}
               onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
+              onKeyDown={readOnly ? undefined : handleInputKeyDown}
             />
           ))}
         </div>
@@ -419,6 +440,7 @@ export default function TrainingRow({
                 });
               }}
               onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
+              onKeyDown={readOnly ? undefined : handleInputKeyDown}
             />
           ))}
         </div>
@@ -469,6 +491,7 @@ export default function TrainingRow({
               });
             }}
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
+            onKeyDown={readOnly ? undefined : handleInputKeyDown}
 
           />
         </td>
