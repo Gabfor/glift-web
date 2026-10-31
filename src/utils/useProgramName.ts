@@ -21,18 +21,21 @@ export function useProgramName(trainingId: string, setEditing: (val: boolean) =>
 
   const [programName, setProgramName] = useState("");
   const [loading, setLoading] = useState(true);
-  const initializedTrainingIdRef = useRef<string | null>(null);
+  const wasNewForTrainingRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!trainingId) return;
-    if (initializedTrainingIdRef.current === trainingId) return;
-    initializedTrainingIdRef.current = trainingId;
 
     let isCancelled = false;
 
     if (isNew) {
+      wasNewForTrainingRef.current = trainingId;
       setProgramName("");
       setLoading(false);
+      return;
+    }
+
+    if (wasNewForTrainingRef.current === trainingId) {
       return;
     }
 

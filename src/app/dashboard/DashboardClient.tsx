@@ -43,7 +43,7 @@ type TrainingExercise = {
   exercice: string | null;
 };
 
-const FALLBACK_EXERCISE_LABEL = "Exercice sans titre";
+const FALLBACK_EXERCISE_LABEL = "Exercice sans nom";
 
 type StatsCard = {
   id: string;
