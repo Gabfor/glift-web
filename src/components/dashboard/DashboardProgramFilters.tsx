@@ -38,6 +38,7 @@ export interface DashboardProgramFiltersProps {
   onProgramsLoadingChange?: (isLoading: boolean) => void;
   onProgramOptionsChange?: (options: FilterOption[]) => void;
   onFiltersLoadingChange?: (isLoading: boolean) => void;
+  onTotalProgramsChange?: (count: number) => void;
 }
 
 export default function DashboardProgramFilters(
@@ -58,6 +59,7 @@ export default function DashboardProgramFilters(
     onProgramsLoadingChange,
     onProgramOptionsChange,
     onFiltersLoadingChange,
+    onTotalProgramsChange,
   } = props;
   const { user } = useUser();
   const supabase = useMemo(() => createClient(), []);
@@ -82,6 +84,7 @@ export default function DashboardProgramFilters(
     onExerciseChange,
     onProgramOptionsChange,
     onProgramsLoadingChange,
+    onTotalProgramsChange,
     selectedProgram,
     selectedTraining,
     selectedExercise,
@@ -92,6 +95,7 @@ export default function DashboardProgramFilters(
     onExerciseChange,
     onProgramOptionsChange,
     onProgramsLoadingChange,
+    onTotalProgramsChange,
     selectedProgram,
     selectedTraining,
     selectedExercise,
@@ -171,6 +175,7 @@ export default function DashboardProgramFilters(
         }
       } else {
         const programs = data ?? [];
+        latestRef.current.onTotalProgramsChange?.(programs.length);
         const options = programs
           .filter((program) => {
             const trainings = program.trainings ?? [];

@@ -485,6 +485,7 @@ export default function DashboardClient({
   const [hasProgramOptions, setHasProgramOptions] = useState(false);
   const [areFiltersLoading, setAreFiltersLoading] = useState(false);
   const [hasLoadedProgramList, setHasLoadedProgramList] = useState(false);
+  const [totalProgramsCount, setTotalProgramsCount] = useState<number | null>(null);
   const [stats, setStats] = useState<DashboardStats>(() => createEmptyStats());
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [showTrends, setShowTrends] = useState(false);
@@ -1516,25 +1517,46 @@ export default function DashboardClient({
                 hasFetchedExercises={hasFetchedExercises}
                 onProgramOptionsChange={handleProgramOptionsChange}
                 onFiltersLoadingChange={setAreFiltersLoading}
+                onTotalProgramsChange={setTotalProgramsCount}
               />
             </div>
 
             {hasLoadedPreferences && hasLoadedProgramList && !selectedProgram && (
               <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
-                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
-                  Oups ! Aucun programme pour le moment....
-                </h2>
-                <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
-                  {hasProgramOptions ? (
-                    <>
+                {hasProgramOptions ? (
+                  <>
+                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                      Oups ! Aucun programme pour le moment....
+                    </h2>
+                    <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
                       Sélectionne un programme dans le menu déroulant ou rends toi dans le{" "}
                       <Link href={storeUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
                         Store
                       </Link>{" "}
                       pour en trouver un nouveau !
-                    </>
-                  ) : (
-                    <>
+                    </p>
+                    <CTAButton href={storeUrl}>
+                      Aller sur le Store
+                    </CTAButton>
+                  </>
+                ) : (totalProgramsCount ?? 0) > 0 ? (
+                  <>
+                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                      Oups ! Aucun programme à afficher...
+                    </h2>
+                    <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
+                      Tu as masqué l’ensemble de tes programmes dans ton tableau de bord. Règle leur visibilité pour voir les statistiques.
+                    </p>
+                    <CTAButton href={trainingsUrl}>
+                      Gérer mes entrainements
+                    </CTAButton>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                      Oups ! Aucun programme pour le moment....
+                    </h2>
+                    <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
                       <Link href={trainingsUrl} className="text-[#7069FA] hover:text-[#6660e4] transition-colors">
                         Crée un entraînement
                       </Link>{" "}
@@ -1543,12 +1565,12 @@ export default function DashboardClient({
                         Store
                       </Link>{" "}
                       pour trouver ton prochain programme !
-                    </>
-                  )}
-                </p>
-                <CTAButton href={storeUrl}>
-                  Aller sur le Store
-                </CTAButton>
+                    </p>
+                    <CTAButton href={storeUrl}>
+                      Aller sur le Store
+                    </CTAButton>
+                  </>
+                )}
               </div>
             )}
 

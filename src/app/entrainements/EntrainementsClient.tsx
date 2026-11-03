@@ -214,36 +214,10 @@ export default function EntrainementsPage({
       let targetUnlockedId: string | null = null;
 
       if (!isPremiumUser && programs.length > 0) {
-        // Check current state
-        const allTrainings = programs.flatMap(p => p.trainings);
-        const unlockedCount = allTrainings.filter(t => t.locked === false).length;
-
-        // FREEZE STATE:
-        // If 1 unlocked: Freeze (User choice preserved).
-        // If 0 unlocked: Freeze (User deleted active, or new user).
-        // Only if > 1 (e.g. Downgrade from Premium) do we intervene to lock excess.
-        if (unlockedCount <= 1) {
-          return;
-        }
-
-        // Unlock 1st training of 1st VISIBLE program
-        for (const program of programs) {
-          if (program.app === false) continue;
-
-          const sortedTrainings = [...program.trainings].sort((a, b) => a.position - b.position);
-          const firstTraining = sortedTrainings.find(t => t.app !== false);
-          if (firstTraining) {
-            targetUnlockedId = firstTraining.id;
-            break;
-          }
-        }
-
-        // Fallback: If no visible program/training found (e.g. all programs hidden),
-        // fallback to the first training of the ABSOLUTE first program.
-        if (!targetUnlockedId) {
-          const firstProgram = programs[0];
-          const sortedTrainings = [...firstProgram.trainings].sort((a, b) => a.position - b.position);
-
+        const sortedPrograms = [...programs].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        const firstProgWithTrainings = sortedPrograms.find(p => p.trainings && p.trainings.length > 0);
+        if (firstProgWithTrainings) {
+          const sortedTrainings = [...firstProgWithTrainings.trainings].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
           if (sortedTrainings.length > 0) {
             targetUnlockedId = sortedTrainings[0].id;
           }
@@ -255,11 +229,7 @@ export default function EntrainementsPage({
           let shouldBeLocked = false;
 
           if (!isPremiumUser) {
-            if (training.id === targetUnlockedId) {
-              shouldBeLocked = false;
-            } else {
-              shouldBeLocked = true;
-            }
+            shouldBeLocked = targetUnlockedId ? (training.id !== targetUnlockedId) : false;
           } else {
             shouldBeLocked = false;
           }
@@ -710,7 +680,7 @@ export default function EntrainementsPage({
                     onUnlockClick={() => setShowUnlockModal(true)}
                     allowAddTraining={
                       !isPremiumUser &&
-                      programs.flatMap(p => p.trainings).filter(t => t.locked === false).length === 0
+                      programs.flatMap(p => p.trainings).length === 0
                     }
                     onAddLockedClick={() => setShowAddTrainingLockedModal(true)}
                   />

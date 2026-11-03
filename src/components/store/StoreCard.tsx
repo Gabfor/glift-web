@@ -34,6 +34,7 @@ type Props = {
   subscriptionPlan: string | null;
   isFavorite?: boolean;
   onToggleFavorite?: (programId: string) => void;
+  hasExistingTrainings?: boolean;
 };
  
 export default function StoreCard({
@@ -42,6 +43,7 @@ export default function StoreCard({
   subscriptionPlan,
   isFavorite = false,
   onToggleFavorite,
+  hasExistingTrainings = false,
 }: Props) {
   const router = useRouter();
   const { trainingsUrl } = useDashboardUrl();
@@ -55,8 +57,9 @@ export default function StoreCard({
     onToggleFavorite(program.id);
   };
  
-  // Logic: Restricted if user is starter AND program is premium.
-  const isRestricted = isAuthenticated && subscriptionPlan === 'starter' && program.plan === 'premium';
+  // Logic: Restricted if user is not premium AND (program is premium OR starter quota reached)
+  const isPremium = subscriptionPlan === 'premium';
+  const isRestricted = isAuthenticated && !isPremium && (program.plan === 'premium' || hasExistingTrainings);
  
   const handleDownload = async () => {
     if (!isAuthenticated || loading || isRestricted) return;

@@ -1,6 +1,6 @@
 "use client";
  
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import StoreCard from "@/components/store/StoreCard";
 import StoreGridSkeleton from "@/components/store/StoreGridSkeleton";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
@@ -104,6 +104,26 @@ export default function StoreGrid({
  
   // ➜ UserContext provides auth state, profile and computed premium status
   const { user, isPremiumUser, isLoading: isUserContextLoading, profile } = useUser();
+  const [hasExistingTrainings, setHasExistingTrainings] = useState(false);
+  const supabaseClient = useMemo(() => createClientComponentClient(), []);
+
+  useEffect(() => {
+    if (!user?.id || isPremiumUser) return;
+    let isMounted = true;
+    const checkTrainings = async () => {
+      const { count } = await supabaseClient
+        .from("trainings")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if (isMounted) {
+        setHasExistingTrainings((count ?? 0) > 0);
+      }
+    };
+    checkTrainings();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, isPremiumUser, supabaseClient]);
  
   // Load favorites from Supabase DB (or localStorage fallback) on client mount
   useEffect(() => {
@@ -479,6 +499,7 @@ export default function StoreGrid({
                 subscriptionPlan={userProfile?.subscription_plan ?? null}
                 isFavorite={favorites.includes(program.id)}
                 onToggleFavorite={handleToggleFavorite}
+                hasExistingTrainings={hasExistingTrainings}
               />
             ))}
           </div>
@@ -493,6 +514,7 @@ export default function StoreGrid({
                 subscriptionPlan={userProfile?.subscription_plan ?? null}
                 isFavorite={favorites.includes(program.id)}
                 onToggleFavorite={handleToggleFavorite}
+                hasExistingTrainings={hasExistingTrainings}
               />
             ))}
           </div>

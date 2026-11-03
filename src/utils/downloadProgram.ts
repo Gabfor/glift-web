@@ -82,6 +82,25 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
     return null;
   }
 
+  // 2b. Vérifier le quota pour les comptes Starter
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("subscription_plan")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const isPremium = profile?.subscription_plan === "premium";
+  if (!isPremium) {
+    const { count } = await supabase
+      .from("trainings")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((count ?? 0) > 0) {
+      console.warn("Téléchargement bloqué : quota Starter atteint (1 entraînement max).");
+      return null;
+    }
+  }
+
   // 3. Récupérer le programme source dans programs_admin
   const { data: programToCopy, error: programError } = await supabase
     .from("programs_admin")
