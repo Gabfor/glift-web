@@ -204,9 +204,9 @@ export default function SortableItem({
               handleBlur={handleSaveRename}
               setIsEditing={setIsEditing}
               onCancel={handleCancelRename}
-              className="w-full flex items-center justify-center"
+              className="w-full flex items-center justify-center mb-0 p-0"
               wrapperClassName="max-w-none w-full"
-              inputClassName="text-[16px] sm:text-[16px] px-3.5 py-1.5 pr-9"
+              inputClassName="text-[16px] sm:text-[16px] px-3.5 py-1.5 pr-9 h-[38px]"
               autoScrollOnEdit
             />
           ) : (
