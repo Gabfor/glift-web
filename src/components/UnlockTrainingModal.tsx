@@ -36,10 +36,10 @@ export default function UnlockTrainingModal({
             onClose={onClose}
             footer={
                 <div className="flex justify-center gap-3 sm:gap-4 w-full">
-                    <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]">
                         Annuler
                     </CTAButton>
-                    <CTAButton isAdmin={false} onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]">
                         Débloquer
                     </CTAButton>
                 </div>
@@ -56,7 +56,7 @@ export default function UnlockTrainingModal({
                 className="mb-6"
             />
 
-            <div className="space-y-4 text-[14px] font-semibold text-[#5D6494] leading-relaxed">
+            <div className="space-y-4 text-left text-[14px] font-semibold text-[#5D6494] leading-[1.6]">
                 <p>
                     En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et débloquera ainsi {isExercise ? "cet exercice" : "cet entraînement"}.
                 </p>

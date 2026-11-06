@@ -71,7 +71,7 @@ export default function StatVignettesModal({
             variant="secondary"
             onClick={onClose}
             disabled={isSaving}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Annuler
           </CTAButton>
@@ -81,7 +81,7 @@ export default function StatVignettesModal({
             onClick={handleSave}
             loading={isSaving}
             disabled={isSaving}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Enregistrer
           </CTAButton>

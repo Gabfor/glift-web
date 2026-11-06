@@ -123,17 +123,16 @@ export default function OfferModal({
       contentClassName="flex flex-col items-center"
       footerWrapperClassName="order-6 w-full"
       footer={
-        <div className="flex w-full justify-center gap-5">
+        <div className="flex w-full justify-center gap-3 sm:gap-4">
           <CTAButton
             variant="secondary"
             onClick={onCancel}
-            className="hidden md:inline-flex"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px] hidden md:inline-flex"
           >
             Annuler
           </CTAButton>
           <CTAButton
-            isAdmin={false}
-            className="w-full md:w-auto"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             onClick={() => {
               onConfirm();
               window.open(link, "_blank");
@@ -170,11 +169,11 @@ export default function OfferModal({
         <h3 className="mb-1 text-[14px] font-bold">Comment en profiter ?</h3>
         {modal === "Avec code" ? (
           <p className="text-[14px] font-semibold text-[#5D6494]">
-            Pour en profiter immédiatement, copie le code de réduction ci-dessous et colle le dans ton panier.
+            Pour en profiter immédiatement, copie le code de réduction ci-dessous et colle-le dans ton panier.
           </p>
         ) : (
           <p className="text-[14px] font-semibold text-[#5D6494]">
-            Aucun code n&apos;est nécessaire pour profiter de cette offre. Clique sur le bouton ci-dessous pour être automatiquement redirigé vers le site partenaire.
+            Aucun code n’est nécessaire pour profiter de cette offre. Clique sur le bouton ci-dessous pour être automatiquement redirigé vers le site partenaire.
           </p>
         )}
       </div>
@@ -231,7 +230,7 @@ export default function OfferModal({
 
       {parsedCondition && (
         <div className="order-5 w-full text-left text-[#3A416F]">
-          <h3 className="mb-1 text-[14px] font-bold">Conditions de l&apos;offre</h3>
+          <h3 className="mb-1 text-[14px] font-bold">Conditions de l’offre</h3>
           <p className="text-[14px] font-semibold text-[#5D6494]">
             {parsedCondition}
           </p>

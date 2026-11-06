@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
@@ -35,17 +37,16 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
               <CTAButton
                 variant="secondary"
                 onClick={onClose}
-                className="flex-1 w-full sm:w-auto sm:flex-initial"
+                className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
               >
                 Annuler
               </CTAButton>
               <CTAButton
-                isAdmin={false}
                 onClick={() => {
                   onClose();
                   router.push("/compte#mon-abonnement");
                 }}
-                className="flex-1 w-full sm:w-auto sm:flex-initial"
+                className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
               >
                 Débloquer
               </CTAButton>
@@ -58,17 +59,16 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
                   onClose();
                   router.push("/connexion");
                 }}
-                className="flex-1 w-full sm:w-auto sm:flex-initial"
+                className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
               >
                 Connexion
               </CTAButton>
               <CTAButton
-                isAdmin={false}
                 onClick={() => {
                   onClose();
                   router.push("/tarifs");
                 }}
-                className="flex-1 w-full sm:w-auto sm:flex-initial"
+                className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
               >
                 Inscription
               </CTAButton>
@@ -93,16 +93,16 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
       />
 
       {isRestricted ? (
-        <div className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] space-y-4">
+        <div className="text-left text-[14px] font-semibold text-[#5D6494] leading-[1.6] space-y-4">
           <p>
-            En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras basculer vers la formule d’abonnement Premium qui te donneras accès à l’ensemble des programmes du Glift Store.
+            En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras basculer vers la formule d’abonnement Premium qui te donnera accès à l’ensemble des programmes du Glift Store.
           </p>
           <p>
             En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement actuel.
           </p>
         </div>
       ) : (
-        <div className="text-left text-[14px] font-semibold leading-normal text-[#5D6494] space-y-4">
+        <div className="text-left text-[14px] font-semibold text-[#5D6494] leading-[1.6] space-y-4">
           <p>
             Si tu n’as pas encore créé de compte, clique sur le bouton <span className="text-[#3A416F] font-bold">« Inscription »</span> ci-dessous et rejoins Glift en moins de 30 secondes. Aucun moyen de paiement n’est nécessaire et tu as 30 jours offerts pour tester.
           </p>

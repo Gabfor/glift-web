@@ -248,8 +248,8 @@ export default function StoreCard({
           </div>
  
           {/* LIEN EN SAVOIR PLUS */}
-          {program.link && program.link.trim() !== "" && program.link.trim() !== "#" && (
-            <div className="text-center mt-[15px]">
+          <div className="text-center mt-[15px]">
+            {program.link && program.link.trim() !== "" && program.link.trim() !== "#" ? (
               <a
                 href={program.link}
                 target="_blank"
@@ -258,8 +258,12 @@ export default function StoreCard({
               >
                 En savoir plus
               </a>
-            </div>
-          )}
+            ) : (
+              <span className="text-center text-[14px] text-[#D7D4DC] font-semibold cursor-default select-none inline-block">
+                En savoir plus
+              </span>
+            )}
+          </div>
         </div>
  
       {/* MODALE DE CONNEXION */}

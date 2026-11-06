@@ -1,6 +1,8 @@
+import Link from "next/link";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 import ModalMessage from "@/components/ui/ModalMessage";
+import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 
 interface ProgramDeleteModalProps {
   show: boolean;
@@ -15,6 +17,8 @@ export default function ProgramDeleteModal({
   onConfirm,
   isStarterActiveWarning = false,
 }: ProgramDeleteModalProps) {
+  const { helpUrl } = useDashboardUrl();
+
   return (
     <Modal
       open={show}
@@ -39,7 +43,7 @@ export default function ProgramDeleteModal({
               onCancel();
             }}
             type="button"
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Annuler
           </CTAButton>
@@ -47,7 +51,7 @@ export default function ProgramDeleteModal({
             variant="danger"
             onClick={() => onConfirm()}
             loadingText=""
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Confirmer
           </CTAButton>
@@ -60,25 +64,27 @@ export default function ProgramDeleteModal({
         description={
           isStarterActiveWarning
             ? "Si tu supprimes le programme contenant ton seul entraînement actif, tu n’auras plus d’entraînement disponible sur le site et dans l’app à moins d’en créer un nouveau."
-            : "La suppression d'un programme d'entraînements est définitive."
+            : "La suppression d’un programme d’entraînements est définitive."
         }
         className="mb-6"
       />
 
-      <p className="mb-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        {isStarterActiveWarning ? (
-          <>
-            En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue. <span className="text-[#3A416F] font-bold">Tu pourras cependant créer un nouveau programme avec un nouvel entraînement de 10 exercices maximum.</span>
-          </>
-        ) : (
-          <>
-            En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> ce programme d’entraînements ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
-          </>
-        )}
-      </p>
-      <p className="mb-6 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <a href="#" className="text-[#3A416F] font-bold underline">Aide</a> du site.
-      </p>
+      <div className="space-y-4 text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+        <p>
+          {isStarterActiveWarning ? (
+            <>
+              En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue. <span className="text-[#3A416F] font-bold">Tu pourras cependant créer un nouveau programme avec un nouvel entraînement de 10 exercices maximum.</span>
+            </>
+          ) : (
+            <>
+              En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> ce programme d’entraînements ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue.
+            </>
+          )}
+        </p>
+        <p>
+          Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie <Link href={helpUrl || "#"} className="font-semibold text-[#7069FA] hover:text-[#6660E4] no-underline transition-colors">Aide</Link> du site.
+        </p>
+      </div>
     </Modal>
   );
 }

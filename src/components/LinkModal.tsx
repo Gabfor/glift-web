@@ -67,11 +67,12 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
       }
       onClose={onCancel}
       footer={
-        <div className="flex justify-center gap-3 sm:gap-5 w-full">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           {initialLink ? (
             <button
+              type="button"
               onClick={() => onSave("", exerciceInput)}
-              className="flex-1 w-full sm:w-auto sm:flex-initial px-4 py-2 font-semibold text-[#EF4F4E] hover:text-[#BA2524]"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px] h-[44px] flex items-center justify-center px-4 font-semibold text-[#EF4F4E] hover:text-[#BA2524] transition-colors"
             >
               Supprimer
             </button>
@@ -79,14 +80,13 @@ export default function LinkModal({ exercice, initialLink = "", onCancel, onSave
             <CTAButton
               variant="secondary"
               onClick={onCancel}
-              className="flex-1 w-full sm:w-auto sm:flex-initial"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             >
               Annuler
             </CTAButton>
           )}
           <CTAButton
-            isAdmin={false}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             onClick={() => {
               const normalizedLink = normalizeLink(link);
 

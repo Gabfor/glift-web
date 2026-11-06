@@ -13,13 +13,6 @@ interface NoteModalProps {
 export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteModalProps) {
   const [note, setNote] = useState(initialNote);
 
-  // Check if content has text (ignoring HTML tags for basic validation if needed, 
-  // but for "is editing" logic, checking if string length > 0 or specific HTML structure is usually enough.
-  // Here relying on string equivalence to initialNote or emptiness.)
-
-  // Clean up empty HTML tags if user clears editor but leaves <p></p> ? 
-  // For now we just pass the raw HTML string.
-
   const title = initialNote && initialNote !== '<p></p>' ? "Modifier la note" : "Ajouter une note";
 
   return (
@@ -39,12 +32,12 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
       }
       onClose={onCancel}
       footer={
-        <div className="flex justify-center gap-3 sm:gap-5 w-full">
+        <div className="flex justify-center gap-3 sm:gap-4 w-full">
           {initialNote ? (
             <button
               type="button"
               onClick={() => onSave("")}
-              className="flex-1 w-full sm:w-auto sm:flex-initial px-4 py-2 font-semibold text-[#EF4F4E] hover:text-[#BA2524]"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px] h-[44px] flex items-center justify-center px-4 font-semibold text-[#EF4F4E] hover:text-[#BA2524] transition-colors"
             >
               Supprimer
             </button>
@@ -52,12 +45,12 @@ export default function NoteModal({ initialNote = "", onCancel, onSave }: NoteMo
             <CTAButton
               variant="secondary"
               onClick={onCancel}
-              className="flex-1 w-full sm:w-auto sm:flex-initial"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             >
               Annuler
             </CTAButton>
           )}
-          <CTAButton isAdmin={false} onClick={() => onSave(note)} className="flex-1 w-full sm:w-auto sm:flex-initial">
+          <CTAButton onClick={() => onSave(note)} className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]">
             Enregistrer
           </CTAButton>
         </div>

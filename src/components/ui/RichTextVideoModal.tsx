@@ -41,16 +41,16 @@ export default function RichTextVideoModal({ onCancel, onSave }: RichTextVideoMo
             title="Insérer une vidéo"
             onClose={onCancel}
             footer={
-                <div className="flex justify-center gap-3 sm:gap-5 w-full">
+                <div className="flex justify-center gap-3 sm:gap-4 w-full">
                     <CTAButton
                         variant="secondary"
                         onClick={onCancel}
-                        className="flex-1 w-full sm:w-auto sm:flex-initial"
+                        className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
                     >
                         Annuler
                     </CTAButton>
                     <CTAButton
-                        className="flex-1 w-full sm:w-auto sm:flex-initial"
+                        className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
                         onClick={() => {
                             const normalizedLink = normalizeLink(url);
                             if (normalizedLink) {

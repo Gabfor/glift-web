@@ -303,7 +303,7 @@ export default function ForgotPasswordModal({
             type="button"
             onClick={handleClose}
             disabled={loading}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Annuler
           </CTAButton>
@@ -315,7 +315,7 @@ export default function ForgotPasswordModal({
               disabled={!isEmailValid || isCooldownActive}
               loading={loading}
               loadingText="Envoi..."
-              className="flex-1 w-full sm:w-auto sm:flex-initial"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             >
               Valider
             </CTAButton>
@@ -328,7 +328,7 @@ export default function ForgotPasswordModal({
               loading={loading}
               loadingText="En cours"
               keepWidthWhileLoading={false}
-              className="flex-1 w-full sm:w-auto sm:flex-initial sm:px-[30px]"
+              className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
             >
               Valider
             </CTAButton>

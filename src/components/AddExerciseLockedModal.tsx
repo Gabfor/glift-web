@@ -32,10 +32,10 @@ export default function AddExerciseLockedModal({
             onClose={onClose}
             footer={
                 <div className="flex justify-center gap-3 sm:gap-4 w-full">
-                    <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton variant="secondary" onClick={onClose} className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]">
                         Annuler
                     </CTAButton>
-                    <CTAButton isAdmin={false} onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial">
+                    <CTAButton onClick={onUnlock} className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]">
                         Débloquer
                     </CTAButton>
                 </div>
@@ -48,7 +48,7 @@ export default function AddExerciseLockedModal({
                 className="mb-6"
             />
 
-            <div className="space-y-4 text-[14px] font-semibold text-[#5D6494] leading-[1.6]">
+            <div className="space-y-4 text-left text-[14px] font-semibold text-[#5D6494] leading-[1.6]">
                 <p>
                     En cliquant sur <span className="font-bold text-[#3A416F]">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras choisir la formule d’abonnement Premium qui donne accès à un stockage illimité et te permettra d’ajouter de nouveaux exercices.
                 </p>

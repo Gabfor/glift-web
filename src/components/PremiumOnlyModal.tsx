@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
@@ -30,17 +32,16 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
           <CTAButton
             variant="secondary"
             onClick={onClose}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Annuler
           </CTAButton>
           <CTAButton
-            isAdmin={false}
             onClick={() => {
               onClose();
               router.push("/compte#mon-abonnement");
             }}
-            className="flex-1 w-full sm:w-auto sm:flex-initial"
+            className="flex-1 w-full sm:w-auto sm:flex-initial sm:min-w-[136px]"
           >
             Débloquer
           </CTAButton>
@@ -54,12 +55,14 @@ export default function PremiumOnlyModal({ show, onClose }: PremiumOnlyModalProp
         className="mb-6"
       />
 
-      <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-        En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras souscrire à la formule d’abonnement Premium qui te donnera accès aux offres bloquées.
-        <br />
-        <br />
-        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ta formule d’abonnement et tu pourras continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F] font-bold">Premium</span>.
-      </p>
+      <div className="space-y-4 text-left text-[14px] font-semibold text-[#5D6494] leading-[1.6]">
+        <p>
+          En cliquant sur <span className="text-[#3A416F] font-bold">« Débloquer »</span> tu seras redirigé vers ton compte où tu pourras souscrire à la formule d’abonnement Premium qui te donnera accès aux offres bloquées.
+        </p>
+        <p>
+          En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ta formule d’abonnement et tu pourras continuer à profiter gratuitement de toutes les offres à l’exception des offres <span className="text-[#3A416F] font-bold">Premium</span>.
+        </p>
+      </div>
     </Modal>
   );
 }

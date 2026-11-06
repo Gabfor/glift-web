@@ -91,7 +91,7 @@ export default function DeleteAccountButtonWithModal({ onConfirm, triggerClassNa
           </p>
           <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
             Si ce n’est pas ce que tu souhaites faire, tu trouveras peut-être la solution à ton besoin dans la partie{' '}
-            <Link href={helpUrl} className="underline text-[#3A416F] hover:text-[#2E3271] transition-colors">
+            <Link href={helpUrl} className="font-semibold text-[#7069FA] hover:text-[#6660E4] no-underline transition-colors">
               Aide
             </Link>{' '}
             du site.
