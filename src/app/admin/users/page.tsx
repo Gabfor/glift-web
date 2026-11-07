@@ -894,7 +894,7 @@ export default function AdminUsersPage() {
               </div>
             ) : (
               <>
-                <div className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC] shadow-glift">
+                <div className="overflow-x-auto rounded-[8px] bg-white shadow-glift">
                   <table className="min-w-full text-left text-sm">
                     <thead className="border-b border-[#ECE9F1] h-[60px]">
                       <tr>

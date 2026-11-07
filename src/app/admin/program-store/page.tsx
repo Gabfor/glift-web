@@ -362,12 +362,7 @@ export default function ProgramStorePage() {
             )}
           </div>
         ) : (
-          <div
-            className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC]"
-            style={{
-              boxShadow: '0 3px 6px rgba(93, 100, 148, 0.15)',
-            }}
-          >
+          <div className="overflow-x-auto rounded-[8px] bg-white shadow-glift">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>

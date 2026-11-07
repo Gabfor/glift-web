@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabaseClient";
 
 import Tooltip from "@/components/Tooltip";
@@ -13,9 +15,6 @@ import AdminTable, {
   AdminStarToggle,
 } from "@/app/admin/components/AdminTable";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
-import Modal from "@/components/ui/Modal";
-import CTAButton from "@/components/CTAButton";
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 export type RingtoneItem = {
   id: string;
@@ -38,46 +37,6 @@ type SortableColumn =
 
 const DEFAULT_RINGTONES: RingtoneItem[] = [
   {
-    id: "1",
-    name: "Bip",
-    filename: "bip.mp3",
-    url: "/sounds/bip.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Radar",
-    filename: "radar.mp3",
-    url: "/sounds/radar.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: true,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Gong",
-    filename: "gong.mp3",
-    url: "/sounds/gong.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "4",
-    name: "Cloche",
-    filename: "bell.mp3",
-    url: "/sounds/bell.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
     id: "5",
     name: "Arpège Succès",
     filename: "chime_asc.mp3",
@@ -92,36 +51,6 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     name: "Bip Sport",
     filename: "bip_sport.mp3",
     url: "/sounds/bip_sport.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "7",
-    name: "Cloche Zen",
-    filename: "cloche_zen.mp3",
-    url: "/sounds/cloche_zen.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "8",
-    name: "Gong Énergique",
-    filename: "gong_court.mp3",
-    url: "/sounds/gong_court.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "9",
-    name: "Compte à Rebours",
-    filename: "countdown_ding.mp3",
-    url: "/sounds/countdown_ding.mp3",
     duration_ms: 2200,
     is_active: true,
     is_default: false,
@@ -148,6 +77,66 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     created_at: "2026-11-07T16:00:00Z",
   },
   {
+    id: "7",
+    name: "Cloche Zen",
+    filename: "cloche_zen.mp3",
+    url: "/sounds/cloche_zen.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
+    id: "13",
+    name: "Clochettes de Noël",
+    filename: "clochettes_noel.mp3",
+    url: "/sounds/clochettes_noel.mp3",
+    duration_ms: 2500,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T17:45:00Z",
+  },
+  {
+    id: "9",
+    name: "Compte à Rebours",
+    filename: "countdown_ding.mp3",
+    url: "/sounds/countdown_ding.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
+    id: "14",
+    name: "Frisson d'Halloween",
+    filename: "frisson_halloween.mp3",
+    url: "/sounds/frisson_halloween.mp3",
+    duration_ms: 2400,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T18:00:00Z",
+  },
+  {
+    id: "3",
+    name: "Gong",
+    filename: "gong.mp3",
+    url: "/sounds/gong.mp3",
+    duration_ms: 2520,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T10:00:00Z",
+  },
+  {
+    id: "8",
+    name: "Gong Énergique",
+    filename: "gong_court.mp3",
+    url: "/sounds/gong_court.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
     id: "12",
     name: "Marimba Vital",
     filename: "marimba_pop.mp3",
@@ -156,6 +145,16 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     is_active: true,
     is_default: false,
     created_at: "2026-11-07T16:00:00Z",
+  },
+  {
+    id: "2",
+    name: "Radar",
+    filename: "radar.mp3",
+    url: "/sounds/radar.mp3",
+    duration_ms: 1567,
+    is_active: true,
+    is_default: true,
+    created_at: "2026-11-07T10:00:00Z",
   },
 ];
 
@@ -176,6 +175,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function AdminSonneriesPage() {
+  const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
   const [ringtones, setRingtones] = useState<RingtoneItem[]>(DEFAULT_RINGTONES);
@@ -191,18 +191,6 @@ export default function AdminSonneriesPage() {
 
   // Modals
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
-  const [editingRingtone, setEditingRingtone] = useState<RingtoneItem | null>(null);
-
-  // Form states for Add/Edit
-  const [formName, setFormName] = useState("");
-  const [formFile, setFormFile] = useState<File | null>(null);
-  const [formFileName, setFormFileName] = useState("");
-  const [formDurationMs, setFormDurationMs] = useState(0);
-  const [formIsActive, setFormIsActive] = useState(true);
-  const [formIsDefault, setFormIsDefault] = useState(false);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
   // Stop audio on unmount
   useEffect(() => {
@@ -353,7 +341,9 @@ export default function AdminSonneriesPage() {
           comparison = a.is_active === b.is_active ? 0 : a.is_active ? -1 : 1;
           break;
         case "name":
-          comparison = (a.name || "").localeCompare(b.name || "");
+          comparison = (a.name || "").localeCompare(b.name || "", "fr", {
+            sensitivity: "base",
+          });
           break;
         case "filename":
           comparison = (a.filename || "").localeCompare(b.filename || "");
@@ -404,159 +394,12 @@ export default function AdminSonneriesPage() {
   };
 
   const handleOpenAdd = () => {
-    setEditingRingtone(null);
-    setFormName("");
-    setFormFile(null);
-    setFormFileName("");
-    setFormDurationMs(0);
-    setFormIsActive(true);
-    setFormIsDefault(false);
-    setFormError(null);
-    setIsAddEditModalOpen(true);
+    router.push("/create-sonnerie");
   };
 
   const handleOpenEdit = () => {
     if (selectedIds.length !== 1) return;
-    const ringtone = ringtones.find((r) => r.id === selectedIds[0]);
-    if (!ringtone) return;
-
-    setEditingRingtone(ringtone);
-    setFormName(ringtone.name);
-    setFormFile(null);
-    setFormFileName(ringtone.filename);
-    setFormDurationMs(ringtone.duration_ms);
-    setFormIsActive(ringtone.is_active);
-    setFormIsDefault(ringtone.is_default);
-    setFormError(null);
-    setIsAddEditModalOpen(true);
-  };
-
-  const handleAudioFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setFormFile(file);
-    setFormFileName(file.name);
-    setFormError(null);
-
-    // Auto-detect duration from audio file
-    const audio = new Audio();
-    audio.src = URL.createObjectURL(file);
-    audio.onloadedmetadata = () => {
-      const durationMs = Math.round(audio.duration * 1000);
-      setFormDurationMs(durationMs);
-      URL.revokeObjectURL(audio.src);
-    };
-  };
-
-  const handleSaveRingtone = async () => {
-    if (!formName.trim()) {
-      setFormError("Veuillez saisir un nom pour la sonnerie.");
-      return;
-    }
-
-    if (!editingRingtone && !formFile) {
-      setFormError("Veuillez sélectionner un fichier audio MP3.");
-      return;
-    }
-
-    setIsSaving(true);
-    setFormError(null);
-
-    try {
-      let finalUrl = editingRingtone?.url || "";
-      let finalFilename = editingRingtone?.filename || formFileName;
-      let finalDuration = formDurationMs || editingRingtone?.duration_ms || 1500;
-
-      if (formFile) {
-        finalFilename = formFile.name;
-        try {
-          const fileExt = formFile.name.split(".").pop();
-          const cleanFileName = `${Date.now()}_${formName.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${fileExt}`;
-          const { data: uploadData, error: uploadError } = await (supabase as any)
-            .storage
-            .from("ringtones")
-            .upload(cleanFileName, formFile);
-
-          if (!uploadError && uploadData) {
-            const { data: publicUrlData } = (supabase as any)
-              .storage
-              .from("ringtones")
-              .getPublicUrl(cleanFileName);
-            finalUrl = publicUrlData.publicUrl;
-          } else {
-            finalUrl = URL.createObjectURL(formFile);
-          }
-        } catch {
-          finalUrl = URL.createObjectURL(formFile);
-        }
-      }
-
-      if (editingRingtone) {
-        const updatedItem: RingtoneItem = {
-          ...editingRingtone,
-          name: formName.trim(),
-          filename: finalFilename,
-          url: finalUrl,
-          duration_ms: finalDuration,
-          is_active: formIsActive,
-          is_default: formIsDefault,
-        };
-
-        setRingtones((prev) =>
-          prev.map((r) => {
-            if (r.id === editingRingtone.id) return updatedItem;
-            if (formIsDefault && r.is_default) return { ...r, is_default: false };
-            return r;
-          })
-        );
-
-        try {
-          await fetch("/api/admin/ringtones", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "save", ringtone: updatedItem }),
-          });
-        } catch (e) {
-          console.warn("Sauvegarde API:", e);
-        }
-      } else {
-        const newItem: RingtoneItem = {
-          id: String(Date.now()),
-          name: formName.trim(),
-          filename: finalFilename,
-          url: finalUrl,
-          duration_ms: finalDuration,
-          is_active: formIsActive,
-          is_default: formIsDefault,
-          created_at: new Date().toISOString(),
-        };
-
-        setRingtones((prev) => {
-          const list = formIsDefault
-            ? prev.map((r) => (r.is_default ? { ...r, is_default: false } : r))
-            : prev;
-          return [newItem, ...list];
-        });
-
-        try {
-          await fetch("/api/admin/ringtones", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "save", ringtone: newItem }),
-          });
-        } catch (e) {
-          console.warn("Ajout API:", e);
-        }
-      }
-
-      setIsAddEditModalOpen(false);
-      setSelectedIds([]);
-    } catch (e: any) {
-      setFormError(e?.message || "Une erreur est survenue lors de l'enregistrement.");
-    } finally {
-      setIsSaving(false);
-    }
+    router.push(`/create-sonnerie?id=${selectedIds[0]}`);
   };
 
   const handleDeleteConfirm = async () => {
@@ -614,8 +457,15 @@ export default function AdminSonneriesPage() {
       {
         key: "name",
         label: "Sonnerie",
-        width: "w-[140px]",
-        render: (item) => item.name,
+        width: "w-[240px]",
+        render: (item) => (
+          <Link
+            href={`/create-sonnerie?id=${item.id}`}
+            className="hover:text-[#2E3271] transition-colors cursor-pointer"
+          >
+            {item.name}
+          </Link>
+        ),
       },
       {
         key: "filename",
@@ -750,121 +600,6 @@ export default function AdminSonneriesPage() {
         onConfirm={handleDeleteConfirm}
         onClose={() => setIsDeleteModalOpen(false)}
       />
-
-      {/* Modal Ajout / Modification */}
-      <Modal
-        open={isAddEditModalOpen}
-        title={editingRingtone ? "Modifier la sonnerie" : "Ajouter une sonnerie"}
-        onClose={() => setIsAddEditModalOpen(false)}
-        className="max-w-[480px]"
-      >
-        <div className="flex flex-col gap-5 pt-2">
-          {formError && (
-            <div className="p-3 rounded-[8px] bg-[#FEF2F2] border border-[#FCA5A5] text-[#EF4F4E] text-[13px] font-medium">
-              {formError}
-            </div>
-          )}
-
-          {/* Nom de la sonnerie */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[14px] font-bold text-[#3A416F]">
-              Nom de la sonnerie
-            </label>
-            <input
-              type="text"
-              value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Ex: Radar, Bip, Gong..."
-              className="h-[45px] w-full text-[15px] font-medium placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] focus:outline-none focus:ring-2 focus:ring-[#5D6494]"
-            />
-          </div>
-
-          {/* Fichier Audio */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-[14px] font-bold text-[#3A416F]">
-              Fichier audio (MP3)
-            </label>
-            <div className="relative border border-dashed border-[#D7D4DC] hover:border-[#7069FA] rounded-[10px] p-4 text-center cursor-pointer transition-colors bg-[#FAFAFC]">
-              <input
-                type="file"
-                accept="audio/mp3,audio/mpeg,audio/wav"
-                onChange={handleAudioFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
-                <svg
-                  width="28"
-                  height="28"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#7069FA"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 18V5l12-2v13" />
-                  <circle cx="6" cy="18" r="3" />
-                  <circle cx="18" cy="16" r="3" />
-                </svg>
-                <span className="text-[13px] font-semibold text-[#5D6494]">
-                  {formFileName ? formFileName : "Choisir un fichier audio (.mp3)"}
-                </span>
-                {formDurationMs > 0 && (
-                  <span className="text-[11px] font-bold text-[#00D591]">
-                    Durée détectée : {formatDuration(formDurationMs)}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Options */}
-          <div className="flex flex-col gap-3 pt-2 border-t border-[#ECE9F1]">
-            <div className="flex items-center justify-between">
-              <span className="text-[14px] font-bold text-[#3A416F]">
-                Activer la sonnerie (ON)
-              </span>
-              <ToggleSwitch
-                checked={formIsActive}
-                onCheckedChange={setFormIsActive}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[14px] font-bold text-[#3A416F] block">
-                  Sonnerie par défaut
-                </span>
-                <span className="text-[12px] text-[#C2BFC6] font-medium">
-                  Attribuée automatiquement aux nouveaux utilisateurs
-                </span>
-              </div>
-              <ToggleSwitch
-                checked={formIsDefault}
-                onCheckedChange={setFormIsDefault}
-              />
-            </div>
-          </div>
-
-          {/* Boutons d'action */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-[#ECE9F1]">
-            <button
-              type="button"
-              onClick={() => setIsAddEditModalOpen(false)}
-              className="px-4 py-2 text-[14px] font-semibold text-[#5D6494] hover:text-[#3A416F] transition-colors"
-            >
-              Annuler
-            </button>
-            <CTAButton
-              onClick={handleSaveRingtone}
-              disabled={isSaving}
-              className="min-w-[120px]"
-            >
-              {isSaving ? "Enregistrement..." : editingRingtone ? "Enregistrer" : "Ajouter"}
-            </CTAButton>
-          </div>
-        </div>
-      </Modal>
     </main>
   );
 }

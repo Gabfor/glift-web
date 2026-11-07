@@ -14,46 +14,6 @@ export type RingtoneItem = {
 
 const DEFAULT_RINGTONES: RingtoneItem[] = [
   {
-    id: "1",
-    name: "Bip",
-    filename: "bip.mp3",
-    url: "/sounds/bip.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "2",
-    name: "Radar",
-    filename: "radar.mp3",
-    url: "/sounds/radar.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: true,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "3",
-    name: "Gong",
-    filename: "gong.mp3",
-    url: "/sounds/gong.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
-    id: "4",
-    name: "Cloche",
-    filename: "bell.mp3",
-    url: "/sounds/bell.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T10:00:00Z",
-  },
-  {
     id: "5",
     name: "Arpège Succès",
     filename: "chime_asc.mp3",
@@ -68,36 +28,6 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     name: "Bip Sport",
     filename: "bip_sport.mp3",
     url: "/sounds/bip_sport.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "7",
-    name: "Cloche Zen",
-    filename: "cloche_zen.mp3",
-    url: "/sounds/cloche_zen.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "8",
-    name: "Gong Énergique",
-    filename: "gong_court.mp3",
-    url: "/sounds/gong_court.mp3",
-    duration_ms: 2200,
-    is_active: true,
-    is_default: false,
-    created_at: "2026-11-07T16:00:00Z",
-  },
-  {
-    id: "9",
-    name: "Compte à Rebours",
-    filename: "countdown_ding.mp3",
-    url: "/sounds/countdown_ding.mp3",
     duration_ms: 2200,
     is_active: true,
     is_default: false,
@@ -124,6 +54,66 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     created_at: "2026-11-07T16:00:00Z",
   },
   {
+    id: "7",
+    name: "Cloche Zen",
+    filename: "cloche_zen.mp3",
+    url: "/sounds/cloche_zen.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
+    id: "13",
+    name: "Clochettes de Noël",
+    filename: "clochettes_noel.mp3",
+    url: "/sounds/clochettes_noel.mp3",
+    duration_ms: 2500,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T17:45:00Z",
+  },
+  {
+    id: "9",
+    name: "Compte à Rebours",
+    filename: "countdown_ding.mp3",
+    url: "/sounds/countdown_ding.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
+    id: "14",
+    name: "Frisson d'Halloween",
+    filename: "frisson_halloween.mp3",
+    url: "/sounds/frisson_halloween.mp3",
+    duration_ms: 2400,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T18:00:00Z",
+  },
+  {
+    id: "3",
+    name: "Gong",
+    filename: "gong.mp3",
+    url: "/sounds/gong.mp3",
+    duration_ms: 2520,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T10:00:00Z",
+  },
+  {
+    id: "8",
+    name: "Gong Énergique",
+    filename: "gong_court.mp3",
+    url: "/sounds/gong_court.mp3",
+    duration_ms: 2200,
+    is_active: true,
+    is_default: false,
+    created_at: "2026-11-07T16:00:00Z",
+  },
+  {
     id: "12",
     name: "Marimba Vital",
     filename: "marimba_pop.mp3",
@@ -133,7 +123,23 @@ const DEFAULT_RINGTONES: RingtoneItem[] = [
     is_default: false,
     created_at: "2026-11-07T16:00:00Z",
   },
+  {
+    id: "2",
+    name: "Radar",
+    filename: "radar.mp3",
+    url: "/sounds/radar.mp3",
+    duration_ms: 1567,
+    is_active: true,
+    is_default: true,
+    created_at: "2026-11-07T10:00:00Z",
+  },
 ];
+
+function sortRingtonesByName(list: RingtoneItem[]): RingtoneItem[] {
+  return [...list].sort((a, b) =>
+    (a.name || "").localeCompare(b.name || "", "fr", { sensitivity: "base" })
+  );
+}
 
 async function getRingtonesFromDb(adminClient: any): Promise<RingtoneItem[]> {
   // 1. Try public.ringtones table
@@ -144,7 +150,7 @@ async function getRingtonesFromDb(adminClient: any): Promise<RingtoneItem[]> {
       .order("name", { ascending: true });
 
     if (!error && Array.isArray(data) && data.length > 0) {
-      return data as RingtoneItem[];
+      return sortRingtonesByName(data as RingtoneItem[]);
     }
   } catch {
     // ringtones table does not exist
@@ -170,10 +176,11 @@ async function getRingtonesFromDb(adminClient: any): Promise<RingtoneItem[]> {
             hasNew = true;
           }
         }
+        const sorted = sortRingtonesByName(parsed as RingtoneItem[]);
         if (hasNew) {
-          await saveRingtonesToDb(adminClient, parsed);
+          await saveRingtonesToDb(adminClient, sorted);
         }
-        return parsed as RingtoneItem[];
+        return sorted;
       }
     }
   } catch {
@@ -195,11 +202,12 @@ async function getRingtonesFromDb(adminClient: any): Promise<RingtoneItem[]> {
 }
 
 async function saveRingtonesToDb(adminClient: any, ringtones: RingtoneItem[]) {
+  const sorted = sortRingtonesByName(ringtones);
   // Always update settings table for mobile and web synchronization
   try {
     await adminClient.from("settings").upsert({
       key: "timer_ringtones",
-      value: JSON.stringify(ringtones),
+      value: JSON.stringify(sorted),
       updated_at: new Date().toISOString(),
     });
   } catch (e) {
@@ -209,7 +217,7 @@ async function saveRingtonesToDb(adminClient: any, ringtones: RingtoneItem[]) {
   // Also try updating ringtones table if it exists
   try {
     // Delete existing and insert, or update
-    for (const r of ringtones) {
+    for (const r of sorted) {
       await adminClient.from("ringtones").upsert({
         id: r.id.length > 10 ? r.id : undefined, // only use uuid if valid
         name: r.name,

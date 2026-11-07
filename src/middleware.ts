@@ -170,6 +170,7 @@ export async function middleware(req: NextRequest) {
       "/create-offer",
       "/create-page",
       "/create-program",
+      "/create-sonnerie",
       "/entrainements",
       "/help",
       "/legal",
