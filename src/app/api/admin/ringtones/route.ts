@@ -10,6 +10,8 @@ export type RingtoneItem = {
   is_active: boolean;
   is_default: boolean;
   created_at: string;
+  icon_url?: string;
+  image_alt?: string;
 };
 
 const DEFAULT_RINGTONES: RingtoneItem[] = [

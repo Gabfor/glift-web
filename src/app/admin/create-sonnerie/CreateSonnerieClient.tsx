@@ -22,6 +22,7 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form states
   const [statut, setStatut] = useState(true);
@@ -32,6 +33,12 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
   const [fileUrl, setFileUrl] = useState("");
   const [durationMs, setDurationMs] = useState(2200);
 
+  // Image states
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileName, setImageFileName] = useState("");
+  const [imageAlt, setImageAlt] = useState("");
+
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(Boolean(ringtoneId));
   const [actionError, setActionError] = useState<string | null>(null);
@@ -40,6 +47,7 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     status: false,
     infos: true,
+    image: true,
   });
 
   const toggleSection = (section: string) => {
@@ -62,6 +70,8 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
     statut: true,
     isDefault: false,
     fileName: "",
+    imageUrl: "",
+    imageAlt: "",
   });
 
   const isDirty = useMemo(() => {
@@ -71,9 +81,12 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
       statut !== initialState.statut ||
       isDefault !== initialState.isDefault ||
       fileName !== initialState.fileName ||
-      file !== null
+      imageUrl !== initialState.imageUrl ||
+      imageAlt !== initialState.imageAlt ||
+      file !== null ||
+      imageFile !== null
     );
-  }, [ringtoneId, name, statut, isDefault, fileName, file, initialState]);
+  }, [ringtoneId, name, statut, isDefault, fileName, imageUrl, imageAlt, file, imageFile, initialState]);
 
   // Load existing ringtone data in edit mode
   useEffect(() => {
@@ -95,11 +108,16 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
           setFileName(found.filename ?? "");
           setFileUrl(found.url ?? "");
           setDurationMs(found.duration_ms ?? 2200);
+          setImageUrl(found.icon_url ?? "");
+          setImageFileName(found.icon_url ? found.icon_url.split("/").pop() || "" : "");
+          setImageAlt(found.image_alt ?? "");
           setInitialState({
             name: found.name ?? "",
             statut: found.is_active ?? true,
             isDefault: found.is_default ?? false,
             fileName: found.filename ?? "",
+            imageUrl: found.icon_url ?? "",
+            imageAlt: found.image_alt ?? "",
           });
         }
       } catch (err) {
@@ -129,6 +147,15 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
       setDurationMs(detectedMs || 2200);
       URL.revokeObjectURL(audio.src);
     };
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = e.target.files?.[0];
+    if (!selected) return;
+
+    setImageFile(selected);
+    setImageFileName(selected.name);
+    setActionError(null);
   };
 
   const isFormValid = useMemo(() => {
@@ -165,11 +192,35 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
               .getPublicUrl(cleanFileName);
             finalUrl = publicUrlData.publicUrl;
           } else {
-            // Fallback to sounds folder or blob url
             finalUrl = `/sounds/${file.name}`;
           }
         } catch {
           finalUrl = `/sounds/${file.name}`;
+        }
+      }
+
+      // If user uploaded a new SVG / image icon
+      let finalImageUrl = imageUrl;
+      if (imageFile) {
+        try {
+          const fileExt = imageFile.name.split(".").pop();
+          const cleanImageName = `icon_${Date.now()}_${name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${fileExt}`;
+          const { data: uploadData, error: uploadError } = await (supabase as any)
+            .storage
+            .from("ringtones")
+            .upload(cleanImageName, imageFile, { upsert: true });
+
+          if (!uploadError && uploadData) {
+            const { data: publicUrlData } = (supabase as any)
+              .storage
+              .from("ringtones")
+              .getPublicUrl(cleanImageName);
+            finalImageUrl = publicUrlData.publicUrl;
+          } else {
+            finalImageUrl = `/icons/sounds/${imageFile.name}`;
+          }
+        } catch {
+          finalImageUrl = `/icons/sounds/${imageFile.name}`;
         }
       }
 
@@ -182,6 +233,8 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
         is_active: statut,
         is_default: isDefault,
         created_at: new Date().toISOString(),
+        icon_url: finalImageUrl || undefined,
+        image_alt: imageAlt.trim() || undefined,
       };
 
       const res = await fetch("/api/admin/ringtones", {
@@ -373,6 +426,93 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                       ref={fileInputRef}
                       onChange={handleFileChange}
                       className="hidden"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* SECTION 2: IMAGE DE LA SONNERIE */}
+            <div className="flex flex-col">
+              <div
+                onClick={() => toggleSection("image")}
+                className="flex justify-between items-center cursor-pointer group mb-[10px]"
+              >
+                <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                  Image de la sonnerie
+                </h3>
+                <div className="relative w-[18px] h-[18px]">
+                  <Image
+                    src="/icons/chevron_bloc.svg"
+                    alt="Chevron"
+                    fill
+                    className={`object-contain transition-transform duration-200 ${
+                      !collapsedSections.image ? "rotate-180" : ""
+                    } group-hover:hidden`}
+                  />
+                  <Image
+                    src="/icons/chevron_bloc_hover.svg"
+                    alt="Chevron Hover"
+                    fill
+                    className={`object-contain transition-transform duration-200 ${
+                      !collapsedSections.image ? "rotate-180" : ""
+                    } hidden group-hover:block`}
+                  />
+                </div>
+              </div>
+
+              {!collapsedSections.image && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                  {/* Champ Image */}
+                  <div className="flex flex-col">
+                    <div className="flex justify-between mb-[5px]">
+                      <span className="text-[16px] text-[#3A416F] font-bold">Image</span>
+                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                        25px x 25px
+                      </span>
+                    </div>
+                    <div
+                      onClick={() => imageInputRef.current?.click()}
+                      className="h-[45px] w-full px-[15px] rounded-[5px] bg-white cursor-pointer
+                                 border border-dashed border-[#D7D4DC] hover:border-[#C2BFC6]
+                                 focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]
+                                 transition-all duration-150 flex items-center justify-between"
+                    >
+                      <span
+                        className={`text-[16px] font-semibold truncate ${
+                          imageFileName || imageUrl ? "text-[#3A416F]" : "text-[#D7D4DC]"
+                        }`}
+                      >
+                        {imageFileName || (imageUrl ? imageUrl.split("/").pop() : "Importer un fichier")}
+                      </span>
+                      <Image
+                        src={imageFileName || imageUrl ? "/icons/success.svg" : "/icons/upload.svg"}
+                        alt="Upload Icon"
+                        width={22}
+                        height={22}
+                        className="shrink-0"
+                      />
+                    </div>
+                    <input
+                      type="file"
+                      accept=".svg,image/svg+xml,image/png,image/webp"
+                      ref={imageInputRef}
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                  </div>
+
+                  {/* Champ Alt image */}
+                  <div className="flex flex-col">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
+                      Alt image
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Sonnerie"
+                      value={imageAlt}
+                      onChange={(e) => setImageAlt(e.target.value)}
+                      className={inputClass}
                     />
                   </div>
                 </div>

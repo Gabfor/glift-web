@@ -25,6 +25,8 @@ export type RingtoneItem = {
   is_active: boolean;
   is_default: boolean;
   created_at: string;
+  icon_url?: string;
+  image_alt?: string;
 };
 
 type SortableColumn =
@@ -461,9 +463,18 @@ export default function AdminSonneriesPage() {
         render: (item) => (
           <Link
             href={`/create-sonnerie?id=${item.id}`}
-            className="hover:text-[#2E3271] transition-colors cursor-pointer"
+            className="hover:text-[#2E3271] transition-colors cursor-pointer inline-flex items-center gap-2"
           >
-            {item.name}
+            {item.icon_url && (
+              <span className="w-5 h-5 flex items-center justify-center shrink-0">
+                <img
+                  src={item.icon_url}
+                  alt={item.image_alt || item.name}
+                  className="w-5 h-5 object-contain"
+                />
+              </span>
+            )}
+            <span className="truncate">{item.name}</span>
           </Link>
         ),
       },
