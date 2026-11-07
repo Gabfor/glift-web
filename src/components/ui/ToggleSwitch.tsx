@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 
@@ -25,10 +26,18 @@ export default function ToggleSwitch({
   isAdmin,
 }: ToggleSwitchProps) {
   const pathname = usePathname()
+  const [mountedAdmin, setMountedAdmin] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) {
+      setMountedAdmin(true)
+    }
+  }, [])
+
   const isPageAdmin =
     isAdmin ??
     (pathname?.startsWith("/admin") ||
-      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) ||
+      mountedAdmin ||
       pathname?.startsWith("/program") ||
       pathname?.startsWith("/program-store") ||
       pathname?.startsWith("/offer-shop") ||
@@ -41,6 +50,7 @@ export default function ToggleSwitch({
       pathname?.startsWith("/legal") ||
       pathname?.startsWith("/administrateurs") ||
       pathname?.startsWith("/auteurs") ||
+      pathname?.startsWith("/sonneries") ||
       pathname?.startsWith("/settings"))
 
   return (
@@ -48,20 +58,20 @@ export default function ToggleSwitch({
       className={cn(
         "switch",
         isPageAdmin && "switch-admin",
-        disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-        className,
+        disabled && "opacity-50 cursor-not-allowed",
+        className
       )}
     >
       <input
         type="checkbox"
-        name={name}
         id={id}
+        name={name}
         checked={checked}
         disabled={disabled}
-        onChange={(event) => onCheckedChange?.(event.target.checked)}
         aria-label={ariaLabel}
+        onChange={(e) => onCheckedChange?.(e.target.checked)}
       />
-      <span className="slider round" />
+      <span className="slider" />
     </label>
   )
 }

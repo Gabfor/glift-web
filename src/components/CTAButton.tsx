@@ -60,10 +60,18 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
   ) => {
     const router = useRouter();
     const pathname = usePathname();
+    const [mountedAdmin, setMountedAdmin] = useState(false);
+
+    useEffect(() => {
+      if (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) {
+        setMountedAdmin(true);
+      }
+    }, []);
+
     const isPageAdmin =
       isAdmin ??
       (pathname?.startsWith("/admin") ||
-        (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) ||
+        mountedAdmin ||
         pathname?.startsWith("/program") ||
         pathname?.startsWith("/program-store") ||
         pathname?.startsWith("/offer-shop") ||
@@ -75,6 +83,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
         pathname?.startsWith("/legal") ||
         pathname?.startsWith("/administrateurs") ||
         pathname?.startsWith("/auteurs") ||
+        pathname?.startsWith("/sonneries") ||
         pathname?.startsWith("/settings"));
     const elementRef = useRef<CTAElement>(null);
     useImperativeHandle(ref, () => elementRef.current as CTAElement);

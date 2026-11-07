@@ -57,10 +57,17 @@ export function PasswordField({
   ...rest
 }: PasswordFieldProps) {
   const pathname = usePathname();
+  const [mountedAdmin, setMountedAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) {
+      setMountedAdmin(true);
+    }
+  }, []);
+
   const isPageAdmin =
     isAdmin ??
-    (pathname?.startsWith("/admin") ||
-      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
+    (pathname?.startsWith("/admin") || mountedAdmin);
   const [showPassword, setShowPassword] = React.useState(defaultShowPassword);
   const [touched, setTouched] = React.useState(false);
   const [focused, setFocused] = React.useState(false);

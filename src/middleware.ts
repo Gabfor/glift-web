@@ -179,6 +179,7 @@ export async function middleware(req: NextRequest) {
       "/program-store",
       "/settings",
       "/slider",
+      "/sonneries",
       "/users",
     ];
 

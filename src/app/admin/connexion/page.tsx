@@ -189,6 +189,7 @@ export default function AdminConnexionPage() {
               <EmailField
                 id="email"
                 label="Email"
+                isAdmin
                 value={email}
                 onChange={(nextEmail) => {
                   setEmail(nextEmail);
@@ -208,6 +209,7 @@ export default function AdminConnexionPage() {
             <div className="w-full flex justify-center">
               <PasswordField
                 id="password"
+                isAdmin
                 value={password}
                 onChange={(nextPassword) => {
                   setPassword(nextPassword);

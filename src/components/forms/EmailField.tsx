@@ -46,10 +46,17 @@ export function EmailField({
   ...rest
 }: EmailFieldProps) {
   const pathname = usePathname();
+  const [mountedAdmin, setMountedAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) {
+      setMountedAdmin(true);
+    }
+  }, []);
+
   const isPageAdmin =
     isAdmin ??
-    (pathname?.startsWith("/admin") ||
-      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
+    (pathname?.startsWith("/admin") || mountedAdmin);
 
   const [touched, setTouched] = React.useState(false);
   const [focused, setFocused] = React.useState(false);

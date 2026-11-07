@@ -374,6 +374,7 @@ export default function AdminResetPasswordPage() {
               <div className="w-full mb-[5px]">
                 <PasswordField
                   id="password"
+                  isAdmin
                   name="new-password"
                   label="Nouveau mot de passe"
                   placeholder="••••••••"
@@ -397,6 +398,7 @@ export default function AdminResetPasswordPage() {
               <div className="w-full mb-[5px]">
                 <PasswordField
                   id="confirm"
+                  isAdmin
                   name="confirm-password"
                   label="Répéter le nouveau mot de passe"
                   placeholder="••••••••"

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 
 import Tooltip from "@/components/Tooltip";
 
@@ -26,11 +26,17 @@ export default function SearchBar({
   isAdmin,
 }: Props) {
   const pathname = usePathname();
+  const [mountedAdmin, setMountedAdmin] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")) {
+      setMountedAdmin(true);
+    }
+  }, []);
+
   const isPageAdmin =
     isAdmin ??
-    (pathname?.startsWith("/admin") ||
-      (typeof window !== "undefined" &&
-        window.location.hostname.startsWith("admin.")));
+    (pathname?.startsWith("/admin") || mountedAdmin);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [hovered, setHovered] = useState(false);

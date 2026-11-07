@@ -254,7 +254,6 @@ export default function ProgramStorePage() {
       <th
         className="px-4 font-semibold text-[#3A416F] cursor-pointer select-none"
         onClick={() => handleSort(column)}
-      >
         <div className="flex items-center gap-1">
           {label}
           <span className="relative w-[8px] h-[8px] ml-[3px] mt-[3px]">
@@ -307,7 +306,6 @@ export default function ProgramStorePage() {
               <button
                 onClick={handleAdd}
                 className="rounded-full transition-colors duration-200 flex items-center justify-center group"
-              >
                 <Image
                   src="/icons/admin_plus.svg"
                   alt="Ajouter"
@@ -362,19 +360,13 @@ export default function ProgramStorePage() {
             )}
           </div>
         ) : (
-          <div
-            className="overflow-x-auto rounded-[8px] bg-white border border-[#D7D4DC]"
-            style={{
-              boxShadow: '0 3px 6px rgba(93, 100, 148, 0.15)',
-            }}
-          >
+          <div className="overflow-x-auto rounded-[8px] bg-white shadow-glift">
             <table className="min-w-full text-left text-sm">
               <thead className="border-b border-[#ECE9F1] h-[60px]">
                 <tr>
                   <th className="px-4 w-[47px]">
                     <button
                       onClick={toggleAll}
-                    >
                       <Image
                         src={
                           allSelected
@@ -408,11 +400,9 @@ export default function ProgramStorePage() {
                     <tr
                       key={program.id}
                       className="border-b border-[#ECE9F1] h-[60px]"
-                    >
                       <td className="w-[47px] px-4 align-middle">
                         <button
                           onClick={() => toggleCheckbox(program.id)}
-                        >
                           <Image
                             src={
                               isSelected
@@ -438,7 +428,6 @@ export default function ProgramStorePage() {
                             fontSize: "10px",
                             fontWeight: 600,
                           }}
-                        >
                           {program.status}
                         </span>
                       </td>
@@ -457,7 +446,6 @@ export default function ProgramStorePage() {
                             <Link
                               href={`/admin/create-program?id=${program.id}`}
                               className="hover:text-[#2E3271] transition-colors"
-                            >
                               {program.title}
                             </Link>
                           </div>
