@@ -506,6 +506,20 @@ export default function AdminEntrainementDetailPage() {
     setSelectedRowIds([]);
   };
 
+  const handleToggleHideRow = () => {
+    if (selectedRowIds.length !== 1) return;
+    const selectedId = selectedRowIds[0];
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.id === selectedId) {
+          return { ...r, is_hidden: !r.is_hidden, checked: false };
+        }
+        return r;
+      })
+    );
+    setSelectedRowIds([]);
+  };
+
   const handleAddRow = () => {
     setRows((prev) => {
       // 🔒 Double-check limit inside the updater to prevent race conditions
@@ -623,6 +637,7 @@ export default function AdminEntrainementDetailPage() {
             setShowNoteModal(true);
           }}
           onDuplicateRow={handleDuplicateRow}
+          onToggleHideRow={handleToggleHideRow}
           saveColumnsInSupabase={saveColumnsInSupabase}
         />
 

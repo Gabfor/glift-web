@@ -15,6 +15,7 @@ export type Row = {
   locked?: boolean;
   superset_id_locked?: boolean;
   conseils?: string;
+  is_hidden?: boolean;
 };
 
 export interface Training {
@@ -35,4 +36,3 @@ export interface Program {
   dashboard: boolean;
   trainings: Training[];
 }
-

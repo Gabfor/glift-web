@@ -104,6 +104,7 @@ export function useTrainingRows(
         note: "",
         locked: false,
         superset_id_locked: false,
+        is_hidden: false,
       };
 
       if (error) {
@@ -134,6 +135,7 @@ export function useTrainingRows(
           superset_id: optimisticRow.superset_id,
           link: optimisticRow.link,
           note: optimisticRow.note,
+          is_hidden: optimisticRow.is_hidden ?? false,
         };
 
         if (!isAdmin) {
@@ -173,6 +175,7 @@ export function useTrainingRows(
                 note: row.note,
                 locked: row.locked ?? false,
                 superset_id_locked: row.superset_id_locked ?? false,
+                is_hidden: row.is_hidden ?? false,
               }))
             );
             previousIdsRef.current = retryData.map((row) => row.id);
@@ -198,6 +201,7 @@ export function useTrainingRows(
           note: newRow.note,
           locked: newRow.locked ?? false,
           superset_id_locked: newRow.superset_id_locked ?? false,
+          is_hidden: newRow.is_hidden ?? false,
         }]);
 
         previousIdsRef.current = [newRow.id];
@@ -257,6 +261,7 @@ export function useTrainingRows(
               note: row.note,
               locked: row.locked ?? false,
               superset_id_locked: row.superset_id_locked ?? false,
+              is_hidden: row.is_hidden ?? false,
             }))
           );
           previousIdsRef.current = refreshedData.map((row) => row.id);
@@ -286,6 +291,7 @@ export function useTrainingRows(
             note: row.note,
             locked: row.locked,
             superset_id_locked: row.superset_id_locked,
+            is_hidden: row.is_hidden ?? false,
           }))
         );
 
@@ -403,6 +409,7 @@ export function useTrainingRows(
             superset_id: row.superset_id,
             link: row.link,
             note: row.note,
+            is_hidden: row.is_hidden ?? false,
           };
           if (!isAdmin) {
             payload.locked = row.locked ?? false;
@@ -427,7 +434,7 @@ export function useTrainingRows(
         if (allRowsPayload.length > 0) {
           const { error: upsertError } = await supabase.from(targetTable).upsert(allRowsPayload);
           if (upsertError) {
-            console.error("❌ Erreur mise à jour lignes entraînement :", upsertError);
+            console.error("❌ Erreur mise à jour lignes entraînement :", upsertError.message || JSON.stringify(upsertError));
           }
         }
       } finally {

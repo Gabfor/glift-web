@@ -18,6 +18,7 @@ type Props = {
 
 export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
   const isVisible = (name: string) => columns.find((c) => c.name === name)?.visible;
+  const isRowHidden = !!row.is_hidden;
 
   return (
     <tr
@@ -68,7 +69,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
           className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 training-input truncate ${row.link ? "underline" : ""}`}
           style={{
             backgroundColor: "transparent",
-            color: row.link ? "#7069FA" : "#5D6494",
+            color: isRowHidden ? "#D7D4DC" : row.link ? "#7069FA" : "#5D6494",
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
           }}
@@ -82,7 +83,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
             disabled
             value={row.materiel}
             placeholder="Matériel"
-            className="w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 text-[#5D6494] training-input"
+            className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 ${isRowHidden ? "text-[#D7D4DC]" : "text-[#5D6494]"} training-input`}
             style={{ backgroundColor: "transparent" }}
           />
         </td>
@@ -93,7 +94,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
         style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
       >
         <div className="flex items-center h-10 justify-end border-l border-t border-[#ECE9F1]">
-          <span className="w-9 h-8 text-left px-2 py-1 font-semibold text-[#5D6494]" style={{ lineHeight: "1.5", display: "flex", alignItems: "center", justifyContent: "center" }}>{row.series}</span>
+          <span className={`w-9 h-8 text-left px-2 py-1 font-semibold ${isRowHidden ? "text-[#D7D4DC]" : "text-[#5D6494]"}`} style={{ lineHeight: "1.5", display: "flex", alignItems: "center", justifyContent: "center" }}>{row.series}</span>
           <div className="flex flex-col items-center justify-between">
             <div className="w-5 h-3 flex items-center justify-center mb-1">
               <Image
@@ -130,12 +131,12 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
                   style={{
                     width: `${100 / row.series}%`,
                     backgroundColor:
-                      row.effort[subIndex] !== "parfait"
+                      !isRowHidden && row.effort[subIndex] !== "parfait"
                         ? getEffortBgColor(row.effort[subIndex])
-                        : row.checked
+                        : !isRowHidden && row.checked
                         ? "#F4F5FE"
                         : "transparent",
-                    color: isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
+                    color: isRowHidden ? "#D7D4DC" : isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -194,7 +195,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: row.repos !== "" && row.repos !== undefined ? "#5D6494" : "#D7D4DC",
+              color: isRowHidden ? "#D7D4DC" : (row.repos !== "" && row.repos !== undefined ? "#5D6494" : "#D7D4DC"),
             }}
           >
             {row.repos || "0"}
@@ -220,6 +221,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
                     width={24}
                     height={24}
                     className="w-6 h-6"
+                    style={{ filter: isRowHidden ? "grayscale(100%)" : "none", opacity: isRowHidden ? 0.5 : 1 }}
                   />
                 </div>
                 <div className="flex flex-col items-center ml-auto">

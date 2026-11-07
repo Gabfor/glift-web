@@ -34,6 +34,7 @@ type Props = {
   onLinkClick: (rowId: string) => void;
   onNoteClick?: () => void;
   onDuplicateRow?: () => void;
+  onToggleHideRow?: () => void;
   saveColumnsInSupabase: (columns: {
     name: string;
     label: string;
@@ -55,6 +56,7 @@ export default function TableActionsBar({
   onLinkClick,
   onNoteClick,
   onDuplicateRow,
+  onToggleHideRow,
   saveColumnsInSupabase,
   adminMode,
 }: Props) {
@@ -75,6 +77,7 @@ export default function TableActionsBar({
   const [hoveredLink, setHoveredLink] = useState(false);
   const [hoveredNote, setHoveredNote] = useState(false);
   const [hoveredDuplicate, setHoveredDuplicate] = useState(false);
+  const [hoveredHide, setHoveredHide] = useState(false);
   const [hoveredDelete, setHoveredDelete] = useState(false);
 
   const menuRef = useRef<HTMLDivElement>(null);
@@ -246,6 +249,35 @@ export default function TableActionsBar({
                       : "/icons/duplicate_exercice.svg"
                   }
                   alt="Dupliquer"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5"
+                />
+              </button>
+            </Tooltip>
+          )}
+
+          {selectedRow && (
+            <Tooltip content={selectedRow.is_hidden ? "Afficher" : "Masquer"}>
+              <button
+                onClick={() => {
+                  onToggleHideRow?.();
+                  setHoveredHide(false);
+                }}
+                onMouseEnter={() => setHoveredHide(true)}
+                onMouseLeave={() => setHoveredHide(false)}
+              >
+                <Image
+                  src={
+                    selectedRow.is_hidden
+                      ? hoveredHide
+                        ? "/icons/afficher_exercice_hover.svg"
+                        : "/icons/afficher_exercice.svg"
+                      : hoveredHide
+                        ? "/icons/masquer_exercice_hover.svg"
+                        : "/icons/masquer_exercice.svg"
+                  }
+                  alt={selectedRow.is_hidden ? "Afficher" : "Masquer"}
                   width={20}
                   height={20}
                   className="w-5 h-5"

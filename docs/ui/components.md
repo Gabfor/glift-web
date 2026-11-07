@@ -78,3 +78,18 @@
   - Sur mobile / tablette (Responsive) : **50px minimum** (`mt-[50px]`).
   - Implémenté sur `ClientLayout.tsx`, `FooterPublic.tsx` et `FooterLogged.tsx`.
 
+
+## Composant d'Upload d'Images Standardisé (`ImageUploader.tsx`)
+- **Rôle :** Composant centralisé utilisé sur tous les formulaires d'administration (`create-auteur`, `create-blog-article`, `create-offer`, `create-program`, `settings`, `slider`, `WidgetsRenderer`, `create-sonnerie`).
+- **Affichage & États Visuels :**
+  - **État vide :** Zone en pointillés (`border-dashed border-[#D7D4DC]`), texte d'invite gris (`text-[#D7D4DC]`, *"Importer un fichier"*), icône nuage `upload.svg`. Les dimensions attendues (ex: `1080px x 720px`, `25px x 25px`) sont affichées en haut à droite du label.
+  - **État chargé :** Le nom réel du fichier est affiché en violet foncé (`text-[#3A416F] font-semibold truncate`) et l'icône bascule en coche verte de succès (`success.svg`).
+  - **Lien contextuel « Supprimer » :** Remplace automatiquement la mention des dimensions en haut à droite. Au clic, réinitialise la valeur de l'image, vide le champ de fichier masqué et rétablit instantanément les dimensions requises.
+- **Props principales :**
+  - `label?: string` : Libellé du champ (ex: "Image de profil (Site)").
+  - `dimensions?: string` : Spécification de taille attendue (ex: "1080px x 720px").
+  - `value: string` : URL publique de l'image active.
+  - `onChange: (url: string) => void` : Callback de mise à jour de l'URL.
+  - `onDelete?: () => void` : Callback optionnel déclenché lors de la suppression.
+  - `bucket?: string` : Bucket Supabase Storage de destination (`program-images`, `author-images`, `logos`, `partners`, `ringtones`).
+  - `basePath?: string` : Sous-dossier dans le bucket de stockage.
