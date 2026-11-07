@@ -463,18 +463,23 @@ export default function AdminSonneriesPage() {
         render: (item) => (
           <Link
             href={`/create-sonnerie?id=${item.id}`}
-            className="hover:text-[#2E3271] transition-colors cursor-pointer inline-flex items-center gap-2"
+            className="hover:text-[#2E3271] transition-colors cursor-pointer flex items-center gap-[10px] h-[60px]"
           >
             {item.icon_url && (
-              <span className="w-5 h-5 flex items-center justify-center shrink-0">
+              <span className="w-[25px] h-[25px] shrink-0 flex items-center justify-center">
                 <img
                   src={item.icon_url}
                   alt={item.image_alt || item.name}
-                  className="w-5 h-5 object-contain"
+                  width={25}
+                  height={25}
+                  className="w-[25px] h-[25px] object-contain block"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLElement).style.display = "none";
+                  }}
                 />
               </span>
             )}
-            <span className="truncate">{item.name}</span>
+            <span className="truncate leading-[20px]">{item.name}</span>
           </Link>
         ),
       },

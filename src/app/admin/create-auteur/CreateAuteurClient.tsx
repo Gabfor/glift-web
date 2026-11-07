@@ -517,13 +517,9 @@ export default function CreateAuteurClient({ auteurId }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-[10px]">
                   {/* Image de profil (Site) */}
                   <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image de profil (Site)</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        1080px x 720px
-                      </span>
-                    </div>
                     <ImageUploader
+                      label="Image de profil (Site)"
+                      dimensions="1080px x 720px"
                       value={imageUrl}
                       onChange={setImageUrl}
                       placeholder="Importer un fichier"
@@ -548,13 +544,9 @@ export default function CreateAuteurClient({ auteurId }: Props) {
 
                   {/* Image de profil (Mobile) */}
                   <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image de profil (Mobile)</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        1080px x 540px
-                      </span>
-                    </div>
                     <ImageUploader
+                      label="Image de profil (Mobile)"
+                      dimensions="1080px x 540px"
                       value={imageMobile}
                       onChange={setImageMobile}
                       placeholder="Importer un fichier"

@@ -375,19 +375,10 @@ export default function AdminSliderPage() {
                   <div className="flex flex-col gap-5">
                     {slides.slice(0, Number(priorityCount)).map((slide, index) => (
                       <div key={index} className="flex flex-col">
-                        <div className="flex justify-between">
-                          <span className="text-[16px] text-[#3A416F] font-bold mb-[5px]">
-                            Slider prioritaire {index + 1}
-                          </span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            {type === "single"
-                              ? "2304px x 500px"
-                              : "1128px x 500px"}
-                          </span>
-                        </div>
-
                         <div className="flex flex-col gap-5">
                           <ImageUploader
+                            label={`Slider prioritaire ${index + 1}`}
+                            dimensions={type === "single" ? "2304px x 500px" : "1128px x 500px"}
                             value={slide.image}
                             onChange={(url) =>
                               handleSlideChange(index, "image", url)

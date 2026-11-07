@@ -204,11 +204,9 @@ export default function AdminSettingsPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
                         {/* Logo Upload Section */}
                         <div className="flex flex-col gap-[10px]">
-                            <div className="flex justify-between items-baseline mb-[5px]">
-                                <span className="text-[16px] text-[#3A416F] font-bold">Logo</span>
-                                <span className="text-[#C2BFC6] text-xs font-semibold">294px x 70px</span>
-                            </div>
                             <ImageUploader
+                                label="Logo"
+                                dimensions="294px x 70px"
                                 value={logoUrl}
                                 onChange={setLogoUrl}
                                 placeholder="Importer un fichier"

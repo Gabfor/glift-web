@@ -779,11 +779,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   {/* Row 1 */}
                   {/* Image principale (Site) */}
                   <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Site)</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1200px x 800px</span>
-                    </div>
                     <ImageUploader
+                      label="Image principale (Site)"
+                      dimensions="1200px x 800px"
                       value={article.image || ""}
                       onChange={(url) => setArticle({ ...article, image: url })}
                       placeholder="Importer un fichier"
@@ -804,11 +802,9 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
                   {/* Row 2 */}
                   {/* Image principale (Mobile) */}
                   <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Mobile)</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">700px x 360px</span>
-                    </div>
                     <ImageUploader
+                      label="Image principale (Mobile)"
+                      dimensions="700px x 360px"
                       value={article.image_mobile || ""}
                       onChange={(url) => setArticle({ ...article, image_mobile: url })}
                       placeholder="Importer un fichier"

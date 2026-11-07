@@ -212,11 +212,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 </div>
                 <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   <div className="flex flex-col">
-                    <div className="flex justify-between items-baseline mb-[5px]">
-                      <label className="text-[16px] text-[#3A416F] font-bold">Image</label>
-                      <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">932px x 700px</span>
-                    </div>
                     <ImageUploader 
+                      label="Image"
+                      dimensions="932px x 700px"
                       value={block.image || ""} 
                       onChange={(url) => updateBlock(block.id, { image: url })} 
                     />
@@ -662,11 +660,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 <div className="grid grid-cols-2 gap-x-8 gap-y-5">
                   {/* Image */}
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between items-baseline mb-[5px]">
-                      <span className="text-[16px] text-[#3A416F] font-bold">Image</span>
-                      <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">1400px x 710px</span>
-                    </div>
                     <ImageUploader
+                      label="Image"
+                      dimensions="1400px x 710px"
                       value={block.image}
                       onChange={(url: string) => updateBlock(block.id, { image: url })}
                       bucket="blog-images"
@@ -729,11 +725,9 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                   return (
                     <div key={sIdx} className="flex flex-col gap-5">
                       <div className="flex flex-col">
-                        <div className="flex justify-between items-baseline mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Partenaire {position}</span>
-                          <span className="text-[#C2BFC6] text-[12px] font-semibold mt-[3px]">444px x 204px</span>
-                        </div>
                         <ImageUploader
+                          label={`Partenaire ${position}`}
+                          dimensions="444px x 204px"
                           value={slot.logo_url || ""}
                           onChange={(url) => {
                             const newSlots = [...block.slots];

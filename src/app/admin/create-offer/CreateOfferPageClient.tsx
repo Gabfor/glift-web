@@ -729,15 +729,9 @@ export default function CreateOfferPageClient({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
                       {/* Image principale (Site) */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">
-                            Image principale (Site)
-                          </span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            1080px x 720px
-                          </span>
-                        </div>
                         <ImageUploader
+                          label="Image principale (Site)"
+                          dimensions="1080px x 720px"
                           value={offer.image}
                           onChange={(url) => setOffer({ ...offer, image: url })}
                         />
@@ -756,15 +750,9 @@ export default function CreateOfferPageClient({
 
                       {/* Image principale (Mobile) */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">
-                            Image principale (Mobile)
-                          </span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            1080px x 540px
-                          </span>
-                        </div>
                         <ImageUploader
+                          label="Image principale (Mobile)"
+                          dimensions="1080px x 540px"
                           value={offer.image_mobile}
                           onChange={(url) =>
                             setOffer({ ...offer, image_mobile: url })
@@ -774,15 +762,9 @@ export default function CreateOfferPageClient({
 
                       {/* Image slider */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">
-                            Image slider
-                          </span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            1128px x 500px
-                          </span>
-                        </div>
                         <ImageUploader
+                          label="Image slider"
+                          dimensions="1128px x 500px"
                           value={offer.slider_image}
                           onChange={(url) =>
                             setOffer({ ...offer, slider_image: url })
@@ -792,15 +774,9 @@ export default function CreateOfferPageClient({
 
                       {/* Image de la marque */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">
-                            Image de la marque
-                          </span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                            280px x 280px
-                          </span>
-                        </div>
                         <ImageUploader
+                          label="Image de la marque"
+                          dimensions="280px x 280px"
                           value={offer.brand_image}
                           onChange={(url) =>
                             setOffer({ ...offer, brand_image: url })

@@ -64,6 +64,14 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
     });
   };
 
+  // Image preview URL (local blob when selected, or remote URL when saved)
+  const previewImageUrl = useMemo(() => {
+    if (imageFile) {
+      return URL.createObjectURL(imageFile);
+    }
+    return imageUrl || null;
+  }, [imageFile, imageUrl]);
+
   // Initial state for dirty detection in edit mode
   const [initialState, setInitialState] = useState({
     name: "",
@@ -174,23 +182,22 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
       let finalUrl = fileUrl;
       let finalFilename = fileName;
 
-      // If user uploaded a new audio file, upload to storage or create object
+      // If user uploaded a new audio file, upload to storage via admin API
       if (file) {
         finalFilename = file.name;
         try {
-          const fileExt = file.name.split(".").pop();
-          const cleanFileName = `${Date.now()}_${name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${fileExt}`;
-          const { data: uploadData, error: uploadError } = await (supabase as any)
-            .storage
-            .from("ringtones")
-            .upload(cleanFileName, file);
-
-          if (!uploadError && uploadData) {
-            const { data: publicUrlData } = (supabase as any)
-              .storage
-              .from("ringtones")
-              .getPublicUrl(cleanFileName);
-            finalUrl = publicUrlData.publicUrl;
+          const uploadForm = new FormData();
+          uploadForm.append("file", file);
+          uploadForm.append("type", "sound");
+          const uploadRes = await fetch("/api/admin/ringtones/upload", {
+            method: "POST",
+            body: uploadForm,
+          });
+          if (uploadRes.ok) {
+            const uploadJson = await uploadRes.json();
+            if (uploadJson.publicUrl) {
+              finalUrl = uploadJson.publicUrl;
+            }
           } else {
             finalUrl = `/sounds/${file.name}`;
           }
@@ -202,25 +209,23 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
       // If user uploaded a new SVG / image icon
       let finalImageUrl = imageUrl;
       if (imageFile) {
-        try {
-          const fileExt = imageFile.name.split(".").pop();
-          const cleanImageName = `icon_${Date.now()}_${name.toLowerCase().replace(/[^a-z0-9]/g, "_")}.${fileExt}`;
-          const { data: uploadData, error: uploadError } = await (supabase as any)
-            .storage
-            .from("ringtones")
-            .upload(cleanImageName, imageFile, { upsert: true });
-
-          if (!uploadError && uploadData) {
-            const { data: publicUrlData } = (supabase as any)
-              .storage
-              .from("ringtones")
-              .getPublicUrl(cleanImageName);
-            finalImageUrl = publicUrlData.publicUrl;
+        const uploadForm = new FormData();
+        uploadForm.append("file", imageFile);
+        uploadForm.append("type", "icon");
+        const uploadRes = await fetch("/api/admin/ringtones/upload", {
+          method: "POST",
+          body: uploadForm,
+        });
+        if (uploadRes.ok) {
+          const uploadJson = await uploadRes.json();
+          if (uploadJson.publicUrl) {
+            finalImageUrl = uploadJson.publicUrl;
           } else {
-            finalImageUrl = `/icons/sounds/${imageFile.name}`;
+            throw new Error("L'upload de l'image n'a pas retourné d'URL.");
           }
-        } catch {
-          finalImageUrl = `/icons/sounds/${imageFile.name}`;
+        } else {
+          const uploadJson = await uploadRes.json().catch(() => ({}));
+          throw new Error(uploadJson.error || "Erreur lors de l'enregistrement de l'image.");
         }
       }
 
@@ -425,6 +430,9 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                       accept="audio/mp3,audio/mpeg,audio/wav"
                       ref={fileInputRef}
                       onChange={handleFileChange}
+                      onClick={(e) => {
+                        (e.target as HTMLInputElement).value = "";
+                      }}
                       className="hidden"
                     />
                   </div>
@@ -465,11 +473,28 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
                   {/* Champ Image */}
                   <div className="flex flex-col">
-                    <div className="flex justify-between mb-[5px]">
+                    <div className="flex justify-between items-baseline mb-[5px]">
                       <span className="text-[16px] text-[#3A416F] font-bold">Image</span>
-                      <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
-                        25px x 25px
-                      </span>
+                      {imageFileName || imageUrl ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImageFileName("");
+                            setImageUrl("");
+                            if (imageInputRef.current) {
+                              imageInputRef.current.value = "";
+                            }
+                          }}
+                          className="text-[12px] mt-[3px] text-[#5D6494] font-semibold hover:text-[#3A416F] transition-colors cursor-pointer"
+                        >
+                          Supprimer
+                        </button>
+                      ) : (
+                        <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+                          25px x 25px
+                        </span>
+                      )}
                     </div>
                     <div
                       onClick={() => imageInputRef.current?.click()}
@@ -478,19 +503,30 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                                  focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]
                                  transition-all duration-150 flex items-center justify-between"
                     >
-                      <span
-                        className={`text-[16px] font-semibold truncate ${
-                          imageFileName || imageUrl ? "text-[#3A416F]" : "text-[#D7D4DC]"
-                        }`}
-                      >
-                        {imageFileName || (imageUrl ? imageUrl.split("/").pop() : "Importer un fichier")}
-                      </span>
+                      <div className="flex items-center gap-[10px] min-w-0">
+                        {previewImageUrl && (
+                          <div className="w-[25px] h-[25px] shrink-0 flex items-center justify-center">
+                            <img
+                              src={previewImageUrl}
+                              alt="Aperçu"
+                              className="w-[25px] h-[25px] object-contain"
+                            />
+                          </div>
+                        )}
+                        <span
+                          className={`text-[16px] font-semibold truncate ${
+                            imageFileName || imageUrl ? "text-[#3A416F]" : "text-[#D7D4DC]"
+                          }`}
+                        >
+                          {imageFileName || (imageUrl ? imageUrl.split("/").pop() : "Importer un fichier")}
+                        </span>
+                      </div>
                       <Image
                         src={imageFileName || imageUrl ? "/icons/success.svg" : "/icons/upload.svg"}
                         alt="Upload Icon"
                         width={22}
                         height={22}
-                        className="shrink-0"
+                        className="shrink-0 ml-2"
                       />
                     </div>
                     <input
@@ -498,6 +534,9 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                       accept=".svg,image/svg+xml,image/png,image/webp"
                       ref={imageInputRef}
                       onChange={handleImageChange}
+                      onClick={(e) => {
+                        (e.target as HTMLInputElement).value = "";
+                      }}
                       className="hidden"
                     />
                   </div>

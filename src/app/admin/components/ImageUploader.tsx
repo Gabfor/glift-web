@@ -6,28 +6,50 @@ import { createClient } from "@/lib/supabaseClient";
 import { compressImage } from "@/lib/imageCompression";
 
 type Props = {
+  label?: string;
+  dimensions?: string;
   value: string;
   onChange: (url: string) => void;
+  onDelete?: () => void;
   placeholder?: string;
   bucket?: string;
   basePath?: string;
+  className?: string;
 };
 
 export default function ImageUploader({
+  label,
+  dimensions,
   value,
   onChange,
+  onDelete,
   placeholder,
   bucket = 'program-images',
-  basePath = 'programmes'
+  basePath = 'programmes',
+  className = '',
 }: Props) {
   const [loading, setLoading] = useState(false);
+  const [localFileName, setLocalFileName] = useState<string>("");
   const supabase = useMemo(() => createClient(), []);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const displayFileName = useMemo(() => {
+    if (localFileName) return localFileName;
+    if (!value) return "";
+    try {
+      const decoded = decodeURIComponent(value);
+      const clean = decoded.split("?")[0];
+      return clean.split("/").pop() || "";
+    } catch {
+      return value.split("/").pop() || "";
+    }
+  }, [value, localFileName]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    setLocalFileName(file.name);
     setLoading(true);
     try {
       // Compression de l'image côté client
@@ -63,6 +85,7 @@ export default function ImageUploader({
     } catch (err) {
       console.error("Erreur d'upload :", err);
       alert("Erreur lors de l'upload de l'image.");
+      setLocalFileName("");
     } finally {
       setLoading(false);
     }
@@ -74,8 +97,37 @@ export default function ImageUploader({
     }
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLocalFileName("");
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+    onChange("");
+    if (onDelete) onDelete();
+  };
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className={`flex flex-col ${className}`}>
+      {label && (
+        <div className="flex justify-between items-baseline mb-[5px]">
+          <span className="text-[16px] text-[#3A416F] font-bold">{label}</span>
+          {value ? (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="text-[12px] mt-[3px] text-[#5D6494] font-semibold hover:text-[#3A416F] transition-colors cursor-pointer"
+            >
+              Supprimer
+            </button>
+          ) : dimensions ? (
+            <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">
+              {dimensions}
+            </span>
+          ) : null}
+        </div>
+      )}
+
       <div
         onClick={handleClick}
         className="h-[45px] w-full px-[15px] rounded-[5px] bg-white cursor-pointer
@@ -84,15 +136,23 @@ export default function ImageUploader({
                    focus-within:border-transparent focus-within:ring-2 focus-within:ring-[#5D6494]
                    transition-all duration-150 flex items-center justify-between"
       >
-        <span className="text-[16px] font-semibold text-[#D7D4DC]">
-          {loading ? "Upload en cours..." : (placeholder || "Importer un fichier")}
+        <span
+          className={`text-[16px] font-semibold truncate ${
+            value ? "text-[#3A416F]" : "text-[#D7D4DC]"
+          }`}
+        >
+          {loading
+            ? "Upload en cours..."
+            : value
+              ? displayFileName
+              : (placeholder || "Importer un fichier")}
         </span>
         <Image
           src={value ? "/icons/success.svg" : "/icons/upload.svg"}
           alt={value ? "Succès" : "Upload Icon"}
           width={20}
           height={20}
-          className=""
+          className="shrink-0 ml-2"
         />
       </div>
 
@@ -101,6 +161,9 @@ export default function ImageUploader({
         accept="image/*"
         ref={inputRef}
         onChange={handleFileChange}
+        onClick={(e) => {
+          (e.target as HTMLInputElement).value = "";
+        }}
         disabled={loading}
         className="hidden"
       />

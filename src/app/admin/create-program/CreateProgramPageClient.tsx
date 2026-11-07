@@ -430,11 +430,9 @@ export default function CreateProgramPageClient({
                       {/* Row 1 */}
                       {/* Image principale (Site) */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Site)</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1080px x 720px</span>
-                        </div>
                         <ImageUploader
+                          label="Image principale (Site)"
+                          dimensions="1080px x 720px"
                           value={program.image}
                           onChange={(url) => setProgram({ ...program, image: url })}
                           placeholder="Importer un fichier"
@@ -455,11 +453,9 @@ export default function CreateProgramPageClient({
                       {/* Row 2 */}
                       {/* Image principale (Mobile) */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Image principale (Mobile)</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">1080px x 540px</span>
-                        </div>
                         <ImageUploader
+                          label="Image principale (Mobile)"
+                          dimensions="1080px x 540px"
                           value={program.image_mobile}
                           onChange={(url) => setProgram({ ...program, image_mobile: url })}
                           placeholder="Importer un fichier"
@@ -471,11 +467,9 @@ export default function CreateProgramPageClient({
                       {/* Row 3 */}
                       {/* Image du partenaire */}
                       <div className="flex flex-col">
-                        <div className="flex justify-between mb-[5px]">
-                          <span className="text-[16px] text-[#3A416F] font-bold">Image du partenaire</span>
-                          <span className="text-[12px] text-[#C2BFC6] font-semibold mt-[3px]">280px x 280px</span>
-                        </div>
                         <ImageUploader
+                          label="Image du partenaire"
+                          dimensions="280px x 280px"
                           value={program.partner_image}
                           onChange={(url) => setProgram({ ...program, partner_image: url })}
                           placeholder="Importer un fichier"
