@@ -288,10 +288,9 @@ export default function TrainingTable({
       if (row.superset_id && row.superset_id !== currentId) {
         if (currentId !== null && startIndex !== -1) {
           const groupRows = rows.slice(startIndex, index);
-          const visibleRows = groupRows.filter(r => !r.is_hidden);
-          const hasLocked = visibleRows.some(r => r.locked || r.superset_id_locked);
-          const hasUnlocked = visibleRows.some(r => !r.locked && !r.superset_id_locked);
-          if (visibleRows.length >= 2 && !(hasLocked && hasUnlocked)) {
+          const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+          const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+          if (!(hasLocked && hasUnlocked)) {
             groups.push({ id: currentId, start: startIndex, end: index - 1, locked: hasLocked });
           }
         }
@@ -299,10 +298,9 @@ export default function TrainingTable({
         startIndex = index;
       } else if (!row.superset_id && currentId !== null) {
         const groupRows = rows.slice(startIndex, index);
-        const visibleRows = groupRows.filter(r => !r.is_hidden);
-        const hasLocked = visibleRows.some(r => r.locked || r.superset_id_locked);
-        const hasUnlocked = visibleRows.some(r => !r.locked && !r.superset_id_locked);
-        if (visibleRows.length >= 2 && !(hasLocked && hasUnlocked)) {
+        const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+        const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+        if (!(hasLocked && hasUnlocked)) {
           groups.push({ id: currentId, start: startIndex, end: index - 1, locked: hasLocked });
         }
         currentId = null;
@@ -312,10 +310,9 @@ export default function TrainingTable({
 
     if (currentId && startIndex !== -1) {
       const groupRows = rows.slice(startIndex);
-      const visibleRows = groupRows.filter(r => !r.is_hidden);
-      const hasLocked = visibleRows.some(r => r.locked || r.superset_id_locked);
-      const hasUnlocked = visibleRows.some(r => !r.locked && !r.superset_id_locked);
-      if (visibleRows.length >= 2 && !(hasLocked && hasUnlocked)) {
+      const hasLocked = groupRows.some(r => r.locked || r.superset_id_locked);
+      const hasUnlocked = groupRows.some(r => !r.locked && !r.superset_id_locked);
+      if (!(hasLocked && hasUnlocked)) {
         groups.push({ id: currentId, start: startIndex, end: rows.length - 1, locked: hasLocked });
       }
     }
