@@ -507,12 +507,15 @@ export default function AdminEntrainementDetailPage() {
   };
 
   const handleToggleHideRow = () => {
-    if (selectedRowIds.length !== 1) return;
-    const selectedId = selectedRowIds[0];
+    if (selectedRowIds.length === 0) return;
+    const selectedRows = rows.filter((r) => selectedRowIds.includes(r.id ?? ""));
+    const allSelectedHidden = selectedRows.length > 0 && selectedRows.every((r) => r.is_hidden);
+    const targetHidden = !allSelectedHidden;
+
     setRows((prev) =>
       prev.map((r) => {
-        if (r.id === selectedId) {
-          return { ...r, is_hidden: !r.is_hidden, checked: false };
+        if (selectedRowIds.includes(r.id ?? "")) {
+          return { ...r, is_hidden: targetHidden, checked: false };
         }
         return r;
       })

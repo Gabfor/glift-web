@@ -15,7 +15,7 @@ type Props = {
   isAnimating?: boolean;
   setRows: React.Dispatch<React.SetStateAction<Row[]>>;
   handleEffortChange: (rowIndex: number, subIndex: number, direction: "up" | "down") => void;
-  handleCheckboxChange: (id: string) => void;
+  handleCheckboxChange: (id: string, event?: React.MouseEvent) => void;
   handleIncrementSeries: (index: number) => void;
   handleDecrementSeries: (index: number) => void;
   handleIconHover: (index: number, value: boolean) => void;
@@ -186,7 +186,7 @@ export default function TrainingRow({
             )}
             {!row.locked && (
               <button
-                onClick={() => handleCheckboxChange(rowId)}
+                onClick={(e) => handleCheckboxChange(rowId, e)}
                 className="flex items-center justify-center"
                 style={{ width: "15px", height: "15px" }}
               >

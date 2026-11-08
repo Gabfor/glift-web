@@ -137,6 +137,8 @@ export default function TableActionsBar({
 
   const selectedRow = selectedRowIds.length === 1 ? rows.find(r => r.id === selectedRowIds[0]) : null;
   const hasNote = !!selectedRow?.note?.trim();
+  const selectedRows = rows.filter(r => selectedRowIds.includes(r.id ?? ""));
+  const allSelectedHidden = selectedRows.length > 0 && selectedRows.every(r => r.is_hidden);
 
   useEffect(() => {
     const handleClickOutside = async (event: MouseEvent) => {
@@ -256,36 +258,36 @@ export default function TableActionsBar({
               </button>
             </Tooltip>
           )}
-
-          {selectedRow && (
-            <Tooltip content={selectedRow.is_hidden ? "Afficher" : "Masquer"}>
-              <button
-                onClick={() => {
-                  onToggleHideRow?.();
-                  setHoveredHide(false);
-                }}
-                onMouseEnter={() => setHoveredHide(true)}
-                onMouseLeave={() => setHoveredHide(false)}
-              >
-                <Image
-                  src={
-                    selectedRow.is_hidden
-                      ? hoveredHide
-                        ? "/icons/afficher_exercice_hover.svg"
-                        : "/icons/afficher_exercice.svg"
-                      : hoveredHide
-                        ? "/icons/masquer_exercice_hover.svg"
-                        : "/icons/masquer_exercice.svg"
-                  }
-                  alt={selectedRow.is_hidden ? "Afficher" : "Masquer"}
-                  width={20}
-                  height={20}
-                  className="w-5 h-5"
-                />
-              </button>
-            </Tooltip>
-          )}
         </>
+      )}
+
+      {selectedRowIds.length > 0 && onToggleHideRow && (
+        <Tooltip content={allSelectedHidden ? "Afficher" : "Masquer"}>
+          <button
+            onClick={() => {
+              onToggleHideRow();
+              setHoveredHide(false);
+            }}
+            onMouseEnter={() => setHoveredHide(true)}
+            onMouseLeave={() => setHoveredHide(false)}
+          >
+            <Image
+              src={
+                allSelectedHidden
+                  ? hoveredHide
+                    ? "/icons/afficher_exercice_hover.svg"
+                    : "/icons/afficher_exercice.svg"
+                  : hoveredHide
+                    ? "/icons/masquer_exercice_hover.svg"
+                    : "/icons/masquer_exercice.svg"
+              }
+              alt={allSelectedHidden ? "Afficher" : "Masquer"}
+              width={20}
+              height={20}
+              className="w-5 h-5"
+            />
+          </button>
+        </Tooltip>
       )}
 
       {selectedRowIds.length > 0 && (

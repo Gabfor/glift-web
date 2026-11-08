@@ -61,7 +61,7 @@ type Props = {
   rows: Row[];
   setRows: React.Dispatch<React.SetStateAction<Row[]>>;
   handleEffortChange: (rowIndex: number, subIndex: number, direction: "up" | "down") => void;
-  handleCheckboxChange: (id: string) => void;
+  handleCheckboxChange: (id: string, event?: React.MouseEvent) => void;
   handleIncrementSeries: (index: number) => void;
   handleDecrementSeries: (index: number) => void;
   handleIconHover: (index: number, value: boolean) => void;
