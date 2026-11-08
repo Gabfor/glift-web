@@ -66,7 +66,7 @@ export default function TrainingTableSkeleton({
               </th>
               <th
                 className="border-r border-[#ECE9F1] px-3 text-left"
-                style={{ height: "40px", width: "135px", maxWidth: "135px" }}
+                style={{ height: "40px", width: "115px", maxWidth: "115px" }}
               >
                 <div className="h-[14px] w-[60px] rounded-[4px] bg-[#ECE9F1]" />
               </th>
@@ -90,7 +90,7 @@ export default function TrainingTableSkeleton({
               </th>
               <th
                 className="border-r border-[#ECE9F1] px-2 text-center"
-                style={{ height: "40px", width: "60px", maxWidth: "60px" }}
+                style={{ height: "40px", width: "80px", maxWidth: "80px" }}
               >
                 <div className="h-[14px] w-[35px] rounded-[4px] bg-[#ECE9F1] mx-auto" />
               </th>
@@ -130,7 +130,7 @@ export default function TrainingTableSkeleton({
                 {/* Matériel */}
                 <td
                   className="border-r border-[#ECE9F1] px-3"
-                  style={{ height: "40px", width: "135px" }}
+                  style={{ height: "40px", width: "115px" }}
                 >
                   <div
                     className="h-[14px] rounded-[4px] bg-[#ECE9F1]"
@@ -165,7 +165,7 @@ export default function TrainingTableSkeleton({
                 {/* Repos */}
                 <td
                   className="border-r border-[#ECE9F1] px-2 text-center"
-                  style={{ height: "40px", width: "60px" }}
+                  style={{ height: "40px", width: "80px" }}
                 >
                   <div className="h-[14px] w-[30px] rounded-[4px] bg-[#ECE9F1] mx-auto" />
                 </td>

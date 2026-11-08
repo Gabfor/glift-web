@@ -334,7 +334,7 @@ export default function TrainingTable({
       w += adminMode ? 40 : 60;
     }
     w += 180; // Exercices
-    if (isVisible("materiel")) w += 135;
+    if (isVisible("materiel")) w += 115;
     w += 60;  // Séries
     w += 157; // Répétitions
     if (isVisible("poids")) w += 157;
@@ -402,7 +402,7 @@ export default function TrainingTable({
                   )}
                   <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
                   {isVisible("materiel") && (
-                    <th className={`text-[15px] px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "135px", width: "135px" }}>Matériel</th>
+                    <th className={`text-[15px] px-3 font-semibold text-left ${lastVisibleCol === "materiel" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "115px", width: "115px" }}>Matériel</th>
                   )}
                   <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "series" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "60px", width: "60px" }}>Séries</th>
                   <th className={`text-[15px] font-semibold text-center ${lastVisibleCol === "repetitions" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Répétitions</th>
