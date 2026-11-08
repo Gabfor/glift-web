@@ -338,7 +338,7 @@ export default function TrainingTable({
     w += 60;  // Séries
     w += 157; // Répétitions
     if (isVisible("poids")) w += 157;
-    if (isVisible("repos")) w += 70;
+    if (isVisible("repos")) w += 80;
     if (isVisible("effort")) w += 237;
     return Math.max(600, w);
   };
@@ -410,7 +410,7 @@ export default function TrainingTable({
                     <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "poids" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "157px", width: "157px" }}>Poids</th>
                   )}
                   {isVisible("repos") && (
-                    <th className={`text-[14px] px-1 font-semibold text-center whitespace-nowrap ${lastVisibleCol === "repos" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "70px", width: "70px" }}>Repos (s)</th>
+                    <th className={`text-[15px] font-semibold text-center whitespace-nowrap ${lastVisibleCol === "repos" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "80px", width: "80px" }}>Repos (s)</th>
                   )}
                   {isVisible("effort") && (
                     <th className={`text-[15px] px-3 font-semibold text-center ${lastVisibleCol === "effort" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"}`} style={{ height: "40px", maxWidth: "237px", width: "237px" }}>Effort</th>

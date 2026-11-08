@@ -448,7 +448,7 @@ export default function TrainingRow({
       )}
 
       {isVisible("repos") && (
-        <td className="px-0 py-0" style={{ maxWidth: "70px", width: "70px" }}>
+        <td className="px-0 py-0" style={{ maxWidth: "80px", width: "80px" }}>
           <input
             type="number"
             readOnly={readOnly}
