@@ -187,7 +187,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
       )}
 
       {isVisible("repos") && (
-        <td className="px-0 py-0" style={{ maxWidth: "60px", width: "60px" }}>
+        <td className="px-0 py-0" style={{ maxWidth: "70px", width: "70px" }}>
           <div
             className="w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
             style={{
