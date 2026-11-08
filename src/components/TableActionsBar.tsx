@@ -139,6 +139,8 @@ export default function TableActionsBar({
   const hasNote = !!selectedRow?.note?.trim();
   const selectedRows = rows.filter(r => selectedRowIds.includes(r.id ?? ""));
   const allSelectedHidden = selectedRows.length > 0 && selectedRows.every(r => r.is_hidden);
+  const allSelectedVisible = selectedRows.length > 0 && selectedRows.every(r => !r.is_hidden);
+  const canToggleHide = allSelectedHidden || allSelectedVisible;
 
   useEffect(() => {
     const handleClickOutside = async (event: MouseEvent) => {
@@ -261,7 +263,7 @@ export default function TableActionsBar({
         </>
       )}
 
-      {selectedRowIds.length > 0 && onToggleHideRow && (
+      {selectedRowIds.length > 0 && canToggleHide && onToggleHideRow && (
         <Tooltip content={allSelectedHidden ? "Afficher" : "Masquer"}>
           <button
             onClick={() => {

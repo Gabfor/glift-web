@@ -510,6 +510,9 @@ export default function AdminEntrainementDetailPage() {
     if (selectedRowIds.length === 0) return;
     const selectedRows = rows.filter((r) => selectedRowIds.includes(r.id ?? ""));
     const allSelectedHidden = selectedRows.length > 0 && selectedRows.every((r) => r.is_hidden);
+    const allSelectedVisible = selectedRows.length > 0 && selectedRows.every((r) => !r.is_hidden);
+    if (!allSelectedHidden && !allSelectedVisible) return;
+
     const targetHidden = !allSelectedHidden;
 
     setRows((prev) =>
