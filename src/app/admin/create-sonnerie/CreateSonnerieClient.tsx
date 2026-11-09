@@ -303,17 +303,15 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                     src="/icons/chevron_bloc.svg"
                     alt="Chevron"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.status ? "rotate-180" : ""
-                    } group-hover:hidden`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""
+                      } group-hover:hidden`}
                   />
                   <Image
                     src="/icons/chevron_bloc_hover.svg"
                     alt="Chevron Hover"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.status ? "rotate-180" : ""
-                    } hidden group-hover:block`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.status ? "rotate-180" : ""
+                      } hidden group-hover:block`}
                   />
                 </div>
               </div>
@@ -370,17 +368,15 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                     src="/icons/chevron_bloc.svg"
                     alt="Chevron"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.infos ? "rotate-180" : ""
-                    } group-hover:hidden`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.infos ? "rotate-180" : ""
+                      } group-hover:hidden`}
                   />
                   <Image
                     src="/icons/chevron_bloc_hover.svg"
                     alt="Chevron Hover"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.infos ? "rotate-180" : ""
-                    } hidden group-hover:block`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.infos ? "rotate-180" : ""
+                      } hidden group-hover:block`}
                   />
                 </div>
               </div>
@@ -411,9 +407,8 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                                  transition-all duration-150 flex items-center justify-between"
                     >
                       <span
-                        className={`text-[16px] font-semibold truncate ${
-                          fileName ? "text-[#3A416F]" : "text-[#D7D4DC]"
-                        }`}
+                        className={`text-[16px] font-semibold truncate ${fileName ? "text-[#3A416F]" : "text-[#D7D4DC]"
+                          }`}
                       >
                         {fileName || "Importer un fichier"}
                       </span>
@@ -454,17 +449,15 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                     src="/icons/chevron_bloc.svg"
                     alt="Chevron"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.image ? "rotate-180" : ""
-                    } group-hover:hidden`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.image ? "rotate-180" : ""
+                      } group-hover:hidden`}
                   />
                   <Image
                     src="/icons/chevron_bloc_hover.svg"
                     alt="Chevron Hover"
                     fill
-                    className={`object-contain transition-transform duration-200 ${
-                      !collapsedSections.image ? "rotate-180" : ""
-                    } hidden group-hover:block`}
+                    className={`object-contain transition-transform duration-200 ${!collapsedSections.image ? "rotate-180" : ""
+                      } hidden group-hover:block`}
                   />
                 </div>
               </div>
@@ -514,9 +507,8 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
                           </div>
                         )}
                         <span
-                          className={`text-[16px] font-semibold truncate ${
-                            imageFileName || imageUrl ? "text-[#3A416F]" : "text-[#D7D4DC]"
-                          }`}
+                          className={`text-[16px] font-semibold truncate ${imageFileName || imageUrl ? "text-[#3A416F]" : "text-[#D7D4DC]"
+                            }`}
                         >
                           {imageFileName || (imageUrl ? imageUrl.split("/").pop() : "Importer un fichier")}
                         </span>
