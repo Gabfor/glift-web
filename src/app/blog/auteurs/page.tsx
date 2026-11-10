@@ -282,13 +282,13 @@ export default async function AuteursPage() {
         </h1>
         {pageConfig?.description ? (
           <div
-            className="text-[15px] font-semibold text-[#5D6494] max-w-[500px] leading-relaxed [&_p]:m-0"
+            className="text-[15px] font-semibold text-[#5D6494] max-w-[500px] mx-auto text-center leading-relaxed [&_p]:m-0"
             dangerouslySetInnerHTML={{
               __html: pageConfig.description,
             }}
           />
         ) : (
-          <p className="text-[15px] font-semibold text-[#5D6494] max-w-[500px] leading-relaxed">
+          <p className="text-[15px] font-semibold text-[#5D6494] max-w-[500px] mx-auto text-center leading-relaxed">
             Entraînement, nutrition et motivation : profitez des conseils de nos experts pour progresser.
           </p>
         )}
