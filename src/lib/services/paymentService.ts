@@ -98,8 +98,8 @@ export class PaymentService {
         }));
     }
 
-    async createCustomerAndStarterSubscription(userId: string, email: string, name: string, plan: 'starter' | 'premium' = 'starter') {
-        console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email}), plan=${plan}`);
+    async createCustomerAndStarterSubscription(userId: string, email: string, name: string, plan: 'starter' | 'premium' = 'starter', interval: 'monthly' | 'yearly' = 'monthly') {
+        console.log(`PaymentService: createCustomerAndStarterSubscription called for user ${userId} (${email}), plan=${plan}, interval=${interval}`);
 
         // 1. Get or Create Stripe Customer
         let customerId: string | null = null;
@@ -151,7 +151,7 @@ export class PaymentService {
             // we assume if a sub exists, we respect it.
             // However, to enforce the requested plan:
             const currentPriceId = activeSub.items.data[0]?.price.id;
-            const targetPriceId = plan === 'premium' ? process.env.STRIPE_PRICE_ID_PREMIUM : process.env.STRIPE_PRICE_ID_STARTER;
+            const targetPriceId = plan === 'premium' ? (await this.getPremiumPriceId(interval)) : process.env.STRIPE_PRICE_ID_STARTER;
 
             if (currentPriceId !== targetPriceId) {
                 console.log(`PaymentService: Existing sub price (${currentPriceId}) does not match target (${targetPriceId}). Updating...`);
@@ -176,8 +176,8 @@ export class PaymentService {
                 console.log(`PaymentService: Created Starter Subscription ${subscription.id}`);
             } else {
                 // Premium Plan -> Create "Incomplete" subscription requiring payment method
-                const premiumPriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
-                if (!premiumPriceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
+                const premiumPriceId = await this.getPremiumPriceId(interval);
+                if (!premiumPriceId) throw new Error("Stripe Premium Price ID missing");
 
                 // Fetch dynamic trial days setting
                 const { data: trialSetting } = await this.supabase
@@ -242,8 +242,8 @@ export class PaymentService {
         return { customerId: customerId, subscriptionId: subscriptionId };
     }
 
-    async createSubscriptionSetup(userEmail: string, userId: string, appMetadata: any) {
-        console.log(`PaymentService: createSubscriptionSetup called for user ${userId}`);
+    async createSubscriptionSetup(userEmail: string, userId: string, appMetadata: any, interval: 'monthly' | 'yearly' = 'monthly') {
+        console.log(`PaymentService: createSubscriptionSetup called for user ${userId}, interval=${interval}`);
 
         // 1. Get or Create Customer
         let customerId = appMetadata?.stripe_customer_id;
@@ -287,7 +287,7 @@ export class PaymentService {
             }
         }
 
-        const priceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+        const priceId = await this.getPremiumPriceId(interval);
         console.log(`PaymentService.createSubscriptionSetup: Using Price ID: ${priceId}`);
         if (!priceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
 
@@ -565,7 +565,7 @@ export class PaymentService {
 
         // Unify Idempotency Key with 'signup' flow to prevent duplicates
         // signup uses: `signup_sub_${userId}_${plan}`
-        const planName = priceId === process.env.STRIPE_PRICE_ID_PREMIUM ? 'premium' : 'starter';
+        const planName = (await this.isPremiumPriceId(priceId)) ? 'premium' : 'starter';
         const signupIdempotencyKey = `signup_sub_${userId}_${planName}`;
         // Fallback key (hourly) if we need to create a distinct one (e.g. re-subscription)
         const setupIdempotencyKey = `setup_sub_${userId}_${priceId}_${new Date().toISOString().slice(0, 13)}`;
@@ -740,7 +740,7 @@ export class PaymentService {
         };
     }
 
-    async updateSubscription(userEmail: string, userId: string, appMetadata: any, newPlan: 'premium' | 'starter') {
+    async updateSubscription(userEmail: string, userId: string, appMetadata: any, newPlan: 'premium' | 'starter', interval: 'monthly' | 'yearly' = 'monthly') {
         let customerId = appMetadata?.stripe_customer_id;
 
         // Validation helper
@@ -756,7 +756,7 @@ export class PaymentService {
             }
         }
 
-        const priceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+        const priceId = await this.getPremiumPriceId(interval);
         if (!priceId) throw new Error("STRIPE_PRICE_ID_PREMIUM missing");
 
         const subscriptions = await stripe.subscriptions.list({
@@ -1050,7 +1050,7 @@ export class PaymentService {
 
         // Resolve Stripe Plan
         let stripePlan = 'starter';
-        if (activeSub && activeSub.items.data[0]?.price.id === process.env.STRIPE_PRICE_ID_PREMIUM) {
+        if (activeSub && (await this.isPremiumPriceId(activeSub.items.data[0]?.price.id))) {
             stripePlan = 'premium';
         }
 
@@ -1423,5 +1423,52 @@ export class PaymentService {
             // Re-throw other errors
             throw error;
         }
+    }
+
+    async getPremiumPriceId(interval: 'monthly' | 'yearly' = 'monthly'): Promise<string> {
+        try {
+            const key = interval === 'yearly' ? 'premium_yearly_stripe_id' : 'premium_monthly_stripe_id';
+            const { data } = await this.supabase
+                .from('settings')
+                .select('value')
+                .eq('key', key)
+                .maybeSingle();
+
+            if (data?.value && data.value.trim().length > 0) {
+                return data.value.trim();
+            }
+        } catch (e) {
+            console.warn("PaymentService: Failed to fetch Stripe Price ID from settings:", e);
+        }
+
+        if (interval === 'yearly') {
+            return process.env.STRIPE_PRICE_ID_PREMIUM_YEARLY || process.env.STRIPE_PRICE_ID_PREMIUM || '';
+        }
+        return process.env.STRIPE_PRICE_ID_PREMIUM || '';
+    }
+
+    async isPremiumPriceId(priceId: string | undefined | null): Promise<boolean> {
+        if (!priceId) return false;
+        if (priceId === process.env.STRIPE_PRICE_ID_PREMIUM) return true;
+        if (process.env.STRIPE_PRICE_ID_PREMIUM_YEARLY && priceId === process.env.STRIPE_PRICE_ID_PREMIUM_YEARLY) return true;
+
+        try {
+            const { data } = await this.supabase
+                .from('settings')
+                .select('key, value')
+                .in('key', ['premium_monthly_stripe_id', 'premium_yearly_stripe_id']);
+
+            if (data) {
+                for (const row of data) {
+                    if (row.value && row.value.trim() === priceId) {
+                        return true;
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn("PaymentService: Failed to check isPremiumPriceId:", e);
+        }
+
+        return false;
     }
 }

@@ -34,6 +34,20 @@ export default function AdminSettingsPage() {
     const [trialDays, setTrialDays] = useState<string>("30");
     const [initialTrialDays, setInitialTrialDays] = useState<string>("30");
 
+    // Premium Pricing settings
+    const [premiumMonthlyEnabled, setPremiumMonthlyEnabled] = useState<string>("OUI");
+    const [initialPremiumMonthlyEnabled, setInitialPremiumMonthlyEnabled] = useState<string>("OUI");
+    const [premiumYearlyEnabled, setPremiumYearlyEnabled] = useState<string>("NON");
+    const [initialPremiumYearlyEnabled, setInitialPremiumYearlyEnabled] = useState<string>("NON");
+    const [premiumMonthlyPrice, setPremiumMonthlyPrice] = useState<string>("2,49");
+    const [initialPremiumMonthlyPrice, setInitialPremiumMonthlyPrice] = useState<string>("2,49");
+    const [premiumYearlyPrice, setPremiumYearlyPrice] = useState<string>("24,99");
+    const [initialPremiumYearlyPrice, setInitialPremiumYearlyPrice] = useState<string>("24,99");
+    const [premiumMonthlyStripeId, setPremiumMonthlyStripeId] = useState<string>("");
+    const [initialPremiumMonthlyStripeId, setInitialPremiumMonthlyStripeId] = useState<string>("");
+    const [premiumYearlyStripeId, setPremiumYearlyStripeId] = useState<string>("");
+    const [initialPremiumYearlyStripeId, setInitialPremiumYearlyStripeId] = useState<string>("");
+
     const [starterMaxTrainings, setStarterMaxTrainings] = useState<string>("1");
     const [initialStarterMaxTrainings, setInitialStarterMaxTrainings] = useState<string>("1");
 
@@ -73,6 +87,7 @@ export default function AdminSettingsPage() {
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
         logo: false,
         trial: true,
+        premiumPricing: true,
         starterLimits: true,
         emails: true,
         degrade: true,
@@ -112,6 +127,31 @@ export default function AdminSettingsPage() {
                 const trialDaysValue = settings["trial_period_days"] || "30";
                 setTrialDays(trialDaysValue);
                 setInitialTrialDays(trialDaysValue);
+
+                // Fetch Premium Pricing Settings
+                const monthlyEnabledVal = settings["premium_monthly_enabled"] || "OUI";
+                setPremiumMonthlyEnabled(monthlyEnabledVal);
+                setInitialPremiumMonthlyEnabled(monthlyEnabledVal);
+
+                const yearlyEnabledVal = settings["premium_yearly_enabled"] || "NON";
+                setPremiumYearlyEnabled(yearlyEnabledVal);
+                setInitialPremiumYearlyEnabled(yearlyEnabledVal);
+
+                const monthlyPriceVal = settings["premium_monthly_price"] || "2,49";
+                setPremiumMonthlyPrice(monthlyPriceVal);
+                setInitialPremiumMonthlyPrice(monthlyPriceVal);
+
+                const yearlyPriceVal = settings["premium_yearly_price"] || "24,99";
+                setPremiumYearlyPrice(yearlyPriceVal);
+                setInitialPremiumYearlyPrice(yearlyPriceVal);
+
+                const monthlyStripeVal = settings["premium_monthly_stripe_id"] || "";
+                setPremiumMonthlyStripeId(monthlyStripeVal);
+                setInitialPremiumMonthlyStripeId(monthlyStripeVal);
+
+                const yearlyStripeVal = settings["premium_yearly_stripe_id"] || "";
+                setPremiumYearlyStripeId(yearlyStripeVal);
+                setInitialPremiumYearlyStripeId(yearlyStripeVal);
 
                 // Fetch Starter Limits
                 const starterTrainingsValue = settings["starter_max_trainings"] || "1";
@@ -171,6 +211,12 @@ export default function AdminSettingsPage() {
         logoUrl !== initialLogoUrl ||
         altText !== initialAltText ||
         trialDays !== initialTrialDays ||
+        premiumMonthlyEnabled !== initialPremiumMonthlyEnabled ||
+        premiumYearlyEnabled !== initialPremiumYearlyEnabled ||
+        premiumMonthlyPrice !== initialPremiumMonthlyPrice ||
+        premiumYearlyPrice !== initialPremiumYearlyPrice ||
+        premiumMonthlyStripeId !== initialPremiumMonthlyStripeId ||
+        premiumYearlyStripeId !== initialPremiumYearlyStripeId ||
         starterMaxTrainings !== initialStarterMaxTrainings ||
         starterMaxExercises !== initialStarterMaxExercises ||
         contactEmail !== initialContactEmail ||
@@ -192,6 +238,12 @@ export default function AdminSettingsPage() {
             await settingsService.updateSetting("logo_alt", altText);
 
             await settingsService.updateSetting("trial_period_days", trialDays);
+            await settingsService.updateSetting("premium_monthly_enabled", premiumMonthlyEnabled);
+            await settingsService.updateSetting("premium_yearly_enabled", premiumYearlyEnabled);
+            await settingsService.updateSetting("premium_monthly_price", premiumMonthlyPrice);
+            await settingsService.updateSetting("premium_yearly_price", premiumYearlyPrice);
+            await settingsService.updateSetting("premium_monthly_stripe_id", premiumMonthlyStripeId);
+            await settingsService.updateSetting("premium_yearly_stripe_id", premiumYearlyStripeId);
             await settingsService.updateSetting("starter_max_trainings", starterMaxTrainings);
             await settingsService.updateSetting("starter_max_exercises", starterMaxExercises);
             await settingsService.updateSetting("contact_email", contactEmail);
@@ -210,6 +262,12 @@ export default function AdminSettingsPage() {
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
             setInitialTrialDays(trialDays);
+            setInitialPremiumMonthlyEnabled(premiumMonthlyEnabled);
+            setInitialPremiumYearlyEnabled(premiumYearlyEnabled);
+            setInitialPremiumMonthlyPrice(premiumMonthlyPrice);
+            setInitialPremiumYearlyPrice(premiumYearlyPrice);
+            setInitialPremiumMonthlyStripeId(premiumMonthlyStripeId);
+            setInitialPremiumYearlyStripeId(premiumYearlyStripeId);
             setInitialStarterMaxTrainings(starterMaxTrainings);
             setInitialStarterMaxExercises(starterMaxExercises);
             setInitialContactEmail(contactEmail);
@@ -348,6 +406,108 @@ export default function AdminSettingsPage() {
                                         ]}
                                         selected={premiumPaymentStep}
                                         onSelect={setPremiumPaymentStep}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SECTION: PRIX D’UN ABONNEMENT PREMIUM */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("premiumPricing")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Prix d’un abonnement Premium
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
+                                <Image
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.premiumPricing ? "rotate-180" : ""} group-hover:hidden`}
+                                />
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.premiumPricing ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
+                        </div>
+
+                        {!collapsedSections.premiumPricing && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                                {/* Row 1: Activation */}
+                                <div>
+                                    <AdminDropdown
+                                        label="Activer prix mensuel"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={[
+                                            { value: "OUI", label: "OUI" },
+                                            { value: "NON", label: "NON" },
+                                        ]}
+                                        selected={premiumMonthlyEnabled}
+                                        onSelect={setPremiumMonthlyEnabled}
+                                    />
+                                </div>
+                                <div>
+                                    <AdminDropdown
+                                        label="Activer prix annuel"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={[
+                                            { value: "OUI", label: "OUI" },
+                                            { value: "NON", label: "NON" },
+                                        ]}
+                                        selected={premiumYearlyEnabled}
+                                        onSelect={setPremiumYearlyEnabled}
+                                    />
+                                </div>
+
+                                {/* Row 2: Prix */}
+                                <div>
+                                    <AdminTextField
+                                        label="Prix mensuel"
+                                        value={premiumMonthlyEnabled === "OUI" ? premiumMonthlyPrice : ""}
+                                        onChange={setPremiumMonthlyPrice}
+                                        placeholder={premiumMonthlyEnabled === "OUI" ? "3,99" : "0,00"}
+                                        disabled={premiumMonthlyEnabled !== "OUI"}
+                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                    />
+                                </div>
+                                <div>
+                                    <AdminTextField
+                                        label="Prix annuel"
+                                        value={premiumYearlyEnabled === "OUI" ? premiumYearlyPrice : ""}
+                                        onChange={setPremiumYearlyPrice}
+                                        placeholder={premiumYearlyEnabled === "OUI" ? "39,99" : "0,00"}
+                                        disabled={premiumYearlyEnabled !== "OUI"}
+                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                    />
+                                </div>
+
+                                {/* Row 3: Stripe Price ID */}
+                                <div>
+                                    <AdminTextField
+                                        label="ID du tarif Stripe"
+                                        value={premiumMonthlyEnabled === "OUI" ? premiumMonthlyStripeId : ""}
+                                        onChange={setPremiumMonthlyStripeId}
+                                        placeholder={premiumMonthlyEnabled === "OUI" ? "price_..." : "0,00"}
+                                        disabled={premiumMonthlyEnabled !== "OUI"}
+                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                    />
+                                </div>
+                                <div>
+                                    <AdminTextField
+                                        label="ID du tarif Stripe"
+                                        value={premiumYearlyEnabled === "OUI" ? premiumYearlyStripeId : ""}
+                                        onChange={setPremiumYearlyStripeId}
+                                        placeholder={premiumYearlyEnabled === "OUI" ? "price_..." : "0,00"}
+                                        disabled={premiumYearlyEnabled !== "OUI"}
+                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                                     />
                                 </div>
                             </div>

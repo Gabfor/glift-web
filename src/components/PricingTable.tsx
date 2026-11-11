@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
@@ -12,9 +13,65 @@ type PricingTableProps = {
 };
 
 export default function PricingTable({ abonnement1, abonnement2 }: PricingTableProps) {
-  const { trialDays } = useSiteSettings();
+  const {
+    trialDays,
+    premiumMonthlyEnabled,
+    premiumYearlyEnabled,
+    premiumMonthlyPrice,
+    premiumYearlyPrice,
+  } = useSiteSettings();
+
+  const showToggle = premiumMonthlyEnabled && premiumYearlyEnabled;
+
+  const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
+
+  // Synchroniser avec les réglages dès qu'ils sont disponibles
+  useEffect(() => {
+    if (!premiumMonthlyEnabled && premiumYearlyEnabled) {
+      setInterval("yearly");
+    } else if (premiumMonthlyEnabled && !premiumYearlyEnabled) {
+      setInterval("monthly");
+    }
+  }, [premiumMonthlyEnabled, premiumYearlyEnabled]);
+
+  // Calcul du pourcentage d'économie
+  const parsePrice = (priceStr?: string) => {
+    if (!priceStr) return 0;
+    const clean = priceStr.replace(",", ".").replace(/[^0-9.]/g, "");
+    return parseFloat(clean) || 0;
+  };
+
+  const monthlyVal = parsePrice(premiumMonthlyPrice);
+  const yearlyVal = parsePrice(premiumYearlyPrice);
+  const discountPercent =
+    monthlyVal > 0 && yearlyVal > 0 && 12 * monthlyVal > yearlyVal
+      ? Math.round(((12 * monthlyVal - yearlyVal) / (12 * monthlyVal)) * 100)
+      : 0;
 
   const renderAbo = (abo: Subscription, isPremium?: boolean) => {
+    const priceDisplay = isPremium
+      ? (interval === "yearly" ? (premiumYearlyPrice || abo.prix) : (premiumMonthlyPrice || abo.prix))
+      : abo.prix;
+
+    const periodDisplay = isPremium
+      ? (interval === "yearly" ? "/an" : "/mois")
+      : "/mois";
+
+    const getButtonHref = () => {
+      if (!abo.boutonLien) return "#";
+      if (!isPremium) return abo.boutonLien;
+
+      try {
+        const isRelative = abo.boutonLien.startsWith("/");
+        const url = new URL(abo.boutonLien, "https://glift.io");
+        url.searchParams.set("interval", interval);
+        return isRelative ? `${url.pathname}${url.search}${url.hash}` : url.toString();
+      } catch {
+        const sep = abo.boutonLien.includes("?") ? "&" : "?";
+        return `${abo.boutonLien}${sep}interval=${interval}`;
+      }
+    };
+
     return (
       <div className={`relative bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden p-[20px] md:p-[30px] flex flex-col text-center w-full max-w-[466px] transition-shadow duration-200 ${
         isPremium
@@ -53,7 +110,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
             : abo.nom}
         </h2>
         <p className="text-[#2E3271] font-bold text-[36px] leading-tight pt-[10px] pb-[10px]">
-          {abo.prix} €<span className="text-[15px] md:text-[16px] font-semibold">/mois</span>
+          {priceDisplay} €<span className="text-[15px] md:text-[16px] font-semibold">{periodDisplay}</span>
         </p>
         <div 
           className="text-[#5D6494] text-[14px] md:text-[16px] font-semibold leading-relaxed pb-[20px] prose prose-sm max-w-[350px] mx-auto [&_p]:mb-0"
@@ -104,12 +161,12 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
         <div className="mt-auto pt-[30px] flex flex-col items-center gap-2">
           {abo.boutonType !== "aucun" && (
             abo.boutonType === "primaire" ? (
-              <CTAButton href={abo.boutonLien || "#"} className="font-semibold w-full md:w-auto">
+              <CTAButton href={getButtonHref()} className="font-semibold w-full md:w-auto">
                 {abo.boutonTexte}
               </CTAButton>
             ) : (
               <Link
-                href={abo.boutonLien || "#"}
+                href={getButtonHref()}
                 className="inline-flex items-center justify-center h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
               >
                 {abo.boutonTexte}
@@ -137,9 +194,59 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full">
-      {renderAbo(abonnement1)}
-      {renderAbo(abonnement2, true)}
+    <div className="flex flex-col items-center w-full">
+      {showToggle && (
+        <div className="flex items-center justify-center gap-3 md:gap-4 mb-[30px] md:mb-[40px]">
+          <button
+            type="button"
+            onClick={() => setInterval("monthly")}
+            className={`text-[16px] transition-colors cursor-pointer ${
+              interval === "monthly"
+                ? "text-[#2E3271] font-bold"
+                : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
+            }`}
+          >
+            Mensuel
+          </button>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={interval === "yearly"}
+            onClick={() => setInterval((prev) => (prev === "monthly" ? "yearly" : "monthly"))}
+            className="w-[54px] h-[30px] rounded-full bg-[#8782FA] p-[3px] flex items-center transition-colors focus:outline-none cursor-pointer"
+          >
+            <div
+              className={`w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
+                interval === "yearly" ? "translate-x-[24px]" : "translate-x-0"
+              }`}
+            />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setInterval("yearly")}
+            className={`text-[16px] transition-colors cursor-pointer ${
+              interval === "yearly"
+                ? "text-[#2E3271] font-bold"
+                : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
+            }`}
+          >
+            Annuel
+          </button>
+
+          {discountPercent > 0 && (
+            <span className="bg-[#D2F8E7] text-[#00D591] text-[13px] md:text-[14px] font-bold px-[12px] py-[3px] md:py-[4px] rounded-full whitespace-nowrap">
+              Économise {discountPercent} %
+            </span>
+          )}
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row items-center justify-center gap-6 w-full">
+        {renderAbo(abonnement1)}
+        {renderAbo(abonnement2, true)}
+      </div>
     </div>
   );
 }

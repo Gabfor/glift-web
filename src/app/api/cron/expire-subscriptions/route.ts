@@ -170,9 +170,9 @@ async function processSubscriptionExpirations() {
             limit: 3,
           });
 
-          const premiumPriceId = process.env.STRIPE_PRICE_ID_PREMIUM;
+          const starterPriceId = process.env.STRIPE_PRICE_ID_STARTER;
           const activeSub = subscriptions.data.find((sub) =>
-            sub.items.data.some((item) => item.price.id === premiumPriceId)
+            sub.items.data.some((item) => item.price.id !== starterPriceId)
           );
 
           if (activeSub) {

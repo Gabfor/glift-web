@@ -26,10 +26,13 @@ export async function POST(request: Request) {
         const paymentService = new PaymentService(adminSupabase);
         const metadataToUse = freshUser?.app_metadata || user.app_metadata;
 
-        console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}`);
+        const body = await request.json().catch(() => ({}));
+        const interval: 'monthly' | 'yearly' = body?.interval === 'yearly' ? 'yearly' : 'monthly';
+
+        console.log(`Setup-Sub Route: Auth User ID: ${user.id}, Email: ${user.email}, Interval: ${interval}`);
         console.log(`Setup-Sub Route: Using metadata subscription_id: ${metadataToUse?.stripe_subscription_id}`);
 
-        const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, metadataToUse);
+        const setupData = await paymentService.createSubscriptionSetup(user.email!, user.id, metadataToUse, interval);
 
         return NextResponse.json(setupData);
 

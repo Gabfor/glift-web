@@ -15,9 +15,10 @@ interface StripeWrapperProps {
     plan: string;
     email: string;
     userId: string;
+    interval?: 'monthly' | 'yearly';
 }
 
-export default function StripeWrapper({ priceLabel, plan, email, userId }: StripeWrapperProps) {
+export default function StripeWrapper({ priceLabel, plan, email, userId, interval = 'monthly' }: StripeWrapperProps) {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [customerId, setCustomerId] = useState<string | null>(null);
     const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
@@ -31,8 +32,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
         fetch("/api/user/setup-subscription", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            // Body is empty because the API gets user from session
-            body: JSON.stringify({}),
+            body: JSON.stringify({ interval }),
         })
             .then((res) => res.json())
             .then((data) => {
@@ -48,7 +48,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId }: Strip
                 }
             })
             .catch((err) => setError("Erreur réseau: impossible d'initialiser le paiement."));
-    }, []); // Run once on mount
+    }, [interval]);
 
     if (error) {
         return (

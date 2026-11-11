@@ -80,7 +80,12 @@ const PaymentPage = () => {
     return formatFr(endDate);
   }, [trialEndParam, trialDays]);
 
-  const priceLabel = searchParams?.get("price") ?? "2,49 €/mois";
+  const intervalParam = searchParams?.get("interval");
+  const isYearly = intervalParam === "yearly" || (!siteSettings.premiumMonthlyEnabled && siteSettings.premiumYearlyEnabled);
+  const defaultPrice = isYearly
+    ? `${siteSettings.premiumYearlyPrice || "24,99"} €/an`
+    : `${siteSettings.premiumMonthlyPrice || "2,49"} €/mois`;
+  const priceLabel = searchParams?.get("price") ?? defaultPrice;
 
   if (!plan || plan !== "premium" || !stepMetadata) {
     return (
@@ -140,6 +145,7 @@ const PaymentPage = () => {
             plan={plan}
             email={user?.email || ""}
             userId={user?.id || ""}
+            interval={isYearly ? "yearly" : "monthly"}
           />
         </div>
 

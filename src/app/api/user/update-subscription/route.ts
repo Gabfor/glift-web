@@ -15,7 +15,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { plan } = await request.json();
+        const { plan, interval } = await request.json();
 
         if (!plan || (plan !== 'premium' && plan !== 'starter')) {
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
@@ -35,7 +35,8 @@ export async function POST(request: Request) {
                 user.email!,
                 user.id,
                 freshUser?.app_metadata || user.app_metadata,
-                plan
+                plan,
+                interval === 'yearly' ? 'yearly' : 'monthly'
             );
 
             // Update local profile to reflect change immediately if possible, or wait for webhook
