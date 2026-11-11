@@ -671,29 +671,31 @@ export default function AdminEntrainementDetailPage() {
           </div>
         </div>
 
-        <AddRowButton
-          icon={icon}
-          setIcon={setIcon}
-          adminMode={isAdminRoute || isAdminTraining}
-          onClick={() => {
-            if (rowsLoading) return;
+        {!(programNameLoading || rowsLoading) && (
+          <AddRowButton
+            icon={icon}
+            setIcon={setIcon}
+            adminMode={isAdminRoute || isAdminTraining}
+            onClick={() => {
+              if (rowsLoading) return;
 
-            // Check against current count (both state and ref)
-            const currentCount = Math.max(rowCountRef.current, rows.length);
-            const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= starterMaxExercises;
+              // Check against current count (both state and ref)
+              const currentCount = Math.max(rowCountRef.current, rows.length);
+              const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= starterMaxExercises;
 
-            if (isLocked) {
-              setShowLockedModal(true);
-              return;
-            }
+              if (isLocked) {
+                setShowLockedModal(true);
+                return;
+              }
 
-            // Optimistically increment ref to block subsequent clicks immediately
-            rowCountRef.current = currentCount + 1;
-            handleAddRow();
-          }}
-          disabled={rowsLoading}
-          locked={!isAdminRoute && !isPremiumUser && rows.length >= starterMaxExercises}
-        />
+              // Optimistically increment ref to block subsequent clicks immediately
+              rowCountRef.current = currentCount + 1;
+              handleAddRow();
+            }}
+            disabled={rowsLoading}
+            locked={!isAdminRoute && !isPremiumUser && rows.length >= starterMaxExercises}
+          />
+        )}
 
         <div className="flex justify-center mt-4 mb-2 md:hidden landscape:hidden">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#D7D4DC] bg-white text-[13px] font-semibold text-[#5D6494] select-none">

@@ -1450,18 +1450,19 @@ export default function BlogArticleBlocksRenderer({
 }
 function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?: string }) {
   const router = useRouter();
-  const { isAuthenticated, isPremiumUser } = useUser();
+  const { isAuthenticated, isPremiumUser, user } = useUser();
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [modalMode, setModalMode] = useState<"auth" | "restricted">("auth");
   const [programInfo, setProgramInfo] = useState<{ plan: string; status?: string } | null>(null);
+  const [hasExistingTrainings, setHasExistingTrainings] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(true);
- 
+
   useEffect(() => {
     const trimmedId = programmeId?.trim();
     if (!trimmedId) return;
- 
+
     const fetchInfo = async () => {
       const supabase = createClient();
       
@@ -1481,13 +1482,33 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
           .maybeSingle();
         data = storeData;
       }
- 
+
       if (data) {
         setProgramInfo(data);
         if ((data as any).status && (data as any).status !== "ON") {
           setIsPaused(true);
         }
       }
+
+      if (user && !isPremiumUser) {
+        const [trainingsCountRes, settingsRes] = await Promise.all([
+          supabase
+            .from("trainings")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", user.id),
+          supabase
+            .from("settings")
+            .select("value")
+            .eq("key", "starter_max_trainings")
+            .maybeSingle(),
+        ]);
+        const starterMaxTrainings = settingsRes?.data?.value ? parseInt(settingsRes.data.value, 10) : 1;
+        const count = trainingsCountRes?.count ?? 0;
+        if (count >= starterMaxTrainings) {
+          setHasExistingTrainings(true);
+        }
+      }
+
       setIsCheckingStatus(false);
     };
     if (trimmedId) {
@@ -1496,9 +1517,9 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
       setIsPaused(true);
       setIsCheckingStatus(false);
     }
-  }, [programmeId]);
- 
-  const isRestricted = isAuthenticated && !isPremiumUser && programInfo?.plan === "premium";
+  }, [programmeId, user, isPremiumUser]);
+
+  const isRestricted = isAuthenticated && !isPremiumUser && (programInfo?.plan === "premium" || hasExistingTrainings);
  
   if (isCheckingStatus || isPaused) return null;
 

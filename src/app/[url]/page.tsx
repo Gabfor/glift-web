@@ -68,7 +68,7 @@ export async function generateMetadata({ params }: { params: Promise<{ url: stri
 import ShopPageClient from "@/app/shop/ShopPageClient";
 import { mapOfferRowToOffer, OfferQueryRow, isOfferMatchingCountry } from "@/utils/shopUtils";
 import { resolveUserCountry } from "@/utils/geoUtils";
-import { headers } from "next/headers";
+import { headers, cookies } from "next/headers";
 import { sortOffersByRelevance } from "@/utils/sortingUtils";
 import { ShopProfile } from "@/types/shop";
 import ShopHeader from "@/components/shop/ShopHeader";
@@ -171,6 +171,31 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
       redirect("/connexion");
     }
  
+    let initialStructure: { trainingCount: number }[] | undefined = undefined;
+    try {
+      const { data: programsData } = await supabase
+        .from("programs")
+        .select("id, position, trainings(id)")
+        .eq("user_id", user.id)
+        .order("position", { ascending: true });
+
+      if (programsData && programsData.length > 0) {
+        const filtered = programsData.filter((p, index) => {
+          const count = Array.isArray(p.trainings) ? p.trainings.length : 0;
+          const isLast = index === programsData.length - 1;
+          return count > 0 || isLast;
+        });
+
+        if (filtered.length > 0) {
+          initialStructure = filtered.map((p) => ({
+            trainingCount: Array.isArray(p.trainings) ? p.trainings.length : 0,
+          }));
+        }
+      }
+    } catch {
+      // Fallback silencieux vers le cache client
+    }
+
     return (
       <EntrainementsClient
         initialPageContent={{
@@ -178,6 +203,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           titre: page.titre || "Entraînements",
           description: page.description ?? "Organise tes entraînements et choisis les séances que tu souhaites synchroniser dans ton app ou sur ton tableau de bord.",
         }}
+        initialStructure={initialStructure}
       />
     );
   }
@@ -353,30 +379,67 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   }
  
   if (page.id === "fd7e055c-bf17-4222-a8f8-c27b014d3062") {
-    // 1. Get user profile for relevance sorting
-    const { data: { session } } = await supabase.auth.getSession();
+    // 1. Get user profile, favorites and starter quota for relevance sorting and zero-flicker UI
+    const { data: { user } } = await supabase.auth.getUser();
     let userProfile: StoreProfile | null = null;
+    let initialFavorites: string[] = [];
+    let initialHasExistingTrainings = false;
     
-    if (session?.user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
-        .eq("id", session.user.id)
-        .single();
+    if (user) {
+      const [profileRes, favsRes, trainingsCountRes, settingsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
+          .eq("id", user.id)
+          .single(),
+        supabase
+          .from("user_store_favorites" as any)
+          .select("program_id")
+          .eq("user_id", user.id),
+        supabase
+          .from("trainings")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabase
+          .from("settings")
+          .select("value")
+          .eq("key", "starter_max_trainings")
+          .maybeSingle(),
+      ]);
       
-      if (profile) {
-        userProfile = profile as StoreProfile;
+      if (profileRes.data) {
+        userProfile = profileRes.data as StoreProfile;
       }
+      if (favsRes.data) {
+        initialFavorites = (favsRes.data as unknown as Array<{ program_id: string }>).map((item) => String(item.program_id));
+      }
+
+      const isPremium = userProfile?.subscription_plan === "premium";
+      const starterMaxTrainings = settingsRes?.data?.value ? parseInt(settingsRes.data.value, 10) : 1;
+      const trainingsCount = trainingsCountRes?.count ?? 0;
+      initialHasExistingTrainings = !isPremium && trainingsCount >= starterMaxTrainings;
     }
- 
-    // 2. Fetch total count
-    const { count: totalCount } = await supabase
+
+    // 2. Fetch cookie & calculate initial subscription toggle
+    const cookieStore = await cookies();
+    const isIncludedOnly = cookieStore.get("glift_store_included_only")?.value === "true";
+    const shouldFilterStarter = isIncludedOnly && (userProfile?.subscription_plan === "starter");
+    const initialFilters = ["", "", "", "", "", "", shouldFilterStarter ? "Oui" : ""];
+
+    // 3. Fetch total count (filtered by plan starter if shouldFilterStarter)
+    let countQuery = supabase
       .from("program_store")
       .select("*", { count: "exact", head: true })
       .eq("status", "ON");
- 
-    // 3. Fetch first batch of programs for initial display (Default relevance sort)
-    const { data: rawPrograms } = await supabase
+
+    if (shouldFilterStarter) {
+      countQuery = countQuery.eq("plan", "starter");
+    }
+
+    const { count: totalCount } = await countQuery;
+
+    // 4. Fetch first batch of programs for initial display (Default relevance sort)
+    let programsQuery = supabase
       .from("program_store")
       .select(`
         id,
@@ -396,23 +459,31 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
         downloads,
         created_at,
         plan,
-        location
+        location,
+        image_mobile,
+        partner_name
       `)
       .eq("status", "ON");
- 
+
+    if (shouldFilterStarter) {
+      programsQuery = programsQuery.eq("plan", "starter");
+    }
+
+    const { data: rawPrograms } = await programsQuery;
+
     const mappedPrograms = await filterUnpublishedProgramLinks(
       supabase,
       (rawPrograms ?? []).map(row => mapProgramRowToCard(row as ProgramQueryRow))
     );
-    const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile);
-    const initialPrograms = sortedPrograms.slice(0, 8);
- 
+    const sortedPrograms = sortProgramsByRelevance(mappedPrograms, userProfile, initialFavorites);
+    const initialPrograms = sortedPrograms;
+
     const storePageContent = {
       surtitre: page.surtitre ?? "",
       titre: page.titre || "Glift Store",
       description: page.description ?? "Téléchargez un programme pour l'utiliser directement dans Glift.",
     };
- 
+
     return (
       <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] pb-[60px] md:pb-[80px]">
         <div className="max-w-[1152px] mx-auto">
@@ -422,7 +493,10 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           initialPrograms={initialPrograms} 
           initialTotalCount={totalCount || 0} 
           initialUserProfile={userProfile}
-          initialIsAuthenticated={!!session?.user}
+          initialIsAuthenticated={!!user}
+          initialFavorites={initialFavorites}
+          initialFilters={initialFilters}
+          initialHasExistingTrainings={initialHasExistingTrainings}
         />
       </main>
     );
