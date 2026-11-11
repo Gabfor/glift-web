@@ -99,3 +99,4 @@ export function replaceSettingsVariables(
 
   return result;
 }
+

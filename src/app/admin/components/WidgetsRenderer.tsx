@@ -12,6 +12,7 @@ import ImageUploader from "@/app/admin/components/ImageUploader";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
 import { TrashIcon, TrashHoverIcon } from "@/components/icons/TrashIcons";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 type Props = {
   blocks: ContentBlock[];
@@ -22,6 +23,7 @@ type Props = {
 };
 
 export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau, currentSexe, currentIntensite }: Props) {
+  const siteSettings = useSiteSettings();
   const getNiveauIcon = (niveau?: string) => {
     if (!niveau) return "/icons/admin_niveau_1.svg";
     const n = niveau.toLowerCase();
@@ -882,6 +884,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                 {[1, 2].map((num) => {
                   const key = `abonnement${num}` as "abonnement1" | "abonnement2";
                   const abo = block[key];
+                  const isPremiumAbo = num === 2 || key === "abonnement2" || abo.nom?.toLowerCase().includes("premium");
+                  const premiumPricePlaceholder = siteSettings.premiumMonthlyPrice || "2,49";
                   
                   return (
                     <div key={key} className="flex flex-col gap-5">
@@ -896,9 +900,11 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                           />
                           <AdminTextField
                             label="Prix de l'abonnement"
-                            value={abo.prix}
+                            value={isPremiumAbo ? "" : abo.prix}
                             onChange={(val) => updateBlock(block.id, { [key]: { ...abo, prix: val } })}
-                            placeholder="Prix de l'abonnement"
+                            placeholder={isPremiumAbo ? premiumPricePlaceholder : "Prix de l'abonnement"}
+                            disabled={isPremiumAbo}
+                            className={isPremiumAbo ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                           />
                         </div>
                       </div>

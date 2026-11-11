@@ -13,7 +13,7 @@ import AdminSeanceTable from "@/app/admin/components/AdminSeanceTable";
 import AnimatedSection from "@/components/AnimatedSection";
 import PricingTable from "@/components/PricingTable";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, SiteSettings } from "@/hooks/useSiteSettings";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { motion, AnimatePresence } from "framer-motion";
@@ -308,6 +308,7 @@ interface BlogArticleBlocksRendererProps {
   isConceptPage?: boolean;
   isFeaturePage?: boolean;
   pageUrl?: string;
+  siteSettings?: SiteSettings;
 }
 
 export default function BlogArticleBlocksRenderer({
@@ -316,13 +317,14 @@ export default function BlogArticleBlocksRenderer({
   isConceptPage = false,
   isFeaturePage = false,
   pageUrl,
+  siteSettings: initialSiteSettings,
 }: BlogArticleBlocksRendererProps) {
   const { isAuthenticated } = useUser();
   const [collapsedState, setCollapsedState] = useState<Record<string, boolean>>({});
   const containerRef = React.useRef<HTMLDivElement>(null);
 
   const { contactUrl, storeUrl, shopUrl } = useDashboardUrl();
-  const siteSettings = useSiteSettings();
+  const siteSettings = useSiteSettings(initialSiteSettings);
   const {
     trialDays,
     gradientEnabled,
@@ -816,6 +818,7 @@ export default function BlogArticleBlocksRenderer({
                 <PricingTable 
                   abonnement1={block.abonnement1} 
                   abonnement2={block.abonnement2} 
+                  initialSettings={siteSettings}
                 />
               </div>
             );

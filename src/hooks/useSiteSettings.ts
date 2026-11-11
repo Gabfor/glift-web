@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabaseClient";
 import { SettingsService } from "@/lib/services/settingsService";
 
-interface SiteSettings {
+export interface SiteSettings {
     logoUrl: string;
     logoAlt: string;
     trialDays: number;
@@ -27,28 +27,55 @@ interface SiteSettings {
     isLoading: boolean;
 }
 
-export function useSiteSettings(): SiteSettings {
-    const [data, setData] = useState<SiteSettings>({
-        logoUrl: "/logo_beta.svg",
-        logoAlt: "Logo Glift",
-        trialDays: 30, // Default
-        starterMaxTrainings: 1,
-        starterMaxExercises: 10,
-        isPremiumPaymentStepEnabled: false, // Default to disabled to be safe
-        premiumMonthlyEnabled: true,
-        premiumYearlyEnabled: false,
-        premiumMonthlyPrice: "2,49",
-        premiumYearlyPrice: "24,99",
-        premiumMonthlyStripeId: "",
-        premiumYearlyStripeId: "",
-        gradientEnabled: true,
-        gradientColor1: "#F6E9F9",
-        gradientOpacity1: 65,
-        gradientColor2: "#E4ECFF",
-        gradientOpacity2: 65,
-        gradientColor3: "#F0EBFF",
-        gradientOpacity3: 80,
-        isLoading: true,
+export const DEFAULT_SITE_SETTINGS: SiteSettings = {
+    logoUrl: "/logo_beta.svg",
+    logoAlt: "Logo Glift",
+    trialDays: 30,
+    starterMaxTrainings: 1,
+    starterMaxExercises: 10,
+    isPremiumPaymentStepEnabled: false,
+    premiumMonthlyEnabled: true,
+    premiumYearlyEnabled: false,
+    premiumMonthlyPrice: "2,49",
+    premiumYearlyPrice: "24,99",
+    premiumMonthlyStripeId: "",
+    premiumYearlyStripeId: "",
+    gradientEnabled: true,
+    gradientColor1: "#F6E9F9",
+    gradientOpacity1: 65,
+    gradientColor2: "#E4ECFF",
+    gradientOpacity2: 65,
+    gradientColor3: "#F0EBFF",
+    gradientOpacity3: 80,
+    isLoading: true,
+};
+
+let cachedSiteSettings: SiteSettings | null = null;
+
+export function useSiteSettings(initialSettings?: Partial<SiteSettings>): SiteSettings {
+    const [data, setData] = useState<SiteSettings>((): SiteSettings => {
+        if (initialSettings && Object.keys(initialSettings).length > 0) {
+            const merged: SiteSettings = { ...DEFAULT_SITE_SETTINGS, ...initialSettings, isLoading: false };
+            cachedSiteSettings = merged;
+            return merged;
+        }
+        if (cachedSiteSettings) {
+            return cachedSiteSettings;
+        }
+        if (typeof window !== "undefined") {
+            try {
+                const stored = sessionStorage.getItem("glift_site_settings");
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    const restored: SiteSettings = { ...DEFAULT_SITE_SETTINGS, ...parsed, isLoading: false };
+                    cachedSiteSettings = restored;
+                    return restored;
+                }
+            } catch (e) {
+                // Ignore session storage error
+            }
+        }
+        return DEFAULT_SITE_SETTINGS;
     });
 
     useEffect(() => {
@@ -58,7 +85,7 @@ export function useSiteSettings(): SiteSettings {
                 const service = new SettingsService(supabase);
                 const settings = await service.getSettings();
 
-                setData({
+                const updated: SiteSettings = {
                     logoUrl: settings["logo_url"] || "/logo_beta.svg",
                     logoAlt: settings["logo_alt"] || "Logo Glift",
                     trialDays: settings["trial_period_days"] ? parseInt(settings["trial_period_days"], 10) : 30,
@@ -79,7 +106,16 @@ export function useSiteSettings(): SiteSettings {
                     gradientColor3: settings["gradient_color3"] || "#F0EBFF",
                     gradientOpacity3: settings["gradient_opacity3"] ? parseInt(settings["gradient_opacity3"], 10) : 80,
                     isLoading: false,
-                });
+                };
+
+                cachedSiteSettings = updated;
+                if (typeof window !== "undefined") {
+                    try {
+                        sessionStorage.setItem("glift_site_settings", JSON.stringify(updated));
+                    } catch (e) {}
+                }
+
+                setData(updated);
             } catch (error) {
                 console.error("Failed to fetch site settings:", error);
                 setData((prev) => ({ ...prev, isLoading: false }));

@@ -4,16 +4,17 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, SiteSettings } from "@/hooks/useSiteSettings";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { replaceSettingsVariables } from "@/lib/utils/settingsVariables";
 
 type PricingTableProps = {
   abonnement1?: Subscription;
   abonnement2?: Subscription;
+  initialSettings?: Partial<SiteSettings>;
 };
 
-export default function PricingTable({ abonnement1, abonnement2 }: PricingTableProps) {
+export default function PricingTable({ abonnement1, abonnement2, initialSettings }: PricingTableProps) {
   const {
     trialDays,
     starterMaxTrainings,
@@ -22,11 +23,14 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
     premiumYearlyEnabled,
     premiumMonthlyPrice,
     premiumYearlyPrice,
-  } = useSiteSettings();
+  } = useSiteSettings(initialSettings);
 
   const showToggle = premiumMonthlyEnabled && premiumYearlyEnabled;
 
-  const [interval, setInterval] = useState<"monthly" | "yearly">("monthly");
+  const [interval, setInterval] = useState<"monthly" | "yearly">(() => {
+    if (!premiumMonthlyEnabled && premiumYearlyEnabled) return "yearly";
+    return "monthly";
+  });
 
   // Synchroniser avec les réglages dès qu'ils sont disponibles
   useEffect(() => {

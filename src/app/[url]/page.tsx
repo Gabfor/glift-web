@@ -84,6 +84,8 @@ import AideClient from "@/app/aide/AideClient";
 import ContactClient from "@/app/nous-contacter/ContactClient";
 import ComptePageClient from "@/app/compte/ComptePageClient";
 import { PaymentService } from "@/lib/services/paymentService";
+import { SettingsService } from "@/lib/services/settingsService";
+import { SiteSettings } from "@/hooks/useSiteSettings";
 import { COMPTE_PAGE_ID } from "@/app/admin/create-page/pageForm";
 import BackLink from "@/components/BackLink";
  
@@ -594,6 +596,31 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   const isConceptPage = currentUrl === "concept";
   const isTarifsPage = currentUrl === "tarifs";
   const isAppsPage = currentUrl === "apps";
+
+  const settingsService = new SettingsService(supabase as any);
+  const rawSettings = await settingsService.getSettings();
+  const siteSettings: SiteSettings = {
+    logoUrl: rawSettings["logo_url"] || "/logo_beta.svg",
+    logoAlt: rawSettings["logo_alt"] || "Logo Glift",
+    trialDays: rawSettings["trial_period_days"] ? parseInt(rawSettings["trial_period_days"], 10) : 30,
+    starterMaxTrainings: rawSettings["starter_max_trainings"] ? parseInt(rawSettings["starter_max_trainings"], 10) : 1,
+    starterMaxExercises: rawSettings["starter_max_exercises"] ? parseInt(rawSettings["starter_max_exercises"], 10) : 10,
+    isPremiumPaymentStepEnabled: rawSettings["premium_payment_step"] === "enabled",
+    premiumMonthlyEnabled: rawSettings["premium_monthly_enabled"] !== "NON",
+    premiumYearlyEnabled: rawSettings["premium_yearly_enabled"] === "OUI",
+    premiumMonthlyPrice: rawSettings["premium_monthly_price"] || "2,49",
+    premiumYearlyPrice: rawSettings["premium_yearly_price"] || "24,99",
+    premiumMonthlyStripeId: rawSettings["premium_monthly_stripe_id"] || "",
+    premiumYearlyStripeId: rawSettings["premium_yearly_stripe_id"] || "",
+    gradientEnabled: rawSettings["gradient_enabled"] !== "false",
+    gradientColor1: rawSettings["gradient_color1"] || "#F6E9F9",
+    gradientOpacity1: rawSettings["gradient_opacity1"] ? parseInt(rawSettings["gradient_opacity1"], 10) : 65,
+    gradientColor2: rawSettings["gradient_color2"] || "#E4ECFF",
+    gradientOpacity2: rawSettings["gradient_opacity2"] ? parseInt(rawSettings["gradient_opacity2"], 10) : 65,
+    gradientColor3: rawSettings["gradient_color3"] || "#F0EBFF",
+    gradientOpacity3: rawSettings["gradient_opacity3"] ? parseInt(rawSettings["gradient_opacity3"], 10) : 80,
+    isLoading: false,
+  };
  
   return (
     <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
@@ -697,6 +724,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             isConceptPage={page.url === "concept"}
             isFeaturePage={isFeaturePage}
             pageUrl={page.url}
+            siteSettings={siteSettings}
           />
         </article>
       </div>

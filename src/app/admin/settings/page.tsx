@@ -280,6 +280,12 @@ export default function AdminSettingsPage() {
             setInitialGradientColor3(gradientColor3);
             setInitialGradientOpacity3(gradientOpacity3);
 
+            if (typeof window !== "undefined") {
+                try {
+                    sessionStorage.removeItem("glift_site_settings");
+                } catch (e) {}
+            }
+
         } catch (error) {
             console.error("Save failed", error);
             alert("Erreur lors de la sauvegarde.");
