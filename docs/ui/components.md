@@ -72,11 +72,31 @@
   - Conteneur externe fixe : gère strictement les coordonnées cartésiennes absolues et la translation de centrage de flèche (`translate-y-[-50%]` ou `translate-x-[-50%]`).
   - Bulle interne animée : applique l'animation d'apparition Tailwind avec glissement directionnel fluide sans écraser la translation du conteneur (`slide-in-from-top-1` si flèche en haut, `slide-in-from-left-1` si flèche à droite, `slide-in-from-right-1` si flèche à gauche).
 
-## Règle Globale d'Espacement du Footer
+## Règle Globale d'Espacement du Footer & Structure de Page
 - **Dégagement vertical minimal garanti au-dessus du footer** sur l'ensemble des pages du site :
   - Sur ordinateur (Desktop) : **100px minimum** (`md:mt-[100px]`).
   - Sur mobile / tablette (Responsive) : **50px minimum** (`mt-[50px]`).
   - Implémenté sur `ClientLayout.tsx`, `FooterPublic.tsx` et `FooterLogged.tsx`.
+- **Conteneur `<main>` et Zero-Layout Shift (`flex-1`) :**
+  - Les conteneurs `<main>` des pages publiques (`src/app/[url]/page.tsx`, `shop`, `store`, `dashboard`) utilisent `flex-1` et non `min-h-screen`.
+  - Le wrapper parent dans `ClientLayout.tsx` assurant déjà la hauteur 100vh (`min-h-screen flex flex-col`), `flex-1` permet aux pages compactes (ex: `/tarifs`) de ne pas étirer inutilement la zone de contenu sur 100vh, évitant ainsi un vide blanc artificiel de 300px à 700px avant le footer.
+
+## Tableau des Tarifs & Toggle Mensuel / Annuel (`PricingTable.tsx`, `ToggleSwitch.tsx`)
+- **Toggle interactif Mensuel / Annuel :**
+  - Utilise le composant réutilisable standard `ToggleSwitch` (`isAdmin={false}`).
+  - **État inactif (Mensuel) :** curseur à gauche, fond gris neutre (`--color-surface-subtle`, `#ece9f1`), bordure subtile.
+  - **État actif (Annuel) :** curseur à droite, fond violet (`--color-focus-ring`, `#a1a5fd`), bordure marque (`--color-brand-primary`).
+  - Condition d'affichage : le toggle n'apparaît que si les deux prix (mensuel et annuel) sont activés en administration. Si un seul prix est actif, le toggle est automatiquement masqué et le prix correspondant est sélectionné par défaut.
+- **Badge d'Économie Annuelle :**
+  - Style calqué à l'identique sur le badge « NOUVEAU » du store : `bg-[#DCFAF1]`, `text-[#00D591]`, `text-[10px]`, `font-bold`, `h-[20px]`, `px-[10px] py-[2px]`, `rounded-full`.
+  - Centrage vertical parfait : `inline-flex items-center justify-center leading-none select-none whitespace-nowrap`.
+- **Règles d'espacement de la barre de choix :**
+  - Espacement horizontal entre les textes (« Mensuel », « Annuel »), le switch et le badge : **10px** (`gap-[10px]`).
+  - Padding latéral interne du badge : **10px** (`px-[10px]`).
+- **Moteur de variables dynamiques (`replaceSettingsVariables`) :**
+  - Les textes des cartes de tarifs résolvent automatiquement les variables configurées dans l'administration : `{nombre_entrainements}`, `{nombre_entrainements_texte}` (ex: « un », « deux »), `{nombre_exercices}`, `{prix_mensuel}`, `{prix_annuel}`, `{duree_essai}`, ainsi que le pluriel contextuel `entraînement{s}`.
+- **Hydratation SSR sans scintillement :**
+  - Injection des paramètres du site côté serveur (`initialSettings`) aux composants de rendu (`PricingTable`) pour éviter tout clignotement ou décalage de prix/textes au rechargement de la page.
 
 
 ## Composant d'Upload d'Images Standardisé (`ImageUploader.tsx`)
