@@ -12,6 +12,7 @@ import TrainingTableSkeleton from "@/components/training/TrainingTableSkeleton";
 import AddRowButton from "@/components/AddRowButton";
 import LinkModal from "@/components/LinkModal";
 import AddExerciseLockedModal from "@/components/AddExerciseLockedModal";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import NoteModal from "@/components/NoteModal";
 import BackLink from "@/components/BackLink";
 import { useEffortChange } from "@/utils/useEffortChange";
@@ -64,6 +65,7 @@ export default function AdminEntrainementDetailPage() {
   const params = useParams();
   const trainingId = params?.id as string;
   const { user, isPremiumUser } = useUser();
+  const { starterMaxExercises } = useSiteSettings();
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
@@ -196,11 +198,11 @@ export default function AdminEntrainementDetailPage() {
   // ✅ Column configuration
   const { columns, setColumns, togglableColumns, saveColumnsInSupabase } = useTrainingColumns(trainingId);
 
-  // 🔒 ENFORCE BASIC LIMIT (MAX 10 ROWS)
+  // 🔒 ENFORCE BASIC LIMIT (MAX STARTER EXERCISES)
   useEffect(() => {
     if (rowsLoading || !rows.length) return;
 
-    const limit = 10;
+    const limit = starterMaxExercises;
     let hasChanges = false;
 
     let updatedRows = rows.map((row, index) => {
@@ -274,7 +276,7 @@ export default function AdminEntrainementDetailPage() {
       console.log("🔒 Enforcing starter limit & superset validity: updating rows");
       setRows(updatedRows);
     }
-  }, [rows, isPremiumUser, isAdminRoute, rowsLoading, setRows]);
+  }, [rows, isPremiumUser, isAdminRoute, rowsLoading, setRows, starterMaxExercises]);
 
   // ✅ Custom hooks
   const { programName, setProgramName, loading: programNameLoading, handleBlur } = useProgramName(trainingId, setEditing);
@@ -480,7 +482,7 @@ export default function AdminEntrainementDetailPage() {
 
   const handleDuplicateRow = () => {
     if (selectedRowIds.length !== 1) return;
-    if (!isAdminRoute && !isPremiumUser && rows.length >= 10) return;
+    if (!isAdminRoute && !isPremiumUser && rows.length >= starterMaxExercises) return;
 
     const selectedId = selectedRowIds[0];
     const index = rows.findIndex((r) => r.id === selectedId);
@@ -529,7 +531,7 @@ export default function AdminEntrainementDetailPage() {
   const handleAddRow = () => {
     setRows((prev) => {
       // 🔒 Double-check limit inside the updater to prevent race conditions
-      if (!isAdminRoute && !isPremiumUser && prev.length >= 10) {
+      if (!isAdminRoute && !isPremiumUser && prev.length >= starterMaxExercises) {
         return prev;
       }
       return [
@@ -678,7 +680,7 @@ export default function AdminEntrainementDetailPage() {
 
             // Check against current count (both state and ref)
             const currentCount = Math.max(rowCountRef.current, rows.length);
-            const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= 10;
+            const isLocked = !isAdminRoute && !isPremiumUser && currentCount >= starterMaxExercises;
 
             if (isLocked) {
               setShowLockedModal(true);
@@ -690,7 +692,7 @@ export default function AdminEntrainementDetailPage() {
             handleAddRow();
           }}
           disabled={rowsLoading}
-          locked={!isAdminRoute && !isPremiumUser && rows.length >= 10}
+          locked={!isAdminRoute && !isPremiumUser && rows.length >= starterMaxExercises}
         />
 
         <div className="flex justify-center mt-4 mb-2 md:hidden landscape:hidden">

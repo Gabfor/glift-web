@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 import ModalMessage from "@/components/ui/ModalMessage";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface DownloadAuthModalProps {
   show: boolean;
@@ -13,6 +14,8 @@ interface DownloadAuthModalProps {
 
 export default function DownloadAuthModal({ show, onClose, mode = "auth" }: DownloadAuthModalProps) {
   const router = useRouter();
+  const { starterMaxTrainings, starterMaxExercises } = useSiteSettings();
+  const trainingText = starterMaxTrainings === 1 ? "un seul entraînement" : `${starterMaxTrainings} entraînements`;
 
   const isRestricted = mode === "restricted";
 
@@ -86,7 +89,7 @@ export default function DownloadAuthModal({ show, onClose, mode = "auth" }: Down
         }
         description={
           isRestricted
-            ? "Le téléchargement de ce programme est bloqué car ton abonnement actuel te limite à un seul entraînement de 10 exercices maximum."
+            ? `Le téléchargement de ce programme est bloqué car ton abonnement actuel te limite à ${trainingText} de ${starterMaxExercises} exercices maximum.`
             : "Le téléchargement d’un programme d’entraînement nécessite d’être connecté à un compte utilisateur actif."
         }
         className="mb-6"

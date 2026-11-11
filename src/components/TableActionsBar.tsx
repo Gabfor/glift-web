@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import Tooltip from "@/components/Tooltip";
 import ColumnMenu from "@/components/ColumnMenu";
 import { Row } from "@/types/training";
@@ -69,7 +70,8 @@ export default function TableActionsBar({
   const prefix = isPageAdmin ? "/icons/admin_" : "/icons/";
 
   const { isPremiumUser } = useUser();
-  const isStarterOverLimit = !isPageAdmin && !isPremiumUser && rows.length >= 10;
+  const { starterMaxExercises } = useSiteSettings();
+  const isStarterOverLimit = !isPageAdmin && !isPremiumUser && rows.length >= starterMaxExercises;
   const canShowDuplicate = selectedRowIds.length === 1 && !isStarterOverLimit && !!onDuplicateRow;
 
   const [menuOpen, setMenuOpen] = useState(false);

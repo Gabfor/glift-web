@@ -3,6 +3,7 @@ import CTAButton from "@/components/CTAButton";
 import Modal from "@/components/ui/Modal";
 import ModalMessage from "@/components/ui/ModalMessage";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 
 interface ProgramDeleteModalProps {
   show: boolean;
@@ -18,6 +19,7 @@ export default function ProgramDeleteModal({
   isStarterActiveWarning = false,
 }: ProgramDeleteModalProps) {
   const { helpUrl } = useDashboardUrl();
+  const { starterMaxExercises } = useSiteSettings();
 
   return (
     <Modal
@@ -73,7 +75,7 @@ export default function ProgramDeleteModal({
         <p>
           {isStarterActiveWarning ? (
             <>
-              En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue. <span className="text-[#3A416F] font-bold">Tu pourras cependant créer un nouveau programme avec un nouvel entraînement de 10 exercices maximum.</span>
+              En cliquant sur <span className="text-[#3A416F] font-bold">« Confirmer »</span> le programme contenant ton seul entraînement actif ainsi que l’ensemble des exercices encore à l’intérieur seront <span className="text-[#3A416F] font-bold">définitivement supprimés</span> de la plateforme et toute progression sera perdue. <span className="text-[#3A416F] font-bold">Tu pourras cependant créer un nouveau programme avec un nouvel entraînement de {starterMaxExercises} exercices maximum.</span>
             </>
           ) : (
             <>

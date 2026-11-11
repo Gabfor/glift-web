@@ -224,7 +224,8 @@ interface SubscriptionManagerProps {
 
 export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
     const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial, profile } = useUser();
-    const { trialDays } = useSiteSettings();
+    const { trialDays, starterMaxTrainings, starterMaxExercises } = useSiteSettings();
+    const starterTrainingCountText = starterMaxTrainings === 1 ? "1 seul entraînement" : `${starterMaxTrainings} entraînements`;
     const { triggerLoader, stopLoader } = useGlobalLoader();
 
     // Initialize with server-side value if available, or default to starter
@@ -674,7 +675,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 title="Modification d’abonnement"
                 variant="info"
                 messageTitle="Es-tu sûr de vouloir changer d’abonnement ?"
-                messageDescription="L’abonnement Starter permet de conserver 1 seul entraînement de 10 exercices. Pour varier tes séances en toute liberté, le Premium reste ton meilleur allié !"
+                messageDescription={`L’abonnement Starter permet de conserver ${starterTrainingCountText} de ${starterMaxExercises} exercices. Pour varier tes séances en toute liberté, le Premium reste ton meilleur allié !`}
                 onConfirm={confirmDowngrade}
                 confirmLabel="Modifier"
                 onClose={() => {
@@ -831,13 +832,13 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         <ModalMessage
                             variant="error"
                             title="Ton abonnement Premium n’a pas pu être renouvelé"
-                            description="Ton moyen de paiement est arrivé à expiration. Ton accès est temporairement limité à 1 seul entraînement de 10 exercices. Pas de stress, ajoute un moyen de paiement dès maintenant pour réactiver ton abonnement Premium."
+                            description={`Ton moyen de paiement est arrivé à expiration. Ton accès est temporairement limité à ${starterTrainingCountText} de ${starterMaxExercises} exercices. Pas de stress, ajoute un moyen de paiement dès maintenant pour réactiver ton abonnement Premium.`}
                         />
                     ) : (
                         <ModalMessage
                             variant="info"
                             title="Ton abonnement Premium a pris fin"
-                            description="Ton accès est maintenant limité à 1 seul entraînement de 10 exercices mais tu peux réactiver ton abonnement Premium à tout moment."
+                            description={`Ton accès est maintenant limité à ${starterTrainingCountText} de ${starterMaxExercises} exercices mais tu peux réactiver ton abonnement Premium à tout moment.`}
                         />
                     )}
                 </div>

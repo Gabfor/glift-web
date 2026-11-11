@@ -16,6 +16,7 @@ import ProgramsSkeleton, {
 } from "@/components/training/ProgramsSkeleton";
 import AddTrainingLockedModal from "@/components/AddTrainingLockedModal";
 import UnlockTrainingModal from "@/components/UnlockTrainingModal";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
 import useMinimumVisibility from "@/hooks/useMinimumVisibility";
 import { useSmoothAutoScroll } from "@/hooks/useSmoothAutoScroll";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ export default function EntrainementsPage({
   } = usePrograms();
 
   const { isPremiumUser, isUserDataLoaded } = useUser();
+  const { starterMaxTrainings } = useSiteSettings();
 
   const showSkeleton = useMinimumVisibility(isLoading || !isUserDataLoaded, 400); // 400ms masks the very fast client fetch to match SSR feeling
 
@@ -211,15 +213,17 @@ export default function EntrainementsPage({
     const syncLocks = async () => {
       const toLock: string[] = [];
       const toUnlock: string[] = [];
-      let targetUnlockedId: string | null = null;
+      const unlockedIds = new Set<string>();
 
       if (!isPremiumUser && programs.length > 0) {
         const sortedPrograms = [...programs].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-        const firstProgWithTrainings = sortedPrograms.find(p => p.trainings && p.trainings.length > 0);
-        if (firstProgWithTrainings) {
-          const sortedTrainings = [...firstProgWithTrainings.trainings].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
-          if (sortedTrainings.length > 0) {
-            targetUnlockedId = sortedTrainings[0].id;
+        for (const prog of sortedPrograms) {
+          if (!prog.trainings || prog.trainings.length === 0) continue;
+          const sortedTrainings = [...prog.trainings].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+          for (const training of sortedTrainings) {
+            if (unlockedIds.size < starterMaxTrainings) {
+              unlockedIds.add(training.id);
+            }
           }
         }
       }
@@ -229,7 +233,7 @@ export default function EntrainementsPage({
           let shouldBeLocked = false;
 
           if (!isPremiumUser) {
-            shouldBeLocked = targetUnlockedId ? (training.id !== targetUnlockedId) : false;
+            shouldBeLocked = !unlockedIds.has(training.id);
           } else {
             shouldBeLocked = false;
           }
@@ -261,7 +265,7 @@ export default function EntrainementsPage({
     };
 
     syncLocks();
-  }, [programs, isPremiumUser, isLoading, isUserDataLoaded, supabase]);
+  }, [programs, isPremiumUser, isLoading, isUserDataLoaded, supabase, starterMaxTrainings]);
 
   const handleTrainingNavigation = useCallback(
     (trainingId: string) => {
@@ -680,7 +684,7 @@ export default function EntrainementsPage({
                     onUnlockClick={() => setShowUnlockModal(true)}
                     allowAddTraining={
                       !isPremiumUser &&
-                      programs.flatMap(p => p.trainings).length === 0
+                      programs.flatMap(p => p.trainings).length < starterMaxTrainings
                     }
                     onAddLockedClick={() => setShowAddTrainingLockedModal(true)}
                   />

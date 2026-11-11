@@ -8,6 +8,8 @@ interface SiteSettings {
     logoUrl: string;
     logoAlt: string;
     trialDays: number;
+    starterMaxTrainings: number;
+    starterMaxExercises: number;
     isPremiumPaymentStepEnabled: boolean;
     gradientEnabled: boolean;
     gradientColor1: string;
@@ -24,6 +26,8 @@ export function useSiteSettings(): SiteSettings {
         logoUrl: "/logo_beta.svg",
         logoAlt: "Logo Glift",
         trialDays: 30, // Default
+        starterMaxTrainings: 1,
+        starterMaxExercises: 10,
         isPremiumPaymentStepEnabled: false, // Default to disabled to be safe
         gradientEnabled: true,
         gradientColor1: "#F6E9F9",
@@ -46,6 +50,8 @@ export function useSiteSettings(): SiteSettings {
                     logoUrl: settings["logo_url"] || "/logo_beta.svg",
                     logoAlt: settings["logo_alt"] || "Logo Glift",
                     trialDays: settings["trial_period_days"] ? parseInt(settings["trial_period_days"], 10) : 30,
+                    starterMaxTrainings: settings["starter_max_trainings"] ? parseInt(settings["starter_max_trainings"], 10) : 1,
+                    starterMaxExercises: settings["starter_max_exercises"] ? parseInt(settings["starter_max_exercises"], 10) : 10,
                     isPremiumPaymentStepEnabled: settings["premium_payment_step"] === "enabled",
                     gradientEnabled: settings["gradient_enabled"] !== "false",
                     gradientColor1: settings["gradient_color1"] || "#F6E9F9",

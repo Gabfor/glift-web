@@ -91,12 +91,19 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
 
   const isPremium = profile?.subscription_plan === "premium";
   if (!isPremium) {
+    const { data: settingRow } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "starter_max_trainings")
+      .maybeSingle();
+    const maxTrainings = settingRow?.value ? parseInt(settingRow.value, 10) : 1;
+
     const { count } = await supabase
       .from("trainings")
       .select("id", { count: "exact", head: true })
       .eq("user_id", user.id);
-    if ((count ?? 0) > 0) {
-      console.warn("Téléchargement bloqué : quota Starter atteint (1 entraînement max).");
+    if ((count ?? 0) >= maxTrainings) {
+      console.warn(`Téléchargement bloqué : quota Starter atteint (${maxTrainings} entraînement(s) max).`);
       return null;
     }
   }

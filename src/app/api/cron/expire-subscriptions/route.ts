@@ -28,6 +28,14 @@ function isAuthorized(req: NextRequest): boolean {
 
 async function lockExtraTrainingsForUser(supabaseAdmin: any, userId: string) {
   try {
+    // Récupérer le quota d'entraînements Starter
+    const { data: maxSetting } = await supabaseAdmin
+      .from("settings")
+      .select("value")
+      .eq("key", "starter_max_trainings")
+      .maybeSingle();
+    const maxTrainings = maxSetting?.value ? parseInt(maxSetting.value, 10) : 1;
+
     // Récupérer tous les programmes et entraînements de l'utilisateur
     const { data: programs, error: pError } = await supabaseAdmin
       .from("programs")
@@ -37,28 +45,35 @@ async function lockExtraTrainingsForUser(supabaseAdmin: any, userId: string) {
 
     if (pError || !programs || programs.length === 0) return;
 
-    // Trouver le 1er entraînement visible
-    let firstTrainingId: string | null = null;
+    // Trouver les N premiers entraînements visibles
+    const unlockedIds = new Set<string>();
 
     for (const program of programs) {
       if (program.app === false) continue;
       const sorted = [...(program.trainings || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
-      const first = sorted.find((t: any) => t.app !== false);
-      if (first) {
-        firstTrainingId = first.id;
-        break;
+      for (const t of sorted) {
+        if (t.app !== false && unlockedIds.size < maxTrainings) {
+          unlockedIds.add(t.id);
+        }
       }
     }
 
-    if (!firstTrainingId && programs[0]?.trainings?.length > 0) {
-      const sorted = [...programs[0].trainings].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
-      firstTrainingId = sorted[0]?.id || null;
+    // Si pas assez de visibles, compléter avec les entraînements disponibles
+    if (unlockedIds.size < maxTrainings) {
+      for (const program of programs) {
+        const sorted = [...(program.trainings || [])].sort((a: any, b: any) => (a.position ?? 0) - (b.position ?? 0));
+        for (const t of sorted) {
+          if (unlockedIds.size < maxTrainings) {
+            unlockedIds.add(t.id);
+          }
+        }
+      }
     }
 
     // Verrouiller les entraînements excédentaires
     for (const program of programs) {
       for (const training of program.trainings || []) {
-        const shouldBeLocked = training.id !== firstTrainingId;
+        const shouldBeLocked = !unlockedIds.has(training.id);
         if (training.locked !== shouldBeLocked) {
           await supabaseAdmin
             .from("trainings")
