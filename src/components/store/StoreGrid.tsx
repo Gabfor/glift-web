@@ -29,6 +29,7 @@ export default function StoreGrid({
   initialFavorites = [],
   favoritesOnly = false,
   initialFilters,
+  initialHasExistingTrainings = false,
   onCountChange,
   onResetFavorites,
   onResetFilters,
@@ -43,6 +44,7 @@ export default function StoreGrid({
   initialFavorites?: string[];
   favoritesOnly?: boolean;
   initialFilters?: string[];
+  initialHasExistingTrainings?: boolean;
   onCountChange?: (count: number) => void;
   onResetFavorites?: () => void;
   onResetFilters?: () => void;
@@ -104,19 +106,27 @@ export default function StoreGrid({
  
   // ➜ UserContext provides auth state, profile and computed premium status
   const { user, isPremiumUser, isLoading: isUserContextLoading, profile } = useUser();
-  const [hasExistingTrainings, setHasExistingTrainings] = useState(false);
+  const [hasExistingTrainings, setHasExistingTrainings] = useState(initialHasExistingTrainings);
   const supabaseClient = useMemo(() => createClientComponentClient(), []);
 
   useEffect(() => {
     if (!user?.id || isPremiumUser) return;
     let isMounted = true;
     const checkTrainings = async () => {
-      const { count } = await supabaseClient
-        .from("trainings")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id);
+      const [{ count }, { data: settingData }] = await Promise.all([
+        supabaseClient
+          .from("trainings")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id),
+        supabaseClient
+          .from("settings")
+          .select("value")
+          .eq("key", "starter_max_trainings")
+          .maybeSingle(),
+      ]);
+      const maxTrainings = settingData?.value ? parseInt(settingData.value, 10) : 1;
       if (isMounted) {
-        setHasExistingTrainings((count ?? 0) > 0);
+        setHasExistingTrainings((count ?? 0) >= maxTrainings);
       }
     };
     checkTrainings();

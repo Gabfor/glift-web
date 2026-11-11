@@ -16,6 +16,7 @@ interface StorePageClientProps {
   initialIsAuthenticated: boolean;
   initialFavorites?: string[];
   initialFilters?: string[];
+  initialHasExistingTrainings?: boolean;
 }
 
 export default function StorePageClient({
@@ -25,6 +26,7 @@ export default function StorePageClient({
   initialIsAuthenticated,
   initialFavorites = [],
   initialFilters = ["", "", "", "", "", "", ""],
+  initialHasExistingTrainings = false,
 }: StorePageClientProps) {
   const [sortBy, setSortBy] = useState("relevance");
   const [visibleCount, setVisibleCount] = useState(12);
@@ -159,6 +161,7 @@ export default function StorePageClient({
         initialUserProfile={initialUserProfile}
         initialIsAuthenticated={initialIsAuthenticated}
         initialFavorites={initialFavorites}
+        initialHasExistingTrainings={initialHasExistingTrainings}
       />
       <LoadMore
         currentCount={Math.min(visibleCount, totalPrograms)}

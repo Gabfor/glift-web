@@ -71,9 +71,10 @@ export default async function StorePage() {
   const { data: { user } } = await supabase.auth.getUser();
   let userProfile: StoreProfile | null = null;
   let initialFavorites: string[] = [];
+  let initialHasExistingTrainings = false;
   
   if (user) {
-    const [profileRes, favsRes] = await Promise.all([
+    const [profileRes, favsRes, trainingsCountRes, settingsRes] = await Promise.all([
       supabase
         .from("profiles")
         .select("subscription_plan, gender, main_goal, experience, training_place, weekly_sessions")
@@ -83,6 +84,15 @@ export default async function StorePage() {
         .from("user_store_favorites" as any)
         .select("program_id")
         .eq("user_id", user.id),
+      supabase
+        .from("trainings")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id),
+      supabase
+        .from("settings")
+        .select("value")
+        .eq("key", "starter_max_trainings")
+        .maybeSingle(),
     ]);
     
     if (profileRes.data) {
@@ -91,6 +101,11 @@ export default async function StorePage() {
     if (favsRes.data) {
       initialFavorites = (favsRes.data as unknown as Array<{ program_id: string }>).map((item) => String(item.program_id));
     }
+
+    const isPremium = userProfile?.subscription_plan === "premium";
+    const starterMaxTrainings = settingsRes?.data?.value ? parseInt(settingsRes.data.value, 10) : 1;
+    const trainingsCount = trainingsCountRes?.count ?? 0;
+    initialHasExistingTrainings = !isPremium && trainingsCount >= starterMaxTrainings;
   }
  
   // 2. Fetch cookie & calculate initial subscription toggle
@@ -173,6 +188,7 @@ export default async function StorePage() {
           initialIsAuthenticated={!!user}
           initialFavorites={initialFavorites}
           initialFilters={initialFilters}
+          initialHasExistingTrainings={initialHasExistingTrainings}
         />
       </div>
     </main>
