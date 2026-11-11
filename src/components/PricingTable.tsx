@@ -222,7 +222,7 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
   return (
     <div className="flex flex-col items-center w-full">
       {showToggle && (
-        <div className="flex items-center justify-center gap-3 md:gap-4 mb-[30px] md:mb-[40px]">
+        <div className="flex items-center justify-center gap-[10px] mb-[30px] md:mb-[40px]">
           <button
             type="button"
             onClick={() => setInterval("monthly")}
@@ -255,7 +255,7 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
           </button>
 
           {discountPercent > 0 && (
-            <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] inline-flex items-center justify-center select-none whitespace-nowrap leading-none">
+            <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-[10px] py-[2px] rounded-full h-[20px] inline-flex items-center justify-center select-none whitespace-nowrap leading-none">
               Économise {discountPercent} %
             </span>
           )}
