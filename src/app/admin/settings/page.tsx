@@ -64,6 +64,28 @@ export default function AdminSettingsPage() {
     const [isCleaning, setIsCleaning] = useState(false);
     const [cleanupFeedback, setCleanupFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
+    const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
+        logo: false,
+        reglages: true,
+        emails: true,
+        degrade: true,
+        raccourcis: true,
+    });
+
+    const toggleSection = (section: string) => {
+        setCollapsedSections(prev => {
+            const isCurrentlyCollapsed = prev[section];
+            const nextState: Record<string, boolean> = {};
+            Object.keys(prev).forEach(key => {
+                nextState[key] = true;
+            });
+            if (isCurrentlyCollapsed) {
+                nextState[section] = false;
+            }
+            return nextState;
+        });
+    };
+
     const supabase = createClient();
     const settingsService = new SettingsService(supabase);
 
@@ -197,254 +219,373 @@ export default function AdminSettingsPage() {
                     Paramètres
                 </h2>
 
-                <div className="mb-8">
-                    <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">LOGO</span>
-
-                    {/* Inputs */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                        {/* Logo Upload Section */}
-                        <div className="flex flex-col gap-[10px]">
-                            <ImageUploader
-                                label="Logo"
-                                dimensions="294px x 70px"
-                                value={logoUrl}
-                                onChange={setLogoUrl}
-                                placeholder="Importer un fichier"
-                                bucket="logos"
-                                basePath=""
-                            />
-                        </div>
-
-                        {/* Alt Text Input */}
-                        <div className="flex flex-col justify-end">
-                            <AdminTextField
-                                label="Alt logo"
-                                value={altText}
-                                onChange={setAltText}
-                                placeholder="Alt logo"
-                            />
-                        </div>
-                    </div>
-
-                    {/* REGLAGES Section */}
-                    <div className="mt-8">
-                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">REGLAGES</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                            <div>
-                                <AdminDropdown
-                                    label="Durée de la période d’essai"
-                                    placeholder="Sélectionner"
-                                    sortStrategy="none"
-                                    options={[
-                                        { value: "0.0416667", label: "1 heure" },
-                                        { value: "1", label: "1 jour" },
-                                        { value: "7", label: "7 jours" },
-                                        { value: "30", label: "30 jours" },
-                                    ]}
-                                    selected={trialDays}
-                                    onSelect={setTrialDays}
-                                />
-                            </div>
-                            <div>
-                                <AdminDropdown
-                                    label="Étape de paiement (premium)"
-                                    placeholder="Sélectionner"
-                                    sortStrategy="none"
-                                    options={[
-                                        { value: "enabled", label: "Activée" },
-                                        { value: "disabled", label: "Désactivée" },
-                                    ]}
-                                    selected={premiumPaymentStep}
-                                    onSelect={setPremiumPaymentStep}
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* EMAILS Section */}
-                    <div className="mt-8">
-                        <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase mb-[20px] block">EMAILS</span>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
-                            {/* Contact Email Field */}
-                            <div>
-                                <AdminTextField
-                                    label="Email de contact"
-                                    value={contactEmail}
-                                    onChange={setContactEmail}
-                                    placeholder="Email de contact"
-                                />
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* DEGRADE Section */}
-                    <div className="mt-8">
-                        <div className="flex justify-between items-center mb-[20px]">
-                            <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">DÉGRADÉ</span>
-                            <ToggleSwitch
-                                checked={gradientEnabled}
-                                onCheckedChange={setGradientEnabled}
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-5">
-                            {/* Couleur 1 */}
-                            <div>
-                                <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 1</span>
-                                <div className="flex items-center gap-3">
-                                    <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                        <div className="w-full h-full" style={{ backgroundColor: gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}` }} />
-                                        <input
-                                            type="color"
-                                            value={gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}`}
-                                            onChange={(e) => setGradientColor1(e.target.value.toUpperCase())}
-                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                        />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={gradientColor1}
-                                        onChange={(e) => setGradientColor1(e.target.value)}
-                                        placeholder="#FBFCFE"
-                                        className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                    />
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={gradientOpacity1}
-                                        onChange={(e) => setGradientOpacity1(e.target.value)}
-                                        className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Couleur 2 */}
-                            <div>
-                                <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 2</span>
-                                <div className="flex items-center gap-3">
-                                    <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                        <div className="w-full h-full" style={{ backgroundColor: gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}` }} />
-                                        <input
-                                            type="color"
-                                            value={gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}`}
-                                            onChange={(e) => setGradientColor2(e.target.value.toUpperCase())}
-                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                        />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={gradientColor2}
-                                        onChange={(e) => setGradientColor2(e.target.value)}
-                                        placeholder="#FBFCFE"
-                                        className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                    />
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={gradientOpacity2}
-                                        onChange={(e) => setGradientOpacity2(e.target.value)}
-                                        className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Couleur 3 */}
-                            <div>
-                                <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 3</span>
-                                <div className="flex items-center gap-3">
-                                    <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                        <div className="w-full h-full" style={{ backgroundColor: gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}` }} />
-                                        <input
-                                            type="color"
-                                            value={gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}`}
-                                            onChange={(e) => setGradientColor3(e.target.value.toUpperCase())}
-                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                        />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={gradientColor3}
-                                        onChange={(e) => setGradientColor3(e.target.value)}
-                                        placeholder="#FBFCFE"
-                                        className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                    />
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        max="100"
-                                        value={gradientOpacity3}
-                                        onChange={(e) => setGradientOpacity3(e.target.value)}
-                                        className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Save Button (Centered, Outside Grid) */}
-                    <div className="mt-[50px] flex justify-center">
-                        <CTAButton
-                            onClick={handleSave}
-                            loading={isSaving}
-                            disabled={!hasChanges}
-                            variant={hasChanges ? "active" : "inactive"}
+                <div className="flex flex-col gap-8 w-full">
+                    {/* SECTION 1: LOGO */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("logo")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
                         >
-                            Sauvegarder
-                        </CTAButton>
-                    </div>
-
-                    {/* Cleanup Section */}
-                    <div className="mt-[60px]">
-                        <div className="flex justify-between items-center mb-[20px]">
-                            <span className="text-[#D7D4DC] font-bold text-sm tracking-wider uppercase">RACCOURCIS</span>
-                        </div>
-
-                        {/* Dashed Container */}
-                        <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex flex-wrap items-center pl-6 py-6 gap-4">
-                            <CTAButton
-                                onClick={async () => {
-                                    setIsCleaning(true);
-                                    setCleanupFeedback(null);
-                                    try {
-                                        const result = await cleanupOrphanedImages();
-                                        console.log(result.message);
-                                        if (result.details && result.details.length > 0) {
-                                            console.log("Deleted files:", result.details);
-                                        }
-                                        setCleanupFeedback({
-                                            type: result.success ? 'success' : 'error',
-                                            message: result.message,
-                                        });
-                                    } catch (e: any) {
-                                        console.error("Erreur lors du nettoyage:", e);
-                                        setCleanupFeedback({
-                                            type: 'error',
-                                            message: "Erreur lors du nettoyage: " + (e?.message || "Erreur inconnue"),
-                                        });
-                                    } finally {
-                                        setIsCleaning(false);
-                                    }
-                                }}
-                                loading={isCleaning}
-                                className="bg-black hover:bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-3"
-                            >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Logo
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
                                 <Image
-                                    src="/icons/supabase.svg"
-                                    alt="Supabase"
-                                    width={20}
-                                    height={20}
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.logo ? "rotate-180" : ""} group-hover:hidden`}
                                 />
-                                Vider Buckets
-                            </CTAButton>
-                            {cleanupFeedback && (
-                                <span className={`text-sm font-semibold ${cleanupFeedback.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
-                                    {cleanupFeedback.message}
-                                </span>
-                            )}
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.logo ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
                         </div>
+
+                        {!collapsedSections.logo && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                                {/* Logo Upload Section */}
+                                <div className="flex flex-col gap-[10px]">
+                                    <ImageUploader
+                                        label="Logo"
+                                        dimensions="294px x 70px"
+                                        value={logoUrl}
+                                        onChange={setLogoUrl}
+                                        placeholder="Importer un fichier"
+                                        bucket="logos"
+                                        basePath=""
+                                    />
+                                </div>
+
+                                {/* Alt Text Input */}
+                                <div className="flex flex-col justify-end">
+                                    <AdminTextField
+                                        label="Alt logo"
+                                        value={altText}
+                                        onChange={setAltText}
+                                        placeholder="Alt logo"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
+
+                    {/* SECTION 2: RÉGLAGES */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("reglages")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Réglages
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
+                                <Image
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.reglages ? "rotate-180" : ""} group-hover:hidden`}
+                                />
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.reglages ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
+                        </div>
+
+                        {!collapsedSections.reglages && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                                <div>
+                                    <AdminDropdown
+                                        label="Durée de la période d’essai"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={[
+                                            { value: "0.0416667", label: "1 heure" },
+                                            { value: "1", label: "1 jour" },
+                                            { value: "7", label: "7 jours" },
+                                            { value: "30", label: "30 jours" },
+                                        ]}
+                                        selected={trialDays}
+                                        onSelect={setTrialDays}
+                                    />
+                                </div>
+                                <div>
+                                    <AdminDropdown
+                                        label="Étape de paiement (premium)"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={[
+                                            { value: "enabled", label: "Activée" },
+                                            { value: "disabled", label: "Désactivée" },
+                                        ]}
+                                        selected={premiumPaymentStep}
+                                        onSelect={setPremiumPaymentStep}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SECTION 3: EMAILS */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("emails")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Emails
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
+                                <Image
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.emails ? "rotate-180" : ""} group-hover:hidden`}
+                                />
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.emails ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
+                        </div>
+
+                        {!collapsedSections.emails && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                                <div>
+                                    <AdminTextField
+                                        label="Email de contact"
+                                        value={contactEmail}
+                                        onChange={setContactEmail}
+                                        placeholder="Email de contact"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SECTION 4: DÉGRADÉ */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("degrade")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Dégradé
+                            </h3>
+                            <div className="flex items-center gap-4">
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    <ToggleSwitch
+                                        checked={gradientEnabled}
+                                        onCheckedChange={setGradientEnabled}
+                                    />
+                                </div>
+                                <div className="relative w-[18px] h-[18px]">
+                                    <Image
+                                        src="/icons/chevron_bloc.svg"
+                                        alt="Chevron"
+                                        fill
+                                        className={`object-contain transition-transform duration-200 ${!collapsedSections.degrade ? "rotate-180" : ""} group-hover:hidden`}
+                                    />
+                                    <Image
+                                        src="/icons/chevron_bloc_hover.svg"
+                                        alt="Chevron Hover"
+                                        fill
+                                        className={`object-contain transition-transform duration-200 ${!collapsedSections.degrade ? "rotate-180" : ""} hidden group-hover:block`}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {!collapsedSections.degrade && (
+                            <div className="flex flex-col gap-5 mt-[10px]">
+                                {/* Couleur 1 */}
+                                <div>
+                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 1</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
+                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}` }} />
+                                            <input
+                                                type="color"
+                                                value={gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}`}
+                                                onChange={(e) => setGradientColor1(e.target.value.toUpperCase())}
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                            />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={gradientColor1}
+                                            onChange={(e) => setGradientColor1(e.target.value)}
+                                            placeholder="#FBFCFE"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={gradientOpacity1}
+                                            onChange={(e) => setGradientOpacity1(e.target.value)}
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Couleur 2 */}
+                                <div>
+                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 2</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
+                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}` }} />
+                                            <input
+                                                type="color"
+                                                value={gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}`}
+                                                onChange={(e) => setGradientColor2(e.target.value.toUpperCase())}
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                            />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={gradientColor2}
+                                            onChange={(e) => setGradientColor2(e.target.value)}
+                                            placeholder="#FBFCFE"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={gradientOpacity2}
+                                            onChange={(e) => setGradientOpacity2(e.target.value)}
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Couleur 3 */}
+                                <div>
+                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 3</span>
+                                    <div className="flex items-center gap-3">
+                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
+                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}` }} />
+                                            <input
+                                                type="color"
+                                                value={gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}`}
+                                                onChange={(e) => setGradientColor3(e.target.value.toUpperCase())}
+                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                                            />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={gradientColor3}
+                                            onChange={(e) => setGradientColor3(e.target.value)}
+                                            placeholder="#FBFCFE"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                        />
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="100"
+                                            value={gradientOpacity3}
+                                            onChange={(e) => setGradientOpacity3(e.target.value)}
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SECTION 5: RACCOURCIS */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("raccourcis")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Raccourcis
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
+                                <Image
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.raccourcis ? "rotate-180" : ""} group-hover:hidden`}
+                                />
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.raccourcis ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
+                        </div>
+
+                        {!collapsedSections.raccourcis && (
+                            <div className="mt-[10px]">
+                                <div className="w-full border border-dashed border-[#D7D4DC] rounded-[20px] p-4 flex flex-wrap items-center pl-6 py-6 gap-4">
+                                    <CTAButton
+                                        onClick={async () => {
+                                            setIsCleaning(true);
+                                            setCleanupFeedback(null);
+                                            try {
+                                                const result = await cleanupOrphanedImages();
+                                                console.log(result.message);
+                                                if (result.details && result.details.length > 0) {
+                                                    console.log("Deleted files:", result.details);
+                                                }
+                                                setCleanupFeedback({
+                                                    type: result.success ? 'success' : 'error',
+                                                    message: result.message,
+                                                });
+                                            } catch (e: any) {
+                                                console.error("Erreur lors du nettoyage:", e);
+                                                setCleanupFeedback({
+                                                    type: 'error',
+                                                    message: "Erreur lors du nettoyage: " + (e?.message || "Erreur inconnue"),
+                                                });
+                                            } finally {
+                                                setIsCleaning(false);
+                                            }
+                                        }}
+                                        loading={isCleaning}
+                                        className="bg-black hover:bg-black text-white px-6 py-3 rounded-full font-semibold flex items-center gap-3"
+                                    >
+                                        <Image
+                                            src="/icons/supabase.svg"
+                                            alt="Supabase"
+                                            width={20}
+                                            height={20}
+                                        />
+                                        Vider Buckets
+                                    </CTAButton>
+                                    {cleanupFeedback && (
+                                        <span className={`text-sm font-semibold ${cleanupFeedback.type === 'success' ? 'text-green-600' : 'text-red-500'}`}>
+                                            {cleanupFeedback.message}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Save Button (Centered, Outside Grid) */}
+                <div className="mt-[50px] flex justify-center">
+                    <CTAButton
+                        onClick={handleSave}
+                        loading={isSaving}
+                        disabled={!hasChanges}
+                        variant={hasChanges ? "active" : "inactive"}
+                    >
+                        Sauvegarder
+                    </CTAButton>
                 </div>
             </div>
         </main>
