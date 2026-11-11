@@ -50,30 +50,10 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
     isLoading: true,
 };
 
-let cachedSiteSettings: SiteSettings | null = null;
-
 export function useSiteSettings(initialSettings?: Partial<SiteSettings>): SiteSettings {
     const [data, setData] = useState<SiteSettings>((): SiteSettings => {
         if (initialSettings && Object.keys(initialSettings).length > 0) {
-            const merged: SiteSettings = { ...DEFAULT_SITE_SETTINGS, ...initialSettings, isLoading: false };
-            cachedSiteSettings = merged;
-            return merged;
-        }
-        if (cachedSiteSettings) {
-            return cachedSiteSettings;
-        }
-        if (typeof window !== "undefined") {
-            try {
-                const stored = sessionStorage.getItem("glift_site_settings");
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    const restored: SiteSettings = { ...DEFAULT_SITE_SETTINGS, ...parsed, isLoading: false };
-                    cachedSiteSettings = restored;
-                    return restored;
-                }
-            } catch (e) {
-                // Ignore session storage error
-            }
+            return { ...DEFAULT_SITE_SETTINGS, ...initialSettings, isLoading: false };
         }
         return DEFAULT_SITE_SETTINGS;
     });
@@ -107,13 +87,6 @@ export function useSiteSettings(initialSettings?: Partial<SiteSettings>): SiteSe
                     gradientOpacity3: settings["gradient_opacity3"] ? parseInt(settings["gradient_opacity3"], 10) : 80,
                     isLoading: false,
                 };
-
-                cachedSiteSettings = updated;
-                if (typeof window !== "undefined") {
-                    try {
-                        sessionStorage.setItem("glift_site_settings", JSON.stringify(updated));
-                    } catch (e) {}
-                }
 
                 setData(updated);
             } catch (error) {
