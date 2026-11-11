@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import { useSiteSettings, SiteSettings } from "@/hooks/useSiteSettings";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { replaceSettingsVariables } from "@/lib/utils/settingsVariables";
@@ -225,7 +226,7 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
           <button
             type="button"
             onClick={() => setInterval("monthly")}
-            className={`text-[16px] transition-colors cursor-pointer ${
+            className={`text-[16px] transition-colors cursor-pointer select-none ${
               interval === "monthly"
                 ? "text-[#2E3271] font-bold"
                 : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
@@ -234,24 +235,17 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
             Mensuel
           </button>
 
-          <button
-            type="button"
-            role="switch"
-            aria-checked={interval === "yearly"}
-            onClick={() => setInterval((prev) => (prev === "monthly" ? "yearly" : "monthly"))}
-            className="w-[54px] h-[30px] rounded-full bg-[#8782FA] p-[3px] flex items-center transition-colors focus:outline-none cursor-pointer"
-          >
-            <div
-              className={`w-[24px] h-[24px] rounded-full bg-white shadow-sm transition-transform duration-200 ease-in-out ${
-                interval === "yearly" ? "translate-x-[24px]" : "translate-x-0"
-              }`}
-            />
-          </button>
+          <ToggleSwitch
+            checked={interval === "yearly"}
+            onCheckedChange={(checked) => setInterval(checked ? "yearly" : "monthly")}
+            isAdmin={false}
+            ariaLabel="Basculer entre abonnement mensuel et annuel"
+          />
 
           <button
             type="button"
             onClick={() => setInterval("yearly")}
-            className={`text-[16px] transition-colors cursor-pointer ${
+            className={`text-[16px] transition-colors cursor-pointer select-none ${
               interval === "yearly"
                 ? "text-[#2E3271] font-bold"
                 : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
@@ -261,7 +255,7 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
           </button>
 
           {discountPercent > 0 && (
-            <span className="bg-[#D2F8E7] text-[#00D591] text-[13px] md:text-[14px] font-bold px-[12px] py-[3px] md:py-[4px] rounded-full whitespace-nowrap">
+            <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-2 py-[2px] rounded-full h-[20px] inline-flex items-center justify-center select-none whitespace-nowrap leading-none">
               Économise {discountPercent} %
             </span>
           )}
