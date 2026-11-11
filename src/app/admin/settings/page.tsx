@@ -34,6 +34,12 @@ export default function AdminSettingsPage() {
     const [trialDays, setTrialDays] = useState<string>("30");
     const [initialTrialDays, setInitialTrialDays] = useState<string>("30");
 
+    const [starterMaxTrainings, setStarterMaxTrainings] = useState<string>("1");
+    const [initialStarterMaxTrainings, setInitialStarterMaxTrainings] = useState<string>("1");
+
+    const [starterMaxExercises, setStarterMaxExercises] = useState<string>("10");
+    const [initialStarterMaxExercises, setInitialStarterMaxExercises] = useState<string>("10");
+
     const [contactEmail, setContactEmail] = useState<string>("");
     const [initialContactEmail, setInitialContactEmail] = useState<string>("");
 
@@ -66,7 +72,8 @@ export default function AdminSettingsPage() {
 
     const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
         logo: false,
-        reglages: true,
+        trial: true,
+        starterLimits: true,
         emails: true,
         degrade: true,
         raccourcis: true,
@@ -105,6 +112,15 @@ export default function AdminSettingsPage() {
                 const trialDaysValue = settings["trial_period_days"] || "30";
                 setTrialDays(trialDaysValue);
                 setInitialTrialDays(trialDaysValue);
+
+                // Fetch Starter Limits
+                const starterTrainingsValue = settings["starter_max_trainings"] || "1";
+                setStarterMaxTrainings(starterTrainingsValue);
+                setInitialStarterMaxTrainings(starterTrainingsValue);
+
+                const starterExercisesValue = settings["starter_max_exercises"] || "10";
+                setStarterMaxExercises(starterExercisesValue);
+                setInitialStarterMaxExercises(starterExercisesValue);
 
                 // Fetch Contact Email
                 const contactEmailValue = settings["contact_email"] || "";
@@ -155,6 +171,8 @@ export default function AdminSettingsPage() {
         logoUrl !== initialLogoUrl ||
         altText !== initialAltText ||
         trialDays !== initialTrialDays ||
+        starterMaxTrainings !== initialStarterMaxTrainings ||
+        starterMaxExercises !== initialStarterMaxExercises ||
         contactEmail !== initialContactEmail ||
         premiumPaymentStep !== initialPremiumPaymentStep ||
         gradientEnabled !== initialGradientEnabled ||
@@ -174,6 +192,8 @@ export default function AdminSettingsPage() {
             await settingsService.updateSetting("logo_alt", altText);
 
             await settingsService.updateSetting("trial_period_days", trialDays);
+            await settingsService.updateSetting("starter_max_trainings", starterMaxTrainings);
+            await settingsService.updateSetting("starter_max_exercises", starterMaxExercises);
             await settingsService.updateSetting("contact_email", contactEmail);
             await settingsService.updateSetting("premium_payment_step", premiumPaymentStep);
 
@@ -190,6 +210,8 @@ export default function AdminSettingsPage() {
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
             setInitialTrialDays(trialDays);
+            setInitialStarterMaxTrainings(starterMaxTrainings);
+            setInitialStarterMaxExercises(starterMaxExercises);
             setInitialContactEmail(contactEmail);
             setInitialPremiumPaymentStep(premiumPaymentStep);
             setInitialGradientEnabled(gradientEnabled);
@@ -273,32 +295,32 @@ export default function AdminSettingsPage() {
                         )}
                     </div>
 
-                    {/* SECTION 2: RÉGLAGES */}
+                    {/* SECTION 2: PÉRIODE D'ESSAI */}
                     <div className="flex flex-col">
                         <div
-                            onClick={() => toggleSection("reglages")}
+                            onClick={() => toggleSection("trial")}
                             className="flex justify-between items-center cursor-pointer group mb-[10px]"
                         >
                             <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
-                                Réglages
+                                Période d’essai
                             </h3>
                             <div className="relative w-[18px] h-[18px]">
                                 <Image
                                     src="/icons/chevron_bloc.svg"
                                     alt="Chevron"
                                     fill
-                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.reglages ? "rotate-180" : ""} group-hover:hidden`}
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.trial ? "rotate-180" : ""} group-hover:hidden`}
                                 />
                                 <Image
                                     src="/icons/chevron_bloc_hover.svg"
                                     alt="Chevron Hover"
                                     fill
-                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.reglages ? "rotate-180" : ""} hidden group-hover:block`}
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.trial ? "rotate-180" : ""} hidden group-hover:block`}
                                 />
                             </div>
                         </div>
 
-                        {!collapsedSections.reglages && (
+                        {!collapsedSections.trial && (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
                                 <div>
                                     <AdminDropdown
@@ -332,14 +354,71 @@ export default function AdminSettingsPage() {
                         )}
                     </div>
 
-                    {/* SECTION 3: EMAILS */}
+                    {/* SECTION 3: LIMITES D'UN COMPTE STARTER */}
+                    <div className="flex flex-col">
+                        <div
+                            onClick={() => toggleSection("starterLimits")}
+                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
+                        >
+                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
+                                Limites d’un compte Starter
+                            </h3>
+                            <div className="relative w-[18px] h-[18px]">
+                                <Image
+                                    src="/icons/chevron_bloc.svg"
+                                    alt="Chevron"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.starterLimits ? "rotate-180" : ""} group-hover:hidden`}
+                                />
+                                <Image
+                                    src="/icons/chevron_bloc_hover.svg"
+                                    alt="Chevron Hover"
+                                    fill
+                                    className={`object-contain transition-transform duration-200 ${!collapsedSections.starterLimits ? "rotate-180" : ""} hidden group-hover:block`}
+                                />
+                            </div>
+                        </div>
+
+                        {!collapsedSections.starterLimits && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 mt-[10px]">
+                                <div>
+                                    <AdminDropdown
+                                        label="Nombre d’entraînements inclus"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={Array.from({ length: 10 }, (_, i) => ({
+                                            value: String(i + 1),
+                                            label: String(i + 1),
+                                        }))}
+                                        selected={starterMaxTrainings}
+                                        onSelect={setStarterMaxTrainings}
+                                    />
+                                </div>
+                                <div>
+                                    <AdminDropdown
+                                        label="Nombre d’exercices inclus"
+                                        placeholder="Sélectionner"
+                                        sortStrategy="none"
+                                        options={Array.from({ length: 30 }, (_, i) => ({
+                                            value: String(i + 1),
+                                            label: String(i + 1),
+                                        }))}
+                                        selected={starterMaxExercises}
+                                        onSelect={setStarterMaxExercises}
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* SECTION 4: EMAILS FONCTIONNELS */}
                     <div className="flex flex-col">
                         <div
                             onClick={() => toggleSection("emails")}
                             className="flex justify-between items-center cursor-pointer group mb-[10px]"
                         >
                             <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
-                                Emails
+                                Emails fonctionnels
                             </h3>
                             <div className="relative w-[18px] h-[18px]">
                                 <Image
