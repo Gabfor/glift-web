@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { Program, Training } from "@/types/training";
-import { useRouter, notFound } from "next/navigation";
+import { useRouter } from "next/navigation";
 import ProgramEditor from "@/components/ProgramEditor";
 import ProgramDeleteModal from "@/components/ProgramDeleteModal";
 import usePrograms from "@/hooks/usePrograms";
@@ -37,7 +37,6 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverEvent,
-  AutoScrollActivator,
   DragOverlay,
 } from "@dnd-kit/core";
 import { notifyTrainingChange } from "@/components/ProgramEditor";
@@ -216,14 +215,39 @@ export default function EntrainementsPage({
       const unlockedIds = new Set<string>();
 
       if (!isPremiumUser && programs.length > 0) {
+        // Collecter tous les entraînements ordonnés par position de programme puis de séance
         const sortedPrograms = [...programs].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
+        const allTrainings: { id: string; locked: boolean }[] = [];
         for (const prog of sortedPrograms) {
           if (!prog.trainings || prog.trainings.length === 0) continue;
           const sortedTrainings = [...prog.trainings].sort((a, b) => (a.position ?? 0) - (b.position ?? 0));
           for (const training of sortedTrainings) {
+            allTrainings.push({ id: training.id, locked: training.locked === true });
+          }
+        }
+
+        // 1. Identifier les entraînements qui sont ACTUELLEMENT déverrouillés
+        const currentlyUnlocked = allTrainings.filter((t) => !t.locked);
+
+        if (currentlyUnlocked.length === starterMaxTrainings) {
+          // Exactement le quota : préserver strictement les entraînements déjà déverrouillés
+          // (Déplacer un programme ou réordonner ne doit JAMAIS débloquer une séance verrouillée)
+          currentlyUnlocked.forEach((t) => unlockedIds.add(t.id));
+        } else if (currentlyUnlocked.length < starterMaxTrainings) {
+          // Moins de déverrouillés que le quota : conserver les déverrouillés actuels
+          // et débloquer les premiers verrouillés nécessaires pour combler le quota
+          currentlyUnlocked.forEach((t) => unlockedIds.add(t.id));
+          const lockedTrainings = allTrainings.filter((t) => t.locked);
+          for (const t of lockedTrainings) {
             if (unlockedIds.size < starterMaxTrainings) {
-              unlockedIds.add(training.id);
+              unlockedIds.add(t.id);
             }
+          }
+        } else {
+          // Plus de déverrouillés que le quota (ex: rétrogradation de Premium vers Starter) :
+          // Conserver les premiers `starterMaxTrainings` parmi ceux actuellement déverrouillés
+          for (let i = 0; i < starterMaxTrainings; i++) {
+            unlockedIds.add(currentlyUnlocked[i].id);
           }
         }
       }
@@ -635,11 +659,7 @@ export default function EntrainementsPage({
                     shouldWarnOnHide={
                       !isPremiumUser &&
                       program.app !== false &&
-                      program.trainings.some(
-                        (t, idx) =>
-                          t.locked === false ||
-                          (programs.find((p) => p.trainings.length > 0)?.id === program.id && idx === 0 && t.locked !== true)
-                      )
+                      program.trainings.some((t) => t.locked === false)
                     }
                   />
 
@@ -680,7 +700,6 @@ export default function EntrainementsPage({
                     setOpenVisibilityIds={setOpenVisibilityIds}
                     onUpdateTrainingVisibility={handleUpdateTrainingVisibility}
                     loadingTraining={loadingTraining}
-                    isFirstProgram={index === 0}
                     onUnlockClick={() => setShowUnlockModal(true)}
                     allowAddTraining={
                       !isPremiumUser &&
@@ -735,15 +754,8 @@ export default function EntrainementsPage({
           Boolean(
             trainingIdToDelete &&
             programs
-              .flatMap((p, pIdx) =>
-                p.trainings.map((t, tIdx) => ({
-                  id: t.id,
-                  isActiveStarter:
-                    t.locked === false ||
-                    (pIdx === 0 && tIdx === 0 && t.locked !== true),
-                }))
-              )
-              .find((t) => t.id === trainingIdToDelete)?.isActiveStarter
+              .flatMap((p) => p.trainings)
+              .find((t) => t.id === trainingIdToDelete && t.locked === false)
           )
         }
         onCancel={() => {

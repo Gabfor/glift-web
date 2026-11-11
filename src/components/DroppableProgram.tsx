@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import SortableItem from "./training/SortableItem";
@@ -33,7 +33,6 @@ interface Props {
   setShowVisibilityTrainingId?: (id: string | null) => void
   onUpdateTrainingVisibility: (id: string, updates: Partial<{ app: boolean; dashboard: boolean }>) => void
   loadingTraining?: LoadingTrainingState
-  isFirstProgram?: boolean
   onUnlockClick?: () => void
   allowAddTraining?: boolean
   onAddLockedClick?: () => void
@@ -53,7 +52,6 @@ export default function DroppableProgram(props: Props) {
     setOpenVisibilityIds,
     onUpdateTrainingVisibility,
     loadingTraining,
-    isFirstProgram = false,
     allowAddTraining = false,
     onAddLockedClick,
     adminMode = false,
@@ -83,17 +81,14 @@ export default function DroppableProgram(props: Props) {
   const dragDisabled = openVisibilityIds.length > 0;
 
   const sortableItems = useMemo(() => {
-    // Si Premium : tout est déplaçable
-    if (isPremiumUser) {
+    // Si Premium ou Admin : tout est déplaçable
+    if (isPremiumUser || adminMode) {
       return [...filteredTrainings.map((t) => t.id), `add-button-${programId}`];
     }
-    // Si Starter : seul le 1er du 1er programme est déplaçable (visuellement)
-    if (isFirstProgram && filteredTrainings.length > 0) {
-      return [filteredTrainings[0].id];
-    }
-    // Sinon rien n'est déplaçable
-    return [];
-  }, [isPremiumUser, isFirstProgram, filteredTrainings, programId]);
+    // Si Starter : seuls les entraînements déverrouillés sont déplaçables
+    const unlocked = filteredTrainings.filter((t) => t.locked === false);
+    return unlocked.map((t) => t.id);
+  }, [isPremiumUser, adminMode, filteredTrainings, programId]);
 
   const isAddEnabled = adminMode || isPremiumUser || allowAddTraining; // True if Admin OR Premium OR (Basic + count == 0)
   const isAddingThisProgram = loadingTraining?.type === "add" && loadingTraining?.id === programId;
@@ -102,10 +97,10 @@ export default function DroppableProgram(props: Props) {
     <div ref={setNodeRef} className="min-h-[64px]">
       <SortableContext items={sortableItems} strategy={rectSortingStrategy}>
         <div className="flex flex-wrap gap-4 items-start">
-          {filteredTrainings.map((training, index) => {
+          {filteredTrainings.map((training) => {
             // ... (training item rendering)
             const isTrainingLoading = loadingTraining?.id === training.id;
-            const isLocked = !adminMode && (training.locked ?? (!isPremiumUser && (!isFirstProgram || index > 0)));
+            const isLocked = !adminMode && !isPremiumUser && training.locked !== false;
 
             return (
               <SortableItem
