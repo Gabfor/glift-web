@@ -6,6 +6,7 @@ import Image from "next/image";
 import CTAButton from "@/components/CTAButton";
 import { useSiteSettings } from "@/hooks/useSiteSettings";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
+import { replaceSettingsVariables } from "@/lib/utils/settingsVariables";
 
 type PricingTableProps = {
   abonnement1?: Subscription;
@@ -15,6 +16,8 @@ type PricingTableProps = {
 export default function PricingTable({ abonnement1, abonnement2 }: PricingTableProps) {
   const {
     trialDays,
+    starterMaxTrainings,
+    starterMaxExercises,
     premiumMonthlyEnabled,
     premiumYearlyEnabled,
     premiumMonthlyPrice,
@@ -49,13 +52,39 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
       : 0;
 
   const renderAbo = (abo: Subscription, isPremium?: boolean) => {
-    const priceDisplay = isPremium
+    const varContext = {
+      starterMaxTrainings,
+      starterMaxExercises,
+      premiumMonthlyPrice,
+      premiumYearlyPrice,
+      trialDays,
+      interval,
+    };
+
+    let priceDisplay = isPremium
       ? (interval === "yearly" ? (premiumYearlyPrice || abo.prix) : (premiumMonthlyPrice || abo.prix))
-      : abo.prix;
+      : (abo.prix || "0,00");
+    priceDisplay = replaceSettingsVariables(priceDisplay, varContext);
 
     const periodDisplay = isPremium
       ? (interval === "yearly" ? "/an" : "/mois")
       : "/mois";
+
+    const formattedNom = replaceSettingsVariables(abo.nom, varContext);
+    const formattedBadge = replaceSettingsVariables(abo.badge, varContext);
+    const formattedDescription = replaceSettingsVariables(
+      abo.description
+        ?.replace(
+          /Un abonnement pour ceux qui suivent toujours le m[êe]me entra[îi]nement\.?/gi,
+          "Idéal si tu te concentres sur un programme unique et ciblé."
+        )
+        ?.replace(
+          /Un abonnement pour ceux qui suivent plusieurs entra[îi]nements\.?/gi,
+          "Idéal si tu veux varier tes entraînements, alterner tes cycles et progresser sans limites"
+        ) || abo.description,
+      varContext
+    );
+    const formattedBoutonTexte = replaceSettingsVariables(abo.boutonTexte, varContext);
 
     const getButtonHref = () => {
       if (!abo.boutonLien) return "#";
@@ -87,7 +116,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
                 color: abo.badgeTextColor || "#FFFFFF",
               }}
             >
-              {abo.badge}
+              {formattedBadge}
             </div>
           </div>
         )}
@@ -103,11 +132,11 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
         </div>
 
         <h2 className="text-[#3A416F] font-bold text-[18px]">
-          {abo.nom?.toLowerCase() === "starter"
+          {formattedNom?.toLowerCase() === "starter"
             ? "Abonnement Starter"
-            : abo.nom?.toLowerCase() === "premium"
+            : formattedNom?.toLowerCase() === "premium"
             ? "Abonnement Premium"
-            : abo.nom}
+            : formattedNom}
         </h2>
         <p className="text-[#2E3271] font-bold text-[36px] leading-tight pt-[10px] pb-[10px]">
           {priceDisplay} €<span className="text-[15px] md:text-[16px] font-semibold">{periodDisplay}</span>
@@ -115,15 +144,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
         <div 
           className="text-[#5D6494] text-[14px] md:text-[16px] font-semibold leading-relaxed pb-[20px] prose prose-sm max-w-[350px] mx-auto [&_p]:mb-0"
           dangerouslySetInnerHTML={{
-            __html: abo.description
-              ?.replace(
-                /Un abonnement pour ceux qui suivent toujours le m[êe]me entra[îi]nement\.?/gi,
-                "Idéal si tu te concentres sur un programme unique et ciblé."
-              )
-              ?.replace(
-                /Un abonnement pour ceux qui suivent plusieurs entra[îi]nements\.?/gi,
-                "Idéal si tu veux varier tes entraînements, alterner tes cycles et progresser sans limites"
-              ) || abo.description
+            __html: formattedDescription
           }}
         />
 
@@ -150,7 +171,7 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
                 `}</style>
                 <div 
                   className="pricing-arg-text pt-[2px] md:pt-[3px] prose prose-sm max-w-none [&_p]:mb-0 [&_b]:text-[#3A416F] [&_strong]:text-[#3A416F]"
-                  dangerouslySetInnerHTML={{ __html: arg.texte }}
+                  dangerouslySetInnerHTML={{ __html: replaceSettingsVariables(arg.texte, varContext) }}
                 />
               </>
             </li>
@@ -162,14 +183,14 @@ export default function PricingTable({ abonnement1, abonnement2 }: PricingTableP
           {abo.boutonType !== "aucun" && (
             abo.boutonType === "primaire" ? (
               <CTAButton href={getButtonHref()} className="font-semibold w-full md:w-auto">
-                {abo.boutonTexte}
+                {formattedBoutonTexte}
               </CTAButton>
             ) : (
               <Link
                 href={getButtonHref()}
                 className="inline-flex items-center justify-center h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
               >
-                {abo.boutonTexte}
+                {formattedBoutonTexte}
               </Link>
             )
           )}

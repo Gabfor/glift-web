@@ -847,6 +847,37 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
 
             {block.type === "tarifs" && (
               <div className="flex flex-col gap-10">
+                {/* Aide pour les variables dynamiques */}
+                <div className="bg-[#F8F9FE] border border-[#E2E0E7] rounded-[10px] p-4 text-[13px] text-[#5D6494] flex flex-col gap-2">
+                  <div className="font-bold text-[#2E3271] flex items-center gap-1.5">
+                    <span>💡</span>
+                    <span>Variables dynamiques disponibles pour les textes et arguments :</span>
+                  </div>
+                  <p className="text-[12px] text-[#5D6494] leading-relaxed">
+                    Tu peux insérer ces variables dans les textes (arguments, description, prix) pour qu&apos;ils se mettent à jour automatiquement selon les réglages de l&apos;admin :
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"{nombre_entrainements}"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"{nombre_exercices}"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"{prix_mensuel}"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"{prix_annuel}"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"{duree_essai}"}
+                    </span>
+                    <span className="inline-flex items-center gap-1 bg-white border border-[#D7D4DC] px-2 py-0.5 rounded text-[12px] text-[#7069FA] font-bold">
+                      {"entraînement{s}"}
+                    </span>
+                  </div>
+                </div>
+
                 {/* Abonnement 1 & 2 */}
                 {[1, 2].map((num) => {
                   const key = `abonnement${num}` as "abonnement1" | "abonnement2";
