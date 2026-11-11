@@ -476,7 +476,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
     }
  
     return (
-      <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
+      <main className="flex-1 bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5">
         <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center">
           {page.surtitre && (
             <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center">
@@ -623,7 +623,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   };
  
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
+    <main className="relative flex-1 bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F]">
       {/* Fond dégradé en haut de la page concept, des 4 pages de fonctionnalités, de la page tarifs et de la page apps */}
       {(isConceptPage || isTarifsPage || isFeaturePage || isAppsPage) && <ConceptGradientBackground />}
       <div className="relative z-10 max-w-[1152px] mx-auto px-5 md:px-0">
