@@ -93,6 +93,12 @@
 - **Règles d'espacement de la barre de choix :**
   - Espacement horizontal entre les textes (« Mensuel », « Annuel »), le switch et le badge : **10px** (`gap-[10px]`).
   - Padding latéral interne du badge : **10px** (`px-[10px]`).
+
+## Gestion des Vignettes et Verrouillage Starter (`DroppableProgram.tsx`, `EntrainementsClient.tsx`)
+- **Préservation stricte des verrous au réordonnancement :**
+  - Seuls les entraînements explicitement déverrouillés (`t.locked === false`) sont déplaçables (`sortableItems`).
+  - Le déplacement vertical d'un programme verrouillé en première position n'altère **en aucun cas** le statut des vignettes : un programme verrouillé reste verrouillé, et la séance active déverrouillée conserve son statut sans bascule intempestive.
+  - L'algorithme de synchronisation `syncLocks` n'intervient que si le nombre total de séances débloquées est strictement inférieur au quota Starter (déblocage des premières séances) ou strictement supérieur (verrouillage de l'excédent lors d'un downgrade).
 - **Moteur de variables dynamiques (`replaceSettingsVariables`) :**
   - Les textes des cartes de tarifs résolvent automatiquement les variables configurées dans l'administration : `{nombre_entrainements}`, `{nombre_entrainements_texte}` (ex: « un », « deux »), `{nombre_exercices}`, `{prix_mensuel}`, `{prix_annuel}`, `{duree_essai}`, ainsi que le pluriel contextuel `entraînement{s}`.
 - **Hydratation SSR sans scintillement :**
