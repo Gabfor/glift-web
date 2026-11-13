@@ -463,7 +463,7 @@ export default function AdminSettingsPage() {
                                         onChange={setPremiumMonthlyPrice}
                                         placeholder={premiumMonthlyEnabled === "OUI" ? "3,99" : "0,00"}
                                         disabled={premiumMonthlyEnabled !== "OUI"}
-                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#ECE9F1] cursor-not-allowed hover:!border-[#ECE9F1] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                                     />
                                 </div>
                                 <div>
@@ -473,7 +473,7 @@ export default function AdminSettingsPage() {
                                         onChange={setPremiumYearlyPrice}
                                         placeholder={premiumYearlyEnabled === "OUI" ? "39,99" : "0,00"}
                                         disabled={premiumYearlyEnabled !== "OUI"}
-                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#ECE9F1] cursor-not-allowed hover:!border-[#ECE9F1] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                                     />
                                 </div>
 
@@ -485,7 +485,7 @@ export default function AdminSettingsPage() {
                                         onChange={setPremiumMonthlyStripeId}
                                         placeholder={premiumMonthlyEnabled === "OUI" ? "price_..." : "0,00"}
                                         disabled={premiumMonthlyEnabled !== "OUI"}
-                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                        className={premiumMonthlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#ECE9F1] cursor-not-allowed hover:!border-[#ECE9F1] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                                     />
                                 </div>
                                 <div>
@@ -495,7 +495,7 @@ export default function AdminSettingsPage() {
                                         onChange={setPremiumYearlyStripeId}
                                         placeholder={premiumYearlyEnabled === "OUI" ? "price_..." : "0,00"}
                                         disabled={premiumYearlyEnabled !== "OUI"}
-                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                                        className={premiumYearlyEnabled !== "OUI" ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#ECE9F1] cursor-not-allowed hover:!border-[#ECE9F1] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                                     />
                                 </div>
                             </div>

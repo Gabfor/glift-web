@@ -147,7 +147,7 @@ export default function SortableItem({
             ? "rounded-t-[8px] rounded-b-none"
             : "rounded-[8px]",
           isLocked
-            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#D7D4DC]"
+            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#C2BFC6]"
             : "bg-white border border-[#D7D4DC] text-[#3A416F]"
         )}
       >
@@ -210,7 +210,7 @@ export default function SortableItem({
               autoScrollOnEdit
             />
           ) : (
-            <span className={cn("block w-full truncate text-center leading-normal cursor-pointer", isLocked ? "text-[#D7D4DC]" : "text-[#3A416F]")}>
+            <span className={cn("block w-full truncate text-center leading-normal cursor-pointer", isLocked ? "text-[#C2BFC6]" : "text-[#3A416F]")}>
               {training.name}
             </span>
           )}

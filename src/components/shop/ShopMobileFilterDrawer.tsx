@@ -204,7 +204,7 @@ export default function ShopMobileFilterDrawer({
                 <button
                   type="button"
                   onClick={() => toggleSectionAll(section)}
-                  className="text-[13px] font-semibold text-[#7069FA] hover:text-[#5E56E8] transition"
+                  className="text-[13px] font-semibold text-[#7069FA] hover:text-[#6660E4] transition"
                 >
                   {hasSelected ? "Tout effacer" : "Tout sélectionner"}
                 </button>
@@ -248,7 +248,7 @@ export default function ShopMobileFilterDrawer({
         <button
           type="button"
           onClick={handleApply}
-          className="w-full h-[48px] bg-[#7069FA] hover:bg-[#5E56E8] active:scale-[0.99] text-white font-bold text-[16px] rounded-[25px] flex items-center justify-center transition"
+          className="w-full h-[48px] bg-[#7069FA] hover:bg-[#6660E4] active:scale-[0.99] text-white font-bold text-[16px] rounded-[25px] flex items-center justify-center transition"
         >
           {matchingCount === 0
             ? "Aucun résultat"

@@ -389,7 +389,7 @@ export default function AdminAuteursPage() {
                           className={`inline-flex items-center justify-center rounded-full uppercase ${
                             a.statut
                               ? "bg-[#DCFAF1] text-[#00D591]"
-                              : "bg-[#FEF7D0] text-[#DCBC04]"
+                              : "bg-[#FFF7CB] text-[#E2BA00]"
                           }`}
                           style={{
                             width: "40px",

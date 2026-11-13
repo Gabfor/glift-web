@@ -1556,7 +1556,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
           <CTAButton
             onClick={handleDownload}
             loading={loading}
-            className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white"
+            className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#6660E4] text-white"
           >
             <span className="inline-flex items-center gap-2">
               <Image src="/icons/download.svg" alt="" width={20} height={20} />
@@ -1573,7 +1573,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
             className="group w-full md:w-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
-              <div className="relative w-[15px] h-[15px]">
+              <div className="relative w-[20px] h-[20px] -translate-y-[1.5px]">
                 <Image
                   src="/icons/locked.svg"
                   alt=""

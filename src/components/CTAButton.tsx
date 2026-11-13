@@ -173,12 +173,12 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
       (isPageAdmin
-        ? "bg-[#3A416F] text-white hover:bg-[#2E3271] focus-visible:ring-[#5D6494]"
+        ? "bg-[#3A416F] text-white hover:bg-[#2E3459] focus-visible:ring-[#5D6494]"
         : "bg-[var(--color-brand-primary)] text-white hover:bg-[var(--color-brand-primary-hover)] focus-visible:ring-[var(--color-brand-primary)]"),
       resolvedVariant === "inactive" &&
       (effectiveLoading
-        ? "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)]"
-        : "bg-[var(--color-surface-muted)] text-[var(--color-border-soft)] hover:bg-[var(--color-surface-subtle)] hover:text-[#CEC7D4] focus-visible:ring-[var(--color-border-soft)]"),
+        ? "bg-[#F2F1F6] text-[#C2BFC6]"
+        : "bg-[#F2F1F6] text-[#C2BFC6] hover:bg-[#ECE9F1] hover:text-[#C2BFC6] focus-visible:ring-[#ECE9F1]"),
       resolvedVariant === "danger" &&
       "bg-[var(--color-accent-danger)] text-white hover:bg-[var(--color-accent-danger-hover)] focus-visible:ring-[var(--color-accent-danger)]",
       resolvedVariant === "secondary" &&
@@ -191,7 +191,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
     const content = effectiveLoading ? (
       <span className="inline-flex items-center gap-2">
         <Spinner
-          size="sm"
+          size="md"
           className={isPageAdmin ? "text-[#5D6494]" : "text-[#7069FA]"}
           ariaLabel={typeof loadingText === "string" ? loadingText : undefined}
         />

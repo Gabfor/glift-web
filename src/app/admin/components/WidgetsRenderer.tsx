@@ -850,7 +850,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
             {block.type === "tarifs" && (
               <div className="flex flex-col gap-10">
                 {/* Aide pour les variables dynamiques */}
-                <div className="bg-[#F8F9FE] border border-[#E2E0E7] rounded-[10px] p-4 text-[13px] text-[#5D6494] flex flex-col gap-2">
+                <div className="bg-[#F8F9FE] border border-[#ECE9F1] rounded-[10px] p-4 text-[13px] text-[#5D6494] flex flex-col gap-2">
                   <div className="font-bold text-[#2E3271] flex items-center gap-1.5">
                     <span>💡</span>
                     <span>Variables dynamiques disponibles pour les textes et arguments :</span>
@@ -904,7 +904,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                             onChange={(val) => updateBlock(block.id, { [key]: { ...abo, prix: val } })}
                             placeholder={isPremiumAbo ? premiumPricePlaceholder : "Prix de l'abonnement"}
                             disabled={isPremiumAbo}
-                            className={isPremiumAbo ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#E2E0E7] cursor-not-allowed hover:!border-[#E2E0E7] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
+                            className={isPremiumAbo ? "bg-[#F7F8F9] !text-[#C2BFC6] border-[#ECE9F1] cursor-not-allowed hover:!border-[#ECE9F1] focus:!shadow-none placeholder:!text-[#C2BFC6]" : ""}
                           />
                         </div>
                       </div>

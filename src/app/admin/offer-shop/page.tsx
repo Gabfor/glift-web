@@ -339,7 +339,7 @@ export default function OfferShopPage() {
                         </button>
                       </td>
                       <td className="px-4">
-                        <span className={`inline-flex items-center justify-center rounded-full ${offer.status === "ON" ? "bg-[#DCFAF1] text-[#00D591]" : "bg-[#FEF7D0] text-[#DCBC04]"}`} style={{ width: "40px", height: "20px", fontSize: "10px", fontWeight: 600 }}>{offer.status}</span>
+                        <span className={`inline-flex items-center justify-center rounded-full ${offer.status === "ON" ? "bg-[#DCFAF1] text-[#00D591]" : "bg-[#FFF7CB] text-[#E2BA00]"}`} style={{ width: "40px", height: "20px", fontSize: "10px", fontWeight: 600 }}>{offer.status}</span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494]">{new Date(offer.start_date).toLocaleDateString("fr-FR")}</td>
                       <td className="px-4 font-semibold text-[#5D6494]">

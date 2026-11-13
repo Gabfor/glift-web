@@ -421,7 +421,7 @@ export default async function AuteursPage() {
                     <CTAButton
                       href={authorUrl}
                       isAdmin={false}
-                      className="w-full text-[14px] sm:text-[15px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center h-[44px] rounded-full shadow-none"
+                      className="w-full text-[14px] sm:text-[15px] font-semibold bg-[#7069FA] hover:bg-[#6660E4] text-white flex items-center justify-center h-[44px] rounded-full shadow-none"
                     >
                       Voir le profil {getDePreposition(author.prenom)}{author.prenom}
                     </CTAButton>

@@ -423,7 +423,7 @@ export default function ConnexionPage() {
                   alt="Icône cadenas"
                   width={20}
                   height={20}
-                  className={`transition-colors ${isFormValid && !loading ? "invert brightness-0" : ""
+                  className={`-translate-y-[1.5px] transition-colors ${isFormValid && !loading ? "invert brightness-0" : ""
                     }`}
                 />
                 Se connecter

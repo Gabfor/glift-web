@@ -32,7 +32,7 @@ a {
 
 .btn-primary {
   @apply font-semibold rounded-full h-[44px] px-[30px] flex items-center justify-center gap-2 transition;
-  background-color: var(--color-brand-strong);
+  background-color: #7069FA;
   color: #fff;
 }
 
@@ -43,7 +43,7 @@ a {
 }
 
 .btn-primary:hover {
-  background-color: var(--color-brand-strong-hover);
+  background-color: #6660E4;
   color: #fff;
 }
 
@@ -361,14 +361,14 @@ input:checked+.slider:before {
     --color-surface-highlight: #fafaff;
     --color-danger-surface: #fff1f1;
     --color-border-soft: #d7d4dc;
-    --color-border-strong: #dcd9e1;
-    --color-text-strong: #202121;
+    --color-border-strong: #D7D4DC;
+    --color-text-strong: #2E3459;
     --color-text-heading: #3a416f;
     --color-text-body: #5d6494;
     --color-brand-primary: #7069fa;
     --color-brand-primary-hover: #6660e4;
-    --color-brand-strong: #2e3271;
-    --color-brand-strong-hover: #1f224e;
+    --color-brand-strong: #3a416f;
+    --color-brand-strong-hover: #2e3459;
     --color-accent-success: #00d591;
     --color-accent-danger: #ef4f4e;
     --color-accent-danger-hover: #ba2524;
@@ -463,7 +463,9 @@ input:checked+.slider:before {
   button[aria-disabled="true"],
   a[aria-disabled="true"],
   .disabled {
-    color: var(--color-border-soft) !important;
+    background-color: #F2F1F6 !important;
+    color: #C2BFC6 !important;
+    border-color: transparent !important;
   }
 
   /* Ensure descendants also inherit the disabled text color (like spans inside buttons) */
@@ -482,9 +484,28 @@ input:checked+.slider:before {
   .btn-outline:disabled,
   .btn-outline[disabled],
   .btn-outline.disabled {
-    background-color: var(--color-surface-muted) !important;
+    background-color: #F2F1F6 !important;
     border-color: transparent !important;
-    color: var(--color-border-soft) !important;
+    color: #C2BFC6 !important;
+  }
+
+  /* Hover state for disabled buttons and inactive CTAs */
+  button:disabled:hover,
+  button[disabled]:hover,
+  input[type="button"]:disabled:hover,
+  input[type="submit"]:disabled:hover,
+  button[aria-disabled="true"]:hover,
+  a[aria-disabled="true"]:hover,
+  .disabled:hover,
+  .btn-primary:disabled:hover,
+  .btn-primary[disabled]:hover,
+  .btn-primary.disabled:hover,
+  .btn-outline:disabled:hover,
+  .btn-outline[disabled]:hover,
+  .btn-outline.disabled:hover {
+    background-color: #ECE9F1 !important;
+    color: #C2BFC6 !important;
+    border-color: transparent !important;
   }
 
   /* Ensure smooth border transitions on focus for all inputs, textareas and selects */

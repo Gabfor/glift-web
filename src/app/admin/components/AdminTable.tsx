@@ -199,7 +199,7 @@ export function AdminStatusBadge({ isActive }: { isActive: boolean }) {
   return (
     <span
       className={`inline-flex items-center justify-center rounded-full uppercase ${
-        isActive ? "bg-[#DCFAF1] text-[#00D591]" : "bg-[#FEF7D0] text-[#DCBC04]"
+        isActive ? "bg-[#DCFAF1] text-[#00D591]" : "bg-[#FFF7CB] text-[#E2BA00]"
       }`}
       style={{
         width: "40px",

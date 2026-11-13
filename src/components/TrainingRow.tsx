@@ -59,6 +59,7 @@ export default function TrainingRow({
   } = useSortable({ id: rowId, disabled: adminMode || row.locked });
 
   const [isGrabbing, setIsGrabbing] = useState(false);
+  const [isCheckboxHovered, setIsCheckboxHovered] = useState(false);
 
   useEffect(() => {
     const handlePointerUp = () => setIsGrabbing(false);
@@ -123,7 +124,7 @@ export default function TrainingRow({
     zIndex: isDragging ? 50 : undefined,
     position: isDragging ? "relative" : undefined,
     width: "100%",
-    backgroundColor: row.locked ? "#F2F1F6" : (row.checked ? "#F4F5FE" : "#ffffff"),
+    backgroundColor: row.locked ? "#FAFAFF" : (row.checked ? "#F4F5FE" : "#ffffff"),
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
     height: "40px",
     ...transitionStyles,
@@ -187,7 +188,9 @@ export default function TrainingRow({
             {!row.locked && (
               <button
                 onClick={(e) => handleCheckboxChange(rowId, e)}
-                className="flex items-center justify-center"
+                onMouseEnter={() => setIsCheckboxHovered(true)}
+                onMouseLeave={() => setIsCheckboxHovered(false)}
+                className="flex items-center justify-center cursor-pointer"
                 style={{ width: "15px", height: "15px" }}
               >
                 <Image
@@ -195,8 +198,12 @@ export default function TrainingRow({
                     row.checked
                       ? isEffectiveAdmin
                         ? "/icons/admin_checkbox_checked.svg"
-                        : "/icons/checkbox_checked.svg"
-                      : "/icons/checkbox_unchecked.svg"
+                        : isCheckboxHovered
+                          ? "/icons/checkbox_checked_hover.svg"
+                          : "/icons/checkbox_checked.svg"
+                      : isCheckboxHovered
+                        ? "/icons/checkbox_unchecked_hover.svg"
+                        : "/icons/checkbox_unchecked.svg"
                   }
                   alt={row.checked ? "Coché" : "Non coché"}
                   width={15}
@@ -215,20 +222,20 @@ export default function TrainingRow({
             href={row.link}
             target="_blank"
             rel="noopener noreferrer"
-            className={`w-full block px-3 border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${(row.locked || isRowHidden) ? "!text-[#D7D4DC]" : !row.exercice ? "!text-[#D7D4DC]" : isEffectiveAdmin ? "!text-[#3A416F]" : "!text-[#7069FA]"} ${row.locked ? "pointer-events-none" : "pointer-events-auto"}`}
+            className={`w-full block px-3 border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] font-semibold underline focus:outline-none training-input truncate ${(row.locked || isRowHidden) ? "!text-[#C2BFC6]" : !row.exercice ? "!text-[#C2BFC6]" : isEffectiveAdmin ? "!text-[#3A416F]" : "!text-[#7069FA]"} ${row.locked ? "pointer-events-none" : "pointer-events-auto"}`}
             style={{
               backgroundColor: "transparent",
               height: "40px",
               lineHeight: "40px",
-              color: (row.locked || isRowHidden) ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
-              WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              color: (row.locked || isRowHidden) ? "#C2BFC6" : !row.exercice ? "#C2BFC6" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+              WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : !row.exercice ? "#C2BFC6" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
             }}
           >
             <span
               className="block truncate"
               style={{
-                color: (row.locked || isRowHidden) ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
-                WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : !row.exercice ? "#D7D4DC" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+                color: (row.locked || isRowHidden) ? "#C2BFC6" : !row.exercice ? "#C2BFC6" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
+                WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : !row.exercice ? "#C2BFC6" : (isEffectiveAdmin ? "#3A416F" : "#7069FA"),
               }}
             >
               {row.exercice || "Nom de l’exercice"}
@@ -252,7 +259,7 @@ export default function TrainingRow({
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             onKeyDown={readOnly ? undefined : handleInputKeyDown}
             disabled={row.locked}
-            className={`w-full border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : isRowHidden ? "!text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
+            className={`w-full border-t ${readOnly ? "" : "border-l"} border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#C2BFC6]" : isRowHidden ? "!text-[#C2BFC6]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
@@ -260,8 +267,8 @@ export default function TrainingRow({
               lineHeight: "40px",
               ...(row.exercice
                 ? {
-                    color: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
-                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
+                    color: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
+                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
                   }
                 : {}),
             }}
@@ -289,15 +296,15 @@ export default function TrainingRow({
             onDoubleClick={readOnly ? undefined : handleDoubleClickSelect}
             onKeyDown={readOnly ? undefined : handleInputKeyDown}
             disabled={row.locked}
-            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : isRowHidden ? "!text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
+            className={`w-full h-10 border-l border-t border-[#ECE9F1] px-3 focus:outline-none training-input truncate ${row.locked ? "cursor-not-allowed !text-[#C2BFC6]" : isRowHidden ? "!text-[#C2BFC6]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
               lineHeight: "40px",
               ...(row.materiel
                 ? {
-                    color: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
-                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
+                    color: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
+                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
                   }
                 : {}),
             }}
@@ -311,11 +318,11 @@ export default function TrainingRow({
           {readOnly ? (
             <span
               className={`w-9 h-8 flex items-center justify-center font-semibold text-[14px] ${
-                (row.locked || isRowHidden) ? "text-[#D7D4DC]" : "text-[#5D6494]"
+                (row.locked || isRowHidden) ? "text-[#C2BFC6]" : "text-[#5D6494]"
               }`}
               style={{
-                color: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
-                WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
+                color: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
+                WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
               }}
             >
               {row.series}
@@ -327,15 +334,15 @@ export default function TrainingRow({
               readOnly
               tabIndex={-1}
               className={`w-9 h-8 border-none px-2 py-1 rounded-md focus:outline-none training-input-series text-left pointer-events-none ${
-                (row.locked || isRowHidden) ? "!text-[#D7D4DC]" : defaultTextClass
+                (row.locked || isRowHidden) ? "!text-[#C2BFC6]" : defaultTextClass
               }`}
               style={{
                 backgroundColor: "transparent",
                 border: "none",
                 WebkitAppearance: "none",
                 MozAppearance: "textfield",
-                color: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
-                WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
+                color: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
+                WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
                 opacity: 1,
               }}
             />
@@ -382,8 +389,8 @@ export default function TrainingRow({
                       : "transparent",
                 ...(rep
                   ? {
-                      color: (row.locked || isRowHidden) ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                      WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                      color: (row.locked || isRowHidden) ? "#C2BFC6" : getCellTextColor(row.effort[subIndex]),
+                      WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : getCellTextColor(row.effort[subIndex]),
                     }
                   : {}),
               }}
@@ -424,8 +431,8 @@ export default function TrainingRow({
                       : "transparent",
                 ...(weight
                   ? {
-                      color: (row.locked || isRowHidden) ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
-                      WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : getCellTextColor(row.effort[subIndex]),
+                      color: (row.locked || isRowHidden) ? "#C2BFC6" : getCellTextColor(row.effort[subIndex]),
+                      WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : getCellTextColor(row.effort[subIndex]),
                     }
                   : {}),
               }}
@@ -453,14 +460,14 @@ export default function TrainingRow({
             type="number"
             readOnly={readOnly}
             disabled={row.locked}
-            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#D7D4DC]" : isRowHidden ? "!text-[#D7D4DC]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
+            className={`w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered ${row.locked ? "cursor-not-allowed !text-[#C2BFC6]" : isRowHidden ? "!text-[#C2BFC6]" : readOnly ? `${defaultTextClass} pointer-events-none` : defaultTextClass
               }`}
             style={{
               backgroundColor: "transparent",
               ...(row.repos
                 ? {
-                    color: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
-                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#D7D4DC" : activeTextColor,
+                    color: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
+                    WebkitTextFillColor: (row.locked || isRowHidden) ? "#C2BFC6" : activeTextColor,
                   }
                 : {}),
             }}

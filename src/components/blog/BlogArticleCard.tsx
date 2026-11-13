@@ -180,7 +180,7 @@ export default function BlogArticleCard({
         <div className="w-full mt-auto flex justify-center">
           <Link href={`${blogUrl}/${article.url}`} className="w-full md:w-auto">
             <CTAButton
-              className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#5E56E8] text-white flex items-center justify-center md:px-[30px]"
+              className="w-full md:w-auto text-[16px] font-semibold bg-[#7069FA] hover:bg-[#6660E4] text-white flex items-center justify-center md:px-[30px]"
             >
               Lire cet article
             </CTAButton>

@@ -578,7 +578,7 @@ const AccountCreationPage = () => {
                   alt="Icône cadenas"
                   width={20}
                   height={20}
-                  className={`h-[20px] w-[20px] transition-colors ${isFormValid ? "invert brightness-0" : ""
+                  className={`h-[20px] w-[20px] -translate-y-[1.5px] transition-colors ${isFormValid ? "invert brightness-0" : ""
                     }`}
                 />
                 Créer mon compte

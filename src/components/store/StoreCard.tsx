@@ -213,7 +213,7 @@ export default function StoreCard({
               <CTAButton
                 onClick={handleDownload}
                 loading={loading}
-                className="w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#5E56E8] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
+                className="w-full md:w-auto text-[16px] font-bold rounded-full bg-[#7069FA] hover:bg-[#6660E4] text-white h-[44px] flex items-center justify-center shadow-none md:px-[30px]"
               >
                 <span className="inline-flex items-center gap-2">
                   <Image src="/icons/download.svg" alt="" width={20} height={20} />
@@ -224,10 +224,10 @@ export default function StoreCard({
               <CTAButton
                 onClick={() => setShowModal(true)}
                 variant="inactive"
-                className="group w-full md:w-auto text-[16px] font-bold rounded-full h-[44px] flex items-center justify-center bg-[#F2F1F6] text-[#D7D4DC] shadow-none md:px-[30px]"
+                className="group w-full md:w-auto text-[16px] font-bold rounded-full h-[44px] flex items-center justify-center bg-[#F2F1F6] text-[#C2BFC6] hover:bg-[#ECE9F1] hover:text-[#C2BFC6] shadow-none md:px-[30px]"
               >
                 <span className="inline-flex items-center gap-2">
-                  <div className="relative w-[15px] h-[15px]">
+                  <div className="relative w-[20px] h-[20px] -translate-y-[1.5px]">
                     <Image
                       src="/icons/locked.svg"
                       alt=""
