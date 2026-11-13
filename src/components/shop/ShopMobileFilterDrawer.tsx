@@ -231,7 +231,7 @@ export default function ShopMobileFilterDrawer({
                       />
 
                       {/* Label */}
-                      <span className="text-[15px] font-semibold text-[#3A416F] group-hover:text-[#2E3271] transition-colors">
+                      <span className="text-[15px] font-semibold text-[#3A416F] group-hover:text-[#3A416F] transition-colors">
                         {option}
                       </span>
                     </div>

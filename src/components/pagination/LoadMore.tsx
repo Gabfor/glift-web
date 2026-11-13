@@ -36,8 +36,8 @@ export default function LoadMore({
     <div className={`flex flex-col items-center justify-center mt-[40px] mb-[40px] ${className}`}>
       {/* Compteur de progression */}
       <p className="text-[14px] font-semibold text-[#5D6494]">
-        <span className="text-[#2E3271] font-bold">{displayCount}</span> sur{" "}
-        <span className="text-[#2E3271] font-bold">{totalCount}</span>
+        <span className="text-[#3A416F] font-bold">{displayCount}</span> sur{" "}
+        <span className="text-[#3A416F] font-bold">{totalCount}</span>
       </p>
 
       {/* Fine barre de progression */}

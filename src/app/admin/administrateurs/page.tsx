@@ -281,7 +281,7 @@ export default function AdminUsersManagementPage() {
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
         {/* Title */}
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Administrateurs
         </h2>
 
@@ -490,7 +490,7 @@ export default function AdminUsersManagementPage() {
       {deletingIds.length > 0 && (
         <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-[400px] bg-white rounded-[20px] p-6 shadow-glift-hover border border-[#D7D4DC]">
-            <h2 className="text-[18px] font-bold text-[#2E3271] mb-2">
+            <h2 className="text-[18px] font-bold text-[#3A416F] mb-2">
               Confirmer la suppression
             </h2>
             <p className="text-[#5D6494] text-[15px] mb-6">

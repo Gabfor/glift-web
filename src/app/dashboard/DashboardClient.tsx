@@ -1312,7 +1312,7 @@ export default function DashboardClient({
                 </div>
               )}
               <h1 
-                className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0" 
+                className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] mb-2 text-center prose-titles [&_p]:m-0" 
                 dangerouslySetInnerHTML={{ __html: pageContent.titre }} 
               />
               <div 
@@ -1525,7 +1525,7 @@ export default function DashboardClient({
               <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
                 {hasProgramOptions ? (
                   <>
-                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                    <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                       Oups ! Aucun programme pour le moment....
                     </h2>
                     <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
@@ -1541,7 +1541,7 @@ export default function DashboardClient({
                   </>
                 ) : (totalProgramsCount ?? 0) > 0 ? (
                   <>
-                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                    <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                       Oups ! Aucun programme à afficher...
                     </h2>
                     <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
@@ -1553,7 +1553,7 @@ export default function DashboardClient({
                   </>
                 ) : (
                   <>
-                    <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                    <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                       Oups ! Aucun programme pour le moment....
                     </h2>
                     <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
@@ -1576,7 +1576,7 @@ export default function DashboardClient({
 
             {selectedProgram !== "" && selectedTraining === "" && (
               <div className="text-center mt-[40px] mb-[40px] flex flex-col items-center">
-                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                   Oups ! Aucun entraînement pour le moment....
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed max-w-[550px] text-center">

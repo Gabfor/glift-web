@@ -169,7 +169,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
     const resolvedVariant = isDisabledOrLoading ? "inactive" : variant;
 
     const baseClasses = clsx(
-      "inline-flex items-center justify-center gap-2 h-[44px] px-[30px] rounded-full font-semibold text-[16px] whitespace-nowrap",
+      "inline-flex items-center justify-center gap-2 h-[44px] px-[30px] rounded-full font-semibold text-[16px] whitespace-nowrap cta-btn",
       "transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
       resolvedVariant === "active" &&
       (isPageAdmin

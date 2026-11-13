@@ -267,7 +267,7 @@ export default async function AuteursPage() {
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-          <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
+          <Link href={blogUrl} className="hover:text-[#3A416F] transition-colors">
             Blog
           </Link>
           <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
@@ -277,7 +277,7 @@ export default async function AuteursPage() {
  
       {/* Header text content */}
       <div className="max-w-[1152px] mx-auto text-center mb-12">
-        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] mb-2 text-center prose-titles [&_p]:m-0">
           {pageConfig?.titre || "Auteurs"}
         </h1>
         {pageConfig?.description ? (
@@ -353,7 +353,7 @@ export default async function AuteursPage() {
                 {/* Profile details */}
                 <div className="p-[15px] pb-[20px] flex-1 flex flex-col justify-between">
                   <div>
-                    <h2 className="text-[16px] font-bold text-[#2E3271] uppercase tracking-wide mb-[6px] text-left leading-tight">
+                    <h2 className="text-[16px] font-bold text-[#3A416F] uppercase tracking-wide mb-[6px] text-left leading-tight">
                       <Link href={authorUrl} className="hover:text-[#7069FA] transition-colors">
                         {authorFullName}
                       </Link>

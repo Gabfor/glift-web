@@ -212,7 +212,7 @@ export default function AdminPagesPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Pages
         </h2>
 
@@ -349,12 +349,12 @@ export default function AdminPagesPage() {
                         </span>
                       </td>
                       <td className="w-[240px] px-4 align-middle font-semibold text-[#5D6494]">
-                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#2E3271] transition-colors cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis block">
+                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#3A416F] transition-colors cursor-pointer whitespace-nowrap overflow-hidden text-ellipsis block">
                           /{a.url}
                         </Link>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle w-full">
-                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#2E3271] transition-colors cursor-pointer">
+                        <Link href={`/admin/create-page?id=${a.id}`} className="hover:text-[#3A416F] transition-colors cursor-pointer">
                           {stripHtml(a.titre)}
                         </Link>
                       </td>

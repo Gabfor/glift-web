@@ -268,11 +268,11 @@ function EditableTitle({
       ) : (
         <div
           onClick={handleEnterEditMode}
-          className="group flex justify-center items-center gap-2 cursor-pointer w-fit max-w-full mx-auto hover:text-[#2E3271] transition px-1"
+          className="group flex justify-center items-center gap-2 cursor-pointer w-fit max-w-full mx-auto hover:text-[#3A416F] transition px-1"
         >
           <p
             title={programName || DEFAULT_TRAINING_NAME}
-            className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] group-hover:text-[#2E3271] truncate min-w-0"
+            className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] group-hover:text-[#3A416F] truncate min-w-0"
           >
             {getDisplayName(programName)}
           </p>

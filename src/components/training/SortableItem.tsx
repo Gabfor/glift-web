@@ -147,7 +147,7 @@ export default function SortableItem({
             ? "rounded-t-[8px] rounded-b-none"
             : "rounded-[8px]",
           isLocked
-            ? "bg-[#F2F1F6] border border-[#D7D4DC] text-[#C2BFC6]"
+            ? "bg-[#F6F6FA] border border-[#D7D4DC] text-[#C2BFC6]"
             : "bg-white border border-[#D7D4DC] text-[#3A416F]"
         )}
       >

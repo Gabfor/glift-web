@@ -171,7 +171,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
         {/* Colonne gauche (Surtitre, Titre, Texte + Icône Enveloppe) */}
         <div className="flex flex-col justify-center">
           {/* Icône Enveloppe dans un cercle */}
-          <div className="w-[30px] h-[30px] rounded-full border-2 border-[#2E3271] text-[#2E3271] flex items-center justify-center mb-3">
+          <div className="w-[30px] h-[30px] rounded-full border-2 border-[#3A416F] text-[#3A416F] flex items-center justify-center mb-3">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect width="20" height="16" x="2" y="4" rx="2"/>
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
@@ -184,7 +184,7 @@ function NewsletterBlockComponent({ block, gradientStyle }: { block: any, gradie
           </p>
 
           {/* Titre */}
-          <h2 className="text-[28px] font-bold text-[#2E3271] leading-tight mb-[10px]">
+          <h2 className="text-[28px] font-bold text-[#3A416F] leading-tight mb-[10px]">
             {cleanText(block.titre) || "Reste informé"}
           </h2>
 
@@ -725,7 +725,7 @@ export default function BlogArticleBlocksRenderer({
                     {/* Colonne gauche (Texte + Bonus épuré) */}
                     <div className="flex flex-col justify-center">
                       {/* Icône Plus */}
-                      <div className="w-[30px] h-[30px] rounded-full border-2 border-[#2E3271] text-[#2E3271] flex items-center justify-center font-bold text-[16px] mb-3">
+                      <div className="w-[30px] h-[30px] rounded-full border-2 border-[#3A416F] text-[#3A416F] flex items-center justify-center font-bold text-[16px] mb-3">
                         +
                       </div>
 
@@ -735,7 +735,7 @@ export default function BlogArticleBlocksRenderer({
                       </p>
 
                       {/* Titre */}
-                      <h2 className="text-[28px] font-bold text-[#2E3271] leading-tight mb-[10px]">
+                      <h2 className="text-[28px] font-bold text-[#3A416F] leading-tight mb-[10px]">
                         {cleanText(block.titre) || "Glift, c'est bien plus"}
                       </h2>
 
@@ -757,7 +757,7 @@ export default function BlogArticleBlocksRenderer({
                         className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-glift hover:shadow-glift-hover transition-shadow duration-200 border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
                       >
                         <div className="mb-[20px]">
-                          <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
+                          <h3 className="text-[24px] font-bold text-[#3A416F] mb-[10px]">
                             {cleanText(card1Data.titre) || "Le Glift Store"}
                           </h3>
 
@@ -769,7 +769,7 @@ export default function BlogArticleBlocksRenderer({
                         {card1Data.boutonType !== "aucun" && (
                           <Link
                             href={card1Data.boutonLien || storeUrl || "/store"}
-                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
+                            className="h-[44px] px-6 rounded-full border border-[#3A416F] text-[#3A416F] hover:bg-[#3A416F] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
                           >
                             {cleanText(card1Data.boutonTexte) || "Découvrir le Store"}
                           </Link>
@@ -785,7 +785,7 @@ export default function BlogArticleBlocksRenderer({
                         className="w-full sm:w-[368px] max-w-[368px] bg-white rounded-[24px] p-7 shadow-glift hover:shadow-glift-hover transition-shadow duration-200 border border-[#D7D4DC] flex flex-col justify-between h-full flex-shrink-0"
                       >
                         <div className="mb-[20px]">
-                          <h3 className="text-[24px] font-bold text-[#2E3271] mb-[10px]">
+                          <h3 className="text-[24px] font-bold text-[#3A416F] mb-[10px]">
                             {cleanText(card2Data.titre) || "La Glift Shop"}
                           </h3>
 
@@ -797,7 +797,7 @@ export default function BlogArticleBlocksRenderer({
                         {card2Data.boutonType !== "aucun" && (
                           <Link
                             href={card2Data.boutonLien || shopUrl || "/shop"}
-                            className="h-[44px] px-6 rounded-full border border-[#2E3271] text-[#2E3271] hover:bg-[#2E3271] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
+                            className="h-[44px] px-6 rounded-full border border-[#3A416F] text-[#3A416F] hover:bg-[#3A416F] hover:text-white font-semibold text-[16px] transition group flex items-center justify-center cursor-pointer mt-auto w-full sm:w-fit"
                           >
                             {cleanText(card2Data.boutonTexte) || "Découvrir le Shop"}
                           </Link>
@@ -831,13 +831,13 @@ export default function BlogArticleBlocksRenderer({
             return (
               <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
-                  <h2 className="text-[22px] font-bold text-[#2E3271] leading-tight">
+                  <h2 className="text-[22px] font-bold text-[#3A416F] leading-tight">
                     {block.titre}
                   </h2>
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -848,13 +848,13 @@ export default function BlogArticleBlocksRenderer({
             return (
               <div key={key} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
-                  <h2 className="text-[16px] font-bold text-[#2E3271] leading-tight">
+                  <h2 className="text-[16px] font-bold text-[#3A416F] leading-tight">
                     {block.titre}
                   </h2>
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -866,7 +866,7 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] ${isConceptPage ? 'max-w-[500px] mx-auto text-center' : ''}`}>
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
                     dangerouslySetInnerHTML={{ __html: block.texte }}
                   />
                 )}
@@ -896,7 +896,7 @@ export default function BlogArticleBlocksRenderer({
                 className="flex flex-col scroll-mt-[100px] w-full"
               >
                 {block.titre && (
-                  <h3 className="text-[18px] md:text-[20px] font-bold text-[#2E3271] mb-[12px]">
+                  <h3 className="text-[18px] md:text-[20px] font-bold text-[#3A416F] mb-[12px]">
                     {block.titre}
                   </h3>
                 )}
@@ -1017,7 +1017,7 @@ export default function BlogArticleBlocksRenderer({
                   className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px] scroll-mt-[100px] [&_[id^=source-]]:scroll-mt-[100px]"
                 >
                   {block.titre && (
-                    <h3 className="text-[14px] font-bold text-[#2E3271]">
+                    <h3 className="text-[14px] font-bold text-[#3A416F]">
                       {block.titre}
                     </h3>
                   )}
@@ -1076,7 +1076,7 @@ export default function BlogArticleBlocksRenderer({
                 className="w-full bg-white rounded-[15px] border border-[#D7D4DC] p-[20px] sm:p-[30px] flex flex-col gap-[10px] scroll-mt-[100px] my-[10px]"
               >
                 {block.titre && (
-                  <h3 className="text-[20px] md:text-[22px] font-bold text-[#2E3271] mb-0">
+                  <h3 className="text-[20px] md:text-[22px] font-bold text-[#3A416F] mb-0">
                     {block.titre}
                   </h3>
                 )}
@@ -1114,7 +1114,7 @@ export default function BlogArticleBlocksRenderer({
                 className="w-full flex flex-col scroll-mt-[100px]"
               >
                 {block.titre && (
-                  <h3 className="text-[22px] sm:text-[24px] md:text-[26px] font-bold text-[#2E3271] mb-[15px]">
+                  <h3 className="text-[22px] sm:text-[24px] md:text-[26px] font-bold text-[#3A416F] mb-[15px]">
                     {block.titre}
                   </h3>
                 )}
@@ -1147,7 +1147,7 @@ export default function BlogArticleBlocksRenderer({
           case "programme":
             return (
               <div key={key} data-article-anchor="true" className="flex flex-col scroll-mt-[100px]" id={block.ancreId || "programme"}>
-                <h2 className="text-[22px] font-bold text-[#2E3271] leading-tight mb-2">
+                <h2 className="text-[22px] font-bold text-[#3A416F] leading-tight mb-2">
                   Présentation et structure du programme
                 </h2>
                 <div
@@ -1182,7 +1182,7 @@ export default function BlogArticleBlocksRenderer({
                     className="flex items-center justify-between cursor-pointer select-none"
                     onClick={() => toggleSeance(seanceKey, defaultCollapsed)}
                   >
-                    <div className="text-[20px] font-bold text-[#2E3271]">
+                    <div className="text-[20px] font-bold text-[#3A416F]">
                       {block.titre}
                     </div>
                     <Image
@@ -1191,7 +1191,7 @@ export default function BlogArticleBlocksRenderer({
                       width={16}
                       height={16}
                       className={`transition-transform duration-200 ${isCollapsed ? "" : "rotate-180"}`}
-                      style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(35%) saturate(1450%) hue-rotate(200deg) brightness(85%) contrast(85%)" }} // Approximates #2E3271
+                      style={{ filter: "brightness(0) saturate(100%) invert(20%) sepia(35%) saturate(1450%) hue-rotate(200deg) brightness(85%) contrast(85%)" }} // Approximates #3A416F
                     />
                   </div>
                 )}
@@ -1295,7 +1295,7 @@ export default function BlogArticleBlocksRenderer({
                       </p>
                     )}
                     {block.titre && (
-                      <h2 className="text-[28px] font-bold leading-snug text-[#2E3271]">
+                      <h2 className="text-[28px] font-bold leading-snug text-[#3A416F]">
                         {block.titre}
                       </h2>
                     )}
@@ -1333,7 +1333,7 @@ export default function BlogArticleBlocksRenderer({
                         );
                       })}
                     </div>
-                    <div className="text-center text-[#2E3271] font-semibold text-[15px]">
+                    <div className="text-center text-[#3A416F] font-semibold text-[15px]">
                       Vous voulez devenir partenaire ?{" "}
                       <br className="sm:hidden" />
                       <Link href={contactUrl} className="text-[#7069FA] hover:no-underline hover:text-[#6660E4] transition-colors">
@@ -1414,7 +1414,7 @@ export default function BlogArticleBlocksRenderer({
               return (
                 <Link
                   href={href}
-                  className="w-full sm:w-auto border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
+                  className="w-full sm:w-auto border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] text-[16px] font-semibold px-[30px] h-[44px] rounded-full flex items-center justify-center gap-2 transition"
                 >
                   {btn.texte}
                 </Link>
@@ -1570,7 +1570,7 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
               setShowModal(true);
             }}
             variant="inactive"
-            className="group w-full md:w-auto text-[16px] font-semibold"
+            className="cursor-pointer group w-full md:w-auto text-[16px] font-semibold"
           >
             <span className="inline-flex items-center gap-2">
               <div className="relative w-[20px] h-[20px] -translate-y-[1.5px]">
@@ -1608,7 +1608,7 @@ function CharacteristicItem({ icon, label, value }: { icon: string; label: strin
       <img src={icon} alt="" className="w-[28px] h-[28px] shrink-0" />
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="text-[14px] font-semibold text-[#5D6494]">{label} :</span>
-        <span className="text-[14px] font-bold text-[#2E3271]">{value || "—"}</span>
+        <span className="text-[14px] font-bold text-[#3A416F]">{value || "—"}</span>
       </div>
     </div>
   );

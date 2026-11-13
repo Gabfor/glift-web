@@ -251,7 +251,7 @@ export default function AdminAuteursPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Auteurs
         </h2>
 
@@ -404,7 +404,7 @@ export default function AdminAuteursPage() {
                       <td className="px-4 font-semibold text-[#5D6494] align-middle w-[200px]">
                         <Link
                           href={`/admin/create-auteur?id=${a.id}`}
-                          className="truncate max-w-[180px] block hover:text-[#2E3271] transition-colors cursor-pointer"
+                          className="truncate max-w-[180px] block hover:text-[#3A416F] transition-colors cursor-pointer"
                         >
                           {a.name}
                         </Link>

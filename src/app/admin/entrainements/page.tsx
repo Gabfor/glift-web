@@ -447,7 +447,7 @@ export default function AdminSingleProgramPage() {
         >
           Programmes
         </BackLink>
-        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-[10px]">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] mb-[10px]">
           {isEditing ? "Modifier le programme" : "Créer un programme"}
         </h1>
 

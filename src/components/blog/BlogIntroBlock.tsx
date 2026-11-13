@@ -17,7 +17,7 @@ export default function BlogIntroBlock({ html }: { html: string }) {
         <button
           type="button"
           onClick={() => setIsExpanded(!isExpanded)}
-          className="text-[#3A416F] hover:text-[#2E3271] font-bold text-[13px] inline-flex items-center gap-1 transition-colors cursor-pointer"
+          className="text-[#3A416F] hover:text-[#3A416F] font-bold text-[13px] inline-flex items-center gap-1 transition-colors cursor-pointer"
         >
           <span>{isExpanded ? "Réduire" : "Lire la suite"}</span>
           <svg

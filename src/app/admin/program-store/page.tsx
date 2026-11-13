@@ -277,7 +277,7 @@ export default function ProgramStorePage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Cartes Glift Store
         </h2>
 
@@ -451,7 +451,7 @@ export default function ProgramStorePage() {
                           <div className="max-w-[190px] truncate">
                             <Link
                               href={`/admin/create-program?id=${program.id}`}
-                              className="hover:text-[#2E3271] transition-colors"
+                              className="hover:text-[#3A416F] transition-colors"
                             >
                               {program.title}
                             </Link>

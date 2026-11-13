@@ -91,7 +91,7 @@ const PaymentPage = () => {
     return (
       <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center justify-center px-5">
         <div className="max-w-md rounded-[16px] bg-white px-6 py-8 text-center shadow-glift">
-          <h1 className="text-[26px] font-bold text-[#2E3271]">Redirection nécessaire</h1>
+          <h1 className="text-[26px] font-bold text-[#3A416F]">Redirection nécessaire</h1>
           <p className="mt-3 text-[15px] font-semibold text-[#5D6494]">
             Cette étape est réservée à la formule Premium. Reprends le tunnel d’inscription depuis la première étape.
           </p>
@@ -109,7 +109,7 @@ const PaymentPage = () => {
   return (
     <main className="min-h-screen bg-[#FBFCFE] flex flex-col items-center px-5 pt-[100px] md:pt-[140px]">
       <div className="w-full max-w-md flex flex-col items-center px-4 sm:px-0">
-        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[10px]">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[10px]">
           Moyen de paiement
         </h1>
       </div>

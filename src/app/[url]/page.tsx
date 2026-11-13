@@ -558,7 +558,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
             </div>
           )}
           <h1 
-            className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
+            className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] mb-2 text-center prose-titles [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: page.titre || "Blog" }}
           />
           {page.description && (
@@ -716,7 +716,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
               </div>
             )}
             <h1 
-              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] text-center max-w-[650px] mx-auto ${page.description ? "mb-[10px]" : "mb-0"} prose-titles [&_p]:m-0`}
+              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#3A416F] text-center max-w-[650px] mx-auto ${page.description ? "mb-[10px]" : "mb-0"} prose-titles [&_p]:m-0`}
               dangerouslySetInnerHTML={{ __html: page.titre }}
             />
             {page.description && (
@@ -735,7 +735,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
               </div>
             )}
             <h1 
-              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#3A416F] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
               dangerouslySetInnerHTML={{ __html: page.titre }}
             />
             {page.description && (
@@ -754,7 +754,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
               </div>
             )}
             <h1 
-              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#3A416F] text-center w-full max-w-[500px] mx-auto ${page.description ? "mb-[10px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
               dangerouslySetInnerHTML={{ __html: page.titre }}
             />
             {page.description && (
@@ -773,7 +773,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
               </div>
             )}
             <h1 
-              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] text-center w-full max-w-[500px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
+              className={`text-[24px] sm:text-[30px] font-bold leading-snug text-[#3A416F] text-center w-full max-w-[500px] mx-auto ${isGenericPage && page.description ? "mb-[10px]" : !isGenericPage && page.updated_at ? "mb-[20px]" : "mb-[50px]"} prose-titles [&_p]:m-0`}
               dangerouslySetInnerHTML={{ __html: page.titre }}
             />
             {page.description && (

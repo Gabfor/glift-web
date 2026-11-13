@@ -463,7 +463,7 @@ export default function AdminSonneriesPage() {
         render: (item) => (
           <Link
             href={`/create-sonnerie?id=${item.id}`}
-            className="hover:text-[#2E3271] transition-colors cursor-pointer flex items-center gap-[10px] h-[60px]"
+            className="hover:text-[#3A416F] transition-colors cursor-pointer flex items-center gap-[10px] h-[60px]"
           >
             {item.icon_url && (
               <span className="w-[25px] h-[25px] shrink-0 flex items-center justify-center">
@@ -533,7 +533,7 @@ export default function AdminSonneriesPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Sonneries
         </h2>
 

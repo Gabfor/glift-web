@@ -283,7 +283,7 @@ export default function AdminSettingsPage() {
     return (
         <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
             <div className="w-full max-w-3xl relative z-10">
-                <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+                <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
                     Paramètres
                 </h2>
 
@@ -651,7 +651,7 @@ export default function AdminSettingsPage() {
                                             value={gradientColor1}
                                             onChange={(e) => setGradientColor1(e.target.value)}
                                             placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
                                         />
                                         <input
                                             type="number"
@@ -659,7 +659,7 @@ export default function AdminSettingsPage() {
                                             max="100"
                                             value={gradientOpacity1}
                                             onChange={(e) => setGradientOpacity1(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
                                         />
                                     </div>
                                 </div>
@@ -682,7 +682,7 @@ export default function AdminSettingsPage() {
                                             value={gradientColor2}
                                             onChange={(e) => setGradientColor2(e.target.value)}
                                             placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
                                         />
                                         <input
                                             type="number"
@@ -690,7 +690,7 @@ export default function AdminSettingsPage() {
                                             max="100"
                                             value={gradientOpacity2}
                                             onChange={(e) => setGradientOpacity2(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
                                         />
                                     </div>
                                 </div>
@@ -713,7 +713,7 @@ export default function AdminSettingsPage() {
                                             value={gradientColor3}
                                             onChange={(e) => setGradientColor3(e.target.value)}
                                             placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
+                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
                                         />
                                         <input
                                             type="number"
@@ -721,7 +721,7 @@ export default function AdminSettingsPage() {
                                             max="100"
                                             value={gradientOpacity3}
                                             onChange={(e) => setGradientOpacity3(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#2E3271] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
+                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
                                         />
                                     </div>
                                 </div>

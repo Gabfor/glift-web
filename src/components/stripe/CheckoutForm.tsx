@@ -31,7 +31,7 @@ const ELEMENT_OPTIONS = {
     style: {
         base: {
             fontSize: '16px',
-            color: '#2E3271',
+            color: '#3A416F',
             fontFamily: 'Quicksand, system-ui, sans-serif',
             fontWeight: '600',
             '::placeholder': {
@@ -394,7 +394,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
             <div className="w-full max-w-[368px] mx-auto mb-[30px]">
                 {/* Numéro de carte */}
                 <div className="mb-5">
-                    <label className="text-[16px] text-[#2E3271] font-bold mb-[8px] block">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">
                         Numéro de carte
                     </label>
                     <div
@@ -427,7 +427,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
 
                 {/* Date d'expiration */}
                 <div className="mb-5">
-                    <label className="text-[16px] text-[#2E3271] font-bold mb-[8px] block">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">
                         Date d’expiration
                     </label>
                     <div
@@ -448,7 +448,7 @@ export default function CheckoutForm(props: CheckoutFormProps) {
 
                 {/* CVC - Largeur 179px */}
                 <div className="w-[179px] mb-6">
-                    <label className="text-[16px] text-[#2E3271] font-bold mb-[8px] block">
+                    <label className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">
                         Code de sécurité
                     </label>
                     <div className="relative">

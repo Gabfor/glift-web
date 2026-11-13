@@ -124,7 +124,7 @@ export default function TrainingRow({
     zIndex: isDragging ? 50 : undefined,
     position: isDragging ? "relative" : undefined,
     width: "100%",
-    backgroundColor: row.locked ? "#FAFAFF" : (row.checked ? "#F4F5FE" : "#ffffff"),
+    backgroundColor: row.locked ? "#F6F6FA" : (row.checked ? "#F4F5FE" : "#ffffff"),
     borderBottom: isDragging ? "1px solid #ECE9F1" : undefined,
     height: "40px",
     ...transitionStyles,

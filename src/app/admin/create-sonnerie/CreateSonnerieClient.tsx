@@ -284,7 +284,7 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
         </BackLink>
 
         <div className="w-full max-w-3xl mx-auto px-4 sm:px-0 flex flex-col">
-          <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-10">
+          <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-10">
             {ringtoneId ? "Modifier la sonnerie" : "Ajouter une sonnerie"}
           </h2>
 

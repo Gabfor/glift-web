@@ -217,7 +217,7 @@ export default function AdminContentHelpPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Aide
         </h2>
 
@@ -384,7 +384,7 @@ export default function AdminContentHelpPage() {
                         </span>
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] align-middle">
-                        <Link href={`/admin/create-help?id=${q.id}`} className="truncate max-w-[400px] block hover:text-[#2E3271] transition-colors cursor-pointer">
+                        <Link href={`/admin/create-help?id=${q.id}`} className="truncate max-w-[400px] block hover:text-[#3A416F] transition-colors cursor-pointer">
                           {q.question}
                         </Link>
                       </td>

@@ -358,7 +358,7 @@ input:checked+.slider:before {
     --color-surface-raised: #ffffff;
     --color-surface-muted: #f2f1f6;
     --color-surface-subtle: #ece9f1;
-    --color-surface-highlight: #fafaff;
+    --color-surface-highlight: #f6f6fa;
     --color-danger-surface: #fff1f1;
     --color-border-soft: #d7d4dc;
     --color-border-strong: #D7D4DC;
@@ -447,65 +447,70 @@ input:checked+.slider:before {
     color: var(--color-text-strong);
   }
 
-  /* Override global du curseur not-allowed */
-  [disabled],
-  .disabled,
-  [aria-disabled="true"],
-  [style*="cursor: not-allowed"] {
-    cursor: default !important;
+  /* Curseur interdit pour les éléments désactivés (sans modale) */
+  button:disabled:not(.cursor-pointer),
+  button[disabled]:not(.cursor-pointer),
+  input:disabled:not(.cursor-pointer),
+  select:disabled:not(.cursor-pointer),
+  textarea:disabled:not(.cursor-pointer),
+  [disabled]:not(.cursor-pointer),
+  [aria-disabled="true"]:not(.cursor-pointer),
+  .disabled:not(.cursor-pointer),
+  .cursor-not-allowed {
+    cursor: not-allowed !important;
   }
 
-  /* Prevent disabled elements and inactive CTAs from having white text */
-  button:disabled,
-  button[disabled],
-  input[type="button"]:disabled,
-  input[type="submit"]:disabled,
-  button[aria-disabled="true"],
-  a[aria-disabled="true"],
-  .disabled {
-    background-color: #F2F1F6 !important;
-    color: #C2BFC6 !important;
-    border-color: transparent !important;
-  }
-
-  /* Ensure descendants also inherit the disabled text color (like spans inside buttons) */
-  button:disabled *,
-  button[disabled] *,
-  button[aria-disabled="true"] *,
-  a[aria-disabled="true"] *,
-  .disabled * {
-    color: inherit !important;
-  }
-
-  /* Align disabled .btn-primary and .btn-outline states to the default inactive CTA style */
+  /* Boutons CTA et boutons de formulaires désactivés : fond #F2F1F6, texte #C2BFC6 */
+  .cta-btn:disabled,
+  .cta-btn[disabled],
   .btn-primary:disabled,
   .btn-primary[disabled],
   .btn-primary.disabled,
   .btn-outline:disabled,
   .btn-outline[disabled],
-  .btn-outline.disabled {
+  .btn-outline.disabled,
+  input[type="button"]:disabled,
+  input[type="submit"]:disabled {
     background-color: #F2F1F6 !important;
-    border-color: transparent !important;
     color: #C2BFC6 !important;
+    border-color: transparent !important;
   }
 
-  /* Hover state for disabled buttons and inactive CTAs */
-  button:disabled:hover,
-  button[disabled]:hover,
-  input[type="button"]:disabled:hover,
-  input[type="submit"]:disabled:hover,
-  button[aria-disabled="true"]:hover,
-  a[aria-disabled="true"]:hover,
-  .disabled:hover,
+  /* Héritage de la couleur de texte pour le contenu des CTA désactivés */
+  .cta-btn:disabled *,
+  .cta-btn[disabled] *,
+  .btn-primary:disabled *,
+  .btn-primary[disabled] *,
+  .btn-outline:disabled *,
+  .btn-outline[disabled] * {
+    color: inherit !important;
+  }
+
+  /* Hover sur CTA et formulaires désactivés : fond #ECE9F1 */
+  .cta-btn:disabled:hover,
+  .cta-btn[disabled]:hover,
   .btn-primary:disabled:hover,
   .btn-primary[disabled]:hover,
   .btn-primary.disabled:hover,
   .btn-outline:disabled:hover,
   .btn-outline[disabled]:hover,
-  .btn-outline.disabled:hover {
+  .btn-outline.disabled:hover,
+  input[type="button"]:disabled:hover,
+  input[type="submit"]:disabled:hover {
     background-color: #ECE9F1 !important;
     color: #C2BFC6 !important;
     border-color: transparent !important;
+  }
+
+  /* Boutons d'icônes et actions désactivées (ex: /entrainements) : AUCUN fond, opacité réduite à 50% */
+  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline),
+  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline),
+  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline):hover,
+  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline):hover {
+    background-color: transparent !important;
+    background: transparent !important;
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
   }
 
   /* Ensure smooth border transitions on focus for all inputs, textareas and selects */
@@ -743,4 +748,4 @@ input:checked+.slider:before {
     padding-top: 24px !important;
   }
 }
-
+

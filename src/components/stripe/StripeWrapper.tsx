@@ -109,7 +109,7 @@ export default function StripeWrapper({ priceLabel, plan, email, userId, interva
                 },
                 '.Label': {
                     fontWeight: '600',
-                    color: '#2E3271',
+                    color: '#3A416F',
                     marginBottom: '8px',
                     fontSize: '16px',
                 },

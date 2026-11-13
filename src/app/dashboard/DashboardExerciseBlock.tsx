@@ -1511,7 +1511,7 @@ export default function DashboardExerciseBlock({
       <div className="w-full landscape:w-auto landscape:flex-[3] landscape:flex-shrink landscape:min-w-0 lg:w-auto lg:flex-[3] lg:flex-shrink lg:min-w-0 flex flex-col bg-white border border-[#D7D4DC] rounded-[20px] overflow-hidden shadow-glift h-[339px] flex-shrink-0">
         {/* Header inside Zone 1 */}
         <div className="h-[60px] flex items-center justify-between px-4 sm:px-[30px] border-b border-[#D7D4DC] shrink-0">
-          <h2 className="text-[16px] font-bold text-[#2E3271] truncate mr-2 sm:mr-[20px]" title={name}>
+          <h2 className="text-[16px] font-bold text-[#3A416F] truncate mr-2 sm:mr-[20px]" title={name}>
             {name}
           </h2>
           <div className="flex items-center gap-2 sm:gap-[20px] shrink-0">

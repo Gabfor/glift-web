@@ -851,7 +851,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
               <div className="flex flex-col gap-10">
                 {/* Aide pour les variables dynamiques */}
                 <div className="bg-[#F8F9FE] border border-[#ECE9F1] rounded-[10px] p-4 text-[13px] text-[#5D6494] flex flex-col gap-2">
-                  <div className="font-bold text-[#2E3271] flex items-center gap-1.5">
+                  <div className="font-bold text-[#3A416F] flex items-center gap-1.5">
                     <span>💡</span>
                     <span>Variables dynamiques disponibles pour les textes et arguments :</span>
                   </div>
@@ -1114,7 +1114,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
                       <div className="flex flex-col gap-5 pt-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div className="flex flex-col">
-                            <label className="text-[16px] text-[#2E3271] font-bold mb-[5px] block">Type de bouton</label>
+                            <label className="text-[16px] text-[#3A416F] font-bold mb-[5px] block">Type de bouton</label>
                             <AdminDropdown
                               label=""
                               placeholder="Sélectionner un type"

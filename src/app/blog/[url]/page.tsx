@@ -415,10 +415,10 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-              <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">Blog</Link>
+              <Link href={blogUrl} className="hover:text-[#3A416F] transition-colors">Blog</Link>
               <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
               {isPrimaryCatActive ? (
-                <Link href={`${blogUrl}/${primaryCatSlug}`} className="hover:text-[#2E3271] transition-colors">
+                <Link href={`${blogUrl}/${primaryCatSlug}`} className="hover:text-[#3A416F] transition-colors">
                   {primaryCategory}
                 </Link>
               ) : (
@@ -430,7 +430,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           </div>
  
           <div className="max-w-[760px] mx-auto">
-            <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[20px] text-center">
+            <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] leading-tight mb-[20px] text-center">
               {article.titre}
             </h1>
  
@@ -602,7 +602,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                         />
                       </div>
                       <div className="flex-1 flex flex-col items-center sm:items-start text-center sm:text-left">
-                        <h4 className="text-[14px] font-bold text-[#2E3271] mb-1">
+                        <h4 className="text-[14px] font-bold text-[#3A416F] mb-1">
                           Article rédigé par {authorDetails.prenom} {authorDetails.nom}
                         </h4>
                         <div
@@ -714,7 +714,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           {/* Fil d'ariane (Breadcrumbs) */}
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-              <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
+              <Link href={blogUrl} className="hover:text-[#3A416F] transition-colors">
                 Blog
               </Link>
               <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
@@ -729,7 +729,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
               </div>
             )}
             <h1 
-              className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] mb-2 text-center prose-titles [&_p]:m-0"
+              className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] mb-2 text-center prose-titles [&_p]:m-0"
               dangerouslySetInnerHTML={{ __html: titleToDisplay }}
             />
             {descriptionToDisplay && (

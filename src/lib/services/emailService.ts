@@ -32,7 +32,7 @@ export class EmailService {
         subject: "Confirmez votre inscription sur Glift",
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #2E3271;">Bienvenue sur Glift !</h1>
+            <h1 style="color: #3A416F;">Bienvenue sur Glift !</h1>
             <p style="color: #5D6494; font-size: 16px;">
               Merci de vous être inscrit. Pour confirmer que cette adresse email vous appartient, veuillez cliquer sur le lien ci-dessous :
             </p>
@@ -92,7 +92,7 @@ export class EmailService {
         subject: `Nouveau message de contact : ${subject}`,
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #D7D4DC; padding: 20px; border-radius: 8px;">
-            <h1 style="color: #2E3271; font-size: 20px;">Nouveau message de contact</h1>
+            <h1 style="color: #3A416F; font-size: 20px;">Nouveau message de contact</h1>
             <p style="color: #5D6494; font-size: 16px;">
               <strong>De :</strong> <a href="mailto:${safeUserEmail}" style="color: #7069FA;">${safeUserEmail}</a><br/>
               <strong>Sujet :</strong> ${safeSubject}
@@ -143,7 +143,7 @@ export class EmailService {
         subject: "Votre code de validation Glift",
         html: `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; text-align: center; border: 1px solid #D7D4DC; padding: 30px; border-radius: 8px;">
-            <h1 style="color: #2E3271;">Finalisez votre inscription</h1>
+            <h1 style="color: #3A416F;">Finalisez votre inscription</h1>
             <p style="color: #5D6494; font-size: 16px;">
               Pour confirmer votre identité et finaliser la création de votre compte, veuillez saisir le code de validation ci-dessous :
             </p>

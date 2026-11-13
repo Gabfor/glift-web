@@ -111,7 +111,7 @@ export default function BlogArticleCard({
       </Link>
 
       <div className="pt-5 px-2.5 pb-5 flex-1 flex flex-col items-start">
-        <h3 className="text-[#2E3271] text-[16px] font-bold mb-[10px] uppercase text-left leading-tight line-clamp-2">
+        <h3 className="text-[#3A416F] text-[16px] font-bold mb-[10px] uppercase text-left leading-tight line-clamp-2">
           <Link href={`${blogUrl}/${article.url}`}>
             {article.titre}
           </Link>

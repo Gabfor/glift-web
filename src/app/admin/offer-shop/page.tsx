@@ -238,7 +238,7 @@ export default function OfferShopPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Offres Glift Shop
         </h2>
 
@@ -348,7 +348,7 @@ export default function OfferShopPage() {
                           : "Aucune"}
                       </td>
                       <td className="px-4 font-semibold text-[#5D6494] max-w-[190px] truncate">
-                        <Link href={`/admin/create-offer?id=${offer.id}`} className="flex items-center gap-[5px] hover:text-[#2E3271] transition-colors">
+                        <Link href={`/admin/create-offer?id=${offer.id}`} className="flex items-center gap-[5px] hover:text-[#3A416F] transition-colors">
                           {offer.boost && (
                             <Image src="/icons/boost.svg" alt="Boosted" width={20} height={20} className="shrink-0" />
                           )}

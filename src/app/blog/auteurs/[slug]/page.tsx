@@ -382,13 +382,13 @@ export default async function AuthorDetailPage({ params }: Props) {
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
-          <Link href={blogUrl} className="hover:text-[#2E3271] transition-colors">
+          <Link href={blogUrl} className="hover:text-[#3A416F] transition-colors">
             Blog
           </Link>
           <Image src="/icons/chevron_right.svg" alt="" width={6} height={12} aria-hidden="true" className="shrink-0" />
           <Link
             href="/blog/auteurs"
-            className="hover:text-[#2E3271] transition-colors"
+            className="hover:text-[#3A416F] transition-colors"
           >
             Auteurs
           </Link>
@@ -399,7 +399,7 @@ export default async function AuthorDetailPage({ params }: Props) {
  
       {/* Header text content */}
       <div className="max-w-[760px] mx-auto text-center mb-[30px] md:mb-12">
-        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] leading-tight mb-[15px]">
+        <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] leading-tight mb-[15px]">
           {authorFullName}
         </h1>
         <p className="text-[16px] text-[#5D6494] font-semibold">

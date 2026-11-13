@@ -71,6 +71,13 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
       : (abo.prix || "0,00");
     priceDisplay = replaceSettingsVariables(priceDisplay, varContext);
 
+    const isFree = (
+      priceDisplay === "0,00" ||
+      priceDisplay === "0.00" ||
+      priceDisplay === "0" ||
+      priceDisplay.trim().toLowerCase() === "gratuit"
+    );
+
     const periodDisplay = isPremium
       ? (interval === "yearly" ? "/an" : "/mois")
       : "/mois";
@@ -143,8 +150,14 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
             ? "Abonnement Premium"
             : formattedNom}
         </h2>
-        <p className="text-[#2E3271] font-bold text-[36px] leading-tight pt-[10px] pb-[10px]">
-          {priceDisplay} €<span className="text-[15px] md:text-[16px] font-semibold">{periodDisplay}</span>
+        <p className="text-[#3A416F] font-bold text-[36px] leading-tight pt-[10px] pb-[10px]">
+          {isFree ? (
+            "Gratuit"
+          ) : (
+            <>
+              {priceDisplay} €<span className="text-[15px] md:text-[16px] font-semibold">{periodDisplay}</span>
+            </>
+          )}
         </p>
         <div 
           className="text-[#5D6494] text-[14px] md:text-[16px] font-semibold leading-relaxed pb-[20px] prose prose-sm max-w-[350px] mx-auto [&_p]:mb-0"
@@ -193,7 +206,7 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
             ) : (
               <Link
                 href={getButtonHref()}
-                className="inline-flex items-center justify-center h-[44px] w-full md:w-auto px-[30px] border border-[#2E3271] text-[#2E3271] hover:text-white hover:bg-[#2E3271] font-semibold rounded-full transition-all duration-300 group"
+                className="inline-flex items-center justify-center h-[44px] w-full md:w-auto px-[30px] border border-[#3A416F] text-[#3A416F] hover:text-white hover:bg-[#3A416F] font-semibold rounded-full transition-all duration-300 group"
               >
                 {formattedBoutonTexte}
               </Link>
@@ -228,8 +241,8 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
             onClick={() => setInterval("monthly")}
             className={`text-[16px] transition-colors cursor-pointer select-none ${
               interval === "monthly"
-                ? "text-[#2E3271] font-bold"
-                : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
+                ? "text-[#3A416F] font-bold"
+                : "text-[#5D6494] font-semibold hover:text-[#3A416F]"
             }`}
           >
             Mensuel
@@ -247,8 +260,8 @@ export default function PricingTable({ abonnement1, abonnement2, initialSettings
             onClick={() => setInterval("yearly")}
             className={`text-[16px] transition-colors cursor-pointer select-none ${
               interval === "yearly"
-                ? "text-[#2E3271] font-bold"
-                : "text-[#5D6494] font-semibold hover:text-[#2E3271]"
+                ? "text-[#3A416F] font-bold"
+                : "text-[#5D6494] font-semibold hover:text-[#3A416F]"
             }`}
           >
             Annuel

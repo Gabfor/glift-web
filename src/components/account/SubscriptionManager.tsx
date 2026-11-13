@@ -58,24 +58,26 @@ const PlanOption = ({
                                 />
                             </div>
                         )}
-                        <span className={`text-[15px] sm:text-[16px] font-semibold leading-none ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"}`}>
+                        <span className={`text-[15px] sm:text-[16px] font-semibold leading-none ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"}`}>
                             {title}
                         </span>
                     </div>
                 </div>
                 <div className="flex items-baseline gap-1 shrink-0">
                     <span
-                        className={`text-[18px] sm:text-[20px] font-bold ${isSelected ? "text-[#2E3271]" : "text-[#D7D4DC]"
+                        className={`text-[18px] sm:text-[20px] font-bold ${isSelected ? "text-[#3A416F]" : "text-[#D7D4DC]"
                             }`}
                     >
                         {price}
                     </span>
-                    <span
-                        className={`text-[14px] sm:text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
-                            }`}
-                    >
-                        {period}
-                    </span>
+                    {period && (
+                        <span
+                            className={`text-[14px] sm:text-[16px] font-medium ${isSelected ? "text-[#5D6494]" : "text-[#D7D4DC]"
+                                }`}
+                        >
+                            {period}
+                        </span>
+                    )}
                 </div>
             </div>
         </div>
@@ -150,7 +152,7 @@ const PaymentMethodCard = ({
                     </div>
                 )}
                 <div className="flex flex-col text-left min-w-0">
-                    <span className="text-[12px] sm:text-[14px] font-semibold text-[#2E3271] truncate">
+                    <span className="text-[12px] sm:text-[14px] font-semibold text-[#3A416F] truncate">
                         <span className="hidden sm:inline">
                             {brand.charAt(0).toUpperCase() + brand.slice(1)} qui se termine par {last4}
                         </span>
@@ -900,8 +902,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 <PlanOption
                     title="Abonnement Starter"
                     icon="/icons/diamant_starter.svg"
-                    price="0 €"
-                    period="/mois"
+                    price="Gratuit"
+                    period=""
                     isSelected={selectedPlan === "starter"}
                     onSelect={() => {
                         setSelectedPlan("starter");

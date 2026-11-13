@@ -458,7 +458,7 @@ export default function StoreGrid({
           {allPrograms.length === 0 && !loading && (
             favoritesOnly ? (
               <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
-                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                   Oups ! Aucun favori enregistré...
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
@@ -472,7 +472,7 @@ export default function StoreGrid({
               </div>
             ) : hasActiveFilters ? (
               <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
-                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                   Oups ! Aucun résultat avec ces filtres...
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">
@@ -486,7 +486,7 @@ export default function StoreGrid({
               </div>
             ) : (
               <div className="text-center mt-[20px] mb-[40px] flex flex-col items-center">
-                <h2 className="text-[18px] font-bold text-[#2E3271] mb-[12px]">
+                <h2 className="text-[18px] font-bold text-[#3A416F] mb-[12px]">
                   Oups ! Aucun résultat trouvé...
                 </h2>
                 <p className="text-[15px] sm:text-[16px] font-semibold text-[#5D6494] leading-relaxed mb-[20px] max-w-[550px] text-center">

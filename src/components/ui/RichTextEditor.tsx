@@ -393,7 +393,7 @@ export default function RichTextEditor({
         content: sanitizedValue,
         editorProps: {
             attributes: {
-                class: `prose prose-sm focus:outline-none ${compact ? 'px-3 py-1.5 text-[14px]' : 'px-4 py-3'} font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'} [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#2E3271] [&_h2]:my-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#2E3271] [&_h3]:my-2 [&_p]:mt-0 ${compact ? '[&_p]:mb-0' : '[&_p]:mb-3.5'}`,
+                class: `prose prose-sm focus:outline-none ${compact ? 'px-3 py-1.5 text-[14px]' : 'px-4 py-3'} font-semibold text-[#5D6494] ${quicksand.className} ${editorClassName || 'h-full'} [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:my-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:my-2 [&_p]:mt-0 ${compact ? '[&_p]:mb-0' : '[&_p]:mb-3.5'}`,
                 spellcheck: "true",
                 style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? (compact ? 'min-height: 38px' : 'min-height: 345px') : '',
             },

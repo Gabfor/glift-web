@@ -309,7 +309,7 @@ export default function AdminProgramPage() {
   return (
     <main className="min-h-screen bg-transparent px-4 pt-[100px] md:pt-[140px] pb-[100px] flex justify-center">
       <div className="w-full max-w-6xl relative z-10">
-        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#2E3271] text-center mb-[40px]">
+        <h2 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-[40px]">
           Programmes Glift Store
         </h2>
 
@@ -445,7 +445,7 @@ export default function AdminProgramPage() {
                         <Tooltip content={program.name}>
                           <Link
                             href={`/admin/entrainements?id=${program.id}&edit=1`}
-                            className="truncate max-w-[200px] block hover:text-[#2E3271] transition-colors"
+                            className="truncate max-w-[200px] block hover:text-[#3A416F] transition-colors"
                           >
                             {program.name}
                           </Link>

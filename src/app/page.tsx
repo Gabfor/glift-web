@@ -82,7 +82,7 @@ export default async function Home() {
           )}
 
           <h1
-            className="text-[24px] sm:text-[30px] font-bold leading-snug text-[#2E3271] mb-[10px] w-full max-w-[500px] mx-auto prose-titles [&_p]:m-0"
+            className="text-[24px] sm:text-[30px] font-bold leading-snug text-[#3A416F] mb-[10px] w-full max-w-[500px] mx-auto prose-titles [&_p]:m-0"
             dangerouslySetInnerHTML={{ __html: page.titre }}
           />
 
