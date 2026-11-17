@@ -19,14 +19,14 @@ const VARIANT_CONFIG: Record<ModalMessageVariant, {
   },
   error: {
     background: "#FFF1F1",
-    titleColor: "#BB1111",
-    textColor: "#EA1F1F",
+    titleColor: "#BA2524",
+    textColor: "#EF4F4E",
     iconSrc: "/icons/message_erreur.svg",
   },
   warning: {
     background: "#FFF1F1",
-    titleColor: "#BB1111",
-    textColor: "#EA1F1F",
+    titleColor: "#BA2524",
+    textColor: "#EF4F4E",
     iconSrc: "/icons/message_erreur.svg",
   },
   info: {

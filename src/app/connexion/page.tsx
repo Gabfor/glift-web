@@ -302,7 +302,7 @@ export default function ConnexionPage() {
   );
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] flex justify-center px-5 pt-[100px] md:pt-[140px]">
+    <main className="flex-1 bg-[#FBFCFE] flex justify-center px-5 pt-[100px] md:pt-[140px]">
       {showLoader ? <GliftLoader onShow={handleTransitionLoaderShow} /> : null}
       <div className="w-full max-w-[564px] flex flex-col items-center">
         <h1 className="text-[24px] sm:text-[30px] font-bold text-[#3A416F] text-center mb-6">

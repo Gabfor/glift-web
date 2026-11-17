@@ -76,21 +76,24 @@ export class WebhookService {
             const periodEnd = new Date(firstLine.period.end * 1000).toISOString();
             const priceId = firstLine?.price?.id || firstLine?.pricing?.price_id;
             const isStarter = priceId === process.env.STRIPE_PRICE_ID_STARTER;
+            const interval = firstLine?.price?.recurring?.interval === 'year' ? 'yearly' : 'monthly';
 
             await this.supabase.from("user_subscriptions").update({
                 plan: isStarter ? 'starter' : 'premium',
+                interval: isStarter ? null : interval,
                 end_date: periodEnd,
                 updated_at: new Date().toISOString(),
-            }).eq("user_id", user.id);
+            } as any).eq("user_id", user.id);
 
             await this.supabase.from("profiles").update({
                 subscription_plan: isStarter ? 'starter' : 'premium',
+                subscription_interval: isStarter ? null : interval,
                 // If payment succeeded, it's not a trial (unless it's a $0 trial invoice? But usually that's different).
                 // Assuming payment_succeeded means they paid, so trial is false.
                 trial: false,
                 premium_end_at: isStarter ? null : periodEnd,
                 updated_at: new Date().toISOString(),
-            }).eq("id", user.id);
+            } as any).eq("id", user.id);
         }
     }
 
@@ -227,6 +230,7 @@ export class WebhookService {
 
             const priceId = subAny.items?.data[0]?.price.id;
             const isStarter = priceId === process.env.STRIPE_PRICE_ID_STARTER;
+            const interval = subAny.items?.data[0]?.price?.recurring?.interval === 'year' ? 'yearly' : 'monthly';
 
             const updateData: any = {
                 updated_at: new Date().toISOString(),
@@ -238,11 +242,13 @@ export class WebhookService {
 
             if (isStarter) {
                 updateData.subscription_plan = 'starter';
+                updateData.subscription_interval = null;
                 updateData.premium_end_at = null;
                 updateData.premium_trial_end_at = null;
                 updateData.trial = false;
             } else {
                 updateData.subscription_plan = 'premium';
+                updateData.subscription_interval = interval;
                 updateData.trial = subscription.status === 'trialing';
                 updateData.premium_trial_end_at = trialEnd;
                 updateData.cancellation = subscription.cancel_at_period_end;

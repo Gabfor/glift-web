@@ -23,6 +23,7 @@ interface CheckoutFormProps {
     customerId: string | null;
     subscriptionId: string | null;
     onSuccess?: (paymentMethodId?: string) => void;
+    onReady?: () => void;
     submitButtonText?: string;
     mode?: 'setup' | 'payment';
 }
@@ -66,6 +67,10 @@ export default function CheckoutForm(props: CheckoutFormProps) {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    useEffect(() => {
+        props.onReady?.();
+    }, [props.onReady]);
+
     // Track field completion for validation
     const [cardNumberComplete, setCardNumberComplete] = useState(false);
     const [hasCardNumberValue, setHasCardNumberValue] = useState(false);
@@ -89,6 +94,9 @@ export default function CheckoutForm(props: CheckoutFormProps) {
         paymentMethods: {
             applePay: 'auto' as const,
             googlePay: 'auto' as const,
+            amazonPay: 'never' as const,
+            paypal: 'never' as const,
+            klarna: 'never' as const,
             link: 'never' as const,
         },
         layout: {

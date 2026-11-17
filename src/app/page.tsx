@@ -61,14 +61,14 @@ export default async function Home() {
 
   if (!page) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex-1 flex items-center justify-center">
         <p className="text-[#5D6494]">Page d'accueil en cours de configuration...</p>
       </div>
     );
   }
 
   return (
-    <main className="relative min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip">
+    <main className="relative flex-1 bg-[#FBFCFE] pt-[100px] md:pt-[140px] overflow-x-clip">
       {/* Fond dégradé dynamique style ClickUp */}
       <ConceptGradientBackground initialSettings={settings} />
 

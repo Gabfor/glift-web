@@ -10,6 +10,7 @@ import DeleteAccountButtonWithModal from '@/components/DeleteAccountButtonWithMo
 import { useCallback, useEffect, useState } from 'react'
 
 import { PaymentMethod } from '@/lib/services/paymentService'
+import { SiteSettings } from '@/hooks/useSiteSettings'
 
 export interface ComptePageContent {
   surtitre?: string
@@ -21,9 +22,11 @@ interface ComptePageClientProps {
   initialPaymentMethods: PaymentMethod[]
   initialIsPremium: boolean
   initialPageContent?: ComptePageContent
+  initialSettings?: Partial<SiteSettings>
+  initialSubscriptionDetails?: any
 }
 
-export default function ComptePageClient({ initialPaymentMethods, initialIsPremium, initialPageContent }: ComptePageClientProps) {
+export default function ComptePageClient({ initialPaymentMethods, initialIsPremium, initialPageContent, initialSettings, initialSubscriptionDetails }: ComptePageClientProps) {
   const { user, isEmailVerified } = useUser()
   const [openSection, setOpenSection] = useState<string>("")
 
@@ -123,7 +126,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
   }, [])
 
   return (
-    <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] overflow-x-hidden">
+    <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px] overflow-x-hidden">
       <div className="max-w-[1152px] mx-auto text-center flex flex-col items-center w-full">
         {initialPageContent?.surtitre && (
           <div className="uppercase text-[12px] font-bold text-[#7069FA] mb-[10px] tracking-wide text-center w-full max-w-[500px] mx-auto">
@@ -147,7 +150,7 @@ export default function ComptePageClient({ initialPaymentMethods, initialIsPremi
           <Accordion type="single" collapsible className="space-y-[30px]" value={openSection} onValueChange={handleSectionChange}>
             <MesInformationsSection user={user} />
             <MotDePasseSection />
-            <AbonnementSection initialPaymentMethods={initialPaymentMethods} initialIsPremium={initialIsPremium} />
+            <AbonnementSection initialPaymentMethods={initialPaymentMethods} initialIsPremium={initialIsPremium} initialSettings={initialSettings} initialSubscriptionDetails={initialSubscriptionDetails} />
             <PreferencesSection />
           </Accordion>
         </div>

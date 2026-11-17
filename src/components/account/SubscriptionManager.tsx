@@ -1,7 +1,7 @@
 import { useUser } from "@/context/UserContext";
 import CTAButton from "@/components/CTAButton";
 import Tooltip from "@/components/Tooltip";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import Modal from "@/components/ui/Modal";
 import ConfirmationModal from "@/components/ui/ConfirmationModal";
 import ModalMessage from "@/components/ui/ModalMessage";
@@ -14,7 +14,8 @@ import { loadStripe } from "@stripe/stripe-js";
 import CheckoutForm from "@/components/stripe/CheckoutForm";
 import PaymentFormSkeleton from "@/components/stripe/PaymentFormSkeleton";
 import { useGlobalLoader } from "@/context/GlobalLoaderContext";
-import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { useSiteSettings, SiteSettings } from "@/hooks/useSiteSettings";
+import ToggleSwitch from "@/components/ui/ToggleSwitch";
 
 // Initialize Stripe outside of component
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -160,7 +161,7 @@ const PaymentMethodCard = ({
                             {brand.charAt(0).toUpperCase() + brand.slice(1)} (•••• {last4})
                         </span>
                     </span>
-                    <span className={`text-[10px] sm:text-[12px] font-semibold ${isExpired ? 'text-red-500' : 'text-[#5D6494]'}`}>
+                    <span className={`text-[10px] sm:text-[12px] font-semibold ${isExpired ? 'text-[#EF4F4E]' : 'text-[#5D6494]'}`}>
                         {isExpired ? "Expirée depuis" : "Expire en"} : {expMonth.toString().padStart(2, '0')}/{expYear}
                     </span>
                 </div>
@@ -222,13 +223,70 @@ const getPaymentErrorMessage = (code: string | null): string => {
 interface SubscriptionManagerProps {
     initialPaymentMethods?: PaymentMethod[];
     initialIsPremium?: boolean; // Optional because it might not be provided in all usages
+    initialSettings?: Partial<SiteSettings>;
+    initialSubscriptionDetails?: any;
 }
 
-export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false }: SubscriptionManagerProps) {
+export default function SubscriptionManager({ initialPaymentMethods, initialIsPremium = false, initialSettings, initialSubscriptionDetails }: SubscriptionManagerProps) {
     const { isPremiumUser, isLoading, refreshUser, premiumTrialEndAt, premiumEndAt, trial, profile } = useUser();
-    const { trialDays, starterMaxTrainings, starterMaxExercises } = useSiteSettings();
+    const {
+        trialDays,
+        starterMaxTrainings,
+        starterMaxExercises,
+        premiumMonthlyEnabled,
+        premiumYearlyEnabled,
+        premiumMonthlyPrice,
+        premiumYearlyPrice,
+    } = useSiteSettings(initialSettings);
+    const formattedMonthlyPrice = premiumMonthlyPrice || "3,99";
+    const formattedYearlyPrice = premiumYearlyPrice || "39,99";
     const starterTrainingCountText = starterMaxTrainings === 1 ? "1 seul entraînement" : `${starterMaxTrainings} entraînements`;
     const { triggerLoader, stopLoader } = useGlobalLoader();
+
+    const showToggle = premiumMonthlyEnabled && premiumYearlyEnabled;
+    const initialInterval: "monthly" | "yearly" = (() => {
+        if (initialSubscriptionDetails?.interval === "yearly" || initialSubscriptionDetails?.interval === "monthly") {
+            return initialSubscriptionDetails.interval;
+        }
+        if (profile?.subscription_interval === "yearly" || profile?.subscription_interval === "monthly") {
+            return profile.subscription_interval;
+        }
+        if (!premiumMonthlyEnabled && premiumYearlyEnabled) return "yearly";
+        return "monthly";
+    })();
+
+    const [interval, setInterval] = useState<"monthly" | "yearly">(initialInterval);
+
+    useEffect(() => {
+        if (profile?.subscription_interval === 'yearly' || profile?.subscription_interval === 'monthly') {
+            setCurrentSubInterval(profile.subscription_interval);
+            setInterval(profile.subscription_interval);
+        }
+    }, [profile?.subscription_interval]);
+
+    useEffect(() => {
+        if (!premiumMonthlyEnabled && premiumYearlyEnabled) {
+            setInterval("yearly");
+        } else if (premiumMonthlyEnabled && !premiumYearlyEnabled) {
+            setInterval("monthly");
+        }
+    }, [premiumMonthlyEnabled, premiumYearlyEnabled]);
+
+    const parsePrice = (priceStr?: string) => {
+        if (!priceStr) return 0;
+        return parseFloat(priceStr.replace(",", "."));
+    };
+
+    const monthlyVal = parsePrice(premiumMonthlyPrice);
+    const yearlyVal = parsePrice(premiumYearlyPrice);
+    const discountPercent =
+        monthlyVal > 0 && yearlyVal > 0 && 12 * monthlyVal > yearlyVal
+            ? Math.round(((12 * monthlyVal - yearlyVal) / (12 * monthlyVal)) * 100)
+            : 0;
+
+    const isYearly = interval === "yearly";
+    const currentPrice = isYearly ? formattedYearlyPrice : formattedMonthlyPrice;
+    const currentPeriod = isYearly ? "/an" : "/mois";
 
     // Initialize with server-side value if available, or default to starter
     const [selectedPlan, setSelectedPlan] = useState<"starter" | "premium">(() => {
@@ -236,6 +294,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     });
 
     const [loading, setLoading] = useState(false);
+    const [currentSubInterval, setCurrentSubInterval] = useState<"monthly" | "yearly">(initialInterval);
+    const [showIntervalModal, setShowIntervalModal] = useState(false);
     const [showDowngradeModal, setShowDowngradeModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -258,11 +318,37 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     useEffect(() => {
         successPlanRef.current = successPlan;
     }, [successPlan]);
-    const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(null);
+    const [subscriptionEndDate, setSubscriptionEndDate] = useState<number | null>(() => {
+        return initialSubscriptionDetails?.current_period_end || null;
+    });
     const [paymentError, setPaymentError] = useState<string | null>(null);
     const [paymentErrorCode, setPaymentErrorCode] = useState<string | null>(null);
     const [isUndoingDowngrade, setIsUndoingDowngrade] = useState(false);
     const [isCardReadded, setIsCardReadded] = useState(false);
+    const paymentFormRef = useRef<HTMLDivElement>(null);
+
+    const scrollToPaymentForm = useCallback(() => {
+        if (!paymentFormRef.current) return;
+        paymentFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, []);
+
+    useEffect(() => {
+        if (isAddingMethod) {
+            const timer = setTimeout(() => {
+                scrollToPaymentForm();
+            }, 50);
+            return () => clearTimeout(timer);
+        }
+    }, [isAddingMethod, scrollToPaymentForm]);
+
+    useEffect(() => {
+        if (isAddingMethod && setupData) {
+            const timer = setTimeout(() => {
+                scrollToPaymentForm();
+            }, 80);
+            return () => clearTimeout(timer);
+        }
+    }, [isAddingMethod, setupData, scrollToPaymentForm]);
 
     const now = new Date();
     const currentYear = now.getFullYear();
@@ -294,6 +380,25 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         ? new Date(premiumEndAt).toLocaleDateString('fr-FR')
         : '';
 
+    const hasTrialHistory = Boolean(
+        trial === true ||
+        profile?.trial === true ||
+        profile?.premium_trial_started_at ||
+        profile?.premium_trial_end_at ||
+        premiumTrialEndAt ||
+        profile?.premium_end_at ||
+        premiumEndAt
+    );
+
+    const hasPaidHistory = Boolean(profile?.premium_end_at || premiumEndAt);
+
+    const trialEndTimestamp = rawTrialEnd ? new Date(rawTrialEnd).getTime() : null;
+    const isWithin7DaysAfterTrial = trialEndTimestamp
+        ? (now.getTime() - trialEndTimestamp) <= 7 * 24 * 60 * 60 * 1000
+        : true;
+
+    const isTrialEndedWithoutCard = !isPremiumUser && !isTrialActive && Boolean(profile?.premium_trial_started_at || profile?.premium_trial_end_at || trial === true) && !hasPaidHistory && !paymentMethod;
+
     const fetchPaymentMethod = async () => {
         try {
             console.log("Fetching payment methods...");
@@ -317,10 +422,15 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         }
     };
 
-    const handleStartSetup = async () => {
+    const handleStartSetup = async (customInterval?: "monthly" | "yearly") => {
         setIsAddingMethod(true);
         try {
-            const res = await fetch('/api/user/setup-subscription', { method: 'POST' });
+            const intToUse = (typeof customInterval === 'string' ? customInterval : null) || interval;
+            const res = await fetch('/api/user/setup-subscription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ interval: intToUse })
+            });
             if (res.ok) {
                 const data = await res.json();
                 setSetupData(data);
@@ -330,6 +440,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             setIsAddingMethod(false);
         }
     };
+
+    useEffect(() => {
+        if (isAddingMethod) {
+            handleStartSetup();
+        }
+    }, [interval]);
 
     // Sync state with user profile when loaded client-side (reconciliation)
     // Sync state with user profile when loaded client-side (reconciliation)
@@ -392,9 +508,14 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                         if (data.current_period_end) {
                             setSubscriptionEndDate(data.current_period_end);
                         }
+                        if (data.interval === 'yearly' || data.interval === 'monthly') {
+                            setInterval(data.interval);
+                            setCurrentSubInterval(data.interval);
+                        }
+                        const hasPaymentError = Boolean(data.lastInvoiceErrorCode || data.lastInvoiceError);
                         // User has a Stripe subscription
-                        if ((data.cancel_at_period_end || hasFuturePremiumEnd || data.status === 'incomplete') && !isTrialActive) {
-                            // Cancellation pending (Stripe or DB) OR Incomplete subscription (Payment Failed/Abandoned)
+                        if (!hasPaymentError && (data.cancel_at_period_end || hasFuturePremiumEnd) && !isTrialActive) {
+                            // Cancellation pending (Stripe or DB)
                             setSuccessPlan('starter');
                             // Show end of current period
                             if (data.current_period_end) {
@@ -402,13 +523,12 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             } else if (hasFuturePremiumEnd) {
                                 setSubscriptionEndDate(Math.floor(new Date(premiumEndAt!).getTime() / 1000));
                             } else {
-                                // For incomplete, maybe show "now"? or let it be blank/default
-                                // If incomplete, it means they are not effectively paid, so it will end "now" or "soon".
-                                // If we don't set a date, the message might look weird if it depends on it.
-                                // Let's try to set it to now to indicate immediate expiry.
                                 setSubscriptionEndDate(Math.floor(Date.now() / 1000));
                             }
                             setShowSuccessMessage(true);
+                        } else if (hasPaymentError) {
+                            setShowSuccessMessage(false);
+                            setSuccessPlan(null);
                         } else {
                             // Active Stripe subscription (auto-renews) AND NO local cancellation date
                             if (successPlanRef.current !== 'premium' && !isCardReadded && !isUndoingDowngrade) {
@@ -464,10 +584,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             Pour continuer à bénéficier d’un abonnement Premium une fois la période de facturation actuelle terminée, renseigne un nouveau moyen de paiement avant{" "}
                             {formattedEndDate ? (
                                 <>
-                                    le <span className="font-bold text-[#BB1111]">{formattedEndDate}</span>
+                                    le <span className="font-bold text-[#BA2524]">{formattedEndDate}</span>
                                 </>
                             ) : (
-                                <span className="font-bold text-[#BB1111]">la fin de la période</span>
+                                <span className="font-bold text-[#BA2524]">la fin de la période</span>
                             )}
                             .
                         </span>
@@ -495,8 +615,9 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         }
     }, [paymentMethod, paymentError, paymentErrorCode, formattedEndDate, effectiveIsPremium]);
 
+    const isIntervalChanged = effectiveIsPremium && selectedPlan === "premium" && interval !== currentSubInterval;
     const isCurrentPlan =
-        (effectiveIsPremium && selectedPlan === "premium") ||
+        (effectiveIsPremium && selectedPlan === "premium" && !isIntervalChanged) ||
         (!effectiveIsPremium && selectedPlan === "starter");
 
     const lastActionTime = useRef<number>(0);
@@ -506,6 +627,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
         triggerLoader(0); // Trigger global loader indefinitely until we finish
         lastActionTime.current = Date.now(); // Mark action start time
         setShowModalMessage(false);
+        const changingInterval = !options?.isUndo && isIntervalChanged;
         // Do NOT clear success message immediately if switching context? 
         // Better to clear it to avoid confusion.
         if (!options?.isUndo) {
@@ -519,7 +641,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             const res = await fetch('/api/user/update-subscription', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ plan: planToUpdate })
+                body: JSON.stringify({ plan: planToUpdate, interval })
             });
             const data = await res.json();
 
@@ -553,20 +675,51 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     }
                 }
 
-                const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium' || data.status === 'reactivated');
+                const isPremiumSuccess = selectedPlan === 'premium' && (data.status === 'updated' || data.status === 'created' || data.status === 'already_premium' || data.status === 'reactivated' || data.status === 'scheduled_at_period_end');
                 const isStarterSuccess = selectedPlan === 'starter' && (data.status === 'canceled_at_period_end' || data.status === 'already_starter');
 
                 // If we confirmed payment, it is a success even if status in data was initial
                 if (isPremiumSuccess || isStarterSuccess || (data.clientSecret && !data.error)) {
-                    setSuccessPlan(selectedPlan);
-                    successPlanRef.current = selectedPlan;
-                    if (data.currentPeriodEnd) {
-                        setSubscriptionEndDate(data.currentPeriodEnd);
-                    }
-                    setShowModalMessage(false);
-                    setShowSuccessMessage(true);
-                    if (isStarterSuccess && (isPremiumUser || isTrialActive)) {
-                        setSelectedPlan("premium");
+                    if (changingInterval) {
+                        const isDowngradeToMonthly = !isTrialActive && currentSubInterval === "yearly" && interval === "monthly";
+                        setCurrentSubInterval(interval);
+                        setSuccessPlan('premium');
+                        successPlanRef.current = 'premium';
+                        if (data.currentPeriodEnd) {
+                            setSubscriptionEndDate(data.currentPeriodEnd);
+                        }
+                        const finalDateStr = data.currentPeriodEnd
+                            ? new Date(data.currentPeriodEnd * 1000).toLocaleDateString('fr-FR')
+                            : formattedEndDate;
+
+                        setShowSuccessMessage(false);
+                        setSuccessMessage({
+                            title: isDowngradeToMonthly ? "Changement de formule programmé" : "Formule modifiée avec succès",
+                            description: isTrialActive
+                                ? `Ton abonnement passera sur la formule ${interval === 'yearly' ? 'annuelle' : 'mensuelle'} à la fin de ton essai gratuit.`
+                                : isDowngradeToMonthly
+                                ? (
+                                    <span>
+                                        Ton abonnement annuel reste actif jusqu’au <span className="font-bold text-[#006646]">{finalDateStr}</span>. À cette date, ton abonnement basculera automatiquement sur la formule mensuelle ({formattedMonthlyPrice} €/mois).
+                                    </span>
+                                )
+                                : interval === 'yearly'
+                                ? "Félicitations ! Ton abonnement a bien été basculé sur la formule annuelle. Le montant au prorata a été pris en compte."
+                                : "Ton abonnement a bien été basculé sur la formule mensuelle. Le montant au prorata a été pris en compte.",
+                            variant: "success"
+                        });
+                        setShowModalMessage(true);
+                    } else {
+                        setSuccessPlan(selectedPlan);
+                        successPlanRef.current = selectedPlan;
+                        if (data.currentPeriodEnd) {
+                            setSubscriptionEndDate(data.currentPeriodEnd);
+                        }
+                        setShowModalMessage(false);
+                        setShowSuccessMessage(true);
+                        if (isStarterSuccess && (isPremiumUser || isTrialActive)) {
+                            setSelectedPlan("premium");
+                        }
                     }
                     lastActionTime.current = Date.now();
                     // Refresh user context to update UI to 'Premium' state without reload
@@ -587,6 +740,10 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     const handleUpdate = () => {
         if (isPremiumUser && selectedPlan === 'starter') {
             setShowDowngradeModal(true);
+            return;
+        }
+        if (isIntervalChanged) {
+            setShowIntervalModal(true);
             return;
         }
         processUpdate();
@@ -673,6 +830,61 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
     return (
         <div className="w-full text-left mt-[14px] mb-8 flex flex-col items-center">
             <ConfirmationModal
+                open={showIntervalModal}
+                title="Modification de l’abonnement"
+                variant="info"
+                messageTitle={interval === "yearly" ? "Passer à l’abonnement annuel ?" : "Passer à l’abonnement mensuel ?"}
+                messageDescription={
+                    isTrialActive ? (
+                        <span>
+                            Tu profites actuellement de ton essai gratuit. Ta formule passera à l’abonnement {interval === "yearly" ? "annuel" : "mensuel"} dès la fin de ton essai le <span className="font-bold text-[#6660E4]">{trialEndFormatted || formattedEndDate}</span>. Aucun débit n’aura lieu aujourd’hui.
+                        </span>
+                    ) : (!isTrialActive && currentSubInterval === "yearly" && interval === "monthly") ? (
+                        <span>
+                            Ton abonnement annuel restera actif jusqu’au <span className="font-bold text-[#6660E4]">{formattedEndDate}</span> puis basculera automatiquement sur la formule mensuelle à <span className="font-bold text-[#6660E4]">{formattedMonthlyPrice} €/mois</span>.
+                        </span>
+                    ) : (
+                        <span>
+                            Tu es sur le point de passer à la formule annuelle à <span className="font-bold text-[#6660E4]">{formattedYearlyPrice} €/an</span>. Les jours non utilisés de ton mois en cours seront immédiatement déduits de ta facture et ton année d’abonnement commencera aujourd’hui.
+                        </span>
+                    )
+                }
+                onConfirm={() => {
+                    setShowIntervalModal(false);
+                    processUpdate();
+                }}
+                confirmLabel="Modifier"
+                onClose={() => setShowIntervalModal(false)}
+                onCancel={() => setShowIntervalModal(false)}
+                cancelLabel="Annuler"
+                confirmButtonProps={{ loading }}
+                cancelButtonProps={{ disabled: loading }}
+            >
+                <div className="space-y-4">
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Modifier »</span> {
+                            isTrialActive ? (
+                                <span>
+                                    ta formule sera enregistrée en facturation {interval === "yearly" ? "annuelle" : "mensuelle"} et prendra effet à la fin de ton essai sans interrompre tes jours offerts.
+                                </span>
+                            ) : (!isTrialActive && currentSubInterval === "yearly" && interval === "monthly") ? (
+                                <span>
+                                    ton passage au paiement mensuel au lieu d’un renouvellement annuel sera programmé pour le <span className="text-[#3A416F] font-bold">{formattedEndDate}</span>. Aucun débit n’aura lieu aujourd’hui.
+                                </span>
+                            ) : (
+                                <span>
+                                    ta formule passera immédiatement en facturation annuelle avec ajustement au prorata sur ton moyen de paiement.
+                                </span>
+                            )
+                        }
+                    </p>
+                    <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span>, aucun changement ne sera appliqué et tu conserveras ta formule {currentSubInterval === "yearly" ? "annuelle" : "mensuelle"}.
+                    </p>
+                </div>
+            </ConfirmationModal>
+
+            <ConfirmationModal
                 open={showDowngradeModal}
                 title="Modification d’abonnement"
                 variant="info"
@@ -694,7 +906,15 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F] font-bold">« Modifier »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Modifier »</span> {
+                            isTrialActive
+                                ? `tu passeras à l’abonnement Starter dès la fin de ton essai de ${trialDays} jours. Tu pourras repasser à un abonnement Premium à tout moment.`
+                                : (
+                                    <span>
+                                        tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de <span className="text-[#3A416F] font-bold">{currentSubInterval === "yearly" ? formattedYearlyPrice : formattedMonthlyPrice} €</span> tous les {currentSubInterval === "yearly" ? "ans" : "mois"}. Tu pourras repasser à un abonnement Premium à tout moment.
+                                    </span>
+                                )
+                        }
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
                         En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter des avantages Premium.
@@ -721,14 +941,22 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             >
                 <div className="space-y-4">
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
-                        En cliquant sur <span className="text-[#3A416F] font-bold">« Supprimer »</span> tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de 2,49 € tous les mois. Tu pourras repasser à un abonnement Premium à tout moment.
+                        En cliquant sur <span className="text-[#3A416F] font-bold">« Supprimer »</span> {
+                            isTrialActive
+                                ? `tu passeras à l’abonnement Starter dès la fin de ton essai de ${trialDays} jours. Tu pourras repasser à un abonnement Premium à tout moment.`
+                                : (
+                                    <span>
+                                        tu passeras à l’abonnement Starter dès la fin de ton abonnement Premium. Tu ne seras plus débité de <span className="text-[#3A416F] font-bold">{currentSubInterval === "yearly" ? formattedYearlyPrice : formattedMonthlyPrice} €</span> tous les {currentSubInterval === "yearly" ? "ans" : "mois"}. Tu pourras repasser à un abonnement Premium à tout moment.
+                                    </span>
+                                )
+                        }
                     </p>
                     <p className="text-left text-[14px] font-semibold leading-normal text-[#5D6494]">
                         En cliquant sur <span className="text-[#3A416F] font-bold">« Annuler »</span> aucun changement ne sera appliqué à ton abonnement et tu continueras à profiter des avantages Premium.
                     </p>
                 </div>
             </ConfirmationModal>
-            {showSuccessMessage && !isTrialActive && (
+            {showSuccessMessage && (
                 <>
                     <div className={`w-full max-w-[564px] mx-auto ${successPlan === 'starter' && !paymentMethod ? "mb-4" : "mb-6"}`}>
                         <ModalMessage
@@ -737,7 +965,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                 successPlan === 'starter'
                                     ? (paymentMethod ? "Changement d’abonnement pris en compte" : "Moyen de paiement supprimé")
                                     : isUndoingDowngrade
-                                    ? "Annulation prise en compte"
+                                    ? "Annulation prise en compte !"
                                     : isCardReadded
                                     ? "Moyen de paiement enregistré"
                                     : isTrialActive
@@ -813,7 +1041,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     </div>
                 )
             }
-            {!isPremiumUser && trial === false && !profile?.premium_trial_started_at && !profile?.premium_trial_end_at && !premiumTrialEndAt && (
+            {!isPremiumUser && !isTrialActive && !hasTrialHistory && !showSuccessMessage && !showModalMessage && (
                 <div className="mb-6 w-full max-w-[564px] mx-auto">
                     <ModalMessage
                         variant="success"
@@ -828,7 +1056,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 </div>
             )}
 
-            {!isPremiumUser && !isTrialActive && (trial === true || Boolean(profile?.premium_trial_started_at) || Boolean(profile?.premium_end_at) || Boolean(profile?.premium_trial_end_at)) && !showSuccessMessage && !showModalMessage && (
+            {!isPremiumUser && !isTrialActive && hasTrialHistory && !showSuccessMessage && !showModalMessage && (
                 <div className="mb-6 w-full max-w-[564px] mx-auto">
                     {isCardExpired ? (
                         <ModalMessage
@@ -836,17 +1064,23 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             title="Ton abonnement Premium n’a pas pu être renouvelé"
                             description={`Ton moyen de paiement est arrivé à expiration. Ton accès est temporairement limité à ${starterTrainingCountText} de ${starterMaxExercises} exercices. Pas de stress, ajoute un moyen de paiement dès maintenant pour réactiver ton abonnement Premium.`}
                         />
-                    ) : (
+                    ) : hasPaidHistory ? (
                         <ModalMessage
                             variant="info"
                             title="Ton abonnement Premium a pris fin"
                             description={`Ton accès est maintenant limité à ${starterTrainingCountText} de ${starterMaxExercises} exercices mais tu peux réactiver ton abonnement Premium à tout moment.`}
                         />
-                    )}
+                    ) : (isTrialEndedWithoutCard && isWithin7DaysAfterTrial) ? (
+                        <ModalMessage
+                            variant="info"
+                            title={`Ton essai de ${trialDays} jours est terminé`}
+                            description={`Étant donné qu’aucun moyen de paiement n’a été ajouté, tu es automatiquement passé à un abonnement Starter. Ton accès est maintenant limité à ${starterMaxTrainings} entraînement${starterMaxTrainings > 1 ? 's' : ''} de ${starterMaxExercises} exercices mais tu peux réactiver ton abonnement Premium à tout moment.`}
+                        />
+                    ) : null}
                 </div>
             )}
 
-            {isTrialActive && (
+            {isTrialActive && !showSuccessMessage && (
                 <div className={`w-full max-w-[564px] mx-auto ${!paymentMethod && !isTrialCancelled ? "mb-4" : "mb-6"}`}>
                     {isTrialCancelled ? (
                         <ModalMessage
@@ -898,6 +1132,46 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                     />
                 </div>
             )}
+            {showToggle && (
+                <div className="flex items-center justify-center gap-[10px] mb-4">
+                    <button
+                        type="button"
+                        onClick={() => setInterval("monthly")}
+                        className={`text-[15px] sm:text-[16px] transition-colors cursor-pointer select-none ${
+                            interval === "monthly"
+                                ? "text-[#3A416F] font-bold"
+                                : "text-[#5D6494] font-semibold hover:text-[#3A416F]"
+                        }`}
+                    >
+                        Mensuel
+                    </button>
+
+                    <ToggleSwitch
+                        checked={interval === "yearly"}
+                        onCheckedChange={(checked) => setInterval(checked ? "yearly" : "monthly")}
+                        isAdmin={false}
+                        ariaLabel="Basculer entre abonnement mensuel et annuel"
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => setInterval("yearly")}
+                        className={`text-[15px] sm:text-[16px] transition-colors cursor-pointer select-none ${
+                            interval === "yearly"
+                                ? "text-[#3A416F] font-bold"
+                                : "text-[#5D6494] font-semibold hover:text-[#3A416F]"
+                        }`}
+                    >
+                        Annuel
+                    </button>
+
+                    {discountPercent > 0 && (
+                        <span className="text-[10px] font-bold text-[#00D591] bg-[#DCFAF1] px-[10px] py-[2px] rounded-full h-[20px] inline-flex items-center justify-center select-none whitespace-nowrap leading-none">
+                            Économise {discountPercent} %
+                        </span>
+                    )}
+                </div>
+            )}
             <div className="w-full max-w-[564px] mx-auto space-y-4 mb-0">
                 <PlanOption
                     title="Abonnement Starter"
@@ -913,8 +1187,8 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                 <PlanOption
                     title="Abonnement Premium"
                     icon="/icons/diamant_premium.svg"
-                    price="2,49 €"
-                    period="/mois"
+                    price={`${currentPrice} €`}
+                    period={currentPeriod}
                     isSelected={selectedPlan === "premium"}
                     onSelect={() => {
                         setSelectedPlan("premium");
@@ -924,7 +1198,7 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
             </div>
 
             {
-                selectedPlan === 'premium' && (
+                (selectedPlan === 'premium' || paymentMethod) && (
                     <div className="w-full max-w-[564px] mx-auto mt-[20px] mb-[40px]">
                         {paymentMethod && !isAddingMethod ? (
                             <PaymentMethodCard
@@ -941,14 +1215,14 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                             <div className="w-full rounded-[8px] border-[2px] border-dashed border-[#A1A5FD] hover:border-[#7069FA] transition-colors overflow-hidden">
                                 {!isAddingMethod ? (
                                     <button
-                                        onClick={handleStartSetup}
+                                        onClick={() => handleStartSetup()}
                                         type="button"
                                         className="w-full h-[60px] text-[#A1A5FD] hover:text-[#7069FA] transition-colors text-[16px] font-semibold flex items-center justify-center cursor-pointer bg-transparent"
                                     >
                                         + Ajouter un moyen de paiement
                                     </button>
                                 ) : (
-                                    <div className="px-4 sm:px-6 pb-6 pt-[50px] bg-white relative">
+                                    <div ref={paymentFormRef} className="px-4 sm:px-6 pb-6 pt-[50px] bg-white relative">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -1003,13 +1277,14 @@ export default function SubscriptionManager({ initialPaymentMethods, initialIsPr
                                                 }
                                             }}>
                                                 <CheckoutForm
-                                                    priceLabel="2,49 €/mois"
+                                                    priceLabel={`${currentPrice} €${currentPeriod}`}
                                                     clientSecret={setupData.clientSecret}
                                                     plan={setupData.plan}
                                                     customerId={setupData.customerId}
                                                     subscriptionId={setupData.subscriptionId}
                                                     submitButtonText={paymentMethod || (isPremiumUser && !isTrialActive) ? "Enregistrer" : "Démarrer mon abonnement"}
                                                     mode={setupData.mode}
+                                                    onReady={scrollToPaymentForm}
                                                     onSuccess={async (newPaymentMethodId?: string) => {
                                                         // Prevent race condition with useEffect fetching stale data
                                                         lastActionTime.current = Date.now();

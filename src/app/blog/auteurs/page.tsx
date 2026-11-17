@@ -263,7 +263,7 @@ export default async function AuteursPage() {
           __html: JSON.stringify(collectionSchema)
         }}
       />
-      <main className="min-h-screen bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
+      <main className="flex-1 bg-[#FBFCFE] px-5 pt-[100px] md:pt-[140px]">
       {/* Fil d'ariane (Breadcrumbs) */}
       <div className="max-w-[1152px] mx-auto mb-10">
         <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">

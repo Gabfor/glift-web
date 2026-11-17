@@ -559,11 +559,11 @@ export default function AdminEntrainementDetailPage() {
   const isEffectiveAdmin = isAdminRoute || isAdminDomain || isAdminTraining;
 
   if (!isMounted || (!isAdminRoute && !isPremiumUser && !accessChecked)) {
-    return <div className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"}`} />;
+    return <div className={`flex-1 ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"}`} />;
   }
 
   return (
-    <main className={`min-h-screen ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-5 pt-[100px] md:pt-[140px] main-training-container`}>
+    <main className={`flex-1 ${isEffectiveAdmin ? "bg-transparent" : "bg-[#FBFCFE]"} px-5 pt-[100px] md:pt-[140px] main-training-container`}>
       <div className="max-w-[1152px] mx-auto relative z-10">
 
         <BackLink

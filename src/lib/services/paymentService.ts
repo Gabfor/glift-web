@@ -92,8 +92,8 @@ export class PaymentService {
             id: pm.id,
             brand: pm.card?.brand || 'unknown',
             last4: pm.card?.last4 || '????',
-            exp_month: pm.card?.exp_month || 0,
-            exp_year: pm.card?.exp_year || 0,
+            exp_month: pm.metadata?.simulated_exp_month ? parseInt(pm.metadata.simulated_exp_month) : (pm.card?.exp_month || 0),
+            exp_year: pm.metadata?.simulated_exp_year ? parseInt(pm.metadata.simulated_exp_year) : (pm.card?.exp_year || 0),
             wallet_type: pm.card?.wallet?.type || pm.metadata?.simulated_wallet || null,
         }));
     }
@@ -450,7 +450,8 @@ export class PaymentService {
                         premium_trial_started_at: startDate,
                         premium_trial_end_at: endDate,
                         premium_end_at: null,
-                        subscription_plan: 'premium'
+                        subscription_plan: 'premium',
+                        subscription_interval: interval,
                     } as any).eq('id', userId);
 
                     return {
@@ -501,9 +502,37 @@ export class PaymentService {
                         paymentIntent = (fullInvoice as any).payment_intent as Stripe.PaymentIntent;
                     }
 
+                    if (!paymentIntent && invoice) {
+                        const invObj = typeof invoice === 'string' ? await stripe.invoices.retrieve(invoice) : invoice;
+                        if (invObj && invObj.amount_due && invObj.amount_due > 0) {
+                            console.debug("*** PaymentService: Creating PaymentIntent for invoice amount:", invObj.amount_due);
+                            paymentIntent = await stripe.paymentIntents.create({
+                                customer: customerId,
+                                amount: invObj.amount_due,
+                                currency: invObj.currency || 'eur',
+                                description: `Paiement abonnement ${updatedSub.id}`,
+                                metadata: {
+                                    subscription_id: updatedSub.id,
+                                    invoice_id: invObj.id
+                                }
+                            });
+                        }
+                    }
+
                     if (!paymentIntent) {
-                        console.error("*** PaymentService: CRITICAL - No PaymentIntent found even after retries.");
-                        throw new Error("No payment intent found for upgrade.");
+                        console.warn("*** PaymentService: No payment intent found, falling back to SetupIntent");
+                        const setupIntent = await stripe.setupIntents.create({
+                            customer: customerId,
+                            payment_method_types: ['card'],
+                            metadata: { subscription_id: updatedSub.id }
+                        });
+                        return {
+                            clientSecret: setupIntent.client_secret!,
+                            customerId,
+                            subscriptionId: updatedSub.id,
+                            plan: 'premium',
+                            mode: 'setup'
+                        };
                     }
 
                     // Update Supabase
@@ -512,7 +541,8 @@ export class PaymentService {
                         premium_end_at: null,
                         premium_trial_end_at: null,
                         trial: false,
-                        subscription_plan: 'premium'
+                        subscription_plan: 'premium',
+                        subscription_interval: interval,
                     } as any).eq('id', userId);
 
                     return {
@@ -523,6 +553,25 @@ export class PaymentService {
                         mode: 'payment'
                     };
                 }
+            }
+        }
+
+        if (!activeSub) {
+            // Check if customer already has a payment method (e.g. Starter user updating card without active sub)
+            const existingPms = await stripe.paymentMethods.list({ customer: customerId, type: 'card', limit: 1 });
+            if (existingPms.data.length > 0) {
+                console.log("PaymentService: Starter user with existing card updating payment method. Returning SetupIntent.");
+                const setupIntent = await stripe.setupIntents.create({
+                    customer: customerId,
+                    payment_method_types: ['card'],
+                });
+                return {
+                    clientSecret: setupIntent.client_secret!,
+                    customerId,
+                    subscriptionId: '',
+                    plan: 'starter',
+                    mode: 'setup'
+                };
             }
         }
 
@@ -662,7 +711,8 @@ export class PaymentService {
                 premium_trial_started_at: startDate,
                 premium_trial_end_at: endDate,
                 premium_end_at: null, // Clear any previous cancellation date
-                subscription_plan: 'premium'
+                subscription_plan: 'premium',
+                subscription_interval: interval,
             } as any).eq('id', userId);
 
         } else {
@@ -727,6 +777,7 @@ export class PaymentService {
                 premium_trial_end_at: trialEnd,
                 premium_end_at: null, // Clear any previous cancellation date
                 subscription_plan: 'premium',
+                subscription_interval: interval,
                 trial: false
             } as any).eq('id', userId);
         }
@@ -803,14 +854,92 @@ export class PaymentService {
                         cancellation: false,
                         premium_trial_end_at: trialEnd,
                         premium_end_at: premiumEnd, // Always sync the end date!
-                        subscription_plan: 'premium'
+                        subscription_plan: 'premium',
+                        subscription_interval: interval,
                     } as any).eq('id', userId);
 
                     return {
                         status: activeSub.cancel_at_period_end ? 'reactivated' : 'already_premium',
                         subscriptionId: updatedSub.id,
-                        currentPeriodEnd: updatedSubAny.current_period_end
+                        currentPeriodEnd: updatedSubAny.current_period_end,
+                        interval: interval
                     };
+                }
+
+                const currentInterval = activeSub.items.data[0]?.price?.recurring?.interval === 'year' ? 'yearly' : 'monthly';
+                const isTrialing = activeSub.status === 'trialing';
+
+                // Downgrade Annuel -> Mensuel : prise d'effet à l'échéance annuelle (current_period_end)
+                if (!isTrialing && currentInterval === 'yearly' && interval === 'monthly') {
+                    console.log("PaymentService: Scheduling annual to monthly downgrade at period end");
+                    try {
+                        let schedule: Stripe.SubscriptionSchedule;
+                        const scheduleId = typeof (activeSub as any).schedule === 'string'
+                            ? (activeSub as any).schedule
+                            : (activeSub as any).schedule?.id;
+
+                        if (scheduleId) {
+                            schedule = await stripe.subscriptionSchedules.retrieve(scheduleId);
+                        } else {
+                            schedule = await stripe.subscriptionSchedules.create({
+                                from_subscription: activeSub.id,
+                            });
+                        }
+
+                        const startDate = schedule.current_phase?.start_date || (activeSub as any).current_period_start || Math.floor(Date.now() / 1000);
+                        const endDate = schedule.current_phase?.end_date || (activeSub as any).current_period_end;
+                        if (endDate) {
+                            await stripe.subscriptionSchedules.update(schedule.id, {
+                                end_behavior: 'release',
+                                phases: [
+                                    {
+                                        items: [{ price: currentPriceId, quantity: 1 }],
+                                        start_date: startDate,
+                                        end_date: endDate,
+                                    },
+                                    {
+                                        items: [{ price: priceId, quantity: 1 }],
+                                        start_date: endDate,
+                                    }
+                                ]
+                            });
+                        }
+                    } catch (scheduleErr) {
+                        console.warn("PaymentService: Schedule creation failed, saving metadata/DB:", scheduleErr);
+                        await stripe.subscriptions.update(activeSub.id, {
+                            metadata: { pending_interval: 'monthly' }
+                        });
+                    }
+
+                    const currentPeriodEnd = (activeSub as any).current_period_end;
+                    const finalDate = currentPeriodEnd ? toEndOfDayIso(currentPeriodEnd * 1000) : null;
+                    await this.supabase.from('profiles').update({
+                        subscription_plan: 'premium',
+                        subscription_interval: 'yearly',
+                        pending_subscription_interval: 'monthly',
+                        premium_end_at: finalDate,
+                    } as any).eq('id', userId);
+
+                    return {
+                        status: 'scheduled_at_period_end',
+                        subscriptionId: activeSub.id,
+                        currentPeriodEnd: currentPeriodEnd,
+                        interval: 'yearly',
+                        nextInterval: 'monthly',
+                        effectiveDate: currentPeriodEnd,
+                    };
+                }
+
+                // Si on passe de mensuel à annuel, libérer un éventuel schedule existant
+                if ((activeSub as any).schedule) {
+                    try {
+                        const scheduleId = typeof (activeSub as any).schedule === 'string'
+                            ? (activeSub as any).schedule
+                            : (activeSub as any).schedule?.id;
+                        await stripe.subscriptionSchedules.release(scheduleId);
+                    } catch (e) {
+                        console.warn("PaymentService: Could not release schedule:", e);
+                    }
                 }
 
                 // Upgrade/Update to Premium from another plan (rare case if only 2 plans)
@@ -834,11 +963,15 @@ export class PaymentService {
 
                 // Update profiles.cancellation = false AND set trial end if applicable
                 const trialEnd = updatedSub.trial_end ? toEndOfDayIso(updatedSub.trial_end * 1000) : null;
+                const updatedSubAny = updatedSub as any;
+                const currentPeriodEnd = updatedSubAny.current_period_end ? toEndOfDayIso(updatedSubAny.current_period_end * 1000) : null;
                 await this.supabase.from('profiles').update({
                     cancellation: false,
                     premium_trial_end_at: trialEnd,
-                    premium_end_at: null, // Clear any previous cancellation date
-                    subscription_plan: 'premium'
+                    premium_end_at: currentPeriodEnd,
+                    subscription_plan: 'premium',
+                    subscription_interval: interval,
+                    pending_subscription_interval: null,
                 } as any).eq('id', userId);
 
                 // Handle Payment Intent for SCA / Immediate Charge
@@ -870,6 +1003,8 @@ export class PaymentService {
                 return {
                     status: 'updated',
                     subscriptionId: updatedSub.id,
+                    currentPeriodEnd: updatedSubAny.current_period_end,
+                    interval: interval,
                     clientSecret: clientSecret || undefined // Return if exists
                 };
             } else {
@@ -1025,7 +1160,7 @@ export class PaymentService {
         }
     }
 
-    async getSubscriptionDetails(userId: string, userEmail: string, appMetadata: any) {
+    async getSubscriptionDetails(userId: string, userEmail?: string | null, appMetadata?: any) {
         let customerId = appMetadata?.stripe_customer_id;
 
         // Validation helper
@@ -1159,12 +1294,27 @@ export class PaymentService {
                 }
             }
 
+            if (!lastInvoiceErrorCode && customerId) {
+                try {
+                    const pis = await stripe.paymentIntents.list({ customer: customerId, limit: 3 });
+                    const failedPi = pis.data.find(p => p.last_payment_error);
+                    if (failedPi && failedPi.last_payment_error) {
+                        lastInvoiceError = failedPi.last_payment_error.message;
+                        lastInvoiceErrorCode = failedPi.last_payment_error.code;
+                        lastInvoiceStatus = failedPi.status;
+                    }
+                } catch (err) {
+                    console.error("Error retrieving latest PI fallback:", err);
+                }
+            }
+
             return {
                 id: activeSub.id,
                 status: activeSub.status,
                 cancel_at_period_end: activeSub.cancel_at_period_end,
                 current_period_end: (activeSub as any).current_period_end || (activeSub.items?.data?.[0] as any)?.current_period_end,
                 plan: stripePlan,
+                interval: (activeSub.items?.data?.[0]?.price?.recurring?.interval === 'year' ? 'yearly' : 'monthly') as 'monthly' | 'yearly',
                 lastInvoiceError,
                 lastInvoiceErrorCode,
                 lastInvoiceStatus
@@ -1435,7 +1585,13 @@ export class PaymentService {
                 .maybeSingle();
 
             if (data?.value && data.value.trim().length > 0) {
-                return data.value.trim();
+                const val = data.value.trim();
+                if (val.startsWith('prod_')) {
+                    const prices = await stripe.prices.list({ product: val, active: true, limit: 10 });
+                    const match = prices.data.find(p => p.recurring?.interval === (interval === 'yearly' ? 'year' : 'month')) || prices.data[0];
+                    if (match) return match.id;
+                }
+                return val;
             }
         } catch (e) {
             console.warn("PaymentService: Failed to fetch Stripe Price ID from settings:", e);

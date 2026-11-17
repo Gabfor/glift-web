@@ -249,7 +249,7 @@ export default async function BlogSubpathPage({
             })
           }}
         />
-        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
+        <main className="flex-1 bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
           {/* Container pour le fil d'ariane aligné à gauche */}
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">
@@ -532,7 +532,7 @@ export default async function BlogSubpathPage({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
         />
-        <main className="min-h-screen bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
+        <main className="flex-1 bg-[#FBFCFE] pt-[100px] md:pt-[140px] px-5 md:px-0">
           {/* Fil d'ariane (Breadcrumbs) */}
           <div className="max-w-[1152px] mx-auto mb-10">
             <div className="flex items-center gap-[10px] text-[12px] font-semibold text-[#5D6494]">

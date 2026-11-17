@@ -6,10 +6,23 @@ export async function POST(request: Request) {
     try {
         const supabase = await createClient();
 
-        const {
+        let {
             data: { user },
             error
         } = await supabase.auth.getUser();
+
+        if (error || !user) {
+            const authHeader = request.headers.get('authorization');
+            if (authHeader?.startsWith('Bearer ')) {
+                const token = authHeader.substring(7);
+                const adminSupabase = createAdminClient();
+                const res = await adminSupabase.auth.getUser(token);
+                if (res.data?.user) {
+                    user = res.data.user;
+                    error = null;
+                }
+            }
+        }
 
         if (error || !user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -40,9 +53,19 @@ export async function POST(request: Request) {
             );
 
             // Update local profile to reflect change immediately if possible, or wait for webhook
-            if (result.status === 'updated' || result.status === 'created' || result.status === 'already_premium' || result.status === 'reactivated') {
+            if (result.status === 'scheduled_at_period_end') {
+                await adminSupabase.from('profiles').update({
+                    subscription_plan: 'premium',
+                    subscription_interval: 'yearly',
+                    pending_subscription_interval: 'monthly',
+                } as any).eq('id', user.id);
+            } else if (result.status === 'updated' || result.status === 'created' || result.status === 'already_premium' || result.status === 'reactivated') {
                 // Use admin client to bypass RLS
-                await adminSupabase.from('profiles').update({ subscription_plan: 'premium' }).eq('id', user.id);
+                await adminSupabase.from('profiles').update({
+                    subscription_plan: 'premium',
+                    subscription_interval: interval === 'yearly' ? 'yearly' : 'monthly',
+                    pending_subscription_interval: null,
+                } as any).eq('id', user.id);
             } else if (result.status === 'canceled_at_period_end') {
                 // Do not change status immediately if canceling at period end
                 // Or maybe set a flag? 

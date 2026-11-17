@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect, notFound } from 'next/navigation';
 import { PaymentService } from '@/lib/services/paymentService';
+import { SettingsService } from '@/lib/services/settingsService';
 import ComptePageClient from './ComptePageClient';
 import { COMPTE_PAGE_ID } from '@/app/admin/create-page/pageForm';
 import type { Metadata } from 'next';
@@ -61,13 +62,26 @@ export default async function ComptePage() {
     }
 
     const paymentService = new PaymentService(supabase);
+    const settingsService = new SettingsService(supabase);
     // We can pass user info we already have to save lookups
-    const [paymentMethods, profileResponse] = await Promise.all([
+    const [paymentMethods, profileResponse, rawSettings, subscriptionDetails] = await Promise.all([
         paymentService.getUserPaymentMethods(user.id, user.email, user.app_metadata),
-        supabase.from('profiles').select('subscription_plan').eq('id', user.id).single()
+        supabase.from('profiles').select('subscription_plan').eq('id', user.id).single(),
+        settingsService.getSettings().catch(() => ({} as Record<string, string>)),
+        paymentService.getSubscriptionDetails(user.id, user.email || "", user.app_metadata).catch(() => null),
     ]);
 
     const isPremium = profileResponse.data?.subscription_plan === 'premium';
+
+    const initialSettings = {
+        premiumMonthlyPrice: rawSettings["premium_monthly_price"] || "3,99",
+        premiumYearlyPrice: rawSettings["premium_yearly_price"] || "39,99",
+        premiumMonthlyEnabled: rawSettings["premium_monthly_enabled"] !== "NON",
+        premiumYearlyEnabled: rawSettings["premium_yearly_enabled"] === "OUI",
+        starterMaxTrainings: rawSettings["starter_max_trainings"] ? parseInt(rawSettings["starter_max_trainings"], 10) : 1,
+        starterMaxExercises: rawSettings["starter_max_exercises"] ? parseInt(rawSettings["starter_max_exercises"], 10) : 10,
+        trialDays: rawSettings["trial_period_days"] ? parseInt(rawSettings["trial_period_days"], 10) : 30,
+    };
 
     const initialPageContent = {
         surtitre: pageData?.surtitre ?? '',
@@ -80,6 +94,8 @@ export default async function ComptePage() {
             initialPaymentMethods={paymentMethods}
             initialIsPremium={isPremium}
             initialPageContent={initialPageContent}
+            initialSettings={initialSettings}
+            initialSubscriptionDetails={subscriptionDetails}
         />
     );
 }
