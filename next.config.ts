@@ -40,6 +40,16 @@ const nextConfig = {
     'admin.localhost',
     'app.localhost',
   ],
+  async rewrites() {
+    return {
+      beforeFiles: [
+        {
+          source: '/icons/:path*.svg',
+          destination: '/api/icons/:path*.svg',
+        },
+      ],
+    };
+  },
 };
 
 export default nextConfig;

@@ -45,17 +45,14 @@ function Chevron({ open }: { open: boolean }) {
 
 function Swatch({
   label,
-  defaultHex,
   value,
   onChange,
 }: {
   label: string;
-  defaultHex: string;
   value: string;
   onChange: (hex: string) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
-  const isModified = value.toUpperCase() !== defaultHex.toUpperCase();
 
   const commitDraft = () => {
     if (draft !== null) {
@@ -66,7 +63,7 @@ function Swatch({
   };
 
   return (
-    <div className="flex flex-col w-[96px]" title={label}>
+    <div className="flex flex-col w-[74px]" title={label}>
       <div className="rounded-[8px] border border-[#D7D4DC] shadow-glift overflow-hidden bg-white">
         <div className="relative h-[64px] cursor-pointer" style={{ backgroundColor: value }}>
           <input
@@ -76,9 +73,6 @@ function Swatch({
             aria-label={`Modifier ${label}`}
             className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
           />
-          {isModified && (
-            <span className="absolute top-[6px] right-[6px] w-[8px] h-[8px] rounded-full bg-white border border-[#3A416F]" />
-          )}
         </div>
         <input
           type="text"
@@ -88,19 +82,9 @@ function Swatch({
           onKeyDown={(e) => e.key === "Enter" && commitDraft()}
           maxLength={7}
           aria-label={`Code hex ${label}`}
-          className="w-full h-[26px] text-center text-[11px] font-semibold text-[#3A416F] bg-white focus:outline-none focus:bg-[#F4F5FE] uppercase"
+          className="w-full h-[26px] text-center text-[10px] font-semibold text-[#3A416F] bg-white focus:outline-none uppercase"
         />
       </div>
-      <span className="mt-[6px] text-[11px] leading-tight text-[#5D6494] text-center line-clamp-2">{label}</span>
-      {isModified && (
-        <button
-          type="button"
-          onClick={() => onChange(defaultHex.toUpperCase())}
-          className="mt-[2px] text-[11px] text-[#7069FA] hover:text-[#6660E4] underline"
-        >
-          Réinitialiser
-        </button>
-      )}
     </div>
   );
 }
@@ -126,10 +110,16 @@ export default function AdminColorsPage() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => ({
-    ...Object.fromEntries(PALETTE_GROUPS.map((g) => [g.id, false])),
+    ...Object.fromEntries(PALETTE_GROUPS.map((g, i) => [g.id, i !== 0])),
     degrade: true,
   }));
-  const toggle = (id: string) => setCollapsed((prev) => ({ ...prev, [id]: !prev[id] }));
+  const toggle = (id: string) =>
+    setCollapsed((prev) => {
+      const isCurrentlyCollapsed = prev[id];
+      const next: Record<string, boolean> = Object.fromEntries(Object.keys(prev).map((k) => [k, true]));
+      if (isCurrentlyCollapsed) next[id] = false;
+      return next;
+    });
 
   useEffect(() => {
     (async () => {
@@ -185,7 +175,6 @@ export default function AdminColorsPage() {
       }
       setInitialColors(colors);
       setInitialGradient({ enabled: gradientEnabled, stops });
-      setFeedback({ type: "success", message: "Couleurs sauvegardées. Rechargez le site pour voir le résultat." });
     } catch (e) {
       console.error("Save failed", e);
       setFeedback({ type: "error", message: "Erreur lors de la sauvegarde." });
@@ -217,12 +206,11 @@ export default function AdminColorsPage() {
                 <Chevron open={!collapsed[group.id]} />
               </div>
               {!collapsed[group.id] && (
-                <div className="flex flex-wrap gap-x-4 gap-y-5 mt-[10px]">
+                <div className="flex flex-wrap gap-6 mt-[10px]">
                   {group.tokens.map((t) => (
                     <Swatch
                       key={t.id}
                       label={t.label}
-                      defaultHex={t.defaultHex}
                       value={colors[t.id]}
                       onChange={(hex) => setColors((prev) => ({ ...prev, [t.id]: hex }))}
                     />

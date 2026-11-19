@@ -215,3 +215,23 @@ export function buildColorOverridesCss(overrides: ColorOverrides): string {
 
   return `:root{${vars.join(";")}}${rules.join("")}`;
 }
+
+const ICON_GROUP_IDS = new Set(["violet", "bleu", "gris"]);
+
+/**
+ * Remplace dans un SVG les couleurs des groupes `violet`, `bleu` et `gris`
+ * par leurs surcharges admin (en une passe pour éviter les collisions).
+ */
+export function recolorIconSvg(svg: string, overrides: ColorOverrides): string {
+  const map: Record<string, string> = {};
+  for (const group of PALETTE_GROUPS) {
+    if (!ICON_GROUP_IDS.has(group.id)) continue;
+    for (const token of group.tokens) {
+      const hex = overrides[token.id];
+      if (hex) map[token.defaultHex.toUpperCase()] = hex;
+    }
+  }
+  if (Object.keys(map).length === 0) return svg;
+
+  return svg.replace(/#[0-9A-Fa-f]{6}\b/g, (match) => map[match.toUpperCase()] ?? match);
+}
