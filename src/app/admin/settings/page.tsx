@@ -8,7 +8,6 @@ import CTAButton from "@/components/CTAButton";
 import { AdminTextField } from "@/app/admin/components/AdminTextField";
 import ImageUploader from "@/app/admin/components/ImageUploader";
 import AdminDropdown from "@/app/admin/components/AdminDropdown";
-import ToggleSwitch from "@/components/ui/ToggleSwitch";
 import GliftLoader from "@/components/ui/GliftLoader";
 import { cleanupOrphanedImages } from "./actions";
 
@@ -48,25 +47,6 @@ export default function AdminSettingsPage() {
     const [premiumPaymentStep, setPremiumPaymentStep] = useState<string>("disabled");
     const [initialPremiumPaymentStep, setInitialPremiumPaymentStep] = useState<string>("disabled");
 
-    // Gradient settings
-    const [gradientEnabled, setGradientEnabled] = useState<boolean>(true);
-    const [initialGradientEnabled, setInitialGradientEnabled] = useState<boolean>(true);
-
-    const [gradientColor1, setGradientColor1] = useState<string>("#F6E9F9");
-    const [initialGradientColor1, setInitialGradientColor1] = useState<string>("#F6E9F9");
-    const [gradientOpacity1, setGradientOpacity1] = useState<string>("65");
-    const [initialGradientOpacity1, setInitialGradientOpacity1] = useState<string>("65");
-
-    const [gradientColor2, setGradientColor2] = useState<string>("#E4ECFF");
-    const [initialGradientColor2, setInitialGradientColor2] = useState<string>("#E4ECFF");
-    const [gradientOpacity2, setGradientOpacity2] = useState<string>("65");
-    const [initialGradientOpacity2, setInitialGradientOpacity2] = useState<string>("65");
-
-    const [gradientColor3, setGradientColor3] = useState<string>("#F0EBFF");
-    const [initialGradientColor3, setInitialGradientColor3] = useState<string>("#F0EBFF");
-    const [gradientOpacity3, setGradientOpacity3] = useState<string>("80");
-    const [initialGradientOpacity3, setInitialGradientOpacity3] = useState<string>("80");
-
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [isCleaning, setIsCleaning] = useState(false);
@@ -78,7 +58,6 @@ export default function AdminSettingsPage() {
         premiumPricing: true,
         starterLimits: true,
         emails: true,
-        degrade: true,
         raccourcis: true,
     });
 
@@ -160,32 +139,6 @@ export default function AdminSettingsPage() {
                 setPremiumPaymentStep(premiumPaymentStepValue);
                 setInitialPremiumPaymentStep(premiumPaymentStepValue);
 
-                // Fetch Gradient Settings
-                const enabledVal = settings["gradient_enabled"] !== "false";
-                setGradientEnabled(enabledVal);
-                setInitialGradientEnabled(enabledVal);
-
-                const color1 = settings["gradient_color1"] || "#F6E9F9";
-                const opacity1 = settings["gradient_opacity1"] || "65";
-                setGradientColor1(color1);
-                setGradientOpacity1(opacity1);
-                setInitialGradientColor1(color1);
-                setInitialGradientOpacity1(opacity1);
-
-                const color2 = settings["gradient_color2"] || "#E4ECFF";
-                const opacity2 = settings["gradient_opacity2"] || "65";
-                setGradientColor2(color2);
-                setGradientOpacity2(opacity2);
-                setInitialGradientColor2(color2);
-                setInitialGradientOpacity2(opacity2);
-
-                const color3 = settings["gradient_color3"] || "#F0EBFF";
-                const opacity3 = settings["gradient_opacity3"] || "80";
-                setGradientColor3(color3);
-                setGradientOpacity3(opacity3);
-                setInitialGradientColor3(color3);
-                setInitialGradientOpacity3(opacity3);
-
             } catch (error) {
                 console.error("Failed to load settings", error);
             } finally {
@@ -208,14 +161,7 @@ export default function AdminSettingsPage() {
         starterMaxTrainings !== initialStarterMaxTrainings ||
         starterMaxExercises !== initialStarterMaxExercises ||
         contactEmail !== initialContactEmail ||
-        premiumPaymentStep !== initialPremiumPaymentStep ||
-        gradientEnabled !== initialGradientEnabled ||
-        gradientColor1 !== initialGradientColor1 ||
-        gradientOpacity1 !== initialGradientOpacity1 ||
-        gradientColor2 !== initialGradientColor2 ||
-        gradientOpacity2 !== initialGradientOpacity2 ||
-        gradientColor3 !== initialGradientColor3 ||
-        gradientOpacity3 !== initialGradientOpacity3;
+        premiumPaymentStep !== initialPremiumPaymentStep ;
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -237,15 +183,6 @@ export default function AdminSettingsPage() {
             await settingsService.updateSetting("contact_email", contactEmail);
             await settingsService.updateSetting("premium_payment_step", premiumPaymentStep);
 
-            // Save Gradient settings
-            await settingsService.updateSetting("gradient_enabled", gradientEnabled ? "true" : "false");
-            await settingsService.updateSetting("gradient_color1", gradientColor1);
-            await settingsService.updateSetting("gradient_opacity1", gradientOpacity1);
-            await settingsService.updateSetting("gradient_color2", gradientColor2);
-            await settingsService.updateSetting("gradient_opacity2", gradientOpacity2);
-            await settingsService.updateSetting("gradient_color3", gradientColor3);
-            await settingsService.updateSetting("gradient_opacity3", gradientOpacity3);
-
             // Update initial state
             setInitialLogoUrl(logoUrl);
             setInitialAltText(altText);
@@ -260,13 +197,6 @@ export default function AdminSettingsPage() {
             setInitialStarterMaxExercises(starterMaxExercises);
             setInitialContactEmail(contactEmail);
             setInitialPremiumPaymentStep(premiumPaymentStep);
-            setInitialGradientEnabled(gradientEnabled);
-            setInitialGradientColor1(gradientColor1);
-            setInitialGradientOpacity1(gradientOpacity1);
-            setInitialGradientColor2(gradientColor2);
-            setInitialGradientOpacity2(gradientOpacity2);
-            setInitialGradientColor3(gradientColor3);
-            setInitialGradientOpacity3(gradientOpacity3);
 
         } catch (error) {
             console.error("Save failed", error);
@@ -593,137 +523,6 @@ export default function AdminSettingsPage() {
                                         onChange={setContactEmail}
                                         placeholder="Email de contact"
                                     />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* SECTION 4: DÉGRADÉ */}
-                    <div className="flex flex-col">
-                        <div
-                            onClick={() => toggleSection("degrade")}
-                            className="flex justify-between items-center cursor-pointer group mb-[10px]"
-                        >
-                            <h3 className="text-[14px] font-bold text-[#D7D4DC] uppercase tracking-wide">
-                                Dégradé
-                            </h3>
-                            <div className="flex items-center gap-4">
-                                <div onClick={(e) => e.stopPropagation()}>
-                                    <ToggleSwitch
-                                        checked={gradientEnabled}
-                                        onCheckedChange={setGradientEnabled}
-                                    />
-                                </div>
-                                <div className="relative w-[18px] h-[18px]">
-                                    <Image
-                                        src="/icons/chevron_bloc.svg"
-                                        alt="Chevron"
-                                        fill
-                                        className={`object-contain transition-transform duration-200 ${!collapsedSections.degrade ? "rotate-180" : ""} group-hover:hidden`}
-                                    />
-                                    <Image
-                                        src="/icons/chevron_bloc_hover.svg"
-                                        alt="Chevron Hover"
-                                        fill
-                                        className={`object-contain transition-transform duration-200 ${!collapsedSections.degrade ? "rotate-180" : ""} hidden group-hover:block`}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {!collapsedSections.degrade && (
-                            <div className="flex flex-col gap-5 mt-[10px]">
-                                {/* Couleur 1 */}
-                                <div>
-                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 1</span>
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}` }} />
-                                            <input
-                                                type="color"
-                                                value={gradientColor1.startsWith("#") ? gradientColor1 : `#${gradientColor1}`}
-                                                onChange={(e) => setGradientColor1(e.target.value.toUpperCase())}
-                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                            />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={gradientColor1}
-                                            onChange={(e) => setGradientColor1(e.target.value)}
-                                            placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                        />
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            value={gradientOpacity1}
-                                            onChange={(e) => setGradientOpacity1(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Couleur 2 */}
-                                <div>
-                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 2</span>
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}` }} />
-                                            <input
-                                                type="color"
-                                                value={gradientColor2.startsWith("#") ? gradientColor2 : `#${gradientColor2}`}
-                                                onChange={(e) => setGradientColor2(e.target.value.toUpperCase())}
-                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                            />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={gradientColor2}
-                                            onChange={(e) => setGradientColor2(e.target.value)}
-                                            placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                        />
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            value={gradientOpacity2}
-                                            onChange={(e) => setGradientOpacity2(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Couleur 3 */}
-                                <div>
-                                    <span className="text-[16px] text-[#3A416F] font-bold mb-[8px] block">Couleur 3</span>
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative w-[45px] h-[45px] rounded-[8px] border border-[#D7D4DC] overflow-hidden flex-shrink-0 cursor-pointer">
-                                            <div className="w-full h-full" style={{ backgroundColor: gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}` }} />
-                                            <input
-                                                type="color"
-                                                value={gradientColor3.startsWith("#") ? gradientColor3 : `#${gradientColor3}`}
-                                                onChange={(e) => setGradientColor3(e.target.value.toUpperCase())}
-                                                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                                            />
-                                        </div>
-                                        <input
-                                            type="text"
-                                            value={gradientColor3}
-                                            onChange={(e) => setGradientColor3(e.target.value)}
-                                            placeholder="#FBFCFE"
-                                            className="w-full max-w-[280px] h-[45px] px-4 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] focus:outline-none focus:border-[#3A416F] uppercase"
-                                        />
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="100"
-                                            value={gradientOpacity3}
-                                            onChange={(e) => setGradientOpacity3(e.target.value)}
-                                            className="w-[65px] h-[45px] px-2 rounded-[8px] border border-[#D7D4DC] text-[#3A416F] font-semibold text-[15px] text-center focus:outline-none focus:border-[#3A416F]"
-                                        />
-                                    </div>
                                 </div>
                             </div>
                         )}

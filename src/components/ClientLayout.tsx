@@ -81,6 +81,8 @@ function ClientLayoutContent({
   const { isGlobalLoading } = useGlobalLoader();
   const pathname = usePathname();
   const shouldForceDisconnected = disconnected || !isAuthenticated;
+  // Auth pas encore résolue (1er rendu) : on ne sait pas encore quel header afficher
+  const isAuthPending = isLoading && !isAuthenticated;
 
   const isAdminAuthPage =
     pathname === "/admin/connexion" ||
@@ -109,13 +111,19 @@ function ClientLayoutContent({
       ) : null}
       {isAdminPage && <MatrixRainBackground opacity={0.25} />}
       {isAdminPage ? (
-        isAdminAuthPage || !isAuthenticated ? (
+        isAdminAuthPage ? (
+          <AdminHeaderSimple />
+        ) : isAuthPending ? null : !isAuthenticated ? (
           <AdminHeaderSimple />
         ) : (
           <AdminHeader />
         )
       ) : (
-        <Header disconnected={shouldForceDisconnected} />
+        // Header masqué (visibility) tant que l'auth n'est pas résolue, pour éviter
+        // d'afficher brièvement la version "non connecté" avant la version connectée.
+        <div style={isAuthPending && !disconnected ? { visibility: "hidden" } : undefined}>
+          <Header disconnected={shouldForceDisconnected} />
+        </div>
       )}
       <div className={`flex-1 flex flex-col ${isAdminPage ? "relative z-10" : ""}`}>
         {children}

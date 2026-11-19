@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import { UnlockScroll } from "@/components/UnlockScroll";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
+import ColorOverridesStyle from "@/components/ColorOverridesStyle";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -131,6 +132,7 @@ export default async function RootLayout({
       <body className={quicksand.className}>
         <UnlockScroll />
         <ClientLayoutWrapper initialSession={null} isAdminSubdomain={isAdminSubdomain}>{children}</ClientLayoutWrapper>
+        <ColorOverridesStyle />
       </body>
     </html>
   );
