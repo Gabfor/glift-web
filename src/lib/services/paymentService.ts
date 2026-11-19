@@ -357,8 +357,12 @@ export class PaymentService {
             console.log(`PaymentService: Active sub ${activeSub.id} has price ${currentPriceId}`);
             console.log(`PaymentService: Comparing against Starter: ${starterPriceId} and Premium: ${priceId}`);
 
-            // Case A: Already Premium (or some other paid plan)
-            if (currentPriceId === priceId) {
+            // Case A: Already Premium (same or different billing interval, e.g. monthly <-> yearly)
+            const isCurrentPremium = currentPriceId === priceId
+                || (await this.isPremiumPriceId(currentPriceId))
+                || (Boolean(currentPriceId) && currentPriceId !== starterPriceId);
+
+            if (isCurrentPremium) {
                 console.log("PaymentService: Detected already Premium. Checking status...");
 
                 if (activeSub.status === 'incomplete') {
