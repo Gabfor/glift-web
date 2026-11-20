@@ -179,7 +179,7 @@ export default function TrainingRow({
                 alt="Icone"
                 width={20}
                 height={20}
-                className={`select-none ${isGrabbing ? "cursor-grabbing w-5 h-5" : "cursor-grab w-5 h-5"}`}
+                className={`select-none touch-none ${isGrabbing ? "cursor-grabbing w-5 h-5" : "cursor-grab w-5 h-5"}`}
                 onMouseEnter={() => handleIconHover(index, true)}
                 onMouseDown={() => setIsGrabbing(true)}
                 onMouseLeave={() => handleIconHover(index, false)}

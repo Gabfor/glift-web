@@ -16,7 +16,8 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  verticalListSortingStrategy
+  verticalListSortingStrategy,
+  type SortingStrategy,
 } from "@dnd-kit/sortable";
 import {
   restrictToVerticalAxis,
@@ -256,16 +257,24 @@ export default function TrainingTable({
       dragGroup.length > 0 &&
       dragGroup.every(r => r.superset_id === overRow.superset_id);
 
+    let targetOverId = overId;
     if (overRow.superset_id && !draggedIsSameGroup) {
       const group = rows.filter(r => r.superset_id === overRow.superset_id);
       const start = rows.findIndex(r => r.id === group[0].id);
       const end = start + group.length - 1;
 
-      const isInGroup = overIndex >= start && overIndex <= end;
-      if (isInGroup) return;
+      if (oldIndex < start) {
+        if (overIndex < end) return;
+        targetOverId = (rows[end]?.id ?? overId).toString();
+      } else if (oldIndex > end) {
+        if (overIndex > start) return;
+        targetOverId = (rows[start]?.id ?? overId).toString();
+      } else {
+        return;
+      }
     }
 
-    lastOverIdRef.current = overId;
+    lastOverIdRef.current = targetOverId;
     scheduleReorder();
   };
 
@@ -321,6 +330,42 @@ export default function TrainingTable({
   };
 
   const groups = getSupersetGroups();
+
+  const supersetAwareSortingStrategy: SortingStrategy = useCallback(
+    ({ rects, activeNodeRect, activeIndex, overIndex, index }) => {
+      if (activeIndex === -1 || overIndex === -1 || activeIndex === overIndex) {
+        return null;
+      }
+
+      const currentRow = rows[index];
+      const activeRow = rows[activeIndex];
+      const sameSuperset =
+        Boolean(currentRow?.superset_id) &&
+        currentRow?.superset_id === activeRow?.superset_id;
+
+      const targetGroup = currentRow?.superset_id
+        ? groups.find((g) => g.id === currentRow.superset_id)
+        : undefined;
+
+      if (targetGroup && !sameSuperset) {
+        const draggedHeight = dragGroup.length > 0 ? dragGroup.length * 40 : (activeNodeRect?.height ?? 40);
+        if (activeIndex < targetGroup.start) {
+          return overIndex >= targetGroup.end
+            ? { x: 0, y: -draggedHeight, scaleX: 1, scaleY: 1 }
+            : null;
+        }
+        if (activeIndex > targetGroup.end) {
+          return overIndex <= targetGroup.start
+            ? { x: 0, y: draggedHeight, scaleX: 1, scaleY: 1 }
+            : null;
+        }
+        return null;
+      }
+
+      return verticalListSortingStrategy({ rects, activeNodeRect, activeIndex, overIndex, index });
+    },
+    [rows, groups, dragGroup.length]
+  );
 
   const isLastSupersetAtBottom =
     groups.length > 0 &&
@@ -380,15 +425,16 @@ export default function TrainingTable({
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragEnd}
         modifiers={[restrictToVerticalAxis, restrictToParentElement]}
       >
         <SortableContext
           items={rows.map((row, index) => (row.id ?? `temp-${index}`).toString())}
-          strategy={verticalListSortingStrategy}
+          strategy={supersetAwareSortingStrategy}
         >
           <div className="w-full rounded-t-[5px] overflow-hidden border border-[#ECE9F1]">
             <table
-              className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
+              className="w-full text-[14px] font-medium border-collapse bg-[#F6F6FA] table-fixed"
               style={{
                 minWidth: `${minTableWidth}px`,
                 borderSpacing: "0px",
@@ -444,7 +490,7 @@ export default function TrainingTable({
         </SortableContext>
         <DragOverlay dropAnimation={dragOverlayDropAnimation}>
           {dragGroup.length > 0 && (
-            <div className="relative">
+            <div className="relative bg-white shadow-[0_8px_24px_rgba(46,49,66,0.14)] ring-1 ring-[#ECE9F1]">
               {dragGroup.length > 1 && (
                 <div
                   className="absolute left-0 right-0 z-[100] pointer-events-none"
