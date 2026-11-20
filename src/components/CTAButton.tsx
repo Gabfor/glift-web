@@ -192,7 +192,7 @@ const CTAButton = forwardRef<CTAElement, CTAButtonProps>(
       <span className="inline-flex items-center gap-2">
         <Spinner
           size="md"
-          className={isPageAdmin ? "text-[#5D6494]" : "text-[#7069FA]"}
+          className="text-[#C2BFC6]"
           ariaLabel={typeof loadingText === "string" ? loadingText : undefined}
         />
         <span>{loadingText}</span>
