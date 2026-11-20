@@ -250,9 +250,13 @@ export default function TableActionsBar({
               >
                 <Image
                   src={
-                    hoveredDuplicate
-                      ? "/icons/duplicate_exercice_hover.svg"
-                      : "/icons/duplicate_exercice.svg"
+                    isPageAdmin
+                      ? hoveredDuplicate
+                        ? "/icons/admin_duplicate_program_hover.svg"
+                        : "/icons/admin_duplicate_program.svg"
+                      : hoveredDuplicate
+                        ? "/icons/duplicate_exercice_hover.svg"
+                        : "/icons/duplicate_exercice.svg"
                   }
                   alt="Dupliquer"
                   width={20}
@@ -279,11 +283,11 @@ export default function TableActionsBar({
               src={
                 allSelectedHidden
                   ? hoveredHide
-                    ? "/icons/afficher_exercice_hover.svg"
-                    : "/icons/afficher_exercice.svg"
+                    ? `${prefix}afficher_exercice_hover.svg`
+                    : `${prefix}afficher_exercice.svg`
                   : hoveredHide
-                    ? "/icons/masquer_exercice_hover.svg"
-                    : "/icons/masquer_exercice.svg"
+                    ? `${prefix}masquer_exercice_hover.svg`
+                    : `${prefix}masquer_exercice.svg`
               }
               alt={allSelectedHidden ? "Afficher" : "Masquer"}
               width={20}
@@ -336,6 +340,7 @@ export default function TableActionsBar({
         {menuOpen && (
           <ColumnMenu
             columns={togglableColumns}
+            adminMode={isPageAdmin}
             onToggle={(name) => {
               const nextColumns = columns.map((col) =>
                 col.name === name ? { ...col, visible: !col.visible } : col

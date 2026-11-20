@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 type Props = {
   columns: {
@@ -10,10 +11,16 @@ type Props = {
     visible: boolean;
   }[];
   onToggle: (name: string) => void;
+  adminMode?: boolean;
 };
 
-export default function ColumnMenu({ columns, onToggle }: Props) {
+export default function ColumnMenu({ columns, onToggle, adminMode }: Props) {
   const [hoveredCol, setHoveredCol] = useState<string | null>(null);
+  const pathname = usePathname();
+  const isAdmin =
+    adminMode ??
+    (pathname?.startsWith("/admin") ||
+      (typeof window !== "undefined" && window.location.hostname.startsWith("admin.")));
 
   return (
     <div className="absolute -right-4 top-full mt-3 w-[183px] bg-white rounded-[5px] shadow-glift-hover border border-[#ECE9F1] z-50 py-3 px-3 text-[16px] text-[#5D6494]">
@@ -33,9 +40,13 @@ export default function ColumnMenu({ columns, onToggle }: Props) {
             <Image
               src={`/icons/${
                 col.visible
-                  ? isHovered
-                    ? "checkbox_checked_hover.svg"
-                    : "checkbox_checked.svg"
+                  ? isAdmin
+                    ? isHovered
+                      ? "admin_checkbox_checked_hover.svg"
+                      : "admin_checkbox_checked.svg"
+                    : isHovered
+                      ? "checkbox_checked_hover.svg"
+                      : "checkbox_checked.svg"
                   : isHovered
                     ? "checkbox_unchecked_hover.svg"
                     : "checkbox_unchecked.svg"

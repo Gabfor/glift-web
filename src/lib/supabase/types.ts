@@ -475,6 +475,7 @@ export interface Database {
           position: Nullable<number>;
           columns_settings: Nullable<string>;
           app: boolean;
+          dashboard: boolean;
         };
         Insert: {
           id?: string;
@@ -484,6 +485,7 @@ export interface Database {
           position?: Nullable<number>;
           columns_settings?: Nullable<string>;
           app?: boolean;
+          dashboard?: boolean;
         };
         Update: {
           id?: string;
@@ -493,6 +495,7 @@ export interface Database {
           position?: Nullable<number>;
           columns_settings?: Nullable<string>;
           app?: boolean;
+          dashboard?: boolean;
         };
         Relationships: never[];
       };
@@ -516,6 +519,7 @@ export interface Database {
           link: Nullable<string>;
           note: Nullable<string>;
           position: Nullable<number>;
+          is_hidden: boolean;
         };
         Insert: {
           id?: string;
@@ -536,6 +540,7 @@ export interface Database {
           link?: Nullable<string>;
           note?: Nullable<string>;
           position?: Nullable<number>;
+          is_hidden?: boolean;
         };
         Update: {
           id?: string;
@@ -556,6 +561,7 @@ export interface Database {
           link?: Nullable<string>;
           note?: Nullable<string>;
           position?: Nullable<number>;
+          is_hidden?: boolean;
         };
         Relationships: never[];
       };

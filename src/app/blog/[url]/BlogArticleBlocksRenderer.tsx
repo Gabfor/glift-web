@@ -1539,13 +1539,18 @@ function DownloadBlock({ programmeId, ancreId }: { programmeId: string, ancreId?
       return;
     }
 
+    if (loading) return;
     setLoading(true);
-    const newProgramId = await downloadProgram(trimmedId);
-    setLoading(false);
-
-    if (newProgramId) {
-      localStorage.setItem("newly_downloaded_program_id", newProgramId);
-      router.push("/entrainements");
+    try {
+      const newProgramId = await downloadProgram(trimmedId);
+      if (newProgramId) {
+        localStorage.setItem("newly_downloaded_program_id", newProgramId);
+        router.push("/entrainements");
+        return;
+      }
+      setLoading(false);
+    } catch {
+      setLoading(false);
     }
   };
 

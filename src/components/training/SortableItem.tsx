@@ -28,6 +28,7 @@ type Props = {
   isLocked?: boolean
   onUnlockClick?: () => void
   enableRestrictedMenu?: boolean
+  adminMode?: boolean
 }
 
 export default function SortableItem({
@@ -46,6 +47,7 @@ export default function SortableItem({
   isLocked = false,
   onUnlockClick,
   enableRestrictedMenu = false,
+  adminMode = false,
 }: Props) {
   const supabase = useSupabaseClient()
 
@@ -99,7 +101,7 @@ export default function SortableItem({
     updates: Partial<{ app: boolean; dashboard: boolean }>
   ) => {
     const { error } = await supabase
-      .from('trainings')
+      .from(adminMode ? 'trainings_admin' : 'trainings')
       .update(updates)
       .eq('id', training.id)
 
@@ -242,6 +244,7 @@ export default function SortableItem({
           training={training}
           onClose={onToggleVisibility}
           onUpdateVisibility={handleVisibilityUpdate}
+          adminMode={adminMode}
         />
       )}
     </div>

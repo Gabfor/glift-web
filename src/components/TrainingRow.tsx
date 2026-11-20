@@ -56,7 +56,7 @@ export default function TrainingRow({
     setNodeRef,
     transform,
     isDragging,
-  } = useSortable({ id: rowId, disabled: adminMode || row.locked });
+  } = useSortable({ id: rowId, disabled: row.locked });
 
   const [isGrabbing, setIsGrabbing] = useState(false);
   const [isCheckboxHovered, setIsCheckboxHovered] = useState(false);
@@ -74,7 +74,7 @@ export default function TrainingRow({
   }, [handleIconHover, index, isDragging, row.iconHovered]);
 
   const dragListeners =
-    !adminMode && listeners && typeof listeners.onPointerDown === "function"
+    listeners && typeof listeners.onPointerDown === "function"
       ? { onPointerDown: (event: React.PointerEvent<HTMLImageElement>) => listeners.onPointerDown!(event) }
       : {};
 
@@ -143,7 +143,7 @@ export default function TrainingRow({
   return (
     <tr
       ref={setNodeRef}
-      {...attributes}
+      {...(row.locked ? {} : attributes)}
       style={{
         ...sortableStyle,
         visibility: isHidden ? "hidden" : "visible",
@@ -157,7 +157,7 @@ export default function TrainingRow({
       {!readOnly && (
         <td
           className="px-0 py-0 border-l-0"
-          style={{ maxWidth: isEffectiveAdmin ? "40px" : "60px", width: isEffectiveAdmin ? "40px" : "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
+          style={{ maxWidth: "60px", width: "60px", backgroundColor: row.checked ? "#F4F5FE" : "transparent" }}
         >
           <div className="flex items-center h-10 justify-center gap-2 border-t border-[#ECE9F1]">
             {row.locked ? (
@@ -172,7 +172,7 @@ export default function TrainingRow({
                   onClick={onUnlockClick}
                 />
               </Tooltip>
-            ) : !isEffectiveAdmin && (
+            ) : (
               <Image
                 {...dragListeners}
                 src={row.iconHovered ? "/icons/drag_hover.svg" : "/icons/drag.svg"}
@@ -197,7 +197,9 @@ export default function TrainingRow({
                   src={
                     row.checked
                       ? isEffectiveAdmin
-                        ? "/icons/admin_checkbox_checked.svg"
+                        ? isCheckboxHovered
+                          ? "/icons/admin_checkbox_checked_hover.svg"
+                          : "/icons/admin_checkbox_checked.svg"
                         : isCheckboxHovered
                           ? "/icons/checkbox_checked_hover.svg"
                           : "/icons/checkbox_checked.svg"

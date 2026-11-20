@@ -64,12 +64,17 @@ export default function StoreCard({
   const handleDownload = async () => {
     if (!isAuthenticated || loading || isRestricted) return;
     setLoading(true);
-    const newProgramId = await downloadProgram(program.id);
-    setLoading(false);
-    if (newProgramId) {
-      console.log("Programme téléchargé avec succès :", newProgramId);
-      localStorage.setItem("newly_downloaded_program_id", newProgramId);
-      router.push(trainingsUrl);
+    try {
+      const newProgramId = await downloadProgram(program.id);
+      if (newProgramId) {
+        console.log("Programme téléchargé avec succès :", newProgramId);
+        localStorage.setItem("newly_downloaded_program_id", newProgramId);
+        router.push(trainingsUrl);
+        return;
+      }
+      setLoading(false);
+    } catch {
+      setLoading(false);
     }
   };
  

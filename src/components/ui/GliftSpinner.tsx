@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 interface GliftSpinnerProps {
@@ -16,8 +17,18 @@ export default function GliftSpinner({
   variant = "white",
   iconSrc,
 }: GliftSpinnerProps) {
+  const pathname = usePathname();
+  const isAdmin =
+    Boolean(pathname?.startsWith("/admin")) ||
+    (typeof window !== "undefined" && window.location.hostname.startsWith("admin."));
+
   const resolvedSrc =
-    iconSrc ?? (variant === "purple" ? "/icons/loader_purple.svg" : "/icons/loader.svg");
+    iconSrc ??
+    (variant === "purple"
+      ? isAdmin
+        ? "/icons/loader_admin.svg"
+        : "/icons/loader_purple.svg"
+      : "/icons/loader.svg");
 
   return (
     <div

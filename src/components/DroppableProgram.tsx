@@ -125,6 +125,7 @@ export default function DroppableProgram(props: Props) {
                 isLocked={isLocked}
                 onUnlockClick={props.onUnlockClick}
                 enableRestrictedMenu={!isPremiumUser}
+                adminMode={adminMode}
               />
             );
           })}

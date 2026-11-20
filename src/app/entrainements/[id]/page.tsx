@@ -30,6 +30,7 @@ import { generateUUID } from "@/utils/uuid";
 
 const DEFAULT_TRAINING_NAME = "Nom de l'entraînement";
 const LEGACY_DEFAULT_TRAINING_NAME = "Nom de l’entraînement";
+const ADMIN_DEFAULT_TRAINING_NAME = "Nouvel entraînement";
 const DEFAULT_SERIES_COUNT = 4;
 const DEFAULT_EFFORT_VALUE = "parfait";
 
@@ -315,7 +316,8 @@ export default function AdminEntrainementDetailPage() {
     const isNameMissing =
       normalizedName.length === 0 ||
       normalizedName === DEFAULT_TRAINING_NAME ||
-      normalizedName === LEGACY_DEFAULT_TRAINING_NAME;
+      normalizedName === LEGACY_DEFAULT_TRAINING_NAME ||
+      normalizedName === ADMIN_DEFAULT_TRAINING_NAME;
 
     const hasTableContent = rows.some((row) => !isRowContentEmpty(row));
     const isEmpty = isNameMissing && !hasTableContent;
@@ -342,7 +344,6 @@ export default function AdminEntrainementDetailPage() {
   }, [programName, rows, isAdminRoute, isAdminTraining, supabase, trainingId, trainingsTableName, editing]);
 
   const deleteEmptyTraining = useCallback(async () => {
-    if (isAdminRoute || isAdminTraining) return { trainingDeleted: false, programDeleted: false };
     if (hasDeletedRef.current) return { trainingDeleted: false, programDeleted: false };
     if (!isNewTrainingRef.current) return { trainingDeleted: false, programDeleted: false };
     if (!shouldDeleteRef.current) {
@@ -403,7 +404,7 @@ export default function AdminEntrainementDetailPage() {
 
       // 3. Suppression du programme parent s'il est vide et par défaut
       if (targetProgramId) {
-        const programsTableName = isAdminRoute ? "programs_admin" : "programs";
+        const programsTableName = isAdminRoute || isAdminTraining ? "programs_admin" : "programs";
         
         // On attend un tout petit peu que Supabase propage la suppression de l'entraînement
         // (parfois utile avec les counts en temps réel)

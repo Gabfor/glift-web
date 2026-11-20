@@ -331,7 +331,7 @@ export default function TrainingTable({
   const getTableMinWidth = () => {
     let w = 0;
     if (!readOnly) {
-      w += adminMode ? 40 : 60;
+      w += 60;
     }
     w += 180; // Exercices
     if (isVisible("materiel")) w += 115;
@@ -398,7 +398,7 @@ export default function TrainingTable({
               <thead className={`text-white text-left h-10 ${adminMode ? "bg-[#3A416F]" : "bg-[#7069FA]"}`}>
                 <tr style={{ height: "40px" }}>
                   {!readOnly && (
-                    <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: adminMode ? "40px" : "60px", width: adminMode ? "40px" : "60px" }}></th>
+                    <th className="text-[15px] border-r rounded-tl-[5px] px-3 font-semibold" style={{ height: "40px", maxWidth: "60px", width: "60px" }}></th>
                   )}
                   <th className={`text-[15px] px-3 font-semibold ${lastVisibleCol === "exercices" ? "rounded-tr-[5px]" : "border-r border-[#ECE9F1]"} ${readOnly ? "rounded-tl-[5px]" : ""}`} style={{ height: "40px" }}>Exercices</th>
                   {isVisible("materiel") && (

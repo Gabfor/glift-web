@@ -101,7 +101,7 @@ export default function AdminSingleProgramPage() {
         id: training.id,
         name: training.name,
         app: Boolean(training.app),
-        dashboard: true,
+        dashboard: training.dashboard ?? true,
         program_id: training.program_id ?? programIdFromUrl,
         position: training.position ?? 0,
         locked: false,
@@ -360,7 +360,7 @@ export default function AdminSingleProgramPage() {
       id: data.id,
       name: data.name,
       app: Boolean(data.app),
-      dashboard: true,
+      dashboard: data.dashboard ?? true,
       program_id: data.program_id ?? program.id,
       position: data.position ?? 0,
       locked: false,
@@ -505,7 +505,18 @@ export default function AdminSingleProgramPage() {
               onDropTraining={async () => { }}
               openVisibilityIds={openVisibilityIds}
               setOpenVisibilityIds={setOpenVisibilityIds}
-              onUpdateTrainingVisibility={() => { }}
+              onUpdateTrainingVisibility={(trainingId, updates) => {
+                setProgram((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        trainings: prev.trainings.map((t) =>
+                          t.id === trainingId ? { ...t, ...updates } : t
+                        ),
+                      }
+                    : prev
+                );
+              }}
               adminMode={true}
             />
           </div>

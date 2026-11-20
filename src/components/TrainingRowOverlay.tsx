@@ -69,7 +69,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
           className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 training-input truncate ${row.link ? "underline" : ""}`}
           style={{
             backgroundColor: "transparent",
-            color: isRowHidden ? "#D7D4DC" : row.link ? "#7069FA" : "#5D6494",
+            color: isRowHidden ? "#D7D4DC" : row.link ? (adminMode ? "#3A416F" : "#7069FA") : "#5D6494",
             whiteSpace: "nowrap",
             textOverflow: "ellipsis",
           }}
@@ -83,7 +83,7 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
             disabled
             value={row.materiel}
             placeholder="Matériel"
-            className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 ${isRowHidden ? "text-[#D7D4DC]" : "text-[#5D6494]"} training-input`}
+            className={`w-full h-full px-3 py-2 border-l border-t border-[#ECE9F1] text-[14px] font-semibold leading-[1.5] placeholder:text-gray-400 ${isRowHidden ? "text-[#D7D4DC]" : "text-[#5D6494]"} training-input truncate`}
             style={{ backgroundColor: "transparent" }}
           />
         </td>
@@ -122,30 +122,32 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
         <div className="flex flex-row w-full">
           {Array.from({ length: row.series }).map((_, subIndex) => {
             const value = row.repetitions[subIndex];
-            const isUserInput = value !== "" && value !== undefined;
+            const showEffortColors = !isRowHidden && isVisible("effort") && row.effort[subIndex] !== "parfait";
 
             return (
-              <div key={`rep-${subIndex}`} className="flex w-full">
-                <div
-                  className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
-                  style={{
-                    width: `${100 / row.series}%`,
-                    backgroundColor:
-                      !isRowHidden && row.effort[subIndex] !== "parfait"
-                        ? getEffortBgColor(row.effort[subIndex])
-                        : !isRowHidden && row.checked
-                        ? "#F4F5FE"
-                        : "transparent",
-                    color: isRowHidden ? "#D7D4DC" : isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    lineHeight: "1.5",
-                  }}
-                >
-                  {value || "0"}
-                </div>
-              </div>
+              <input
+                key={`rep-${subIndex}`}
+                type="text"
+                readOnly
+                tabIndex={-1}
+                value={value || ""}
+                placeholder="0"
+                className="flex-grow min-w-0 h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input truncate pointer-events-none"
+                style={{
+                  width: `${100 / row.series}%`,
+                  backgroundColor: showEffortColors
+                    ? getEffortBgColor(row.effort[subIndex])
+                    : !isRowHidden && row.checked
+                    ? "#F4F5FE"
+                    : "transparent",
+                  ...(value
+                    ? {
+                        color: isRowHidden ? "#C2BFC6" : isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "#5D6494",
+                        WebkitTextFillColor: isRowHidden ? "#C2BFC6" : isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "#5D6494",
+                      }
+                    : {}),
+                }}
+              />
             );
           })}
         </div>
@@ -156,30 +158,32 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
           <div className="flex flex-row w-full">
             {Array.from({ length: row.series }).map((_, subIndex) => {
               const value = row.poids[subIndex];
-              const isUserInput = value !== "" && value !== undefined;
+              const showEffortColors = !isRowHidden && isVisible("effort") && row.effort[subIndex] !== "parfait";
 
               return (
-                <div key={`weight-${subIndex}`} className="flex w-full">
-                  <div
-                    className="flex-grow h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
-                    style={{
-                      width: `${100 / row.series}%`,
-                      backgroundColor:
-                        row.effort[subIndex] !== "parfait"
-                          ? getEffortBgColor(row.effort[subIndex])
-                          : row.checked
-                          ? "#F4F5FE"
-                          : "transparent",
-                      color: isUserInput ? getEffortTextColor(row.effort[subIndex]) : "#D7D4DC",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      lineHeight: "1.5",
-                    }}
-                  >
-                    {value || "0"}
-                  </div>
-                </div>
+                <input
+                  key={`weight-${subIndex}`}
+                  type="text"
+                  readOnly
+                  tabIndex={-1}
+                  value={value || ""}
+                  placeholder="0"
+                  className="flex-grow min-w-0 h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input truncate pointer-events-none"
+                  style={{
+                    width: `${100 / row.series}%`,
+                    backgroundColor: showEffortColors
+                      ? getEffortBgColor(row.effort[subIndex])
+                      : !isRowHidden && row.checked
+                      ? "#F4F5FE"
+                      : "transparent",
+                    ...(value
+                      ? {
+                          color: isRowHidden ? "#C2BFC6" : isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "#5D6494",
+                          WebkitTextFillColor: isRowHidden ? "#C2BFC6" : isVisible("effort") ? getEffortTextColor(row.effort[subIndex]) : "#5D6494",
+                        }
+                      : {}),
+                  }}
+                />
               );
             })}
           </div>
@@ -188,18 +192,23 @@ export default function TrainingRowOverlay({ row, columns, adminMode }: Props) {
 
       {isVisible("repos") && (
         <td className="px-0 py-0" style={{ maxWidth: "80px", width: "80px" }}>
-          <div
-            className="w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 training-input font-semibold"
+          <input
+            type="text"
+            readOnly
+            tabIndex={-1}
+            value={row.repos || ""}
+            placeholder="0"
+            className="w-full h-10 text-center border-l border-t border-[#ECE9F1] px-1 py-1 focus:outline-none training-input input-centered truncate pointer-events-none"
             style={{
-              lineHeight: "1.5",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: isRowHidden ? "#D7D4DC" : (row.repos !== "" && row.repos !== undefined ? "#5D6494" : "#D7D4DC"),
+              backgroundColor: "transparent",
+              ...(row.repos
+                ? {
+                    color: isRowHidden ? "#C2BFC6" : "#5D6494",
+                    WebkitTextFillColor: isRowHidden ? "#C2BFC6" : "#5D6494",
+                  }
+                : {}),
             }}
-          >
-            {row.repos || "0"}
-          </div>
+          />
         </td>
       )}
 

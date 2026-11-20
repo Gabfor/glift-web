@@ -33,9 +33,14 @@ export function useTrainingColumns(trainingId: string | undefined) {
     (typeof window !== "undefined" && window.location.host.startsWith("admin."));
   const tableName = isAdmin ? "trainings_admin" : "trainings";
 
+  const availableTogglableColumns = useMemo(
+    () => (isAdmin ? TOGGLABLE_COLUMNS.filter((c) => c.name !== "effort") : TOGGLABLE_COLUMNS),
+    [isAdmin]
+  );
+
   const [columns, setColumnsState] = useState<ColumnSetting[]>([
     ...FIXED_COLUMNS,
-    ...TOGGLABLE_COLUMNS,
+    ...availableTogglableColumns,
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +70,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
           const visibleTogglableNames: string[] = JSON.parse(data.columns_settings);
 
           if (Array.isArray(visibleTogglableNames)) {
-            const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => ({
+            const updatedTogglableColumns = availableTogglableColumns.map((col) => ({
               ...col,
               visible: visibleTogglableNames.includes(col.name),
             }));
@@ -104,7 +109,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
         }
       }
 
-      const updatedTogglableColumns = TOGGLABLE_COLUMNS.map((col) => {
+      const updatedTogglableColumns = availableTogglableColumns.map((col) => {
         if (col.name === "effort") {
           return { ...col, visible: showEffort };
         }
@@ -134,7 +139,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
     };
 
     fetchColumnsSettings();
-  }, [trainingId, supabase, tableName, isAdmin, user?.id]);
+  }, [trainingId, supabase, tableName, isAdmin, user?.id, availableTogglableColumns]);
 
   const saveColumnsInSupabase = async (currentColumns: ColumnSetting[]) => {
     if (!trainingId) return;
@@ -142,7 +147,7 @@ export function useTrainingColumns(trainingId: string | undefined) {
     const visibleTogglableNames = currentColumns
       .filter(
         (col) =>
-          TOGGLABLE_COLUMNS.map((c) => c.name).includes(col.name) &&
+          availableTogglableColumns.map((c) => c.name).includes(col.name) &&
           col.visible
       )
       .map((col) => col.name);
@@ -161,9 +166,9 @@ export function useTrainingColumns(trainingId: string | undefined) {
 
   const togglableColumns = useMemo(() => {
     return columns.filter((col) =>
-      TOGGLABLE_COLUMNS.map((c) => c.name).includes(col.name)
+      availableTogglableColumns.map((c) => c.name).includes(col.name)
     );
-  }, [columns]);
+  }, [columns, availableTogglableColumns]);
 
   return {
     columns,

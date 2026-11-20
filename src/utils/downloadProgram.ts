@@ -207,6 +207,7 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
           position: training.position ?? null,
           columns_settings: defaultColumnsSettings,
           app: training.app ?? true,
+          dashboard: training.dashboard ?? true,
         },
       ])
       .select()
@@ -254,7 +255,7 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
       repetitions: row.repetitions,
       poids: row.poids,
       repos: row.repos,
-      effort: row.effort,
+      effort: row.effort ?? Array(row.series ?? 4).fill("parfait"),
       checked: row.checked ?? false,
       created_at: row.created_at ?? new Date().toISOString(),
       updated_at: row.updated_at ?? new Date().toISOString(),
@@ -264,6 +265,7 @@ export async function downloadProgram(rawId: string): Promise<string | null> {
       link: row.link ?? null,
       note: row.note ?? null,
       position: row.position ?? null,
+      is_hidden: row.is_hidden ?? false,
     }));
 
     const { error: insertRowsError } = await supabase

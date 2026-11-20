@@ -14,9 +14,10 @@ interface VisibilityPanelProps {
   training: Training
   onClose: () => void
   onUpdateVisibility: (updates: Partial<{ app: boolean; dashboard: boolean }>) => Promise<void>
+  adminMode?: boolean
 }
 
-export default function VisibilityPanel({ training, onClose, onUpdateVisibility }: VisibilityPanelProps) {
+export default function VisibilityPanel({ training, onClose, onUpdateVisibility, adminMode = false }: VisibilityPanelProps) {
   return (
     <div className="bg-white p-4 border border-[#D7D4DC] mt-[-1px] w-full rounded-b-[8px] rounded-t-none">
       <div className="flex justify-between items-center mb-4">
@@ -43,7 +44,7 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
         <span className="text-[16px] font-semibold text-[#5D6494]">Application mobile</span>
         <ToggleSwitch
           checked={!!training.app}
-          isAdmin={false}
+          isAdmin={adminMode}
           onCheckedChange={async (checked) => {
             await onUpdateVisibility({ app: checked })
           }}
@@ -55,7 +56,7 @@ export default function VisibilityPanel({ training, onClose, onUpdateVisibility 
         <span className="text-[16px] font-semibold text-[#5D6494]">Tableau de bord</span>
         <ToggleSwitch
           checked={!!training.dashboard}
-          isAdmin={false}
+          isAdmin={adminMode}
           onCheckedChange={async (checked) => {
             await onUpdateVisibility({ dashboard: checked })
           }}
