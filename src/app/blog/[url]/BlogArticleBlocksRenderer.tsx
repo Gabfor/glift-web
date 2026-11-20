@@ -879,7 +879,7 @@ export default function BlogArticleBlocksRenderer({
                 key={key}
                 id={block.ancreId || undefined}
                 role="note"
-                className="w-full bg-[#F7F7FF] rounded-[10px] p-[20px] text-center text-[14px] font-bold text-[#3A416F] leading-relaxed scroll-mt-[100px] [&_p]:m-0 [&_p]:text-center [&_p]:font-bold [&_p]:text-[14px] [&_p]:text-[#3A416F] [&_a]:text-[#7069FA] [&_a]:underline"
+                className="w-full bg-[#F4F5FE] rounded-[10px] p-[20px] text-center text-[14px] font-bold text-[#3A416F] leading-relaxed scroll-mt-[100px] [&_p]:m-0 [&_p]:text-center [&_p]:font-bold [&_p]:text-[14px] [&_p]:text-[#3A416F] [&_a]:text-[#7069FA] [&_a]:underline"
                 dangerouslySetInnerHTML={{ __html: block.texte || "" }}
               />
             );
@@ -906,7 +906,7 @@ export default function BlogArticleBlocksRenderer({
                       className="w-full text-[14px] font-medium border-collapse bg-[#E0E0E0] table-fixed"
                       style={{ borderSpacing: "0px", marginBottom: "0px" }}
                     >
-                      <thead className="bg-[#f7f7ff] text-[#5d6494] text-left h-10">
+                      <thead className="bg-[#F4F5FE] text-[#5d6494] text-left h-10">
                         <tr style={{ height: "40px" }}>
                           {headers.map((header: string, hIdx: number) => {
                             const isFirst = hIdx === 0;
@@ -1014,7 +1014,7 @@ export default function BlogArticleBlocksRenderer({
                 {!isAfterFAQ && <div className="w-full h-[1px] bg-[#E7E8EA]" />}
                 <div
                   id={block.ancreId || undefined}
-                  className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px] scroll-mt-[100px] [&_[id^=source-]]:scroll-mt-[100px]"
+                  className="bg-[#F4F5FE] rounded-[10px] p-[20px] flex flex-col gap-[10px] last:-mb-[20px] scroll-mt-[100px] [&_[id^=source-]]:scroll-mt-[100px]"
                 >
                   {block.titre && (
                     <h3 className="text-[14px] font-bold text-[#3A416F]">

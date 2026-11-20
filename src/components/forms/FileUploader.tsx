@@ -267,7 +267,7 @@ export default function FileUploader({
                 {loading ? (
                     <span className="text-[#5D6494] font-semibold">Téléchargement en cours...</span>
                 ) : isAtMaxFiles ? (
-                    <span className="text-[#D7D4DC] font-semibold">
+                    <span className="text-[#C2BFC6] font-semibold">
                         Limite de pièces jointes atteinte
                     </span>
                 ) : (

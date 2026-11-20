@@ -416,7 +416,7 @@ export default async function BlogSubpathPage({
                 return (
                   <div className="mt-[30px]">
                     <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
-                    <div className="bg-[#F7F7FF] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
+                    <div className="bg-[#F4F5FE] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
                       <div className="relative w-[80px] h-[80px] rounded-[10px] overflow-hidden shrink-0 border border-[#ECE9F1]">
                         <ShinyAuthorImage
                           src={authorImg}

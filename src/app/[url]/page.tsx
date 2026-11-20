@@ -569,7 +569,7 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
           )}
           {extraText && (
             <div 
-              className="w-full max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-4 last:[&_p]:mb-0"
+              className="w-full max-w-[1152px] mx-auto bg-[#F4F5FE] rounded-[10px] p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-4 last:[&_p]:mb-0"
               dangerouslySetInnerHTML={{ __html: extraText }}
             />
           )}

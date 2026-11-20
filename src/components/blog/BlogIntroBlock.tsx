@@ -8,7 +8,7 @@ export default function BlogIntroBlock({ html }: { html: string }) {
   if (!html) return null;
 
   return (
-    <div className="w-full max-w-[1152px] mx-auto bg-[#F7F7FF] rounded-[10px] p-[18px] sm:p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-3 last:[&_p]:mb-0">
+    <div className="w-full max-w-[1152px] mx-auto bg-[#F4F5FE] rounded-[10px] p-[18px] sm:p-[25px] text-[#5D6494] text-[14px] font-semibold text-left [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mt-0 [&_p]:mb-3 last:[&_p]:mb-0">
       <div
         className={`${!isExpanded ? "line-clamp-3 sm:line-clamp-none" : ""} leading-relaxed`}
         dangerouslySetInnerHTML={{ __html: html }}

@@ -64,7 +64,6 @@ export const PALETTE_GROUPS: PaletteGroup[] = [
       { id: "surfacePrimary", label: "Fond principal", defaultHex: "#FBFCFE", cssVar: "--color-surface-primary" },
       { id: "surfaceHighlight", label: "Fond surligné", defaultHex: "#F6F6FA", cssVar: "--color-surface-highlight" },
       { id: "surfaceAlt", label: "Fond alternatif", defaultHex: "#FAFAFF" },
-      { id: "surfaceLavender", label: "Fond lavande", defaultHex: "#F7F7FF" },
     ],
   },
   {
