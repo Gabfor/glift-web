@@ -503,10 +503,10 @@ input:checked+.slider:before {
   }
 
   /* Boutons d'icônes et actions désactivées (ex: /entrainements) : AUCUN fond, opacité réduite à 50% */
-  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline),
-  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline),
-  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline):hover,
-  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline):hover {
+  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline):not(.dropdown-filter-btn),
+  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline):not(.dropdown-filter-btn),
+  button:disabled:not(.cta-btn):not(.btn-primary):not(.btn-outline):not(.dropdown-filter-btn):hover,
+  button[disabled]:not(.cta-btn):not(.btn-primary):not(.btn-outline):not(.dropdown-filter-btn):hover {
     background-color: transparent !important;
     background: transparent !important;
     opacity: 0.5 !important;

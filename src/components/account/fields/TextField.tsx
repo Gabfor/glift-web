@@ -66,7 +66,7 @@ export default function TextField({
             'h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px]',
             inputClassName,
             disabled
-              ? 'bg-[#F2F1F6] text-[#D7D4DC] disabled:opacity-100 disabled:[-webkit-text-fill-color:#D7D4DC] cursor-not-allowed'
+              ? 'bg-[#F2F1F6] text-[#C2BFC6] disabled:opacity-100 disabled:[-webkit-text-fill-color:#C2BFC6] cursor-not-allowed'
               : 'bg-white text-[#3A416F]',
             'transition-all duration-150',
             'border',

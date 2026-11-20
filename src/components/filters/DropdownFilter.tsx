@@ -4,6 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
+import ChevronDisabledIcon from "/public/icons/chevron_disabled.svg";
 import CheckboxCheckedIcon from "/public/icons/checkbox_checked.svg";
 import CheckboxUncheckedIcon from "/public/icons/checkbox_unchecked.svg";
 
@@ -281,12 +282,12 @@ export default function DropdownFilter({
   })();
 
   const labelColorClass = disabled
-    ? "text-[#D7D4DC]"
+    ? "text-[#C2BFC6]"
     : isPlaceholder
       ? "text-[#D7D4DC]"
       : "text-[#3A416F]";
 
-  const chevronIcon = disabled || isPlaceholder ? ChevronGreyIcon : ChevronIcon;
+  const chevronIcon = disabled ? ChevronDisabledIcon : isPlaceholder ? ChevronGreyIcon : ChevronIcon;
 
   return (
     <div
@@ -361,6 +362,7 @@ export default function DropdownFilter({
           }}
           disabled={disabled}
           className={`
+            dropdown-filter-btn
             h-10
             border
             ${buttonStateClasses}

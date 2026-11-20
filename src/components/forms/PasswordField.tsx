@@ -165,7 +165,7 @@ export function PasswordField({
           onKeyDown={handleKeyDown}
           className={cn(
             "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] pr-10 rounded-[5px] bg-white text-[#5D6494] transition-all duration-150 border",
-            "disabled:cursor-not-allowed disabled:bg-[#F2F1F6] disabled:text-[#D7D4DC] disabled:border-[#D7D4DC]",
+            "disabled:cursor-not-allowed disabled:bg-[#F2F1F6] disabled:text-[#C2BFC6] disabled:border-[#D7D4DC]",
               showError
                 ? "border-[#EF4F4E] focus:outline-none focus:border-transparent focus:ring-2 focus:ring-[#FCA5A5]"
                 : showSuccess

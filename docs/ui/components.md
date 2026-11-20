@@ -14,8 +14,10 @@
   - `loadingText`: texte affiché avec le `Spinner` intégré.
 - **États visuels** :
   - Actif : `bg --color-brand-primary`, hover `--color-brand-primary-hover`, focus ring `--color-brand-primary`.
-  - Inactif : `bg --color-surface-muted`, texte/ring `--color-border-soft`, hover `--color-surface-subtle`.
+  - Inactif / Chargement : `bg --color-surface-muted` (`#F2F1F6`), texte et `Spinner` en `#C2BFC6`, hover `--color-surface-subtle`.
   - Danger : `bg --color-accent-danger`, hover `--color-accent-danger-hover`, focus ring `--color-accent-danger`.
+- **Champs et menus désactivés (`DropdownFilter`, `TextField`, `PasswordField`)** :
+  - Fond `#F2F1F6`, texte et icônes (ex. `chevron_disabled.svg`) en `#C2BFC6`, bordure `#D7D4DC` et curseur `not-allowed`.
 - **Spécs Flutter** (équivalences) :
   | Prop / état | Flutter | Notes |
   | --- | --- | --- |

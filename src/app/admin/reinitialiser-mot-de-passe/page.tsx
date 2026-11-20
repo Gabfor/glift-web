@@ -366,7 +366,7 @@ export default function AdminResetPasswordPage() {
                   placeholder="john.doe@email.com"
                   value={email}
                   disabled
-                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#D7D4DC] border border-[#D7D4DC] cursor-not-allowed"
+                  className="h-[45px] w-full text-[16px] font-semibold placeholder-[#C2BFC6] px-[15px] rounded-[5px] bg-[#F2F1F6] text-[#C2BFC6] border border-[#D7D4DC] cursor-not-allowed"
                 />
               </div>
 
