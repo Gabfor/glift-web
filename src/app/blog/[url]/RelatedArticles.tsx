@@ -11,9 +11,10 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 type Props = {
   articleLie1Id: string | null;
   articleLie2Id: string | null;
+  hideTopDivider?: boolean;
 };
 
-export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: Props) {
+export default async function RelatedArticles({ articleLie1Id, articleLie2Id, hideTopDivider = false }: Props) {
   if (!articleLie1Id && !articleLie2Id) return null;
 
   const idsToFetch = [articleLie1Id, articleLie2Id].filter(Boolean) as string[];
@@ -41,8 +42,8 @@ export default async function RelatedArticles({ articleLie1Id, articleLie2Id }: 
   }
 
   return (
-    <div>
-      <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
+    <div className="related-articles-block">
+      {!hideTopDivider && <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />}
       
       <div className="flex justify-between items-start md:items-center mb-[20px] gap-6">
         <div className="flex flex-col gap-1">

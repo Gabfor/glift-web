@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Image from "next/image";
 import { v4 as uuidv4 } from "uuid";
 import BlockAdminWrapper from "./BlockAdminWrapper";
@@ -1205,12 +1205,18 @@ function AdminTableBlock({
   const [colPlusIcon, setColPlusIcon] = useState("/icons/admin_plus.svg");
   const [hoveredColDelIdx, setHoveredColDelIdx] = useState<number | null>(null);
   const [hoveredRowDelIdx, setHoveredRowDelIdx] = useState<number | null>(null);
+  const [resizingColIdx, setResizingColIdx] = useState<number | null>(null);
+  const tableRef = useRef<HTMLTableElement | null>(null);
   const headers = block.headers && block.headers.length > 0
     ? block.headers
     : ["Colonne 1", "Colonne 2", "Colonne 3"];
   const rows = block.rows && block.rows.length > 0
     ? block.rows
     : [["", "", ""]];
+  const hasCustomWidths = Array.isArray(block.colWidths) && block.colWidths.length === headers.length;
+  const colWidths = hasCustomWidths
+    ? block.colWidths!
+    : headers.map(() => Number((100 / headers.length).toFixed(1)));
 
   const handleUpdateHeader = (colIndex: number, value: string) => {
     const newHeaders = [...headers];
@@ -1221,14 +1227,73 @@ function AdminTableBlock({
   const handleAddColumn = () => {
     const newHeaders = [...headers, `Colonne ${headers.length + 1}`];
     const newRows = rows.map((r) => [...r, ""]);
-    updateBlock(block.id, { headers: newHeaders, rows: newRows });
+    let newColWidths: number[] | undefined = undefined;
+    if (hasCustomWidths) {
+      const addedWidth = 100 / newHeaders.length;
+      const scale = (100 - addedWidth) / 100;
+      newColWidths = [
+        ...colWidths.map((w) => Number((w * scale).toFixed(1))),
+        Number(addedWidth.toFixed(1)),
+      ];
+    }
+    updateBlock(block.id, { headers: newHeaders, rows: newRows, colWidths: newColWidths });
   };
 
   const handleDeleteColumn = (colIndex: number) => {
     if (headers.length <= 1) return;
     const newHeaders = headers.filter((_, i) => i !== colIndex);
     const newRows = rows.map((r) => r.filter((_, i) => i !== colIndex));
-    updateBlock(block.id, { headers: newHeaders, rows: newRows });
+    let newColWidths: number[] | undefined = undefined;
+    if (hasCustomWidths) {
+      const remaining = colWidths.filter((_, i) => i !== colIndex);
+      const sum = remaining.reduce((acc, w) => acc + w, 0) || 100;
+      newColWidths = remaining.map((w) => Number(((w / sum) * 100).toFixed(1)));
+    }
+    updateBlock(block.id, { headers: newHeaders, rows: newRows, colWidths: newColWidths });
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, colIdx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const tableEl = tableRef.current;
+    if (!tableEl || colIdx >= headers.length - 1) return;
+
+    const dataWidth = tableEl.getBoundingClientRect().width - 40;
+    if (dataWidth <= 0) return;
+
+    const startX = e.clientX;
+    const startWidths = [...colWidths];
+    setResizingColIdx(colIdx);
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const deltaPercent = ((moveEvent.clientX - startX) / dataWidth) * 100;
+      const prefixSum = startWidths.slice(0, colIdx).reduce((s, w) => s + w, 0);
+      const remainingBudget = 100 - prefixSum;
+      const rightCount = headers.length - 1 - colIdx;
+      const minCol = Math.min(10, 100 / headers.length);
+      const maxCol = remainingBudget - rightCount * minCol;
+      const newColWidth = Math.max(minCol, Math.min(maxCol, startWidths[colIdx] + deltaPercent));
+      const perRightCol = (remainingBudget - newColWidth) / rightCount;
+
+      const nextWidths = startWidths.map((w, idx) => {
+        if (idx < colIdx) return w;
+        if (idx === colIdx) return Number(newColWidth.toFixed(1));
+        return Number(perRightCol.toFixed(1));
+      });
+      const sumExceptLast = nextWidths.slice(0, -1).reduce((s, w) => s + w, 0);
+      nextWidths[nextWidths.length - 1] = Number((100 - sumExceptLast).toFixed(1));
+
+      updateBlock(block.id, { colWidths: nextWidths });
+    };
+
+    const onMouseUp = () => {
+      setResizingColIdx(null);
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
   };
 
   const handleUpdateCell = (rowIndex: number, colIndex: number, value: string) => {
@@ -1299,14 +1364,17 @@ function AdminTableBlock({
         </div>
 
         <div className="overflow-x-auto w-full border border-[#ECE9F1] rounded-t-[5px] overflow-hidden">
-          <table className="w-full text-[14px] font-medium border-collapse table-fixed bg-white">
+          <table ref={tableRef} className="w-full text-[14px] font-medium border-collapse table-fixed bg-white">
             <thead className="bg-[#3A416F] text-white text-left h-10">
               <tr style={{ height: "40px" }}>
                 {headers.map((header, colIdx) => (
                   <th
                     key={colIdx}
                     className="relative group border-r border-white/20 last:border-r-0 px-2 font-semibold text-center"
-                    style={{ height: "40px" }}
+                    style={{
+                      height: "40px",
+                      ...(hasCustomWidths ? { width: `${colWidths[colIdx]}%` } : {}),
+                    }}
                   >
                     <div className="relative flex items-center justify-center w-full">
                       <input
@@ -1316,6 +1384,11 @@ function AdminTableBlock({
                         placeholder={`Colonne ${colIdx + 1}`}
                         className="w-full h-10 bg-transparent text-white font-semibold text-[14px] focus:outline-none placeholder-[#D7D4DC] text-center px-6 placeholder:text-center"
                       />
+                      {resizingColIdx !== null && (
+                        <span className="pointer-events-none absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-white/20 text-white px-1.5 py-0.5 rounded">
+                          {Math.round(colWidths[colIdx])}%
+                        </span>
+                      )}
                       {headers.length > 1 && (
                         <Tooltip content="Supprimer la colonne" placement="top" offset={10} asChild>
                           <button
@@ -1323,7 +1396,7 @@ function AdminTableBlock({
                             onClick={() => handleDeleteColumn(colIdx)}
                             onMouseEnter={() => setHoveredColDelIdx(colIdx)}
                             onMouseLeave={() => setHoveredColDelIdx(null)}
-                            className="absolute right-1 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center cursor-pointer z-10"
                           >
                             <Image
                               src={
@@ -1339,6 +1412,18 @@ function AdminTableBlock({
                         </Tooltip>
                       )}
                     </div>
+                    {colIdx < headers.length - 1 && (
+                      <div
+                        onMouseDown={(e) => handleResizeStart(e, colIdx)}
+                        onDoubleClick={() => updateBlock(block.id, { colWidths: undefined })}
+                        title="Glisser pour redimensionner (double-clic pour réinitialiser)"
+                        className={`absolute top-0 right-0 w-1.5 h-full cursor-col-resize z-20 transition-colors ${
+                          resizingColIdx === colIdx
+                            ? "bg-[#7069FA]"
+                            : "hover:bg-[#7069FA]/70"
+                        }`}
+                      />
+                    )}
                   </th>
                 ))}
                 <th style={{ width: "40px", maxWidth: "40px" }} className="w-10"></th>

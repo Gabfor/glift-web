@@ -6,6 +6,7 @@ import ChevronIcon from "/public/icons/chevron.svg";
 import ChevronGreyIcon from "/public/icons/chevron_grey.svg";
 import ChevronDisabledIcon from "/public/icons/chevron_disabled.svg";
 import CheckboxCheckedIcon from "/public/icons/checkbox_checked.svg";
+import AdminCheckboxCheckedIcon from "/public/icons/admin_checkbox_checked.svg";
 import CheckboxUncheckedIcon from "/public/icons/checkbox_unchecked.svg";
 
 type FilterOption = {
@@ -27,6 +28,7 @@ type DropdownFilterProps = {
   allOptions?: FilterOption[];
   isMultiSelect?: boolean;
   fullWidthResponsive?: boolean;
+  admin?: boolean;
 };
 
 export default function DropdownFilter({
@@ -42,6 +44,7 @@ export default function DropdownFilter({
   allOptions = [],
   isMultiSelect = true,
   fullWidthResponsive = false,
+  admin = false,
 }: DropdownFilterProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -275,7 +278,7 @@ export default function DropdownFilter({
     }
 
     if (open) {
-      return "border-transparent outline-none ring-2 ring-[#A1A5FD] bg-white";
+      return `border-transparent outline-none ring-2 ${admin ? "ring-[#5D6499]" : "ring-[#A1A5FD]"} bg-white`;
     }
 
     return "border-[#D7D4DC] bg-white hover:border-[#C2BFC6]";
@@ -304,7 +307,11 @@ export default function DropdownFilter({
               setOpen(false);
               buttonRef.current?.blur();
             }}
-            className="text-[12px] mt-[3px] text-[#7069FA] font-semibold hover:text-[#6660E4] cursor-pointer"
+            className={`text-[12px] mt-[3px] font-semibold cursor-pointer ${
+              admin
+                ? "text-[#5D6494] hover:text-[#3A416F] transition-colors"
+                : "text-[#7069FA] hover:text-[#6660E4]"
+            }`}
           >
             Effacer
           </button>
@@ -470,7 +477,13 @@ export default function DropdownFilter({
                   >
                     {isMultiSelect && (
                       <Image
-                        src={isChecked ? CheckboxCheckedIcon : CheckboxUncheckedIcon}
+                        src={
+                          isChecked
+                            ? admin
+                              ? AdminCheckboxCheckedIcon
+                              : CheckboxCheckedIcon
+                            : CheckboxUncheckedIcon
+                        }
                         alt={isChecked ? "Coché" : "Non coché"}
                         width={15}
                         height={15}

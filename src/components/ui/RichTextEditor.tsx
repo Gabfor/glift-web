@@ -51,6 +51,69 @@ interface RichTextEditorProps {
     minHeight?: string;
 }
 
+const syncImageStyles = (html: string): string => {
+    if (!html) return html;
+    return html.replace(/<img\b([^>]*)>/gi, (match, attrs) => {
+        const containerMatch = attrs.match(/\bcontainerstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+        if (!containerMatch) return match;
+        const containerStyle = containerMatch[1] ?? containerMatch[2] ?? '';
+        const widthMatch = containerStyle.match(/width\s*:\s*([0-9.]+px)/i);
+        const marginMatch = containerStyle.match(/margin\s*:\s*([^;]+)/i);
+        const floatMatch = containerStyle.match(/float\s*:\s*([^;]+)/i);
+        const displayMatch = containerStyle.match(/display\s*:\s*([^;]+)/i);
+
+        const styleMatch = attrs.match(/\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+        let styleVal = styleMatch ? (styleMatch[1] ?? styleMatch[2] ?? '') : '';
+
+        const setCssProp = (css: string, prop: string, val: string) => {
+            const re = new RegExp(`(^|;)\\s*${prop}\\s*:[^;]*`, 'gi');
+            const cleaned = css.replace(re, '').replace(/^[;\s]+|[;\s]+$/g, '');
+            return cleaned ? `${cleaned}; ${prop}: ${val}` : `${prop}: ${val}`;
+        };
+
+        if (widthMatch) styleVal = setCssProp(styleVal, 'width', widthMatch[1]);
+        if (marginMatch) styleVal = setCssProp(styleVal, 'margin', marginMatch[1].trim());
+        if (floatMatch) styleVal = setCssProp(styleVal, 'float', floatMatch[1].trim());
+        if (displayMatch) styleVal = setCssProp(styleVal, 'display', displayMatch[1].trim());
+        styleVal = setCssProp(styleVal, 'max-width', '100%');
+        styleVal = setCssProp(styleVal, 'height', 'auto');
+
+        if (styleMatch) {
+            const updatedAttrs = attrs.replace(/\bstyle\s*=\s*(?:"[^"]*"|'[^']*')/i, `style="${styleVal};"`);
+            return `<img${updatedAttrs}>`;
+        }
+        return `<img${attrs} style="${styleVal};">`;
+    });
+};
+
+const stripTrailingEmptyLines = (html: string): string => {
+    if (!html) return html;
+    let clean = syncImageStyles(html)
+        .replace(/<h1(\s|>)/gi, '<p$1')
+        .replace(/<\/h1>/gi, '</p>');
+    // Supprimer les <br> en fin de dernier paragraphe (ex: <p>texte<br></p> -> <p>texte</p>)
+    clean = clean.replace(/(<br\s*\/?>)+\s*<\/p>\s*$/gi, '</p>');
+    // Supprimer les paragraphes vides résiduels en fin de contenu (sauf si c'est l'unique élément)
+    const withoutTrailingEmpty = clean.replace(/(?:<p(?:\s[^>]*)?>(?:\s|<br\s*\/?>|&nbsp;|\u00a0)*<\/p>\s*)+$/gi, '');
+    return withoutTrailingEmpty.trim() ? withoutTrailingEmpty : clean;
+};
+
+const sanitizePastedHtml = (html: string): string => {
+    if (!html) return html;
+    let clean = html
+        // Interdire les <h1> : rétrogradation automatique en <p> lors du copier-coller
+        .replace(/<h1(\s|>)/gi, '<p$1')
+        .replace(/<\/h1>/gi, '</p>')
+        // Ne pas conserver les attributs style/class collés (Google Docs, Word, etc.), sauf sur img/iframe
+        .replace(/<((?!img\b|iframe\b)[a-z0-9]+)([^>]*?)>/gi, (match, tag, attrs) => {
+            const cleanedAttrs = attrs
+                .replace(/\s+style\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '')
+                .replace(/\s+class\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi, '');
+            return `<${tag}${cleanedAttrs}>`;
+        });
+    return stripTrailingEmptyLines(clean);
+};
+
 const GlobalAttributes = Extension.create({
     name: 'globalAttributes',
     addGlobalAttributes() {
@@ -60,22 +123,14 @@ const GlobalAttributes = Extension.create({
                 attributes: {
                     class: {
                         default: null,
-                        parseHTML: element => element.getAttribute('class'),
+                        parseHTML: element => (element.classList.contains('image-caption') ? 'image-caption' : null),
                         renderHTML: attributes => {
-                            if (!attributes.class) {
+                            if (attributes.class !== 'image-caption') {
                                 return {};
                             }
                             return {
-                                class: attributes.class,
+                                class: 'image-caption',
                             };
-                        },
-                    },
-                    style: {
-                        default: null,
-                        parseHTML: element => element.getAttribute('style'),
-                        renderHTML: attributes => {
-                            if (!attributes.style) return {};
-                            return { style: attributes.style };
                         },
                     },
                 },
@@ -349,10 +404,7 @@ export default function RichTextEditor({
 
     const sanitizedValue = useMemo(() => {
         if (!value) return value;
-        let clean = value.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>');
-        // Supprimer les balises <p></p> vides résiduelles en fin de contenu ou juste sous une liste
-        clean = clean.replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>');
-        return clean;
+        return stripTrailingEmptyLines(value);
     }, [value]);
 
     const editor = useEditor({
@@ -398,14 +450,12 @@ export default function RichTextEditor({
                 style: !editorClassName && minHeight ? `min-height: ${minHeight}` : !editorClassName ? (compact ? 'min-height: 38px' : 'min-height: 345px') : '',
             },
             transformPastedHTML(html) {
-                // Interdire les <h1> : rétrogradation automatique en <p> lors du copier-coller
-                return html.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>');
+                return sanitizePastedHtml(html);
             },
         },
         immediatelyRender: false,
         onUpdate: ({ editor }) => {
-            let html = editor.getHTML();
-            html = html.replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>');
+            const html = stripTrailingEmptyLines(editor.getHTML());
             onChange(html);
         },
     });
@@ -429,8 +479,10 @@ export default function RichTextEditor({
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
     useEffect(() => {
-        if (editor && value !== editor.getHTML()) {
-            const cleanVal = value ? value.replace(/<h1(\s|>)/gi, '<p$1').replace(/<\/h1>/gi, '</p>').replace(/<\/(ul|ol)>\s*<p><\/p>$/gi, '</$1>') : value;
+        if (!editor || editor.isFocused) return;
+        const cleanVal = value ? stripTrailingEmptyLines(value) : value;
+        const currentClean = stripTrailingEmptyLines(editor.getHTML());
+        if (cleanVal !== currentClean) {
             editor.commands.setContent(cleanVal);
         }
     }, [value, editor]);
@@ -489,10 +541,10 @@ export default function RichTextEditor({
         if (!url) return;
 
         // "containerstyle" is for Tiptap editor extension. "style" is for native public frontend HTML parsing.
-        let content = `<img src="${url}" alt="${alt}" style="display: block; margin: 0 auto; width: 200px; max-width: 100%;" containerstyle="display: block; margin: 0 auto; width: 200px; max-width: 100%;" />`;
+        let content = `<img src="${url}" alt="${alt}" style="display: block; margin: 0 auto; max-width: 100%; height: auto;" containerstyle="display: block; margin: 0 auto; width: auto; max-width: 100%;" />`;
 
         if (description) {
-            content += `<p class="image-caption" style="text-align: center; color: #D7D4DC; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0px;">${description}</p>`;
+            content += `<p class="image-caption" style="text-align: center; color: #C2BFC6; font-size: 12px; font-weight: 500; margin-top: 8px; margin-bottom: 0px;">${description}</p>`;
         }
 
         content += ` `;
@@ -768,7 +820,7 @@ export default function RichTextEditor({
         .ProseMirror .image-caption *,
         .ProseMirror p.image-caption,
         .ProseMirror p.image-caption * {
-            color: #D7D4DC !important;
+            color: #C2BFC6 !important;
             font-size: 12px !important;
             font-weight: 500 !important;
             text-align: center !important;

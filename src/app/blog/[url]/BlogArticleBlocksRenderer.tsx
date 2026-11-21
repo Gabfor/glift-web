@@ -47,6 +47,58 @@ function hexToRgba(hex: string, opacityPercent: number = 100): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function cleanRichTextHtml(html?: string): string {
+  if (!html) return "";
+  // Synchroniser les dimensions/alignements (containerstyle -> style) sur les <img>
+  let clean = html.replace(/<img\b([^>]*)>/gi, (match, attrs) => {
+    const containerMatch = attrs.match(/\bcontainerstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+    if (!containerMatch) return match;
+    const containerStyle = containerMatch[1] ?? containerMatch[2] ?? "";
+    const widthMatch = containerStyle.match(/width\s*:\s*([0-9.]+px)/i);
+    const marginMatch = containerStyle.match(/margin\s*:\s*([^;]+)/i);
+    const floatMatch = containerStyle.match(/float\s*:\s*([^;]+)/i);
+    const displayMatch = containerStyle.match(/display\s*:\s*([^;]+)/i);
+
+    const styleMatch = attrs.match(/\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')/i);
+    let styleVal = styleMatch ? (styleMatch[1] ?? styleMatch[2] ?? "") : "";
+
+    const setCssProp = (css: string, prop: string, val: string) => {
+      const re = new RegExp(`(^|;)\\s*${prop}\\s*:[^;]*`, "gi");
+      const cleaned = css.replace(re, "").replace(/^[;\s]+|[;\s]+$/g, "");
+      return cleaned ? `${cleaned}; ${prop}: ${val}` : `${prop}: ${val}`;
+    };
+
+    if (widthMatch) styleVal = setCssProp(styleVal, "width", widthMatch[1]);
+    if (marginMatch) styleVal = setCssProp(styleVal, "margin", marginMatch[1].trim());
+    if (floatMatch) styleVal = setCssProp(styleVal, "float", floatMatch[1].trim());
+    if (displayMatch) styleVal = setCssProp(styleVal, "display", displayMatch[1].trim());
+    styleVal = setCssProp(styleVal, "max-width", "100%");
+    styleVal = setCssProp(styleVal, "height", "auto");
+
+    if (styleMatch) {
+      const updatedAttrs = attrs.replace(/\bstyle\s*=\s*(?:"[^"]*"|'[^']*')/i, `style="${styleVal};"`);
+      return `<img${updatedAttrs}>`;
+    }
+    return `<img${attrs} style="${styleVal};">`;
+  });
+  // Supprimer les styles inline issus de copier-coller (Google Docs, etc.) en conservant text-align et les légendes d'image
+  clean = clean.replace(/<((?!img\b|iframe\b)[a-z0-9]+)([^>]*?)>/gi, (match, tag, attrs) => {
+    if (/class\s*=\s*(?:"[^"]*\bimage-caption\b[^"]*"|'[^']*\bimage-caption\b[^']*')/i.test(attrs)) {
+      return match;
+    }
+    const updatedAttrs = attrs.replace(/\s+style\s*=\s*(?:"([^"]*)"|'([^']*)')/gi, (_m: string, dQuote: string, sQuote: string) => {
+      const styleVal = dQuote ?? sQuote ?? "";
+      const alignMatch = styleVal.match(/text-align\s*:\s*[^;]+/i);
+      return alignMatch ? ` style="${alignMatch[0]}"` : "";
+    });
+    return `<${tag}${updatedAttrs}>`;
+  });
+  // Supprimer les <br> en fin de dernier paragraphe et les paragraphes vides en fin de bloc
+  clean = clean.replace(/(<br\s*\/?>)+\s*<\/p>\s*$/gi, "</p>");
+  const withoutTrailingEmpty = clean.replace(/(?:<p(?:\s[^>]*)?>(?:\s|<br\s*\/?>|&nbsp;|\u00a0)*<\/p>\s*)+$/gi, "");
+  return withoutTrailingEmpty.trim() ? withoutTrailingEmpty : clean;
+}
+
 type ContentBlock = {
   id: string;
   type: string;
@@ -59,6 +111,7 @@ type ContentBlock = {
   table_rows?: any[];
   headers?: string[];
   rows?: string[][];
+  colWidths?: number[];
   surtitre?: string;
   enabled?: boolean;
   slots?: any[];
@@ -837,8 +890,8 @@ export default function BlogArticleBlocksRenderer({
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
                   />
                 )}
               </div>
@@ -854,8 +907,8 @@ export default function BlogArticleBlocksRenderer({
                 )}
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
                   />
                 )}
               </div>
@@ -866,8 +919,8 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] ${isConceptPage ? 'max-w-[500px] mx-auto text-center' : ''}`}>
                 {block.texte && (
                   <div
-                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: block.texte }}
+                    className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
                   />
                 )}
               </div>
@@ -880,7 +933,7 @@ export default function BlogArticleBlocksRenderer({
                 id={block.ancreId || undefined}
                 role="note"
                 className="w-full bg-[#F4F5FE] rounded-[10px] p-[20px] text-center text-[14px] font-bold text-[#3A416F] leading-relaxed scroll-mt-[100px] [&_p]:m-0 [&_p]:text-center [&_p]:font-bold [&_p]:text-[14px] [&_p]:text-[#3A416F] [&_a]:text-[#7069FA] [&_a]:underline"
-                dangerouslySetInnerHTML={{ __html: block.texte || "" }}
+                dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
               />
             );
 
@@ -888,6 +941,7 @@ export default function BlogArticleBlocksRenderer({
             const headers = block.headers || [];
             const rows = block.rows || [];
             if (headers.length === 0 && rows.length === 0) return null;
+            const hasCustomWidths = Array.isArray(block.colWidths) && block.colWidths.length === headers.length;
 
             return (
               <div
@@ -919,7 +973,10 @@ export default function BlogArticleBlocksRenderer({
                                 } ${
                                   isFirst ? "rounded-tl-[5px]" : ""
                                 } ${isLast ? "rounded-tr-[5px]" : ""}`}
-                                style={{ height: "40px" }}
+                                style={{
+                                  height: "40px",
+                                  ...(hasCustomWidths ? { width: `${block.colWidths![hIdx]}%` } : {}),
+                                }}
                               >
                                 {header}
                               </th>
@@ -1024,7 +1081,7 @@ export default function BlogArticleBlocksRenderer({
                   {block.texte && (
                     <div
                       className="text-[12px] text-[#5D6494] font-semibold break-words [&_a]:break-all [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
-                      dangerouslySetInnerHTML={{ __html: formatSourceText(block.texte) }}
+                      dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(formatSourceText(block.texte)) }}
                     />
                   )}
                 </div>
@@ -1133,7 +1190,7 @@ export default function BlogArticleBlocksRenderer({
                         </AccordionTrigger>
                         {reponse && (
                           <AccordionContent className="pb-[20px] pr-[34px] text-[15px] font-semibold text-[#5D6494] leading-[1.7] prose prose-sm max-w-none [&_p]:text-[15px] [&_p]:font-semibold [&_p]:text-[#5D6494] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#554de0]">
-                            <div dangerouslySetInnerHTML={{ __html: reponse }} />
+                            <div dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(reponse) }} />
                           </AccordionContent>
                         )}
                       </AccordionItem>

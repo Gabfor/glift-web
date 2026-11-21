@@ -574,21 +574,54 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
           {/* Section pleine largeur / ou max-w-1152px pour les articles liés */}
           <div className="bg-[#FBFCFE]">
             <div className="max-w-[760px] mx-auto">
-              <RelatedArticles
-                articleLie1Id={article.article_lie_1_id}
-                articleLie2Id={article.article_lie_2_id}
-              />
- 
-              {authorDetails && (() => {
-                const isGabriel =
-                  authorDetails.prenom?.trim().toLowerCase() === "gabriel" &&
-                  authorDetails.nom?.trim().toLowerCase() === "fort";
-                const isShiny = Boolean(authorDetails.is_shiny);
-                const authorImg = authorDetails.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
- 
+              {(() => {
+                const blocks = Array.isArray(article.content_blocks) ? article.content_blocks : [];
+                const lastVisibleBlock = [...blocks].reverse().find((b: any) => {
+                  if (!b) return false;
+                  if (b.type === "card" || b.type === "bonus") return b.enabled !== false;
+                  if (b.type === "cta") return Boolean(b.texte || b.url);
+                  if (b.type === "liste") {
+                    const listItems = b.items || [];
+                    return Boolean(b.titre || listItems.some((it: string) => it && it.trim() !== ""));
+                  }
+                  if (b.type === "faq") {
+                    const faqItems = b.items || [];
+                    return Boolean(
+                      b.titre ||
+                        faqItems.some(
+                          (it: any) =>
+                            it &&
+                            ((typeof it === "object" && (it.question || it.reponse || it.answer)) ||
+                              (typeof it === "string" && it.trim() !== ""))
+                        )
+                    );
+                  }
+                  return true;
+                });
+                const isLastBlockFAQ = lastVisibleBlock?.type === "faq";
+
                 return (
-                  <div className="mt-[30px]">
-                    <div className="w-full h-[1px] bg-[#E7E8EA] mb-[30px]" />
+                  <>
+                    <RelatedArticles
+                      articleLie1Id={article.article_lie_1_id}
+                      articleLie2Id={article.article_lie_2_id}
+                      hideTopDivider={isLastBlockFAQ}
+                    />
+
+                    {authorDetails && (() => {
+                      const isGabriel =
+                        authorDetails.prenom?.trim().toLowerCase() === "gabriel" &&
+                        authorDetails.nom?.trim().toLowerCase() === "fort";
+                      const isShiny = Boolean(authorDetails.is_shiny);
+                      const authorImg = authorDetails.image_url || (isGabriel ? "/images/gabrielfort.png" : "/images/gabriel_fort.png");
+
+                      return (
+                        <div className="mt-[30px] related-author-block">
+                          <div
+                            className={`w-full h-[1px] bg-[#E7E8EA] mb-[30px] ${
+                              isLastBlockFAQ ? "hidden [.related-articles-block+.related-author-block_&]:block" : ""
+                            }`}
+                          />
                     <div className="bg-[#F4F5FE] rounded-[10px] p-[20px] flex flex-col sm:flex-row gap-[20px] items-center sm:items-start">
                       <div className="relative w-[80px] h-[80px] rounded-[10px] overflow-hidden shrink-0 border border-[#ECE9F1]">
                         <ShinyAuthorImage
@@ -622,6 +655,9 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ ur
                       </div>
                     </div>
                   </div>
+                    );
+                  })()}
+                  </>
                 );
               })()}
             </div>

@@ -33,6 +33,7 @@ export type BlockTableau = BaseBlock & {
   titre?: string;
   headers: string[];
   rows: string[][];
+  colWidths?: number[];
 };
 
 export type BlockCTA = BaseBlock & {

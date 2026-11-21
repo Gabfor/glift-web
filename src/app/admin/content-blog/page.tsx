@@ -309,6 +309,7 @@ export default function AdminContentBlogPage() {
               placeholder="Toutes les catégories"
               selected={categoryFilter}
               onSelect={setCategoryFilter}
+              admin={true}
               options={[
                 { value: "Nutrition", label: "Nutrition" },
                 { value: "Entraînement", label: "Entraînement" },

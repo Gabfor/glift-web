@@ -929,12 +929,12 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               )}
             </div>
 
-            <div className="flex justify-center">
+            <div className="sticky bottom-6 z-40 flex justify-center pointer-events-none">
               <CTAButton
                 onClick={handleSave}
                 disabled={!isFormValid || !isDirty || isSaving}
                 variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
-                className="font-semibold"
+                className="font-semibold pointer-events-auto shadow-glift"
               >
                 {isSaving ? "Sauvegarde en cours..." : articleId ? "Mettre à jour" : "Créer l'article"}
               </CTAButton>

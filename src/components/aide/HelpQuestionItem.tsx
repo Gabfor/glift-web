@@ -110,7 +110,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
                 .prose .image-caption *,
                 .prose p.image-caption,
                 .prose p.image-caption * {
-                    color: #D7D4DC !important;
+                    color: #C2BFC6 !important;
                     font-size: 12px !important;
                     font-weight: 500 !important;
                     text-align: center !important;
