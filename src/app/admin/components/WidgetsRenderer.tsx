@@ -119,8 +119,8 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
         const isLast = index === blocks.length - 1;
 
         return (
+          <div key={block.id} data-widget-block-index={index} data-widget-block-id={block.id}>
           <BlockAdminWrapper
-            key={block.id}
             title={getBlockTitle(block.type)}
             onMoveUp={() => moveBlock(index, "up")}
             onMoveDown={() => moveBlock(index, "down")}
@@ -1186,6 +1186,7 @@ export default function WidgetsRenderer({ blocks, onChangeBlocks, currentNiveau,
               </div>
             )}
           </BlockAdminWrapper>
+          </div>
         );
       })}
     </div>

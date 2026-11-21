@@ -29,6 +29,28 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
   const [isUrlManuallyEdited, setIsUrlManuallyEdited] = useState(!isNewArticle);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
+  const [insertBlockIndex, setInsertBlockIndex] = useState<number | null>(null);
+
+  const handleOpenWidgetModalAtScrollPosition = () => {
+    const blockEls = document.querySelectorAll<HTMLElement>("[data-widget-block-index]");
+    if (blockEls.length === 0) {
+      setInsertBlockIndex(null);
+    } else {
+      const viewportCenter = window.innerHeight / 2;
+      let targetIdx = 0;
+      blockEls.forEach((el) => {
+        const idx = Number(el.dataset.widgetBlockIndex);
+        const rect = el.getBoundingClientRect();
+        const elMid = rect.top + rect.height / 2;
+        if (elMid <= viewportCenter) {
+          targetIdx = idx + 1;
+        }
+      });
+      setInsertBlockIndex(targetIdx);
+    }
+    setCollapsedSections((prev) => (prev.content ? { ...prev, content: false } : prev));
+    setIsWidgetModalOpen(true);
+  };
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     status: false,
@@ -910,11 +932,8 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
 
                   <button
                     onClick={() => {
-                      if (article.type === "Conseil") {
-                        setIsWidgetModalOpen(true);
-                      } else {
-                        setIsWidgetModalOpen(true);
-                      }
+                      setInsertBlockIndex(null);
+                      setIsWidgetModalOpen(true);
                     }}
                     className="w-full h-[45px] border border-dashed border-[#D7D4DC] rounded-[5px] bg-white flex items-center justify-center gap-2 hover:border-[#C2BFC6] transition-all duration-150 group"
                   >
@@ -929,15 +948,28 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
               )}
             </div>
 
-            <div className="sticky bottom-6 z-40 flex justify-center pointer-events-none">
-              <CTAButton
-                onClick={handleSave}
-                disabled={!isFormValid || !isDirty || isSaving}
-                variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
-                className="font-semibold pointer-events-auto shadow-glift"
-              >
-                {isSaving ? "Sauvegarde en cours..." : articleId ? "Mettre à jour" : "Créer l'article"}
-              </CTAButton>
+            <div className="fixed bottom-0 inset-x-0 z-40 px-4 pt-8 pb-6 bg-gradient-to-t from-white via-white/90 to-transparent flex justify-center pointer-events-none">
+              <div className="flex items-center justify-center gap-3">
+                <CTAButton
+                  onClick={handleSave}
+                  disabled={!isFormValid || !isDirty || isSaving}
+                  variant={isFormValid && isDirty && !isSaving ? "active" : "inactive"}
+                  className="font-semibold pointer-events-auto shadow-glift"
+                >
+                  {isSaving ? "Sauvegarde en cours..." : articleId ? "Mettre à jour" : "Créer l'article"}
+                </CTAButton>
+                <button
+                  type="button"
+                  onClick={handleOpenWidgetModalAtScrollPosition}
+                  title="Ajouter un bloc de contenu ici"
+                  aria-label="Ajouter un bloc de contenu ici"
+                  className="pointer-events-auto w-[44px] h-[44px] shrink-0 rounded-full border border-dashed border-[#D7D4DC] bg-white hover:border-[#C2BFC6] shadow-glift flex items-center justify-center transition-all duration-150 cursor-pointer group"
+                >
+                  <div className="relative w-[20px] h-[20px]">
+                    <Image src="/icons/plus_grey.svg" alt="Ajouter" fill className="object-contain" />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -947,7 +979,10 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
     {isWidgetModalOpen && (
       <AddWidgetModal
         articleType={article.type}
-        onClose={() => setIsWidgetModalOpen(false)}
+        onClose={() => {
+          setInsertBlockIndex(null);
+          setIsWidgetModalOpen(false);
+        }}
         onSelect={(type) => {
           const newId = Math.random().toString(36).substr(2, 9);
           let newBlock = null;
@@ -1020,11 +1055,27 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
           }
 
           if (newBlock) {
+            const blocks = article.content_blocks || [];
+            const updatedBlocks =
+              insertBlockIndex !== null && insertBlockIndex >= 0 && insertBlockIndex <= blocks.length
+                ? [
+                    ...blocks.slice(0, insertBlockIndex),
+                    newBlock as any,
+                    ...blocks.slice(insertBlockIndex),
+                  ]
+                : [...blocks, newBlock as any];
             setArticle({
               ...article,
-              content_blocks: [...article.content_blocks, newBlock as any]
+              content_blocks: updatedBlocks,
             });
+            if (insertBlockIndex !== null) {
+              requestAnimationFrame(() => {
+                const el = document.querySelector(`[data-widget-block-id="${newId}"]`);
+                el?.scrollIntoView({ behavior: "smooth", block: "center" });
+              });
+            }
           }
+          setInsertBlockIndex(null);
           setIsWidgetModalOpen(false);
         }}
       />
