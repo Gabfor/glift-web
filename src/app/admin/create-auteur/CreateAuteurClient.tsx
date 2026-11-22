@@ -34,8 +34,43 @@ type SocialLink = {
   url: string;
 };
 
+export type AuthorFormInitialState = {
+  prenom: string;
+  nom: string;
+  poste_actuel: string;
+  image_url: string;
+  image_mobile: string;
+  image_alt: string;
+  experience: string;
+  expertise: string;
+  description_courte: string;
+  description: string;
+  liens_sociaux: SocialLink[];
+  statut: boolean;
+  langue: string;
+  is_shiny: boolean;
+};
+
+const emptyAuthorInitialState: AuthorFormInitialState = {
+  prenom: "",
+  nom: "",
+  poste_actuel: "",
+  image_url: "",
+  image_mobile: "",
+  image_alt: "",
+  experience: "",
+  expertise: "",
+  description_courte: "",
+  description: "",
+  liens_sociaux: [{ platform: "", url: "" }],
+  statut: true,
+  langue: "Français",
+  is_shiny: false,
+};
+
 type Props = {
   auteurId: string | null;
+  initialAuteur?: AuthorFormInitialState | null;
 };
 
 const platformOptions = [
@@ -48,7 +83,7 @@ const platformOptions = [
   { value: "website", label: "Site Web" },
 ];
 
-export default function CreateAuteurClient({ auteurId }: Props) {
+export default function CreateAuteurClient({ auteurId, initialAuteur = null }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
 
@@ -77,23 +112,23 @@ export default function CreateAuteurClient({ auteurId }: Props) {
     ].join(", ");
   }, []);
 
+  const resolvedInitial = initialAuteur || emptyAuthorInitialState;
+
   // Form states
-  const [prenom, setPrenom] = useState("");
-  const [nom, setNom] = useState("");
-  const [posteActuel, setPosteActuel] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imageMobile, setImageMobile] = useState("");
-  const [imageAlt, setImageAlt] = useState("");
-  const [experience, setExperience] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [descriptionCourte, setDescriptionCourte] = useState("");
-  const [description, setDescription] = useState("");
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([
-    { platform: "", url: "" },
-  ]);
-  const [statut, setStatut] = useState(true);
-  const [langue, setLangue] = useState("Français");
-  const [isShiny, setIsShiny] = useState(false);
+  const [prenom, setPrenom] = useState(resolvedInitial.prenom);
+  const [nom, setNom] = useState(resolvedInitial.nom);
+  const [posteActuel, setPosteActuel] = useState(resolvedInitial.poste_actuel);
+  const [imageUrl, setImageUrl] = useState(resolvedInitial.image_url);
+  const [imageMobile, setImageMobile] = useState(resolvedInitial.image_mobile);
+  const [imageAlt, setImageAlt] = useState(resolvedInitial.image_alt);
+  const [experience, setExperience] = useState(resolvedInitial.experience);
+  const [expertise, setExpertise] = useState(resolvedInitial.expertise);
+  const [descriptionCourte, setDescriptionCourte] = useState(resolvedInitial.description_courte);
+  const [description, setDescription] = useState(resolvedInitial.description);
+  const [socialLinks, setSocialLinks] = useState<SocialLink[]>(resolvedInitial.liens_sociaux);
+  const [statut, setStatut] = useState(resolvedInitial.statut);
+  const [langue, setLangue] = useState(resolvedInitial.langue);
+  const [isShiny, setIsShiny] = useState(resolvedInitial.is_shiny);
 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({
     status: false,
@@ -121,22 +156,7 @@ export default function CreateAuteurClient({ auteurId }: Props) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Initial state for change detection (isDirty)
-  const [initialAuthorState, setInitialAuthorState] = useState({
-    prenom: "",
-    nom: "",
-    poste_actuel: "",
-    image_url: "",
-    image_mobile: "",
-    image_alt: "",
-    experience: "",
-    expertise: "",
-    description_courte: "",
-    description: "",
-    liens_sociaux: [{ platform: "", url: "" }] as SocialLink[],
-    statut: true,
-    langue: "Français",
-    is_shiny: false,
-  });
+  const [initialAuthorState, setInitialAuthorState] = useState<AuthorFormInitialState>(resolvedInitial);
 
   const currentAuthorState = useMemo(() => ({
     prenom,
@@ -174,9 +194,9 @@ export default function CreateAuteurClient({ auteurId }: Props) {
     return JSON.stringify(currentAuthorState) !== JSON.stringify(initialAuthorState);
   }, [currentAuthorState, initialAuthorState]);
 
-  // Fetch author data in edit mode
+  // Fetch author data in edit mode (fallback if not provided by SSR)
   useEffect(() => {
-    if (!auteurId) return;
+    if (!auteurId || initialAuteur) return;
 
     const fetchAuthor = async () => {
       setIsLoading(true);

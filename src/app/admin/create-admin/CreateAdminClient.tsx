@@ -8,28 +8,38 @@ import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import ErrorMessage from "@/components/ui/ErrorMessage";
 
+export type AdminFormInitialState = {
+  prenom: string;
+  email: string;
+  statut: boolean;
+  langue: string;
+};
+
 type Props = {
   adminId: string | null;
+  initialAdmin?: AdminFormInitialState | null;
 };
 
 const inputClass =
   "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
 
-export default function CreateAdminClient({ adminId }: Props) {
+export default function CreateAdminClient({ adminId, initialAdmin = null }: Props) {
   const router = useRouter();
 
   // Form states
-  const [statut, setStatut] = useState(false);
-  const [langue, setLangue] = useState("Français");
-  const [prenom, setPrenom] = useState("");
-  const [email, setEmail] = useState("");
+  const [statut, setStatut] = useState(initialAdmin?.statut ?? false);
+  const [langue, setLangue] = useState(initialAdmin?.langue ?? "Français");
+  const [prenom, setPrenom] = useState(initialAdmin?.prenom ?? "");
+  const [email, setEmail] = useState(initialAdmin?.email ?? "");
 
   const [isSaving, setIsSaving] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Initial state for dirty detection in edit mode
-  const [initialState, setInitialState] = useState({ prenom: "", email: "", statut: false, langue: "Français" });
+  const [initialState, setInitialState] = useState<AdminFormInitialState>(
+    initialAdmin ?? { prenom: "", email: "", statut: false, langue: "Français" }
+  );
 
   const isDirty = useMemo(() => {
     if (!adminId) return true; // always submittable in create mode
@@ -41,9 +51,9 @@ export default function CreateAdminClient({ adminId }: Props) {
     );
   }, [adminId, prenom, email, statut, langue, initialState]);
 
-  // Load existing admin data in edit mode
+  // Load existing admin data in edit mode (fallback if not provided by SSR)
   useEffect(() => {
-    if (!adminId) return;
+    if (!adminId || initialAdmin) return;
 
     const fetchAdmin = async () => {
       setIsLoading(true);

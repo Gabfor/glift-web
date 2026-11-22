@@ -46,14 +46,15 @@ const getDateParts = (value: string): [string, string, string] => {
 
 type Props = {
   pageId: string | null;
+  initialPage?: LegalPageFormState | null;
 };
 
-export default function CreateLegalPageClient({ pageId }: Props) {
+export default function CreateLegalPageClient({ pageId, initialPage = null }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   
-  const [pageData, setPageData] = useState<LegalPageFormState>(emptyLegalPage);
-  const [basePageData, setBasePageData] = useState<LegalPageFormState>(emptyLegalPage);
+  const [pageData, setPageData] = useState<LegalPageFormState>(initialPage || emptyLegalPage);
+  const [basePageData, setBasePageData] = useState<LegalPageFormState>(initialPage || emptyLegalPage);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -89,7 +90,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
   );
 
   useEffect(() => {
-    if (!pageId) return;
+    if (!pageId || initialPage) return;
 
     const fetchPage = async () => {
       const { data, error } = await (supabase as any)
@@ -108,7 +109,7 @@ export default function CreateLegalPageClient({ pageId }: Props) {
     };
 
     void fetchPage();
-  }, [pageId, supabase]);
+  }, [pageId, initialPage, supabase]);
 
   const handleSave = async () => {
     setIsSaving(true);

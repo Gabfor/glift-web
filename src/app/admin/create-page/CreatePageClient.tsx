@@ -52,16 +52,22 @@ const getDateParts = (value: string): [string, string, string] => {
   return ["", "", ""];
 };
 
-export default function CreatePageClient({ pageId }: { pageId: string | null }) {
+export default function CreatePageClient({
+  pageId,
+  initialPage = null,
+}: {
+  pageId: string | null;
+  initialPage?: PageFormState | null;
+}) {
   const router = useRouter();
   const supabaseFull = useMemo(() => createClient(), []);
 
   // --- Generic PAGE state ---
-  const [pageData, setPageData] = useState<PageFormState>(emptyPage);
-  const [basePageData, setBasePageData] = useState<PageFormState>(emptyPage);
+  const [pageData, setPageData] = useState<PageFormState>(initialPage || emptyPage);
+  const [basePageData, setBasePageData] = useState<PageFormState>(initialPage || emptyPage);
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialPage && Boolean(pageId));
   const [saving, setSaving] = useState(false);
 
   const isBlogPage =
@@ -103,25 +109,27 @@ export default function CreatePageClient({ pageId }: { pageId: string | null }) 
   };
 
   const fetchData = useCallback(async () => {
+    if (!pageId || initialPage) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
 
-    if (pageId) {
-      // Fetch generic page
-      const { data, error } = await (supabaseFull as any)
-        .from("pages")
-        .select("*")
-        .eq("id", pageId)
-        .single();
+    // Fetch generic page
+    const { data, error } = await (supabaseFull as any)
+      .from("pages")
+      .select("*")
+      .eq("id", pageId)
+      .single();
 
-      if (data && !error) {
-        const mapped = mapPageRowToForm(data);
-        setPageData(mapped);
-        setBasePageData(mapped);
-      }
+    if (data && !error) {
+      const mapped = mapPageRowToForm(data);
+      setPageData(mapped);
+      setBasePageData(mapped);
     }
 
     setLoading(false);
-  }, [pageId, supabaseFull]);
+  }, [pageId, initialPage, supabaseFull]);
 
   useEffect(() => {
     fetchData();

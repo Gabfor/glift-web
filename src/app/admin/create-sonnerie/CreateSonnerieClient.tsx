@@ -13,34 +13,37 @@ import { createClient } from "@/lib/supabaseClient";
 
 type Props = {
   ringtoneId: string | null;
+  initialRingtone?: RingtoneItem | null;
 };
 
 const inputClass =
   "h-[45px] w-full text-[16px] font-semibold placeholder-[#D7D4DC] px-[15px] rounded-[5px] bg-white text-[#5D6494] border border-[#D7D4DC] hover:border-[#C2BFC6] focus:border-transparent focus:outline-none focus:ring-2 focus:ring-[#5D6494] transition-all duration-150 truncate";
 
-export default function CreateSonnerieClient({ ringtoneId }: Props) {
+export default function CreateSonnerieClient({ ringtoneId, initialRingtone = null }: Props) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Form states
-  const [statut, setStatut] = useState(true);
-  const [isDefault, setIsDefault] = useState(false);
-  const [name, setName] = useState("");
+  const [statut, setStatut] = useState(initialRingtone ? (initialRingtone.is_active ?? true) : true);
+  const [isDefault, setIsDefault] = useState(initialRingtone ? (initialRingtone.is_default ?? false) : false);
+  const [name, setName] = useState(initialRingtone?.name ?? "");
   const [file, setFile] = useState<File | null>(null);
-  const [fileName, setFileName] = useState("");
-  const [fileUrl, setFileUrl] = useState("");
-  const [durationMs, setDurationMs] = useState(2200);
+  const [fileName, setFileName] = useState(initialRingtone?.filename ?? "");
+  const [fileUrl, setFileUrl] = useState(initialRingtone?.url ?? "");
+  const [durationMs, setDurationMs] = useState(initialRingtone?.duration_ms ?? 2200);
 
   // Image states
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageUrl, setImageUrl] = useState(initialRingtone?.icon_url ?? "");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imageFileName, setImageFileName] = useState("");
-  const [imageAlt, setImageAlt] = useState("");
+  const [imageFileName, setImageFileName] = useState(
+    initialRingtone?.icon_url ? initialRingtone.icon_url.split("/").pop() || "" : ""
+  );
+  const [imageAlt, setImageAlt] = useState(initialRingtone?.image_alt ?? "");
 
   const [isSaving, setIsSaving] = useState(false);
-  const [isLoading, setIsLoading] = useState(Boolean(ringtoneId));
+  const [isLoading, setIsLoading] = useState(Boolean(ringtoneId) && !initialRingtone);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Accordion collapsed state matching other admin create pages: only one open at a time
@@ -74,12 +77,12 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
 
   // Initial state for dirty detection in edit mode
   const [initialState, setInitialState] = useState({
-    name: "",
-    statut: true,
-    isDefault: false,
-    fileName: "",
-    imageUrl: "",
-    imageAlt: "",
+    name: initialRingtone?.name ?? "",
+    statut: initialRingtone ? (initialRingtone.is_active ?? true) : true,
+    isDefault: initialRingtone ? (initialRingtone.is_default ?? false) : false,
+    fileName: initialRingtone?.filename ?? "",
+    imageUrl: initialRingtone?.icon_url ?? "",
+    imageAlt: initialRingtone?.image_alt ?? "",
   });
 
   const isDirty = useMemo(() => {
@@ -96,9 +99,9 @@ export default function CreateSonnerieClient({ ringtoneId }: Props) {
     );
   }, [ringtoneId, name, statut, isDefault, fileName, imageUrl, imageAlt, file, imageFile, initialState]);
 
-  // Load existing ringtone data in edit mode
+  // Load existing ringtone data in edit mode (fallback if not provided by SSR)
   useEffect(() => {
-    if (!ringtoneId) return;
+    if (!ringtoneId || initialRingtone) return;
 
     const fetchRingtone = async () => {
       setIsLoading(true);

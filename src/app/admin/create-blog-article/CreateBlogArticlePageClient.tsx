@@ -9,7 +9,7 @@ import AdminMultiSelectDropdown from "@/components/AdminMultiSelectDropdown";
 import CTAButton from "@/components/CTAButton";
 import BackLink from "@/components/BackLink";
 import Image from "next/image";
-import { BlogArticleFormState, emptyBlogArticle } from "./blogArticleForm";
+import { BlogArticleFormState, emptyBlogArticle, mapDbArticleToFormState } from "./blogArticleForm";
 import AddWidgetModal from "@/app/admin/components/AddWidgetModal";
 import WidgetsRenderer from "@/app/admin/components/WidgetsRenderer";
 import { ContentBlock } from "./blogArticleForm";
@@ -20,14 +20,22 @@ import { stripHtml } from "@/lib/utils";
 
 type Props = {
   articleId: string | null;
+  initialArticle?: BlogArticleFormState | null;
+  initialAuthors?: { prenom: string; nom: string }[];
 };
 
-export default function CreateBlogArticlePageClient({ articleId }: Props) {
+export default function CreateBlogArticlePageClient({
+  articleId,
+  initialArticle = null,
+  initialAuthors,
+}: Props) {
   const router = useRouter();
   const isNewArticle = !articleId;
-  const [article, setArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
-  const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(emptyBlogArticle);
-  const [isUrlManuallyEdited, setIsUrlManuallyEdited] = useState(!isNewArticle);
+  const [article, setArticle] = useState<BlogArticleFormState>(initialArticle || emptyBlogArticle);
+  const [baseArticle, setBaseArticle] = useState<BlogArticleFormState>(initialArticle || emptyBlogArticle);
+  const [isUrlManuallyEdited, setIsUrlManuallyEdited] = useState(
+    initialArticle ? Boolean(initialArticle.url) : !isNewArticle
+  );
   const [isWidgetModalOpen, setIsWidgetModalOpen] = useState(false);
   const [insertBlockIndex, setInsertBlockIndex] = useState<number | null>(null);
 
@@ -90,10 +98,11 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   );
 
   const [isSaving, setIsSaving] = useState(false);
-  const [authors, setAuthors] = useState<any[]>([]);
+  const [authors, setAuthors] = useState<{ prenom: string; nom: string }[]>(initialAuthors || []);
   const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
+    if (initialAuthors) return;
     const fetchAuthors = async () => {
       const { data, error } = await supabase
         .from("auteurs")
@@ -106,7 +115,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
       }
     };
     void fetchAuthors();
-  }, [supabase]);
+  }, [supabase, initialAuthors]);
 
   const authorOptions = useMemo(() => {
     return authors.map((a) => {
@@ -116,7 +125,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
   }, [authors]);
 
   useEffect(() => {
-    if (!articleId) return;
+    if (!articleId || initialArticle) return;
 
     const fetchArticle = async () => {
       const { data: rawData, error } = await supabase
@@ -126,53 +135,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
         .single();
 
       if (rawData && !error) {
-        const data = rawData as any;
-        let parsedCategories: string[] = [];
-        if (Array.isArray(data.categorie)) {
-          parsedCategories = data.categorie.filter((c: any): c is string => typeof c === "string" && c.trim() !== "");
-        } else if (typeof data.categorie === "string") {
-          try {
-            const parsed = JSON.parse(data.categorie);
-            parsedCategories = Array.isArray(parsed)
-              ? parsed.filter((c: any): c is string => typeof c === "string" && c.trim() !== "")
-              : (data.categorie.trim() ? [data.categorie.trim()] : []);
-          } catch {
-            parsedCategories = data.categorie.trim() ? [data.categorie.trim()] : [];
-          }
-        }
-
-        const fetchedArticle: BlogArticleFormState = {
-          id: data.id,
-          type: data.type || "Conseil",
-          titre: data.titre || "",
-          description: data.description || "",
-          url: data.url || "",
-          categorie: parsedCategories,
-          sexe: data.sexe || "",
-          langue: data.langue || "Français",
-          niveau: data.niveau || "",
-          objectif: data.objectif || "",
-          nombre_seances: data.nombre_seances || "",
-          duree_moyenne: data.duree_moyenne || "",
-          nombre_semaines: data.nombre_semaines || "",
-          lieu: data.lieu || "",
-          intensite: data.intensite || "",
-          image: data.image_url || "",
-          image_mobile: data.image_mobile || "",
-          image_alt: data.image_alt || "",
-          article_lie_1: data.article_lie_1_id || "",
-          article_lie_2: data.article_lie_2_id || "",
-          content_blocks: data.content_blocks || [],
-          is_published: !!data.is_published,
-          is_featured: !!data.is_featured,
-          is_ai_generated: !!data.is_ai_generated,
-          seo_title: data.seo_title || "",
-          seo_description: stripHtml(data.seo_description) || "",
-          noindex: !!data.noindex,
-          nofollow: !!data.nofollow,
-          canonical_override: data.canonical_override || "",
-          auteur: data.auteur || "",
-        };
+        const fetchedArticle = mapDbArticleToFormState(rawData);
         setArticle(fetchedArticle);
         setBaseArticle(fetchedArticle);
         if (!fetchedArticle.url) {
@@ -184,7 +147,7 @@ export default function CreateBlogArticlePageClient({ articleId }: Props) {
     };
 
     void fetchArticle();
-  }, [articleId, supabase]);
+  }, [articleId, initialArticle, supabase]);
 
   const handleTitreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitre = e.target.value;

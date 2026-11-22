@@ -304,3 +304,62 @@ export const emptyBlogArticle: BlogArticleFormState = {
   canonical_override: "",
   auteur: "",
 };
+
+export function mapDbArticleToFormState(data: any): BlogArticleFormState {
+  let parsedCategories: string[] = [];
+  if (Array.isArray(data.categorie)) {
+    parsedCategories = data.categorie.filter(
+      (c: unknown): c is string => typeof c === "string" && c.trim() !== ""
+    );
+  } else if (typeof data.categorie === "string") {
+    try {
+      const parsed = JSON.parse(data.categorie);
+      parsedCategories = Array.isArray(parsed)
+        ? parsed.filter((c: unknown): c is string => typeof c === "string" && c.trim() !== "")
+        : data.categorie.trim()
+          ? [data.categorie.trim()]
+          : [];
+    } catch {
+      parsedCategories = data.categorie.trim() ? [data.categorie.trim()] : [];
+    }
+  }
+
+  const rawSeoDesc = data.seo_description || "";
+  const cleanSeoDesc =
+    typeof rawSeoDesc === "string"
+      ? rawSeoDesc.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
+      : "";
+
+  return {
+    id: data.id,
+    type: data.type || "Conseil",
+    titre: data.titre || "",
+    description: data.description || "",
+    url: data.url || "",
+    categorie: parsedCategories,
+    sexe: data.sexe || "",
+    langue: data.langue || "Français",
+    niveau: data.niveau || "",
+    objectif: data.objectif || "",
+    nombre_seances: data.nombre_seances || "",
+    duree_moyenne: data.duree_moyenne || "",
+    nombre_semaines: data.nombre_semaines || "",
+    lieu: data.lieu || "",
+    intensite: data.intensite || "",
+    image: data.image_url || "",
+    image_mobile: data.image_mobile || "",
+    image_alt: data.image_alt || "",
+    article_lie_1: data.article_lie_1_id || "",
+    article_lie_2: data.article_lie_2_id || "",
+    content_blocks: data.content_blocks || [],
+    is_published: !!data.is_published,
+    is_featured: !!data.is_featured,
+    is_ai_generated: !!data.is_ai_generated,
+    seo_title: data.seo_title || "",
+    seo_description: cleanSeoDesc,
+    noindex: !!data.noindex,
+    nofollow: !!data.nofollow,
+    canonical_override: data.canonical_override || "",
+    auteur: data.auteur || "",
+  };
+}
