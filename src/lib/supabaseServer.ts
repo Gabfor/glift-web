@@ -28,9 +28,31 @@ export async function createServerClient(): Promise<SupabaseClient<Database>> {
         },
         setAll(cookiesToSet) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
+            const shouldPersistSession =
+              cookieStore.get("glift-remember")?.value !== "0";
+
+            cookiesToSet.forEach(({ name, value, options }) => {
+              const sanitizedOptions = options ? { ...options } : undefined;
+              const isCodeVerifier = name.includes("code-verifier");
+              const isRemoval =
+                value === "" ||
+                (sanitizedOptions?.maxAge !== undefined &&
+                  sanitizedOptions.maxAge <= 0) ||
+                (sanitizedOptions?.expires instanceof Date &&
+                  sanitizedOptions.expires.getTime() <= Date.now());
+
+              if (
+                sanitizedOptions &&
+                !shouldPersistSession &&
+                !isCodeVerifier &&
+                !isRemoval
+              ) {
+                delete sanitizedOptions.maxAge;
+                delete sanitizedOptions.expires;
+              }
+
+              cookieStore.set(name, value, sanitizedOptions);
+            });
           } catch {
             // The setAll method was called from a Server Component.
             // This can be ignored if you have middleware refreshing

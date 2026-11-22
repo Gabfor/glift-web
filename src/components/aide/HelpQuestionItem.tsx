@@ -6,6 +6,8 @@ import { AccordionItem, AccordionContent } from "@/components/ui/accordion";
 import AccordionTrigger from "@/components/account/AccordionTrigger";
 import Tooltip from "@/components/Tooltip";
 import { Quicksand } from "next/font/google";
+import { useSiteSettings } from "@/hooks/useSiteSettings";
+import { replaceSettingsVariables } from "@/lib/utils/settingsVariables";
 
 const quicksand = Quicksand({
     subsets: ["latin"],
@@ -23,6 +25,16 @@ type Props = {
 export default function HelpQuestionItem({ questionId, question, answer, searchTerm = "" }: Props) {
     const [hasVoted, setHasVoted] = useState(false);
     const [voteCasted, setVoteCasted] = useState<'top' | 'flop' | null>(null);
+    const siteSettings = useSiteSettings();
+
+    const varContext = {
+        starterMaxTrainings: siteSettings.starterMaxTrainings,
+        starterMaxExercises: siteSettings.starterMaxExercises,
+        premiumMonthlyPrice: siteSettings.premiumMonthlyPrice,
+        premiumYearlyPrice: siteSettings.premiumYearlyPrice,
+        trialDays: siteSettings.trialDays,
+        applyLegacyTextReplacements: false,
+    };
 
     // Load persisted vote from localStorage
     useEffect(() => {
@@ -68,9 +80,14 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
 
 
 
-    const cleanAnswer = answer
-        // Collapse multiple empty paragraphs (with or without align styles) into a single empty paragraph
-        .replace(/(<p(?:\s+style="text-align:\s*(?:left|center|right);?")?><\/p>\s*)+/g, '<p></p>');
+    const cleanAnswer = replaceSettingsVariables(
+        answer
+            // Collapse multiple empty paragraphs (with or without align styles) into a single empty paragraph
+            .replace(/(<p(?:\s+style="text-align:\s*(?:left|center|right);?")?><\/p>\s*)+/g, '<p></p>'),
+        varContext
+    );
+
+    const formattedQuestion = replaceSettingsVariables(question, varContext);
 
     const highlightHTML = (htmlContent: string, term: string) => {
         if (!term) return htmlContent;
@@ -129,7 +146,7 @@ export default function HelpQuestionItem({ questionId, question, answer, searchT
             `}</style>
             <div className="border border-[#D7D4DC] bg-white rounded-[8px] shadow-glift hover:shadow-glift-hover group-data-[state=open]/accordion:shadow-glift-hover transition-shadow duration-200">
                 <div className="overflow-hidden rounded-[8px]">
-                    <AccordionTrigger>{highlightText(question, searchTerm)}</AccordionTrigger>
+                    <AccordionTrigger>{highlightText(formattedQuestion, searchTerm)}</AccordionTrigger>
                 </div>
                 <AccordionContent
                     className="bg-white border-t border-[#D7D4DC] rounded-b-[8px] pb-0"

@@ -5,6 +5,7 @@ export interface VariableSettingsContext {
   premiumYearlyPrice?: string;
   trialDays?: number;
   interval?: "monthly" | "yearly";
+  applyLegacyTextReplacements?: boolean;
 }
 
 /**
@@ -84,17 +85,19 @@ export function replaceSettingsVariables(
     .replace(/\{trial_days\}/gi, String(trialDays))
     .replace(/\{jours_essai\}/gi, String(trialDays));
 
-  // Rétrocompatibilité intelligente :
-  // Si le texte de l'argument Starter en dur mentionne "Un seul entraînement" ou "1 entraînement"
-  // et que le réglage a été augmenté (ex: 2) :
-  if (maxTrainings > 1) {
-    result = result.replace(/un seul\s*entraînement/gi, `${maxTrainings} entraînements`);
-    result = result.replace(/Un seul\s*entraînement/gi, `${maxTrainings} entraînements`);
-  }
+  if (context.applyLegacyTextReplacements !== false) {
+    // Rétrocompatibilité intelligente :
+    // Si le texte de l'argument Starter en dur mentionne "Un seul entraînement" ou "1 entraînement"
+    // et que le réglage a été augmenté (ex: 2) :
+    if (maxTrainings > 1) {
+      result = result.replace(/un seul\s*entraînement/gi, `${maxTrainings} entraînements`);
+      result = result.replace(/Un seul\s*entraînement/gi, `${maxTrainings} entraînements`);
+    }
 
-  // De même pour "10 exercices" si starter_max_exercises a été modifié :
-  if (maxExercises !== 10) {
-    result = result.replace(/10\s*exercices/gi, `${maxExercises} exercices`);
+    // De même pour "10 exercices" si starter_max_exercises a été modifié :
+    if (maxExercises !== 10) {
+      result = result.replace(/10\s*exercices/gi, `${maxExercises} exercices`);
+    }
   }
 
   return result;

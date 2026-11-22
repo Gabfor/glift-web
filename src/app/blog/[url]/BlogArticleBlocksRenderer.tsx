@@ -14,6 +14,7 @@ import AnimatedSection from "@/components/AnimatedSection";
 import PricingTable from "@/components/PricingTable";
 import { Subscription } from "@/app/admin/create-blog-article/blogArticleForm";
 import { useSiteSettings, SiteSettings } from "@/hooks/useSiteSettings";
+import { replaceSettingsVariables } from "@/lib/utils/settingsVariables";
 import { useDashboardUrl } from "@/hooks/useDashboardUrl";
 import { EmailField, isValidEmail } from "@/components/forms/EmailField";
 import { motion, AnimatePresence } from "framer-motion";
@@ -397,6 +398,16 @@ export default function BlogArticleBlocksRenderer({
     ? `linear-gradient(115deg, ${rgba1} 0%, ${rgba3} 45%, ${rgba2} 100%)`
     : "none";
 
+  const applySettingsVars = (text?: string) =>
+    replaceSettingsVariables(text, {
+      starterMaxTrainings: siteSettings.starterMaxTrainings,
+      starterMaxExercises: siteSettings.starterMaxExercises,
+      premiumMonthlyPrice: siteSettings.premiumMonthlyPrice,
+      premiumYearlyPrice: siteSettings.premiumYearlyPrice,
+      trialDays: siteSettings.trialDays,
+      applyLegacyTextReplacements: false,
+    });
+
   const firstSeanceId = React.useMemo(() => {
     const first = blocks.find(b => b.type === "seance");
     if (!first) return null;
@@ -675,13 +686,13 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className={`flex flex-col scroll-mt-[100px] text-center w-full ${isConceptPage ? 'max-w-[500px]' : 'max-w-[760px]'} mx-auto`}>
                 {block.surtitre && (
                   <div className="uppercase text-[12px] font-bold text-[var(--color-brand-primary)] mb-[10px] tracking-wide">
-                    {block.surtitre}
+                    {applySettingsVars(block.surtitre)}
                   </div>
                 )}
                 {block.titre && (
                   <div 
                     className="text-[24px] sm:text-[32px] md:text-[30px] font-bold text-[var(--color-text-heading)] leading-snug"
-                    dangerouslySetInnerHTML={{ __html: block.titre.replace(/\n/g, '<br />') }}
+                    dangerouslySetInnerHTML={{ __html: applySettingsVars(block.titre).replace(/\n/g, '<br />') }}
                   />
                 )}
               </div>
@@ -885,13 +896,13 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} id={block.ancreId || undefined} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[22px] font-bold text-[#3A416F] leading-tight">
-                    {block.titre}
+                    {applySettingsVars(block.titre)}
                   </h2>
                 )}
                 {block.texte && (
                   <div
                     className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(block.texte)) }}
                   />
                 )}
               </div>
@@ -902,13 +913,13 @@ export default function BlogArticleBlocksRenderer({
               <div key={key} className="flex flex-col gap-[10px] scroll-mt-[100px]">
                 {block.titre && (
                   <h2 className="text-[16px] font-bold text-[#3A416F] leading-tight">
-                    {block.titre}
+                    {applySettingsVars(block.titre)}
                   </h2>
                 )}
                 {block.texte && (
                   <div
                     className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(block.texte)) }}
                   />
                 )}
               </div>
@@ -920,7 +931,7 @@ export default function BlogArticleBlocksRenderer({
                 {block.texte && (
                   <div
                     className="prose prose-sm xl:prose-base max-w-none text-[#5D6494] font-semibold [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_h2]:text-[22px] [&_h2]:font-bold [&_h2]:text-[#3A416F] [&_h2]:leading-tight [&_h2]:mt-6 [&_h2]:mb-3 [&_h3]:text-[18px] [&_h3]:font-bold [&_h3]:text-[#3A416F] [&_h3]:leading-snug [&_h3]:mt-5 [&>h3:first-child]:mt-0 [&_h3]:mb-2 [&_p]:mt-0 [&_p]:mb-3.5"
-                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
+                    dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(block.texte)) }}
                   />
                 )}
               </div>
@@ -933,7 +944,7 @@ export default function BlogArticleBlocksRenderer({
                 id={block.ancreId || undefined}
                 role="note"
                 className="w-full bg-[#F4F5FE] rounded-[10px] p-[20px] text-center text-[14px] font-bold text-[#3A416F] leading-relaxed scroll-mt-[100px] [&_p]:m-0 [&_p]:text-center [&_p]:font-bold [&_p]:text-[14px] [&_p]:text-[#3A416F] [&_a]:text-[#7069FA] [&_a]:underline"
-                dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(block.texte) }}
+                dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(block.texte)) }}
               />
             );
 
@@ -1081,7 +1092,7 @@ export default function BlogArticleBlocksRenderer({
                   {block.texte && (
                     <div
                       className="text-[12px] text-[#5D6494] font-semibold break-words [&_a]:break-all [&_a]:underline [&_a]:text-[#5D6494] [&_a]:hover:text-[#3A416F] transition-colors [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_li]:mb-1 source-text-container"
-                      dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(formatSourceText(block.texte)) }}
+                      dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(formatSourceText(block.texte))) }}
                     />
                   )}
                 </div>
@@ -1147,7 +1158,7 @@ export default function BlogArticleBlocksRenderer({
                         </span>
                         <div
                           className="text-[15px] font-semibold text-[#5D6494] leading-[1.6] [&_p]:m-0 [&_p]:inline [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_strong]:font-bold [&_b]:font-bold [&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#554de0] flex-1"
-                          dangerouslySetInnerHTML={{ __html: item }}
+                          dangerouslySetInnerHTML={{ __html: applySettingsVars(item) }}
                         />
                       </div>
                     );
@@ -1185,12 +1196,12 @@ export default function BlogArticleBlocksRenderer({
                       <AccordionItem key={idx} value={`faq-${key}-${idx}`} className="border-b border-[#ECE9F1]">
                         <AccordionTrigger className="hover:no-underline text-[15px] font-bold text-[#5D6494] hover:text-[#3A416F] data-[state=open]:text-[#3A416F] py-[18px] md:py-[20px] transition-colors">
                           <h3 className="text-[15px] font-bold text-inherit m-0 p-0 font-[inherit] inline">
-                            {question}
+                            {applySettingsVars(question)}
                           </h3>
                         </AccordionTrigger>
                         {reponse && (
                           <AccordionContent className="pb-[20px] pr-[34px] text-[15px] font-semibold text-[#5D6494] leading-[1.7] prose prose-sm max-w-none [&_p]:text-[15px] [&_p]:font-semibold [&_p]:text-[#5D6494] [&_strong]:text-[#3A416F] [&_b]:text-[#3A416F] [&_p]:mb-3 [&_p:last-child]:mb-0 [&_a]:text-[#7069FA] [&_a]:underline hover:[&_a]:text-[#554de0]">
-                            <div dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(reponse) }} />
+                            <div dangerouslySetInnerHTML={{ __html: cleanRichTextHtml(applySettingsVars(reponse)) }} />
                           </AccordionContent>
                         )}
                       </AccordionItem>

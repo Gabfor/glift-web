@@ -245,6 +245,7 @@ export default function ConnexionPage() {
     try {
       setOauthLoading(provider);
       setError(null);
+      persistRememberPreference(rememberMe);
       const origin = typeof window !== "undefined" ? window.location.origin : "";
       const redirectTo = `${origin}/auth/callback${sanitizedNextParam ? `?next=${encodeURIComponent(sanitizedNextParam)}` : ""}`;
 

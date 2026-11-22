@@ -671,6 +671,22 @@ export default async function LegalPage({ params }: { params: Promise<{ url: str
   const isTarifsPage = currentUrl === "tarifs";
   const isAppsPage = currentUrl === "apps";
 
+  if (isTarifsPage) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("subscription_plan")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (profile?.subscription_plan === "premium") {
+        redirect("/entrainements");
+      }
+    }
+  }
+
   const settingsService = new SettingsService(supabase as any);
   const rawSettings = await settingsService.getSettings();
   const siteSettings: SiteSettings = {
